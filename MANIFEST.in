@@ -1,4 +1,4 @@
 recursive-include * *.js *.html *.txt *.gif *.png *.css *.wsdl *.xml *.xsd *.sh
 include versioneer.py
-include ESSArch_EPP/_version.py
+include ESSArch_TP/_version.py
 #include ESSArch_EPP/config/celeryd

@@ -22,10 +22,10 @@
 
 import versioneer
 versioneer.VCS = 'git'
-versioneer.versionfile_source = 'ESSArch_EPP/_version.py'
+versioneer.versionfile_source = 'ESSArch_TP/_version.py'
 versioneer.versionfile_build = None
 versioneer.tag_prefix = '' # tags are like 1.2.0
-versioneer.parentdir_prefix = 'ESSArch_EPP-'
+versioneer.parentdir_prefix = 'ESSArch_TP-'
 
 from setuptools import find_packages, setup  
 from setuptools.command.install import install as _install  
@@ -46,11 +46,11 @@ if __name__ == '__main__':
     cmdclass=versioneer.get_cmdclass()
     cmdclass.update({'install': my_install})
     setup(
-        name='ESSArch_EPP',
+        name='ESSArch_TP',
         version=versioneer.get_version(),
-        description='ESSArch Preservation Platform',
-        author='Henrik Ek',
-        author_email='henrik@essolutions.se',
+        description='ESSArch Tools Producer',
+        author='Björn Skog',
+        author_email='info@essolutions.se',
         url='http://www.essolutions.se',
         install_requires=[
             "MySQL-python>=1.2.5",
