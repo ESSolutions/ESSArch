@@ -19,7 +19,7 @@
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 '''
-
+ 
 import versioneer
 versioneer.VCS = 'git'
 versioneer.versionfile_source = 'ESSArch_TP/_version.py'
