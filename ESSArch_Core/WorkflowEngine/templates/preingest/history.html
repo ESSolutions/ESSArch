@@ -1,0 +1,11 @@
+<style>
+    details details {
+        padding-left: 20px;
+    }
+</style>
+
+{% for s in steps %}
+    {%with step=s %}
+       {%include "preingest/step.html"%}
+    {%endwith%}
+{% endfor %}

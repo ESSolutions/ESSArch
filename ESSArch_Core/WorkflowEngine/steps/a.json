@@ -1,0 +1,22 @@
+{
+    "tasks": [
+        {
+            "name": "preingest.tasks.First",
+            "params": {
+                "foo": "a"
+            }
+        },
+        {
+            "name": "preingest.tasks.Second",
+            "params": {
+                "foo": "b"
+            }
+        },
+        {
+            "name": "preingest.tasks.Third",
+            "params": {
+                "foo": "c"
+            }
+        }
+    ]
+}

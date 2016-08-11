@@ -1,0 +1,112 @@
+<style>
+    .failure {
+        background-color: #ff8288;
+    }
+
+    .success {
+        background-color: #82ff82;
+    }
+</style>
+
+<h2>Results for {{ step.name }} with id {{ step.id }}</h2>
+<h2>Steps</h2>
+<div>
+    <table border=1>
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>name</th>
+                <th>progress</th>
+                <th>status</th>
+                <th>time_created</th>
+                <th>time_done</th>
+                <th>undone</th>
+                <th>undo_type</th>
+                <th>retried</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in step.child_steps.all %}
+                {% if s.waitForParams %}
+                    <tr class="{{ s.status }}">
+                        <td colspan="100%">
+                            <h4>Params for next step</h4>
+                            <form method="POST" action="/preingest/continue_step/{{ s.id }}/">
+                            {% csrf_token %}
+                            {% for k, v in s.tasks.first.params.iteritems %}
+                                <label for="id_{{ k }}">{{ k }}</label>
+                                <input type="text" name="{{ k }}" value="{{ v }}" id="id_{{ k }}"/>
+                            {% endfor %}
+                            <input type="submit" value="Submit and continue"/>
+                            </form>
+                        </td>
+                    </tr>
+                {% endif %}
+                <tr class="{{ s.status }}">
+                    <td>
+                        <a href="/preingest/history/{{ s.id }}">
+                            {{ s.id }}
+                        </a>
+                    </td>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.progress }}</td>
+                    <td>{{ s.status }}</td>
+                    <td>{{ s.time_created }}</td>
+                    <td>{{ s.time_done }}</td>
+                    <td>{{ s.undone }}</td>
+                    <td>{{ s.undo_type }}</td>
+                    <td>{{ s.retried }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<h2>Tasks</h2>
+<div>
+    <table border=1>
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>attempt</th>
+                <th>pos</th>
+                <th>name</th>
+                <th>params</th>
+                <th>progress</th>
+                <th>status</th>
+                <th>time_started</th>
+                <th>time_done</th>
+                <th>undone</th>
+                <th>undo_type</th>
+                <th>retried</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in step.tasks.all %}
+            <tr class="{{ t.status }}">
+                <td>{{ t.id }}</td>
+                <td>{{ t.attempt }}</td>
+                <td>{{ t.processstep_pos }}</td>
+                <td>{{ t.name }}</td>
+                <td>{{ t.params }}</td>
+                <td>{{ t.progress }}</td>
+                <td>{{ t.status }}</td>
+                <td>{{ t.time_started }}</td>
+                <td>{{ t.time_done }}</td>
+                <td>{{ t.undone }}</td>
+                <td>{{ t.undo_type }}</td>
+                <td>{{ t.retried }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2>Total Progress: {{ step.get_progress }}</h2>
+    <form method="get" action="/preingest/undo_failed/{{ step.id }}">
+        <input type="submit" value="Undo failed"/>
+    </form>
+    <form method="get" action="/preingest/undo_step/{{ step.id }}">
+        <input type="submit" value="Undo all"/>
+    </form>
+    <form method="get" action="/preingest/retry_step/{{ step.id }}">
+        <input type="submit" value="Retry"/>
+    </form>
+</div>

@@ -1,0 +1,83 @@
+<details>
+    <summary>
+        <table border=1>
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>name</th>
+                    <th>progress</th>
+                    <th>status</th>
+                    <th>time_created</th>
+                    <th>time_done</th>
+                    <th>undone</th>
+                    <th>undo_type</th>
+                    <th>retried</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="{{ step.status }}">
+                    <td>
+                        <a href="/preingest/history/{{ step.id }}">
+                            {{ step.id }}
+                        </a>
+                    </td>
+                    <td>{{ step.name }}</td>
+                    <td>{{ step.progress }}</td>
+                    <td>{{ step.status }}</td>
+                    <td>{{ step.time_created }}</td>
+                    <td>{{ step.time_done }}</td>
+                    <td>{{ step.undone }}</td>
+                    <td>{{ step.undo_type }}</td>
+                    <td>{{ step.retried }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </summary>
+    <div>
+        <b>steps</b>
+        {% for c in step.child_steps.all %}
+            {%with step=c %}
+                {%include "preingest/step.html"%}
+            {%endwith%}
+        {% endfor %}
+    </div>
+    <div>
+        <b>tasks</b>
+        <table border=1>
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>attempt</th>
+                    <th>pos</th>
+                    <th>name</th>
+                    <th>params</th>
+                    <th>progress</th>
+                    <th>status</th>
+                    <th>time_started</th>
+                    <th>time_done</th>
+                    <th>undone</th>
+                    <th>undo_type</th>
+                    <th>retried</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in step.tasks.all %}
+                <tr class="{{ t.status }}">
+                    <td>{{ t.id }}</td>
+                    <td>{{ t.attempt }}</td>
+                    <td>{{ t.processstep_pos }}</td>
+                    <td>{{ t.name }}</td>
+                    <td>{{ t.params }}</td>
+                    <td>{{ t.progress }}</td>
+                    <td>{{ t.status }}</td>
+                    <td>{{ t.time_started }}</td>
+                    <td>{{ t.time_done }}</td>
+                    <td>{{ t.undone }}</td>
+                    <td>{{ t.undo_type }}</td>
+                    <td>{{ t.retried }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</details>

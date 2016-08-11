@@ -1,0 +1,25 @@
+{
+    "tasks": [
+        {
+            "name": "preingest.tasks.CreatePhysicalModel",
+            "params": {
+                "structure": {
+                    "IP_name(UUID)": {
+                        "content": {
+                            "data": {},
+                            "documentation": {}
+                        },
+                        "metadata": {}
+                    }
+                },
+                "root": "tmpsip"
+            }
+        },
+        {
+            "name": "preingest.tasks.CreateIPEventsFile",
+            "params": {
+                "events": ["create ip"]
+            }
+        }
+    ]
+}

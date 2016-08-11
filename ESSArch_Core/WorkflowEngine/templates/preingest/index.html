@@ -1,0 +1,20 @@
+<h2>Steps</h2>
+<div>
+    {% for s in steps %}
+        <div>
+            <span>{{ s.name }}</span>
+            <input type="submit" value="Run"
+                                 onclick="window.location='run/{{ s.name  }}';" />
+        </div>
+    {% endfor %}
+</div>
+<h2>Tasks</h2>
+<div>
+    {% for t in tasks %}
+        <div>
+            <span>{{ t.name }}</span>
+            <input type="submit" value="Run"
+                                 onclick="window.location='run/{{ t.name  }}';" />
+        </div>
+    {% endfor %}
+</div>

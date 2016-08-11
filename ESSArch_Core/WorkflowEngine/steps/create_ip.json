@@ -1,0 +1,225 @@
+{
+    "tasks": [
+        {
+            "name": "preingest.tasks.UploadFile",
+            "params": {
+                "src_file": "premis.xsd",
+                "dst_file": "premis.xsd"
+            }
+        },
+        {
+            "name": "preingest.tasks.UploadFile",
+            "params": {
+                "src_file": "mets.xsd",
+                "dst_file": "mets.xsd"
+            }
+        },
+        {
+            "name": "preingest.tasks.GenerateXML",
+            "params": {
+                "data": {
+                    "info": {
+                        "xmlns:mets": "http://www.loc.gov/METS/",
+                        "xmlns:ext": "ExtensionMETS",
+                        "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                        "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+                        "xsi:schemaLocation": "http://www.loc.gov/METS/ http://xml.ra.se/e-arkiv/METS/CSPackageMETS.xsd ExtensionMETS http://xml.ra.se/e-arkiv/METS/CSPackageExtensionMETS.xsd",
+                        "xsi:schemaLocationPremis": "http://www.loc.gov/premis/v3 https://www.loc.gov/standards/premis/premis.xsd",
+                        "PROFILE": "http://xml.ra.se/e-arkiv/METS/CommonSpecificationSwedenPackageProfile.xmll",
+                        "LABEL": "Test of SIP 1",
+                        "TYPE": "Personnel",
+                        "OBJID": "UUID:9bc10faa-3fff-4a8f-bf9a-638841061065",
+                        "ext:CONTENTTYPESPECIFICATION": "FGS Personal, version 1",
+                        "CREATEDATE": "2016-06-08T10:44:00+02:00",
+                        "RECORDSTATUS": "NEW",
+                        "ext:OAISTYPE": "SIP",
+                        "agentName": "name",
+                        "agentNote": "note",
+                        "REFERENCECODE": "SE/RA/123456/24/F",
+                        "SUBMISSIONAGREEMENT": "RA 13-2011/5329, 2012-04-12",
+                        "MetsIdentifier": "sip.xml",
+                        "filename":"sip.txt",
+                        "SMLabel":"Profilestructmap",
+                        "amdLink":"IDce745fec-cfdd-4d14-bece-d49e867a2487",
+                        "digiprovLink":"IDa32a20cb-5ff8-4d36-8202-f96519154de2",
+                        "LOCTYPE":"URL",
+                        "MDTYPE":"PREMIS",
+                        "xlink:href":"file:///metadata/premis.xml",
+                        "xlink:type":"simple",
+                        "ID":"ID31e51159-9280-44d1-b26c-014077f8eeb5",
+                        "agents":[{
+                            "ROLE":"ARCHIVIST",
+                            "TYPE":"ORGANIZATION",
+                            "name":"Arkivbildar namn",
+                            "note":"VAT:SE201345098701"
+                        },{
+                        "ROLE":"ARCHIVIST",
+                        "TYPE":"OTHER",
+                        "OTHERTYPE":"SOFTWARE",
+                        "name":"By hand Systems",
+                        "note":"1.0.0"
+                        },{
+                        "ROLE":"ARCHIVIST",
+                        "TYPE":"OTHER",
+                        "OTHERTYPE":"SOFTWARE",
+                        "name":"Other By hand Systems",
+                        "note":"1.2.0"
+                        },{
+                        "ROLE":"CREATOR",
+                        "TYPE":"ORGANIZATION",
+                        "name":"Arkivbildar namn",
+                        "note":"HSA:SE2098109810-AF87"
+                        },{
+                        "ROLE":"OTHER",
+                        "OTHERROLE":"PRODUCER",
+                        "TYPE":"ORGANIZATION",
+                        "name":"Sydarkivera",
+                        "note":"HSA:SE2098109810-AF87"
+                        },{
+                        "ROLE":"OTHER",
+                        "OTHERROLE":"SUBMITTER",
+                        "TYPE":"ORGANIZATION",
+                        "name":"Arkivbildare",
+                        "note":"HSA:SE2098109810-AF87"
+                        },{
+                        "ROLE":"IPOWNER",
+                        "TYPE":"ORGANIZATION",
+                        "name":"Informations agare",
+                        "note":"HSA:SE2098109810-AF87"
+                        },{
+                        "ROLE":"EDITOR",
+                        "TYPE":"ORGANIZATION",
+                        "name":"Axenu",
+                        "note":"VAT:SE9512114233"
+                        },{
+                        "ROLE":"CREATOR",
+                        "TYPE":"INDIVIDUAL",
+                        "name":"Simon Nilsson",
+                        "note":"0706758942, simonseregon@gmail.com"
+                        }]
+                    },
+                    "filesToCreate": {
+                        "premis.xml":"templates/JSONPremisTemplate.json"
+                    }
+                }
+            }
+        },
+        {
+            "name": "preingest.tasks.AddPremisToMetsAmdSec",
+            "params": {
+                "data": {
+                    "info": {
+                        "xmlns:mets": "http://www.loc.gov/METS/",
+                        "xmlns:ext": "ExtensionMETS",
+                        "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                        "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+                        "xsi:schemaLocation": "http://www.loc.gov/METS/ http://xml.ra.se/e-arkiv/METS/CSPackageMETS.xsd ExtensionMETS http://xml.ra.se/e-arkiv/METS/CSPackageExtensionMETS.xsd",
+                        "xsi:schemaLocationPremis": "http://www.loc.gov/premis/v3 https://www.loc.gov/standards/premis/premis.xsd",
+                        "PROFILE": "http://xml.ra.se/e-arkiv/METS/CommonSpecificationSwedenPackageProfile.xmll",
+                        "LABEL": "Test of SIP 1",
+                        "TYPE": "Personnel",
+                        "OBJID": "UUID:9bc10faa-3fff-4a8f-bf9a-638841061065",
+                        "ext:CONTENTTYPESPECIFICATION": "FGS Personal, version 1",
+                        "CREATEDATE": "2016-06-08T10:44:00+02:00",
+                        "RECORDSTATUS": "NEW",
+                        "ext:OAISTYPE": "SIP",
+                        "agentName": "name",
+                        "agentNote": "note",
+                        "REFERENCECODE": "SE/RA/123456/24/F",
+                        "SUBMISSIONAGREEMENT": "RA 13-2011/5329, 2012-04-12",
+                        "MetsIdentifier": "sip.xml",
+                        "filename":"sip.txt",
+                        "SMLabel":"Profilestructmap",
+                        "amdLink":"IDce745fec-cfdd-4d14-bece-d49e867a2487",
+                        "digiprovLink":"IDa32a20cb-5ff8-4d36-8202-f96519154de2",
+                        "LOCTYPE":"URL",
+                        "MDTYPE":"PREMIS",
+                        "xlink:href":"file:///metadata/premis.xml",
+                        "xlink:type":"simple",
+                        "ID":"ID31e51159-9280-44d1-b26c-014077f8eeb5",
+                        "agents":[{
+                            "ROLE":"ARCHIVIST",
+                            "TYPE":"ORGANIZATION",
+                            "name":"Arkivbildar namn",
+                            "note":"VAT:SE201345098701"
+                        },{
+                        "ROLE":"ARCHIVIST",
+                        "TYPE":"OTHER",
+                        "OTHERTYPE":"SOFTWARE",
+                        "name":"By hand Systems",
+                        "note":"1.0.0"
+                        },{
+                        "ROLE":"ARCHIVIST",
+                        "TYPE":"OTHER",
+                        "OTHERTYPE":"SOFTWARE",
+                        "name":"Other By hand Systems",
+                        "note":"1.2.0"
+                        },{
+                        "ROLE":"CREATOR",
+                        "TYPE":"ORGANIZATION",
+                        "name":"Arkivbildar namn",
+                        "note":"HSA:SE2098109810-AF87"
+                        },{
+                        "ROLE":"OTHER",
+                        "OTHERROLE":"PRODUCER",
+                        "TYPE":"ORGANIZATION",
+                        "name":"Sydarkivera",
+                        "note":"HSA:SE2098109810-AF87"
+                        },{
+                        "ROLE":"OTHER",
+                        "OTHERROLE":"SUBMITTER",
+                        "TYPE":"ORGANIZATION",
+                        "name":"Arkivbildare",
+                        "note":"HSA:SE2098109810-AF87"
+                        },{
+                        "ROLE":"IPOWNER",
+                        "TYPE":"ORGANIZATION",
+                        "name":"Informations agare",
+                        "note":"HSA:SE2098109810-AF87"
+                        },{
+                        "ROLE":"EDITOR",
+                        "TYPE":"ORGANIZATION",
+                        "name":"Axenu",
+                        "note":"VAT:SE9512114233"
+                        },{
+                        "ROLE":"CREATOR",
+                        "TYPE":"INDIVIDUAL",
+                        "name":"Simon Nilsson",
+                        "note":"0706758942, simonseregon@gmail.com"
+                        }]
+                    },
+                    "filesToCreate": {
+                        "mets.xml":"templates/JSONTemplate.json"
+                    },
+                    "folderToParse":"huge/csv/000"
+                }
+            }
+        },
+        {
+            "name": "preingest.tasks.ValidateMetadata",
+            "params": {
+                "metadata_file": "mets.xml",
+                "schema_file": "mets.xsd"
+            }
+        },
+        {
+            "name": "preingest.tasks.ValidateLogicalPhysical",
+            "params": {
+                "structure": {
+                    "IP_name(UUID)": {
+                        "content": {
+                            "data": {},
+                            "documentation": {}
+                        },
+                        "metadata": {}
+                    }
+                }
+            }
+        },
+        {
+            "name": "preingest.tasks.CreateTAR",
+            "params": {
+            }
+        }
+    ]
+}
