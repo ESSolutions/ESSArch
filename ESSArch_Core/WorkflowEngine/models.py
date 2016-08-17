@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import importlib
 import uuid
 
-from celery import chain, states as celery_states
+from celery import chain, group, states as celery_states
 
 from django.db import models
 from django.db.models import Sum
@@ -86,6 +86,7 @@ class ProcessStep(Process):
     archiveobject = models.ForeignKey('ArchiveObject', related_name='steps', blank=True, null=True)
     hidden = models.BooleanField(default=False)
     waitForParams = models.BooleanField(default=False)
+    parallel = models.BooleanField(default=False)
 
     objects = StepManager()
 
@@ -141,9 +142,12 @@ class ProcessStep(Process):
             child_steps = [s for s in self.child_steps.all() if s.progress() < 100]
 
         child_steps = sliceUntilAttr(child_steps, "waitForParams", True)
-        chain(s.run(direct=False) for s in child_steps)()
 
-        c = chain(self._create_task(t.name).si(
+        func = chain if self.parallel else group
+
+        func(s.run(direct=False) for s in child_steps)()
+
+        c = func(self._create_task(t.name).si(
             taskobj=t
         ) for t in self.tasks.all())
 
@@ -166,7 +170,9 @@ class ProcessStep(Process):
 
         attempt = uuid.uuid4()
 
-        chain(self._create_task(t.name).si(
+        func = chain if self.parallel else group
+
+        func(self._create_task(t.name).si(
             taskobj=self._create_taskobj(t, attempt=attempt, undo=True),
             undo=True
         ) for t in reversed(tasks))()
@@ -178,11 +184,13 @@ class ProcessStep(Process):
             retried=False
         ).order_by('processstep_pos')
 
-        chain(c.retry(direct=False) for c in child_steps)()
+        func = chain if self.parallel else group
+
+        func(c.retry(direct=False) for c in child_steps)()
 
         attempt = uuid.uuid4()
 
-        c = chain(self._create_task(t.name).si(
+        c = func(self._create_task(t.name).si(
             taskobj=self._create_taskobj(t, attempt=attempt, retry=True),
         ) for t in tasks)
 
