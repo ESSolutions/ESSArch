@@ -16,9 +16,23 @@ from preingest.util import available_tasks, sliceUntilAttr
 
 
 class ArchiveObject(models.Model):
+
+    CHECKSUM_ALGORITHM_CHOICES = (
+        ('md5', 'MD5'),
+        ('sha1', 'SHA-1'),
+        ('sha224', 'SHA-224'),
+        ('sha256', 'SHA-256'),
+        ('sha384', 'SHA-384'),
+        ('sha512', 'SHA-512')
+    )
+
     ObjectUUID = models.UUIDField(primary_key=True, default=uuid.uuid4,
                                   editable=False)
     label = models.CharField(max_length=255)
+    filesize = models.IntegerField(null=True)
+    checksum = models.CharField(max_length=255, null=True)
+    checksum_algorithm = models.CharField(choices=CHECKSUM_ALGORITHM_CHOICES,
+            max_length=255, null=True)
 
     class Meta:
         db_table = u'ArchiveObject'
