@@ -14,7 +14,7 @@ class PickledObjectField(serializers.Field):
 class ArchiveObjectSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ArchiveObject
-        fields = ('url', 'ObjectUUID', 'label',)
+        fields = ('url', 'ObjectUUID', 'label', 'steps',)
 
 class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

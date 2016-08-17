@@ -69,7 +69,7 @@ class ProcessStep(Process):
     user = models.CharField(max_length=45)
     parent_step = models.ForeignKey('self', related_name='child_steps', on_delete=models.CASCADE, null=True)
     time_created = models.DateTimeField(auto_now_add=True)
-    archiveobject = models.ForeignKey('ArchiveObject', to_field='ObjectUUID', blank=True, null=True)
+    archiveobject = models.ForeignKey('ArchiveObject', related_name='steps', blank=True, null=True)
     hidden = models.BooleanField(default=False)
     waitForParams = models.BooleanField(default=False)
 
