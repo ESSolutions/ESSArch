@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import os
 import shutil
 import sys
+import tarfile
 import time
 
 from metadata.metadataGenerator import xmlGenerator
@@ -246,11 +247,16 @@ class ValidateLogicalPhysical(DBTask):
         pass
 
 class CreateTAR(DBTask):
-    def run(self):
+    def run(self, archive_object):
+        tarpath = archive_object + ".tar"
+
+        with tarfile.open(tarpath, "w") as tar:
+            tar.add(archive_object)
+
         self.set_progress(1, total=1)
 
-    def undo(self):
-        pass
+    def undo(self, archive_object):
+        os.remove(archive_object + ".tar")
 
 class First(DBTask):
     def run(self, foo=None):
