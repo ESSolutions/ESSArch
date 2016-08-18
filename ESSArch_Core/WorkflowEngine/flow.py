@@ -8,7 +8,7 @@ from celeryapp import app
 from celery import chain
 from celery.result import AsyncResult
 
-import workflow.tasks as wt
+import preingest.tasks as wt
 
 
 class Workflow(object):
