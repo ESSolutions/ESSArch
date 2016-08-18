@@ -10,9 +10,11 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from preingest.forms import CreateSIPForm, PrepareSIPForm
-from preingest.models import ArchiveObject, ProcessStep, ProcessTask, Step, Task
+from preingest.models import ArchiveObject, Event, EventType, ProcessStep, ProcessTask, Step, Task
 from preingest.serializers import (
     ArchiveObjectSerializer,
+    EventSerializer,
+    EventTypeSerializer,
     ProcessStepSerializer,
     ProcessTaskSerializer,
     UserSerializer,
@@ -190,3 +192,17 @@ class ProcessTaskViewSet(viewsets.ModelViewSet):
     """
     queryset = ProcessTask.objects.all()
     serializer_class = ProcessTaskSerializer
+
+class EventViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows events to be viewed or edited.
+    """
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+
+class EventTypeViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows event types to be viewed or edited.
+    """
+    queryset = EventType.objects.all()
+    serializer_class = EventTypeSerializer

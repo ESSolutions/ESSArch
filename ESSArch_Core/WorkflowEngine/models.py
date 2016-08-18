@@ -369,3 +369,36 @@ class Profile(models.Model):
 
     def __unicode__(self):
         return '%s - %s' % (self.name, self.id)
+
+class Event(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    eventIdentifierValue = models.CharField(max_length=36, unique=True)
+    eventType = models.ForeignKey('EventType')
+    eventDateTime = models.DateTimeField(null=True)
+    eventDetail = models.CharField(max_length=255)
+    eventApplication = models.CharField(max_length=50)
+    eventVersion = models.CharField(max_length=45)
+    eventOutcome = models.IntegerField(null=True)
+    eventOutcomeDetailNote = models.CharField(max_length=1024)
+    linkingAgentIdentifierValue = models.CharField(max_length=45)
+    archiveObject = models.ForeignKey('ArchiveObject', related_name='events')
+
+    class Meta:
+        db_table = 'Event'
+
+    def __unicode__(self):
+        return '%s - %s' % (self.eventDetail, self.id)
+
+class EventType(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    code = models.IntegerField(null=True)
+    desc_sv = models.CharField(max_length=100)
+    desc_en = models.CharField(max_length=100)
+    localDB = models.IntegerField(null=True)
+    externalDB = models.IntegerField(null=True)
+
+    class Meta:
+        db_table = 'EventType'
+
+    def __unicode__(self):
+        return '%s - %s' % (self.code, self.id)

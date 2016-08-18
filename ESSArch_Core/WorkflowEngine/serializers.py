@@ -2,7 +2,7 @@ from django.contrib.auth.models import User, Group
 
 from rest_framework import serializers
 
-from preingest.models import ArchiveObject, ProcessStep, ProcessTask
+from preingest.models import ArchiveObject, Event, EventType, ProcessStep, ProcessTask
 
 class PickledObjectField(serializers.Field):
     def to_representation(self, obj):
@@ -39,6 +39,16 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
         )
 
     params = serializers.JSONField()
+
+class EventSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Event
+        fields = ('url', 'id', 'eventType', 'eventDetail', 'archiveObject',)
+
+class EventTypeSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = EventType
+        fields = ('url', 'id', 'code', 'desc_sv', 'desc_en',)
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
