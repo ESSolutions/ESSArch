@@ -372,9 +372,8 @@ class Profile(models.Model):
 
 class Event(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    eventIdentifierValue = models.CharField(max_length=36, unique=True)
     eventType = models.ForeignKey('EventType')
-    eventDateTime = models.DateTimeField(null=True)
+    eventDateTime = models.DateTimeField(auto_now_add=True, null=True)
     eventDetail = models.CharField(max_length=255)
     eventApplication = models.CharField(max_length=50)
     eventVersion = models.CharField(max_length=45)
