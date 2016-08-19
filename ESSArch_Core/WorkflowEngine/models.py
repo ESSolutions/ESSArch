@@ -143,7 +143,7 @@ class ProcessStep(Process):
 
         child_steps = sliceUntilAttr(child_steps, "waitForParams", True)
 
-        func = chain if self.parallel else group
+        func = group if self.parallel else chain
 
         func(s.run(direct=False) for s in child_steps)()
 
@@ -170,7 +170,7 @@ class ProcessStep(Process):
 
         attempt = uuid.uuid4()
 
-        func = chain if self.parallel else group
+        func = group if self.parallel else chain
 
         func(self._create_task(t.name).si(
             taskobj=self._create_taskobj(t, attempt=attempt, undo=True),
@@ -184,7 +184,7 @@ class ProcessStep(Process):
             retried=False
         ).order_by('processstep_pos')
 
-        func = chain if self.parallel else group
+        func = group if self.parallel else chain
 
         func(c.retry(direct=False) for c in child_steps)()
 
