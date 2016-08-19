@@ -43,7 +43,11 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
 class EventSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Event
-        fields = ('url', 'id', 'eventType', 'eventDateTime', 'eventDetail', 'archiveObject',)
+        fields = (
+            'url', 'id', 'type', 'dateTime', 'detail', 'application',
+            'version', 'outcome', 'outcomeDetailNote',
+            'linkingAgentIdentifierValue', 'archiveObject',
+        )
 
         read_only_fields = ('eventDateTime',)
 

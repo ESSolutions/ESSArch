@@ -372,13 +372,13 @@ class Profile(models.Model):
 
 class Event(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    eventType = models.ForeignKey('EventType')
-    eventDateTime = models.DateTimeField(auto_now_add=True, null=True)
-    eventDetail = models.CharField(max_length=255)
-    eventApplication = models.CharField(max_length=50)
-    eventVersion = models.CharField(max_length=45)
-    eventOutcome = models.IntegerField(null=True)
-    eventOutcomeDetailNote = models.CharField(max_length=1024)
+    type = models.ForeignKey('EventType')
+    dateTime = models.DateTimeField(auto_now_add=True, null=True)
+    detail = models.CharField(max_length=255)
+    application = models.CharField(max_length=50)
+    version = models.CharField(max_length=45)
+    outcome = models.IntegerField(null=True)
+    outcomeDetailNote = models.CharField(max_length=1024)
     linkingAgentIdentifierValue = models.CharField(max_length=45)
     archiveObject = models.ForeignKey('ArchiveObject', related_name='events')
 
@@ -386,7 +386,7 @@ class Event(models.Model):
         db_table = 'Event'
 
     def __unicode__(self):
-        return '%s - %s' % (self.eventDetail, self.id)
+        return '%s - %s' % (self.detail, self.id)
 
 class EventType(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
