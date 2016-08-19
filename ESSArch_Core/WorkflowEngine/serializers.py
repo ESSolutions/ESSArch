@@ -32,10 +32,11 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
         fields = (
             'url', 'id', 'celery_id', 'name', 'params', 'result', 'traceback', 'status',
             'progress','processstep', 'processstep_pos', 'time_started', 'time_done',
+            'undone',
         )
 
         read_only_fields = (
-            'celery_id', 'progress', 'status', 'time_started', 'time_done',
+            'celery_id', 'progress', 'status', 'time_started', 'time_done', 'undone',
         )
 
     params = serializers.JSONField()
