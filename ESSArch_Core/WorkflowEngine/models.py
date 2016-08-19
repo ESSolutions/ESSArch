@@ -280,25 +280,6 @@ class ProcessTask(Process):
         def __unicode__(self):
             return '%s - %s' % (self.name, self.id)
 
-
-class Task(models.Model):
-    name = models.CharField(primary_key=True, max_length=128, unique=True)
-
-    class Meta:
-        db_table = 'Task'
-
-class Step(models.Model):
-    name = models.CharField(primary_key=True, max_length=128, unique=True)
-    tasks = models.ManyToManyField(Task, through='StepTask')
-
-    class Meta:
-        db_table = 'Step'
-
-class StepTask(models.Model):
-    task = models.ForeignKey(Task, on_delete=models.CASCADE)
-    step = models.ForeignKey(Step, on_delete=models.CASCADE)
-    order = models.IntegerField()
-
 class Nationality(models.Model):
     name = models.CharField(primary_key=True, max_length=128)
     shortname = models.CharField(max_length=2)
