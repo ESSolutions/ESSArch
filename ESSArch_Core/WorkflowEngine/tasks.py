@@ -206,7 +206,10 @@ class GenerateXML(DBTask):
 
     def undo(self, info={}, filesToCreate={}, folderToParse=""):
         for f, template in filesToCreate.iteritems():
-            os.remove(f)
+            try:
+                os.remove(f)
+            except:
+                pass
 
 class UploadFile(DBTask):
     def run(self, src_file=None, dst_file=None):
@@ -256,7 +259,10 @@ class CreateTAR(DBTask):
         self.set_progress(1, total=1)
 
     def undo(self, archive_object):
-        os.remove(archive_object + ".tar")
+        try:
+            os.remove(archive_object + ".tar")
+        except:
+            pass
 
 class First(DBTask):
     def run(self, foo=None):
