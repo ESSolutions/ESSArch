@@ -1,0 +1,51 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block breadcrumbs %}
+{% endblock %}
+
+{% block content %}
+
+<div style="margin:20px">
+
+<H1>Submit information package <i>({{ ip.label }})</i> from <i>({{ ip.archivist_organization }})</i></H1><p>
+<p><i>Please fill in the fields or use prefilled data   (* indicates mandatory field)</i></p><br/>
+
+<form action="someAction" method="post">
+	{% csrf_token %}
+
+	<table id="result_list">
+		<thead> </thead>
+		<tbody>
+			<H3>The receiver of the IP</H3><p>
+		    <tr>
+		    	<td>Receiver</td>
+		    	<td>{{ form.preservation_organization_receiver }}</td>
+		    	<td>{{ form.preservation_organization_receiver.errors }}</td>
+		    </tr>
+	    </tbody>
+	</table>
+	<br/>
+
+	{% if sendemail  %}
+	<table id="result_list2">
+		<tbody>
+			<H3>The receiver of the submit description</H3><p>
+			{% for field in form %}
+		        <div class="fieldWrapper">
+				{% if field.label != "Receiver" %}
+		            <tr><td>{{ field.label_tag }}</td><td>{{ field }}</td><td>{{ field.errors }}</td></tr>
+		        </div>
+		       {% endif %}
+		    {% endfor %}
+		</tbody>
+	</table>
+	<br/>
+	{% endif %}
+
+	<input type="submit" value="Submit" />
+</form>
+</div>
+
+{% endblock %}

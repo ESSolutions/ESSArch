@@ -1,0 +1,76 @@
+<!doctype html>
+<html ng-app="formlyApp" ng-controller="MainController as vm">
+    <head>
+        <link rel="stylesheet" type="text/css" href="/static/templateMaker/angular/bootstrap/dist/css/bootstrap.css">
+        <link rel="stylesheet" type="text/css" href="/static/templateMaker/angular/angular-tree-control/css/tree-control.css">
+        <link rel="stylesheet" type="text/css" href="/static/templateMaker/angular/angular-tree-control/css/tree-control-attribute.css">
+        <link rel="stylesheet" type="text/css" href="/static/templateMaker/scripts/style.css">
+        <style>
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+        </style>
+
+        <!--Angular Scripts -->
+        <script src="/static/templateMaker/angular/api-check/dist/api-check.js"></script>
+        <script src="/static/templateMaker/angular/angular/angular.js"></script>
+        <script src="/static/templateMaker/angular/angular-formly/dist/formly.js"></script>
+        <script src="/static/templateMaker/angular/angular-formly-templates-bootstrap/dist/angular-formly-templates-bootstrap.js"></script>
+        <script src="/static/templateMaker/angular/angular-tree-control/angular-tree-control.js"></script>
+        <!--App -->
+        <script src="/static/templateMaker/scripts/app.js"></script>
+        <!--Controllers-->
+        <script src="/static/templateMaker/scripts/MainController.js"></script>
+        <script src="/static/templateMaker/scripts/province.js"></script>
+
+    </head>
+    <body>	
+    <treecontrol class="tree-classic"
+        tree-model="treeInfo"
+        options="treeOptions"
+        on-selection="showSelected(node, selected)"
+        selected-node="node1"
+        expanded-nodes="expandedNodes"
+        style="float:left;">
+        <span class="{% verbatim %}{{node.templateOnly}}{% endverbatim %}">element: {% verbatim %}{{node.name}}{% endverbatim %}</span>
+    </treecontrol>
+    
+    <formly-form model="vm.floatingmodel" fields="vm.floatingfields" form="vm.floatingform" class="floatingForm" ng-show="vm.floatingVisable">
+        {% csrf_token %}
+        <button type="button" class="btn btn-primary" ng-click="vm.saveAttribute()" ng-disabled="vm.floatingform.$invalid">Add Attribute</button>
+    </formly-form>
+    
+    <formly-form model="vm.floatingElementmodel" fields="vm.floatingElementfields" form="vm.floatingElementform" class="floatingForm" ng-show="vm.floatingElementVisable">
+        {% csrf_token %}
+        <button type="button" class="btn btn-primary" ng-click="vm.saveElement()" ng-disabled="vm.floatingElementform.$invalid">Add Element</button>
+    </formly-form>
+
+    <div class="container col-md-4">
+        <form onsubmit="return false;">
+            {% csrf_token %}
+            <input type="hidden" name="uuid" value="{% verbatim %}{{vm.uuid}}{% endverbatim %}"/>
+            <input type="hidden" name="schemaName" value="{% verbatim %}{{vm.schemaName}}{% endverbatim %}"/>
+            <h2>{% verbatim %}{{vm.title}}{% endverbatim %}</h2>
+            <h3>Empty, non-required fields won't be used in the template</h3>
+            <h3>Min: {% verbatim %}{{vm.min}}{% endverbatim %} Max: {% verbatim %}{{vm.max}}{% endverbatim %}</h3>
+            <formly-form model="vm.model" fields="vm.fields" form="vm.form">
+                <button type="button" class="btn btn-primary" ng-click="vm.addAttribute()" ng-show="vm.anyAttribute">Add Attribute</button>
+                <button type="button" class="btn btn-primary" ng-click="vm.submitForm()" ng-disabled="vm.form.$invalid">Submit</button>
+                <button type="button" class="btn btn-danger" ng-show="vm.canDelete" ng-click="vm.removeElement()">Delete</button>
+            </formly-form>
+            <!-- <h3>Avaliable children</h3> -->
+            <div>
+                <h3>PossibleChildren</h3>
+                <div ng-repeat="child in vm.possibleChildren" class="children">
+                    <p>
+                        {% verbatim %}{{child.name}}{% endverbatim %}
+                    </p>
+                    <button type="button" class="btn btn-success" ng-click="vm.addChild(child)">Add</button>
+                    <!-- <span ng-click="vm.addChild(child)">{% verbatim %}{{child.name}}{% endverbatim %}
+                    </span> -->
+                </div>
+                <button type="button" class="btn btn-success" ng-click="vm.addElement()" ng-show="vm.anyElement">Add Element</button>
+            </div>
+        </form>
+    </div>
+
+    </body>
+</html>
