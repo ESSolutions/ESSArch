@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from views import (
     create,
     edit,
@@ -9,7 +9,7 @@ from views import (
 # }
 from . import views
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^make-old/$', views.index, name='make_template'),
     url(r'^reset/$', views.resetData, name='reset_data_template'),
     url(r'^generate/(?P<name>[A-z]+)/$', views.generateTemplate, name='generate_template'),
@@ -23,4 +23,4 @@ urlpatterns = patterns('',
     url(r'^edit/(?P<name>[A-z0-9-]+)/$', views.saveForm, name='update_template'),
     url(r'^edit/$', edit.as_view(), name='edit_template'),
     # url(r'^submitipcreate/(?P<id>\d+)$', SubmitIPCreate.as_view(), name='submit_submitipcreate'),
-)
+]
