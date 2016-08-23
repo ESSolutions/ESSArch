@@ -10,7 +10,10 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from configuration.models import (
-    EventType
+    EventType,
+    Parameter,
+    Path,
+    Schema
 )
 
 from ip.models import (
@@ -42,6 +45,9 @@ from preingest.serializers import (
     ProfileAIPSerializer,
     ProfileDIPSerializer,
     ProfileWorkflowSerializer,
+    ParameterSerializer,
+    PathSerializer,
+    SchemaSerializer,
 )
 
 from profiles.models import (
@@ -320,3 +326,24 @@ class ProfileWorkflowViewSet(viewsets.ModelViewSet):
     """
     queryset = ProfileWorkflow.objects.all()
     serializer_class = ProfileWorkflowSerializer
+
+class ParameterViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows parameters to be viewed or edited.
+    """
+    queryset = Parameter.objects.all()
+    serializer_class = ParameterSerializer
+
+class PathViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows paths to be viewed or edited.
+    """
+    queryset = Path.objects.all()
+    serializer_class = PathSerializer
+
+class SchemaViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows schemas to be viewed or edited.
+    """
+    queryset = Schema.objects.all()
+    serializer_class = SchemaSerializer

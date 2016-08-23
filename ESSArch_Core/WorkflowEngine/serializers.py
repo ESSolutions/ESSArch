@@ -2,7 +2,12 @@ from django.contrib.auth.models import User, Group
 
 from rest_framework import serializers
 
-from configuration.models import EventType
+from configuration.models import (
+    EventType,
+    Parameter,
+    Path,
+    Schema,
+)
 
 from ip.models import EventIP, InformationPackage
 
@@ -142,4 +147,19 @@ class ProfileDIPSerializer(serializers.HyperlinkedModelSerializer):
 class ProfileWorkflowSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ProfileWorkflow
+        fields = '__all__'
+
+class ParameterSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Parameter
+        fields = '__all__'
+
+class PathSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Path
+        fields = '__all__'
+
+class SchemaSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Schema
         fields = '__all__'
