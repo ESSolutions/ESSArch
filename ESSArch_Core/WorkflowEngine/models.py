@@ -14,32 +14,6 @@ from picklefield.fields import PickledObjectField
 from preingest.managers import StepManager
 from preingest.util import available_tasks, sliceUntilAttr
 
-
-class ArchiveObject(models.Model):
-
-    CHECKSUM_ALGORITHM_CHOICES = (
-        ('md5', 'MD5'),
-        ('sha1', 'SHA-1'),
-        ('sha224', 'SHA-224'),
-        ('sha256', 'SHA-256'),
-        ('sha384', 'SHA-384'),
-        ('sha512', 'SHA-512')
-    )
-
-    ObjectUUID = models.UUIDField(primary_key=True, default=uuid.uuid4,
-                                  editable=False)
-    label = models.CharField(max_length=255)
-    filesize = models.IntegerField(null=True)
-    checksum = models.CharField(max_length=255, null=True)
-    checksum_algorithm = models.CharField(choices=CHECKSUM_ALGORITHM_CHOICES,
-            max_length=255, null=True)
-
-    class Meta:
-        db_table = u'ArchiveObject'
-
-    def __unicode__(self):
-        return self.label
-
 class Process(models.Model):
     class Meta:
         abstract = True
@@ -83,7 +57,13 @@ class ProcessStep(Process):
     user = models.CharField(max_length=45)
     parent_step = models.ForeignKey('self', related_name='child_steps', on_delete=models.CASCADE, null=True)
     time_created = models.DateTimeField(auto_now_add=True)
-    archiveobject = models.ForeignKey('ArchiveObject', related_name='steps', blank=True, null=True)
+    archiveobject = models.ForeignKey(
+        'ip.InformationPackage',
+        on_delete=models.CASCADE,
+        related_name='steps',
+        blank=True,
+        null=True
+    )
     hidden = models.BooleanField(default=False)
     waitForParams = models.BooleanField(default=False)
     parallel = models.BooleanField(default=False)
@@ -279,106 +259,3 @@ class ProcessTask(Process):
 
         def __unicode__(self):
             return '%s - %s' % (self.name, self.id)
-
-class Nationality(models.Model):
-    name = models.CharField(primary_key=True, max_length=128)
-    shortname = models.CharField(max_length=2)
-
-    class Meta:
-        db_table = 'Nationality'
-
-    def __unicode__(self):
-        return '%s (%s)' % (self.name, self.shortname)
-
-class SubmissionAgreement(models.Model):
-    name = models.CharField(primary_key=True, max_length=128)
-
-    class Meta:
-        db_table = 'SubmissionAgreement'
-
-    def __unicode__(self):
-        return '%s' % (self.name)
-
-class Profile(models.Model):
-    UNSPECIFIED = "Unspecified"
-    COMPLETE = "Complete"
-
-    ProfileState_CHOICES = (
-        (0, UNSPECIFIED),
-        (10, COMPLETE)
-    )
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
-    state = models.CharField(
-            max_length=255,
-            choices=ProfileState_CHOICES,
-            default=UNSPECIFIED
-    )
-
-    submissionAgreement = models.ForeignKey(SubmissionAgreement)
-    nationality = models.ForeignKey(Nationality)
-
-    archivistOrganisation = models.CharField(max_length=255)
-    archivistOrganisationIdentity = models.CharField(max_length=255)
-    archivistOrganisationSoftware = models.CharField(max_length=255)
-    archivistOrganisationSoftwareIdentity = models.CharField(max_length=255)
-    creatorOrganisation = models.CharField(max_length=255)
-    creatorOrganisationIdentity = models.CharField(max_length=255)
-    creatorOrganisationSoftware = models.CharField(max_length=255)
-    creatorOrganisationSoftwareIdentity = models.CharField(max_length=255)
-    producerOrganisation = models.CharField(max_length=255)
-    producerIndividual = models.CharField(max_length=255)
-    producerOrganisationSoftware = models.CharField(max_length=255)
-    producerOrganisationSoftwareIdentity = models.CharField(max_length=255)
-    ipOwnerOrganisation = models.CharField(max_length=255)
-    ipOwnerIndividual = models.CharField(max_length=255)
-    ipOwnerOrganisationSoftware = models.CharField(max_length=255)
-    ipOwnerOrganisationSoftwareIdentity = models.CharField(max_length=255)
-    editorOrganisation = models.CharField(max_length=255)
-    editorIndividual = models.CharField(max_length=255)
-    editorOrganisationSoftware = models.CharField(max_length=255)
-    editorOrganisationSoftwareIdentity = models.CharField(max_length=255)
-    preservationOrganisation = models.CharField(max_length=255)
-    preservationIndividual = models.CharField(max_length=255)
-    preservationOrganisationSoftware = models.CharField(max_length=255)
-    preservationOrganisationSoftwareIdentity = models.CharField(max_length=255)
-
-
-    class Meta:
-        db_table = 'Profile'
-
-    def __unicode__(self):
-        return '%s - %s' % (self.name, self.id)
-
-class Event(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    type = models.ForeignKey('EventType')
-    dateTime = models.DateTimeField(auto_now_add=True, null=True)
-    detail = models.CharField(max_length=255)
-    application = models.CharField(max_length=50)
-    version = models.CharField(max_length=45)
-    outcome = models.IntegerField(null=True)
-    outcomeDetailNote = models.CharField(max_length=1024)
-    linkingAgentIdentifierValue = models.CharField(max_length=45)
-    archiveObject = models.ForeignKey('ArchiveObject', related_name='events')
-
-    class Meta:
-        db_table = 'Event'
-
-    def __unicode__(self):
-        return '%s - %s' % (self.detail, self.id)
-
-class EventType(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    code = models.IntegerField(null=True)
-    desc_sv = models.CharField(max_length=100)
-    desc_en = models.CharField(max_length=100)
-    localDB = models.IntegerField(null=True)
-    externalDB = models.IntegerField(null=True)
-
-    class Meta:
-        db_table = 'EventType'
-
-    def __unicode__(self):
-        return '%s - %s' % (self.code, self.id)

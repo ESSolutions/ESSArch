@@ -8,6 +8,7 @@ import time
 
 from metadata.metadataGenerator import xmlGenerator
 from preingest.dbtask import DBTask
+from preingest.models import Event
 
 class Sleepy(DBTask):
     def run(self, foo=None):

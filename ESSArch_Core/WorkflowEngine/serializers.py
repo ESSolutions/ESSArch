@@ -2,7 +2,11 @@ from django.contrib.auth.models import User, Group
 
 from rest_framework import serializers
 
-from preingest.models import ArchiveObject, Event, EventType, ProcessStep, ProcessTask
+from configuration.models import EventType
+
+from ip.models import EventIP, InformationPackage
+
+from preingest.models import ProcessStep, ProcessTask
 
 class PickledObjectField(serializers.Field):
     def to_representation(self, obj):
@@ -11,10 +15,14 @@ class PickledObjectField(serializers.Field):
     def to_internal_value(self, data):
         return data
 
-class ArchiveObjectSerializer(serializers.HyperlinkedModelSerializer):
+class InformationPackageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = ArchiveObject
-        fields = ('url', 'ObjectUUID', 'label', 'steps', 'events',)
+        model = InformationPackage
+        fields = (
+            'url', 'id', 'Label', 'Content', 'Responsible', 'CreateDate',
+            'State', 'Status', 'ObjectSize', 'ObjectNumItems', 'ObjectPath',
+            'Startdate', 'Enddate', 'OAIStype', 'steps', 'events',
+        )
 
 class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -41,21 +49,20 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
 
     params = serializers.JSONField()
 
-class EventSerializer(serializers.HyperlinkedModelSerializer):
+class EventIPSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Event
+        model = EventIP
         fields = (
-            'url', 'id', 'type', 'dateTime', 'detail', 'application',
-            'version', 'outcome', 'outcomeDetailNote',
-            'linkingAgentIdentifierValue', 'archiveObject',
+                'url', 'id', 'eventType', 'eventDateTime', 'eventDetail',
+                'eventApplication', 'eventVersion', 'eventOutcome',
+                'eventOutcomeDetailNote', 'linkingAgentIdentifierValue',
+                'linkingObjectIdentifierValue',
         )
-
-        read_only_fields = ('eventDateTime',)
 
 class EventTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = EventType
-        fields = ('url', 'id', 'code', 'desc_sv', 'desc_en',)
+        fields = ('url', 'id', 'eventType', 'eventDetail',)
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

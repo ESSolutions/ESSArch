@@ -9,18 +9,23 @@ from rest_framework.decorators import detail_route, list_route
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
-from preingest.forms import CreateSIPForm, PrepareSIPForm
+from configuration.models import (
+    EventType
+)
+
+from ip.models import (
+    InformationPackage,
+    EventIP
+)
+
 from preingest.models import (
-    ArchiveObject,
-    Event,
-    EventType,
     ProcessStep,
     ProcessTask,
 )
 
 from preingest.serializers import (
-    ArchiveObjectSerializer,
-    EventSerializer,
+    InformationPackageSerializer,
+    EventIPSerializer,
     EventTypeSerializer,
     ProcessStepSerializer,
     ProcessTaskSerializer,
@@ -141,12 +146,12 @@ class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
 
-class ArchiveObjectViewSet(viewsets.ModelViewSet):
+class InformationPackageViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows archive objects to be viewed or edited.
+    API endpoint that allows information packages to be viewed or edited.
     """
-    queryset = ArchiveObject.objects.all()
-    serializer_class = ArchiveObjectSerializer
+    queryset = InformationPackage.objects.all()
+    serializer_class = InformationPackageSerializer
 
 
 class ProcessStepViewSet(viewsets.ModelViewSet):
@@ -200,12 +205,12 @@ class ProcessTaskViewSet(viewsets.ModelViewSet):
     queryset = ProcessTask.objects.all()
     serializer_class = ProcessTaskSerializer
 
-class EventViewSet(viewsets.ModelViewSet):
+class EventIPViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows events to be viewed or edited.
     """
-    queryset = Event.objects.all()
-    serializer_class = EventSerializer
+    queryset = EventIP.objects.all()
+    serializer_class = EventIPSerializer
 
 class EventTypeViewSet(viewsets.ModelViewSet):
     """
