@@ -8,6 +8,20 @@ from ip.models import EventIP, InformationPackage
 
 from preingest.models import ProcessStep, ProcessTask
 
+from profiles.models import (
+    SubmissionAgreement,
+    ProfileTransferProject,
+    ProfileContentType,
+    ProfileDataSelection,
+    ProfileClassification,
+    ProfileImport,
+    ProfileSubmitDescription,
+    ProfileSIP,
+    ProfileAIP,
+    ProfileDIP,
+    ProfileWorkflow,
+)
+
 class PickledObjectField(serializers.Field):
     def to_representation(self, obj):
         return obj
@@ -74,3 +88,58 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Group
         fields = ('url', 'name')
+
+class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = SubmissionAgreement
+        #fields = (__all__,)
+
+class ProfileTransferProjectSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ProfileTransferProject
+        fields = '__all__'
+
+class ProfileContentTypeSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ProfileContentType
+        fields = '__all__'
+
+class ProfileDataSelectionSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ProfileDataSelection
+        fields = '__all__'
+
+class ProfileClassificationSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ProfileClassification
+        fields = '__all__'
+
+class ProfileImportSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ProfileImport
+        fields = '__all__'
+
+class ProfileSubmitDescriptionSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ProfileSubmitDescription
+        fields = '__all__'
+
+class ProfileSIPSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ProfileSIP
+        fields = '__all__'
+
+class ProfileAIPSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ProfileAIP
+        fields = '__all__'
+
+class ProfileDIPSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ProfileDIP
+        fields = '__all__'
+
+class ProfileWorkflowSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ProfileWorkflow
+        fields = '__all__'
