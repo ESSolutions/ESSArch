@@ -17,16 +17,27 @@ from preingest.models import ProcessStep, ProcessTask
 from profiles.models import (
     SubmissionAgreement,
     ProfileTransferProject,
+    ProfileTransferProjectRel,
     ProfileContentType,
+    ProfileContentTypeRel,
     ProfileDataSelection,
+    ProfileDataSelectionRel,
     ProfileClassification,
+    ProfileClassificationRel,
     ProfileImport,
+    ProfileImportRel,
     ProfileSubmitDescription,
+    ProfileSubmitDescriptionRel,
     ProfileSIP,
+    ProfileSIPRel,
     ProfileAIP,
+    ProfileAIPRel,
     ProfileDIP,
+    ProfileDIPRel,
     ProfileWorkflow,
+    ProfileWorkflowRel,
     ProfilePreservationMetadata,
+    ProfilePreservationMetadataRel,
 )
 
 class PickledObjectField(serializers.Field):
@@ -96,10 +107,99 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
         model = Group
         fields = ('url', 'name')
 
+class ProfileTransferProjectRelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField(source='profiletransferproject.id')
+
+    class Meta:
+        model = ProfileTransferProjectRel
+        fields = ('id', 'status',)
+
+class ProfileContentTypeRelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField(source='profilecontenttype.id')
+
+    class Meta:
+        model = ProfileContentTypeRel
+        fields = ('id', 'status',)
+
+class ProfileDataSelectionRelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField(source='profiledataselection.id')
+
+    class Meta:
+        model = ProfileDataSelectionRel
+        fields = ('id', 'status',)
+
+class ProfileClassificationRelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField(source='profileclassification.id')
+
+    class Meta:
+        model = ProfileClassificationRel
+        fields = ('id', 'status',)
+
+class ProfileImportRelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField(source='profileimport.id')
+
+    class Meta:
+        model = ProfileImportRel
+        fields = ('id', 'status',)
+
+class ProfileSubmitDescriptionRelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField(source='profilesubmitdescription.id')
+
+    class Meta:
+        model = ProfileSubmitDescriptionRel
+        fields = ('id', 'status',)
+
+class ProfileSIPRelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField(source='profilesip.id')
+
+    class Meta:
+        model = ProfileSIPRel
+        fields = ('id', 'status',)
+
+class ProfileAIPRelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField(source='profileaip.id')
+
+    class Meta:
+        model = ProfileAIPRel
+        fields = ('id', 'status',)
+
+class ProfileDIPRelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField(source='profiledip.id')
+
+    class Meta:
+        model = ProfileDIPRel
+        fields = ('id', 'status',)
+
+class ProfileWorkflowRelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField(source='profileworkflow.id')
+
+    class Meta:
+        model = ProfileWorkflowRel
+        fields = ('id', 'status',)
+
+class ProfilePreservationMetadataRelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField(source='profilepreservationmetadata.id')
+
+    class Meta:
+        model = ProfilePreservationMetadataRel
+        fields = ('id', 'status',)
+
 class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
+    profile_transfer_project = ProfileTransferProjectRelSerializer(source='profiletransferprojectrel_set', many=True)
+    profile_content_type = ProfileContentTypeRelSerializer(source='profilecontenttyperel_set', many=True)
+    profile_data_selection = ProfileDataSelectionRelSerializer(source='profiledataselectionrel_set', many=True)
+    profile_classification = ProfileClassificationRelSerializer(source='profileclassificationrel_set', many=True)
+    profile_import = ProfileImportRelSerializer(source='profileimportrel_set', many=True)
+    profile_submit_description= ProfileSubmitDescriptionRelSerializer(source='profilesubmitdescriptionrel_set', many=True)
+    profile_sip = ProfileSIPRelSerializer(source='profilesiprel_set', many=True)
+    profile_aip = ProfileAIPRelSerializer(source='profileaiprel_set', many=True)
+    profile_dip = ProfileDIPRelSerializer(source='profilediprel_set', many=True)
+    profile_workflow = ProfileWorkflowRelSerializer(source='profileworkflowrel_set', many=True)
+    profile_preservation_metadata = ProfilePreservationMetadataRelSerializer(source='profilepreservationmetadatarel_set', many=True)
+
     class Meta:
         model = SubmissionAgreement
-        #fields = (__all__,)
+        fields = '__all__'
 
 class ProfileTransferProjectSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
