@@ -10,6 +10,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from configuration.models import (
+    Agent,
     EventType,
     Parameter,
     Path,
@@ -45,6 +46,8 @@ from preingest.serializers import (
     ProfileAIPSerializer,
     ProfileDIPSerializer,
     ProfileWorkflowSerializer,
+    ProfilePreservationMetadataSerializer,
+    AgentSerializer,
     ParameterSerializer,
     PathSerializer,
     SchemaSerializer,
@@ -62,6 +65,7 @@ from profiles.models import (
     ProfileAIP,
     ProfileDIP,
     ProfileWorkflow,
+    ProfilePreservationMetadata,
 )
 
 from django.contrib.auth.models import User, Group
@@ -326,6 +330,20 @@ class ProfileWorkflowViewSet(viewsets.ModelViewSet):
     """
     queryset = ProfileWorkflow.objects.all()
     serializer_class = ProfileWorkflowSerializer
+
+class ProfilePreservationMetadataViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows profiles to be viewed or edited.
+    """
+    queryset = ProfilePreservationMetadata.objects.all()
+    serializer_class = ProfilePreservationMetadataSerializer
+
+class AgentViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows agents to be viewed or edited.
+    """
+    queryset = Agent.objects.all()
+    serializer_class = AgentSerializer
 
 class ParameterViewSet(viewsets.ModelViewSet):
     """

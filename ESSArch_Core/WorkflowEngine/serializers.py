@@ -3,6 +3,7 @@ from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 
 from configuration.models import (
+    Agent,
     EventType,
     Parameter,
     Path,
@@ -25,6 +26,7 @@ from profiles.models import (
     ProfileAIP,
     ProfileDIP,
     ProfileWorkflow,
+    ProfilePreservationMetadata,
 )
 
 class PickledObjectField(serializers.Field):
@@ -147,6 +149,16 @@ class ProfileDIPSerializer(serializers.HyperlinkedModelSerializer):
 class ProfileWorkflowSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ProfileWorkflow
+        fields = '__all__'
+
+class ProfilePreservationMetadataSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ProfilePreservationMetadata
+        fields = '__all__'
+
+class AgentSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Agent
         fields = '__all__'
 
 class ParameterSerializer(serializers.HyperlinkedModelSerializer):
