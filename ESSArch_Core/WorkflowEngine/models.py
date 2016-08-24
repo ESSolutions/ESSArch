@@ -57,7 +57,7 @@ class ProcessStep(Process):
     user = models.CharField(max_length=45)
     parent_step = models.ForeignKey('self', related_name='child_steps', on_delete=models.CASCADE, null=True)
     time_created = models.DateTimeField(auto_now_add=True)
-    archiveobject = models.ForeignKey(
+    information_package = models.ForeignKey(
         'ip.InformationPackage',
         on_delete=models.CASCADE,
         related_name='steps',
