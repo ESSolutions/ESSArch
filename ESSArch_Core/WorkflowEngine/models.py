@@ -247,7 +247,12 @@ class ProcessTask(Process):
     traceback = models.TextField(_('traceback'), blank=True, null=True, editable=False)
     hidden = models.BooleanField(editable=False, default=False, db_index=True)
     meta = PickledObjectField(null=True, default=None, editable=False)
-    processstep = models.ForeignKey('ProcessStep', related_name='tasks', on_delete=models.CASCADE)
+    processstep = models.ForeignKey(
+        'ProcessStep',
+        related_name = 'tasks',
+        on_delete=models.CASCADE,
+        null=True
+    )
     processstep_pos = models.IntegerField(_('ProcessStep position'), default=0)
     attempt = models.UUIDField(default=uuid.uuid4)
     progress = models.IntegerField(default=0)

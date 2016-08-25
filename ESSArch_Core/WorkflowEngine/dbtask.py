@@ -11,7 +11,6 @@ from preingest.models import ProcessTask
 class DBTask(Task):
     def __call__(self, *args, **kwargs):
         self.taskobj = kwargs.get('taskobj', None)
-        processstep = kwargs.get('processstep', None)
         undo = kwargs.get('undo', False)
         params = self.taskobj.params
         print "init task with name {}, id {}".format(self.name, self.request.id)
