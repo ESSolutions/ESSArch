@@ -56,6 +56,7 @@ class ProcessStep(Process):
     type = models.IntegerField(null=True, choices=Type_CHOICES)
     user = models.CharField(max_length=45)
     parent_step = models.ForeignKey('self', related_name='child_steps', on_delete=models.CASCADE, null=True)
+    parent_step_pos = models.IntegerField(_('Parent step position'), default=0)
     time_created = models.DateTimeField(auto_now_add=True)
     information_package = models.ForeignKey(
         'ip.InformationPackage',
@@ -220,6 +221,7 @@ class ProcessStep(Process):
 
     class Meta:
         db_table = u'ProcessStep'
+        ordering = ('parent_step_pos',)
 
         def __unicode__(self):
             return '%s - %s - archiveobject:%s' % (self.name, self.id, self.archiveobject.ObjectUUID)

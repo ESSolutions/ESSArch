@@ -62,7 +62,8 @@ class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
         fields = (
             'url', 'id', 'name', 'result', 'type', 'user', 'parallel',
             'status', 'progress', 'time_created', 'parent_step',
-            'information_package', 'child_steps', 'tasks', 'task_set',
+            'parent_step_pos', 'information_package', 'child_steps', 'tasks',
+            'task_set',
         )
 
 
