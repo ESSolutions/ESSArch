@@ -9,6 +9,8 @@ from django.db import models
 from django.db.models import Sum
 from django.utils.translation import ugettext as _
 
+import jsonfield
+
 from picklefield.fields import PickledObjectField
 
 from preingest.managers import StepManager
@@ -241,7 +243,7 @@ class ProcessTask(Process):
     status = models.CharField(_('state'), max_length=50,
                               default=celery_states.PENDING,
                               choices=TASK_STATE_CHOICES)
-    params = PickledObjectField(null=True)
+    params = jsonfield.JSONField(null=True)
     time_started = models.DateTimeField(_('started at'), null=True)
     time_done = models.DateTimeField(_('done at'), null=True)
     traceback = models.TextField(_('traceback'), blank=True, null=True, editable=False)
