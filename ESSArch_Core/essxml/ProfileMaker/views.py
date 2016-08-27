@@ -102,7 +102,6 @@ def generateElement(structure, elements):
                             field['templateOptions'] = to
                             forms.append(field)
                             data[part['var']] = 's'
-                        # pass
                 else:
                     el['#content'] = [] # TODO warning, should not be added if it can't contain any value
             else:
@@ -117,6 +116,20 @@ def generateElement(structure, elements):
                     att['-req'] = 0
                 if 'defaultValue' in attrib:
                     att['#content'] = constructContent(attrib['defaultValue'])
+                    for part in att['#content']:
+                        if 'var' in part:
+                            # add form entry for element
+                            # ?? add information of parent? example: note for agent with role=Archivist&&typ=organization (probably not needed)
+                            # adding text if there occures at least one variable.
+                            field = {}
+                            field['key'] = part['var'] # check for doubles
+                            field['type'] = 'input'
+                            to = {}
+                            to['type'] = 'text'
+                            to['label'] = part['var']
+                            field['templateOptions'] = to
+                            forms.append(field)
+                            data[part['var']] = 's'
                 else:
                     att['#content'] = [] # TODO warning, should not be added if it can't contain any value
                 attributeList.append(att)
@@ -135,9 +148,9 @@ def generateElement(structure, elements):
                         el[child['name']].append(e)
                 else:
                     el[child['name']] = e
-            for field in f:
-                forms.append(field)
-            data.update(d)
+                for field in f:
+                    forms.append(field)
+                data.update(d)
             # for field in f:
             #     forms.append(field) # data
         return (el, forms, data)
