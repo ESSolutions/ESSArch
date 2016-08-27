@@ -13,9 +13,14 @@
     function MainController($scope, $http) {
 
         //TODO not hardcoded 'test' in future
-        $http.get('/template/struct/test').then(function(res) {
-            $scope.treeInfo = [JSON.parse(res.data)];
-            vm.tree = JSON.parse(res.data);
+        $http.get('/template/form/test').then(function(res) {
+            // console.log()
+            vm.fields = res.data;
+        });
+
+        $http.get('/template/data/test').then(function(res) {
+            // console.log()
+            vm.model = res.data;
         });
 
         var vm = this;
@@ -132,12 +137,12 @@
 
         vm.submitForm = function() {
             var data = vm.model;
-            data['uuid'] = vm.uuid;
-            data['schemaName'] = vm.schemaName;
+            // data['uuid'] = vm.uuid;
+            // data['schemaName'] = vm.schemaName;
             // console.log(vm.model);
             $http({
                 method: 'POST',
-                url: '/template/edit/test/',
+                url: '/template/demo/',
                 data: data
             }).then(function(res) {
                 console.log(res);
@@ -171,11 +176,6 @@
 
         vm.addAttribute = function() {
             vm.floatingVisable = !vm.floatingVisable;
-            vm.floatingmodel = [];
-        };
-
-        vm.closeFloatingForm = function() {
-            vm.floatingVisable = false;
             vm.floatingmodel = [];
         };
 
@@ -258,72 +258,5 @@
         };
 
         vm.fields = [];
-        vm.floatingfields = [{
-            key: 'attribname',
-            type: 'input',
-            templateOptions: {
-                type: 'text',
-                label: 'Name',
-                placeholder: 'Name',
-                required: true
-            }
-        }, {
-            key: 'attribvalue',
-            type: 'input',
-            templateOptions: {
-                type: 'text',
-                label: 'Value',
-                placeholder: 'Value',
-                required: false
-            }
-        }, {
-            key: 'attribrequired',
-            type: 'checkbox',
-            templateOptions: {
-                type: 'checkbox',
-                label: 'Required',
-                required: false
-            }
-        }, ];
-        vm.floatingVisable = false;
-        vm.floatingElementfields = [{
-            key: 'elementname',
-            type: 'input',
-            templateOptions: {
-                type: 'text',
-                label: 'Name',
-                placeholder: 'Name',
-                required: true
-            }
-        }, {
-            key: 'textContent',
-            type: 'input',
-            templateOptions: {
-                type: 'text',
-                label: 'Text content',
-                placeholder: 'content',
-                required: false
-            }
-        }, {
-            key: 'kardMin',
-            type: 'input',
-            templateOptions: {
-                type: 'text',
-                label: 'Min required count (default: 0)',
-                placeholder: 'Min',
-                required: false
-            }
-        }, {
-            key: 'kardMax',
-            type: 'input',
-            templateOptions: {
-                type: 'text',
-                label: 'Max allowed count. -1 for infinite (default: -1)',
-                placeholder: 'Max',
-                required: false
-            }
-        }];
-        vm.floatingElementVisable = false;
-
     }
 })();

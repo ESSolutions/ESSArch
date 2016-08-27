@@ -4,20 +4,20 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template import Context, loader, RequestContext
-from models import templatePackage
+from models import templatePackage, finishedTemplate
 #file upload
 # import the logging library and get an instance of a logger
 import logging
 logger = logging.getLogger('code.exceptions')
 
-import re
+# import re
 import copy
 import json
 import uuid
 from collections import OrderedDict
 
 from django.views.generic import View
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse
 from esscore.template.templateGenerator.testXSDToJSON import generate
 
 
@@ -28,7 +28,7 @@ def constructContent(text):
         d = {}
         d['text'] = text[0:i]
         res.append(d)
-        r = constructContent(text[i])
+        r = constructContent(text[i:])
         for j in range(len(r)):
             res.append(r[j])
     elif i == -1:
@@ -70,6 +70,8 @@ def cloneElement(el, allElements, found=0, begin=''):
 def generateElement(structure, elements):
     if 'templateOnly' not in structure or structure['templateOnly'] == False:
         el = OrderedDict()
+        forms = []
+        data = {}
         meta = structure['meta']
         if 'minOccurs' in meta:
             el['-min'] = meta['minOccurs']
@@ -86,6 +88,21 @@ def generateElement(structure, elements):
             if attrib['key'] == '#content':
                 if 'defaultValue' in attrib:
                     el['#content'] = constructContent(attrib['defaultValue'])
+                    for part in el['#content']:
+                        if 'var' in part:
+                            # add form entry for element
+                            # ?? add information of parent? example: note for agent with role=Archivist&&typ=organization (probably not needed)
+                            # adding text if there occures at least one variable.
+                            field = {}
+                            field['key'] = part['var'] # check for doubles
+                            field['type'] = 'input'
+                            to = {}
+                            to['type'] = 'text'
+                            to['label'] = part['var']
+                            field['templateOptions'] = to
+                            forms.append(field)
+                            data[part['var']] = 's'
+                        # pass
                 else:
                     el['#content'] = [] # TODO warning, should not be added if it can't contain any value
             else:
@@ -105,7 +122,7 @@ def generateElement(structure, elements):
                 attributeList.append(att)
         el['-attr'] = attributeList
         for child in structure['children']:
-            e = generateElement(child, elements)
+            e, f, d = generateElement(child, elements)
             if e is not None:
                 if child['name'] in el:
                     # cerate array
@@ -118,9 +135,14 @@ def generateElement(structure, elements):
                         el[child['name']].append(e)
                 else:
                     el[child['name']] = e
-        return el
+            for field in f:
+                forms.append(field)
+            data.update(d)
+            # for field in f:
+            #     forms.append(field) # data
+        return (el, forms, data)
     else:
-        return None
+        return (None, None, None)
 
 def deleteElement(structure, elements):
     del elements[structure['key']]
@@ -306,9 +328,21 @@ def generateTemplate(request, name):
     structure = json.loads(obj.structure, object_pairs_hook=OrderedDict)
     elements = json.loads(obj.elements, object_pairs_hook=OrderedDict)
     jsonString = OrderedDict()
-    jsonString[structure['name']] = generateElement(structure, elements)
+    jsonString[structure['name']], forms, data = generateElement(structure, elements)
 
-    return JsonResponse(jsonString)
+    t = finishedTemplate(name='test', template=jsonString, form=forms, data=data)
+    t.save()
+    # return JsonResponse(el, safe=False)
+    # return HttpResponse(test)
+    return JsonResponse(data, safe=False)
+
+def getForm(request, name):
+    obj = get_object_or_404(finishedTemplate, pk=name)
+    return JsonResponse(obj.form, safe=False)
+
+def getData(request, name):
+    obj = get_object_or_404(finishedTemplate, pk=name)
+    return JsonResponse(obj.data, safe=False)
 
 def saveForm(request, name):
 
@@ -342,6 +376,27 @@ def saveForm(request, name):
     # return redirect('/template/edit/')
 
     pass
+
+class demo(View):
+    template_name = 'templateMaker/demo.html'
+
+    def get(self, request, *args, **kwargs):
+        context = {}
+        context['label'] = 'Edit template'
+
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+
+        res = json.loads(request.body)
+
+        obj = get_object_or_404(finishedTemplate, pk='test') # TODO not hardcoded
+        obj.data = res
+        obj.save()
+
+        return JsonResponse(request.body, safe=False)
+
+        # return redirect('/template/demo/')
 
 class create(View):
     template_name = 'templateMaker/create.html'

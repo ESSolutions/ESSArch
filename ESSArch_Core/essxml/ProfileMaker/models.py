@@ -1,5 +1,6 @@
 
 from django.db import models
+import jsonfield
 
 class templatePackage(models.Model):
     structure = models.TextField()
@@ -22,3 +23,10 @@ class templatePackage(models.Model):
     #     permissions = (
     #         ("Can_view_ip_menu", "Can_view_ip_menu"),
     #     )
+
+
+class finishedTemplate(models.Model):
+    name = models.CharField(max_length=255, primary_key=True)
+    template = jsonfield.JSONField(null=True)
+    form = jsonfield.JSONField(null=True)
+    data = jsonfield.JSONField(null=True)
