@@ -100,13 +100,13 @@ class EventTypeSerializer(serializers.HyperlinkedModelSerializer):
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
-        fields = ('url', 'username', 'email', 'groups')
+        fields = ('url', 'id', 'username', 'email', 'groups')
 
 
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Group
-        fields = ('url', 'name')
+        fields = ('url', 'id', 'name')
 
 class ProfileTransferProjectRelSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField(source='profiletransferproject.id')
@@ -186,6 +186,7 @@ class ProfilePreservationMetadataRelSerializer(serializers.HyperlinkedModelSeria
         fields = ('id', 'status',)
 
 class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
     profile_transfer_project = ProfileTransferProjectRelSerializer(source='profiletransferprojectrel_set', many=True)
     profile_content_type = ProfileContentTypeRelSerializer(source='profilecontenttyperel_set', many=True)
     profile_data_selection = ProfileDataSelectionRelSerializer(source='profiledataselectionrel_set', many=True)
@@ -203,76 +204,106 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 class ProfileTransferProjectSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = ProfileTransferProject
         fields = '__all__'
 
 class ProfileContentTypeSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = ProfileContentType
         fields = '__all__'
 
 class ProfileDataSelectionSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = ProfileDataSelection
         fields = '__all__'
 
 class ProfileClassificationSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = ProfileClassification
         fields = '__all__'
 
 class ProfileImportSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = ProfileImport
         fields = '__all__'
 
 class ProfileSubmitDescriptionSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = ProfileSubmitDescription
         fields = '__all__'
 
 class ProfileSIPSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = ProfileSIP
         fields = '__all__'
 
 class ProfileAIPSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = ProfileAIP
         fields = '__all__'
 
 class ProfileDIPSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = ProfileDIP
         fields = '__all__'
 
 class ProfileWorkflowSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = ProfileWorkflow
         fields = '__all__'
 
 class ProfilePreservationMetadataSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = ProfilePreservationMetadata
         fields = '__all__'
 
 class AgentSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = Agent
         fields = '__all__'
 
 class ParameterSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = Parameter
         fields = '__all__'
 
 class PathSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = Path
         fields = '__all__'
 
 class SchemaSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = Schema
         fields = '__all__'
