@@ -1,0 +1,40 @@
+<!doctype html>
+<html ng-app="formlyApp" ng-controller="MainController as vm">
+    <head>
+        <link rel="stylesheet" type="text/css" href="/static/templateMaker/angular/bootstrap/dist/css/bootstrap.css">
+        {# <link rel="stylesheet" type="text/css" href="/static/templateMaker/angular/angular-tree-control/css/tree-control.css">#}
+        {# <link rel="stylesheet" type="text/css" href="/static/templateMaker/angular/angular-tree-control/css/tree-control-attribute.css">#}
+        <link rel="stylesheet" type="text/css" href="/static/templateMaker/scripts/style.css">
+        <style>
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+        </style>
+
+        <!--Angular Scripts -->
+        <script src="/static/templateMaker/angular/api-check/dist/api-check.js"></script>
+        <script src="/static/templateMaker/angular/angular/angular.js"></script>
+        <script src="/static/templateMaker/angular/angular-formly/dist/formly.js"></script>
+        <script src="/static/templateMaker/angular/angular-formly-templates-bootstrap/dist/angular-formly-templates-bootstrap.js"></script>
+        {# <script src="/static/templateMaker/angular/angular-tree-control/angular-tree-control.js"></script>#}
+        <!--App -->
+        <script src="/static/demo/scripts/demoApp.js"></script>
+        <!--Controllers-->
+        <script src="/static/demo/scripts/demoController.js"></script>
+
+    </head>
+    <body>
+
+    <div class="container col-md-4">
+        <form onsubmit="return false;">
+            {% csrf_token %}
+            {# <input type="hidden" name="uuid" value="{% verbatim %}{{vm.uuid}}{% endverbatim %}"/>#}
+            {# <input type="hidden" name="schemaName" value="{% verbatim %}{{vm.schemaName}}{% endverbatim %}"/>#}
+            <formly-form model="vm.model" fields="vm.fields" form="vm.form">
+                <button type="button" class="btn btn-primary" ng-click="vm.addAttribute()" ng-show="vm.anyAttribute">Add Attribute</button>
+                <button type="button" class="btn btn-primary" ng-click="vm.submitForm()" ng-disabled="vm.form.$invalid">Submit</button>
+                <button type="button" class="btn btn-danger" ng-show="vm.canDelete" ng-click="vm.removeElement()">Delete</button>
+            </formly-form>
+        </form>
+    </div>
+
+    </body>
+</html>

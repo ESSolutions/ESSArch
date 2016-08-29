@@ -1,0 +1,562 @@
+{
+  "mets": {
+    "-min": 1,
+    "-max": 1,
+    "-namespace": "mets",
+    "-attr": [
+      {
+        "-name": "xmlns:mets",
+        "#content": [{"text":"http://www.loc.gov/METS/"}]
+      },
+      {
+        "-name": "xmlns:xlink",
+        "#content": [{"text":"http://www.w3.org/1999/xlink"}]
+      },
+      {
+        "-name": "xmlns:xsi",
+        "#content": [{"text":"http://www.w3.org/2001/XMLSchema-instance"}]
+      },
+      {
+        "-name": "xmlns:schemaLocation",
+        "#content": [{"text":"http://www.loc.gov/METS/ http://schema.arkivverket.no/METS/info.xsd"}]
+      },
+      {
+        "-name": "PROFILE",
+        "#content": [{"text":"http://xml.ra.se/METS/RA_METS_eARD.xml"}]
+      },
+      {
+        "-name":"ID",
+        "-req": 0,
+        "#content": [{"text":"ID"},{"var":"MetsId"}]
+      },
+      {
+        "-name":"OBJID",
+        "-req": 1,
+        "#content": [{"text":"UUID:"},{"var":"MetsOBJID"}]
+      },
+      {
+        "-name":"LABEL",
+        "-req": 0,
+        "#content": [{"var":"MetsLABEL"}]
+      },
+      {
+        "-name":"TYPE",
+        "-req": 1,
+        "#content": [{"var":"MetsType"}]
+      }
+    ],
+    "metsHdr": {
+      "-min": 1,
+      "-max": 1,
+      "-attr": [
+        {
+          "-name":"ID",
+          "-req": 0,
+          "#content": [{"var":"MetsHdrId"}]
+        },
+        {
+          "-name":"ADMID",
+          "-req": 0,
+          "#content": [{"var":"MetsHdrADMId"}]
+        },
+        {
+          "-name":"CREATEDATE",
+          "-req": 1,
+          "#content": [{"var":"MetsHdrCREATEDATE"}]
+        },
+        {
+          "-name":"LASTMODDATE",
+          "-req": 0,
+          "#content": [{"var":"MetsHdrLASTMODDATE"}]
+        },
+        {
+          "-name":"RECORDSTATUS",
+          "-req": 0,
+          "#content": [{"var":"MetsHdrRECORDSTATUS"}]
+        }
+      ],
+      "agent": [
+        {
+          "-min": 1,
+          "-max": -1,
+          "-attr": [
+            {
+              "-name": "ROLE",
+              "-req": 1,
+              "#content": [{"text":"ARCHIVIST" }]
+            },
+            {
+              "-name": "TYPE",
+              "-req": 1,
+              "#content": [{"text":"ORGANIZATION" }]
+            }
+          ],
+          "name": {
+            "-min": 1,
+            "#content": [{"var":"agentname1" }]
+          }
+        },
+        {
+          "-min": 1,
+          "-max": -1,
+          "-attr": [
+            {
+              "-name": "ROLE",
+              "-req": 1,
+              "#content": [{"text": "ARCHIVIST" }]
+            },
+            {
+              "-name": "TYPE",
+              "-req": 1,
+              "#content": [{"text": "OTHER" }]
+            },
+            {
+              "-name": "OTHERTYPE",
+              "-req": 1,
+              "#content": [{"text": "SOFTWARE" }]
+            }
+          ],
+          "name": {
+            "-min": 1,
+            "#content": [{"var":"agentname2" }]
+          }
+        },
+        {
+          "-min": 1,
+          "-max": -1,
+          "-attr": [
+            {
+              "-name": "ROLE",
+              "-req": 1,
+              "#content": [{"text": "ARCHIVIST" }]
+            },
+            {
+              "-name": "TYPE",
+              "-req": 1,
+              "#content": [{"text": "OTHER" }]
+            },
+            {
+              "-name": "OTHERTYPE",
+              "-req": 1,
+              "#content": [{"text": "SOFTWARE" }]
+            }
+          ],
+          "name": {
+            "-min": 1,
+            "#content": [{"var":"agentname3" }]
+          }
+        },
+        {
+          "-min": 1,
+          "-max": -1,
+          "-attr": [
+            {
+              "-name": "ROLE",
+              "-req": 1,
+              "#content": [{"text": "ARCHIVIST" }]
+            },
+            {
+              "-name": "TYPE",
+              "-req": 1,
+              "#content": [{"text": "OTHER" }]
+            },
+            {
+              "-name": "OTHERTYPE",
+              "-req": 1,
+              "#content": [{"text": "SOFTWARE" }]
+            }
+          ],
+          "name": {
+            "-min": 1,
+            "#content": [{"var":"agentname4" }]
+          }
+        },
+        {
+          "-min": 1,
+          "-max": -1,
+          "-attr": [
+            {
+              "-name": "ROLE",
+              "-req": 1,
+              "#content": [{"text": "CREATOR" }]
+            },
+            {
+              "-name": "TYPE",
+              "-req": 1,
+              "#content": [{"text": "ORGANIZATION" }]
+            }
+          ],
+          "name": {
+            "-min": 1,
+            "#content": [{"var":"agentname5" }]
+          }
+        },
+        {
+          "-min": 1,
+          "-max": -1,
+          "-attr": [
+            {
+              "-name": "ROLE",
+              "-req": 1,
+              "#content": [{"text": "OTHER" }]
+            },
+            {
+              "-name": "TYPE",
+              "-req": 1,
+              "#content": [{"text": "ORGANIZATION" }]
+            },
+            {
+              "-name": "OTHERROLE",
+              "-req": 1,
+              "#content": [{"text": "PRODUCER" }]
+            }
+          ],
+          "name": {
+            "-min": 1,
+            "#content": [{"var":"agentname6" }]
+          }
+        },
+        {
+          "-min": 1,
+          "-max": -1,
+          "-attr": [
+            {
+              "-name": "ROLE",
+              "-req": 1,
+              "#content": [{"text": "OTHER" }]
+            },
+            {
+              "-name": "TYPE",
+              "-req": 1,
+              "#content": [{"text": "INDIVIDUAL" }]
+            },
+            {
+              "-name": "OTHERROLE",
+              "-req": 1,
+              "#content": [{"text": "PRODUCER" }]
+            }
+          ],
+          "name": {
+            "-min": 1,
+            "#content": [{"var":"agentname7" }]
+          }
+        },
+        {
+          "-min": 1,
+          "-max": -1,
+          "-attr": [
+            {
+              "-name": "ROLE",
+              "-req": 1,
+              "#content": [{"text": "OTHER" }]
+            },
+            {
+              "-name": "TYPE",
+              "-req": 1,
+              "#content": [{"text": "OTHER" }]
+            },
+            {
+              "-name": "OTHERTYPE",
+              "-req": 1,
+              "#content": [{"text": "SOFTWARE" }]
+            },
+            {
+              "-name": "OTHERROLE",
+              "-req": 1,
+              "#content": [{"text": "PRODUCER" }]
+            }
+          ],
+          "name": {
+            "-min": 1,
+            "#content": [{"var":"agentname8" }]
+          }
+        },
+        {
+          "-min": 1,
+          "-max": -1,
+          "-attr": [
+            {
+              "-name": "ROLE",
+              "-req": 1,
+              "#content": [{"text": "OTHER" }]
+            },
+            {
+              "-name": "TYPE",
+              "-req": 1,
+              "#content": [{"text": "ORGANIZATION" }]
+            },
+            {
+              "-name": "OTHERROLE",
+              "-req": 1,
+              "#content": [{"text": "SUBMITTER" }]
+            }
+          ],
+          "name": {
+            "-min": 1,
+            "#content": [{"var":"agentname9" }]
+          }
+        },
+        {
+          "-min": 1,
+          "-max": -1,
+          "-attr": [
+            {
+              "-name": "ROLE",
+              "-req": 1,
+              "#content": [{"text": "OTHER" }]
+            },
+            {
+              "-name": "TYPE",
+              "-req": 1,
+              "#content": [{"text": "INDIVIDUAL" }]
+            },
+            {
+              "-name": "OTHERTYPE",
+              "-req": 1,
+              "#content": [{"text": "SUBMITTER" }]
+            }
+          ],
+          "name": {
+            "-min": 1,
+            "#content": [{"var":"agentname10" }]
+          }
+        },
+        {
+          "-min": 1,
+          "-max": -1,
+          "-attr": [
+            {
+              "-name": "ROLE",
+              "-req": 1,
+              "#content": [{"text": "IPOWNER" }]
+            },
+            {
+              "-name": "TYPE",
+              "-req": 1,
+              "#content": [{"text": "ORGANIZATION" }]
+            }
+          ],
+          "name": {
+            "-min": 1,
+            "#content": [{"var":"agentname11" }]
+          }
+        },
+        {
+          "-min": 1,
+          "-max": -1,
+          "-attr": [
+            {
+              "-name": "ROLE",
+              "-req": 1,
+              "#content": [{"text": "PRESERVATION" }]
+            },
+            {
+              "-name": "TYPE",
+              "-req": 1,
+              "#content": [{"text": "ORGANIZATION" }]
+            }
+          ],
+          "name": {
+            "-min": 1,
+            "#content": [{"var":"agentname12" }]
+          }
+        }
+      ],
+      "altRecordID": [
+        {
+          "-min": 1,
+          "-max": 1,
+          "#content": [{"var": "SUBMISSIONAGREEMENT"}],
+          "-attr": [{
+            "-name": "TYPE",
+            "-req": 1,
+            "#content": [{"text": "SUBMISSIONAGREEMENT"}]
+          }]
+        },
+        {
+          "-min": 1,
+          "#content": [{"var": "STARTDATE"}],
+          "-attr": [{
+            "-name": "TYPE",
+            "-req": 1,
+            "#content": [{"text": "STARTDATE" }]
+          }]
+        },
+        {
+          "-min": 1,
+          "-max": 1,
+          "#content": [{"var": "ENDDATE"}],
+          "-attr": [{
+            "-name": "TYPE",
+            "-req": 1,
+            "#content": [{"text": "ENDDATE" }]
+          }]
+        }
+      ],
+      "metsDocumentID": {
+        "-min": 0,
+        "-attr": [
+          {
+            "-name": "ID",
+            "-req": 0,
+            "#content": [{"var":"metsDocumentID"}]
+          },
+          {
+            "-name": "TYPE",
+            "-req": 0,
+            "#content": [{"var":"metsDocumentType"}]
+          }
+        ],
+        "#content":[{"var":"DOCUMENTID"}]
+      }
+    },
+    "dmdSec": {
+      "-min": 0,
+      "-max": -1
+    },
+    "amdSec": {
+      "-min": 0,
+      "-max": -1,
+      "-attr": [
+        {
+          "-name": "ID",
+          "-req": "1",
+          "#content": [{"var": "amdSecID"}]
+        }
+      ],
+      "techMD": {
+        "-min": 0,
+        "-max": -1
+      },
+      "rightsMD": {
+        "-min": 0,
+        "-max": -1
+      },
+      "sourceMD": {
+        "-min": 0,
+        "-max": -1
+      },
+      "digiprovMD": {
+        "-min": 0,
+        "-max": -1
+      }
+    },
+    "fileSec": {
+      "-min": 0,
+      "-attr": [
+        {
+          "-name": "ID",
+          "-req": 0,
+          "#content": [{"var":"fileSecID"}]
+        }
+      ],
+      "fileGrp": {
+        "-attr": [
+          {
+            "-name": "ID",
+            "#content": [{"text":"fgrp001"}]
+          },
+          {
+            "-name": "USE",
+            "#content": [{"text":"FILES"}]
+          }
+        ],
+        "-containsFiles": [
+            {
+                "file": {
+                  "-min": 1,
+                  "-attr": [
+                    {
+                      "-name": "CHECKSUM",
+                      "-req": 1,
+                      "#content": [{"var": "FChecksum"}]
+                    },
+                    {
+                      "-name": "ID",
+                      "-req": 1,
+                      "#content": [{"text": "ID" },{"var": "FID"}]
+                    },
+                    {
+                      "-name": "MIMETYPE",
+                      "-req": 1,
+                      "#content": [{"var": "FMimetype"}]
+                    },
+                    {
+                      "-name": "CREATED",
+                      "-req": 1,
+                      "#content": [{"var": "FCreated"}]
+                    },
+                    {
+                      "-name": "ext:FILEFORMATNAME",
+                      "#content": [{"var": "FFormatName"}]
+                    },
+                    {
+                      "-name": "SIZE",
+                      "-req": 1,
+                      "#content": [{"var": "FSize"}]
+                    },
+                    {
+                      "-name": "USE",
+                      "-req": 1,
+                      "#content": [{"var": "FUse"}]
+                    },
+                    {
+                      "-name": "CHECKSUMTYPE",
+                      "-req": 1,
+                      "#content": [{"var": "FChecksumType"}]
+                    }
+                  ],
+                  "FLocat": {
+                    "-allowEmpty": 1,
+                    "-attr": [
+                      {
+                        "-name": "xlink:href",
+                        "-req": 1,
+                        "#content": [{"var": "FName"}]
+                      },
+                      {
+                        "-name": "LOCTYPE",
+                        "-req": 1,
+                        "#content": [{"var": "FLoctype"}]
+                      },
+                      {
+                        "-name": "xlink:type",
+                        "-req": 1,
+                        "#content": [{"var": "FLinkType"}]
+                      }
+                    ]
+                  }
+                }
+            }
+        ]
+      }
+    },
+    "structMap": {
+      "-min": 1,
+      "-max": 1,
+      "-attr": [{
+        "-name": "LABEL",
+        "-req": 0,
+        "#content": [{"var":"SMLabel"}]
+      }],
+      "div": {
+        "-containsFiles": [{
+            "fptr": {
+              "-allowEmpty": 1,
+              "-attr": [{
+                "-name": "FILEID",
+                "-req": 1,
+                "#content": [{"text": "ID" },{"var":"FID"}]
+              }]
+          }
+        }]
+      }
+    },
+    "structLink": {
+      "-min": 0
+    },
+    "behaviorSec": {
+      "-min": 0
+    }
+  }
+}
