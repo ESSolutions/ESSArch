@@ -1,7 +1,5 @@
 from __future__ import absolute_import, division
 
-from datetime import datetime
-
 from celery import states as celery_states, Task
 
 from django.utils import timezone
@@ -21,7 +19,7 @@ class DBTask(Task):
 
         self.taskobj.celery_id = self.request.id
         self.taskobj.status=celery_states.STARTED
-        self.taskobj.time_started = datetime.now()
+        self.taskobj.time_started = timezone.now()
         self.taskobj.save()
 
         if undo:
