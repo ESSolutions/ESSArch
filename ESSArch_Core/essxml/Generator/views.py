@@ -19,23 +19,6 @@ from django.views.generic import View
 from django.http import JsonResponse
 # from esscore.template.templateGenerator.testXSDToJSON import generate
 
-
-def gen(request):
-    from xmlGenerator import createXML
-
-    res = json.loads(request.body)
-    # return JsonResponse(res, safe=False)
-    infoData = {}
-    infoData['info'] = res
-    ftc = {}
-    ftc[res['DOCUMENTID']] = 'demo/info.json'
-    infoData['filesToCreate'] = ftc
-    infoData['folderToParse'] = res['INPUTFILE']
-
-    response = createXML(infoData)
-
-    return JsonResponse(request.body, safe=False)
-
 class demo2(View):
     template_name = 'demo/demo2.html'
 
@@ -44,6 +27,22 @@ class demo2(View):
         context['label'] = 'Edit template'
 
         return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        from xmlGenerator import createXML
+
+        res = json.loads(request.body)
+        # return JsonResponse(res, safe=False)
+        infoData = {}
+        infoData['info'] = res
+        ftc = {}
+        ftc[res['INPUTFILE'] + '/' + res['DOCUMENTID']] = 'demo/info.json'
+        infoData['filesToCreate'] = ftc
+        infoData['folderToParse'] = res['INPUTFILE']
+
+        response = createXML(infoData)
+
+        return JsonResponse(request.body, safe=False)
 
 class demo(View):
     template_name = 'demo/demo.html'
@@ -55,44 +54,17 @@ class demo(View):
         return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
-
-        # res = json.loads(request.body)
-
-        # obj = get_object_or_404(finishedTemplate, pk='test') # TODO not hardcoded
-        # obj.data = res
-        # obj.save()
-
-        # return JsonResponse(request.body, safe=False)
-
         from xmlGenerator import createXML
 
         res = json.loads(request.body)
+        # return JsonResponse(res, safe=False)
+        infoData = {}
+        infoData['info'] = res
+        ftc = {}
+        ftc[res['INPUTFILE'] + '/' + res['DOCUMENTID']] = 'demo/info.json'
+        infoData['filesToCreate'] = ftc
+        infoData['folderToParse'] = res['INPUTFILE']
 
-        # inputData = {
-        #     "filesToCreate": {
-        #     "info.txt":"templates/info.json",
-        #     # "premis.txt":"templates/JSONPremisTemplate.txt",
-        #     # "sip2.txt":"templates/JSONTemplate.txt"
-        #     },
-        #     "folderToParse":"/SIP"
-        # }
-        # inputData['info'] = request.body ####
-
-        # print calculateChecksum('/SIP/tar.dmg')
-        return HttpResponse(res)
-
-        createXML(res, {"info.xml":"info.json"}, '/SIP') #info, filesToCreate, folderToParse
-
+        response = createXML(infoData)
 
         return JsonResponse(request.body, safe=False)
-        # return redirect('/demo/')
-
-    # def post(self, request, *args, **kwargs):
-    #
-    #     res = json.loads(request.body)
-    #
-    #     obj = get_object_or_404(finishedTemplate, pk='test') # TODO not hardcoded
-    #     obj.data = res
-    #     obj.save()
-    #
-    #     return JsonResponse(request.body, safe=False)

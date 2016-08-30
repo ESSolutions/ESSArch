@@ -24,12 +24,12 @@
         // });
 
         var vm = this;
-        vm.title = 'title'; // placeholder only
-        vm.countAll = {};
-        vm.anyAttribute = false;
-        vm.anyElement = false;
-        vm.possibleChildren = [];
-        vm.existingChildren = [];
+        // vm.title = 'title'; // placeholder only
+        // vm.countAll = {};
+        // vm.anyAttribute = false;
+        // vm.anyElement = false;
+        // vm.possibleChildren = [];
+        // vm.existingChildren = [];
 
         vm.submitForm = function() {
             var data = vm.model;
@@ -38,7 +38,7 @@
             // console.log(vm.model);
             $http({
                 method: 'POST',
-                url: '/demo/gen/',
+                url: '/demo/',
                 data: data
             }).then(function(res) {
                 console.log(res);

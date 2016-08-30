@@ -25,14 +25,10 @@
     <body>
 
     <div class="container col-md-4">
-        <form onsubmit="return false;">
+        <form>
             {% csrf_token %}
-            {# <input type="hidden" name="uuid" value="{% verbatim %}{{vm.uuid}}{% endverbatim %}"/>#}
-            {# <input type="hidden" name="schemaName" value="{% verbatim %}{{vm.schemaName}}{% endverbatim %}"/>#}
             <formly-form model="vm.model" fields="vm.fields" form="vm.form">
-                <button type="button" class="btn btn-primary" ng-click="vm.addAttribute()" ng-show="vm.anyAttribute">Add Attribute</button>
-                <button type="button" class="btn btn-primary" ng-click="vm.submitForm()" ng-disabled="vm.form.$invalid">Submit</button>
-                <button type="button" class="btn btn-danger" ng-show="vm.canDelete" ng-click="vm.removeElement()">Delete</button>
+                <button type="submit" class="btn btn-primary" ng-click="vm.submitForm()" ng-disabled="vm.form.$invalid">Submit</button>
             </formly-form>
         </form>
     </div>
