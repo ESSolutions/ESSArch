@@ -18,6 +18,12 @@ from preingest.util import available_tasks, sliceUntilAttr
 
 class Process(models.Model):
     def _create_task(self, name):
+        """
+        Create and instantiate the task with the given name
+
+        Args:
+            name: The name of the task, including package and module
+        """
         [module, task] = name.rsplit('.', 1)
         return getattr(importlib.import_module(module), task)()
 
@@ -244,8 +250,8 @@ class ProcessTask(Process):
                               default=celery_states.PENDING,
                               choices=TASK_STATE_CHOICES)
     params = jsonfield.JSONField(null=True)
-    time_started = models.DateTimeField(_('started at'), null=True)
-    time_done = models.DateTimeField(_('done at'), null=True)
+    time_started = models.DateTimeField(_('started at'), null=True, blank=True)
+    time_done = models.DateTimeField(_('done at'), null=True, blank=True)
     traceback = models.TextField(_('traceback'), blank=True, null=True, editable=False)
     hidden = models.BooleanField(editable=False, default=False, db_index=True)
     meta = PickledObjectField(null=True, default=None, editable=False)
@@ -253,7 +259,8 @@ class ProcessTask(Process):
         'ProcessStep',
         related_name = 'tasks',
         on_delete=models.CASCADE,
-        null=True
+        null=True,
+        blank=True
     )
     processstep_pos = models.IntegerField(_('ProcessStep position'), default=0)
     attempt = models.UUIDField(default=uuid.uuid4)
