@@ -48,7 +48,7 @@ def parseFiles(filename='/SIP/huge', level=3, resultFile=[]):
 
 
 
-                fileInfo['FName'] = file
+                fileInfo['FName'] = os.path.relpath(dirname+'/'+file, filename)
                 fileInfo['FChecksum'] = calculateChecksum(dirname+'/'+file)
                 fileInfo['FID'] = uuid.uuid4().__str__()
                 if '.'+file.split('.')[-1] in mimetypes.types_map:
