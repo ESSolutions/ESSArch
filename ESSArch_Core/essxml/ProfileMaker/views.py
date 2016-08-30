@@ -170,8 +170,8 @@ def index(request):
 #debugg only NEEDS TO BE REMOVED IN FUTURE
 def resetData(request):
 
-    struc, el = generate();
-    t = templatePackage(structure=struc, elements=el, name='test')
+    struc, el, temp = generate();
+    t = templatePackage(structure=struc, elements=el, tempates=temp, name='test')
     t.save()
     return JsonResponse(el, safe=False)
 
@@ -189,6 +189,7 @@ def deleteChild(request, name):
     # find element
     # delete element and all sub elements
     # delete listAllElements entries
+    # TODO update next siblings path.
     obj = get_object_or_404(templatePackage, pk=name)
     j = json.loads(obj.structure, object_pairs_hook=OrderedDict)
     allElements = json.loads(obj.elements, object_pairs_hook=OrderedDict)
@@ -224,7 +225,10 @@ def deleteChild(request, name):
                     del t['children'][index]
                 else:
                     dic['templateOnly'] = True
-                break
+            # elif found > elementId:
+            #     newPath = dic['path'].split('/')
+            #     newPath[-1] = str(found - 1)
+            #     dic['path'] = '/'.join(newPath)
             found += 1
         index += 1
 
@@ -237,6 +241,7 @@ def addChild(request, name, path):
     # find location in structure
     # add element and children with new uuid
     # add children to elemnts list with new id:s
+    # TODO empty default values of new child
     obj = get_object_or_404(templatePackage, pk=name)
     j = json.loads(obj.structure, object_pairs_hook=OrderedDict)
     allElements = json.loads(obj.elements, object_pairs_hook=OrderedDict)
