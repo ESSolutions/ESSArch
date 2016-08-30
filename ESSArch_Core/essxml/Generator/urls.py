@@ -2,6 +2,7 @@ from django.conf.urls import url
 from views import (
     demo,
     demo2,
+    testing,
 #     edit,
 #     demo,
 #     # SubmitIPCreate,
@@ -26,6 +27,7 @@ urlpatterns = [
     # url(r'^edit/$', edit.as_view(), name='edit_template'),
     url(r'^$', demo.as_view(), name='demo'),
     url(r'^other/$', demo2.as_view(), name='demo2'),
+    url(r'^test/$', testing.as_view(), name='testing'),
     # url(r'^gen/$', views.gen, name='gen'),
     # url(r'^data/(?P<name>[A-z0-9-]+)/$', views.getData, name='get_demo_data'),
     # url(r'^submitipcreate/(?P<id>\d+)$', SubmitIPCreate.as_view(), name='submit_submitipcreate'),
