@@ -15,6 +15,7 @@ import copy
 import json
 import uuid
 from collections import OrderedDict
+from django.conf import settings
 
 from django.views.generic import View
 from django.http import JsonResponse
@@ -37,27 +38,13 @@ class demo2(View):
         infoData = {}
         infoData['info'] = res
         ftc = {}
-        ftc[res['INPUTFILE'] + '/' + res['DOCUMENTID']] = 'demo/info.json'
+        ftc[res['INPUTFILE'] + '/' + res['DOCUMENTID']] = os.path.join(settings.BASE_DIR,'demo/info.json')
         infoData['filesToCreate'] = ftc
         infoData['folderToParse'] = res['INPUTFILE']
 
         response = createXML(infoData)
 
         return JsonResponse(request.body, safe=False)
-
-class testing(View):
-    def get(self, request, *args, **kwargs):
-        # test 1
-        json_data=open('demo/info.json').read()
-        return JsonResponse(json_data, safe=False)
-        #test 2
-        xmlFile = os.open('info.xml',os.O_RDWR|os.O_CREAT)
-        os.write(xmlFile, '<?xml version="1.0" encoding="UTF-8"?>\n')
-        return HttpResponse('Creating xml file working?')
-        #test 3
-        fid = os.open('tmp0.txt',os.O_RDWR|os.O_CREAT)
-        return HttpResponse('Creating tmp file working?')
-
 
 class demo(View):
     template_name = 'demo/demo.html'
@@ -76,7 +63,7 @@ class demo(View):
         infoData = {}
         infoData['info'] = res
         ftc = {}
-        ftc[res['INPUTFILE'] + '/' + res['DOCUMENTID']] = 'demo/info.json'
+        ftc[res['INPUTFILE'] + '/' + res['DOCUMENTID']] = os.path.join(settings.BASE_DIR,'demo/info.json')
         infoData['filesToCreate'] = ftc
         infoData['folderToParse'] = res['INPUTFILE']
 

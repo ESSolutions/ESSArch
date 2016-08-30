@@ -487,10 +487,6 @@
                       "#content": [{"var": "FCreated"}]
                     },
                     {
-                      "-name": "ext:FILEFORMATNAME",
-                      "#content": [{"var": "FFormatName"}]
-                    },
-                    {
                       "-name": "SIZE",
                       "-req": 1,
                       "#content": [{"var": "FSize"}]
@@ -512,7 +508,7 @@
                       {
                         "-name": "xlink:href",
                         "-req": 1,
-                        "#content": [{"var": "FName"}]
+                        "#content": [{"text": "file:"},{"var": "FName"}]
                       },
                       {
                         "-name": "LOCTYPE",

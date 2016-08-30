@@ -1,4 +1,4 @@
-
+from django.conf import settings
 from lxml import etree
 import os
 import json
@@ -458,7 +458,7 @@ def generate():
     global complexTypes
     global attributeGroups
     # pars = etree.parse("CSPackageMETS.xsd")
-    pars = etree.parse("esscore/template/templateGenerator/CSPackageMETS.xsd")
+    pars = etree.parse(os.path.join(settings.BASE_DIR,"esscore/template/templateGenerator/CSPackageMETS.xsd"))
     # rootEl = create2(pars.getroot())
     schema = '{http://www.w3.org/2001/XMLSchema}'
 

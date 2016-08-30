@@ -5,6 +5,8 @@ import json
 import copy
 from collections import OrderedDict
 import fileinput
+import mimetypes
+from django.conf import settings
 
 from xmlStructure import xmlElement, xmlAttribute, fileInfo, fileObject, dlog
 
@@ -31,6 +33,7 @@ def parseFiles(filename='/SIP/huge', level=3, resultFile=[]):
     walk through the choosen folder and parse all the files to their own temporary location
     """
     fileInfo = {}
+    mimetypes.init(files=[os.path.join(settings.BASE_DIR), 'demo/mime.types'])
 
     for dirname, dirnames, filenames in os.walk(filename):
         # print dirname
@@ -43,10 +46,15 @@ def parseFiles(filename='/SIP/huge', level=3, resultFile=[]):
             if found == False:
             # populate dictionary
 
-                fileInfo['FName'] = dirname+'/'+file
+
+
+                fileInfo['FName'] = file
                 fileInfo['FChecksum'] = calculateChecksum(dirname+'/'+file)
                 fileInfo['FID'] = uuid.uuid4().__str__()
-                fileInfo['FMimetype'] = 'application/msword'
+                if '.'+file.split('.')[-1] in mimetypes.types_map:
+                    fileInfo['FMimetype'] = mimetypes.types_map['.'+file.split('.')[-1]]
+                else:
+                    fileInfo['FMimetype'] = 'unknown'
                 fileInfo['FCreated'] = '2016-02-21T11:18:44+01:00'
                 fileInfo['FFormatName'] = 'MS word'
                 fileInfo['FSize'] = str(os.path.getsize(dirname+'/'+file))
