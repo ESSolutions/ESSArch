@@ -26,7 +26,7 @@ def calculateChecksum(filename):
     os.close(fd)
     return hashSHA.hexdigest()
 
-def parseFiles(filename='/SIP/huge', level=3):
+def parseFiles(filename='/SIP/huge', level=3, resultFile=[]):
     """
     walk through the choosen folder and parse all the files to their own temporary location
     """
@@ -35,41 +35,46 @@ def parseFiles(filename='/SIP/huge', level=3):
     for dirname, dirnames, filenames in os.walk(filename):
         # print dirname
         for file in filenames:
+            found = False
+            for key, value in resultFile.iteritems():
+                if dirname+'/'+file == key:
+                    found = True
 
+            if found == False:
             # populate dictionary
 
-            fileInfo['FName'] = dirname+'/'+file
-            fileInfo['FChecksum'] = calculateChecksum(dirname+'/'+file)
-            fileInfo['FID'] = uuid.uuid4().__str__()
-            fileInfo['FMimetype'] = 'application/msword'
-            fileInfo['FCreated'] = '2016-02-21T11:18:44+01:00'
-            fileInfo['FFormatName'] = 'MS word'
-            fileInfo['FSize'] = str(os.path.getsize(dirname+'/'+file))
-            fileInfo['FUse'] = 'DataFile'
-            fileInfo['FChecksumType'] = 'SHA-256'
-            fileInfo['FLoctype'] = 'URL'
-            fileInfo['FLinkType'] = 'simple'
-            fileInfo['FChecksumLib'] = 'hashlib'
-            fileInfo['FLocationType'] = 'URI'
-            fileInfo['FIDType'] = 'UUID'
-            # write to file
+                fileInfo['FName'] = dirname+'/'+file
+                fileInfo['FChecksum'] = calculateChecksum(dirname+'/'+file)
+                fileInfo['FID'] = uuid.uuid4().__str__()
+                fileInfo['FMimetype'] = 'application/msword'
+                fileInfo['FCreated'] = '2016-02-21T11:18:44+01:00'
+                fileInfo['FFormatName'] = 'MS word'
+                fileInfo['FSize'] = str(os.path.getsize(dirname+'/'+file))
+                fileInfo['FUse'] = 'DataFile'
+                fileInfo['FChecksumType'] = 'SHA-256'
+                fileInfo['FLoctype'] = 'URL'
+                fileInfo['FLinkType'] = 'simple'
+                fileInfo['FChecksumLib'] = 'hashlib'
+                fileInfo['FLocationType'] = 'URI'
+                fileInfo['FIDType'] = 'UUID'
+                # write to file
 
-            for fi in sortedFiles:
-                for fil in fi.files:
-                    if not fil.arguments:
-                        for key, value in fil.element.iteritems():
-                            t = createXMLStructure(key, value, fileInfo)
-                            t.printXML(fil.fid,fil.level)
-                    else:
-                        found = True
-                        for key, value in fil.arguments.iteritems():
-                            if re.search(value, fileInfo[key]) is None:
-                                found = False
-                                break
-                        if found:
+                for fi in sortedFiles:
+                    for fil in fi.files:
+                        if not fil.arguments:
                             for key, value in fil.element.iteritems():
                                 t = createXMLStructure(key, value, fileInfo)
                                 t.printXML(fil.fid,fil.level)
+                        else:
+                            found = True
+                            for key, value in fil.arguments.iteritems():
+                                if re.search(value, fileInfo[key]) is None:
+                                    found = False
+                                    break
+                            if found:
+                                for key, value in fil.element.iteritems():
+                                    t = createXMLStructure(key, value, fileInfo)
+                                    t.printXML(fil.fid,fil.level)
 
 def getValue(key, info):
     """
@@ -258,7 +263,7 @@ def createXML(inputData):
         rootEl.printXML(xmlFile)
         fob.rootElement = rootEl
 
-    parseFiles(inputData['folderToParse'])
+    parseFiles(inputData['folderToParse'], resultFile=inputData['filesToCreate'])
 
     # add the tmp files to the bottom of the appropriate file and write out the next section of xml until it's done
     for fob in sortedFiles:
