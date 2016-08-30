@@ -36,17 +36,7 @@ from preingest.serializers import (
     UserSerializer,
     GroupSerializer,
     SubmissionAgreementSerializer,
-    ProfileTransferProjectSerializer,
-    ProfileContentTypeSerializer,
-    ProfileDataSelectionSerializer,
-    ProfileClassificationSerializer,
-    ProfileImportSerializer,
-    ProfileSubmitDescriptionSerializer,
-    ProfileSIPSerializer,
-    ProfileAIPSerializer,
-    ProfileDIPSerializer,
-    ProfileWorkflowSerializer,
-    ProfilePreservationMetadataSerializer,
+    ProfileSerializer,
     AgentSerializer,
     ParameterSerializer,
     PathSerializer,
@@ -55,17 +45,7 @@ from preingest.serializers import (
 
 from profiles.models import (
     SubmissionAgreement,
-    ProfileTransferProject,
-    ProfileContentType,
-    ProfileDataSelection,
-    ProfileClassification,
-    ProfileImport,
-    ProfileSubmitDescription,
-    ProfileSIP,
-    ProfileAIP,
-    ProfileDIP,
-    ProfileWorkflow,
-    ProfilePreservationMetadata,
+    Profile,
 )
 
 from django.contrib.auth.models import User, Group
@@ -261,82 +241,12 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
     queryset = SubmissionAgreement.objects.all()
     serializer_class = SubmissionAgreementSerializer
 
-class ProfileTransferProjectViewSet(viewsets.ModelViewSet):
+class ProfileViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows profiles to be viewed or edited.
     """
-    queryset = ProfileTransferProject.objects.all()
-    serializer_class = ProfileTransferProjectSerializer
-
-class ProfileContentTypeViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows profiles to be viewed or edited.
-    """
-    queryset = ProfileContentType.objects.all()
-    serializer_class = ProfileContentTypeSerializer
-
-class ProfileDataSelectionViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows profiles to be viewed or edited.
-    """
-    queryset = ProfileDataSelection.objects.all()
-    serializer_class = ProfileDataSelectionSerializer
-
-class ProfileClassificationViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows profiles to be viewed or edited.
-    """
-    queryset = ProfileClassification.objects.all()
-    serializer_class = ProfileClassificationSerializer
-
-class ProfileImportViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows profiles to be viewed or edited.
-    """
-    queryset = ProfileImport.objects.all()
-    serializer_class = ProfileImportSerializer
-
-class ProfileSubmitDescriptionViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows profiles to be viewed or edited.
-    """
-    queryset = ProfileSubmitDescription.objects.all()
-    serializer_class = ProfileSubmitDescriptionSerializer
-
-class ProfileSIPViewSet(viewsets.ModelViewSet):
-    """
-    API endpoi_class = ProfileSerializerat allows profiles to be viewed or edited.
-    """
-    queryset = ProfileSIP.objects.all()
-    serializer_class = ProfileSIPSerializer
-
-class ProfileAIPViewSet(viewsets.ModelViewSet):
-    """
-    API endpoi_class = ProfileSerializerat allows profiles to be viewed or edited.
-    """
-    queryset = ProfileAIP.objects.all()
-    serializer_class = ProfileAIPSerializer
-
-class ProfileDIPViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows profiles to be viewed or edited.
-    """
-    queryset = ProfileDIP.objects.all()
-    serializer_class = ProfileDIPSerializer
-
-class ProfileWorkflowViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows profiles to be viewed or edited.
-    """
-    queryset = ProfileWorkflow.objects.all()
-    serializer_class = ProfileWorkflowSerializer
-
-class ProfilePreservationMetadataViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows profiles to be viewed or edited.
-    """
-    queryset = ProfilePreservationMetadata.objects.all()
-    serializer_class = ProfilePreservationMetadataSerializer
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
 
 class AgentViewSet(viewsets.ModelViewSet):
     """
