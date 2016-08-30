@@ -10,7 +10,11 @@ from preingest.models import ProcessTask
 
 class DBTask(Task):
     def __call__(self, *args, **kwargs):
-        self.taskobj = kwargs.get('taskobj', None)
+        try:
+            self.taskobj = kwargs['taskobj']
+        except KeyError:
+            print "Task requires taskobj set to a ProcessTask"
+
         undo = kwargs.get('undo', False)
         params = self.taskobj.params
         print "init task with name {}, id {}".format(self.name, self.request.id)

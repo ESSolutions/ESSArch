@@ -17,6 +17,10 @@ from preingest.managers import StepManager
 from preingest.util import available_tasks, sliceUntilAttr
 
 class Process(models.Model):
+    def _create_task(self, name):
+        [module, task] = name.rsplit('.', 1)
+        return getattr(importlib.import_module(module), task)()
+
     class Meta:
         abstract = True
 
@@ -72,10 +76,6 @@ class ProcessStep(Process):
     parallel = models.BooleanField(default=False)
 
     objects = StepManager()
-
-    def _create_task(self, name):
-        [module, task] = name.rsplit('.', 1)
-        return getattr(importlib.import_module(module), task)()
 
     def _create_taskobj(self, task, attempt=None, undo=False, retry=False):
         if undo:
@@ -261,6 +261,9 @@ class ProcessTask(Process):
     undone = models.BooleanField(default=False)
     undo_type = models.BooleanField(editable=False, default=False)
     retried = models.BooleanField(default=False)
+
+    def run(self):
+        return self._create_task(self.name).delay(taskobj=self)
 
     class Meta:
         db_table = 'ProcessTask'
