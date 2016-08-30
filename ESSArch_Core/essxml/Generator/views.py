@@ -28,7 +28,7 @@ def hate(request):
     infoData = {}
     infoData['info'] = res
     ftc = {}
-    ftc[res['DOCUMENTID']] = 'Demo/info.json'
+    ftc[res['DOCUMENTID']] = 'demo/info.json'
     infoData['filesToCreate'] = ftc
     infoData['folderToParse'] = res['INPUTFILE']
 
@@ -36,8 +36,17 @@ def hate(request):
 
     return JsonResponse(request.body, safe=False)
 
+class demo2(View):
+    template_name = 'demo/demo2.html'
+
+    def get(self, request, *args, **kwargs):
+        context = {}
+        context['label'] = 'Edit template'
+
+        return render(request, self.template_name, context)
+
 class demo(View):
-    template_name = 'Demo/demo.html'
+    template_name = 'demo/demo.html'
 
     def get(self, request, *args, **kwargs):
         context = {}

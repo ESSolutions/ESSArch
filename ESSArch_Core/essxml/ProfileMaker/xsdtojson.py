@@ -128,6 +128,14 @@ class xmlElement():
         res[self.uuid] = result
         return res
 
+    def listAllElementTypes(self, res={}):
+        if self.name not in res:
+            #add to res
+            res[self.name] = ''
+            for child in self.children:
+                # add children to res[self.name]
+                pass
+
     def generateJSONTemplate(self):
         content = OrderedDict()
         content['-min'] = self.karMin
@@ -489,16 +497,18 @@ def generate():
                 # print tree.generateJSON();
                 struc = tree.generateStruct()
                 el = tree.listAllElements()
+                # temp = tree.listAllElementTypes()
                 # j = json.dumps(tree.generateJSON())
                 # tree.delete()
-                return json.dumps(struc), json.dumps(el)
+                print json.dumps(struc)
+                return json.dumps(struc), json.dumps(el), 'test'
     # pars = None
     # root = None
     # tree = None
     # complexTypes = OrderedDict()
     # attributeGroups = OrderedDict()
 
-generate()
+# generate()
 # print generate()
 # print generate(2)
 # print generate(3)

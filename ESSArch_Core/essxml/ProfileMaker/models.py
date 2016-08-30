@@ -3,8 +3,9 @@ from django.db import models
 import jsonfield
 
 class templatePackage(models.Model):
-    structure = models.TextField()
-    elements = models.TextField()
+    structure = jsonfield.JSONField(null=True)
+    elements = jsonfield.JSONField(null=True)
+    tempates = jsonfield.JSONField(null=True)
     name = models.CharField(max_length = 255, primary_key=True)
     #creator         = models.CharField( max_length = 255 )
 #     archivist_organization  = models.CharField( max_length = 255 )
