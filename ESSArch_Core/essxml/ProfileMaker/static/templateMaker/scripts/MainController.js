@@ -14,8 +14,8 @@
 
         //TODO not hardcoded 'test' in future
         $http.get('/template/struct/test').then(function(res) {
-            $scope.treeInfo = [JSON.parse(res.data)];
-            vm.tree = JSON.parse(res.data);
+            var treeRoot = document.getElementById("tree");
+            vm.buildTree('root', treeRoot, res.data);
         });
 
         var vm = this;
@@ -25,6 +25,60 @@
         vm.anyElement = false;
         vm.possibleChildren = [];
         vm.existingChildren = [];
+
+        vm.buildTree = function(uuid, divElement, data) {
+          var element = data[uuid];
+          var newDiv = document.createElement("div");
+          var childDiv = document.createElement('div');
+          var newP = document.createElement("p");
+          childDiv.className = 'treeChildren';
+          newDiv.className = 'treerow';
+          newP.onclick = function(e) {
+            e.target.nextSibling.classList.toggle("hidden");
+          };
+          newP.innerHTML = element['name'];
+
+          newDiv.appendChild(newP);
+          newDiv.appendChild(childDiv);
+          divElement.appendChild(newDiv);
+
+          for (var index in element['children']) {
+            var child = element['children'][index];
+            if (child['type'] == 'sequence') {
+              for (var i in child['elements']) {
+                var el = child['elements'][i];
+                if ('uuid' in el) {
+                  vm.buildTree(el['uuid'], childDiv, data);
+                } else {
+                  var nd = document.createElement("div");
+                  nd.className = 'treerow';
+                  var np = document.createElement("p");
+                  np.innerHTML = el['name']
+                  nd.appendChild(np);
+                  childDiv.appendChild(nd);
+                }
+                // if has uuid, add that element, else add greyed out element
+              }
+            } else if (child['type'] == 'choise') {
+              for (var i in child['elements']) {
+                var el = child['elements'][i];
+                // console.log(el['name']);
+                var nd = document.createElement("div");
+                nd.className = 'treerow deleted';
+                var np = document.createElement("p");
+                np.innerHTML = el['name']
+                nd.appendChild(np);
+                childDiv.appendChild(nd);
+                // if has uuid, add that element, else add greyed out element
+              }
+            }
+          }
+        };
+
+        vm.expandNode = function(node) {
+          node.classList.toggle("hidden");
+          console.log('expand');
+        };
 
         // tree values
         $scope.treeOptions = {
@@ -45,88 +99,33 @@
         $scope.dataForTheTree = [];
         $scope.showSelected = function(sel, selected) {
             vm.selectedNode = sel;
-            console.log(sel);
-            // find parent
-            var p = sel['path'].split('/')
-            var t = vm.tree;
-            for (var i = 0; i < p.length-3; i+=2) {
-                var found = 0;
-                for (var j in t['children']) {
-                    var dic = t['children'][j];
-                    if (dic['name'] == p[i]) {
-                        if (found == parseInt(p[i+1])) {
-                            t = dic;
-                            break;
-                        } else {
-                            found += 1;
-                        }
-                    }
-                }
-            }
-            //count children of this type
-            var found = 0;
-            var name = p[p.length-3];
-            var nameid = p[p.length-2];
-            for (var i in t['children']) {
-                var dic = t['children'][i];
-                if (dic['name'] == name) {
-                    found += 1;
-                }
-            }
-            vm.countOfCurrent = found;
             $http.get(('/template/struct/test/' + sel['key'])).then(function(res) {
-                // console.log(res.data);
+                console.log(res.data);
                 var data = JSON.parse(res.data);
                 vm.title = sel['name'].charAt(0).toUpperCase() + sel['name'].slice(1); //TODO make first char capitol
-                vm.min = sel.meta['minOccurs'];
-                vm.max = sel.meta['maxOccurs'];
+                vm.min = data['min'];
+                vm.max = data['max'];
                 if (vm.max == -1) {
                     vm.max = 'infinite';
                 }
                 vm.uuid = sel['key'];
-                vm.schemaName = 'test';
+                // vm.schemaName = 'test';
                 var arr = [];
-                vm.fields = data['attributes'];
-                if (data['userAttributes'].length > 0) {
+                vm.fields = data['form'];
+                if (data['userForm'].length > 0) {
                     vm.fields.push({template: '<hr/><p><b>User defined attributes</b></p>'}); //divider
-                    vm.fields = vm.fields.concat(data['userAttributes']);
+                    vm.fields = vm.fields.concat(data['userForm']);
                 }
-                if (found > vm.min || data['userCreated'] == true) {
+                if (vm.min == 0) {
                     vm.canDelete = true;
                 } else {
                     vm.canDelete = false;
                 }
-                vm.model = {};
+                vm.model = data['formData'];
                 vm.selectedElement = data;
                 vm.anyAttribute = data['anyAttribute'];
                 vm.anyElement = data['anyElement'];
-                vm.countAll = {};
-                vm.possibleChildren = [];
-                for (var i in sel.children) {
-                    var child = sel.children[i];
-                    //only add if it actually exists and is not just a placeholder
-                    if (!(child.name in vm.countAll)) {
-                        var d = {};
-                        d['count'] = 0;
-                        d['element'] = child;
-                        d['name'] = child.name;
-                        var max = child.meta.maxOccurs;
-                        if (max == -1) {
-                            max = 100000000; // most unlikly to exceed
-                        }
-                        d['max'] = max;
-                        vm.countAll[child.name] = d;
-                    }
-                    if (child['templateOnly'] == false) {
-                        vm.countAll[child.name]['count'] += 1;
-                    }
-                }
-                for (var i in vm.countAll) {
-                    var child = vm.countAll[i];
-                    if (child.count < child.max) {
-                        vm.possibleChildren.push(child);
-                    }
-                }
+                vm.possibleChildren = data['avaliableChildren'];
             });
         };
 
@@ -140,7 +139,6 @@
                 url: '/template/edit/test/',
                 data: data
             }).then(function(res) {
-                console.log(res);
             });
             //TODO give feedback
             // $scope.showSelected(vm.selectedNode, false);
@@ -160,11 +158,12 @@
         // };
 
         vm.addChild = function(child) {
-            $http.get('/template/struct/addChild/test/' + child.element['path'].split('/').join('-')).then(function(res) {
-                $http.get('/template/struct/test').then(function(res) {
-                    $scope.treeInfo = [JSON.parse(res.data)];
-                    vm.tree = JSON.parse(res.data);
-                });
+          console.log(child.element);
+            $http.get('/template/struct/addChild/test/' + child.name + '/' + vm.uuid + '/').then(function(res) {
+                // $http.get('/template/struct/test').then(function(res) {
+                //     $scope.treeInfo = [JSON.parse(res.data)];
+                //     vm.tree = JSON.parse(res.data);
+                // });
             });
 
         };

@@ -13,15 +13,15 @@
     function MainController($scope, $http) {
 
         //TODO not hardcoded 'test' in future
-        $http.get('/template/form/test').then(function(res) {
-            // console.log()
-            vm.fields = res.data;
-        });
-
-        $http.get('/template/data/test').then(function(res) {
-            // console.log()
-            vm.model = res.data;
-        });
+        // $http.get('/template/form/test').then(function(res) {
+        //     // console.log()
+        //     vm.fields = res.data;
+        // });
+        //
+        // $http.get('/template/data/test').then(function(res) {
+        //     // console.log()
+        //     vm.model = res.data;
+        // });
 
         var vm = this;
         vm.title = 'title'; // placeholder only

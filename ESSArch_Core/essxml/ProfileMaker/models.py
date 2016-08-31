@@ -3,9 +3,10 @@ from django.db import models
 import jsonfield
 
 class templatePackage(models.Model):
-    structure = jsonfield.JSONField(null=True)
-    elements = jsonfield.JSONField(null=True)
-    tempates = jsonfield.JSONField(null=True)
+    existingElements = jsonfield.JSONField(null=True)
+    treeData = jsonfield.JSONField(null=True)
+    allElements = jsonfield.JSONField(null=True)
+    isTreeCreated = models.BooleanField(default=True)
     name = models.CharField(max_length = 255, primary_key=True)
     #creator         = models.CharField( max_length = 255 )
 #     archivist_organization  = models.CharField( max_length = 255 )

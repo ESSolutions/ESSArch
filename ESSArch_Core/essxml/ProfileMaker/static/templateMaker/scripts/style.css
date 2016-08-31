@@ -15,15 +15,38 @@
     color: lightgrey;
 }
 
-.children {
+/*.children {
     width: 400px;
     height: 40px;
-}
+}*/
 
-.children p {
+/*.children p {
     float: left;
     font-size: 1.5em;
 }
 .children button {
     float: right;
+}*/
+
+.tree {
+  width: 500px;
+  height: 500px;
+  background-color: lightgrey;
+  /*margin-left: 10px;*/
 }
+
+.treerow {
+  margin-left: 15px;
+}
+
+.treerow.hidden {
+  display: none;
+}
+
+.treerow.deleted {
+  color: lightgrey
+}
+
+/*.tree p {
+  margin-left: 100px;
+}*/

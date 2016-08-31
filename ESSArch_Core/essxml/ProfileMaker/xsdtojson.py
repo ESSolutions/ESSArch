@@ -10,6 +10,7 @@ complexTypes = OrderedDict()
 attributeGroups = OrderedDict()
 pretty = True
 eol_ = '\n'
+choiseCount = 0
 
 def getIndent(level):
     indent = ''
@@ -55,6 +56,7 @@ class xmlElement():
         self.uuid = uuid.uuid4().__str__()
         self.anyAttribute = False
         self.anyElement = False
+        self.choise = -1
         # self.namespace = namespace
         # self.completeTagName = ''
         # self.containsFiles = False
@@ -100,41 +102,246 @@ class xmlElement():
         result['meta'] = self.meta
         return result
 
-    def generateStruct(self):
+    def generateStruct(self, addChildren=True):
         result = OrderedDict()
         result['name'] = self.name
         result['key'] = self.uuid
-        result['meta'] = self.meta
-        result['path'] = self.path
         result['templateOnly'] = False
+        # result['meta'] = self.meta
+        # result['path'] = self.path
+        # result['templateOnly'] = False
         arr = []
-        for child in self.children:
-            arr.append(child.generateStruct())
+        cElement = []
+        currentChoise = -1
+        if addChildren:
+            for child in self.children:
+                if child.choise == -1:
+                    arr.append(child.generateStruct())
+                else:
+                    if currentChoise == child.choise:
+                        cElement.append(child.generateStruct(addChildren=False))
+                    else:
+                        cElement = []
+                        currentChoise = child.choise
+                        cElement.append(child.generateStruct(addChildren=False))
+                        r = {}
+                        r['key'] = 'choise:'+str(uuid.uuid4().__str__())
+                        r['name'] = 'Choose one of'
+                        r['children'] = cElement
+                        arr.append(r)
+        else:
+            result['templateOnly'] = True
+
         result['children'] = arr
         return result
 
-    def listAllElements(self):
+    def listAllElements(self, parent='none'):
+        # res = {}
+        # result = OrderedDict()
+        # # result['name'] = self.name
+        # # result['key'] = self.uuid
+        # for child in self.children:
+        #     a = child.listAllElements()
+        #     res.update(a)
+        # result['attributes'] = self.attrib
+        # result['anyAttribute'] = self.anyAttribute
+        # result['anyElement'] = self.anyElement
+        # result['userAttributes'] = []
+        # res[self.uuid] = result
+        # return res
+        # res = {}
+        # a = {}
+        # children = []
+        # currentChoise = -1
+        # cElement = OrderedDict()
+        # for child in self.children:
+        #     if child.choise == -1:
+        #         c = {}
+        #         c['type'] = 'element'
+        #         if child.karMin > 0:
+        #             c['uuid'] = child.uuid
+        #         else:
+        #             c['name'] = child.name
+        #         children.append(c)
+        #     else:
+        #         if currentChoise == child.choise:
+        #             #add to last choise element
+        #             e = OrderedDict()
+        #             if child.karMin > 0:
+        #                 e['uuid'] = child.uuid
+        #             else:
+        #                 e['name'] = child.name
+        #             cElement['elements'].append(e)
+        #         else:
+        #             # create choise element
+        #             cElement = OrderedDict()
+        #             cElement['type'] = 'choise'
+        #             e = OrderedDict()
+        #             if child.karMin > 0:
+        #                 e['uuid'] = child.uuid
+        #             else:
+        #                 e['name'] = child.name
+        #             cElement['elements'] = []
+        #             cElement['elements'].append(e)
+        #             children.append(cElement)
+        #             currentChoise = child.choise
+        # a['children'] = children
+        # a['min'] = self.karMin
+        # a['max'] = self.karMax
+        # a['form'] = self.attrib
+        # res[self.name] = a
+        # for child in self.children:
+        #     r = child.listAllElements()
+        #     res.update(r)
+        # return res
         res = {}
-        result = OrderedDict()
-        # result['name'] = self.name
-        # result['key'] = self.uuid
+        el = {}
+        el['name'] = self.name
+        el['min'] = self.karMin
+        el['max'] = self.karMax
+        el['parent'] = parent
+        #form
+        el['form'] = self.attrib
+        el['userForm'] = []
+        el['formData'] = {}
+        el['userCreated'] = False
+        el['anyAttribute'] = self.anyAttribute
+        el['anyElement'] = self.anyElement
+        #TODO form and avaliable children
+        children = []
+        avaliableChildren = []
+        added = []
+        currentChoise = -1
+        cElement = OrderedDict()
         for child in self.children:
-            a = child.listAllElements()
-            res.update(a)
-        result['attributes'] = self.attrib
-        result['anyAttribute'] = self.anyAttribute
-        result['anyElement'] = self.anyElement
-        result['userAttributes'] = []
-        res[self.uuid] = result
+            if child.choise == -1:
+                c = {}
+                c['type'] = 'element'
+                c['name'] = child.name
+                children.append(c)
+                if (child.karMin < child.karMax and child.karMin > 0) or child.karMax == -1:
+                    if not any(child.name in s for s in added):
+                        avaliableChildren.append(c)
+                        added.append(child.name)
+            else:
+                c = {}
+                c['type'] = 'element'
+                # if child.karMin > 0:
+                #     c['uuid'] = child.uuid
+                c['name'] = child.name
+                avaliableChildren.append(c)
+                added.append(child.name)
+                if currentChoise == child.choise:
+                    #add to last choise element
+                    e = OrderedDict()
+                    e['name'] = child.name
+                    cElement['elements'].append(e)
+                else:
+                    # create choise element
+                    cElement = OrderedDict()
+                    cElement['type'] = 'choise'
+                    e = OrderedDict()
+                    e['name'] = child.name
+                    cElement['elements'] = []
+                    cElement['elements'].append(e)
+                    children.append(cElement)
+                    currentChoise = child.choise
+        el['avaliableChildren'] = avaliableChildren
+        el['children'] = children
+        res[self.uuid] = el
+
+        for child in self.children:
+            arr = child.listAllElementTypes(parent=self.uuid)
+            res.update(arr)
         return res
 
-    def listAllElementTypes(self, res={}):
-        if self.name not in res:
-            #add to res
-            res[self.name] = ''
-            for child in self.children:
-                # add children to res[self.name]
-                pass
+    def listAllElementTypes(self, parent='none'):
+        res = {}
+        el = {}
+        el['name'] = self.name
+        el['min'] = self.karMin
+        el['max'] = self.karMax
+        el['parent'] = parent
+        #form
+        el['form'] = self.attrib
+        el['userForm'] = []
+        el['formData'] = {}
+        el['userCreated'] = False
+        el['anyAttribute'] = self.anyAttribute
+        el['anyElement'] = self.anyElement
+        #TODO form and avaliable children
+        children = []
+        avaliableChildren = []
+        added = []
+        currentChoise = -1
+        cElement = OrderedDict()
+        elements = None
+        for child in self.children:
+            if child.choise == -1:
+                if elements == None:
+                    elements = []
+                c = {}
+                c['type'] = 'element'
+                # if child.karMin > 0:
+                c['uuid'] = child.uuid
+                c['name'] = child.name
+                elements.append(c)
+                if (child.karMin < child.karMax and child.karMin > 0) or child.karMax == -1:
+                    if not any(child.name in s for s in added):
+                        avaliableChildren.append(c)
+                        added.append(child.name)
+            else:
+                if elements != None:
+                    r = {}
+                    r['type'] = 'sequence'
+                    r['elements'] = elements
+                    children.append(r)
+                    elements = None
+                c = {}
+                c['type'] = 'element'
+                # if child.karMin > 0:
+                    # c['uuid'] = child.uuid
+                c['name'] = child.name
+                avaliableChildren.append(c)
+                added.append(child.name)
+                # pass
+                if currentChoise == child.choise:
+                    #add to last choise element
+                    e = OrderedDict()
+                    # if child.karMin > 0:
+                        # e['uuid'] = child.uuid
+                    e['name'] = child.name
+                    cElement['elements'].append(e)
+                else:
+                    # create choise element
+                    cElement = OrderedDict()
+                    cElement['type'] = 'choise'
+                    e = OrderedDict()
+                    # if child.karMin > 0:
+                        # e['uuid'] = child.uuid
+                    e['name'] = child.name
+                    cElement['elements'] = []
+                    cElement['elements'].append(e)
+                    children.append(cElement)
+                    currentChoise = child.choise
+        if elements != None:
+            r = {}
+            r['type'] = 'sequence'
+            r['elements'] = elements
+            children.append(r)
+
+        el['avaliableChildren'] = avaliableChildren
+        el['children'] = children
+        if parent != 'none':
+            res[self.uuid] = el
+        else:
+            res['root'] = el
+
+        for child in self.children:
+            if child.choise == -1:
+                arr = child.listAllElementTypes(parent=self.uuid)
+                res.update(arr)
+        return res
 
     def generateJSONTemplate(self):
         content = OrderedDict()
@@ -220,7 +427,8 @@ def getPostfix(tag):
     else:
         return ''
 
-def analyze2(element, tree, usedTypes=[], minC=0, maxC=1):
+def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
+    global choiseCount
     # print element.local-name()
     global complexTypes
     global attributeGroups
@@ -242,6 +450,7 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1):
             t = xmlElement(element.get('name'), tree.path)
             t.karMin = minC
             t.karMax = maxC
+            t.choise = choise
             path = t.path
             t.path += '0/'
             if 'minOccurs' in meta:
@@ -252,10 +461,12 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1):
             tree.addChild(t)
             for child in element:
                 analyze2(child, t, usedTypes)
-            if t.karMin > 1:
+            if t.karMin > 1 and choise == -1:
                 for i in range(1, t.karMin):
                     ti = xmlElement(t.name, tree.path)
                     ti.path = path + str(i) + '/'
+                    ti.karMin = t.karMin
+                    ti.karMax = t.karMax
                     ti.meta = meta
                     tree.addChild(ti)
                     for child in element:
@@ -264,6 +475,7 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1):
             t = xmlElement(element.get('name'), tree.path)
             t.karMin = minC
             t.karMax = maxC
+            t.choise = choise
             path = t.path
             t.path += '0/'
             if 'minOccurs' in meta:
@@ -282,11 +494,13 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1):
             att['templateOptions'] = templateOptions
             t.attrib.append(att)
             tree.addChild(t)
-            if t.karMin > 1:
+            if t.karMin > 1 and choise==-1:
                 for i in range(1, t.karMin):
                     ti = xmlElement(t.name, tree.path)
                     ti.path = path + str(i) + '/'
                     ti.meta = meta
+                    ti.karMin = t.karMin
+                    ti.karMax = t.karMax
                     a = copy.deepcopy(t.attrib)
                     ti.attrib = a
                     tree.addChild(ti)
@@ -294,6 +508,7 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1):
             t = xmlElement(element.get('name'), tree.path)
             t.karMin = minC
             t.karMax = maxC
+            t.choise = choise
             path = t.path
             t.path += '0/'
             if 'minOccurs' in meta:
@@ -343,7 +558,8 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1):
             analyze2(child, tree, usedTypes)
     elif tag == 'choice':
         for child in element:
-            analyze2(child, tree, usedTypes)
+            analyze2(child, tree, usedTypes, choise=choiseCount)
+        choiseCount += 1
     elif tag == 'attribute':
         att = parseAttribute(element)
         if att != None:
@@ -495,13 +711,16 @@ def generate():
             if tree is not None:
                 # with open('test.txt', 'wb') as outfile:
                 # print tree.generateJSON();
-                struc = tree.generateStruct()
-                el = tree.listAllElements()
+                # struc = tree.generateStruct()
+                # el = tree.listAllElements()
+                treeData = tree.generateStruct()
+                existingElements = tree.listAllElementTypes()
+                allElements = tree.listAllElements()
                 # temp = tree.listAllElementTypes()
                 # j = json.dumps(tree.generateJSON())
                 # tree.delete()
-                print json.dumps(struc)
-                return json.dumps(struc), json.dumps(el), 'test'
+                # print json.dumps(struc)
+                return existingElements, json.dumps(treeData), json.dumps(allElements)
     # pars = None
     # root = None
     # tree = None
