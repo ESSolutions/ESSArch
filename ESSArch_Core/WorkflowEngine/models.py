@@ -187,13 +187,10 @@ class ProcessStep(Process):
 
     def progress(self):
         child_steps = self.child_steps.all()
+        progress = 0
+        total = len(child_steps) + len(self.task_set())
 
-        if child_steps:
-            try:
-                progress = sum([c.progress() for c in child_steps])
-                return progress / len(child_steps)
-            except:
-                return 0
+        progress += sum([c.progress() for c in child_steps])
 
         tasks = self.tasks.filter(
             undone=False,
@@ -201,12 +198,13 @@ class ProcessStep(Process):
             retried=False
         )
 
-        if not tasks:
-            return 0
-
-        progress = tasks.aggregate(Sum("progress"))["progress__sum"]
         try:
-            return progress / len(self.task_set())
+            progress += tasks.aggregate(Sum("progress"))["progress__sum"]
+        except:
+            pass
+
+        try:
+            return progress / total
         except:
             return 0
 
