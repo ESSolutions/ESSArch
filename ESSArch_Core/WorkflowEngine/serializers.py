@@ -226,8 +226,36 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = SubmissionAgreement
-        fields = '__all__'
-
+        fields = (
+                'url', 'id', 'sa_name', 'sa_type', 'sa_status', 'sa_label',
+                'sa_cm_version', 'sa_cm_release_date',
+                'sa_cm_change_authority', 'sa_cm_change_description',
+                'sa_cm_sections_affected', 'sa_producer_organization',
+                'sa_producer_main_name', 'sa_producer_main_address',
+                'sa_producer_main_phone', 'sa_producer_main_email',
+                'sa_producer_main_additional', 'sa_producer_individual_name',
+                'sa_producer_individual_role', 'sa_producer_individual_phone',
+                'sa_producer_individual_email',
+                'sa_producer_individual_additional',
+                'sa_archivist_organization', 'sa_archivist_main_name',
+                'sa_archivist_main_address', 'sa_archivist_main_phone',
+                'sa_archivist_main_email', 'sa_archivist_main_additional',
+                'sa_archivist_individual_name', 'sa_archivist_individual_role',
+                'sa_archivist_individual_phone',
+                'sa_archivist_individual_email',
+                'sa_archivist_individual_additional',
+                'sa_designated_community_description',
+                'sa_designated_community_individual_name',
+                'sa_designated_community_individual_role',
+                'sa_designated_community_individual_phone',
+                'sa_designated_community_individual_email',
+                'sa_designated_community_individual_additional',
+                'profile_transfer_project', 'profile_content_type',
+                'profile_data_selection', 'profile_classification',
+                'profile_import', 'profile_submit_description', 'profile_sip',
+                'profile_aip', 'profile_dip', 'profile_workflow',
+                'profile_preservation_metadata', 'information_packages',
+        )
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
 
