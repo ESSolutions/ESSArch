@@ -42,7 +42,7 @@ class InformationPackageSerializer(serializers.HyperlinkedModelSerializer):
         model = InformationPackage
         fields = (
             'url', 'id', 'Label', 'Content', 'Responsible', 'CreateDate',
-            'State', 'Status', 'ObjectSize', 'ObjectNumItems', 'ObjectPath',
+            'State', 'status', 'ObjectSize', 'ObjectNumItems', 'ObjectPath',
             'Startdate', 'Enddate', 'OAIStype', 'SubmissionAgreement',
             'ArchivalInstitution', 'ArchivistOrganization', 'ArchivalType',
             'ArchivalLocation', 'steps', 'events',
