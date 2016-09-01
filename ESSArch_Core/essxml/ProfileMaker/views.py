@@ -173,7 +173,7 @@ def resetData(request):
     existingElements, treeData, allElements = generate();
     t = templatePackage(existingElements=existingElements, allElements=allElements, treeData=treeData, name='test')
     t.save()
-    return JsonResponse(existingElements, safe=False)
+    return JsonResponse(allElements, safe=False)
     # return HttpResponse(el)
 
 def getStruct(request, name):
@@ -315,6 +315,7 @@ def addChild(request, name, newElementName, elementUuid):
     templates = obj.allElements
     newUuid = uuid.uuid4().__str__()
     newElement = copy.deepcopy(templates[newElementName])
+    # newElement['children'] = []
     existingElements[newUuid] = newElement
 
     found = False

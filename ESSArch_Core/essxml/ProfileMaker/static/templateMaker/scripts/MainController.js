@@ -14,13 +14,12 @@
 
         //TODO not hardcoded 'test' in future
         $http.get('/template/struct/test').then(function(res) {
-            var treeRoot = document.getElementById("tree");
             $scope.treeElements = [];
             $scope.treeElements.push(vm.buildTree('root', res.data));
             vm.existingElements = res.data;
             $http.get('/template/struct/elements/test').then(function(res) {
               vm.allElements = res.data;
-              $scope.showSelected($scope.treeElements[0], false);
+              $scope.showSelected($scope.treeElements[0]['key'], false);
             });
         });
 
@@ -58,7 +57,8 @@
                 }
               }
             } else if (child['type'] == 'choise') {
-              ch = [];
+              var ch = [];
+              var done = false;
               for (var i in child['elements']) {
                 var el = child['elements'][i];
                 var r = {};
@@ -66,18 +66,21 @@
                 r['children'] = [];
                 r['key'] = el['name'];
                 if ('uuid' in el) {
-                  var ch = [];
-                  ch.push(vm.buildTree(el['uuid'], data));
+                  ch = [];
+                  children.push(vm.buildTree(el['uuid'], data));
+                  done = true;
                 } else {
                   ch.push(r);
                 }
               }
-              var c = {};
-              c['name'] = 'choose one of:'
-              c['children'] = ch;
-              c['key'] = 'choise' + vm.choiseCount;
-              vm.choiseCount += 1;
-              children.push(c);
+              if (!done) {
+                var c = {};
+                c['name'] = 'choose one of:'
+                c['children'] = ch;
+                c['key'] = 'choise' + vm.choiseCount;
+                vm.choiseCount += 1;
+                children.push(c);
+              }
             }
           }
           result['children'] = children;
@@ -102,8 +105,9 @@
         $scope.expandedNodes = [];
         $scope.dataForTheTree = [];
         $scope.showSelected = function(sel, selected) {
-          var data = vm.existingElements[sel['key']];
-          vm.selectedNode = sel;
+          console.log(sel)
+          var data = vm.existingElements[sel];
+          vm.selectedNode = data;
           // $http.get(('/template/struct/test/' + sel['key'])).then(function(res) {
               // console.log(res.data);
               // var data = JSON.parse(res.data);
@@ -113,7 +117,7 @@
           if (vm.max == -1) {
               vm.max = 'infinite';
           }
-          vm.uuid = sel['key'];
+          vm.uuid = sel;
           // vm.schemaName = 'test';
           var arr = [];
           vm.fields = data['form'];
@@ -134,7 +138,7 @@
           vm.possibleChildren = [];
           // console.log(data['avaliableChildren']);
           var pc = {};
-          console.log(data['children']);
+          var doneChoises = [];
           for (var index in data['children']) {
             var child = data['children'][index];
             if (child['type'] == 'sequence') {
@@ -152,17 +156,13 @@
               for (var i in child['elements']) {
                 var el = child['elements'][i];
                 if ('uuid' in el) {
-                  if (el['name'] in pc) {
-                    pc[el['name']] = 1;
-                    delete pc[el['name']];
-                  }
+                  doneChoises.push(index);
                   break;
                 }
               }
             }
           }
           var ch = vm.allElements[data['name']]['children'];
-          console.log(ch);
           if (ch != undefined) {
             for (var index in ch) {
               el = ch[index];
@@ -171,26 +171,18 @@
                   var e = el['elements'][i];
                   if (!(e['name'] in pc)) {
                     pc[e['name']] = 0;
-                    console.log(e['name'])
                   }
                 }
               } else {
-                var choiseDone = false;
-                for (var i in el['elements']) {
-                  var e = el['elements'][i];
-                  if (e['name'] in pc) {
-                    choiseDone = true
-                  }
-                }
-                if (!choiseDone) {
-                  for (e in el['elements']) {
+                if (!(index in doneChoises)) {
+                  for (i in el['elements']) {
+                    var e = el['elements'][i];
                     pc[e['name']] = 0;
                   }
                 }
               }
             }
           }
-          console.log(pc);
           for (var key in pc) {
             if (pc[key] < vm.allElements[key]['max'] || vm.allElements[key]['max'] == -1) {
               vm.possibleChildren.push(key);
@@ -227,13 +219,12 @@
         // };
 
         vm.addChild = function(child) {
-          console.log(child);
-            $http.get('/template/struct/addChild/test/' + child + '/' + vm.uuid + '/').then(function(res) {
-                // $http.get('/template/struct/test').then(function(res) {
-                //     $scope.treeInfo = [JSON.parse(res.data)];
-                //     vm.tree = JSON.parse(res.data);
-                // });
-            });
+          $http.get('/template/struct/addChild/test/' + child + '/' + vm.uuid + '/').then(function(res) {
+            $scope.treeElements = [];
+            $scope.treeElements.push(vm.buildTree('root', res.data));
+            vm.existingElements = res.data;
+            $scope.showSelected(vm.uuid, false);
+          });
 
         };
 

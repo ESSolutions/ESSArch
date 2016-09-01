@@ -136,64 +136,6 @@ class xmlElement():
         return result
 
     def listAllElements(self, parent='none'):
-        # res = {}
-        # result = OrderedDict()
-        # # result['name'] = self.name
-        # # result['key'] = self.uuid
-        # for child in self.children:
-        #     a = child.listAllElements()
-        #     res.update(a)
-        # result['attributes'] = self.attrib
-        # result['anyAttribute'] = self.anyAttribute
-        # result['anyElement'] = self.anyElement
-        # result['userAttributes'] = []
-        # res[self.uuid] = result
-        # return res
-        # res = {}
-        # a = {}
-        # children = []
-        # currentChoise = -1
-        # cElement = OrderedDict()
-        # for child in self.children:
-        #     if child.choise == -1:
-        #         c = {}
-        #         c['type'] = 'element'
-        #         if child.karMin > 0:
-        #             c['uuid'] = child.uuid
-        #         else:
-        #             c['name'] = child.name
-        #         children.append(c)
-        #     else:
-        #         if currentChoise == child.choise:
-        #             #add to last choise element
-        #             e = OrderedDict()
-        #             if child.karMin > 0:
-        #                 e['uuid'] = child.uuid
-        #             else:
-        #                 e['name'] = child.name
-        #             cElement['elements'].append(e)
-        #         else:
-        #             # create choise element
-        #             cElement = OrderedDict()
-        #             cElement['type'] = 'choise'
-        #             e = OrderedDict()
-        #             if child.karMin > 0:
-        #                 e['uuid'] = child.uuid
-        #             else:
-        #                 e['name'] = child.name
-        #             cElement['elements'] = []
-        #             cElement['elements'].append(e)
-        #             children.append(cElement)
-        #             currentChoise = child.choise
-        # a['children'] = children
-        # a['min'] = self.karMin
-        # a['max'] = self.karMax
-        # a['form'] = self.attrib
-        # res[self.name] = a
-        # for child in self.children:
-        #     r = child.listAllElements()
-        #     res.update(r)
-        # return res
         res = {}
         el = {}
         el['name'] = self.name
@@ -207,7 +149,6 @@ class xmlElement():
         el['userCreated'] = False
         el['anyAttribute'] = self.anyAttribute
         el['anyElement'] = self.anyElement
-        #TODO form and avaliable children
         children = []
         avaliableChildren = []
         added = []
@@ -220,22 +161,8 @@ class xmlElement():
                     elements = []
                 c = {}
                 c['type'] = 'element'
-                # if child.karMin > 0:
-                # c['uuid'] = child.uuid
                 c['name'] = child.name
                 elements.append(c)
-                if (child.karMin < child.karMax and child.karMin > 0) or child.karMax == -1:
-                    if not any(child.name in s for s in added):
-                        avaliableChildren.append(c)
-                        added.append(child.name)
-                # c = {}
-                # c['type'] = 'element'
-                # c['name'] = child.name
-                # children.append(c)
-                # if (child.karMin < child.karMax and child.karMin > 0) or child.karMax == -1:
-                #     if not any(child.name in s for s in added):
-                #         avaliableChildren.append(c)
-                #         added.append(child.name)
             else:
                 if elements != None:
                     r = {}
@@ -243,20 +170,7 @@ class xmlElement():
                     r['elements'] = elements
                     children.append(r)
                     elements = None
-                c = {}
-                c['type'] = 'element'
-                # if child.karMin > 0:
-                    # c['uuid'] = child.uuid
-                c['name'] = child.name
-                avaliableChildren.append(c)
-                added.append(child.name)
-                # c = {}
-                # c['type'] = 'element'
-                # # if child.karMin > 0:
-                # #     c['uuid'] = child.uuid
-                # c['name'] = child.name
-                # avaliableChildren.append(c)
-                # added.append(child.name)
+                # pass
                 if currentChoise == child.choise:
                     #add to last choise element
                     e = OrderedDict()
@@ -282,13 +196,12 @@ class xmlElement():
             r['elements'] = elements
             children.append(r)
 
-        el['avaliableChildren'] = avaliableChildren
         el['children'] = children
-        res[self.name] = el
 
         for child in self.children:
-            arr = child.listAllElements(parent=self.uuid)
+            arr = child.listAllElements(parent=self.name)
             res.update(arr)
+        res[self.name] = el
         return res
 
     def listAllElementTypes(self, parent='none'):
@@ -305,7 +218,6 @@ class xmlElement():
         el['userCreated'] = False
         el['anyAttribute'] = self.anyAttribute
         el['anyElement'] = self.anyElement
-        #TODO form and avaliable children
         children = []
         avaliableChildren = []
         added = []
