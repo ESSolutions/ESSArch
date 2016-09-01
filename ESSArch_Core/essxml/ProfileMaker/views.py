@@ -47,7 +47,7 @@ def constructContent(text):
             res.append(r[j])
     return res
 
-def generateElement(elements, currentUuid):
+def generateElement(elements, currentUuid, takenNames=[]):
     element = elements[currentUuid]
     el = OrderedDict()
     forms = []
@@ -71,14 +71,23 @@ def generateElement(elements, currentUuid):
                         # ?? add information of parent? example: note for agent with role=Archivist&&typ=organization (probably not needed)
                         # adding text if there occures at least one variable.
                         field = {}
-                        field['key'] = part['var'] # check for doubles
+                        key = part['var'] # check for doubles
+                        if key in takenNames:
+                            index = 0
+                            while (key + str(index)) in takenNames:
+                                index += 1
+                            field['key'] = (key + str(index))
+                            takenNames.append((key + str(index)))
+                        else:
+                            field['key'] = key
+                            takenNames.append(key)
                         field['type'] = 'input'
                         to = {}
                         to['type'] = 'text'
                         to['label'] = part['var']
                         field['templateOptions'] = to
                         forms.append(field)
-                        data[part['var']] = 's'
+                        data[field['key']] = 's'
             else:
                 el['#content'] = [] # TODO warning, should not be added if it can't contain any value
         else:
@@ -96,14 +105,23 @@ def generateElement(elements, currentUuid):
                         # ?? add information of parent? example: note for agent with role=Archivist&&typ=organization (probably not needed)
                         # adding text if there occures at least one variable.
                         field = {}
-                        field['key'] = part['var'] # check for doubles
+                        key = part['var'] # check for doubles
+                        if key in takenNames:
+                            index = 0
+                            while (key + str(index)) in takenNames:
+                                index += 1
+                            field['key'] = (key + str(index))
+                            takenNames.append((key + str(index)))
+                        else:
+                            field['key'] = key
+                            takenNames.append(key)
                         field['type'] = 'input'
                         to = {}
                         to['type'] = 'text'
                         to['label'] = part['var']
                         field['templateOptions'] = to
                         forms.append(field)
-                        data[part['var']] = ''
+                        data[field['key']] = ''
             else:
                 att['#content'] = [] # TODO warning, should not be added if it can't contain any value
             attributeList.append(att)
@@ -113,7 +131,7 @@ def generateElement(elements, currentUuid):
             for child in childDict['elements']:
                 if 'uuid' in child:
                     # TODO handle doubles
-                    e, f, d = generateElement(elements, child['uuid'])
+                    e, f, d = generateElement(elements, child['uuid'], takenNames)
                     if e is not None:
                         if child['name'] in el:
                             # cerate array
@@ -139,7 +157,7 @@ def generateElement(elements, currentUuid):
                         print 'ERROR'
                     else:
                         found = True
-                        e, f, d = generateElement(elements, child['uuid'])
+                        e, f, d = generateElement(elements, child['uuid'], takenNames)
                         if e is not None:
                             if child['name'] in el:
                                 # cerate array
