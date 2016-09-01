@@ -18,6 +18,10 @@ from configuration.models import (
 )
 
 from ip.models import (
+    ArchivalInstitution,
+    ArchivistOrganization,
+    ArchivalType,
+    ArchivalLocation,
     InformationPackage,
     EventIP
 )
@@ -28,6 +32,10 @@ from preingest.models import (
 )
 
 from preingest.serializers import (
+    ArchivalInstitutionSerializer,
+    ArchivistOrganizationSerializer,
+    ArchivalTypeSerializer,
+    ArchivalLocationSerializer,
     InformationPackageSerializer,
     EventIPSerializer,
     EventTypeSerializer,
@@ -160,6 +168,34 @@ class GroupViewSet(viewsets.ModelViewSet):
     """
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+
+class ArchivalInstitutionViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows archival institutions to be viewed or edited.
+    """
+    queryset = ArchivalInstitution.objects.all()
+    serializer_class = ArchivalInstitutionSerializer
+
+class ArchivistOrganizationViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows archivist organizations to be viewed or edited.
+    """
+    queryset = ArchivistOrganization.objects.all()
+    serializer_class = ArchivistOrganizationSerializer
+
+class ArchivalTypeViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows archival types to be viewed or edited.
+    """
+    queryset = ArchivalType.objects.all()
+    serializer_class = ArchivalTypeSerializer
+
+class ArchivalLocationViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows archival locations to be viewed or edited.
+    """
+    queryset = ArchivalLocation.objects.all()
+    serializer_class = ArchivalLocationSerializer
 
 class InformationPackageViewSet(viewsets.ModelViewSet):
     """

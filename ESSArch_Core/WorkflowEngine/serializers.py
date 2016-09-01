@@ -10,7 +10,14 @@ from configuration.models import (
     Schema,
 )
 
-from ip.models import EventIP, InformationPackage
+from ip.models import (
+    ArchivalInstitution,
+    ArchivistOrganization,
+    ArchivalType,
+    ArchivalLocation,
+    EventIP,
+    InformationPackage
+)
 
 from preingest.models import ProcessStep, ProcessTask
 
@@ -36,6 +43,26 @@ class PickledObjectField(serializers.Field):
 
     def to_internal_value(self, data):
         return data
+
+class ArchivalInstitutionSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ArchivalInstitution
+        fields = ('url', 'id', 'name', 'information_packages',)
+
+class ArchivistOrganizationSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ArchivistOrganization
+        fields = ('url', 'id', 'name', 'information_packages',)
+
+class ArchivalTypeSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ArchivalType
+        fields = ('url', 'id', 'name', 'information_packages',)
+
+class ArchivalLocationSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ArchivalLocation
+        fields = ('url', 'id', 'name', 'information_packages',)
 
 class InformationPackageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
