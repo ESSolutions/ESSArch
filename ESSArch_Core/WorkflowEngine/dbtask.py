@@ -1,7 +1,5 @@
 from __future__ import absolute_import, division
 
-from datetime import datetime
-
 from celery import states as celery_states, Task
 
 from django.utils import timezone
@@ -10,14 +8,18 @@ from preingest.models import ProcessTask
 
 class DBTask(Task):
     def __call__(self, *args, **kwargs):
-        self.taskobj = kwargs.get('taskobj', None)
+        try:
+            self.taskobj = kwargs['taskobj']
+        except KeyError:
+            print "Task requires taskobj set to a ProcessTask"
+
         undo = kwargs.get('undo', False)
         params = self.taskobj.params
         print "init task with name {}, id {}".format(self.name, self.request.id)
 
         self.taskobj.celery_id = self.request.id
         self.taskobj.status=celery_states.STARTED
-        self.taskobj.time_started = datetime.now()
+        self.taskobj.time_started = timezone.now()
         self.taskobj.save()
 
         if undo:

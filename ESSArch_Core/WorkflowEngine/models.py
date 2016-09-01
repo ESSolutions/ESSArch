@@ -17,6 +17,16 @@ from preingest.managers import StepManager
 from preingest.util import available_tasks, sliceUntilAttr
 
 class Process(models.Model):
+    def _create_task(self, name):
+        """
+        Create and instantiate the task with the given name
+
+        Args:
+            name: The name of the task, including package and module
+        """
+        [module, task] = name.rsplit('.', 1)
+        return getattr(importlib.import_module(module), task)()
+
     class Meta:
         abstract = True
 
@@ -72,10 +82,6 @@ class ProcessStep(Process):
     parallel = models.BooleanField(default=False)
 
     objects = StepManager()
-
-    def _create_task(self, name):
-        [module, task] = name.rsplit('.', 1)
-        return getattr(importlib.import_module(module), task)()
 
     def _create_taskobj(self, task, attempt=None, undo=False, retry=False):
         if undo:
@@ -181,13 +187,10 @@ class ProcessStep(Process):
 
     def progress(self):
         child_steps = self.child_steps.all()
+        progress = 0
+        total = len(child_steps) + len(self.task_set())
 
-        if child_steps:
-            try:
-                progress = sum([c.progress() for c in child_steps])
-                return progress / len(child_steps)
-            except:
-                return 0
+        progress += sum([c.progress() for c in child_steps])
 
         tasks = self.tasks.filter(
             undone=False,
@@ -195,12 +198,13 @@ class ProcessStep(Process):
             retried=False
         )
 
-        if not tasks:
-            return 0
-
-        progress = tasks.aggregate(Sum("progress"))["progress__sum"]
         try:
-            return progress / len(self.task_set())
+            progress += tasks.aggregate(Sum("progress"))["progress__sum"]
+        except:
+            pass
+
+        try:
+            return progress / total
         except:
             return 0
 
@@ -244,8 +248,8 @@ class ProcessTask(Process):
                               default=celery_states.PENDING,
                               choices=TASK_STATE_CHOICES)
     params = jsonfield.JSONField(null=True)
-    time_started = models.DateTimeField(_('started at'), null=True)
-    time_done = models.DateTimeField(_('done at'), null=True)
+    time_started = models.DateTimeField(_('started at'), null=True, blank=True)
+    time_done = models.DateTimeField(_('done at'), null=True, blank=True)
     traceback = models.TextField(_('traceback'), blank=True, null=True, editable=False)
     hidden = models.BooleanField(editable=False, default=False, db_index=True)
     meta = PickledObjectField(null=True, default=None, editable=False)
@@ -253,7 +257,8 @@ class ProcessTask(Process):
         'ProcessStep',
         related_name = 'tasks',
         on_delete=models.CASCADE,
-        null=True
+        null=True,
+        blank=True
     )
     processstep_pos = models.IntegerField(_('ProcessStep position'), default=0)
     attempt = models.UUIDField(default=uuid.uuid4)
@@ -261,6 +266,9 @@ class ProcessTask(Process):
     undone = models.BooleanField(default=False)
     undo_type = models.BooleanField(editable=False, default=False)
     retried = models.BooleanField(default=False)
+
+    def run(self):
+        return self._create_task(self.name).delay(taskobj=self)
 
     class Meta:
         db_table = 'ProcessTask'
