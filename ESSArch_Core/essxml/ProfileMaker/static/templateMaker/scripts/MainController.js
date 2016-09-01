@@ -15,8 +15,15 @@
         //TODO not hardcoded 'test' in future
         $http.get('/template/struct/test').then(function(res) {
             var treeRoot = document.getElementById("tree");
-            vm.buildTree('root', treeRoot, res.data);
+            $scope.treeElements = [];
+            $scope.treeElements.push(vm.buildTree('root', res.data));
+            vm.existingElements = res.data;
+            $http.get('/template/struct/elements/test').then(function(res) {
+              vm.allElements = res.data;
+              $scope.showSelected($scope.treeElements[0], false);
+            });
         });
+
 
         var vm = this;
         vm.title = 'title'; // placeholder only
@@ -25,22 +32,15 @@
         vm.anyElement = false;
         vm.possibleChildren = [];
         vm.existingChildren = [];
+        vm.existingElements = {};
+        vm.choiseCount = 0;
 
-        vm.buildTree = function(uuid, divElement, data) {
+        vm.buildTree = function(uuid, data) {
           var element = data[uuid];
-          var newDiv = document.createElement("div");
-          var childDiv = document.createElement('div');
-          var newP = document.createElement("p");
-          childDiv.className = 'treeChildren';
-          newDiv.className = 'treerow';
-          newP.onclick = function(e) {
-            e.target.nextSibling.classList.toggle("hidden");
-          };
-          newP.innerHTML = element['name'];
-
-          newDiv.appendChild(newP);
-          newDiv.appendChild(childDiv);
-          divElement.appendChild(newDiv);
+          var result = {}
+          result['name'] = element['name'];
+          result['key'] = uuid;
+          var children = [];
 
           for (var index in element['children']) {
             var child = element['children'][index];
@@ -48,36 +48,40 @@
               for (var i in child['elements']) {
                 var el = child['elements'][i];
                 if ('uuid' in el) {
-                  vm.buildTree(el['uuid'], childDiv, data);
+                  children.push(vm.buildTree(el['uuid'], data));
                 } else {
-                  var nd = document.createElement("div");
-                  nd.className = 'treerow';
-                  var np = document.createElement("p");
-                  np.innerHTML = el['name']
-                  nd.appendChild(np);
-                  childDiv.appendChild(nd);
+                  // var r = {}
+                  // r['name'] = el['name'];
+                  // r['children'] = [];
+                  // r['key'] = el['name'];
+                  // children.push(r);
                 }
-                // if has uuid, add that element, else add greyed out element
               }
             } else if (child['type'] == 'choise') {
+              ch = [];
               for (var i in child['elements']) {
                 var el = child['elements'][i];
-                // console.log(el['name']);
-                var nd = document.createElement("div");
-                nd.className = 'treerow deleted';
-                var np = document.createElement("p");
-                np.innerHTML = el['name']
-                nd.appendChild(np);
-                childDiv.appendChild(nd);
-                // if has uuid, add that element, else add greyed out element
+                var r = {};
+                r['name'] = el['name'];
+                r['children'] = [];
+                r['key'] = el['name'];
+                if ('uuid' in el) {
+                  var ch = [];
+                  ch.push(vm.buildTree(el['uuid'], data));
+                } else {
+                  ch.push(r);
+                }
               }
+              var c = {};
+              c['name'] = 'choose one of:'
+              c['children'] = ch;
+              c['key'] = 'choise' + vm.choiseCount;
+              vm.choiseCount += 1;
+              children.push(c);
             }
           }
-        };
-
-        vm.expandNode = function(node) {
-          node.classList.toggle("hidden");
-          console.log('expand');
+          result['children'] = children;
+          return result;
         };
 
         // tree values
@@ -98,35 +102,100 @@
         $scope.expandedNodes = [];
         $scope.dataForTheTree = [];
         $scope.showSelected = function(sel, selected) {
-            vm.selectedNode = sel;
-            $http.get(('/template/struct/test/' + sel['key'])).then(function(res) {
-                console.log(res.data);
-                var data = JSON.parse(res.data);
-                vm.title = sel['name'].charAt(0).toUpperCase() + sel['name'].slice(1); //TODO make first char capitol
-                vm.min = data['min'];
-                vm.max = data['max'];
-                if (vm.max == -1) {
-                    vm.max = 'infinite';
+          var data = vm.existingElements[sel['key']];
+          vm.selectedNode = sel;
+          // $http.get(('/template/struct/test/' + sel['key'])).then(function(res) {
+              // console.log(res.data);
+              // var data = JSON.parse(res.data);
+          vm.title = data['name'].charAt(0).toUpperCase() + data['name'].slice(1);
+          vm.min = data['min'];
+          vm.max = data['max'];
+          if (vm.max == -1) {
+              vm.max = 'infinite';
+          }
+          vm.uuid = sel['key'];
+          // vm.schemaName = 'test';
+          var arr = [];
+          vm.fields = data['form'];
+          if (data['userForm'].length > 0) {
+              vm.fields.push({template: '<hr/><p><b>User defined attributes</b></p>'}); //divider
+              console.log(data['userForm']);
+              vm.fields = vm.fields.concat(data['userForm']);
+          }
+          if (vm.min == 0) {
+              vm.canDelete = true;
+          } else {
+              vm.canDelete = false;
+          }
+          vm.model = data['formData'];
+          vm.selectedElement = data;
+          vm.anyAttribute = data['anyAttribute'];
+          vm.anyElement = data['anyElement'];
+          vm.possibleChildren = [];
+          // console.log(data['avaliableChildren']);
+          var pc = {};
+          console.log(data['children']);
+          for (var index in data['children']) {
+            var child = data['children'][index];
+            if (child['type'] == 'sequence') {
+              for (var i in child['elements']) {
+                var el = child['elements'][i];
+                if ('uuid' in el) {
+                  if (!(el['name'] in pc)) {
+                    pc[el['name']] = 1;
+                  } else {
+                    pc[el['name']] = parseInt(pc[el['name']]);
+                  }
                 }
-                vm.uuid = sel['key'];
-                // vm.schemaName = 'test';
-                var arr = [];
-                vm.fields = data['form'];
-                if (data['userForm'].length > 0) {
-                    vm.fields.push({template: '<hr/><p><b>User defined attributes</b></p>'}); //divider
-                    vm.fields = vm.fields.concat(data['userForm']);
+              }
+            } else if (child['type'] == 'choise') {
+              for (var i in child['elements']) {
+                var el = child['elements'][i];
+                if ('uuid' in el) {
+                  if (el['name'] in pc) {
+                    pc[el['name']] = 1;
+                    delete pc[el['name']];
+                  }
+                  break;
                 }
-                if (vm.min == 0) {
-                    vm.canDelete = true;
-                } else {
-                    vm.canDelete = false;
+              }
+            }
+          }
+          var ch = vm.allElements[data['name']]['children'];
+          console.log(ch);
+          if (ch != undefined) {
+            for (var index in ch) {
+              el = ch[index];
+              if (el['type'] == 'sequence') {
+                for (var i in el['elements']) {
+                  var e = el['elements'][i];
+                  if (!(e['name'] in pc)) {
+                    pc[e['name']] = 0;
+                    console.log(e['name'])
+                  }
                 }
-                vm.model = data['formData'];
-                vm.selectedElement = data;
-                vm.anyAttribute = data['anyAttribute'];
-                vm.anyElement = data['anyElement'];
-                vm.possibleChildren = data['avaliableChildren'];
-            });
+              } else {
+                var choiseDone = false;
+                for (var i in el['elements']) {
+                  var e = el['elements'][i];
+                  if (e['name'] in pc) {
+                    choiseDone = true
+                  }
+                }
+                if (!choiseDone) {
+                  for (e in el['elements']) {
+                    pc[e['name']] = 0;
+                  }
+                }
+              }
+            }
+          }
+          console.log(pc);
+          for (var key in pc) {
+            if (pc[key] < vm.allElements[key]['max'] || vm.allElements[key]['max'] == -1) {
+              vm.possibleChildren.push(key);
+            }
+          }
         };
 
         vm.submitForm = function() {
@@ -158,8 +227,8 @@
         // };
 
         vm.addChild = function(child) {
-          console.log(child.element);
-            $http.get('/template/struct/addChild/test/' + child.name + '/' + vm.uuid + '/').then(function(res) {
+          console.log(child);
+            $http.get('/template/struct/addChild/test/' + child + '/' + vm.uuid + '/').then(function(res) {
                 // $http.get('/template/struct/test').then(function(res) {
                 //     $scope.treeInfo = [JSON.parse(res.data)];
                 //     vm.tree = JSON.parse(res.data);

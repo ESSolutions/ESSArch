@@ -213,27 +213,55 @@ class xmlElement():
         added = []
         currentChoise = -1
         cElement = OrderedDict()
+        elements = None
         for child in self.children:
             if child.choise == -1:
+                if elements == None:
+                    elements = []
                 c = {}
                 c['type'] = 'element'
+                # if child.karMin > 0:
+                # c['uuid'] = child.uuid
                 c['name'] = child.name
-                children.append(c)
+                elements.append(c)
                 if (child.karMin < child.karMax and child.karMin > 0) or child.karMax == -1:
                     if not any(child.name in s for s in added):
                         avaliableChildren.append(c)
                         added.append(child.name)
+                # c = {}
+                # c['type'] = 'element'
+                # c['name'] = child.name
+                # children.append(c)
+                # if (child.karMin < child.karMax and child.karMin > 0) or child.karMax == -1:
+                #     if not any(child.name in s for s in added):
+                #         avaliableChildren.append(c)
+                #         added.append(child.name)
             else:
+                if elements != None:
+                    r = {}
+                    r['type'] = 'sequence'
+                    r['elements'] = elements
+                    children.append(r)
+                    elements = None
                 c = {}
                 c['type'] = 'element'
                 # if child.karMin > 0:
-                #     c['uuid'] = child.uuid
+                    # c['uuid'] = child.uuid
                 c['name'] = child.name
                 avaliableChildren.append(c)
                 added.append(child.name)
+                # c = {}
+                # c['type'] = 'element'
+                # # if child.karMin > 0:
+                # #     c['uuid'] = child.uuid
+                # c['name'] = child.name
+                # avaliableChildren.append(c)
+                # added.append(child.name)
                 if currentChoise == child.choise:
                     #add to last choise element
                     e = OrderedDict()
+                    # if child.karMin > 0:
+                        # e['uuid'] = child.uuid
                     e['name'] = child.name
                     cElement['elements'].append(e)
                 else:
@@ -241,17 +269,25 @@ class xmlElement():
                     cElement = OrderedDict()
                     cElement['type'] = 'choise'
                     e = OrderedDict()
+                    # if child.karMin > 0:
+                        # e['uuid'] = child.uuid
                     e['name'] = child.name
                     cElement['elements'] = []
                     cElement['elements'].append(e)
                     children.append(cElement)
                     currentChoise = child.choise
+        if elements != None:
+            r = {}
+            r['type'] = 'sequence'
+            r['elements'] = elements
+            children.append(r)
+
         el['avaliableChildren'] = avaliableChildren
         el['children'] = children
-        res[self.uuid] = el
+        res[self.name] = el
 
         for child in self.children:
-            arr = child.listAllElementTypes(parent=self.uuid)
+            arr = child.listAllElements(parent=self.uuid)
             res.update(arr)
         return res
 
@@ -720,7 +756,7 @@ def generate():
                 # j = json.dumps(tree.generateJSON())
                 # tree.delete()
                 # print json.dumps(struc)
-                return existingElements, json.dumps(treeData), json.dumps(allElements)
+                return existingElements, treeData, allElements
     # pars = None
     # root = None
     # tree = None

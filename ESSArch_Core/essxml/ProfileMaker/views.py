@@ -246,10 +246,10 @@ def getStruct(request, name):
     # }
     return JsonResponse(obj.existingElements, safe=False)
 
-def getElement(request, name, uuid):
+def getElements(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
-    j = json.loads(obj.existingElements, object_pairs_hook=OrderedDict)
-    return JsonResponse(json.dumps(j[uuid]), safe=False)
+    # j = json.loads(obj.existingElements, object_pairs_hook=OrderedDict)
+    return JsonResponse(obj.allElements, safe=False)
 
 def deleteChild(request, name):
     # find element
@@ -303,7 +303,7 @@ def deleteChild(request, name):
     obj.save()
     return JsonResponse(t, safe=False)
 
-def addChild(request, name, newElementName, uuid):
+def addChild(request, name, newElementName, elementUuid):
     # find location in structure
     # add element and children with new uuid
     # add children to elemnts list with new id:s
@@ -311,60 +311,92 @@ def addChild(request, name, newElementName, uuid):
     # New version
 
     obj = get_object_or_404(templatePackage, pk=name)
-    existingElements = json.loads(obj.existingElements, object_pairs_hook=OrderedDict)
-    templates = json.loads(obj.allElements, object_pairs_hook=OrderedDict)
+    existingElements = obj.existingElements
+    templates = obj.allElements
     newUuid = uuid.uuid4().__str__()
-    newElement = templates[newElementName]
+    newElement = copy.deepcopy(templates[newElementName])
     existingElements[newUuid] = newElement
+
+    found = False
+    foundIndex = -1
+    index = 0
+    for childDict in existingElements[elementUuid]['children']:
+        if childDict['type'] == 'sequence':
+            for child in childDict['elements']:
+                if child['name'] == newElementName:
+                    found = True
+                    foundIndex = index
+                    if 'uuid' not in child:
+                        foundIndex -= 1
+                index += 1
+            if found:
+                r = {}
+                r['name'] = newElementName
+                r['uuid'] = newUuid
+                childDict['elements'].insert(foundIndex+1 ,r)
+        else:
+            for child in childDict['elements']:
+                if child['name'] == newElementName:
+                    if 'uuid' in child:
+                        return HttpResponse('ERROR: Choise already has one element')
+                    else:
+                        found = True
+                        foundIndex = index
+                index += 1
+            if found:
+                temp = childDict['elements'][foundIndex]
+                temp['uuid'] = newUuid
+                childDict['elements'] = []
+                childDict['elements'].append(temp)
 
     #TODO
     # 1. find position in children array to add after. (check if ther ar doubles)
     # 2. if position inside choise, remove other choises from possibleChildren
     # 3. check if the number of children of this type has reached maximum.
     # if it is the case, remove from possible children
-    foundIndex = 0
-    index = 0
-    j = 0
-    foundElement = None
-    done = False
-    for childDict in existingElements[uuid]['children']:
-        if childDict['type'] == 'element':
-            if childDict['name'] == newElementName and 'uuid' in childDict:
-                foundCount += 1
-                foundIndex = index
-                if done:
-                    return HttpResponse('ERROR: multiple places where child can be placed')
-            else:
-                if foundCount > 0:
-                    done = True
-        else:
-            j = 0
-            for child in childDict['elements']:
-                if child['name'] == newElementName and 'uuid' in childDict:
-                    foundCount += 1
-                    foundIndex = j
-                    foundElement = childDict
-                    if done:
-                        return HttpResponse('ERROR: multiple places where child can be placed')
-                else:
-                    if foundCount > 0:
-                        done = True
-                j += 1
-        index += 1
-    elementToInsert = {}
-    elementToInsert['name'] = newElementName
-    elementToInsert['uuid'] = newElement['uuid']
-
-    if foundElement == None:
-        # add after found index
-        elementToInsert['type'] = 'element'
-        existingElements[uuid]['children'].insert(foundIndex+1, elementToInsert)
-    else:
-        foundElement['elements'].insert(foundIndex+1, elementToInsert)
+    # foundIndex = 0
+    # index = 0
+    # j = 0
+    # foundElement = None
+    # done = False
+    # for childDict in existingElements[uuid]['children']:
+    #     if childDict['type'] == 'element':
+    #         if childDict['name'] == newElementName and 'uuid' in childDict:
+    #             foundCount += 1
+    #             foundIndex = index
+    #             if done:
+    #                 return HttpResponse('ERROR: multiple places where child can be placed')
+    #         else:
+    #             if foundCount > 0:
+    #                 done = True
+    #     else:
+    #         j = 0
+    #         for child in childDict['elements']:
+    #             if child['name'] == newElementName and 'uuid' in childDict:
+    #                 foundCount += 1
+    #                 foundIndex = j
+    #                 foundElement = childDict
+    #                 if done:
+    #                     return HttpResponse('ERROR: multiple places where child can be placed')
+    #             else:
+    #                 if foundCount > 0:
+    #                     done = True
+    #             j += 1
+    #     index += 1
+    # elementToInsert = {}
+    # elementToInsert['name'] = newElementName
+    # elementToInsert['uuid'] = newElement['uuid']
+    #
+    # if foundElement == None:
+    #     # add after found index
+    #     elementToInsert['type'] = 'element'
+    #     existingElements[uuid]['children'].insert(foundIndex+1, elementToInsert)
+    # else:
+    #     foundElement['elements'].insert(foundIndex+1, elementToInsert)
 
     #TODO generate new structure
 
-    obj.existingElements = json.dumps(existingElements)
+    obj.existingElements = existingElements
     obj.save()
 
 
@@ -472,12 +504,9 @@ def addUserChild(request, name):
 
 def addAttribute(request, name, uuid):
     obj = get_object_or_404(templatePackage, pk=name)
-    elements = json.loads(obj.existingElements, object_pairs_hook=OrderedDict)
-    res = json.loads(request.body)
-    elements[uuid]['userForm'].append(res)
-    obj.existingElements = json.dumps(elements)
+    obj.existingElements[uuid]['userForm'].append(json.loads(request.body))
     obj.save()
-    return JsonResponse(elements[uuid]['userForm'], safe=False)
+    return JsonResponse(obj.existingElements[uuid]['userForm'], safe=False)
 
 def generateTemplate(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
@@ -503,35 +532,14 @@ def getData(request, name):
 def saveForm(request, name):
 
     res = json.loads(request.body)
-    # name = res['schemaName']
     uuid = res['uuid']
-    # del res['schemaName']
     del res['uuid']
 
     obj = get_object_or_404(templatePackage, pk=name)
-    j = json.loads(obj.existingElements, object_pairs_hook=OrderedDict)
-    j[uuid]['formData'] = res
-    # for key, value in res.iteritems():
-    #     # if key.startswith('formly_'):
-    #     #     # key has format formly_[form_id]_[type (input | select)]_[key]_[num] Wanted value is [key]
-    #     #     end = key.rfind('_')
-    #     #     k = key[0:end]
-    #     #     start = k.rfind('_')
-    #     #     k = k[start+1:]
-    #     for attrib in oldData['attributes']:
-    #         if attrib['key'] == key:
-    #             v = value
-    #             if value.startswith('string:'):
-    #                 v = v[7:]
-    #             attrib['defaultValue'] = v
-    #             break
-
-    obj.existingElements = json.dumps(j)
+    j = obj.existingElements
+    obj.existingElements[uuid]['formData'] = res
     obj.save()
-    return JsonResponse(j[uuid], safe=False);
-    # return redirect('/template/edit/')
-
-    pass
+    return JsonResponse(res, safe=False)
 
 class demo(View):
     template_name = 'templateMaker/demo.html'
@@ -619,27 +627,29 @@ class edit(View):
         # 4. save
         # return HttpResponse(json.dumps(request.POST))
         # return JsonResponse(request.body);
-        name = request.POST['schemaName']
+        # name = request.POST['schemaName']
         uuid = request.POST['uuid']
+        del request.POST['uuid']
 
         obj = get_object_or_404(templatePackage, pk=name)
-        j = json.loads(obj.elements, object_pairs_hook=OrderedDict)
-        oldData = j[uuid]
-        for key, value in request.POST.iteritems():
-            if key.startswith('formly_'):
-                # key has format formly_[form_id]_[type (input | select)]_[key]_[num] Wanted value is [key]
-                end = key.rfind('_')
-                k = key[0:end]
-                start = k.rfind('_')
-                k = k[start+1:]
-                for attrib in oldData['attributes']:
-                    if attrib['key'] == k:
-                        v = value
-                        if value.startswith('string:'):
-                            v = v[7:]
-                        attrib['defaultValue'] = v
-                        break
+        j = json.loads(obj.existingElements, object_pairs_hook=OrderedDict)
+        element = j[uuid]
+        element['formData'] = request.POST
+        # for key, value in request.POST.iteritems():
+        #     if key.startswith('formly_'):
+        #         # key has format formly_[form_id]_[type (input | select)]_[key]_[num] Wanted value is [key]
+        #         end = key.rfind('_')
+        #         k = key[0:end]
+        #         start = k.rfind('_')
+        #         k = k[start+1:]
+        #         for attrib in oldData['attributes']:
+        #             if attrib['key'] == k:
+        #                 v = value
+        #                 if value.startswith('string:'):
+        #                     v = v[7:]
+        #                 attrib['defaultValue'] = v
+        #                 break
 
-        obj.elements = json.dumps(j)
+        obj.existingElements = json.dumps(j)
         obj.save()
         return redirect('/template/edit/')

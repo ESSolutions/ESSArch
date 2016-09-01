@@ -23,30 +23,27 @@
     </head>
     <body>
 
-      <div id="tree">
-        <!-- <div class="treerow"><p>Mets</p>
-          <div class="children">
-            <div class="treerow">
-              <p>MetsHdr</p>
-              <div class="children">
-                <div class="treerow hidden">
-                  <p>Agent</p>
-                  <div class="children">
-                  </div>
+      <!-- <div id="tree" ng-repeat="node in vm.treeElements">
+        <div id="root" onClick="">
+          <div class="treerow"><p>Mets</p>
+            <div class="children" ng-repeat="node in node.Children">
+              <div class="treerow">
+                <p>{% verbatim %}{{node.name}}{% endverbatim %}</p>
+                <div class="children">
+                </div>
+              </div>
+              <div class="treerow">
+                <p>{% verbatim %}{{node.name}}{% endverbatim %}</p>
+                <div class="children">
                 </div>
               </div>
             </div>
-            <div class="treerow">
-              <p>MetsOtherChild</p>
-              <div class="children">
-              </div>
-            </div>
           </div>
-        </div> -->
-      </div
+        </div>
+      </div> -->
 
     <treecontrol class="tree-classic"
-        tree-model="treeInfo"
+        tree-model="treeElements"
         options="treeOptions"
         on-selection="showSelected(node, selected)"
         selected-node="node1"
@@ -84,7 +81,7 @@
                 <h3 ng-if="vm.possibleChildren.length > 0">PossibleChildren</h3>
                 <div ng-repeat="child in vm.possibleChildren" class="children">
                     <p>
-                        {% verbatim %}{{child.name}}{% endverbatim %}
+                        {% verbatim %}{{child}}{% endverbatim %}
                     </p>
                     <button type="button" class="btn btn-success" ng-click="vm.addChild(child)">Add</button>
                     <!-- <span ng-click="vm.addChild(child)">{% verbatim %}{{child.name}}{% endverbatim %}
