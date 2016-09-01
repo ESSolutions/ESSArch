@@ -47,125 +47,127 @@ def constructContent(text):
             res.append(r[j])
     return res
 
-def cloneElement(el, allElements, found=0, begin=''):
-    newElement = OrderedDict()
-    newElement['name'] = el['name']
-    newElement['key'] = uuid.uuid4().__str__()
-    newElement['meta'] = copy.deepcopy(el['meta'])
-    newElement['path'] = el['path']
-    newElement['templateOnly'] = False
-    path = newElement['path']
-    if found != 0:
-        newElement['path'] = path[0:path[:-1].rfind('/')] + '/'+str(found)+'/'
-    elif begin != '':
-        newElement['path'] = begin + path[path[:path[:-1].rfind('/')].rfind('/')+1:]
-    children = []
-    for child in el['children']:
-        children.append(cloneElement(child, allElements, begin=newElement['path']))
-    newElement['children'] = children
-    allElements[newElement['key']] = copy.deepcopy(allElements[str(el['key'])])
-
-    return newElement
-
-def generateElement(structure, elements):
-    if 'templateOnly' not in structure or structure['templateOnly'] == False:
-        el = OrderedDict()
-        forms = []
-        data = {}
-        meta = structure['meta']
-        if 'minOccurs' in meta:
-            el['-min'] = meta['minOccurs']
-        if 'maxOccurs' in meta:
-            el['-max'] = meta['maxOccurs']
-        if 'allowEmpty' in meta: # TODO save allowEmpty
-            el['-allowEmpty'] = meta['allowEmpty']
-        # TODO namespace
-        a = elements[structure['key']]
-        attributes = a['attributes'] + a['userAttributes']
-        attributeList = []
-        for attrib in attributes:
-            # return attrib
-            if attrib['key'] == '#content':
-                if 'defaultValue' in attrib:
-                    el['#content'] = constructContent(attrib['defaultValue'])
-                    for part in el['#content']:
-                        if 'var' in part:
-                            # add form entry for element
-                            # ?? add information of parent? example: note for agent with role=Archivist&&typ=organization (probably not needed)
-                            # adding text if there occures at least one variable.
-                            field = {}
-                            field['key'] = part['var'] # check for doubles
-                            field['type'] = 'input'
-                            to = {}
-                            to['type'] = 'text'
-                            to['label'] = part['var']
-                            field['templateOptions'] = to
-                            forms.append(field)
-                            data[part['var']] = 's'
-                else:
-                    el['#content'] = [] # TODO warning, should not be added if it can't contain any value
+def generateElement(elements, currentUuid):
+    element = elements[currentUuid]
+    el = OrderedDict()
+    forms = []
+    data = {}
+    el['-min'] = element['min']
+    el['-max'] = element['max']
+    # if 'allowEmpty' in meta: # TODO save allowEmpty
+        # el['-allowEmpty'] = meta['allowEmpty']
+    # TODO namespace
+    # a = elements[structure['key']]
+    attributes = element['form'] + element['userForm']
+    attributeList = []
+    for attrib in attributes:
+        # return attrib
+        if attrib['key'] == '#content':
+            if attrib['key'] in element['formData']:
+                el['#content'] = constructContent(element['formData'][attrib['key']])
+                for part in el['#content']:
+                    if 'var' in part:
+                        # add form entry for element
+                        # ?? add information of parent? example: note for agent with role=Archivist&&typ=organization (probably not needed)
+                        # adding text if there occures at least one variable.
+                        field = {}
+                        field['key'] = part['var'] # check for doubles
+                        field['type'] = 'input'
+                        to = {}
+                        to['type'] = 'text'
+                        to['label'] = part['var']
+                        field['templateOptions'] = to
+                        forms.append(field)
+                        data[part['var']] = 's'
             else:
-                att = OrderedDict()
-                att['-name'] = attrib['key']
-                if 'required' in attrib['templateOptions']:
-                    if attrib['templateOptions']['required']:
-                        att['-req'] = 1
-                    else:
-                        att['-req'] = 0
-                else:
-                    att['-req'] = 0
-                if 'defaultValue' in attrib:
-                    att['#content'] = constructContent(attrib['defaultValue'])
-                    for part in att['#content']:
-                        if 'var' in part:
-                            # add form entry for element
-                            # ?? add information of parent? example: note for agent with role=Archivist&&typ=organization (probably not needed)
-                            # adding text if there occures at least one variable.
-                            field = {}
-                            field['key'] = part['var'] # check for doubles
-                            field['type'] = 'input'
-                            to = {}
-                            to['type'] = 'text'
-                            to['label'] = part['var']
-                            field['templateOptions'] = to
+                el['#content'] = [] # TODO warning, should not be added if it can't contain any value
+        else:
+            att = OrderedDict()
+            att['-name'] = attrib['key']
+            att['-req'] = 0
+            if 'required' in attrib['templateOptions']:
+                if attrib['templateOptions']['required']:
+                    att['-req'] = 1
+            if attrib['key'] in element['formData']:
+                att['#content'] = constructContent(element['formData'][attrib['key']])
+                for part in att['#content']:
+                    if 'var' in part:
+                        # add form entry for element
+                        # ?? add information of parent? example: note for agent with role=Archivist&&typ=organization (probably not needed)
+                        # adding text if there occures at least one variable.
+                        field = {}
+                        field['key'] = part['var'] # check for doubles
+                        field['type'] = 'input'
+                        to = {}
+                        to['type'] = 'text'
+                        to['label'] = part['var']
+                        field['templateOptions'] = to
+                        forms.append(field)
+                        data[part['var']] = ''
+            else:
+                att['#content'] = [] # TODO warning, should not be added if it can't contain any value
+            attributeList.append(att)
+    el['-attr'] = attributeList
+    for childDict in element['children']:
+        if childDict['type'] == 'sequence':
+            for child in childDict['elements']:
+                if 'uuid' in child:
+                    # TODO handle doubles
+                    e, f, d = generateElement(elements, child['uuid'])
+                    if e is not None:
+                        if child['name'] in el:
+                            # cerate array
+                            if isinstance(el[child['name']], list):
+                                el[child['name']].append(e)
+                            else:
+                                temp = el[child['name']]
+                                el[child['name']] = []
+                                el[child['name']].append(temp)
+                                el[child['name']].append(e)
+                        else:
+                            el[child['name']] = e
+                        for field in f:
                             forms.append(field)
-                            data[part['var']] = 's'
-                else:
-                    att['#content'] = [] # TODO warning, should not be added if it can't contain any value
-                attributeList.append(att)
-        el['-attr'] = attributeList
-        for child in structure['children']:
-            e, f, d = generateElement(child, elements)
-            if e is not None:
-                if child['name'] in el:
-                    # cerate array
-                    if isinstance(el[child['name']], list):
-                        el[child['name']].append(e)
+                        data.update(d)
+
+        else:
+            found = False
+            for child in childDict['elements']:
+                if 'uuid' in child:
+                    if found:
+                        # TODO ERROR Should only find one
+                        print 'ERROR'
                     else:
-                        temp = el[child['name']]
-                        el[child['name']] = []
-                        el[child['name']].append(temp)
-                        el[child['name']].append(e)
-                else:
-                    el[child['name']] = e
-                for field in f:
-                    forms.append(field)
-                data.update(d)
-            # for field in f:
-            #     forms.append(field) # data
-        return (el, forms, data)
-    else:
-        return (None, None, None)
+                        found = True
+                        e, f, d = generateElement(elements, child['uuid'])
+                        if e is not None:
+                            if child['name'] in el:
+                                # cerate array
+                                if isinstance(el[child['name']], list):
+                                    el[child['name']].append(e)
+                                else:
+                                    temp = el[child['name']]
+                                    el[child['name']] = []
+                                    el[child['name']].append(temp)
+                                    el[child['name']].append(e)
+                            else:
+                                el[child['name']] = e
+                            for field in f:
+                                forms.append(field)
+                            data.update(d)
+    return (el, forms, data)
 
-def deleteElement(structure, elements):
-    del elements[structure['key']]
-    for child in structure['children']:
-        deleteElement(child, elements)
+def generateTemplate(request, name):
+    obj = get_object_or_404(templatePackage, pk=name)
+    existingElements = obj.existingElements
+    jsonString = OrderedDict()
+    jsonString[existingElements['root']['name']], forms, data = generateElement(existingElements, 'root')
 
-
-def index(request):
-
-    return HttpResponse("Hello, world. You're at the polls index.")
+    t = finishedTemplate(name='test', template=jsonString, form=forms, data=data)
+    t.save()
+    # return JsonResponse(el, safe=False)
+    # return HttpResponse(test)
+    return JsonResponse(jsonString, safe=False)
 
 #debugg only NEEDS TO BE REMOVED IN FUTURE
 def resetData(request):
@@ -184,7 +186,6 @@ def getElements(request, name):
     return JsonResponse(obj.allElements, safe=False)
 
 def deleteChild(request, name, uuid):
-    # TODO delete children
     obj = get_object_or_404(templatePackage, pk=name)
     existingElements = obj.existingElements
     oldElement = existingElements[uuid]
@@ -274,84 +275,11 @@ def addChild(request, name, newElementName, elementUuid):
     obj.save()
     return JsonResponse(existingElements, safe=False)
 
-def generateTreeStructure(elements, existingElements, addChildren=True):
-    res = {}
-    res['name'] = elements['name']
-    res['key'] = elements['uuid']
-    res['templateOnly'] = False
-    for child in elements['children']:
-        if child['type'] == 'element':
-            pass
-        else:
-            pass
-
-
-def addUserChild(request, name):
-    obj = get_object_or_404(templatePackage, pk=name)
-    j = json.loads(obj.structure, object_pairs_hook=OrderedDict)
-    allElements = json.loads(obj.elements, object_pairs_hook=OrderedDict)
-    res = json.loads(request.body)
-    t = j;
-    p = res['path'].split('/')
-    p = p[:-1]
-    # name = p[-1:][0]
-    # p = p[:-1]
-    for i in range(0, len(p), 2):
-        found = 0
-        for dic in t['children']:
-            if dic['name'] == p[i]:
-                if found == int(p[i+1]):
-                    t = dic
-                    break
-                else:
-                    found += 1
-    found = 0
-    i = 0
-    for dic in t['children']:
-        if dic['name'] == res['name']:
-            found += 1
-        else:
-            if found > 0:
-                break
-        i += 1
-    if found > 0:
-        res['path'] += res['name'] + '/' + str(found) + '/'
-        res['key'] = uuid.uuid4().__str__()
-        t['children'].insert(i, res)
-    else:
-        res['path'] += res['name'] + '/0/'
-        res['key'] = uuid.uuid4().__str__()
-        t['children'].append(res)
-    att = {};
-    att['attributes'] = [];
-    att['anyAttribute'] = True
-    att['anyElement'] = True
-    att['userAttributes'] = [];
-    att['userCreated'] = True
-    allElements[res['key']] = att;
-    obj.structure = json.dumps(j)
-    obj.elements = json.dumps(allElements)
-    obj.save()
-    return JsonResponse(obj.structure, safe=False)
-
 def addAttribute(request, name, uuid):
     obj = get_object_or_404(templatePackage, pk=name)
     obj.existingElements[uuid]['userForm'].append(json.loads(request.body))
     obj.save()
     return JsonResponse(obj.existingElements[uuid]['userForm'], safe=False)
-
-def generateTemplate(request, name):
-    obj = get_object_or_404(templatePackage, pk=name)
-    structure = json.loads(obj.structure, object_pairs_hook=OrderedDict)
-    elements = json.loads(obj.elements, object_pairs_hook=OrderedDict)
-    jsonString = OrderedDict()
-    jsonString[structure['name']], forms, data = generateElement(structure, elements)
-
-    t = finishedTemplate(name='test', template=jsonString, form=forms, data=data)
-    t.save()
-    # return JsonResponse(el, safe=False)
-    # return HttpResponse(test)
-    return JsonResponse(data, safe=False)
 
 def getForm(request, name):
     obj = get_object_or_404(finishedTemplate, pk=name)
