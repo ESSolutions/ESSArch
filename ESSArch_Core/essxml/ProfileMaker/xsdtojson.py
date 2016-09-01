@@ -280,14 +280,16 @@ class xmlElement():
 
         el['avaliableChildren'] = avaliableChildren
         el['children'] = children
+        childsParent = self.uuid
         if parent != 'none':
             res[self.uuid] = el
         else:
             res['root'] = el
+            childsParent = 'root'
 
         for child in self.children:
             if child.choise == -1:
-                arr = child.listAllElementTypes(parent=self.uuid)
+                arr = child.listAllElementTypes(parent=childsParent)
                 res.update(arr)
         return res
 

@@ -169,81 +169,13 @@ def index(request):
 
 #debugg only NEEDS TO BE REMOVED IN FUTURE
 def resetData(request):
-    # el = generate()
     existingElements, treeData, allElements = generate();
     t = templatePackage(existingElements=existingElements, allElements=allElements, treeData=treeData, name='test')
     t.save()
     return JsonResponse(allElements, safe=False)
-    # return HttpResponse(el)
 
 def getStruct(request, name):
-
     obj = get_object_or_404(templatePackage, pk=name)
-    # arr = {
-    #     "root": {
-    #         "name":"mets",
-    #         "parent":"none",
-    #         "children": [
-    #             {
-    #                 "type": "sequence",
-    #                 "tag": "tag",
-    #                 "elements": [
-    #                     {
-    #                         "tag": "tag",
-    #                         "name": "metsHdr",
-    #                         "uuid": "uuid"
-    #                     },
-    #                     {
-    #                         "tag": "tag",
-    #                         "name": "Other"
-    #                     }
-    #                 ]
-    #             },
-    #             {
-    #                 "type": "choise",
-    #                 "tag": "tag",
-    #                 "elements": [
-    #                     {
-    #                         "tag": "tag",
-    #                         "name":"name",
-    #                         "uuid":"uuid"
-    #                     }
-    #                 ]
-    #             }
-    #         ]
-    #     },
-    #     "uuid": {
-    #         "name":"mets2",
-    #         "parent":"none",
-    #         "children": [
-    #             {
-    #                 "type": "sequence",
-    #                 "tag": "tag",
-    #                 "elements": [
-    #                     {
-    #                         "tag": "tag",
-    #                         "name": "metsHdr2"
-    #                     },
-    #                     {
-    #                         "tag": "tag",
-    #                         "name": "Other2"
-    #                     }
-    #                 ]
-    #             },
-    #             {
-    #                 "type": "choise",
-    #                 "tag": "tag",
-    #                 "elements": [
-    #                     {
-    #                         "tag": "tag",
-    #                         "name":"name",
-    #                         "uuid":"uuid"
-    #                     }
-    #                 ]
-    #             }
-    #         ]
-    #     }
-    # }
     return JsonResponse(obj.existingElements, safe=False)
 
 def getElements(request, name):
@@ -251,71 +183,58 @@ def getElements(request, name):
     # j = json.loads(obj.existingElements, object_pairs_hook=OrderedDict)
     return JsonResponse(obj.allElements, safe=False)
 
-def deleteChild(request, name):
-    # find element
-    # delete element and all sub elements
-    # delete listAllElements entries
-    # TODO update next siblings path.
+def deleteChild(request, name, uuid):
+    # TODO delete children
     obj = get_object_or_404(templatePackage, pk=name)
-    j = json.loads(obj.structure, object_pairs_hook=OrderedDict)
-    allElements = json.loads(obj.elements, object_pairs_hook=OrderedDict)
-    t = j
-    res = json.loads(request.body)
-    path = res['path']
-    p = path.split('/')
-    p = p[:-1]
-    name = p[-2:][0]
-    elementId = int(p[-2:][1])
-    p = p[:-2]
-    for i in range(0, len(p), 2):
-        found = 0
-        for dic in t['children']:
-            if dic['name'] == p[i]:
-                if found == int(p[i+1]):
-                    t = dic
-                    break
-                else:
-                    found += 1
-    found = 0
-    index = 0
-    for dic in t['children']:
-        if dic['name'] == name:
-            # return JsonResponse(found, safe=False)
-            if found == elementId:
-                # delete element and sub elements
-                userCreated = False
-                if 'userCreated' in allElements[dic['key']]:
-                    userCreated = allElements[dic['key']]['userCreated']
-                if res['remove'] or userCreated == True:
-                    deleteElement(dic, allElements)
-                    del t['children'][index]
-                else:
-                    dic['templateOnly'] = True
-            # elif found > elementId:
-            #     newPath = dic['path'].split('/')
-            #     newPath[-1] = str(found - 1)
-            #     dic['path'] = '/'.join(newPath)
-            found += 1
-        index += 1
+    existingElements = obj.existingElements
+    oldElement = existingElements[uuid]
 
-    obj.structure = json.dumps(j)
-    obj.elements = json.dumps(allElements)
+    parent = existingElements[oldElement['parent']]
+    childName = oldElement['name']
+    minCount = oldElement['min']
+    del existingElements[uuid]
+
+    for childDict in parent['children']:
+        count = 0
+        if childDict['type'] == 'sequence':
+            for child in childDict['elements']:
+                if 'uuid' in child:
+                    if child['name'] == childName:
+                        count += 1
+            if count > minCount:
+                for child in childDict['elements']:
+                    if 'uuid' in child:
+                        if child['uuid'] == uuid:
+                            del child['uuid']
+            else:
+                for child in childDict['elements']:
+                    if 'uuid' in child:
+                        if child['uuid'] == uuid:
+                            childDict['elements'].remove(child)
+        else:
+            for child in childDict['elements']:
+                if 'uuid' in child:
+                    if child['uuid'] == uuid:
+                        childDict['elements'].remove(child)
+    deleteChildren(existingElements, oldElement)
+    obj.existingElements = existingElements
     obj.save()
-    return JsonResponse(t, safe=False)
+    return JsonResponse(existingElements, safe=False)
+
+def deleteChildren(existingElements ,element):
+    for childDict in element['children']:
+        for child in childDict['elements']:
+            if 'uuid' in child:
+                deleteChildren(existingElements, existingElements[child['uuid']])
+                del existingElements[child['uuid']]
 
 def addChild(request, name, newElementName, elementUuid):
-    # find location in structure
-    # add element and children with new uuid
-    # add children to elemnts list with new id:s
-    # TODO empty default values of new child
-    # New version
-
     obj = get_object_or_404(templatePackage, pk=name)
     existingElements = obj.existingElements
     templates = obj.allElements
     newUuid = uuid.uuid4().__str__()
     newElement = copy.deepcopy(templates[newElementName])
-    # newElement['children'] = []
+    newElement['parent'] = elementUuid
     existingElements[newUuid] = newElement
 
     found = False
@@ -335,6 +254,8 @@ def addChild(request, name, newElementName, elementUuid):
                 r['name'] = newElementName
                 r['uuid'] = newUuid
                 childDict['elements'].insert(foundIndex+1 ,r)
+            else:
+                return HttpResponse('no child of same type found ERROR')
         else:
             for child in childDict['elements']:
                 if child['name'] == newElementName:
@@ -349,98 +270,8 @@ def addChild(request, name, newElementName, elementUuid):
                 temp['uuid'] = newUuid
                 childDict['elements'] = []
                 childDict['elements'].append(temp)
-
-    #TODO
-    # 1. find position in children array to add after. (check if ther ar doubles)
-    # 2. if position inside choise, remove other choises from possibleChildren
-    # 3. check if the number of children of this type has reached maximum.
-    # if it is the case, remove from possible children
-    # foundIndex = 0
-    # index = 0
-    # j = 0
-    # foundElement = None
-    # done = False
-    # for childDict in existingElements[uuid]['children']:
-    #     if childDict['type'] == 'element':
-    #         if childDict['name'] == newElementName and 'uuid' in childDict:
-    #             foundCount += 1
-    #             foundIndex = index
-    #             if done:
-    #                 return HttpResponse('ERROR: multiple places where child can be placed')
-    #         else:
-    #             if foundCount > 0:
-    #                 done = True
-    #     else:
-    #         j = 0
-    #         for child in childDict['elements']:
-    #             if child['name'] == newElementName and 'uuid' in childDict:
-    #                 foundCount += 1
-    #                 foundIndex = j
-    #                 foundElement = childDict
-    #                 if done:
-    #                     return HttpResponse('ERROR: multiple places where child can be placed')
-    #             else:
-    #                 if foundCount > 0:
-    #                     done = True
-    #             j += 1
-    #     index += 1
-    # elementToInsert = {}
-    # elementToInsert['name'] = newElementName
-    # elementToInsert['uuid'] = newElement['uuid']
-    #
-    # if foundElement == None:
-    #     # add after found index
-    #     elementToInsert['type'] = 'element'
-    #     existingElements[uuid]['children'].insert(foundIndex+1, elementToInsert)
-    # else:
-    #     foundElement['elements'].insert(foundIndex+1, elementToInsert)
-
-    #TODO generate new structure
-
     obj.existingElements = existingElements
     obj.save()
-
-
-    # obj = get_object_or_404(templatePackage, pk=name)
-    # j = json.loads(obj.structure, object_pairs_hook=OrderedDict)
-    # allElements = json.loads(obj.elements, object_pairs_hook=OrderedDict)
-    # t = j;
-    # p = path.split('-')
-    # p = p[:-1]
-    # name = p[-2:][0]
-    # p = p[:-2]
-    # for i in range(0, len(p), 2):
-    #     found = 0
-    #     for dic in t['children']:
-    #         if dic['name'] == p[i]:
-    #             if found == int(p[i+1]):
-    #                 t = dic
-    #                 break
-    #             else:
-    #                 found += 1
-    #
-    # # loop through and find last occurence of name as child
-    # found = 0
-    # body = None
-    # i = 0
-    # for dic in t['children']:
-    #     if dic['name'] == name:
-    #         found += 1
-    #         body = dic
-    #     else:
-    #         if found > 0:
-    #             break
-    #     i += 1
-    # if found > 0:
-    #     if body['templateOnly'] != True:
-    #         newElement = cloneElement(body, allElements, found)
-    #         t['children'].insert(i, newElement)
-    #     else:
-    #         body['templateOnly'] = False
-    #
-    # obj.structure = json.dumps(j)
-    # obj.elements = json.dumps(allElements)
-    # obj.save()
     return JsonResponse(existingElements, safe=False)
 
 def generateTreeStructure(elements, existingElements, addChildren=True):

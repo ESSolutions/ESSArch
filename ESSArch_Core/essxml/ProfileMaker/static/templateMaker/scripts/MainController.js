@@ -105,7 +105,6 @@
         $scope.expandedNodes = [];
         $scope.dataForTheTree = [];
         $scope.showSelected = function(sel, selected) {
-          console.log(sel)
           var data = vm.existingElements[sel];
           vm.selectedNode = data;
           // $http.get(('/template/struct/test/' + sel['key'])).then(function(res) {
@@ -118,18 +117,20 @@
               vm.max = 'infinite';
           }
           vm.uuid = sel;
-          // vm.schemaName = 'test';
-          var arr = [];
           vm.fields = data['form'];
           if (data['userForm'].length > 0) {
               vm.fields.push({template: '<hr/><p><b>User defined attributes</b></p>'}); //divider
               console.log(data['userForm']);
               vm.fields = vm.fields.concat(data['userForm']);
           }
-          if (vm.min == 0) {
+          var count = vm.countChildrenWithName(data['parent'], data['name']);
+          if (vm.min < count) {
               vm.canDelete = true;
           } else {
               vm.canDelete = false;
+          }
+          if (sel == 'root') {
+            vm.canDelete = false;
           }
           vm.model = data['formData'];
           vm.selectedElement = data;
@@ -190,6 +191,34 @@
           }
         };
 
+        vm.countChildrenWithName = function(parentName, childName) {
+          if (parentName == 'none') {
+            return 1;
+          } else {
+            var data = vm.existingElements[parentName];
+            var count = 0;
+            for (var index in data['children']) {
+              var el = data['children'][index];
+              if (el['type'] == 'sequence') {
+                for (var i in el['elements']) {
+                  var e = el['elements'][i];
+                  if (e['name'] == childName && 'uuid' in e) {
+                    count += 1;
+                  }
+                }
+              } else {
+                for (i in el['elements']) {
+                  var e = el['elements'][i];
+                  if (e['name'] == childName && 'uuid' in e) {
+                    count += 1;
+                  }
+                }
+              }
+            }
+            return count;
+          }
+        };
+
         vm.submitForm = function() {
             var data = vm.model;
             data['uuid'] = vm.uuid;
@@ -199,24 +228,10 @@
                 method: 'POST',
                 url: '/template/edit/test/',
                 data: data
-            }).then(function(res) {
+            }).then(function() {
             });
             //TODO give feedback
-            // $scope.showSelected(vm.selectedNode, false);
         };
-
-        // vm.onSubmit = function() {
-        //     for (var key in vm.model) {
-        //         for (var j = 0; j < vm.selectedNode.attributes.length; j++) {
-        //             console.log(key);
-        //             console.log(vm.selectedNode.attributes[j].key);
-        //             if (key == vm.selectedNode.attributes[j].key) {
-        //                 vm.selectedNode.attributes[j].defaultValue = vm.model[key];
-        //                 break;
-        //             }
-        //         }
-        //     }
-        // };
 
         vm.addChild = function(child) {
           $http.get('/template/struct/addChild/test/' + child + '/' + vm.uuid + '/').then(function(res) {
@@ -225,7 +240,14 @@
             vm.existingElements = res.data;
             $scope.showSelected(vm.uuid, false);
           });
+        };
 
+        vm.removeElement = function(child) {
+            $http.get('/template/struct/removeChild/test/'+vm.uuid+'/').then(function(res) {
+              $scope.treeElements = [];
+              $scope.treeElements.push(vm.buildTree('root', res.data));
+              vm.existingElements = res.data;
+            });
         };
 
         vm.addAttribute = function() {
@@ -289,27 +311,6 @@
                 vm.floatingElementVisable = false;
                 $scope.treeInfo = [JSON.parse(res.data)];
                 vm.tree = JSON.parse(res.data);
-            });
-        };
-
-        vm.removeElement = function(child) {
-            //post path and if it is one of the last so it should not be removed but merly changed value of templateOnly
-            var data = {};
-            data['path'] = vm.selectedNode['path'];
-            if (vm.countOfCurrent <= 1) {
-                data['remove'] = false;
-            } else {
-                data['remove'] = true;
-            }
-            $http({
-                method: 'POST',
-                url: '/template/struct/removeChild/test/',
-                data: data
-            }).then(function() {
-                $http.get('/template/struct/test').then(function(res) {
-                    $scope.treeInfo = [JSON.parse(res.data)];
-                    vm.tree = JSON.parse(res.data);
-                });
             });
         };
 
