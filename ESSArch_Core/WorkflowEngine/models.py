@@ -211,19 +211,24 @@ class ProcessStep(Process):
     def status(self):
         child_steps = self.child_steps.all()
         tasks = self.tasks.filter(undo_type=False, undone=False, retried=False)
+        status = celery_states.SUCCESS
 
         if not child_steps and not tasks:
             return celery_states.PENDING
 
-        for c in child_steps:
-            if c.status() in (celery_states.FAILURE, celery_states.PENDING):
-                return c.status()
+        for i in child_steps:
+            if i.status() in (celery_states.PENDING, celery_states.STARTED):
+                status = i.status()
+            if i.status() == celery_states.FAILURE:
+                return i.status()
 
-        for t in tasks:
-            if t.status in (celery_states.FAILURE, celery_states.PENDING):
-                return t.status
+        for i in tasks:
+            if i.status in (celery_states.PENDING, celery_states.STARTED):
+                status = i.status
+            if i.status == celery_states.FAILURE:
+                return i.status
 
-        return celery_states.SUCCESS
+        return status
 
     class Meta:
         db_table = u'ProcessStep'
