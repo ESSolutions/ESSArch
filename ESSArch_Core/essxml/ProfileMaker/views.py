@@ -230,8 +230,8 @@ def generateTemplate(request, name):
 
 #debugg only NEEDS TO BE REMOVED IN FUTURE
 def resetData(request):
-    existingElements, treeData, allElements = generate();
-    t = templatePackage(existingElements=existingElements, allElements=allElements, treeData=treeData, name='test')
+    existingElements, allElements = generate();
+    t = templatePackage(existingElements=existingElements, allElements=allElements, name='test')
     t.save()
     return JsonResponse(allElements, safe=False)
 
@@ -396,8 +396,8 @@ class add(View):
         if templatePackage.objects.filter(pk=name).exists():
             return HttpResponse('ERROR: templatePackage with name "' + name + '" already exists!')
 
-        existingElements, treeData, allElements = generate();
-        t = templatePackage(existingElements=existingElements, allElements=allElements, treeData=treeData, name=name)
+        existingElements, allElements = generate();
+        t = templatePackage(existingElements=existingElements, allElements=allElements, name=name)
         t.save()
         return redirect('/template/edit/' + name)
 

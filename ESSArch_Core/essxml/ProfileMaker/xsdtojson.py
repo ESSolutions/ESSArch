@@ -88,52 +88,52 @@ class xmlElement():
         # for att in self.attrib:
             # print self.name + ': ' + att + ': ' + str(self.attrib[att])
 
-    def generateJSON(self):
-        result = OrderedDict()
-        result['name'] = self.name
-        result['key'] = uuid.uuid4().__str__()
-        path = self.path
-        result['path'] = path
-        children = []
-        for child in self.children:
-            children.append(child.generateJSON())
-        result['children'] = children
-        result['attributes'] = self.attrib
-        result['meta'] = self.meta
-        return result
+    # def generateJSON(self):
+    #     result = OrderedDict()
+    #     result['name'] = self.name
+    #     result['key'] = uuid.uuid4().__str__()
+    #     path = self.path
+    #     result['path'] = path
+    #     children = []
+    #     for child in self.children:
+    #         children.append(child.generateJSON())
+    #     result['children'] = children
+    #     result['attributes'] = self.attrib
+    #     result['meta'] = self.meta
+    #     return result
 
-    def generateStruct(self, addChildren=True):
-        result = OrderedDict()
-        result['name'] = self.name
-        result['key'] = self.uuid
-        result['templateOnly'] = False
-        # result['meta'] = self.meta
-        # result['path'] = self.path
-        # result['templateOnly'] = False
-        arr = []
-        cElement = []
-        currentChoise = -1
-        if addChildren:
-            for child in self.children:
-                if child.choise == -1:
-                    arr.append(child.generateStruct())
-                else:
-                    if currentChoise == child.choise:
-                        cElement.append(child.generateStruct(addChildren=False))
-                    else:
-                        cElement = []
-                        currentChoise = child.choise
-                        cElement.append(child.generateStruct(addChildren=False))
-                        r = {}
-                        r['key'] = 'choise:'+str(uuid.uuid4().__str__())
-                        r['name'] = 'Choose one of'
-                        r['children'] = cElement
-                        arr.append(r)
-        else:
-            result['templateOnly'] = True
-
-        result['children'] = arr
-        return result
+    # def generateStruct(self, addChildren=True):
+    #     result = OrderedDict()
+    #     result['name'] = self.name
+    #     result['key'] = self.uuid
+    #     result['templateOnly'] = False
+    #     # result['meta'] = self.meta
+    #     # result['path'] = self.path
+    #     # result['templateOnly'] = False
+    #     arr = []
+    #     cElement = []
+    #     currentChoise = -1
+    #     if addChildren:
+    #         for child in self.children:
+    #             if child.choise == -1:
+    #                 arr.append(child.generateStruct())
+    #             else:
+    #                 if currentChoise == child.choise:
+    #                     cElement.append(child.generateStruct(addChildren=False))
+    #                 else:
+    #                     cElement = []
+    #                     currentChoise = child.choise
+    #                     cElement.append(child.generateStruct(addChildren=False))
+    #                     r = {}
+    #                     r['key'] = 'choise:'+str(uuid.uuid4().__str__())
+    #                     r['name'] = 'Choose one of'
+    #                     r['children'] = cElement
+    #                     arr.append(r)
+    #     else:
+    #         result['templateOnly'] = True
+    #
+    #     result['children'] = arr
+    #     return result
 
     def listAllElements(self, parent='none'):
         res = {}
@@ -151,8 +151,6 @@ class xmlElement():
         el['anyElement'] = self.anyElement
         el['containsFiles'] = False
         children = []
-        avaliableChildren = []
-        added = []
         currentChoise = -1
         cElement = OrderedDict()
         elements = None
@@ -171,12 +169,9 @@ class xmlElement():
                     r['elements'] = elements
                     children.append(r)
                     elements = None
-                # pass
                 if currentChoise == child.choise:
                     #add to last choise element
                     e = OrderedDict()
-                    # if child.karMin > 0:
-                        # e['uuid'] = child.uuid
                     e['name'] = child.name
                     cElement['elements'].append(e)
                 else:
@@ -184,8 +179,6 @@ class xmlElement():
                     cElement = OrderedDict()
                     cElement['type'] = 'choise'
                     e = OrderedDict()
-                    # if child.karMin > 0:
-                        # e['uuid'] = child.uuid
                     e['name'] = child.name
                     cElement['elements'] = []
                     cElement['elements'].append(e)
@@ -221,8 +214,6 @@ class xmlElement():
         el['anyElement'] = self.anyElement
         el['containsFiles'] = False
         children = []
-        avaliableChildren = []
-        added = []
         currentChoise = -1
         cElement = OrderedDict()
         elements = None
@@ -232,14 +223,9 @@ class xmlElement():
                     elements = []
                 c = {}
                 c['type'] = 'element'
-                # if child.karMin > 0:
                 c['uuid'] = child.uuid
                 c['name'] = child.name
                 elements.append(c)
-                if (child.karMin < child.karMax and child.karMin > 0) or child.karMax == -1:
-                    if not any(child.name in s for s in added):
-                        avaliableChildren.append(c)
-                        added.append(child.name)
             else:
                 if elements != None:
                     r = {}
@@ -247,19 +233,9 @@ class xmlElement():
                     r['elements'] = elements
                     children.append(r)
                     elements = None
-                c = {}
-                c['type'] = 'element'
-                # if child.karMin > 0:
-                    # c['uuid'] = child.uuid
-                c['name'] = child.name
-                avaliableChildren.append(c)
-                added.append(child.name)
-                # pass
                 if currentChoise == child.choise:
                     #add to last choise element
                     e = OrderedDict()
-                    # if child.karMin > 0:
-                        # e['uuid'] = child.uuid
                     e['name'] = child.name
                     cElement['elements'].append(e)
                 else:
@@ -267,8 +243,6 @@ class xmlElement():
                     cElement = OrderedDict()
                     cElement['type'] = 'choise'
                     e = OrderedDict()
-                    # if child.karMin > 0:
-                        # e['uuid'] = child.uuid
                     e['name'] = child.name
                     cElement['elements'] = []
                     cElement['elements'].append(e)
@@ -280,14 +254,11 @@ class xmlElement():
             r['elements'] = elements
             children.append(r)
 
-        el['avaliableChildren'] = avaliableChildren
         el['children'] = children
         childsParent = self.uuid
-        if parent != 'none':
-            res[self.uuid] = el
-        else:
-            res['root'] = el
+        if parent == 'none':
             childsParent = 'root'
+        res[childsParent] = el
 
         for child in self.children:
             if child.choise == -1:
@@ -295,32 +266,32 @@ class xmlElement():
                 res.update(arr)
         return res
 
-    def generateJSONTemplate(self):
-        content = OrderedDict()
-        content['-min'] = self.karMin
-        content['-max'] = self.karMax
-        attr = []
-        for a in self.attrib:
-            to = a['templateOptions']
-            b = OrderedDict()
-            b['-name'] = to['label']
-            b['-req'] = int(to['required'])
-            b['#content'] = []
-            attr.append(b)
-        content['-attr'] = attr
-        for child in self.children:
-            name, con = child.generateJSONTemplate()
-            if name in content:
-                if isinstance(content[name], list):
-                    content[name].append(con)
-                else:
-                    c = content[name]
-                    content[name] = []
-                    content[name].append(c)
-                    content[name].append(con)
-            else:
-                content[name] = con
-        return self.name, content
+    # def generateJSONTemplate(self):
+    #     content = OrderedDict()
+    #     content['-min'] = self.karMin
+    #     content['-max'] = self.karMax
+    #     attr = []
+    #     for a in self.attrib:
+    #         to = a['templateOptions']
+    #         b = OrderedDict()
+    #         b['-name'] = to['label']
+    #         b['-req'] = int(to['required'])
+    #         b['#content'] = []
+    #         attr.append(b)
+    #     content['-attr'] = attr
+    #     for child in self.children:
+    #         name, con = child.generateJSONTemplate()
+    #         if name in content:
+    #             if isinstance(content[name], list):
+    #                 content[name].append(con)
+    #             else:
+    #                 c = content[name]
+    #                 content[name] = []
+    #                 content[name].append(c)
+    #                 content[name].append(con)
+    #         else:
+    #             content[name] = con
+    #     return self.name, content
 
     def isEmpty(self):
         if self.value != '' or self.children:
@@ -672,14 +643,14 @@ def generate():
                 # print tree.generateJSON();
                 # struc = tree.generateStruct()
                 # el = tree.listAllElements()
-                treeData = tree.generateStruct()
+                # treeData = tree.generateStruct()
                 existingElements = tree.listAllElementTypes()
                 allElements = tree.listAllElements()
                 # temp = tree.listAllElementTypes()
                 # j = json.dumps(tree.generateJSON())
                 # tree.delete()
                 # print json.dumps(struc)
-                return existingElements, treeData, allElements
+                return existingElements, allElements
     # pars = None
     # root = None
     # tree = None

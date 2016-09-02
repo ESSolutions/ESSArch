@@ -4,9 +4,9 @@ import jsonfield
 
 class templatePackage(models.Model):
     existingElements = jsonfield.JSONField(null=True)
-    treeData = jsonfield.JSONField(null=True)
+    # treeData = jsonfield.JSONField(null=True)
     allElements = jsonfield.JSONField(null=True)
-    isTreeCreated = models.BooleanField(default=True)
+    # isTreeCreated = models.BooleanField(default=True)
     name = models.CharField(max_length = 255, primary_key=True)
     generated = models.BooleanField(default=False)
     #creator         = models.CharField( max_length = 255 )
