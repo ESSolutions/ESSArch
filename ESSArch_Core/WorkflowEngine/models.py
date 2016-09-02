@@ -13,8 +13,8 @@ import jsonfield
 
 from picklefield.fields import PickledObjectField
 
-from preingest.managers import StepManager
 from preingest.util import available_tasks, sliceUntilAttr
+
 
 class Process(models.Model):
     def _create_task(self, name):
@@ -35,6 +35,7 @@ class Process(models.Model):
 
     def __unicode__(self):
         return self.name
+
 
 class ProcessStep(Process):
     Type_CHOICES = (
@@ -67,7 +68,12 @@ class ProcessStep(Process):
     name = models.CharField(max_length=256)
     type = models.IntegerField(null=True, choices=Type_CHOICES)
     user = models.CharField(max_length=45)
-    parent_step = models.ForeignKey('self', related_name='child_steps', on_delete=models.CASCADE, null=True)
+    parent_step = models.ForeignKey(
+        'self',
+        related_name='child_steps',
+        on_delete=models.CASCADE,
+        null=True
+    )
     parent_step_pos = models.IntegerField(_('Parent step position'), default=0)
     time_created = models.DateTimeField(auto_now_add=True)
     information_package = models.ForeignKey(
@@ -80,30 +86,6 @@ class ProcessStep(Process):
     hidden = models.BooleanField(default=False)
     waitForParams = models.BooleanField(default=False)
     parallel = models.BooleanField(default=False)
-
-    objects = StepManager()
-
-    def _create_taskobj(self, task, attempt=None, undo=False, retry=False):
-        if undo:
-            task.undone = undo
-
-        if retry:
-            task.retried = retry
-
-        task.save()
-
-        taskobj = ProcessTask(
-            processstep=self,
-            name=task.name+" undo" if undo else task.name,
-            processstep_pos=task.processstep_pos,
-            undo_type=undo,
-            params=task.params,
-            attempt=attempt,
-            status="PREPARED"
-        )
-
-        taskobj.save()
-        return taskobj
 
     def task_set(self):
         tasks = self.tasks.filter(
@@ -124,11 +106,12 @@ class ProcessStep(Process):
                     true otherwise
         """
 
-
         child_steps = self.child_steps.all()
 
         if continuing:
-            child_steps = [s for s in self.child_steps.all() if s.progress() < 100]
+            child_steps = [
+                s for s in self.child_steps.all() if s.progress() < 100
+            ]
 
         child_steps = sliceUntilAttr(child_steps, "waitForParams", True)
 
@@ -166,7 +149,11 @@ class ProcessStep(Process):
         ) for t in reversed(tasks))()
 
     def retry(self, direct=True):
-        child_steps = sliceUntilAttr(self.child_steps.all(), "waitForParams", True)
+        child_steps = sliceUntilAttr(
+            self.child_steps.all(),
+            "waitForParams", True
+        )
+
         tasks = self.tasks.filter(
             undone=True,
             retried=False
@@ -234,7 +221,12 @@ class ProcessStep(Process):
         ordering = ('parent_step_pos',)
 
         def __unicode__(self):
-            return '%s - %s - archiveobject:%s' % (self.name, self.id, self.archiveobject.ObjectUUID)
+            return '%s - %s - archiveobject:%s' % (
+                self.name,
+                self.id,
+                self.archiveobject.ObjectUUID
+            )
+
 
 class ProcessTask(Process):
     available = available_tasks()
@@ -243,26 +235,29 @@ class ProcessTask(Process):
         available
     )
 
-    TASK_STATE_CHOICES = zip(celery_states.ALL_STATES,
-                             celery_states.ALL_STATES)
+    TASK_STATE_CHOICES = zip(
+        celery_states.ALL_STATES, celery_states.ALL_STATES
+    )
 
-    celery_id = models.UUIDField(_('celery id'), max_length=255, null=True, editable=False)
+    celery_id = models.UUIDField(
+        _('celery id'), max_length=255, null=True, editable=False
+    )
     name = models.CharField(max_length=255, choices=TASK_CHOICES)
-    status = models.CharField(_('state'), max_length=50,
-                              default=celery_states.PENDING,
-                              choices=TASK_STATE_CHOICES)
+    status = models.CharField(
+        _('state'), max_length=50, default=celery_states.PENDING,
+        choices=TASK_STATE_CHOICES
+    )
     params = jsonfield.JSONField(null=True)
     time_started = models.DateTimeField(_('started at'), null=True, blank=True)
     time_done = models.DateTimeField(_('done at'), null=True, blank=True)
-    traceback = models.TextField(_('traceback'), blank=True, null=True, editable=False)
+    traceback = models.TextField(
+        _('traceback'), blank=True, null=True, editable=False
+    )
     hidden = models.BooleanField(editable=False, default=False, db_index=True)
     meta = PickledObjectField(null=True, default=None, editable=False)
     processstep = models.ForeignKey(
-        'ProcessStep',
-        related_name = 'tasks',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
+        'ProcessStep', related_name='tasks', on_delete=models.CASCADE,
+        null=True, blank=True
     )
     processstep_pos = models.IntegerField(_('ProcessStep position'), default=0)
     attempt = models.UUIDField(default=uuid.uuid4)
@@ -279,13 +274,9 @@ class ProcessTask(Process):
         self.save()
 
         return ProcessTask.objects.create(
-            processstep=self.processstep,
-            name="%s undo" % self.name,
-            params=self.params,
-            processstep_pos=self.processstep_pos,
-            undo_type=True,
-            attempt=attempt,
-            status="PREPARED"
+            processstep=self.processstep, name="%s undo" % self.name,
+            params=self.params, processstep_pos=self.processstep_pos,
+            undo_type=True, attempt=attempt, status="PREPARED"
         )
 
     def create_retry_obj(self, attempt=uuid.uuid4()):
@@ -293,12 +284,9 @@ class ProcessTask(Process):
         self.save()
 
         return ProcessTask.objects.create(
-            processstep=self.processstep,
-            name=self.name,
-            params=self.params,
-            processstep_pos=self.processstep_pos,
-            attempt=attempt,
-            status="PREPARED"
+            processstep=self.processstep, name=self.name,
+            params=self.params, processstep_pos=self.processstep_pos,
+            attempt=attempt, status="PREPARED"
         )
 
     class Meta:
