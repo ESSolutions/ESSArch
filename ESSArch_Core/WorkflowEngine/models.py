@@ -88,6 +88,13 @@ class ProcessStep(Process):
     parallel = models.BooleanField(default=False)
 
     def task_set(self):
+        """
+        Gets the unique tasks connected to the process, ignoring retries and
+        undos.
+
+        Returns:
+            Unique tasks connected to the process, ignoring retries and undos
+        """
         tasks = self.tasks.filter(
             undo_type=False,
             retried=False
@@ -97,13 +104,17 @@ class ProcessStep(Process):
 
     def run(self, continuing=False, direct=True):
         """
-        Runs the process step
+        Runs the process step by first running the child steps and then the
+        tasks.
 
         Args:
             continuing: True if continuing a step that was waiting for params,
                         false otherwise
             direct: False if the step is called from a parent step,
                     true otherwise
+
+        Returns:
+            None
         """
 
         child_steps = self.child_steps.all()
@@ -126,6 +137,18 @@ class ProcessStep(Process):
         return c() if direct else c
 
     def undo(self, only_failed=False):
+        """
+        Undos the process step by first undoing all tasks and then the
+        child steps.
+
+        Args:
+            only_failed: If true, only undo the failed tasks,
+                undo all tasks otherwise
+
+        Returns:
+            None
+        """
+
         child_steps = self.child_steps.all()
         tasks = self.tasks.all()
 
@@ -149,6 +172,18 @@ class ProcessStep(Process):
             c.undo(only_failed=only_failed)
 
     def retry(self, direct=True):
+        """
+        Retries the process step by first retrying all child steps and then all
+        failed tasks.
+
+        Args:
+            direct: False if the step is called from a parent step,
+                    true otherwise
+
+        Returns:
+            none
+        """
+
         child_steps = sliceUntilAttr(
             self.child_steps.all(),
             "waitForParams", True
@@ -172,6 +207,17 @@ class ProcessStep(Process):
         return c() if direct else c
 
     def progress(self):
+        """
+        Gets the progress of the step based on its child steps and tasks
+
+        Args:
+
+        Returns:
+            The progress calculated by progress/total where progress simply is
+            the progress (0-100) of all the underlying tasks and the total is
+            |child_steps| + |tasks|
+        """
+
         child_steps = self.child_steps.all()
         progress = 0
         total = len(child_steps) + len(self.task_set())
@@ -195,6 +241,25 @@ class ProcessStep(Process):
             return 0
 
     def status(self):
+        """
+        Gets the status of the step based on its child steps and tasks
+
+        Args:
+
+        Returns:
+            Can be one of the following:
+            SUCCESS, STARTED, FAILURE, PENDING
+
+            Which is decided by five scenarios:
+
+            * If there are no child steps nor tasks, then PENDING.
+            * If there are child steps or tasks and they are all pending,
+              then PENDING.
+            * If a child step or task has started, then STARTED.
+            * If a child step or task has failed, then FAILURE.
+            * If all child steps and tasks have succeeded, then SUCCESS.
+        """
+
         child_steps = self.child_steps.all()
         tasks = self.tasks.filter(undo_type=False, undone=False, retried=False)
         status = celery_states.SUCCESS
@@ -273,9 +338,21 @@ class ProcessTask(Process):
     retried = models.BooleanField(default=False)
 
     def run(self):
+        """
+        Runs the task
+        """
+
         return self._create_task(self.name).delay(taskobj=self)
 
     def create_undo_obj(self, attempt=uuid.uuid4()):
+        """
+        Create a new task that will be used to undo this task,
+        also marks this task as undone
+
+        Args:
+            attempt: Which attempt the new task belongs to
+        """
+
         self.undone = True
         self.save()
 
@@ -286,6 +363,14 @@ class ProcessTask(Process):
         )
 
     def create_retry_obj(self, attempt=uuid.uuid4()):
+        """
+        Create a new task that will be used to retry this task,
+        also marks this task as retried
+
+        Args:
+            attempt: Which attempt the new task belongs to
+        """
+
         self.retried = True
         self.save()
 
