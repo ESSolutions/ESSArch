@@ -8,6 +8,7 @@ from preingest.models import (
     ProcessTask,
 )
 
+
 class test_running_tasks(TestCase):
     def setUp(self):
         settings.CELERY_ALWAYS_EAGER = True
@@ -20,7 +21,6 @@ class test_running_tasks(TestCase):
             )
 
             task.full_clean()
-
 
     def test_create_existing_task(self):
         task = ProcessTask(
@@ -110,4 +110,3 @@ class test_running_tasks(TestCase):
             self.assertEqual(tb, task.traceback)
             self.assertIsNone(task.result)
             self.assertIsNotNone(task.traceback)
-

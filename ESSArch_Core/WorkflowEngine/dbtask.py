@@ -13,7 +13,6 @@ class DBTask(Task):
         except KeyError:
             print "Task requires taskobj set to a ProcessTask"
 
-        undo = kwargs.get('undo', False)
         params = self.taskobj.params
         print "init task with name {}, id {}".format(self.name, self.request.id)
 
@@ -22,7 +21,7 @@ class DBTask(Task):
         self.taskobj.time_started = timezone.now()
         self.taskobj.save()
 
-        if undo:
+        if self.taskobj.undo_type:
             return self.undo(**params)
         else:
             return self.run(**params)
