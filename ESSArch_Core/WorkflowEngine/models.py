@@ -129,9 +129,6 @@ class ProcessStep(Process):
         child_steps = self.child_steps.all()
         tasks = self.tasks.all()
 
-        for c in child_steps:
-            c.undo(only_failed=only_failed)
-
         if only_failed:
             tasks = tasks.filter(status=celery_states.FAILURE)
 
@@ -147,6 +144,9 @@ class ProcessStep(Process):
         func(self._create_task(t.name).si(
             taskobj=t.create_undo_obj(attempt=attempt),
         ) for t in reversed(tasks))()
+
+        for c in child_steps:
+            c.undo(only_failed=only_failed)
 
     def retry(self, direct=True):
         child_steps = sliceUntilAttr(
