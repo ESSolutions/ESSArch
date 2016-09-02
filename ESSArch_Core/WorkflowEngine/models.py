@@ -162,8 +162,7 @@ class ProcessStep(Process):
         func = group if self.parallel else chain
 
         func(self._create_task(t.name).si(
-            taskobj=self._create_taskobj(t, attempt=attempt, undo=True),
-            undo=True
+            taskobj=t.create_undo_obj(attempt=attempt),
         ) for t in reversed(tasks))()
 
     def retry(self, direct=True):
@@ -180,7 +179,7 @@ class ProcessStep(Process):
         attempt = uuid.uuid4()
 
         c = func(self._create_task(t.name).si(
-            taskobj=self._create_taskobj(t, attempt=attempt, retry=True),
+            taskobj=t.create_retry_obj(attempt=attempt),
         ) for t in tasks)
 
         return c() if direct else c
@@ -274,6 +273,33 @@ class ProcessTask(Process):
 
     def run(self):
         return self._create_task(self.name).delay(taskobj=self)
+
+    def create_undo_obj(self, attempt=uuid.uuid4()):
+        self.undone = True
+        self.save()
+
+        return ProcessTask.objects.create(
+            processstep=self.processstep,
+            name="%s undo" % self.name,
+            params=self.params,
+            processstep_pos=self.processstep_pos,
+            undo_type=True,
+            attempt=attempt,
+            status="PREPARED"
+        )
+
+    def create_retry_obj(self, attempt=uuid.uuid4()):
+        self.retried = True
+        self.save()
+
+        return ProcessTask.objects.create(
+            processstep=self.processstep,
+            name=self.name,
+            params=self.params,
+            processstep_pos=self.processstep_pos,
+            attempt=attempt,
+            status="PREPARED"
+        )
 
     class Meta:
         db_table = 'ProcessTask'
