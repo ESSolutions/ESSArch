@@ -632,8 +632,8 @@ def parseAttribute(element):
 def generate():
     global complexTypes
     global attributeGroups
-    pars = etree.parse("esscore/template/templateGenerator/CSPackageMETS.xsd")
-    # pars = etree.parse(os.path.join(settings.BASE_DIR,"esscore/template/templateGenerator/CSPackageMETS.xsd"))
+    # pars = etree.parse("esscore/template/templateGenerator/CSPackageMETS.xsd")
+    pars = etree.parse(os.path.join(settings.BASE_DIR,"esscore/template/templateGenerator/CSPackageMETS.xsd"))
     # rootEl = create2(pars.getroot())
     schema = '{http://www.w3.org/2001/XMLSchema}'
 
@@ -687,7 +687,7 @@ def generate():
     # attributeGroups = OrderedDict()
 
 # generate()
-print generate()
+# print generate()
 # print generate(2)
 # print generate(3)
 # print generate(4)
