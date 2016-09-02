@@ -149,6 +149,7 @@ class xmlElement():
         el['userCreated'] = False
         el['anyAttribute'] = self.anyAttribute
         el['anyElement'] = self.anyElement
+        el['containsFiles'] = False
         children = []
         avaliableChildren = []
         added = []
@@ -218,6 +219,7 @@ class xmlElement():
         el['userCreated'] = False
         el['anyAttribute'] = self.anyAttribute
         el['anyElement'] = self.anyElement
+        el['containsFiles'] = False
         children = []
         avaliableChildren = []
         added = []
@@ -467,11 +469,12 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
                 t.karMax = meta['maxOccurs']
             t.meta = meta
             tree.addChild(t)
-            key = element.get('type')
+            key = element.get('name') + element.get('type')
+            elementType = element.get('type')
             if key not in usedTypes:
-                if key in complexTypes:
+                if elementType in complexTypes:
                     usedTypes.append(key)
-                    for child in complexTypes[key]:
+                    for child in complexTypes[elementType]:
                         analyze2(child, t, usedTypes)
                 else:
                     print "type unknown: " + element.get('type')
@@ -499,10 +502,14 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
             t = element.get('base')
             # print t
             if t not in usedTypes:
+                tt = tree.name + t
                 if t in complexTypes:
-                    usedTypes.append(t)
+                    usedTypes.append(tt)
                     for child in complexTypes[t]:
                         analyze2(child, tree, usedTypes, minC, maxC)
+                else:
+                    for child in element:
+                        analyze2(child, tree, usedTypes)
     elif tag == 'sequence':
         for child in element:
             analyze2(child, tree, usedTypes)
@@ -533,6 +540,8 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
         templateOptions['required'] = True
         att['templateOptions'] = templateOptions
         tree.attrib.append(att)
+        for child in element:
+            analyze2(child, tree, usedTypes)
     elif tag == 'any':
         tree.anyElement = True
     elif tag == 'all':
@@ -623,8 +632,8 @@ def parseAttribute(element):
 def generate():
     global complexTypes
     global attributeGroups
-    # pars = etree.parse("CSPackageMETS.xsd")
-    pars = etree.parse(os.path.join(settings.BASE_DIR,"esscore/template/templateGenerator/CSPackageMETS.xsd"))
+    pars = etree.parse("esscore/template/templateGenerator/CSPackageMETS.xsd")
+    # pars = etree.parse(os.path.join(settings.BASE_DIR,"esscore/template/templateGenerator/CSPackageMETS.xsd"))
     # rootEl = create2(pars.getroot())
     schema = '{http://www.w3.org/2001/XMLSchema}'
 
@@ -678,7 +687,7 @@ def generate():
     # attributeGroups = OrderedDict()
 
 # generate()
-# print generate()
+print generate()
 # print generate(2)
 # print generate(3)
 # print generate(4)

@@ -8,6 +8,7 @@ class templatePackage(models.Model):
     allElements = jsonfield.JSONField(null=True)
     isTreeCreated = models.BooleanField(default=True)
     name = models.CharField(max_length = 255, primary_key=True)
+    generated = models.BooleanField(default=False)
     #creator         = models.CharField( max_length = 255 )
 #     archivist_organization  = models.CharField( max_length = 255 )
 #     label                   = models.CharField( max_length = 255 )

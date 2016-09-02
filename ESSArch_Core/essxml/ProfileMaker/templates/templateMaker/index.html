@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+    <head>
+      <title>TemplateMaker</title>
+    </head>
+    <body>
+      <div>
+        <p>Names:</p>
+        {% for tp in templates %}
+        <div>
+          <a href="{% url 'template_edit' name=tp.name %}">{{tp.name}}</a>
+        </div>
+        {% endfor %}
+        <a href="{% url 'template_add' %}">Create new template</a>
+      </div>
+    </body>
+</html>

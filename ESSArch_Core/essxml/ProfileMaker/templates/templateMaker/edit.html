@@ -15,6 +15,10 @@
         <script src="/static/templateMaker/angular/angular-formly/dist/formly.js"></script>
         <script src="/static/templateMaker/angular/angular-formly-templates-bootstrap/dist/angular-formly-templates-bootstrap.js"></script>
         <script src="/static/templateMaker/angular/angular-tree-control/angular-tree-control.js"></script>
+        <!--Django-->
+        <script type="text/javascript">
+           var templateName = "{{templateName}}";
+        </script>
         <!--App -->
         <script src="/static/templateMaker/scripts/app.js"></script>
         <!--Controllers-->
@@ -72,9 +76,11 @@
             <h3>Empty, non-required fields won't be used in the template</h3>
             <h3>Min: {% verbatim %}{{vm.min}}{% endverbatim %} Max: {% verbatim %}{{vm.max}}{% endverbatim %}</h3>
             <formly-form model="vm.model" fields="vm.fields" form="vm.form">
+                <p ng-show="vm.containsFilesText">Contains Files</p>
                 <button type="button" class="btn btn-primary" ng-click="vm.addAttribute()" ng-show="vm.anyAttribute">Add Attribute</button>
                 <button type="button" class="btn btn-primary" ng-click="vm.submitForm()" ng-disabled="vm.form.$invalid">Submit</button>
-                <button type="button" class="btn btn-danger" ng-show="vm.canDelete" ng-click="vm.removeElement()">Delete</button>
+                <button type="button" class="btn btn-danger" ng-show="vm.canDelete" ng-click="vm.removeChild()">Delete</button>
+                <button type="button" class="btn btn-primary" ng-click="vm.containsFiles()">Toggle Contains Files</button>
             </formly-form>
             <!-- <h3>Avaliable children</h3> -->
             <div>

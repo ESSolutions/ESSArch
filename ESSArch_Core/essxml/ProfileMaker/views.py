@@ -47,7 +47,7 @@ def constructContent(text):
             res.append(r[j])
     return res
 
-def generateElement(elements, currentUuid, takenNames=[]):
+def generateElement(elements, currentUuid, takenNames=[], containsFiles=False):
     element = elements[currentUuid]
     el = OrderedDict()
     forms = []
@@ -65,29 +65,30 @@ def generateElement(elements, currentUuid, takenNames=[]):
         if attrib['key'] == '#content':
             if attrib['key'] in element['formData']:
                 el['#content'] = constructContent(element['formData'][attrib['key']])
-                for part in el['#content']:
-                    if 'var' in part:
-                        # add form entry for element
-                        # ?? add information of parent? example: note for agent with role=Archivist&&typ=organization (probably not needed)
-                        # adding text if there occures at least one variable.
-                        field = {}
-                        key = part['var'] # check for doubles
-                        if key in takenNames:
-                            index = 0
-                            while (key + str(index)) in takenNames:
-                                index += 1
-                            field['key'] = (key + str(index))
-                            takenNames.append((key + str(index)))
-                        else:
-                            field['key'] = key
-                            takenNames.append(key)
-                        field['type'] = 'input'
-                        to = {}
-                        to['type'] = 'text'
-                        to['label'] = part['var']
-                        field['templateOptions'] = to
-                        forms.append(field)
-                        data[field['key']] = 's'
+                if not containsFiles:
+                    for part in el['#content']:
+                        if 'var' in part:
+                            # add form entry for element
+                            # ?? add information of parent? example: note for agent with role=Archivist&&typ=organization (probably not needed)
+                            # adding text if there occures at least one variable.
+                            field = {}
+                            key = part['var'] # check for doubles
+                            if key in takenNames:
+                                index = 0
+                                while (key + str(index)) in takenNames:
+                                    index += 1
+                                field['key'] = (key + str(index))
+                                takenNames.append((key + str(index)))
+                            else:
+                                field['key'] = key
+                                takenNames.append(key)
+                            field['type'] = 'input'
+                            to = {}
+                            to['type'] = 'text'
+                            to['label'] = part['var']
+                            field['templateOptions'] = to
+                            forms.append(field)
+                            data[field['key']] = ''
             else:
                 el['#content'] = [] # TODO warning, should not be added if it can't contain any value
         else:
@@ -99,29 +100,30 @@ def generateElement(elements, currentUuid, takenNames=[]):
                     att['-req'] = 1
             if attrib['key'] in element['formData']:
                 att['#content'] = constructContent(element['formData'][attrib['key']])
-                for part in att['#content']:
-                    if 'var' in part:
-                        # add form entry for element
-                        # ?? add information of parent? example: note for agent with role=Archivist&&typ=organization (probably not needed)
-                        # adding text if there occures at least one variable.
-                        field = {}
-                        key = part['var'] # check for doubles
-                        if key in takenNames:
-                            index = 0
-                            while (key + str(index)) in takenNames:
-                                index += 1
-                            field['key'] = (key + str(index))
-                            takenNames.append((key + str(index)))
-                        else:
-                            field['key'] = key
-                            takenNames.append(key)
-                        field['type'] = 'input'
-                        to = {}
-                        to['type'] = 'text'
-                        to['label'] = part['var']
-                        field['templateOptions'] = to
-                        forms.append(field)
-                        data[field['key']] = ''
+                if not containsFiles:
+                    for part in att['#content']:
+                        if 'var' in part:
+                            # add form entry for element
+                            # ?? add information of parent? example: note for agent with role=Archivist&&typ=organization (probably not needed)
+                            # adding text if there occures at least one variable.
+                            field = {}
+                            key = part['var'] # check for doubles
+                            if key in takenNames:
+                                index = 0
+                                while (key + str(index)) in takenNames:
+                                    index += 1
+                                field['key'] = (key + str(index))
+                                takenNames.append((key + str(index)))
+                            else:
+                                field['key'] = key
+                                takenNames.append(key)
+                            field['type'] = 'input'
+                            to = {}
+                            to['type'] = 'text'
+                            to['label'] = part['var']
+                            field['templateOptions'] = to
+                            forms.append(field)
+                            data[field['key']] = ''
             else:
                 att['#content'] = [] # TODO warning, should not be added if it can't contain any value
             attributeList.append(att)
@@ -130,34 +132,8 @@ def generateElement(elements, currentUuid, takenNames=[]):
         if childDict['type'] == 'sequence':
             for child in childDict['elements']:
                 if 'uuid' in child:
-                    # TODO handle doubles
-                    e, f, d = generateElement(elements, child['uuid'], takenNames)
-                    if e is not None:
-                        if child['name'] in el:
-                            # cerate array
-                            if isinstance(el[child['name']], list):
-                                el[child['name']].append(e)
-                            else:
-                                temp = el[child['name']]
-                                el[child['name']] = []
-                                el[child['name']].append(temp)
-                                el[child['name']].append(e)
-                        else:
-                            el[child['name']] = e
-                        for field in f:
-                            forms.append(field)
-                        data.update(d)
-
-        else:
-            found = False
-            for child in childDict['elements']:
-                if 'uuid' in child:
-                    if found:
-                        # TODO ERROR Should only find one
-                        print 'ERROR'
-                    else:
-                        found = True
-                        e, f, d = generateElement(elements, child['uuid'], takenNames)
+                    if not elements[child['uuid']]['containsFiles']:
+                        e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=containsFiles)
                         if e is not None:
                             if child['name'] in el:
                                 # cerate array
@@ -173,6 +149,71 @@ def generateElement(elements, currentUuid, takenNames=[]):
                             for field in f:
                                 forms.append(field)
                             data.update(d)
+                    else:
+                        #containsFiles
+                        cf = []
+                        elDict = OrderedDict()
+                        e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=True)
+                        if e is not None:
+                            if child['name'] in elDict:
+                                # cerate array
+                                if isinstance(elDict[child['name']], list):
+                                    elDict[child['name']].append(e)
+                                else:
+                                    temp = elDict[child['name']]
+                                    elDict[child['name']] = []
+                                    elDict[child['name']].append(temp)
+                                    elDict[child['name']].append(e)
+                            else:
+                                elDict[child['name']] = e
+                        cf.append(elDict)
+                        el['-containsFiles'] = cf
+
+        else:
+            found = False
+            for child in childDict['elements']:
+                if 'uuid' in child:
+                    if found:
+                        # TODO ERROR Should only find one
+                        print 'ERROR'
+                    else:
+                        found = True
+                        if not elements[child['uuid']]['containsFiles']:
+                            e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=containsFiles)
+                            if e is not None:
+                                if child['name'] in el:
+                                    # cerate array
+                                    if isinstance(el[child['name']], list):
+                                        el[child['name']].append(e)
+                                    else:
+                                        temp = el[child['name']]
+                                        el[child['name']] = []
+                                        el[child['name']].append(temp)
+                                        el[child['name']].append(e)
+                                else:
+                                    el[child['name']] = e
+                                for field in f:
+                                    forms.append(field)
+                                data.update(d)
+                        else:
+                            #containsFiles
+                            cf = []
+                            elDict = OrderedDict()
+                            e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=True)
+                            if e is not None:
+                                if child['name'] in elDict:
+                                    # cerate array
+                                    if isinstance(elDict[child['name']], list):
+                                        elDict[child['name']].append(e)
+                                    else:
+                                        temp = elDict[child['name']]
+                                        elDict[child['name']] = []
+                                        elDict[child['name']].append(temp)
+                                        elDict[child['name']].append(e)
+                                else:
+                                    elDict[child['name']] = e
+                            cf.append(elDict)
+                            el['-containsFiles'] = cf
     return (el, forms, data)
 
 def generateTemplate(request, name):
@@ -299,6 +340,15 @@ def addAttribute(request, name, uuid):
     obj.save()
     return JsonResponse(obj.existingElements[uuid]['userForm'], safe=False)
 
+def setContainsFiles(request, name, uuid, containsFiles):
+    obj = get_object_or_404(templatePackage, pk=name)
+    if containsFiles == '1':
+        obj.existingElements[uuid]['containsFiles'] = True
+    else:
+        obj.existingElements[uuid]['containsFiles'] = False
+    obj.save()
+    return JsonResponse(obj.existingElements, safe=False)
+
 def getForm(request, name):
     obj = get_object_or_404(finishedTemplate, pk=name)
     return JsonResponse(obj.form, safe=False)
@@ -318,6 +368,38 @@ def saveForm(request, name):
     obj.existingElements[uuid]['formData'] = res
     obj.save()
     return JsonResponse(res, safe=False)
+
+class index(View):
+    template_name = 'templateMaker/index.html'
+
+    def get(self, request, *args, **kwargs):
+        context = {}
+        context['label'] = 'hello World'
+        objs = templatePackage.objects.all()#.values('name')
+        context['templates'] = objs
+
+        return render(request, self.template_name, context)
+
+class add(View):
+    template_name = 'templateMaker/add.html'
+
+    def get(self, request, *args, **kwargs):
+        context = {}
+        context['label'] = 'Add template'
+
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        # return JsonResponse(request.POST, safe=False)
+        # j = json.loads(request.POST)
+        name = request.POST['template_name']
+        if templatePackage.objects.filter(pk=name).exists():
+            return HttpResponse('ERROR: templatePackage with name "' + name + '" already exists!')
+
+        existingElements, treeData, allElements = generate();
+        t = templatePackage(existingElements=existingElements, allElements=allElements, treeData=treeData, name=name)
+        t.save()
+        return redirect('/template/edit/' + name)
 
 class demo(View):
     template_name = 'templateMaker/demo.html'
@@ -377,6 +459,7 @@ class edit(View):
         # logger.log(v.get())
         context = {}
         context['label'] = 'Edit template'
+        context['templateName'] = kwargs['name']
 
         # Get current site_profile and zone
         # site_profile, zone = lat.getSiteZone()
@@ -399,35 +482,12 @@ class edit(View):
     @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
 
-        # 1. load elements
-        # 2. find with correct uuid
-        # 3. update
-        # 4. save
-        # return HttpResponse(json.dumps(request.POST))
-        # return JsonResponse(request.body);
-        # name = request.POST['schemaName']
-        uuid = request.POST['uuid']
-        del request.POST['uuid']
+        res = json.loads(request.body)
+        uuid = res['uuid']
+        del res['uuid']
 
-        obj = get_object_or_404(templatePackage, pk=name)
-        j = json.loads(obj.existingElements, object_pairs_hook=OrderedDict)
-        element = j[uuid]
-        element['formData'] = request.POST
-        # for key, value in request.POST.iteritems():
-        #     if key.startswith('formly_'):
-        #         # key has format formly_[form_id]_[type (input | select)]_[key]_[num] Wanted value is [key]
-        #         end = key.rfind('_')
-        #         k = key[0:end]
-        #         start = k.rfind('_')
-        #         k = k[start+1:]
-        #         for attrib in oldData['attributes']:
-        #             if attrib['key'] == k:
-        #                 v = value
-        #                 if value.startswith('string:'):
-        #                     v = v[7:]
-        #                 attrib['defaultValue'] = v
-        #                 break
-
-        obj.existingElements = json.dumps(j)
+        obj = get_object_or_404(templatePackage, pk=kwargs['name'])
+        j = obj.existingElements
+        obj.existingElements[uuid]['formData'] = res
         obj.save()
-        return redirect('/template/edit/')
+        return JsonResponse(res, safe=False)

@@ -12,12 +12,11 @@
 
     function MainController($scope, $http) {
 
-        //TODO not hardcoded 'test' in future
-        $http.get('/template/struct/test').then(function(res) {
+        $http.get('/template/struct/' + templateName).then(function(res) {
             $scope.treeElements = [];
             $scope.treeElements.push(vm.buildTree('root', res.data));
             vm.existingElements = res.data;
-            $http.get('/template/struct/elements/test').then(function(res) {
+            $http.get('/template/struct/elements/' + templateName).then(function(res) {
               vm.allElements = res.data;
               $scope.showSelected($scope.treeElements[0]['key'], false);
             });
@@ -33,6 +32,7 @@
         vm.existingChildren = [];
         vm.existingElements = {};
         vm.choiseCount = 0;
+        vm.containsFilesText = false;
 
         vm.buildTree = function(uuid, data) {
           var element = data[uuid];
@@ -107,14 +107,15 @@
         $scope.showSelected = function(sel, selected) {
           var data = vm.existingElements[sel];
           vm.selectedNode = data;
-          // $http.get(('/template/struct/test/' + sel['key'])).then(function(res) {
-              // console.log(res.data);
-              // var data = JSON.parse(res.data);
           vm.title = data['name'].charAt(0).toUpperCase() + data['name'].slice(1);
           vm.min = data['min'];
           vm.max = data['max'];
           if (vm.max == -1) {
               vm.max = 'infinite';
+          }
+          vm.containsFilesText = false;
+          if (data['containsFiles'] == true) {
+            vm.containsFilesText = true;
           }
           vm.uuid = sel;
           vm.fields = data['form'];
@@ -222,11 +223,9 @@
         vm.submitForm = function() {
             var data = vm.model;
             data['uuid'] = vm.uuid;
-            data['schemaName'] = vm.schemaName;
-            // console.log(vm.model);
             $http({
                 method: 'POST',
-                url: '/template/edit/test/',
+                url: '/template/edit/' + templateName + '/',
                 data: data
             }).then(function() {
             });
@@ -234,7 +233,7 @@
         };
 
         vm.addChild = function(child) {
-          $http.get('/template/struct/addChild/test/' + child + '/' + vm.uuid + '/').then(function(res) {
+          $http.get('/template/struct/addChild/' + templateName + '/' + child + '/' + vm.uuid + '/').then(function(res) {
             $scope.treeElements = [];
             $scope.treeElements.push(vm.buildTree('root', res.data));
             vm.existingElements = res.data;
@@ -242,8 +241,8 @@
           });
         };
 
-        vm.removeElement = function(child) {
-            $http.get('/template/struct/removeChild/test/'+vm.uuid+'/').then(function(res) {
+        vm.removeChild = function(child) {
+            $http.get('/template/struct/removeChild/' + templateName + '/'+vm.uuid+'/').then(function(res) {
               $scope.treeElements = [];
               $scope.treeElements.push(vm.buildTree('root', res.data));
               vm.existingElements = res.data;
@@ -252,11 +251,6 @@
 
         vm.addAttribute = function() {
             vm.floatingVisable = !vm.floatingVisable;
-            vm.floatingmodel = [];
-        };
-
-        vm.closeFloatingForm = function() {
-            vm.floatingVisable = false;
             vm.floatingmodel = [];
         };
 
@@ -274,9 +268,14 @@
             vm.floatingVisable = false;
             $http({
                 method: 'POST',
-                url: '/template/struct/addAttrib/test/' + vm.uuid + '/',
+                url: '/template/struct/addAttrib/' + templateName + '/' + vm.uuid + '/',
                 data: attribute
             });
+        };
+
+        vm.closeFloatingForm = function() {
+            vm.floatingVisable = false;
+            vm.floatingmodel = [];
         };
 
         vm.addElement = function() {
@@ -284,34 +283,51 @@
             vm.floatingElementmodel = [];
         };
 
-        vm.saveElement = function() {
-            // console.log(sle)
-            var element = {};
-            element['templateOnly'] = false;
-            element['path'] = vm.selectedNode['path']; // + number ? //set in python ?
-            element['name'] = vm.floatingElementmodel['elementname'];
-            var meta = {};
-            if ('kardMin' in vm.floatingElementmodel) {
-                meta['minOccurs'] = vm.floatingElementmodel['kardMin'];
-            } else {
-                meta['minOccurs'] = 0;
-            }
-            if ('kardMax' in vm.floatingElementmodel) {
-                meta['maxOccurs'] = vm.floatingElementmodel['kardMax'];
-            } else {
-                meta['maxOccurs'] = -1;
-            }
-            element['meta'] = meta;
-            element['children'] = [];
-            $http({
-                method: 'POST',
-                url: '/template/struct/addUserChild/test/',
-                data: element
-            }).then(function(res) {
-                vm.floatingElementVisable = false;
-                $scope.treeInfo = [JSON.parse(res.data)];
-                vm.tree = JSON.parse(res.data);
-            });
+        // vm.saveElement = function() {
+        //     // console.log(sle)
+        //     var element = {};
+        //     element['templateOnly'] = false;
+        //     element['path'] = vm.selectedNode['path']; // + number ? //set in python ?
+        //     element['name'] = vm.floatingElementmodel['elementname'];
+        //     var meta = {};
+        //     if ('kardMin' in vm.floatingElementmodel) {
+        //         meta['minOccurs'] = vm.floatingElementmodel['kardMin'];
+        //     } else {
+        //         meta['minOccurs'] = 0;
+        //     }
+        //     if ('kardMax' in vm.floatingElementmodel) {
+        //         meta['maxOccurs'] = vm.floatingElementmodel['kardMax'];
+        //     } else {
+        //         meta['maxOccurs'] = -1;
+        //     }
+        //     element['meta'] = meta;
+        //     element['children'] = [];
+        //     $http({
+        //         method: 'POST',
+        //         url: '/template/struct/addUserChild/' + templateName + '/',
+        //         data: element
+        //     }).then(function(res) {
+        //         vm.floatingElementVisable = false;
+        //         $scope.treeInfo = [JSON.parse(res.data)];
+        //         vm.tree = JSON.parse(res.data);
+        //     });
+        // };
+
+        vm.closeFloatingElementForm = function() {
+            vm.floatingVisable = false;
+            vm.floatingmodel = [];
+        };
+
+        vm.containsFiles = function() {
+          var cf = 1;
+          vm.containsFilesText = true;
+          if (vm.existingElements[vm.uuid]['containsFiles'] == true) {
+            cf = 0;
+            vm.containsFilesText = false;
+          }
+          $http.get('/template/struct/setContainsFiles/' + templateName + '/'+vm.uuid+'/' + cf + '/').then(function(res) {
+            vm.existingElements = res.data;
+          });
         };
 
         vm.model = {
