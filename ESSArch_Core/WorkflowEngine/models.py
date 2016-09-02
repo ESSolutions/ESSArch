@@ -203,14 +203,20 @@ class ProcessStep(Process):
             return celery_states.PENDING
 
         for i in child_steps:
-            if i.status() in (celery_states.PENDING, celery_states.STARTED):
+            if i.status() == celery_states.STARTED:
+                status = i.status()
+            if (i.status() == celery_states.PENDING and
+                    status != celery_states.STARTED):
                 status = i.status()
             if i.status() == celery_states.FAILURE:
                 return i.status()
 
         for i in tasks:
-            if i.status in (celery_states.PENDING, celery_states.STARTED):
+            if i.status == celery_states.STARTED:
                 status = i.status
+            if (i.status() == celery_states.PENDING and
+                    status != celery_states.STARTED):
+                status = i.status()
             if i.status == celery_states.FAILURE:
                 return i.status
 
