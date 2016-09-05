@@ -240,6 +240,7 @@ class ProcessStep(Process):
         except:
             return 0
 
+    @property
     def status(self):
         """
         Gets the status of the step based on its child steps and tasks
@@ -267,21 +268,12 @@ class ProcessStep(Process):
         if not child_steps and not tasks:
             return celery_states.PENDING
 
-        for i in child_steps:
-            if i.status() == celery_states.STARTED:
-                status = i.status()
-            if (i.status() == celery_states.PENDING and
-                    status != celery_states.STARTED):
-                status = i.status()
-            if i.status() == celery_states.FAILURE:
-                return i.status()
-
-        for i in tasks:
+        for i in list(child_steps) + list(tasks):
             if i.status == celery_states.STARTED:
                 status = i.status
             if (i.status == celery_states.PENDING and
                     status != celery_states.STARTED):
-                status = i.status()
+                status = i.status
             if i.status == celery_states.FAILURE:
                 return i.status
 
