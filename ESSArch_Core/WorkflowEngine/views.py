@@ -1,3 +1,5 @@
+from django.http import Http404
+
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 
@@ -100,6 +102,23 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     """
     queryset = InformationPackage.objects.all()
     serializer_class = InformationPackageSerializer
+
+    @detail_route()
+    def prepare(self, request, pk=None):
+        """
+        Prepares the specified information package
+
+        Args:
+            pk: The primary key (id) of the information package to prepare
+
+        Returns:
+            None
+        """
+        try:
+            InformationPackage.objects.get(pk=pk).prepare()
+            return Response({'status': 'preparing ip'})
+        except InformationPackage.DoesNotExist:
+            raise Http404("Information package does not exist")
 
 
 class ProcessStepViewSet(viewsets.ModelViewSet):
