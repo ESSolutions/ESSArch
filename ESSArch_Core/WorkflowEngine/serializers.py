@@ -120,10 +120,15 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
 
 class ProfileRelSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField(source='profile.id')
+    url = serializers.HyperlinkedIdentityField(
+        view_name='profile-detail',
+        lookup_field="profile_id",
+        lookup_url_kwarg="pk"
+    )
 
     class Meta:
         model = ProfileRel
-        fields = ('id', 'status',)
+        fields = ('url', 'id', 'status',)
 
 
 class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
