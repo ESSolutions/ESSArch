@@ -215,7 +215,14 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Profile
-        fields = '__all__'
+        fields = (
+            'url', 'id', 'profile_type', 'name', 'type', 'status', 'label',
+            'representation_info', 'preservation_descriptive_info',
+            'supplemental', 'access_constraints', 'datamodel_reference',
+            'additional', 'submission_method', 'submission_schedule',
+            'submission_data_inventory', 'structure', 'template',
+            'specification', 'specification_data', 'submission_agreements',
+        )
 
 class AgentSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
