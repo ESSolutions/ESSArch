@@ -600,7 +600,7 @@ def parseAttribute(element):
 # 2. required or not (All other information)
 
 # 3. save the model to a jsonTemplate (might prioritate this)
-def generate(schemaName):
+def generateJsonRes(schemaName):
     global complexTypes
     global attributeGroups
     # pars = etree.parse("esscore/template/templateGenerator/CSPackageMETS.xsd")

@@ -55,11 +55,11 @@
             },
             {
               name: "Content Type",
-              value: "Content Type"
+              value: "Content_Type"
             },
             {
               name: "Data Selection",
-              value: "Data Selection"
+              value: "Data_Selection"
             },
             {
               name: "Classification",
@@ -71,7 +71,7 @@
             },
             {
               name: "Submit Description",
-              value: "Submit Description"
+              value: "Submit_Description"
             },
             {
               name: "SIP",
@@ -91,7 +91,7 @@
             },
             {
               name: "Preservation Description",
-              value: "Preservation Description"
+              value: "Preservation_Description"
             },
           ]
         }

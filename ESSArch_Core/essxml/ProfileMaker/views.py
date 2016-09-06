@@ -19,7 +19,7 @@ from collections import OrderedDict
 
 from django.views.generic import View
 from django.http import JsonResponse
-from esscore.template.templateGenerator.testXSDToJSON import generate
+from esscore.template.templateGenerator.testXSDToJSON import generateJsonRes
 from forms import AddTemplateForm
 
 
@@ -387,13 +387,12 @@ class add(View):
         form = AddTemplateForm(request.POST, request.FILES)
         if not form.is_valid():
             return HttpResponse(request.FILES['file'].name + ' did not success in uploading')
-            pass
+
 
         name = request.POST['template_name']
         if templatePackage.objects.filter(pk=name).exists():
             return HttpResponse('ERROR: templatePackage with name "' + name + '" already exists!')
-
-        existingElements, allElements = generate(request.FILES['file']);
+        existingElements, allElements = generateJsonRes(request.FILES['file']);
         t = templatePackage(existingElements=existingElements, allElements=allElements, name=name)
         t.save()
         return redirect('/template/edit/' + name)
