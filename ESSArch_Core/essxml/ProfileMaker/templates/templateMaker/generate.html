@@ -1,0 +1,62 @@
+<!doctype html>
+<html ng-app="generateForm" ng-controller="MainController as vm">
+    <head>
+        <link rel="stylesheet" type="text/css" href="/static/templateMaker/angular/bootstrap/dist/css/bootstrap.css">
+        <!-- <link rel="stylesheet" type="text/css" href="/static/templateMaker/angular/angular-tree-control/css/tree-control.css"> -->
+        <!-- <link rel="stylesheet" type="text/css" href="/static/templateMaker/angular/angular-tree-control/css/tree-control-attribute.css"> -->
+        <!-- <link rel="stylesheet" type="text/css" href="/static/templateMaker/scripts/style.css"> -->
+        <!-- /*<style>
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+        </style>*/ -->
+
+        <!--Angular Scripts -->
+        <script src="/static/templateMaker/angular/api-check/dist/api-check.js"></script>
+        <script src="/static/templateMaker/angular/angular/angular.js"></script>
+        <script src="/static/templateMaker/angular/angular-formly/dist/formly.js"></script>
+        <script src="/static/templateMaker/angular/angular-formly-templates-bootstrap/dist/angular-formly-templates-bootstrap.js"></script>
+        <!-- <script src="/static/templateMaker/angular/angular-tree-control/angular-tree-control.js"></script> -->
+        <!--Django-->
+        <script type="text/javascript">
+           var templateName = "{{templateName}}";
+        </script>
+        <!--App -->
+        <script src="/static/templateMaker/scripts/GenerateApp.js"></script>
+        <!--Controllers-->
+        <!-- <script src="/static/templateMaker/scripts/GenerateMainController.js"></script> -->
+
+    </head>
+    <body>
+
+    <div class="container col-md-4">
+        <form onsubmit="return false;">
+            {% csrf_token %}
+            <!-- <input type="hidden" name="uuid" value="{% verbatim %}{{vm.uuid}}{% endverbatim %}"/> -->
+            <!-- <input type="hidden" name="schemaName" value="{% verbatim %}{{vm.schemaName}}{% endverbatim %}"/> -->
+            <!-- <h2>{% verbatim %}{{vm.title}}{% endverbatim %}</h2> -->
+            <!-- <h3>Empty, non-required fields won't be used in the template</h3> -->
+            <!-- <h3>Min: {% verbatim %}{{vm.min}}{% endverbatim %} Max: {% verbatim %}{{vm.max}}{% endverbatim %}</h3> -->
+            <formly-form model="vm.model" fields="vm.fields" form="vm.form">
+                <!-- <p ng-show="vm.containsFilesText">Contains Files</p> -->
+                <!-- <button type="button" class="btn btn-primary" ng-click="vm.addAttribute()" ng-show="vm.anyAttribute">Add Attribute</button> -->
+                <button type="button" class="btn btn-success" ng-click="vm.onSubmit()" ng-disabled="vm.form.$invalid">Generate</button>
+                <!-- <button type="button" class="btn btn-danger" ng-show="vm.canDelete" ng-click="vm.removeChild()">Delete</button> -->
+                <!-- <button type="button" class="btn btn-primary" ng-click="vm.containsFiles()">Toggle Contains Files</button> -->
+            </formly-form>
+            <!-- <h3>Avaliable children</h3> -->
+            <!-- <div>
+                <h3 ng-if="vm.possibleChildren.length > 0">PossibleChildren</h3>
+                <div ng-repeat="child in vm.possibleChildren" class="children">
+                    <p>
+                        {% verbatim %}{{child}}{% endverbatim %}
+                    </p>
+                    <button type="button" class="btn btn-success" ng-click="vm.addChild(child)">Add</button> -->
+                    <!-- <span ng-click="vm.addChild(child)">{% verbatim %}{{child.name}}{% endverbatim %}
+                    </span> -->
+                <!-- </div>
+                <button type="button" class="btn btn-success" ng-click="vm.addElement()" ng-show="vm.anyElement">Add Element</button>
+            </div> -->
+        </form>
+    </div>
+
+    </body>
+</html>

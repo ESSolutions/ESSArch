@@ -9,7 +9,8 @@
         {% for tp in templates %}
         <div>
           <a href="{% url 'template_edit' name=tp.name %}">{{tp.name}}</a>
-          <input type="button" value="Generate"/>
+            <!-- <a href="{% url 'generate_template' name=tp.name %}">{{tp.name}}</a> -->
+          <input type="button" onclick="location.href='{% url 'generate_template' name=tp.name %}';" value="Generate" />
           <input type="button" value="Delete"/>
         </div>
         {% endfor %}

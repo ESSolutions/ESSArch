@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template import Context, loader, RequestContext
 from models import templatePackage, finishedTemplate
+from profiles.models import Profile
 #file upload
 # import the logging library and get an instance of a logger
 import logging
@@ -385,8 +386,7 @@ class add(View):
 
         form = AddTemplateForm(request.POST, request.FILES)
         if not form.is_valid():
-            return HttpResponse(request.FILES['file'])
-            # handle_uploaded_file(request.FILES['file'])
+            return HttpResponse(request.FILES['file'].name + ' did not success in uploading')
             pass
 
         name = request.POST['template_name']
@@ -397,6 +397,33 @@ class add(View):
         t = templatePackage(existingElements=existingElements, allElements=allElements, name=name)
         t.save()
         return redirect('/template/edit/' + name)
+
+class generate(View):
+    template_name = 'templateMaker/generate.html'
+
+    def get(self, request, *args, **kwargs):
+
+        context = {}
+        context['templateName'] = kwargs['name']
+
+        return render(request, self.template_name, context)
+
+
+    def post(self, request, *args, **kwargs):
+        # return JsonResponse(request.body, safe=False)
+        obj = get_object_or_404(templatePackage, pk=kwargs['name'])
+        existingElements = obj.existingElements
+        jsonString = OrderedDict()
+        jsonString[existingElements['root']['name']], forms, data = generateElement(existingElements, 'root')
+        j = json.loads(request.body)
+        t = Profile(profile_type=j['profile_type'], name=j['name'], type=j['type'], status=j['status'], label=j['label'], representation_info='asdf', preservation_descriptive_info='asdf', supplemental='asdf', access_constraints='asdf', datamodel_reference='asdf', additional='asdf', submission_method='asdf', submission_schedule='asdf', submission_data_inventory='asdf', structure={}, template=forms, specification=jsonString, specification_data=data)
+        # t = Profile(profile_type=j['profile_type'], name=j['name'], type=j['type'], status=j['status'], label=j['label'], representation_info=j['representation_info'], preservation_descriptive_info=j['preservation_descriptive_info'], supplemental=j['supplemental'], access_constraints=j['access_constraints'], datamodel_reference=j['datamodel_reference'], additional=j['additional'], submission_method=j['submission_method'], submission_schedule=j['submission_schedule'], submission_data_inventory=j['submission_data_inventory'], template=forms, specification=jsonString, specification_data=data)
+        # t = Profile(profile_type=j['profile_type'], name=j['name'], type=j['type'], status=j['status'], label=j['label'], template=forms, specification=jsonString, specification_data=data)
+
+        # t = finishedTemplate(name='test', template=jsonString, form=forms, data=data)
+        t.save()
+        return JsonResponse(request.body, safe=False)
+
 
 class demo(View):
     template_name = 'templateMaker/demo.html'

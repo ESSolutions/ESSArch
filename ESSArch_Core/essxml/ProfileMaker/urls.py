@@ -5,6 +5,7 @@ from views import (
     demo,
     index,
     add,
+    generate,
     # SubmitIPCreate,
 )
 # from views import {
@@ -17,7 +18,7 @@ urlpatterns = [
     url(r'^edit/(?P<name>[A-z0-9]+)/$', edit.as_view(), name='template_edit'),
     url(r'^add/$', add.as_view(), name='template_add'),
     # url(r'^reset/$', views.resetData, name='reset_data_template'),
-    url(r'^generate/(?P<name>[A-z]+)/$', views.generateTemplate, name='generate_template'),
+    url(r'^generate/(?P<name>[A-z0-9]+)/$', generate.as_view(), name='generate_template'),
     url(r'^struct/addChild/(?P<name>[A-z]+)/(?P<newElementName>[A-z]+)/(?P<elementUuid>[A-z0-9-]+)/$', views.addChild, name='add_data_template'),
     # url(r'^struct/addUserChild/(?P<name>[A-z]+)/$', views.addUserChild, name='add_userdata_template'),
     url(r'^struct/removeChild/(?P<name>[A-z]+)/(?P<uuid>[A-z0-9-]+)/$', views.removeChild, name='remove_child_template'),
