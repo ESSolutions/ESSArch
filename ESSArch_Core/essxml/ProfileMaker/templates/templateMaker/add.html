@@ -12,5 +12,15 @@
         <input type="text" name="schema_name" value="">
         <input type="submit" value="Submit">
       </form>
+      <!-- <form enctype="multipart/form-data" method="post"> -->
+        {% if form.is_multipart %}
+          <form enctype="multipart/form-data" method="post">
+        {% else %}
+          <form method="post" action="/foo/">
+        {% endif %}
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit" value="Submit">
+      </form>
     </body>
 </html>

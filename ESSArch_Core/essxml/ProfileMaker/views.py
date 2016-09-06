@@ -19,6 +19,7 @@ from collections import OrderedDict
 from django.views.generic import View
 from django.http import JsonResponse
 from esscore.template.templateGenerator.testXSDToJSON import generate
+from forms import AddTemplateForm
 
 
 def constructContent(text):
@@ -224,27 +225,17 @@ def generateTemplate(request, name):
 
     t = finishedTemplate(name='test', template=jsonString, form=forms, data=data)
     t.save()
-    # return JsonResponse(el, safe=False)
-    # return HttpResponse(test)
     return JsonResponse(jsonString, safe=False)
 
-#debugg only NEEDS TO BE REMOVED IN FUTURE
-def resetData(request):
-    existingElements, allElements = generate();
-    t = templatePackage(existingElements=existingElements, allElements=allElements, name='test')
-    t.save()
-    return JsonResponse(allElements, safe=False)
-
-def getStruct(request, name):
+def getExistingElements(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
     return JsonResponse(obj.existingElements, safe=False)
 
-def getElements(request, name):
+def getAllElements(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
-    # j = json.loads(obj.existingElements, object_pairs_hook=OrderedDict)
     return JsonResponse(obj.allElements, safe=False)
 
-def deleteChild(request, name, uuid):
+def removeChild(request, name, uuid):
     obj = get_object_or_404(templatePackage, pk=name)
     existingElements = obj.existingElements
     oldElement = existingElements[uuid]
@@ -276,12 +267,12 @@ def deleteChild(request, name, uuid):
                 if 'uuid' in child:
                     if child['uuid'] == uuid:
                         childDict['elements'].remove(child)
-    deleteChildren(existingElements, oldElement)
+    removeChildren(existingElements, oldElement)
     obj.existingElements = existingElements
     obj.save()
     return JsonResponse(existingElements, safe=False)
 
-def deleteChildren(existingElements ,element):
+def removeChildren(existingElements ,element):
     for childDict in element['children']:
         for child in childDict['elements']:
             if 'uuid' in child:
@@ -386,17 +377,23 @@ class add(View):
     def get(self, request, *args, **kwargs):
         context = {}
         context['label'] = 'Add template'
+        context['form'] = AddTemplateForm()
 
         return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
-        # return JsonResponse(request.POST, safe=False)
-        # j = json.loads(request.POST)
+
+        form = AddTemplateForm(request.POST, request.FILES)
+        if not form.is_valid():
+            return HttpResponse(request.FILES['file'])
+            # handle_uploaded_file(request.FILES['file'])
+            pass
+
         name = request.POST['template_name']
         if templatePackage.objects.filter(pk=name).exists():
             return HttpResponse('ERROR: templatePackage with name "' + name + '" already exists!')
 
-        existingElements, allElements = generate();
+        existingElements, allElements = generate(request.FILES['file']);
         t = templatePackage(existingElements=existingElements, allElements=allElements, name=name)
         t.save()
         return redirect('/template/edit/' + name)

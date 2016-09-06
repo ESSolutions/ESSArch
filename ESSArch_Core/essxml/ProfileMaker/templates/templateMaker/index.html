@@ -9,6 +9,8 @@
         {% for tp in templates %}
         <div>
           <a href="{% url 'template_edit' name=tp.name %}">{{tp.name}}</a>
+          <input type="button" value="Generate"/>
+          <input type="button" value="Delete"/>
         </div>
         {% endfor %}
         <a href="{% url 'template_add' %}">Create new template</a>
