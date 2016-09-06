@@ -177,6 +177,10 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
         source="profile_preservation_metadata_rel",
         many=True
     )
+    profile_event = ProfileRelSerializer(
+        source="profile_event_rel",
+        many=True
+    )
 
     class Meta:
         model = SubmissionAgreement
@@ -208,7 +212,8 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
                 'profile_data_selection', 'profile_classification',
                 'profile_import', 'profile_submit_description', 'profile_sip',
                 'profile_aip', 'profile_dip', 'profile_workflow',
-                'profile_preservation_metadata', 'information_packages',
+                'profile_preservation_metadata', 'profile_event',
+                'information_packages',
         )
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()

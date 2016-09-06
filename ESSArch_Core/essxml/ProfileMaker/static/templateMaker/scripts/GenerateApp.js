@@ -93,6 +93,10 @@
               name: "Preservation Description",
               value: "Preservation_Description"
             },
+            {
+              name: "Event",
+              value: "Event"
+            },
           ]
         }
       },
