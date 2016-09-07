@@ -60,9 +60,10 @@ class InformationPackageSerializer(serializers.HyperlinkedModelSerializer):
         fields = (
             'url', 'id', 'Label', 'Content', 'Responsible', 'CreateDate',
             'State', 'status', 'ObjectSize', 'ObjectNumItems', 'ObjectPath',
-            'Startdate', 'Enddate', 'OAIStype', 'SubmissionAgreement',
-            'ArchivalInstitution', 'ArchivistOrganization', 'ArchivalType',
-            'ArchivalLocation', 'steps', 'events',
+            'Startdate', 'Enddate', 'OAIStype', 'Locked', 'LockedBy',
+            'Unlockable', 'SubmissionAgreement', 'ArchivalInstitution',
+            'ArchivistOrganization', 'ArchivalType', 'ArchivalLocation',
+            'steps', 'events',
         )
 
 class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
