@@ -1,20 +1,28 @@
 <!doctype html>
-<html>
+<html ng-app="index" ng-controller="MainController as vm">
     <head>
+      <link rel="stylesheet" type="text/css" href="/static/templateMaker/angular/bootstrap/dist/css/bootstrap.css">
+      <link rel="stylesheet" type="text/css" href="/static/templateMaker/scripts/style.css">
+
+      <!--Angular Scripts -->
+      <script src="/static/templateMaker/angular/api-check/dist/api-check.js"></script>
+      <script src="/static/templateMaker/angular/angular/angular.js"></script>
+
+      <script src="/static/templateMaker/scripts/indexApp.js"></script>
       <title>TemplateMaker</title>
     </head>
     <body>
       <div>
-        <p>Names:</p>
+        <h1>Templates</h1>
         {% for tp in templates %}
-        <div>
+        <div class="TemplateRow">
           <a href="{% url 'template_edit' name=tp.name %}">{{tp.name}}</a>
             <!-- <a href="{% url 'generate_template' name=tp.name %}">{{tp.name}}</a> -->
-          <input type="button" onclick="location.href='{% url 'generate_template' name=tp.name %}';" value="Generate" />
-          <input type="button" value="Delete"/>
+          <input class="btn btn-primary" type="button" onclick="location.href='{% url 'generate_template' name=tp.name %}';" value="Generate" />
+          <input class="btn btn-danger" type="button" ng-click="vm.delete('{{tp.name}}')" value="Delete"/>
         </div>
         {% endfor %}
-        <a href="{% url 'template_add' %}">Create new template</a>
+        <a class="btn btn-success" href="{% url 'template_add' %}">Create new template</a>
       </div>
     </body>
 </html>

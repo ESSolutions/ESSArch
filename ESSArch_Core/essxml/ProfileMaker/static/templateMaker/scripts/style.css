@@ -28,6 +28,16 @@
     float: right;
 }
 
+.TemplateRow {
+  margin-left: 20px;
+  height: 40px;
+}
+
+.TemplateRow a {
+  width: 200px;
+  display: inline-block;
+}
+
 /*.tree {
   width: 500px;
   height: 500px;

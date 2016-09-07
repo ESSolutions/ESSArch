@@ -361,6 +361,13 @@ def saveForm(request, name):
     obj.save()
     return JsonResponse(res, safe=False)
 
+def deleteTemplate(request, name):
+    if request.method == 'POST':
+        templatePackage.objects.get(pk=name).delete()
+        return HttpResponse('deleted')
+    else:
+        return HttpResponse('Error this page is only avaliable as post')
+
 class index(View):
     template_name = 'templateMaker/index.html'
 
