@@ -8,6 +8,7 @@ from collections import OrderedDict
 
 complexTypes = OrderedDict()
 attributeGroups = OrderedDict()
+groups = OrderedDict()
 pretty = True
 eol_ = '\n'
 choiseCount = 0
@@ -524,6 +525,10 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
         maxC = 1
         for child in element:
             analyze2(child, tree, usedTypes, minC=minC, maxC=maxC)
+    elif tag == 'group':
+        if element.get('type') in groups:
+            for child in groups[element.get('type')]:
+                analyze2(child, tree, usedTypes)
     else:
         print 'other: ' + tag
 
@@ -603,6 +608,7 @@ def parseAttribute(element):
 def generateJsonRes(schemaName):
     global complexTypes
     global attributeGroups
+    global groups
     # pars = etree.parse("esscore/template/templateGenerator/CSPackageMETS.xsd")
     # pars = etree.parse(os.path.join(settings.BASE_DIR,"esscore/template/templateGenerator/CSPackageMETS.xsd"))
     pars = etree.parse(schemaName)
@@ -624,6 +630,10 @@ def generateJsonRes(schemaName):
     for child in root.iterfind(schema + 'attributeGroup'):
         if child.get('name'):
             attributeGroups[child.get('name')] = child
+
+    for child in root.iterfind(schema + 'group'):
+        if child.get('name'):
+            groups[child.get('name')] = child
 
     # print complexTypes
     # t = None
@@ -658,7 +668,7 @@ def generateJsonRes(schemaName):
     # complexTypes = OrderedDict()
     # attributeGroups = OrderedDict()
 
-# generate()
+# generateJsonRes("esscore/template/templateGenerator/CSPackageMETS.xsd")
 # print generate()
 # print generate(2)
 # print generate(3)
