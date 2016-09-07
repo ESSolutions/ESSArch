@@ -200,6 +200,17 @@ class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
+    @detail_route(methods=['post'])
+    def save(self, request, pk=None):
+        Profile.objects.get(pk=pk).copy_and_switch(
+            submission_agreement=SubmissionAgreement.objects.get(
+                pk=request.data["submission_agreement"]
+            ),
+            specification_data=request.data["specification_data"],
+            new_name="abc"#request.data["new_name"],
+        )
+        return Response({'status': 'saving profile'})
+
 class AgentViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows agents to be viewed or edited.
