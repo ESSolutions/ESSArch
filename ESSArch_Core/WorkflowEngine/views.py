@@ -121,7 +121,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             InformationPackage.objects.get(pk=pk).prepare()
             return Response({'status': 'preparing ip'})
         except InformationPackage.DoesNotExist:
-            raise Http404("Information package does not exist")
+            return Response(
+                {'status': 'Information package with id %s does not exist' % pk},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class ProcessStepViewSet(viewsets.ModelViewSet):
