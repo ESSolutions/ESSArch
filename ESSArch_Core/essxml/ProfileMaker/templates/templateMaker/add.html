@@ -4,20 +4,7 @@
       <title>TemplateMaker</title>
     </head>
     <body>
-      <!-- <form method="post">
-        {% csrf_token %}
-        <p>Template name:</p>
-        <input type="text" name="template_name" value="">
-        <p>Schema name</p>
-        <input type="text" name="schema_name" value="">
-        <input type="submit" value="Submit">
-      </form> -->
-      <!-- <form enctype="multipart/form-data" method="post"> -->
-        {% if form.is_multipart %}
-          <form enctype="multipart/form-data" method="post">
-        {% else %}
-          <form method="post" action="/foo/">
-        {% endif %}
+      <form enctype="multipart/form-data" method="post">
         {% csrf_token %}
         {{ form }}
         <input type="submit" value="Submit">

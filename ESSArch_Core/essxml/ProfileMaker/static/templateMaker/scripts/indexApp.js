@@ -10,7 +10,6 @@
   app.controller('MainController', function MainCtrl($http) {
     var vm = this;
     vm.delete = function (templateName) {
-      console.log(templateName);
       if(window.confirm('Are you sure you want to delete this template?')){
         $http({
             method: 'POST',

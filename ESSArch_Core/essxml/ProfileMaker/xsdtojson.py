@@ -9,6 +9,7 @@ from collections import OrderedDict
 complexTypes = OrderedDict()
 attributeGroups = OrderedDict()
 groups = OrderedDict()
+elementTypes = {}
 pretty = True
 eol_ = '\n'
 choiseCount = 0
@@ -51,34 +52,19 @@ class xmlAttribute(object):
 
 class xmlElement():
 
-    def __init__(self, name, path):
+    def __init__(self, name):
         self.name = name
-        self.path = path + ':' + self.name
         self.children = []
-        # self.tagName = tagName
-        # self.children = []
-        # self.attributes = []
         self.attrib = []
         self.value = ''
         self.karMin = 0
         self.karMax = -1
-        self.meta = OrderedDict()
         self.uuid = uuid.uuid4().__str__()
         self.anyAttribute = False
         self.anyElement = False
-        self.choise = -1
         self.type = 0
-        # self.namespace = namespace
-        # self.completeTagName = ''
-        # self.containsFiles = False
-        # self.printed = 0
-        # if self.namespace != '':
-            # self.completeTagName += self.namespace + ':'
-        # self.completeTagName += str(self.tagName)
 
     def printXML(self, fd, level=0):
-        # if self.containsFiles:
-            # print "contaions iles: " + self.tagName
         pretty_print(fd, level, pretty)
         os.write(fd, '<' + self.name)
         for a in self.attributes:
@@ -95,56 +81,6 @@ class xmlElement():
             os.write(fd, '</' + self.name + '>' + eol_)
         else:
             os.write(fd, '/>' + eol_)
-
-        # for att in self.attrib:
-            # print self.name + ': ' + att + ': ' + str(self.attrib[att])
-
-    # def generateJSON(self):
-    #     result = OrderedDict()
-    #     result['name'] = self.name
-    #     result['key'] = uuid.uuid4().__str__()
-    #     path = self.path
-    #     result['path'] = path
-    #     children = []
-    #     for child in self.children:
-    #         children.append(child.generateJSON())
-    #     result['children'] = children
-    #     result['attributes'] = self.attrib
-    #     result['meta'] = self.meta
-    #     return result
-
-    # def generateStruct(self, addChildren=True):
-    #     result = OrderedDict()
-    #     result['name'] = self.name
-    #     result['key'] = self.uuid
-    #     result['templateOnly'] = False
-    #     # result['meta'] = self.meta
-    #     # result['path'] = self.path
-    #     # result['templateOnly'] = False
-    #     arr = []
-    #     cElement = []
-    #     currentChoise = -1
-    #     if addChildren:
-    #         for child in self.children:
-    #             if child.choise == -1:
-    #                 arr.append(child.generateStruct())
-    #             else:
-    #                 if currentChoise == child.choise:
-    #                     cElement.append(child.generateStruct(addChildren=False))
-    #                 else:
-    #                     cElement = []
-    #                     currentChoise = child.choise
-    #                     cElement.append(child.generateStruct(addChildren=False))
-    #                     r = {}
-    #                     r['key'] = 'choise:'+str(uuid.uuid4().__str__())
-    #                     r['name'] = 'Choose one of'
-    #                     r['children'] = cElement
-    #                     arr.append(r)
-    #     else:
-    #         result['templateOnly'] = True
-    #
-    #     result['children'] = arr
-    #     return result
 
     def listAllElements(self, parent='none'):
         res = {}
@@ -195,164 +131,6 @@ class xmlElement():
             # print self.children
             return {}, self.children, self.attrib
 
-        # res = {}
-        # el = {}
-        # el['name'] = self.name
-        # el['min'] = self.karMin
-        # el['max'] = self.karMax
-        # #form
-        # el['form'] = self.attrib
-        # el['userForm'] = []
-        # el['formData'] = {}
-        # el['userCreated'] = False
-        # el['anyAttribute'] = self.anyAttribute
-        # el['anyElement'] = self.anyElement
-        # el['containsFiles'] = False
-        # children = []
-        # currentChoise = -1
-        # cElement = OrderedDict()
-        # elements = None
-        #
-        #
-        # for child in self.children:
-        #     if child.choise == -1:
-        #         if elements == None:
-        #             elements = []
-        #         c = {}
-        #         c['type'] = 'element'
-        #         c['name'] = child.name
-        #         elements.append(c)
-        #     else:
-        #         if elements != None:
-        #             r = {}
-        #             r['type'] = 'sequence'
-        #             r['elements'] = elements
-        #             children.append(r)
-        #             elements = None
-        #         if currentChoise == child.choise:
-        #             #add to last choise element
-        #             e = OrderedDict()
-        #             e['name'] = child.name
-        #             cElement['elements'].append(e)
-        #         else:
-        #             # create choise element
-        #             cElement = OrderedDict()
-        #             cElement['type'] = 'choise'
-        #             e = OrderedDict()
-        #             e['name'] = child.name
-        #             cElement['elements'] = []
-        #             cElement['elements'].append(e)
-        #             children.append(cElement)
-        #             currentChoise = child.choise
-        # if elements != None:
-        #     r = {}
-        #     r['type'] = 'sequence'
-        #     r['elements'] = elements
-        #     children.append(r)
-        #
-        # el['children'] = children
-        #
-        # for child in self.children:
-        #     arr = child.listAllElements(parent=self.name)
-        #     res.update(arr)
-        # res[self.name] = el
-        # return res
-
-    def listAllElementTypes(self, parent='none'):
-        res = {}
-        # el = {}
-        # el['name'] = self.name
-        # el['min'] = self.karMin
-        # el['max'] = self.karMax
-        # el['parent'] = parent
-        # #form
-        # el['form'] = self.attrib
-        # el['userForm'] = []
-        # el['formData'] = {}
-        # el['userCreated'] = False
-        # el['anyAttribute'] = self.anyAttribute
-        # el['anyElement'] = self.anyElement
-        # el['containsFiles'] = False
-        # children = []
-        # currentChoise = -1
-        # cElement = OrderedDict()
-        # elements = None
-        # for child in self.children:
-        #     if child.choise == -1:
-        #         if elements == None:
-        #             elements = []
-        #         c = {}
-        #         c['type'] = 'element'
-        #         c['uuid'] = child.uuid
-        #         c['name'] = child.name
-        #         elements.append(c)
-        #     else:
-        #         if elements != None:
-        #             r = {}
-        #             r['type'] = 'sequence'
-        #             r['elements'] = elements
-        #             children.append(r)
-        #             elements = None
-        #         if currentChoise == child.choise:
-        #             #add to last choise element
-        #             e = OrderedDict()
-        #             e['name'] = child.name
-        #             cElement['elements'].append(e)
-        #         else:
-        #             # create choise element
-        #             cElement = OrderedDict()
-        #             cElement['type'] = 'choise'
-        #             e = OrderedDict()
-        #             e['name'] = child.name
-        #             cElement['elements'] = []
-        #             cElement['elements'].append(e)
-        #             children.append(cElement)
-        #             currentChoise = child.choise
-        # if elements != None:
-        #     r = {}
-        #     r['type'] = 'sequence'
-        #     r['elements'] = elements
-        #     children.append(r)
-        #
-        # el['children'] = children
-        # childsParent = self.uuid
-        # if parent == 'none':
-        #     childsParent = 'root'
-        # res[childsParent] = el
-        #
-        # for child in self.children:
-        #     if child.choise == -1:
-        #         arr = child.listAllElementTypes(parent=childsParent)
-        #         res.update(arr)
-        return res
-
-    # def generateJSONTemplate(self):
-    #     content = OrderedDict()
-    #     content['-min'] = self.karMin
-    #     content['-max'] = self.karMax
-    #     attr = []
-    #     for a in self.attrib:
-    #         to = a['templateOptions']
-    #         b = OrderedDict()
-    #         b['-name'] = to['label']
-    #         b['-req'] = int(to['required'])
-    #         b['#content'] = []
-    #         attr.append(b)
-    #     content['-attr'] = attr
-    #     for child in self.children:
-    #         name, con = child.generateJSONTemplate()
-    #         if name in content:
-    #             if isinstance(content[name], list):
-    #                 content[name].append(con)
-    #             else:
-    #                 c = content[name]
-    #                 content[name] = []
-    #                 content[name].append(c)
-    #                 content[name].append(con)
-    #         else:
-    #             content[name] = con
-    #     return self.name, content
-
     def isEmpty(self):
         if self.value != '' or self.children:
             return False
@@ -379,8 +157,6 @@ class xmlElement():
         self.value = ''
         self.karMin = 0
         self.karMax = -1
-        self.meta = OrderedDict()
-        self.path = ''
 
 def printTag(tag):
     if isinstance(tag, str):
@@ -418,6 +194,8 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
     global attributeGroups
     global finishedGroups
     global attributesComplexTypes
+    global elementTypes
+
     tag = printTag(element.tag)
     if tag == 'element':
         meta = OrderedDict()
@@ -429,50 +207,66 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
             maxC = -1
         else:
             maxC = int(element.get('maxOccurs'))
-
-        if element.get('type') is None:
-            t = xmlElement(element.get('name'))
-            t.karMin = minC
-            t.karMax = maxC
-            tree.addChild(t)
-            for child in element:
-                analyze2(child, t, usedTypes=usedTypes)
-        elif getPrefix(element.get('type')) == 'xs' or getPrefix(element.get('type')) == 'xsd':
-            t = xmlElement(element.get('name'))
-            t.karMin = minC
-            t.karMax = maxC
-            att = OrderedDict()
-            att['key'] = '#content'
-            att['type'] = 'input'
-            templateOptions = OrderedDict()
-            templateOptions['type'] = 'text' # TODO
-            templateOptions['label'] = 'Content'
-            templateOptions['placeholder'] = 'Content'
-            templateOptions['required'] = True
-            att['templateOptions'] = templateOptions
-            t.attrib.append(att)
-            tree.addChild(t)
-        else:
-            t = xmlElement(element.get('name'), tree.path)
-            t.karMin = minC
-            t.karMax = maxC
-            key = element.get('type')
-            tpyeDef = element.get('name') + key
-            if tpyeDef not in usedTypes:
-                if key in complexTypes:
-                    tree.addChild(t)
-                    usedTypes.append(tpyeDef)
-                    for child in complexTypes[key]:
-                        analyze2(child, t, usedTypes=usedTypes)
-                    finishedComplexTypes[key] = calculateChildren(tree)
-                    attributesComplexTypes[key] = tree.attrib
+        if element.get('ref') is not None:
+            key = element.get('ref')
+            # tpyeDef = element.get('name') + key
+            # print element.get('ref')
+            if key not in usedTypes:
+                if key in elementTypes:
+                    usedTypes.append(key)
+                    analyze2(elementTypes[key], tree, usedTypes=usedTypes)
+                    # finishedComplexTypes[key] = calculateChildren(tree)
+                    # attributesComplexTypes[key] = tree.attrib
                 else:
-                    print "type unknown: " + element.get('type')
+                    print "type unknown: " + element.get('ref')
+            #     if key in finishedComplexTypes:
+            #         t.type = TYPE_TO
+            #         t.attrib = attributesComplexTypes[key]
+            #         tree.addChild(t)
+        else:
+            if element.get('type') is None:
+                t = xmlElement(element.get('name'))
+                t.karMin = minC
+                t.karMax = maxC
+                tree.addChild(t)
+                for child in element:
+                    analyze2(child, t, usedTypes=usedTypes)
+            elif getPrefix(element.get('type')) == 'xs' or getPrefix(element.get('type')) == 'xsd':
+                t = xmlElement(element.get('name'))
+                t.karMin = minC
+                t.karMax = maxC
+                att = OrderedDict()
+                att['key'] = '#content'
+                att['type'] = 'input'
+                templateOptions = OrderedDict()
+                templateOptions['type'] = 'text' # TODO
+                templateOptions['label'] = 'Content'
+                templateOptions['placeholder'] = 'Content'
+                templateOptions['required'] = True
+                att['templateOptions'] = templateOptions
+                t.attrib.append(att)
+                tree.addChild(t)
             else:
-                if key in finishedComplexTypes:
-                    t.type = TYPE_TO
-                    t.attrib = attributesComplexTypes[key]
-                    tree.addChild(t)
+                t = xmlElement(element.get('name'))
+                t.karMin = minC
+                t.karMax = maxC
+                key = element.get('type')
+                tpyeDef = element.get('name') + key
+                if tpyeDef not in usedTypes:
+                    if key in complexTypes:
+                        tree.addChild(t)
+                        usedTypes.append(tpyeDef)
+                        for child in complexTypes[key]:
+                            analyze2(child, t, usedTypes=usedTypes)
+                        finishedComplexTypes[key] = calculateChildren(tree)
+                        attributesComplexTypes[key] = tree.attrib
+                    else:
+                        print "type unknown: " + element.get('type')
+                else:
+                    if key in finishedComplexTypes:
+                        t.type = TYPE_TO
+                        t.attrib = attributesComplexTypes[key]
+                        tree.addChild(t)
     elif tag == 'complexType':
         for child in element:
             analyze2(child, tree, usedTypes=usedTypes)
@@ -491,7 +285,7 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
                     attributesComplexTypes[key] = tree.attrib
             else:
                 if key in finishedComplexTypes:
-                    t = xmlElement('finishedGroup', '')
+                    t = xmlElement('finishedGroup')
                     t.type = TYPE_TO_CHOISE
                     t.attrib = attributesComplexTypes[key]
                     t.children = finishedComplexTypes[key]
@@ -502,7 +296,7 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
         for child in element:
             analyze2(child, tree, usedTypes=usedTypes)
     elif tag == 'choice':
-        t = xmlElement('choice', '')
+        t = xmlElement('choice')
         t.type = TYPE_CHOISE
         tree.addChild(t)
         for child in element:
@@ -557,7 +351,7 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
         else:
 
             if element.get('ref') in finishedGroups:
-                t = xmlElement('finishedGroup', '')
+                t = xmlElement('finishedGroup')
                 t.type = TYPE_TO_CHOISE
                 t.children = finishedGroups[element.get('ref')]
                 tree.addChild(t)
@@ -654,10 +448,11 @@ def parseAttribute(element):
 
     return att
 
-def generateJsonRes(schemaName):
+def generateJsonRes(schemaName, rootElement):
     global complexTypes
     global attributeGroups
     global groups
+    global elementTypes
     # pars = etree.parse("esscore/template/templateGenerator/CSPackageMETS.xsd")
     # pars = etree.parse(os.path.join(settings.BASE_DIR,"esscore/template/templateGenerator/CSPackageMETS.xsd"))
     parser = etree.XMLParser(remove_comments=True)
@@ -670,6 +465,10 @@ def generateJsonRes(schemaName):
         if child.get('name'):
             complexTypes[child.get('name')] = child
 
+    for child in root.iterfind(schema + 'simpleType'):
+        if child.get('name'):
+            complexTypes[child.get('name')] = child
+
     for child in root.iterfind(schema + 'attributeGroup'):
         if child.get('name'):
             attributeGroups[child.get('name')] = child
@@ -679,33 +478,39 @@ def generateJsonRes(schemaName):
             groups[child.get('name')] = child
 
     for child in root.iterfind(schema + 'element'):
-        tag = printTag(child.tag)
-        if tag != 'complexType' and tag != 'attributeGroup':
-            tree = xmlElement(child.get('name'), '')
-            for ch in child:
-                analyze2(ch, tree, [])
-            if tree is not None:
-                # with open('test.txt', 'wb') as outfile: print
-                # tree.generateJSON(); struc = tree.generateStruct() el =
-                # tree.listAllElements() treeData = tree.generateStruct()
-                # existingElements = tree.listAllElementTypes()
-                allElements, e, a = tree.listAllElements()
-                # temp = tree.listAllElementTypes()
-                # j = json.dumps(tree.generateJSON())
-                # tree.delete()
-                # print json.dumps(allElements['odd'])
-                # print allElements['c01']['form']
-                existingElements = {}
-                existingElements['root'] = copy.deepcopy(allElements[tree.name])
-                # print existingElements
-                return existingElements, allElements
+        if child.get('name'):
+            elementTypes[child.get('name')] = child
+
+    for child in root.iterfind(schema + 'element'):
+        if child.get('name') == rootElement:
+            tag = printTag(child.tag)
+            if tag != 'complexType' and tag != 'attributeGroup':
+                tree = xmlElement(child.get('name'))
+                # for ch in child:
+                analyze2(child, tree)
+                if tree is not None:
+                    # with open('test.txt', 'wb') as outfile: print
+                    # tree.generateJSON(); struc = tree.generateStruct() el =
+                    # tree.listAllElements() treeData = tree.generateStruct()
+                    # existingElements = tree.listAllElementTypes()
+                    allElements, e, a = tree.children[0].listAllElements()
+                    # print json.dumps(allElements)
+                    # print allElements['agent']['avaliableChildren']
+                    # temp = tree.listAllElementTypes()
+                    # j = json.dumps(tree.generateJSON())
+                    # tree.delete()
+                    # print json.dumps(allElements['odd'])
+                    # print allElements['c01']['form']
+                    existingElements = {}
+                    existingElements['root'] = copy.deepcopy(allElements[rootElement])
+                    return existingElements, allElements
     # pars = None
     # root = None
     # tree = None
     # complexTypes = OrderedDict()
     # attributeGroups = OrderedDict()
 
-# generateJsonRes("/Users/Axenu/Developer/ESSArch_Tools_Producer/ESSArch_TP2/esscore/template/templateGenerator/CSPackageMETS.xsd")
+# generateJsonRes("/Users/Axenu/Developer/ESSArch_Tools_Producer/ESSArch_TP2/esscore/template/templateGenerator/premis.xsd", 'premis')
 # print generate()
 # print generate(2)
 # print generate(3)

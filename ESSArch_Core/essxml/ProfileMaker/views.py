@@ -312,12 +312,14 @@ class add(View):
         if not form.is_valid():
             return HttpResponse(request.FILES['file'].name + ' did not success in uploading')
 
-
         name = request.POST['template_name']
+        # name.replace(' ', '_')
         if templatePackage.objects.filter(pk=name).exists():
             return HttpResponse('ERROR: templatePackage with name "' + name + '" already exists!')
-        existingElements, allElements = generateJsonRes(request.FILES['file']);
-        t = templatePackage(existingElements=existingElements, allElements=allElements, name=name)
+
+        existingElements, allElements = generateJsonRes(request.FILES['file'],request.POST['root_element']);
+        # return JsonResponse(existingElements, safe=False)
+        t = templatePackage(existingElements=existingElements, allElements=allElements, name=name, namespace=request.POST['namespace_prefix'], root_element=request.POST['root_element'])
         t.save()
         return redirect('/template/edit/' + name)
 
