@@ -3,6 +3,7 @@ from django.http import Http404
 from rest_framework import status
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from configuration.models import (
     Agent,
@@ -252,6 +253,17 @@ class ProfileViewSet(viewsets.ModelViewSet):
             return Response({'status': 'saving profile'})
 
         return Response({'status': 'no changes, not saving'}, status=status.HTTP_400_BAD_REQUEST)
+
+class ProfileTypeViewSet(APIView):
+    """
+    API endpoint that allows profiles types to be viewed.
+    """
+
+    def get(self, request):
+        profile_type = request.query_params.get("type", "")
+        profiles = Profile.objects.filter(profile_type=profile_type)
+        serializer = ProfileSerializer(profiles, context={'request': request}, many=True)
+        return Response(serializer.data)
 
 class AgentViewSet(viewsets.ModelViewSet):
     """
