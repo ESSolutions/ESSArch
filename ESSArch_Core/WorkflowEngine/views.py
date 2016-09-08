@@ -105,7 +105,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     queryset = InformationPackage.objects.all()
     serializer_class = InformationPackageSerializer
 
-    @detail_route()
+    @detail_route(methods=['post'])
     def prepare(self, request, pk=None):
         """
         Prepares the specified information package
