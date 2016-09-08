@@ -4,7 +4,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template import Context, loader, RequestContext
-from models import templatePackage, finishedTemplate
+from models import templatePackage
 from profiles.models import Profile
 #file upload
 # import the logging library and get an instance of a logger
@@ -56,10 +56,7 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False):
     data = {}
     el['-min'] = element['min']
     el['-max'] = element['max']
-    # if 'allowEmpty' in meta: # TODO save allowEmpty
-        # el['-allowEmpty'] = meta['allowEmpty']
     # TODO namespace
-    # a = elements[structure['key']]
     attributes = element['form'] + element['userForm']
     attributeList = []
     for attrib in attributes:
@@ -167,91 +164,6 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False):
                     elDict[child['name']] = e
             cf.append(elDict)
             el['-containsFiles'] = cf
-        # if childDict['type'] == 'sequence':
-        #     for child in childDict['elements']:
-        #         if 'uuid' in child:
-                    # if not elements[child['uuid']]['containsFiles']:
-                    #     e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=containsFiles)
-                    #     if e is not None:
-                    #         if child['name'] in el:
-                    #             # cerate array
-                    #             if isinstance(el[child['name']], list):
-                    #                 el[child['name']].append(e)
-                    #             else:
-                    #                 temp = el[child['name']]
-                    #                 el[child['name']] = []
-                    #                 el[child['name']].append(temp)
-                    #                 el[child['name']].append(e)
-                    #         else:
-                    #             el[child['name']] = e
-                    #         for field in f:
-                    #             forms.append(field)
-                    #         data.update(d)
-                    # else:
-                    #     #containsFiles
-                    #     cf = []
-                    #     elDict = OrderedDict()
-                    #     e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=True)
-                    #     if e is not None:
-                    #         if child['name'] in elDict:
-                    #             # cerate array
-                    #             if isinstance(elDict[child['name']], list):
-                    #                 elDict[child['name']].append(e)
-                    #             else:
-                    #                 temp = elDict[child['name']]
-                    #                 elDict[child['name']] = []
-                    #                 elDict[child['name']].append(temp)
-                    #                 elDict[child['name']].append(e)
-                    #         else:
-                    #             elDict[child['name']] = e
-                    #     cf.append(elDict)
-                    #     el['-containsFiles'] = cf
-        #
-        # else:
-        #     found = False
-        #     for child in childDict['elements']:
-        #         if 'uuid' in child:
-        #             if found:
-        #                 # TODO ERROR Should only find one
-        #                 print 'ERROR'
-        #             else:
-        #                 found = True
-        #                 if not elements[child['uuid']]['containsFiles']:
-        #                     e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=containsFiles)
-        #                     if e is not None:
-        #                         if child['name'] in el:
-        #                             # cerate array
-        #                             if isinstance(el[child['name']], list):
-        #                                 el[child['name']].append(e)
-        #                             else:
-        #                                 temp = el[child['name']]
-        #                                 el[child['name']] = []
-        #                                 el[child['name']].append(temp)
-        #                                 el[child['name']].append(e)
-        #                         else:
-        #                             el[child['name']] = e
-        #                         for field in f:
-        #                             forms.append(field)
-        #                         data.update(d)
-        #                 else:
-        #                     #containsFiles
-        #                     cf = []
-        #                     elDict = OrderedDict()
-        #                     e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=True)
-        #                     if e is not None:
-        #                         if child['name'] in elDict:
-        #                             # cerate array
-        #                             if isinstance(elDict[child['name']], list):
-        #                                 elDict[child['name']].append(e)
-        #                             else:
-        #                                 temp = elDict[child['name']]
-        #                                 elDict[child['name']] = []
-        #                                 elDict[child['name']].append(temp)
-        #                                 elDict[child['name']].append(e)
-        #                         else:
-        #                             elDict[child['name']] = e
-        #                     cf.append(elDict)
-        #                     el['-containsFiles'] = cf
     return (el, forms, data)
 
 def generateTemplate(request, name):
@@ -463,34 +375,12 @@ class demo(View):
 
         return JsonResponse(request.body, safe=False)
 
-        # return redirect('/template/demo/')
-
 class create(View):
     template_name = 'templateMaker/create.html'
 
     @method_decorator(login_required)
     def get(self, request, *args, **kwargs):
-        # v = add.delay(4,4)
-        # logger.log(v.get())
         context = {}
-        # context['label'] = 'Prepare new information packages'
-
-        # Get current site_profile and zone
-        # site_profile, zone = lat.getSiteZone()
-
-        # Present only prepared IPs
-        # ip = InformationPackage.objects.filter(state='Prepared')
-
-        # initialvalues = {}
-        # initialvalues['destinationroot'] = lat.getLogFilePath()
-        # if site_profile == "SE":
-            # form = PrepareFormSE(initial=initialvalues) # Form with defaults
-        # if site_profile == "NO":
-            # form = PrepareFormNO(initial=initialvalues) # Form with defaults
-
-        # context['form'] = form
-        # context['zone'] = zone
-        # context['informationpackages'] = ip
         return render(request, self.template_name, context)
 
 class edit(View):
@@ -498,28 +388,9 @@ class edit(View):
 
     @method_decorator(login_required)
     def get(self, request, *args, **kwargs):
-        # v = add.delay(4,4)
-        # logger.log(v.get())
         context = {}
         context['label'] = 'Edit template'
         context['templateName'] = kwargs['name']
-
-        # Get current site_profile and zone
-        # site_profile, zone = lat.getSiteZone()
-
-        # Present only prepared IPs
-        # ip = InformationPackage.objects.filter(state='Prepared')
-
-        # initialvalues = {}
-        # initialvalues['destinationroot'] = lat.getLogFilePath()
-        # if site_profile == "SE":
-            # form = PrepareFormSE(initial=initialvalues) # Form with defaults
-        # if site_profile == "NO":
-            # form = PrepareFormNO(initial=initialvalues) # Form with defaults
-
-        # context['form'] = form
-        # context['zone'] = zone
-        # context['informationpackages'] = ip
         return render(request, self.template_name, context)
 
     @method_decorator(login_required)

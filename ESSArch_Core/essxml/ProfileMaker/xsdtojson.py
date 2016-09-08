@@ -421,49 +421,26 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
     tag = printTag(element.tag)
     if tag == 'element':
         meta = OrderedDict()
-        if element.get('minOccurs') is None or int(element.get('minOccurs')) < 0:
-            meta['minOccurs'] = 0
-        else:
-            meta['minOccurs'] = int(element.get('minOccurs'))
+        if element.get('minOccurs') is not None and int(element.get('minOccurs')) >= 0:
+            minC = int(element.get('minOccurs'))
         if element.get('maxOccurs') is None:
-            meta['maxOccurs'] = 1
+            pass
         elif element.get('maxOccurs') == 'unbounded':
-            meta['maxOccurs'] = -1
+            maxC = -1
         else:
-            meta['maxOccurs'] = int(element.get('maxOccurs'))
+            maxC = int(element.get('maxOccurs'))
 
         if element.get('type') is None:
-            t = xmlElement(element.get('name'), tree.path)
+            t = xmlElement(element.get('name'))
             t.karMin = minC
             t.karMax = maxC
-            t.choise = choise
-            if 'minOccurs' in meta:
-                t.karMin = meta['minOccurs']
-            if 'maxOccurs' in meta:
-                t.karMax = meta['maxOccurs']
-            t.meta = meta
             tree.addChild(t)
             for child in element:
                 analyze2(child, t, usedTypes=usedTypes)
-            # if t.karMin > 1 and choise == -1:
-            #     for i in range(1, t.karMin):
-            #         ti = xmlElement(t.name, tree.path)
-            #         ti.karMin = t.karMin
-            #         ti.karMax = t.karMax
-            #         ti.meta = meta
-            #         tree.addChild(ti)
-            #         for child in element:
-            #             analyze2(child, ti, usedTypes=usedTypes)
         elif getPrefix(element.get('type')) == 'xs' or getPrefix(element.get('type')) == 'xsd':
-            t = xmlElement(element.get('name'), tree.path)
+            t = xmlElement(element.get('name'))
             t.karMin = minC
             t.karMax = maxC
-            t.choise = choise
-            if 'minOccurs' in meta:
-                t.karMin = meta['minOccurs']
-            if 'maxOccurs' in meta:
-                t.karMax = meta['maxOccurs']
-            t.meta = meta
             att = OrderedDict()
             att['key'] = '#content'
             att['type'] = 'input'
@@ -475,63 +452,27 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
             att['templateOptions'] = templateOptions
             t.attrib.append(att)
             tree.addChild(t)
-            # if t.karMin > 1 and choise==-1:
-            #     for i in range(1, t.karMin):
-            #         ti = xmlElement(t.name, tree.path)
-            #         ti.meta = meta
-            #         ti.karMin = t.karMin
-            #         ti.karMax = t.karMax
-            #         a = copy.deepcopy(t.attrib)
-            #         ti.attrib = a
-            #         tree.addChild(ti)
         else:
             t = xmlElement(element.get('name'), tree.path)
             t.karMin = minC
             t.karMax = maxC
-            t.choise = choise
-            if 'minOccurs' in meta:
-                t.karMin = meta['minOccurs']
-            if 'maxOccurs' in meta:
-                t.karMax = meta['maxOccurs']
-            t.meta = meta
             key = element.get('type')
             tpyeDef = element.get('name') + key
             if tpyeDef not in usedTypes:
                 if key in complexTypes:
                     tree.addChild(t)
                     usedTypes.append(tpyeDef)
-                    calculateChildren
-                    # ut = copy.copy(usedTypes)
-                    # ut.append(key)
                     for child in complexTypes[key]:
                         analyze2(child, t, usedTypes=usedTypes)
                     finishedComplexTypes[key] = calculateChildren(tree)
                     attributesComplexTypes[key] = tree.attrib
-                    # if key == 'm.c.base':
-                        # print 'asd'
-                        # print finishedComplexTypes[key]
-                        # print t.attrib
                 else:
                     print "type unknown: " + element.get('type')
             else:
                 if key in finishedComplexTypes:
-                # print attributesComplexTypes
                     t.type = TYPE_TO
                     t.attrib = attributesComplexTypes[key]
                     tree.addChild(t)
-                # print 'key already in usedTypes: ' + element.get('type')
-            # if t.karMin > 1:
-            #     for i in range(1, t.karMin):
-            #         ti = xmlElement(t.name, tree.path)
-            #         ti.meta = meta
-            #         a = copy.deepcopy(t.attrib)
-            #         ti.attrib = a
-            #         tree.addChild(ti)
-            #         if key in complexTypes:
-            #             for child in complexTypes[key]:
-            #                 analyze2(child, ti, usedTypes=usedTypes)
-            #         else:
-            #             print "type unknown: " + element.get('type')
     elif tag == 'complexType':
         for child in element:
             analyze2(child, tree, usedTypes=usedTypes)
@@ -541,23 +482,14 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
     elif tag == 'extension':
         if element.get('base'):
             key = element.get('base')
-            # print t
             if key not in usedTypes:
-                # tt = tree.name + t
                 if key in complexTypes:
-                    # ut = copy.copy(usedTypes)
-                    # ut.append(t)
                     usedTypes.append(key)
                     for child in complexTypes[key]:
                         analyze2(child, tree, usedTypes=usedTypes, minC=minC, maxC=maxC)
                     finishedComplexTypes[key] = calculateChildren(tree)
                     attributesComplexTypes[key] = tree.attrib
             else:
-                # if key == 'm.c.base':
-                #     print 'teasd'
-                #     print finishedComplexTypes[key]
-                #     print attributesComplexTypes[key]
-                #     print json.dumps(tree.attrib)
                 if key in finishedComplexTypes:
                     t = xmlElement('finishedGroup', '')
                     t.type = TYPE_TO_CHOISE
@@ -582,7 +514,6 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
             tree.attrib.append(att)
         else:
             print 'attribute == none'
-            print element.get('ref')
     elif tag == 'attributeGroup':
         if element.get('ref'):
             ref = element.get('ref')
@@ -591,9 +522,6 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
                     analyze2(child, tree, usedTypes=usedTypes)
             else:
                 print 'attributegroup not found'
-            if ref == 'am.desc.c':
-                print tree.attrib
-                print tree.name
     elif tag == 'anyAttribute':
         tree.anyAttribute = True
     elif tag == 'simpleContent':
@@ -612,10 +540,9 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
     elif tag == 'any':
         tree.anyElement = True
     elif tag == 'all':
-        minC = 1
         if element.get('minOccurs') is not None:
             minC = int(element.get('minOccurs'))
-            if minC != 0 or minC != 1:
+            if minC != 0 and minC != 1:
                 minC = 1
         maxC = 1
         for child in element:
@@ -623,21 +550,10 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
     elif tag == 'group':
         if element.get('ref') not in usedTypes:
             if element.get('ref') in groups:
-                # ut = copy.copy(usedTypes)
-                # ut.append(element.get('ref'))
                 usedTypes.append(element.get('ref'))
-                # print ut
-                # input("Press Enter to continue...")
-                # print element.get('ref')
                 for child in groups[element.get('ref')]:
-                    # print(etree.tostring(child, pretty_print=True))
                     analyze2(child, tree, usedTypes=usedTypes)
-                # finishedGroups[element.get('ref')] = tree
                 finishedGroups[element.get('ref')] = calculateChildren(tree)
-                # print finishedGroups[element.get('ref')]
-                # print finishedGroups[element.get('ref')]
-            else:
-                pass
         else:
 
             if element.get('ref') in finishedGroups:
@@ -645,15 +561,6 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
                 t.type = TYPE_TO_CHOISE
                 t.children = finishedGroups[element.get('ref')]
                 tree.addChild(t)
-                # print finishedGroups[element.get('ref')]
-            #     for child in finishedGroups[element.get('ref')].children:
-            #         c = copy.copy(child)
-            #         if c.type == TYPE_CHOISE:
-            #             c.type = TYPE_TO_CHOISE
-            #         else:
-            #             c.type = TYPE_TO
-            #         tree.addChild(c)
-            # print 'found type: ' + element.get('ref')
     elif tag == 'annotation':
         pass # comments
     else:
@@ -747,13 +654,6 @@ def parseAttribute(element):
 
     return att
 
-## TODO list:
-
-# 1. text content of elements
-
-# 2. required or not (All other information)
-
-# 3. save the model to a jsonTemplate (might prioritate this)
 def generateJsonRes(schemaName):
     global complexTypes
     global attributeGroups
@@ -762,16 +662,9 @@ def generateJsonRes(schemaName):
     # pars = etree.parse(os.path.join(settings.BASE_DIR,"esscore/template/templateGenerator/CSPackageMETS.xsd"))
     parser = etree.XMLParser(remove_comments=True)
     pars = etree.parse(schemaName, parser=parser)
-    # rootEl = create2(pars.getroot())
     schema = '{http://www.w3.org/2001/XMLSchema}'
 
     root = pars.getroot()
-
-    # print root.tag
-    # analyze(root)
-
-    # def changeName(tree):
-    #     tree.name = 'test'
 
     for child in root.iterfind(schema + 'complexType'):
         if child.get('name'):
@@ -784,13 +677,6 @@ def generateJsonRes(schemaName):
     for child in root.iterfind(schema + 'group'):
         if child.get('name'):
             groups[child.get('name')] = child
-
-    # print complexTypes
-    # t = None
-
-    # xmlFile = os.open('test.txt',os.O_RDWR|os.O_CREAT)
-
-    # el = xmlElement('not test')
 
     for child in root.iterfind(schema + 'element'):
         tag = printTag(child.tag)
@@ -819,7 +705,7 @@ def generateJsonRes(schemaName):
     # complexTypes = OrderedDict()
     # attributeGroups = OrderedDict()
 
-generateJsonRes("/Users/Axenu/Developer/ESSArch_Tools_Producer/ESSArch_TP2/esscore/template/templateGenerator/CSPackageMETS.xsd")
+# generateJsonRes("/Users/Axenu/Developer/ESSArch_Tools_Producer/ESSArch_TP2/esscore/template/templateGenerator/CSPackageMETS.xsd")
 # print generate()
 # print generate(2)
 # print generate(3)

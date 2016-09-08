@@ -28,8 +28,8 @@ class templatePackage(models.Model):
     #     )
 
 
-class finishedTemplate(models.Model):
-    name = models.CharField(max_length=255, primary_key=True)
-    template = jsonfield.JSONField(null=True)
-    form = jsonfield.JSONField(null=True)
-    data = jsonfield.JSONField(null=True)
+# class finishedTemplate(models.Model):
+#     name = models.CharField(max_length=255, primary_key=True)
+#     template = jsonfield.JSONField(null=True)
+#     form = jsonfield.JSONField(null=True)
+#     data = jsonfield.JSONField(null=True)
