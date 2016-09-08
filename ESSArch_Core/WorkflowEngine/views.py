@@ -198,7 +198,9 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
     def change_profile(self, request, pk=None):
         sa = SubmissionAgreement.objects.get(pk=pk)
         new_profile = Profile.objects.get(pk=request.data["new_profile"])
-        old_profile = sa.profile_sip_rel.active()
+        old_profile = sa.profilerel_set.filter(
+                profile__profile_type=new_profile.profile_type
+        ).active()
         old_status = old_profile.get_sa_status(sa)
 
         if old_status == 1:
