@@ -210,7 +210,7 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
 
         if new_profile.get_sa_status(sa) != 2:
             ProfileRel.objects.update_or_create(
-                submissionagreement=sa,
+                submission_agreement=sa,
                 profile=new_profile,
                 defaults={
                     "status": 1
