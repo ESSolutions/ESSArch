@@ -200,22 +200,8 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
     def change_profile(self, request, pk=None):
         sa = SubmissionAgreement.objects.get(pk=pk)
         new_profile = Profile.objects.get(pk=request.data["new_profile"])
-        old_profile = sa.profilerel_set.filter(
-                profile__profile_type=new_profile.profile_type
-        ).active()
-        old_status = old_profile.get_sa_status(sa)
 
-        if old_status == 1:
-            old_profile.set_sa_status(sa, 0)
-
-        if new_profile.get_sa_status(sa) != 2:
-            ProfileRel.objects.update_or_create(
-                submission_agreement=sa,
-                profile=new_profile,
-                defaults={
-                    "status": 1
-                },
-            )
+        sa.change_profile(new_profile=new_profile)
 
         return Response({
             'status': 'updating SA (%s) with new profile (%s)'.format(
