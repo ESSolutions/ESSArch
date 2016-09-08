@@ -228,12 +228,17 @@ class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
+    """
+    def get_queryset(self):
+        print self.kwargs
+        return []
+    """
     @detail_route(methods=['post'])
     def save(self, request, pk=None):
         profile = Profile.objects.get(pk=pk)
         new_data = request.data["specification_data"]
 
-        if (profile.specification_data.keys() == new_data.keys() and
+        if (profile.specification_data.keys().sort() == new_data.keys().sort() and
                 profile.specification_data != new_data):
 
             profile.copy_and_switch(
