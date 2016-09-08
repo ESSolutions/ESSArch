@@ -1,5 +1,6 @@
 from django.http import Http404
 
+from rest_framework import status
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 
@@ -250,7 +251,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
             )
             return Response({'status': 'saving profile'})
 
-        return Response({'status': 'no changes, not saving'})
+        return Response({'status': 'no changes, not saving'}, status=status.HTTP_400_BAD_REQUEST)
 
 class AgentViewSet(viewsets.ModelViewSet):
     """
