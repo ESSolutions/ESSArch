@@ -21,12 +21,28 @@
             method: 'POST',
             url: '/template/generate/' + templateName + '/',
             data: data
-        }).then(function() {
+        }).then(function(res) {
+          console.log(res.data)
         });
         //TODO give feedback
     };
 
     vm.model = {
+      name:"",
+      profile_type:"",
+      name:"",
+      type:"",
+      status:"",
+      label:"",
+      representation_info:"",
+      preservation_descriptive_info:"",
+      supplemental:"",
+      access_constraints:"",
+      datamodel_reference:"",
+      additional:"",
+      submission_method:"",
+      submission_schedule:"",
+      submission_data_inventory:""
     };
     vm.options = {
       formState: {

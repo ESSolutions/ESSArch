@@ -14,8 +14,10 @@
 
         $http.get('/template/struct/' + templateName).then(function(res) {
             $scope.treeElements = [];
+            console.log(res.data)
             $scope.treeElements.push(vm.buildTree('root', res.data));
             vm.existingElements = res.data;
+            console.log(res.data)
             $http.get('/template/struct/elements/' + templateName).then(function(res) {
               vm.allElements = res.data;
               $scope.showSelected($scope.treeElements[0]['key'], false);
@@ -33,6 +35,7 @@
         vm.existingElements = {};
         vm.choiseCount = 0;
         vm.containsFilesText = false;
+        vm.choiseCount = 0
 
         vm.buildTree = function(uuid, data) {
           var element = data[uuid];
@@ -43,45 +46,7 @@
 
           for (var index in element['children']) {
             var child = element['children'][index];
-            if (child['type'] == 'sequence') {
-              for (var i in child['elements']) {
-                var el = child['elements'][i];
-                if ('uuid' in el) {
-                  children.push(vm.buildTree(el['uuid'], data));
-                } else {
-                  // var r = {}
-                  // r['name'] = el['name'];
-                  // r['children'] = [];
-                  // r['key'] = el['name'];
-                  // children.push(r);
-                }
-              }
-            } else if (child['type'] == 'choise') {
-              var ch = [];
-              var done = false;
-              for (var i in child['elements']) {
-                var el = child['elements'][i];
-                var r = {};
-                r['name'] = el['name'];
-                r['children'] = [];
-                r['key'] = el['name'];
-                if ('uuid' in el) {
-                  ch = [];
-                  children.push(vm.buildTree(el['uuid'], data));
-                  done = true;
-                } else {
-                  ch.push(r);
-                }
-              }
-              if (!done) {
-                var c = {};
-                c['name'] = 'choose one of:'
-                c['children'] = ch;
-                c['key'] = 'choise' + vm.choiseCount;
-                vm.choiseCount += 1;
-                children.push(c);
-              }
-            }
+            children.push(vm.buildTree(child['uuid'], data));
           }
           result['children'] = children;
           return result;
@@ -130,90 +95,82 @@
           } else {
               vm.canDelete = false;
           }
-          if (sel == 'root') {
-            vm.canDelete = false;
-          }
+          // if (sel == 'root') {
+          //   vm.canDelete = false;
+          // }
           vm.model = data['formData'];
           vm.selectedElement = data;
           vm.anyAttribute = data['anyAttribute'];
           vm.anyElement = data['anyElement'];
           vm.possibleChildren = [];
-          // console.log(data['avaliableChildren']);
-          var pc = {};
-          var doneChoises = [];
-          for (var index in data['children']) {
-            var child = data['children'][index];
-            if (child['type'] == 'sequence') {
-              for (var i in child['elements']) {
-                var el = child['elements'][i];
-                if ('uuid' in el) {
-                  if (!(el['name'] in pc)) {
-                    pc[el['name']] = 1;
-                  } else {
-                    pc[el['name']] = parseInt(pc[el['name']]);
-                  }
-                }
-              }
-            } else if (child['type'] == 'choise') {
-              for (var i in child['elements']) {
-                var el = child['elements'][i];
-                if ('uuid' in el) {
-                  doneChoises.push(index);
-                  break;
-                }
-              }
+
+          //count existing children
+          var existing = {};
+          for (var i in data['children']) {
+            var element = data['children'][i];
+            if (!(element['name'] in existing)) {
+              existing[element['name']] = 1
+            } else {
+              existing[element['name']] += 1
             }
           }
-          var ch = vm.allElements[data['name']]['children'];
-          if (ch != undefined) {
-            for (var index in ch) {
-              el = ch[index];
-              if (el['type'] == 'sequence') {
-                for (var i in el['elements']) {
-                  var e = el['elements'][i];
-                  if (!(e['name'] in pc)) {
-                    pc[e['name']] = 0;
-                  }
-                }
-              } else {
-                if (!(index in doneChoises)) {
-                  for (i in el['elements']) {
-                    var e = el['elements'][i];
-                    pc[e['name']] = 0;
-                  }
-                }
-              }
-            }
+          //calculate possible children
+          var allChildren = [];
+
+          for (var i in data['avaliableChildren']) {
+            var child = data['avaliableChildren'][i];
+            var a = vm.calculatePossibleChildren(child, existing);
+            allChildren = allChildren.concat(a);
           }
-          for (var key in pc) {
-            if (pc[key] < vm.allElements[key]['max'] || vm.allElements[key]['max'] == -1) {
-              vm.possibleChildren.push(key);
-            }
-          }
+
+          //remove children who's already at max
+          console.log(allChildren)
+          vm.possibleChildren = allChildren;
         };
 
+        vm.calculatePossibleChildren = function(child, existing) {
+          console.log(vm.choiseCount)
+          var allChildren = [];
+          if (child['type'] == 'element') {
+            if ((!(child['name'] in existing)) || existing[child['name']] < vm.allElements[child['name']]['max'] || vm.allElements[child['name']]['max'] == -1) {
+              allChildren.push(child['name']);
+            }
+          } else if (child['type'] == 'choise') {
+            var c = vm.choiseCount.toString();
+            vm.choiseCount += 1;
+            allChildren.push('Choise'+c+' Begin');
+            for (var i in child['elements']) {
+              var el = child['elements'][i];
+              if (el['type'] == 'element') {
+                if (el['name'] in existing) {
+                  var maxCount = vm.allElements[el['name']]['max'];
+                  if (maxCount == -1 || existing[el['name']] < maxCount) {
+                    return [el['name']];
+                  } else {
+                    return [];
+                  }
+                } else {
+                  allChildren = allChildren.concat(vm.calculatePossibleChildren(el, existing));
+                }
+              } else {
+                allChildren = allChildren.concat(vm.calculatePossibleChildren(el, existing));
+              }
+            }
+            allChildren.push('Choise'+c+' End');
+          }
+          return allChildren;
+        }
+
         vm.countChildrenWithName = function(parentName, childName) {
+          console.log(parentName);
           if (parentName == 'none') {
-            return 1;
+            return 0;
           } else {
             var data = vm.existingElements[parentName];
             var count = 0;
             for (var index in data['children']) {
-              var el = data['children'][index];
-              if (el['type'] == 'sequence') {
-                for (var i in el['elements']) {
-                  var e = el['elements'][i];
-                  if (e['name'] == childName && 'uuid' in e) {
-                    count += 1;
-                  }
-                }
-              } else {
-                for (i in el['elements']) {
-                  var e = el['elements'][i];
-                  if (e['name'] == childName && 'uuid' in e) {
-                    count += 1;
-                  }
-                }
+              if (data['children'][index]['name'] == childName) {
+                count += 1;
               }
             }
             return count;
@@ -234,6 +191,7 @@
 
         vm.addChild = function(child) {
           $http.get('/template/struct/addChild/' + templateName + '/' + child + '/' + vm.uuid + '/').then(function(res) {
+            console.log(res.data)
             $scope.treeElements = [];
             $scope.treeElements.push(vm.buildTree('root', res.data));
             vm.existingElements = res.data;
@@ -244,6 +202,7 @@
         vm.removeChild = function(child) {
             $http.get('/template/struct/removeChild/' + templateName + '/'+vm.uuid+'/').then(function(res) {
               $scope.treeElements = [];
+              console.log(res.data)
               $scope.treeElements.push(vm.buildTree('root', res.data));
               vm.existingElements = res.data;
             });

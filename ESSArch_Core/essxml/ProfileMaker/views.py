@@ -130,92 +130,128 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False):
                 att['#content'] = [] # TODO warning, should not be added if it can't contain any value
             attributeList.append(att)
     el['-attr'] = attributeList
-    for childDict in element['children']:
-        if childDict['type'] == 'sequence':
-            for child in childDict['elements']:
-                if 'uuid' in child:
-                    if not elements[child['uuid']]['containsFiles']:
-                        e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=containsFiles)
-                        if e is not None:
-                            if child['name'] in el:
-                                # cerate array
-                                if isinstance(el[child['name']], list):
-                                    el[child['name']].append(e)
-                                else:
-                                    temp = el[child['name']]
-                                    el[child['name']] = []
-                                    el[child['name']].append(temp)
-                                    el[child['name']].append(e)
-                            else:
-                                el[child['name']] = e
-                            for field in f:
-                                forms.append(field)
-                            data.update(d)
+    for child in element['children']:
+        if not elements[child['uuid']]['containsFiles']:
+            e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=containsFiles)
+            if e is not None:
+                if child['name'] in el:
+                    # cerate array
+                    if isinstance(el[child['name']], list):
+                        el[child['name']].append(e)
                     else:
-                        #containsFiles
-                        cf = []
-                        elDict = OrderedDict()
-                        e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=True)
-                        if e is not None:
-                            if child['name'] in elDict:
-                                # cerate array
-                                if isinstance(elDict[child['name']], list):
-                                    elDict[child['name']].append(e)
-                                else:
-                                    temp = elDict[child['name']]
-                                    elDict[child['name']] = []
-                                    elDict[child['name']].append(temp)
-                                    elDict[child['name']].append(e)
-                            else:
-                                elDict[child['name']] = e
-                        cf.append(elDict)
-                        el['-containsFiles'] = cf
-
+                        temp = el[child['name']]
+                        el[child['name']] = []
+                        el[child['name']].append(temp)
+                        el[child['name']].append(e)
+                else:
+                    el[child['name']] = e
+                for field in f:
+                    forms.append(field)
+                data.update(d)
         else:
-            found = False
-            for child in childDict['elements']:
-                if 'uuid' in child:
-                    if found:
-                        # TODO ERROR Should only find one
-                        print 'ERROR'
+            #containsFiles
+            cf = []
+            elDict = OrderedDict()
+            e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=True)
+            if e is not None:
+                if child['name'] in elDict:
+                    # cerate array
+                    if isinstance(elDict[child['name']], list):
+                        elDict[child['name']].append(e)
                     else:
-                        found = True
-                        if not elements[child['uuid']]['containsFiles']:
-                            e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=containsFiles)
-                            if e is not None:
-                                if child['name'] in el:
-                                    # cerate array
-                                    if isinstance(el[child['name']], list):
-                                        el[child['name']].append(e)
-                                    else:
-                                        temp = el[child['name']]
-                                        el[child['name']] = []
-                                        el[child['name']].append(temp)
-                                        el[child['name']].append(e)
-                                else:
-                                    el[child['name']] = e
-                                for field in f:
-                                    forms.append(field)
-                                data.update(d)
-                        else:
-                            #containsFiles
-                            cf = []
-                            elDict = OrderedDict()
-                            e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=True)
-                            if e is not None:
-                                if child['name'] in elDict:
-                                    # cerate array
-                                    if isinstance(elDict[child['name']], list):
-                                        elDict[child['name']].append(e)
-                                    else:
-                                        temp = elDict[child['name']]
-                                        elDict[child['name']] = []
-                                        elDict[child['name']].append(temp)
-                                        elDict[child['name']].append(e)
-                                else:
-                                    elDict[child['name']] = e
-                            cf.append(elDict)
-                            el['-containsFiles'] = cf
+                        temp = elDict[child['name']]
+                        elDict[child['name']] = []
+                        elDict[child['name']].append(temp)
+                        elDict[child['name']].append(e)
+                else:
+                    elDict[child['name']] = e
+            cf.append(elDict)
+            el['-containsFiles'] = cf
+        # if childDict['type'] == 'sequence':
+        #     for child in childDict['elements']:
+        #         if 'uuid' in child:
+                    # if not elements[child['uuid']]['containsFiles']:
+                    #     e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=containsFiles)
+                    #     if e is not None:
+                    #         if child['name'] in el:
+                    #             # cerate array
+                    #             if isinstance(el[child['name']], list):
+                    #                 el[child['name']].append(e)
+                    #             else:
+                    #                 temp = el[child['name']]
+                    #                 el[child['name']] = []
+                    #                 el[child['name']].append(temp)
+                    #                 el[child['name']].append(e)
+                    #         else:
+                    #             el[child['name']] = e
+                    #         for field in f:
+                    #             forms.append(field)
+                    #         data.update(d)
+                    # else:
+                    #     #containsFiles
+                    #     cf = []
+                    #     elDict = OrderedDict()
+                    #     e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=True)
+                    #     if e is not None:
+                    #         if child['name'] in elDict:
+                    #             # cerate array
+                    #             if isinstance(elDict[child['name']], list):
+                    #                 elDict[child['name']].append(e)
+                    #             else:
+                    #                 temp = elDict[child['name']]
+                    #                 elDict[child['name']] = []
+                    #                 elDict[child['name']].append(temp)
+                    #                 elDict[child['name']].append(e)
+                    #         else:
+                    #             elDict[child['name']] = e
+                    #     cf.append(elDict)
+                    #     el['-containsFiles'] = cf
+        #
+        # else:
+        #     found = False
+        #     for child in childDict['elements']:
+        #         if 'uuid' in child:
+        #             if found:
+        #                 # TODO ERROR Should only find one
+        #                 print 'ERROR'
+        #             else:
+        #                 found = True
+        #                 if not elements[child['uuid']]['containsFiles']:
+        #                     e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=containsFiles)
+        #                     if e is not None:
+        #                         if child['name'] in el:
+        #                             # cerate array
+        #                             if isinstance(el[child['name']], list):
+        #                                 el[child['name']].append(e)
+        #                             else:
+        #                                 temp = el[child['name']]
+        #                                 el[child['name']] = []
+        #                                 el[child['name']].append(temp)
+        #                                 el[child['name']].append(e)
+        #                         else:
+        #                             el[child['name']] = e
+        #                         for field in f:
+        #                             forms.append(field)
+        #                         data.update(d)
+        #                 else:
+        #                     #containsFiles
+        #                     cf = []
+        #                     elDict = OrderedDict()
+        #                     e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=True)
+        #                     if e is not None:
+        #                         if child['name'] in elDict:
+        #                             # cerate array
+        #                             if isinstance(elDict[child['name']], list):
+        #                                 elDict[child['name']].append(e)
+        #                             else:
+        #                                 temp = elDict[child['name']]
+        #                                 elDict[child['name']] = []
+        #                                 elDict[child['name']].append(temp)
+        #                                 elDict[child['name']].append(e)
+        #                         else:
+        #                             elDict[child['name']] = e
+        #                     cf.append(elDict)
+        #                     el['-containsFiles'] = cf
     return (el, forms, data)
 
 def generateTemplate(request, name):
@@ -242,43 +278,20 @@ def removeChild(request, name, uuid):
     oldElement = existingElements[uuid]
 
     parent = existingElements[oldElement['parent']]
-    childName = oldElement['name']
-    minCount = oldElement['min']
-    del existingElements[uuid]
-
-    for childDict in parent['children']:
-        count = 0
-        if childDict['type'] == 'sequence':
-            for child in childDict['elements']:
-                if 'uuid' in child:
-                    if child['name'] == childName:
-                        count += 1
-            if count > minCount:
-                for child in childDict['elements']:
-                    if 'uuid' in child:
-                        if child['uuid'] == uuid:
-                            del child['uuid']
-            else:
-                for child in childDict['elements']:
-                    if 'uuid' in child:
-                        if child['uuid'] == uuid:
-                            childDict['elements'].remove(child)
-        else:
-            for child in childDict['elements']:
-                if 'uuid' in child:
-                    if child['uuid'] == uuid:
-                        childDict['elements'].remove(child)
+    index = 0
+    for child in parent['children']:
+        if child['uuid'] == uuid:
+            del parent['children'][index]
+        index += 1
     removeChildren(existingElements, oldElement)
-    obj.existingElements = existingElements
+    del existingElements[uuid]
     obj.save()
     return JsonResponse(existingElements, safe=False)
 
 def removeChildren(existingElements ,element):
-    for childDict in element['children']:
-        for child in childDict['elements']:
-            if 'uuid' in child:
-                deleteChildren(existingElements, existingElements[child['uuid']])
-                del existingElements[child['uuid']]
+    for child in element['children']:
+        removeChildren(existingElements, existingElements[child['uuid']])
+        del existingElements[child['uuid']]
 
 def addChild(request, name, newElementName, elementUuid):
     obj = get_object_or_404(templatePackage, pk=name)
@@ -289,42 +302,34 @@ def addChild(request, name, newElementName, elementUuid):
     newElement['parent'] = elementUuid
     existingElements[newUuid] = newElement
 
-    found = False
-    foundIndex = -1
+    #calculate which elements should be before
+    cb = calculateChildrenBefore(existingElements[elementUuid]['avaliableChildren'], newElementName)
+
     index = 0
-    for childDict in existingElements[elementUuid]['children']:
-        if childDict['type'] == 'sequence':
-            for child in childDict['elements']:
-                if child['name'] == newElementName:
-                    found = True
-                    foundIndex = index
-                    if 'uuid' not in child:
-                        foundIndex -= 1
-                index += 1
-            if found:
-                r = {}
-                r['name'] = newElementName
-                r['uuid'] = newUuid
-                childDict['elements'].insert(foundIndex+1 ,r)
-            else:
-                return HttpResponse('no child of same type found ERROR')
+    for child in existingElements[elementUuid]['children']:
+        if child['name'] not in cb:
+            break
         else:
-            for child in childDict['elements']:
-                if child['name'] == newElementName:
-                    if 'uuid' in child:
-                        return HttpResponse('ERROR: Choise already has one element')
-                    else:
-                        found = True
-                        foundIndex = index
-                index += 1
-            if found:
-                temp = childDict['elements'][foundIndex]
-                temp['uuid'] = newUuid
-                childDict['elements'] = []
-                childDict['elements'].append(temp)
-    obj.existingElements = existingElements
+            index += 1
+
+    e = {}
+    e['name'] = newElementName
+    e['uuid'] = newUuid
+    existingElements[elementUuid]['children'].insert(index, e)
     obj.save()
     return JsonResponse(existingElements, safe=False)
+
+def calculateChildrenBefore(children, newElementName):
+    arr = []
+    for child in children:
+        if child['type'] == 'element':
+            if child['name'] != newElementName:
+                arr.append(child['name'])
+            else:
+                return arr
+        elif child['type'] == 'choise':
+            arr = arr + calculateChildrenBefore(child['elements'], newElementName)
+    return arr
 
 def addAttribute(request, name, uuid):
     obj = get_object_or_404(templatePackage, pk=name)
@@ -422,13 +427,21 @@ class generate(View):
         jsonString = OrderedDict()
         jsonString[existingElements['root']['name']], forms, data = generateElement(existingElements, 'root')
         j = json.loads(request.body)
-        t = Profile(profile_type=j['profile_type'], name=j['name'], type=j['type'], status=j['status'], label=j['label'], representation_info='asdf', preservation_descriptive_info='asdf', supplemental='asdf', access_constraints='asdf', datamodel_reference='asdf', additional='asdf', submission_method='asdf', submission_schedule='asdf', submission_data_inventory='asdf', structure={}, template=forms, specification=jsonString, specification_data=data)
-        # t = Profile(profile_type=j['profile_type'], name=j['name'], type=j['type'], status=j['status'], label=j['label'], representation_info=j['representation_info'], preservation_descriptive_info=j['preservation_descriptive_info'], supplemental=j['supplemental'], access_constraints=j['access_constraints'], datamodel_reference=j['datamodel_reference'], additional=j['additional'], submission_method=j['submission_method'], submission_schedule=j['submission_schedule'], submission_data_inventory=j['submission_data_inventory'], template=forms, specification=jsonString, specification_data=data)
-        # t = Profile(profile_type=j['profile_type'], name=j['name'], type=j['type'], status=j['status'], label=j['label'], template=forms, specification=jsonString, specification_data=data)
-
-        # t = finishedTemplate(name='test', template=jsonString, form=forms, data=data)
+        t = Profile(profile_type=j['profile_type'],
+                    name=j['name'], type=j['type'],
+                    status=j['status'], label=j['label'],
+                    representation_info=j['representation_info'],
+                    preservation_descriptive_info=j['preservation_descriptive_info'],
+                    supplemental=j['supplemental'],
+                    access_constraints=j['access_constraints'],
+                    datamodel_reference=j['datamodel_reference'],
+                    additional=j['additional'],
+                    submission_method=j['submission_method'],
+                    submission_schedule=j['submission_schedule'],
+                    submission_data_inventory=j['submission_data_inventory'],
+                    template=forms, specification=jsonString, specification_data=data)
         t.save()
-        return JsonResponse(request.body, safe=False)
+        return JsonResponse(t.specification, safe=False)
 
 
 class demo(View):
