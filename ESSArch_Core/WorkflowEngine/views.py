@@ -1,7 +1,9 @@
 from django.http import Http404
 
+from rest_framework import status
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from configuration.models import (
     Agent,
@@ -48,6 +50,7 @@ from preingest.serializers import (
 from profiles.models import (
     SubmissionAgreement,
     Profile,
+    ProfileRel,
 )
 
 from django.contrib.auth.models import User, Group
@@ -103,7 +106,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     queryset = InformationPackage.objects.all()
     serializer_class = InformationPackageSerializer
 
-    @detail_route()
+    @detail_route(methods=['post'])
     def prepare(self, request, pk=None):
         """
         Prepares the specified information package
@@ -193,12 +196,69 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
     queryset = SubmissionAgreement.objects.all()
     serializer_class = SubmissionAgreementSerializer
 
+    @detail_route(methods=['put'], url_path='change-profile')
+    def change_profile(self, request, pk=None):
+        sa = SubmissionAgreement.objects.get(pk=pk)
+        new_profile = Profile.objects.get(pk=request.data["new_profile"])
+        old_profile = sa.profilerel_set.filter(
+                profile__profile_type=new_profile.profile_type
+        ).active()
+        old_status = old_profile.get_sa_status(sa)
+
+        if old_status == 1:
+            old_profile.set_sa_status(sa, 0)
+
+        if new_profile.get_sa_status(sa) != 2:
+            ProfileRel.objects.update_or_create(
+                submission_agreement=sa,
+                profile=new_profile,
+                defaults={
+                    "status": 1
+                },
+            )
+
+        return Response({
+            'status': 'updating SA (%s) with new profile (%s)'.format(
+                sa, new_profile
+            )
+        })
+
 class ProfileViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows profiles to be viewed or edited.
     """
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+
+    @detail_route(methods=['post'])
+    def save(self, request, pk=None):
+        profile = Profile.objects.get(pk=pk)
+        new_data = request.data.get("specification_data", {})
+
+        if (profile.specification_data.keys().sort() == new_data.keys().sort() and
+                profile.specification_data != new_data):
+
+            profile.copy_and_switch(
+                submission_agreement=SubmissionAgreement.objects.get(
+                    pk=request.data["submission_agreement"]
+                ),
+                specification_data=new_data,
+                new_name=request.data["new_name"],
+            )
+            return Response({'status': 'saving profile'})
+
+        return Response({'status': 'no changes, not saving'}, status=status.HTTP_400_BAD_REQUEST)
+
+class ProfileTypeViewSet(APIView):
+    """
+    API endpoint that allows profiles types to be viewed.
+    """
+
+    def get(self, request):
+        profile_type = request.query_params.get("type", "")
+        profiles = Profile.objects.filter(profile_type=profile_type)
+        serializer = ProfileSerializer(profiles, context={'request': request}, many=True)
+        return Response(serializer.data)
 
 class AgentViewSet(viewsets.ModelViewSet):
     """
