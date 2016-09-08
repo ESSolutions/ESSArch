@@ -230,11 +230,6 @@ class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
-    """
-    def get_queryset(self):
-        print self.kwargs
-        return []
-    """
     @detail_route(methods=['post'])
     def save(self, request, pk=None):
         profile = Profile.objects.get(pk=pk)
