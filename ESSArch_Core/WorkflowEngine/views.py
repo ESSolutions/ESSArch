@@ -202,14 +202,22 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def save(self, request, pk=None):
-        Profile.objects.get(pk=pk).copy_and_switch(
-            submission_agreement=SubmissionAgreement.objects.get(
-                pk=request.data["submission_agreement"]
-            ),
-            specification_data=request.data["specification_data"],
-            new_name="abc"#request.data["new_name"],
-        )
-        return Response({'status': 'saving profile'})
+        profile = Profile.objects.get(pk=pk)
+        new_data = request.data["specification_data"]
+
+        if (profile.specification_data.keys() == new_data.keys() and
+                profile.specification_data != new_data):
+
+            profile.copy_and_switch(
+                submission_agreement=SubmissionAgreement.objects.get(
+                    pk=request.data["submission_agreement"]
+                ),
+                specification_data=new_data,
+                new_name=request.data["new_name"],
+            )
+            return Response({'status': 'saving profile'})
+
+        return Response({'status': 'no changes, not saving'})
 
 class AgentViewSet(viewsets.ModelViewSet):
     """
