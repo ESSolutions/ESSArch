@@ -67,51 +67,51 @@
           options: [
             {
               name: "Transfer Project",
-              value: "Transfer_Project"
+              value: "transfer_project"
             },
             {
               name: "Content Type",
-              value: "Content_Type"
+              value: "content_type"
             },
             {
               name: "Data Selection",
-              value: "Data_Selection"
+              value: "data_selection"
             },
             {
               name: "Classification",
-              value: "Classification"
+              value: "classification"
             },
             {
               name: "Import",
-              value: "Import"
+              value: "import"
             },
             {
-              name: "Submit Description",
-              value: "Submit_Description"
+              name: "Submit Deescription",
+              value: "submit_description"
             },
             {
               name: "SIP",
-              value: "SIP"
+              value: "sip"
             },
             {
               name: "AIP",
-              value: "AIP"
+              value: "aip"
             },
             {
               name: "DIP",
-              value: "DIP"
+              value: "dip"
             },
             {
               name: "Workflow",
-              value: "Workflow"
+              value: "workflow"
             },
             {
               name: "Preservation Description",
-              value: "Preservation_Description"
+              value: "preservation_description"
             },
             {
               name: "Event",
-              value: "Event"
+              value: "event"
             },
           ]
         }
