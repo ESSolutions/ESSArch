@@ -86,7 +86,7 @@
               value: "import"
             },
             {
-              name: "Submit Deescription",
+              name: "Submit Description",
               value: "submit_description"
             },
             {
