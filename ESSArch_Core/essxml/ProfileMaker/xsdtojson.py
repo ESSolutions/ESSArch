@@ -522,14 +522,14 @@ def generateJsonRes(schemaName, rootElement, namespace):
                     #add xmlns
                     attribute = {};
                     attribute['type'] = 'input'
-                    attribute['key'] = 'Schemalocation'
+                    attribute['key'] = 'schemalocation'
                     to = {}
                     to['required'] = True
                     to['type'] = 'text'
-                    to['label'] = 'Schemalocation'
+                    to['label'] = 'schemalocation'
                     attribute['templateOptions'] = to
                     existingElements['root']['form'].insert(0, attribute)
-                    existingElements['root']['formData']['Schemalocation'] = thisSchema
+                    existingElements['root']['formData']['schemalocation'] = thisSchema
 
                     return existingElements, allElements
     # pars = None
