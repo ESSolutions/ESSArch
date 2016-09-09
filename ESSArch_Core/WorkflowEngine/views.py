@@ -207,7 +207,7 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
         sa.change_profile(new_profile=new_profile)
 
         return Response({
-            'status': 'updating SA (%s) with new profile (%s)'.format(
+            'status': 'updating SA (%s) with new profile (%s)' % (
                 sa, new_profile
             )
         })
