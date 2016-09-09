@@ -49,13 +49,17 @@ def constructContent(text):
             res.append(r[j])
     return res
 
-def generateElement(elements, currentUuid, takenNames=[], containsFiles=False):
+def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, namespace=''):
     element = elements[currentUuid]
     el = OrderedDict()
     forms = []
     data = {}
     el['-min'] = element['min']
     el['-max'] = element['max']
+    if 'namespace' in element:
+        if element['namespace'] != namespace:
+            namespace = element['namespace']
+            el['-namespace'] = namespace
     # TODO namespace
     attributes = element['form'] + element['userForm']
     attributeList = []
@@ -129,7 +133,7 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False):
     el['-attr'] = attributeList
     for child in element['children']:
         if not elements[child['uuid']]['containsFiles']:
-            e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=containsFiles)
+            e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=containsFiles, namespace=namespace)
             if e is not None:
                 if child['name'] in el:
                     # cerate array
@@ -149,7 +153,7 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False):
             #containsFiles
             cf = []
             elDict = OrderedDict()
-            e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=True)
+            e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=True, namespace=namespace)
             if e is not None:
                 if child['name'] in elDict:
                     # cerate array
@@ -317,7 +321,7 @@ class add(View):
         if templatePackage.objects.filter(pk=name).exists():
             return HttpResponse('ERROR: templatePackage with name "' + name + '" already exists!')
 
-        existingElements, allElements = generateJsonRes(request.FILES['file'],request.POST['root_element']);
+        existingElements, allElements = generateJsonRes(request.FILES['file'], request.POST['root_element'], request.POST['namespace_prefix']);
         # return JsonResponse(existingElements, safe=False)
         t = templatePackage(existingElements=existingElements, allElements=allElements, name=name, namespace=request.POST['namespace_prefix'], root_element=request.POST['root_element'])
         t.save()

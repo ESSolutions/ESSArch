@@ -17,6 +17,7 @@ elCount = {}
 finishedGroups = OrderedDict()
 finishedComplexTypes = OrderedDict()
 attributesComplexTypes = {}
+thisNamespace = ''
 
 TYPE_ELEMENT = 0
 TYPE_CHOISE = 1
@@ -83,6 +84,7 @@ class xmlElement():
             os.write(fd, '/>' + eol_)
 
     def listAllElements(self, parent='none'):
+        global thisNamespace
         res = {}
         if self.type == TYPE_ELEMENT:
             element = {}
@@ -98,6 +100,7 @@ class xmlElement():
             element['containsFiles'] = False
             element['parent'] = parent
             element['children'] = [];
+            element['namespace'] = thisNamespace
             children = []
             for child in self.children:
                 r, c, a = child.listAllElements(self.name)
@@ -315,7 +318,7 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
                 for child in attributeGroups[ref]:
                     analyze2(child, tree, usedTypes=usedTypes)
             else:
-                print 'attributegroup not found'
+                print 'attributegroup not found: ' + ref
     elif tag == 'anyAttribute':
         tree.anyAttribute = True
     elif tag == 'simpleContent':
@@ -448,18 +451,41 @@ def parseAttribute(element):
 
     return att
 
-def generateJsonRes(schemaName, rootElement):
+def generateJsonRes(schemaName, rootElement, namespace):
     global complexTypes
     global attributeGroups
     global groups
     global elementTypes
+    global thisNamespace
     # pars = etree.parse("esscore/template/templateGenerator/CSPackageMETS.xsd")
     # pars = etree.parse(os.path.join(settings.BASE_DIR,"esscore/template/templateGenerator/CSPackageMETS.xsd"))
     parser = etree.XMLParser(remove_comments=True)
     pars = etree.parse(schemaName, parser=parser)
     schema = '{http://www.w3.org/2001/XMLSchema}'
+    thisSchema = ''
+    thisVersion = ''
+    thisNamespace = namespace
 
     root = pars.getroot()
+    for key, value in root.attrib.iteritems():
+        if key == 'targetNamespace':
+            thisSchema = value
+        elif key == 'version':
+            thisVersion = value
+        elif key == 'id':
+            pass # handle id? TODO
+        elif key == 'attributeFormDefault':
+            pass # handle attributeFormDefault? TODO
+        elif key == 'elementFormDefault':
+            pass # handle elementFormDefault? TODO
+        elif key == 'blockDefault':
+            pass # handle blockDefault? TODO
+        elif key == 'finalDefault':
+            pass # handle finalDefault? TODO
+        elif key == 'xmlns':
+            pass # handle xmlns? TODO
+        else:
+            print 'unknown schema attribute: ' + key + ', ' + value
 
     for child in root.iterfind(schema + 'complexType'):
         if child.get('name'):
@@ -483,6 +509,7 @@ def generateJsonRes(schemaName, rootElement):
 
     for child in root.iterfind(schema + 'element'):
         if child.get('name') == rootElement:
+            # print child.tag
             tag = printTag(child.tag)
             if tag != 'complexType' and tag != 'attributeGroup':
                 tree = xmlElement(child.get('name'))
@@ -510,7 +537,7 @@ def generateJsonRes(schemaName, rootElement):
     # complexTypes = OrderedDict()
     # attributeGroups = OrderedDict()
 
-# generateJsonRes("/Users/Axenu/Developer/ESSArch_Tools_Producer/ESSArch_TP2/esscore/template/templateGenerator/premis.xsd", 'premis')
+# generateJsonRes("/Users/Axenu/Developer/ESSArch_Tools_Producer/ESSArch_TP2/esscore/template/templateGenerator/premis.xsd", 'premis', 'premis')
 # print generate()
 # print generate(2)
 # print generate(3)
