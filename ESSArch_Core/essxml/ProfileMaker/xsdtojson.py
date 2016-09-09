@@ -516,20 +516,21 @@ def generateJsonRes(schemaName, rootElement, namespace):
                 # for ch in child:
                 analyze2(child, tree)
                 if tree is not None:
-                    # with open('test.txt', 'wb') as outfile: print
-                    # tree.generateJSON(); struc = tree.generateStruct() el =
-                    # tree.listAllElements() treeData = tree.generateStruct()
-                    # existingElements = tree.listAllElementTypes()
                     allElements, e, a = tree.children[0].listAllElements()
-                    # print json.dumps(allElements)
-                    # print allElements['agent']['avaliableChildren']
-                    # temp = tree.listAllElementTypes()
-                    # j = json.dumps(tree.generateJSON())
-                    # tree.delete()
-                    # print json.dumps(allElements['odd'])
-                    # print allElements['c01']['form']
                     existingElements = {}
                     existingElements['root'] = copy.deepcopy(allElements[rootElement])
+                    #add xmlns
+                    attribute = {};
+                    attribute['type'] = 'input'
+                    attribute['key'] = 'Schemalocation'
+                    to = {}
+                    to['required'] = True
+                    to['type'] = 'text'
+                    to['label'] = 'Schemalocation'
+                    attribute['templateOptions'] = to
+                    existingElements['root']['form'].insert(0, attribute)
+                    existingElements['root']['formData']['Schemalocation'] = thisSchema
+
                     return existingElements, allElements
     # pars = None
     # root = None
