@@ -242,35 +242,37 @@
             vm.floatingElementmodel = [];
         };
 
-        // vm.saveElement = function() {
-        //     // console.log(sle)
-        //     var element = {};
-        //     element['templateOnly'] = false;
-        //     element['path'] = vm.selectedNode['path']; // + number ? //set in python ?
-        //     element['name'] = vm.floatingElementmodel['elementname'];
-        //     var meta = {};
-        //     if ('kardMin' in vm.floatingElementmodel) {
-        //         meta['minOccurs'] = vm.floatingElementmodel['kardMin'];
-        //     } else {
-        //         meta['minOccurs'] = 0;
-        //     }
-        //     if ('kardMax' in vm.floatingElementmodel) {
-        //         meta['maxOccurs'] = vm.floatingElementmodel['kardMax'];
-        //     } else {
-        //         meta['maxOccurs'] = -1;
-        //     }
-        //     element['meta'] = meta;
-        //     element['children'] = [];
-        //     $http({
-        //         method: 'POST',
-        //         url: '/template/struct/addUserChild/' + templateName + '/',
-        //         data: element
-        //     }).then(function(res) {
-        //         vm.floatingElementVisable = false;
-        //         $scope.treeInfo = [JSON.parse(res.data)];
-        //         vm.tree = JSON.parse(res.data);
-        //     });
-        // };
+        vm.saveElement = function() {
+            // console.log(sle)
+            var element = {};
+            element['parent'] = vm.uuid
+            // element['templateOnly'] = false;
+            // element['path'] = vm.selectedNode['path']; // + number ? //set in python ?
+            element['name'] = vm.floatingElementmodel['elementname'];
+            if ('kardMin' in vm.floatingElementmodel) {
+                element['min'] = vm.floatingElementmodel['kardMin'];
+            } else {
+                element['min'] = 0;
+            }
+            if ('kardMax' in vm.floatingElementmodel) {
+                element['max'] = vm.floatingElementmodel['kardMax'];
+            } else {
+                element['max'] = -1;
+            }
+            // element['children'] = [];
+            $http({
+                method: 'POST',
+                url: '/template/struct/addUserChild/' + templateName + '/',
+                data: element
+            }).then(function(res) {
+              console.log(res.data)
+                vm.floatingElementVisable = false;
+                $scope.treeElements = [];
+                $scope.treeElements.push(vm.buildTree('root', res.data));
+                vm.existingElements = res.data;
+                $scope.showSelected(vm.uuid, false);
+            });
+        };
 
         vm.closeFloatingElementForm = function() {
             vm.floatingVisable = false;

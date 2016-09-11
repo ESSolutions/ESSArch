@@ -209,6 +209,33 @@ def removeChildren(existingElements ,element):
         removeChildren(existingElements, existingElements[child['uuid']])
         del existingElements[child['uuid']]
 
+def addUserChild(request, name):
+    obj = get_object_or_404(templatePackage, pk=name)
+    newUuid = uuid.uuid4().__str__()
+    res = json.loads(request.body)
+    parent = obj.existingElements[res['parent']]
+    element = {}
+    element['anyAttribute'] = True
+    element['anyElement'] = True
+    element['avaliableChildren'] = []
+    element['children'] = []
+    element['containsFiles'] = False
+    element['form'] = []
+    element['formData'] = []
+    element['max'] = res['max']
+    element['min'] = res['min']
+    element['name'] = res['name']
+    element['namespace'] = parent['namespace']
+    element['parent'] = res['parent']
+    element['userForm'] = []
+    obj.existingElements[newUuid] = element
+    e = {}
+    e['name'] = res['name']
+    e['uuid'] = newUuid
+    obj.existingElements[res['parent']]['children'].append(e)
+    obj.save()
+    return JsonResponse(obj.existingElements, safe=False)
+
 def addChild(request, name, newElementName, elementUuid):
     obj = get_object_or_404(templatePackage, pk=name)
     existingElements = obj.existingElements
@@ -359,7 +386,7 @@ class generate(View):
                     submission_data_inventory=j['submission_data_inventory'],
                     template=forms, specification=jsonString, specification_data=data)
         t.save()
-        return JsonResponse(t.specification, safe=False)
+        return JsonResponse(t.specification_data, safe=False)
 
 
 class demo(View):

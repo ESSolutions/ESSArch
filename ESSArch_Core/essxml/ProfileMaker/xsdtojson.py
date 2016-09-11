@@ -530,6 +530,7 @@ def generateJsonRes(schemaName, rootElement, namespace):
                     attribute['templateOptions'] = to
                     existingElements['root']['form'].insert(0, attribute)
                     existingElements['root']['formData']['schemalocation'] = thisSchema
+                    print existingElements
 
                     return existingElements, allElements
     # pars = None
@@ -538,7 +539,7 @@ def generateJsonRes(schemaName, rootElement, namespace):
     # complexTypes = OrderedDict()
     # attributeGroups = OrderedDict()
 
-# generateJsonRes("/Users/Axenu/Developer/ESSArch_Tools_Producer/ESSArch_TP2/esscore/template/templateGenerator/premis.xsd", 'premis', 'premis')
+generateJsonRes("/Users/Axenu/Developer/ESSArch_Tools_Producer/ESSArch_TP2/esscore/template/templateGenerator/ead_geo.xsd", 'ead', 'ead')
 # print generate()
 # print generate(2)
 # print generate(3)
