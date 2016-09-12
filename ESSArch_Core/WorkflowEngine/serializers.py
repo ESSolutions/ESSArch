@@ -34,6 +34,13 @@ class PickledObjectField(serializers.Field):
     def to_internal_value(self, data):
         return data
 
+
+class RecursiveField(serializers.Serializer):
+    def to_representation(self, value):
+        serializer = self.parent.parent.__class__(value, context=self.context)
+        return serializer.data
+
+
 class ArchivalInstitutionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ArchivalInstitution
@@ -66,15 +73,6 @@ class InformationPackageSerializer(serializers.HyperlinkedModelSerializer):
             'steps', 'events',
         )
 
-class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = ProcessStep
-        fields = (
-            'url', 'id', 'name', 'result', 'type', 'user', 'parallel',
-            'status', 'progress', 'time_created', 'parent_step',
-            'parent_step_pos', 'information_package', 'child_steps', 'tasks',
-            'task_set',
-        )
 
 
 class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
@@ -91,6 +89,19 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
         )
 
     params = serializers.JSONField()
+
+class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
+    tasks = ProcessTaskSerializer(many=True, read_only=True)
+    child_steps = RecursiveField(many=True, read_only=True)
+
+    class Meta:
+        model = ProcessStep
+        fields = (
+            'url', 'id', 'name', 'result', 'type', 'user', 'parallel',
+            'status', 'progress', 'time_created', 'parent_step',
+            'parent_step_pos', 'information_package', 'child_steps', 'tasks',
+            'task_set',
+        )
 
 class EventIPSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
