@@ -219,6 +219,15 @@ class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
+    def get_queryset(self):
+        queryset = Profile.objects.all()
+        profile_type = self.request.query_params.get('type', None)
+
+        if profile_type is not None:
+            queryset = queryset.filter(profile_type=profile_type)
+
+        return queryset
+
     @detail_route(methods=['post'])
     def save(self, request, pk=None):
         profile = Profile.objects.get(pk=pk)
@@ -237,17 +246,6 @@ class ProfileViewSet(viewsets.ModelViewSet):
             return Response({'status': 'saving profile'})
 
         return Response({'status': 'no changes, not saving'}, status=status.HTTP_400_BAD_REQUEST)
-
-class ProfileTypeViewSet(APIView):
-    """
-    API endpoint that allows profiles types to be viewed.
-    """
-
-    def get(self, request):
-        profile_type = request.query_params.get("type", "")
-        profiles = Profile.objects.filter(profile_type=profile_type)
-        serializer = ProfileSerializer(profiles, context={'request': request}, many=True)
-        return Response(serializer.data)
 
 class AgentViewSet(viewsets.ModelViewSet):
     """
