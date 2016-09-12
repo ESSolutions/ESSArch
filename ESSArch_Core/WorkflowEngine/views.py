@@ -33,6 +33,7 @@ from preingest.serializers import (
     ArchivalTypeSerializer,
     ArchivalLocationSerializer,
     InformationPackageSerializer,
+    InformationPackageDetailSerializer,
     EventIPSerializer,
     EventTypeSerializer,
     ProcessStepSerializer,
@@ -105,6 +106,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     """
     queryset = InformationPackage.objects.all()
     serializer_class = InformationPackageSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return InformationPackageSerializer
+
+        return InformationPackageDetailSerializer
 
     @detail_route(methods=['post'])
     def prepare(self, request, pk=None):

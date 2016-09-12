@@ -61,19 +61,6 @@ class ArchivalLocationSerializer(serializers.HyperlinkedModelSerializer):
         model = ArchivalLocation
         fields = ('url', 'id', 'name', 'information_packages',)
 
-class InformationPackageSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = InformationPackage
-        fields = (
-            'url', 'id', 'Label', 'Content', 'Responsible', 'CreateDate',
-            'State', 'status', 'ObjectSize', 'ObjectNumItems', 'ObjectPath',
-            'Startdate', 'Enddate', 'OAIStype', 'Locked', 'LockedBy',
-            'Unlockable', 'SubmissionAgreement', 'ArchivalInstitution',
-            'ArchivistOrganization', 'ArchivalType', 'ArchivalLocation',
-            'steps', 'events',
-        )
-
-
 
 class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -102,6 +89,24 @@ class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
             'parent_step_pos', 'information_package', 'child_steps', 'tasks',
             'task_set',
         )
+
+
+class InformationPackageSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = InformationPackage
+        fields = (
+            'url', 'id', 'Label', 'Content', 'Responsible', 'CreateDate',
+            'State', 'status', 'ObjectSize', 'ObjectNumItems', 'ObjectPath',
+            'Startdate', 'Enddate', 'OAIStype', 'Locked', 'LockedBy',
+            'Unlockable', 'SubmissionAgreement', 'ArchivalInstitution',
+            'ArchivistOrganization', 'ArchivalType', 'ArchivalLocation',
+            'steps', 'events',
+        )
+
+
+class InformationPackageDetailSerializer(InformationPackageSerializer):
+    steps = ProcessStepSerializer(many=True, read_only=True)
+
 
 class EventIPSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
