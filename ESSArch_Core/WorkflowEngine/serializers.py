@@ -153,51 +153,63 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
     profile_transfer_project = ProfileRelSerializer(
         source="profile_transfer_project_rel",
-        many=True
+        many=True,
+        read_only=True,
     )
     profile_content_type = ProfileRelSerializer(
         source="profile_content_type_rel",
-        many=True
+        many=True,
+        read_only=True,
     )
     profile_data_selection = ProfileRelSerializer(
         source="profile_data_selection_rel",
-        many=True
+        many=True,
+        read_only=True,
     )
     profile_classification = ProfileRelSerializer(
         source="profile_classification_rel",
-        many=True
+        many=True,
+        read_only=True,
     )
     profile_import = ProfileRelSerializer(
         source="profile_import_rel",
-        many=True
+        many=True,
+        read_only=True,
     )
     profile_submit_description = ProfileRelSerializer(
         source="profile_submit_description_rel",
-        many=True
+        many=True,
+        read_only=True,
     )
     profile_sip = ProfileRelSerializer(
         source="profile_sip_rel",
-        many=True
+        many=True,
+        read_only=True,
     )
     profile_aip = ProfileRelSerializer(
         source="profile_aip_rel",
-        many=True
+        many=True,
+        read_only=True,
     )
     profile_dip = ProfileRelSerializer(
         source="profile_dip_rel",
-        many=True
+        many=True,
+        read_only=True,
     )
     profile_workflow = ProfileRelSerializer(
         source="profile_workflow_rel",
-        many=True
+        many=True,
+        read_only=True,
     )
     profile_preservation_metadata = ProfileRelSerializer(
         source="profile_preservation_metadata_rel",
-        many=True
+        many=True,
+        read_only=True,
     )
     profile_event = ProfileRelSerializer(
         source="profile_event_rel",
-        many=True
+        many=True,
+        read_only=True,
     )
 
     class Meta:
