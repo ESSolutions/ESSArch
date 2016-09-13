@@ -539,7 +539,7 @@ def generateJsonRes(schemaName, rootElement, namespace):
     # complexTypes = OrderedDict()
     # attributeGroups = OrderedDict()
 
-generateJsonRes("/Users/Axenu/Developer/ESSArch_Tools_Producer/ESSArch_TP2/esscore/template/templateGenerator/ead_geo.xsd", 'ead', 'ead')
+#generateJsonRes("/Users/Axenu/Developer/ESSArch_Tools_Producer/ESSArch_TP2/esscore/template/templateGenerator/ead_geo.xsd", 'ead', 'ead')
 # print generate()
 # print generate(2)
 # print generate(3)
