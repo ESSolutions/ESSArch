@@ -24,6 +24,7 @@ from preingest.models import ProcessStep, ProcessTask
 from profiles.models import (
     SubmissionAgreement,
     Profile,
+    ProfileLock,
     ProfileRel,
 )
 
@@ -91,21 +92,45 @@ class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
         )
 
 
+class ProfileLockSerializer(serializers.ModelSerializer):
+    submission_agreement = serializers.HyperlinkedIdentityField(
+        view_name='submissionagreement-detail',
+        lookup_field="submission_agreement_id",
+        lookup_url_kwarg="pk"
+    )
+
+    profile = serializers.HyperlinkedIdentityField(
+        view_name='profile-detail',
+        lookup_field="profile_id",
+        lookup_url_kwarg="pk"
+    )
+
+    class Meta:
+        model = ProfileLock
+        fields = (
+            'id', 'submission_agreement', 'profile',
+        )
+
+
 class InformationPackageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = InformationPackage
         fields = (
             'url', 'id', 'Label', 'Content', 'Responsible', 'CreateDate',
             'State', 'status', 'ObjectSize', 'ObjectNumItems', 'ObjectPath',
-            'Startdate', 'Enddate', 'OAIStype', 'Locked', 'LockedBy',
-            'Unlockable', 'SubmissionAgreement', 'ArchivalInstitution',
-            'ArchivistOrganization', 'ArchivalType', 'ArchivalLocation',
-            'steps', 'events',
+            'Startdate', 'Enddate', 'OAIStype', 'SubmissionAgreement',
+            'ArchivalInstitution', 'ArchivistOrganization', 'ArchivalType',
+            'ArchivalLocation', 'steps', 'events',
         )
 
 
 class InformationPackageDetailSerializer(InformationPackageSerializer):
+    locks = ProfileLockSerializer(many=True, read_only=True)
     steps = ProcessStepSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = InformationPackageSerializer.Meta.model
+        fields = InformationPackageSerializer.Meta.fields + ('locks',)
 
 
 class EventIPSerializer(serializers.HyperlinkedModelSerializer):

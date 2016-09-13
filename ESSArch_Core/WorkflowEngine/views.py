@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from django.http import Http404
 
 from rest_framework import status
@@ -51,6 +52,7 @@ from preingest.serializers import (
 from profiles.models import (
     SubmissionAgreement,
     Profile,
+    ProfileLock,
     ProfileRel,
 )
 
@@ -253,6 +255,55 @@ class ProfileViewSet(viewsets.ModelViewSet):
             return Response({'status': 'saving profile'})
 
         return Response({'status': 'no changes, not saving'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @detail_route(methods=["post"])
+    def lock(self, request, pk=None):
+        profile = Profile.objects.get(pk=pk)
+
+        submission_agreement_id = request.data.get(
+            "submission_agreement", {}
+        )
+        information_package_id = request.data.get(
+            "information_package", {}
+        )
+
+        try:
+            submission_agreement = SubmissionAgreement.objects.get(
+                pk=submission_agreement_id
+            )
+        except SubmissionAgreement.DoesNotExist:
+            return Response(
+                {'status': 'Submission Agreement with id %s does not exist' % pk},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        try:
+            information_package = InformationPackage.objects.get(
+                pk=information_package_id
+            )
+        except InformationPackage.DoesNotExist:
+            return Response(
+                {'status': 'Submission Agreement with id %s does not exist' % pk},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        try:
+            profile.lock(submission_agreement, information_package)
+        except IntegrityError:
+            exists = ProfileLock.objects.filter(
+                submission_agreement=submission_agreement,
+                information_package=information_package,
+                profile=profile,
+            ).exists
+
+            if exists:
+                return Response(
+                    {'status': 'Lock already exists'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+
+        return Response({'status': 'locking profile'})
 
 class AgentViewSet(viewsets.ModelViewSet):
     """
