@@ -17,7 +17,7 @@
         "#content": [{"text":"http://www.w3.org/2001/XMLSchema-instance"}]
       },
       {
-        "-name": "xmlns:schemaLocation",
+        "-name": "xsi:schemaLocation",
         "#content": [{"text":"http://www.loc.gov/METS/ http://schema.arkivverket.no/METS/info.xsd"}]
       },
       {

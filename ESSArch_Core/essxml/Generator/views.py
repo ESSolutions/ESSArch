@@ -35,14 +35,12 @@ class demo2(View):
 
         res = json.loads(request.body)
         # return JsonResponse(res, safe=False)
-        infoData = {}
-        infoData['info'] = res
-        ftc = {}
-        ftc[res['INPUTFILE'] + '/' + res['DOCUMENTID']] = os.path.join(settings.BASE_DIR,'demo/info.json')
-        infoData['filesToCreate'] = ftc
-        infoData['folderToParse'] = res['INPUTFILE']
+        info = res
+        filesToCreate = {}
+        filesToCreate[res['INPUTFILE'] + '/' + res['DOCUMENTID']] = os.path.join(settings.BASE_DIR,'demo/info.json')
+        folderToParse = res['INPUTFILE']
 
-        response = createXML(infoData)
+        response = createXML(info, filesToCreate, folderToParse)
 
         return JsonResponse(request.body, safe=False)
 
@@ -60,13 +58,11 @@ class demo(View):
 
         res = json.loads(request.body)
         # return JsonResponse(res, safe=False)
-        infoData = {}
-        infoData['info'] = res
-        ftc = {}
-        ftc[res['INPUTFILE'] + '/' + res['DOCUMENTID']] = os.path.join(settings.BASE_DIR,'demo/info.json')
-        infoData['filesToCreate'] = ftc
-        infoData['folderToParse'] = res['INPUTFILE']
+        info = res
+        filesToCreate = {}
+        filesToCreate[res['INPUTFILE'] + '/' + res['DOCUMENTID']] = os.path.join(settings.BASE_DIR,'demo/info.json')
+        folderToParse = res['INPUTFILE']
 
-        response = createXML(infoData)
+        response = createXML(info, filesToCreate, folderToParse)
 
         return JsonResponse(request.body, safe=False)
