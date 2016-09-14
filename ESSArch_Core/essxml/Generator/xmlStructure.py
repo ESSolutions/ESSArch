@@ -93,16 +93,22 @@ class xmlElement(object):
                 a.printXML(fd)
         if self.children or self.value is not '' or self.containsFiles:
             if self.printed == 0:
-                os.write(fd, '>' + eol_)
+                if self.value is not '':
+                    os.write(fd, '>')
+                else:
+                    os.write(fd, '>' + eol_)
             if not self.containsFiles or self.printed == 1:
                 for child in self.children:
                     if child.printXML(fd, level + 1, pretty):
                         self.printed = 1
                         return True
                 if self.value is not '':
-                    pretty_print(fd, level + 1, pretty)
-                    os.write(fd, self.value + eol_)
-                pretty_print(fd, level, pretty)
+                    #pretty_print(fd, level + 1, pretty)
+                    os.write(fd, self.value)
+                    pretty_print(fd, level, False)
+                else:
+                    pretty_print(fd, level, True)
+
                 os.write(fd, '</' + self.completeTagName + '>' + eol_)
                 self.printed = 2
             else:
@@ -189,9 +195,10 @@ class fileObject():
     """
     A container class for all the files in the xml
     """
-    def __init__(self, xmlFileName, template, fid):
+    def __init__(self, xmlFileName, template, namespace, fid):
         self.xmlFileName = xmlFileName
         self.template = template
+        self.namespace = namespace
         self.fid = fid
         self.files = []
         self.rootElement = None

@@ -6,7 +6,7 @@ import sys
 import tarfile
 import time
 
-from metadata.metadataGenerator import xmlGenerator
+from esscore.metadata.metadataGenerator import xmlGenerator
 from preingest.dbtask import DBTask
 from ip.models import EventIP
 
