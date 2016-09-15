@@ -104,6 +104,47 @@
           vm.anyElement = data['anyElement'];
           vm.possibleChildren = [];
 
+          var groups = [];
+
+          vm.fields.forEach(function(field) {
+              var groupClass = 'display-flex';
+              var fieldClass = 'flex-1';
+
+              var group = {
+                  className: groupClass,
+                  fieldGroup: [
+                      field,
+                      {
+                          className: fieldClass,
+                          type: 'input',
+                          key: field['key'] + '_desc',
+                          templateOptions: {
+                              label: 'Description'
+                          },
+                      },
+                      {
+                          className: fieldClass,
+                          type: 'checkbox',
+                          key: field['key'] + '_hidden',
+                          templateOptions: {
+                              label: 'Hidden'
+                          },
+                      },
+                      {
+                          className: fieldClass,
+                          type: 'checkbox',
+                          key: field['key'] + '_readonly',
+                          templateOptions: {
+                              label: 'Read Only'
+                          },
+                      },
+                  ]
+              }
+              groups.push(group)
+          });
+
+          vm.fields = groups;
+
           //count existing children
           var existing = {};
           for (var i in data['children']) {
