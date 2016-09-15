@@ -32,7 +32,7 @@
       {
         "-name":"OBJID",
         "-req": 1,
-        "#content": [{"text":"UUID:"},{"var":"MetsOBJID"}]
+        "#content": [{"var":"MetsOBJID"}]
       },
       {
         "-name":"LABEL",
