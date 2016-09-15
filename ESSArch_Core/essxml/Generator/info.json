@@ -311,7 +311,7 @@
               "#content": [{"text": "INDIVIDUAL" }]
             },
             {
-              "-name": "OTHERTYPE",
+              "-name": "OTHERROLE",
               "-req": 1,
               "#content": [{"text": "SUBMITTER" }]
             }
