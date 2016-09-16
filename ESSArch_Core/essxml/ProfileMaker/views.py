@@ -121,9 +121,20 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, n
                                 field['key'] = key
                                 takenNames.append(key)
                             field['type'] = 'input'
+
                             to = {}
                             to['type'] = 'text'
                             to['label'] = part['var']
+
+                            if 'desc' in attrib:
+                                to['desc'] = attrib['desc']
+
+                            if 'hideExpression' in attrib:
+                                field['hideExpression'] = str(attrib['hideExpression']).lower()
+
+                            if 'readonly' in attrib:
+                                to['readonly'] = attrib['readonly']
+
                             field['templateOptions'] = to
                             forms.append(field)
                             data[field['key']] = ''
@@ -364,13 +375,48 @@ class generate(View):
 
         return render(request, self.template_name, context)
 
+    def addExtraAttribute(self, field, data, attr):
+        """
+        Adds extra attrbute to field if it exists in data
+
+        Args:
+            field: The field to add to
+            data: The data dictionary to look in
+            attr: The name of the attribute to add
+
+        Returns:
+            The new field with the attribute added to it if the attribute
+            exists in data. Otherwise the original field.
+        """
+
+        field_attr = field['key'] + '_' + attr
+
+        if field_attr in data:
+            field[attr] = data[field_attr]
+
+        return field
 
     def post(self, request, *args, **kwargs):
         # return JsonResponse(request.body, safe=False)
         obj = get_object_or_404(templatePackage, pk=kwargs['name'])
         existingElements = obj.existingElements
+
+        form = existingElements['root']['form']
+        formData = existingElements['root']['formData']
+
+        for idx, field in enumerate(form):
+            field = self.addExtraAttribute(field, formData, 'desc')
+            field = self.addExtraAttribute(field, formData, 'hideExpression')
+            field = self.addExtraAttribute(field, formData, 'readonly')
+
+            form[idx] = field
+
+
+        existingElements['root']['form'] = form
+
         jsonString = OrderedDict()
         jsonString[existingElements['root']['name']], forms, data = generateElement(existingElements, 'root')
+
         j = json.loads(request.body)
         t = Profile(profile_type=j['profile_type'],
                     name=j['name'], type=j['type'],

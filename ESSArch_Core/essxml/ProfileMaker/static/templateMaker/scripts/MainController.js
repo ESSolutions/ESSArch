@@ -125,7 +125,7 @@
                       {
                           className: fieldClass,
                           type: 'checkbox',
-                          key: field['key'] + '_hidden',
+                          key: field['key'] + '_hideExpression',
                           templateOptions: {
                               label: 'Hidden'
                           },
