@@ -115,6 +115,68 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         return InformationPackageDetailSerializer
 
+    def create(self, request):
+        """
+        Prepares a new information package (IP) using the following tasks:
+
+        1. Creates a new IP in the database.
+
+        2. Creates a directory in the prepare directory with the name set to
+        the id of the new IP.
+
+        3. Creates an event in the database connected to the IP and with the
+        detail "Prepare IP".
+
+        Args:
+
+        Returns:
+            None
+        """
+
+        label = request.data.get('label', None)
+        responsible = self.request.user.username or "Anonymous user"
+
+        step = ProcessStep.objects.create(
+            name="Prepare IP",
+        )
+
+        t1 = ProcessTask.objects.create(
+            name="preingest.tasks.PrepareIP",
+            params={
+                "label": label,
+                "responsible": responsible,
+                "step": str(step.pk),
+            },
+            processstep_pos=0,
+        )
+
+        t2 = ProcessTask.objects.create(
+            name="preingest.tasks.CreateIPRootDir",
+            params={
+            },
+            result_params={
+                "information_package_id": str(t1.pk)
+            },
+            processstep_pos=1,
+        )
+
+        t3 = ProcessTask.objects.create(
+            name="preingest.tasks.CreateEvent",
+            params={
+                "detail": "Prepare IP",
+            },
+            result_params={
+                "information_package_id": str(t1.pk)
+            },
+            processstep_pos=2,
+        )
+
+        step.tasks = [t1, t2, t3]
+        step.save()
+        step.run()
+
+        return Response({"status": "Prepared IP"})
+
     @detail_route(methods=['post'])
     def prepare(self, request, pk=None):
         """

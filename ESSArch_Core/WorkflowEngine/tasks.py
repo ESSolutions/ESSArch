@@ -10,6 +10,7 @@ from esscore.metadata.metadataGenerator import xmlGenerator
 from configuration.models import EventType, Path
 from preingest.dbtask import DBTask
 from ip.models import EventIP, InformationPackage
+from preingest.models import ProcessStep
 
 class Sleepy(DBTask):
     def run(self, foo=None):
@@ -32,13 +33,14 @@ class Sleepy(DBTask):
 
 
 class PrepareIP(DBTask):
-    def run(self, label="", responsible={}):
+    def run(self, label="", responsible={}, step=None):
         """
         Prepares a new information package
 
         Args:
             label: The label of the IP to prepare
             responsible: The responsible user of the IP to prepare
+            step: The step to connect the IP to
 
         Returns:
             The id of the created information package
@@ -62,9 +64,13 @@ class PrepareIP(DBTask):
         )
         ip.save()
 
+        if step is not None:
+            s = ProcessStep.objects.get(pk=step)
+            ip.steps.add(s)
+
         self.set_progress(100, total=100)
 
-        return ip.id
+        return str(ip.id)
 
     def undo(self, label="", responsible={}):
         pass
