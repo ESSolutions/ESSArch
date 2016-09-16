@@ -311,6 +311,7 @@ class ProcessTask(Process):
         choices=TASK_STATE_CHOICES
     )
     params = jsonfield.JSONField(null=True)
+    result_params = jsonfield.JSONField(null=True, default={})
     time_started = models.DateTimeField(_('started at'), null=True, blank=True)
     time_done = models.DateTimeField(_('done at'), null=True, blank=True)
     traceback = models.TextField(
