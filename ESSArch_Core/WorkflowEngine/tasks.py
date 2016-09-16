@@ -7,8 +7,9 @@ import tarfile
 import time
 
 from esscore.metadata.metadataGenerator import xmlGenerator
+from configuration.models import EventType, Path
 from preingest.dbtask import DBTask
-from ip.models import EventIP
+from ip.models import EventIP, InformationPackage
 
 class Sleepy(DBTask):
     def run(self, foo=None):
@@ -28,6 +29,114 @@ class Sleepy(DBTask):
 
     def undo(self, foo=None):
         print "undoing task with id {}".format(self.request.id)
+
+
+class PrepareIP(DBTask):
+    def run(self, label="", responsible={}):
+        """
+        Prepares a new information package
+
+        Args:
+            label: The label of the IP to prepare
+            responsible: The responsible user of the IP to prepare
+
+        Returns:
+            The id of the created information package
+        """
+
+
+        ip = InformationPackage.objects.create(
+            Label=label,
+            Responsible=responsible,
+            State="PREPARING",
+            OAIStype="SIP",
+        )
+
+        prepare_path = Path.objects.get(
+            entity="path_preingest_prepare"
+        ).value
+
+        ip.objectPath = os.path.join(
+            prepare_path,
+            str(ip.pk)
+        )
+        ip.save()
+
+        self.set_progress(100, total=100)
+
+        return ip.id
+
+    def undo(self, label="", responsible={}):
+        pass
+
+
+class CreateIPRootDir(DBTask):
+    def create_path(self, information_package_id):
+        prepare_path = Path.objects.get(
+            entity="path_preingest_prepare"
+        ).value
+
+        return os.path.join(
+            prepare_path,
+            str(information_package_id)
+        )
+
+    def run(self, information_package_id=None):
+        """
+        Creates the IP root directory
+
+        Args:
+            information_package_id: The id of the information package the
+            directory will be created for
+
+        Returns:
+            None
+        """
+
+        path = self.create_path(information_package_id)
+        os.makedirs(path)
+
+        self.set_progress(100, total=100)
+        return information_package_id
+
+    def undo(self, information_package_id=None):
+        path = self.create_path(information_package_id)
+        shutil.rmtree(path)
+
+
+class CreateEvent(DBTask):
+    def run(self, information_package_id=None, detail=""):
+        """
+        Creates a new event and saves it to the database
+
+        Args:
+            detail: The detail of the event
+            information_package_id: The id of the IP connected to the event
+
+        Returns:
+            The created event
+        """
+
+        ip = InformationPackage.objects.get(
+            pk=information_package_id
+        )
+
+        self.set_progress(100, total=100)
+
+        event = EventIP.objects.create(
+            eventType=EventType.objects.get(
+                eventType=10100
+            ),
+            eventDetail=detail,
+            linkingAgentIdentifierValue="System",
+            linkingObjectIdentifierValue=ip,
+        )
+
+        return event.id
+
+    def undo(self, detail="", information_package_id=None):
+        pass
+
 
 class CreatePhysicalModel(DBTask):
 
