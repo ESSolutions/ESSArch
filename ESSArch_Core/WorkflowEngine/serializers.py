@@ -20,6 +20,7 @@ from ip.models import (
 )
 
 from preingest.models import ProcessStep, ProcessTask
+from preingest.util import available_tasks
 
 from profiles.models import (
     SubmissionAgreement,
@@ -64,6 +65,17 @@ class ArchivalLocationSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
+    available = available_tasks()
+
+    TASK_CHOICES = zip(
+        ["preingest.tasks."+t for t in available],
+        available
+    )
+
+    name =  serializers.ChoiceField(
+        choices=TASK_CHOICES,
+    )
+
     class Meta:
         model = ProcessTask
         fields = (

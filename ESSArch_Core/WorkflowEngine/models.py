@@ -292,12 +292,6 @@ class ProcessStep(Process):
 
 
 class ProcessTask(Process):
-    available = available_tasks()
-    TASK_CHOICES = zip(
-        ["preingest.tasks."+t for t in available],
-        available
-    )
-
     TASK_STATE_CHOICES = zip(
         celery_states.ALL_STATES, celery_states.ALL_STATES
     )
@@ -305,7 +299,7 @@ class ProcessTask(Process):
     celery_id = models.UUIDField(
         _('celery id'), max_length=255, null=True, editable=False
     )
-    name = models.CharField(max_length=255, choices=TASK_CHOICES)
+    name = models.CharField(max_length=255)
     status = models.CharField(
         _('state'), max_length=50, default=celery_states.PENDING,
         choices=TASK_STATE_CHOICES
