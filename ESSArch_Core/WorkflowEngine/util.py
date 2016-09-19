@@ -9,4 +9,12 @@ def sliceUntilAttr(iterable, attr, val):
         yield i
 
 def available_tasks():
-    return pyclbr.readmodule("preingest.tasks")
+    modules = ["preingest.tasks"]
+    tasks = []
+    for m in modules:
+        module_tasks = pyclbr.readmodule(m)
+        tasks = tasks + zip(
+            [m+"."+t for t in module_tasks],
+            module_tasks
+        )
+    return tasks

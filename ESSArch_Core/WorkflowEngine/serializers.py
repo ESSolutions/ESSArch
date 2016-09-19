@@ -65,15 +65,8 @@ class ArchivalLocationSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
-    available = available_tasks()
-
-    TASK_CHOICES = zip(
-        ["preingest.tasks."+t for t in available],
-        available
-    )
-
     name =  serializers.ChoiceField(
-        choices=TASK_CHOICES,
+        choices=available_tasks(),
     )
 
     class Meta:

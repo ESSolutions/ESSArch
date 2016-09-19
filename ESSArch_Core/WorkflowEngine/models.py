@@ -5,6 +5,7 @@ import uuid
 
 from celery import chain, group, states as celery_states
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Sum
 from django.utils.translation import ugettext as _
@@ -323,6 +324,17 @@ class ProcessTask(Process):
     undone = models.BooleanField(default=False)
     undo_type = models.BooleanField(editable=False, default=False)
     retried = models.BooleanField(default=False)
+
+    def clean(self):
+        """
+        Validates the task
+        """
+
+        full_task_names = [k for k,v in available_tasks()]
+
+        # Make sure that the task exists
+        if self.name not in full_task_names:
+            raise ValidationError("Task '%s' does not exist." % self.name)
 
     def run(self):
         """
