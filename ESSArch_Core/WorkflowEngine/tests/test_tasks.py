@@ -59,7 +59,8 @@ class test_running_tasks(TestCase):
             task = ProcessTask(
                 name="preingest.tasks.First",
                 params={
-                    "bar": 123
+                    "foo": 123,
+                    "bar": 456
                 }
             )
 
