@@ -15,6 +15,10 @@ class test_running_tasks(TestCase):
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
 
     def test_create_nonexistent_task(self):
+        """
+        Creates a task with a name that doesn't exist.
+        """
+
         with self.assertRaises(ValidationError):
             task = ProcessTask(
                 name="nonexistent task",
@@ -23,6 +27,10 @@ class test_running_tasks(TestCase):
             task.full_clean()
 
     def test_create_existing_task(self):
+        """
+        Creates a task with a name that does exist.
+        """
+
         task = ProcessTask(
             name="preingest.tasks.First",
         )
@@ -30,6 +38,10 @@ class test_running_tasks(TestCase):
         task.full_clean()
 
     def test_run_with_missing_params(self):
+        """
+        Runs a task without all its required parameters.
+        """
+
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
         with self.assertRaises(TypeError):
@@ -40,6 +52,10 @@ class test_running_tasks(TestCase):
             task.run()
 
     def test_run_with_wrong_params(self):
+        """
+        Runs a task with nonexistent parameters.
+        """
+
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
         with self.assertRaises(TypeError):
@@ -53,6 +69,10 @@ class test_running_tasks(TestCase):
             task.run()
 
     def test_run_with_too_many_params(self):
+        """
+        Runs a task with too many parameters.
+        """
+
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
         with self.assertRaises(TypeError):
@@ -67,6 +87,10 @@ class test_running_tasks(TestCase):
             task.run()
 
     def test_run_with_correct_params(self):
+        """
+        Runs a task with correct parameters.
+        """
+
         foo = 123
 
         task = ProcessTask(
@@ -82,6 +106,11 @@ class test_running_tasks(TestCase):
         self.assertEqual(foo, result)
 
     def test_on_success(self):
+        """
+        Runs a correct task and checks if the result is saved and that the
+        traceback is empty.
+        """
+
         foo = 123
 
         task = ProcessTask(
@@ -97,6 +126,11 @@ class test_running_tasks(TestCase):
         self.assertEqual(foo, task.result)
 
     def test_on_failure(self):
+        """
+        Runs an incorrect task and checks if the result is empty and that the
+        traceback is nonempty.
+        """
+
         foo = 123
         try:
             task = ProcessTask(
