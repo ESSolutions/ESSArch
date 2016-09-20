@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User, Group, Permission
 
 from rest_framework import serializers
 
@@ -156,13 +156,24 @@ class EventTypeSerializer(serializers.HyperlinkedModelSerializer):
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
-        fields = ('url', 'id', 'username', 'email', 'groups')
-
+        fields = (
+            'url', 'id', 'username', 'first_name', 'last_name', 'email',
+            'groups', 'is_staff', 'is_active', 'is_superuser', 'last_login',
+            'date_joined', 'user_permissions',
+        )
+        read_only_fields = (
+            'last_login', 'date_joined',
+        )
 
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Group
-        fields = ('url', 'id', 'name')
+        fields = ('url', 'id', 'name', 'permissions', 'user_set',)
+
+class PermissionSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Permission
+        fields = ('url', 'id', 'name', 'codename', 'group_set')
 
 
 class ProfileRelSerializer(serializers.HyperlinkedModelSerializer):

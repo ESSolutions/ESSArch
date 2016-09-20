@@ -41,6 +41,7 @@ from preingest.serializers import (
     ProcessTaskSerializer,
     UserSerializer,
     GroupSerializer,
+    PermissionSerializer,
     SubmissionAgreementSerializer,
     ProfileSerializer,
     AgentSerializer,
@@ -56,7 +57,7 @@ from profiles.models import (
     ProfileRel,
 )
 
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User, Group, Permission
 from rest_framework import viewsets
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -73,6 +74,13 @@ class GroupViewSet(viewsets.ModelViewSet):
     """
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+
+class PermissionViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows permissions to be viewed or edited.
+    """
+    queryset = Permission.objects.all()
+    serializer_class = PermissionSerializer
 
 class ArchivalInstitutionViewSet(viewsets.ModelViewSet):
     """
