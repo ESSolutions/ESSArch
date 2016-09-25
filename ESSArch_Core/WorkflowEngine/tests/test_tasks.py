@@ -88,9 +88,9 @@ class test_running_tasks(TestCase):
         )
 
         task.run()
-
+        self.assertTrue(task.id in task.result)
         self.assertIsNone(task.traceback)
-        self.assertEqual(foo, task.result)
+        self.assertEqual(foo, task.result[task.id])
 
     def test_on_failure(self):
         """
@@ -101,7 +101,7 @@ class test_running_tasks(TestCase):
         foo = 123
         try:
             task = ProcessTask(
-                name="preingest.tasks.First",
+                name="preingest.tests.tasks.First",
                 params={
                     "bar": foo
                 }
