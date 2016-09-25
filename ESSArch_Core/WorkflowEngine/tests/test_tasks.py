@@ -32,7 +32,7 @@ class test_running_tasks(TestCase):
         """
 
         task = ProcessTask(
-            name="preingest.tasks.First",
+            name="preingest.tests.tasks.First",
         )
 
         task.full_clean()
@@ -60,7 +60,7 @@ class test_running_tasks(TestCase):
 
         with self.assertRaises(TypeError):
             task = ProcessTask(
-                name="preingest.tasks.First",
+                name="preingest.tests.tasks.First",
                 params={
                     "bar": 123
                 }
@@ -77,7 +77,7 @@ class test_running_tasks(TestCase):
 
         with self.assertRaises(TypeError):
             task = ProcessTask(
-                name="preingest.tasks.First",
+                name="preingest.tests.tasks.First",
                 params={
                     "foo": 123,
                     "bar": 456
@@ -114,7 +114,7 @@ class test_running_tasks(TestCase):
         foo = 123
 
         task = ProcessTask(
-            name="preingest.tasks.First",
+            name="preingest.tests.tasks.First",
             params={
                 "foo": foo
             }
