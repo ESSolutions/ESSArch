@@ -57,5 +57,8 @@ class DBTask(Task):
         self.taskobj.progress = (progress/total) * 100
         self.taskobj.save()
 
+    def run(self, *args, **kwargs):
+        raise NotImplementedError()
+
     def undo(self, *args, **kwargs):
         raise NotImplementedError()
