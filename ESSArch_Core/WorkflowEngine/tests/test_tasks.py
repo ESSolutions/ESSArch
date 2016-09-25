@@ -37,20 +37,6 @@ class test_running_tasks(TestCase):
 
         task.full_clean()
 
-    def test_run_with_missing_params(self):
-        """
-        Runs a task without all its required parameters.
-        """
-
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
-
-        with self.assertRaises(TypeError):
-            task = ProcessTask(
-                name="preingest.tasks.First",
-            )
-
-            task.run()
-
     def test_run_with_wrong_params(self):
         """
         Runs a task with nonexistent parameters.
@@ -85,25 +71,6 @@ class test_running_tasks(TestCase):
             )
 
             task.run()
-
-    def test_run_with_correct_params(self):
-        """
-        Runs a task with correct parameters.
-        """
-
-        foo = 123
-
-        task = ProcessTask(
-            name="preingest.tasks.First",
-            params={
-                "foo": foo
-            }
-        )
-
-        result = task.run().result
-
-        self.assertIsNone(task.traceback)
-        self.assertEqual(foo, result)
 
     def test_on_success(self):
         """
