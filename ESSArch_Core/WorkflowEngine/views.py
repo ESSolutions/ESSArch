@@ -163,7 +163,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             params={
             },
             result_params={
-                "information_package_id": str(t1.pk)
+                "information_package": t1.pk
             },
             processstep_pos=1,
         )
@@ -174,7 +174,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 "detail": "Prepare IP",
             },
             result_params={
-                "information_package_id": str(t1.pk)
+                "information_package": t1.pk
             },
             processstep_pos=2,
         )

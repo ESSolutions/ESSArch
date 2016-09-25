@@ -70,7 +70,7 @@ class PrepareIP(DBTask):
 
         self.set_progress(100, total=100)
 
-        return str(ip.id)
+        return ip
 
     def undo(self, label="", responsible={}):
         pass
@@ -87,7 +87,7 @@ class CreateIPRootDir(DBTask):
             str(information_package_id)
         )
 
-    def run(self, information_package_id=None):
+    def run(self, information_package=None):
         """
         Creates the IP root directory
 
@@ -99,11 +99,11 @@ class CreateIPRootDir(DBTask):
             None
         """
 
-        path = self.create_path(information_package_id)
+        path = self.create_path(str(information_package.pk))
         os.makedirs(path)
 
         self.set_progress(100, total=100)
-        return information_package_id
+        return information_package
 
     def undo(self, information_package_id=None):
         path = self.create_path(information_package_id)
@@ -111,7 +111,7 @@ class CreateIPRootDir(DBTask):
 
 
 class CreateEvent(DBTask):
-    def run(self, information_package_id=None, detail=""):
+    def run(self, information_package=None, detail=""):
         """
         Creates a new event and saves it to the database
 
@@ -123,11 +123,6 @@ class CreateEvent(DBTask):
             The created event
         """
 
-        ip = InformationPackage.objects.get(
-            pk=information_package_id
-        )
-
-        self.set_progress(100, total=100)
 
         event = EventIP.objects.create(
             eventType=EventType.objects.get(
@@ -135,9 +130,10 @@ class CreateEvent(DBTask):
             ),
             eventDetail=detail,
             linkingAgentIdentifierValue="System",
-            linkingObjectIdentifierValue=ip,
+            linkingObjectIdentifierValue=information_package,
         )
 
+        self.set_progress(100, total=100)
         return event.id
 
     def undo(self, detail="", information_package_id=None):
