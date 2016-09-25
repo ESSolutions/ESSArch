@@ -10,8 +10,6 @@ from django.db import models
 from django.db.models import Sum
 from django.utils.translation import ugettext as _
 
-import jsonfield
-
 from picklefield.fields import PickledObjectField
 
 from preingest.util import available_tasks, sliceUntilAttr
@@ -96,12 +94,10 @@ class ProcessStep(Process):
         Returns:
             Unique tasks connected to the process, ignoring retries and undos
         """
-        tasks = self.tasks.filter(
+        return self.tasks.filter(
             undo_type=False,
             retried=False
         ).order_by("processstep_pos")
-
-        return [t for t in tasks.values("name", "params")]
 
     def run(self, continuing=False, direct=True):
         """
@@ -129,15 +125,16 @@ class ProcessStep(Process):
 
         func = group if self.parallel else chain
 
-        func(s.run(direct=False) for s in child_steps)()
-
-        c = func(self._create_task(t.name).si(
+        step_canvas = func(s.run(direct=False) for s in child_steps)
+        task_canvas = func(self._create_task(t.name).s(
             taskobj=t
         ) for t in self.tasks.all())
 
-        return c() if direct else c
+        workflow = (step_canvas | task_canvas)
 
-    def undo(self, only_failed=False):
+        return workflow() if direct else workflow
+
+    def undo(self, only_failed=False, direct=True):
         """
         Undos the process step by first undoing all tasks and then the
         child steps.
@@ -147,7 +144,8 @@ class ProcessStep(Process):
                 undo all tasks otherwise
 
         Returns:
-            None
+            AsyncResult/EagerResult if there is atleast one task or child
+            steps, otherwise None
         """
 
         child_steps = self.child_steps.all()
@@ -165,12 +163,14 @@ class ProcessStep(Process):
 
         func = group if self.parallel else chain
 
-        func(self._create_task(t.name).si(
+        task_canvas = func(self._create_task(t.name).si(
             taskobj=t.create_undo_obj(attempt=attempt),
-        ) for t in reversed(tasks))()
+        ) for t in reversed(tasks))
+        step_canvas = func(s.undo() for s in child_steps)
 
-        for c in child_steps:
-            c.undo(only_failed=only_failed)
+        workflow = (task_canvas | step_canvas)
+
+        return workflow() if direct else workflow
 
     def retry(self, direct=True):
         """
@@ -196,16 +196,16 @@ class ProcessStep(Process):
         ).order_by('processstep_pos')
 
         func = group if self.parallel else chain
-
-        func(c.retry(direct=False) for c in child_steps)()
-
         attempt = uuid.uuid4()
 
-        c = func(self._create_task(t.name).si(
+        step_canvas = func(s.retry(direct=False) for s in child_steps)
+        task_canvas = func(self._create_task(t.name).s(
             taskobj=t.create_retry_obj(attempt=attempt),
         ) for t in tasks)
 
-        return c() if direct else c
+        workflow = (step_canvas | task_canvas)
+
+        return workflow() if direct else workflow
 
     def progress(self):
         """
@@ -305,8 +305,8 @@ class ProcessTask(Process):
         _('state'), max_length=50, default=celery_states.PENDING,
         choices=TASK_STATE_CHOICES
     )
-    params = jsonfield.JSONField(null=True)
-    result_params = jsonfield.JSONField(null=True, default={})
+    params = PickledObjectField(null=True, default={})
+    result_params = PickledObjectField(null=True, default={})
     time_started = models.DateTimeField(_('started at'), null=True, blank=True)
     time_done = models.DateTimeField(_('done at'), null=True, blank=True)
     traceback = models.TextField(

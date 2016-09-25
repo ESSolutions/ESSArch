@@ -29,12 +29,15 @@ from profiles.models import (
     ProfileRel,
 )
 
-class PickledObjectField(serializers.Field):
+import jsonpickle
+import json
+
+class PickledObjectFieldSerializer(serializers.Field):
     def to_representation(self, obj):
-        return obj
+        return json.loads(jsonpickle.encode(obj))
 
     def to_internal_value(self, data):
-        return data
+        return jsonpickle.decode(json.dumps(data))
 
 
 class RecursiveField(serializers.Serializer):
@@ -72,19 +75,28 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ProcessTask
         fields = (
-            'url', 'id', 'celery_id', 'name', 'params', 'result', 'traceback', 'status',
+            'url', 'id', 'name', 'params', 'result', 'traceback', 'status',
             'progress','processstep', 'processstep_pos', 'time_started', 'time_done',
             'undone',
         )
 
         read_only_fields = (
-            'celery_id', 'progress', 'status', 'time_started', 'time_done', 'undone',
+            'params', 'result', 'traceback', 'status', 'progress', 'time_started', 'time_done', 'undone',
         )
 
-    params = serializers.JSONField()
+    params = PickledObjectFieldSerializer()
+    result = PickledObjectFieldSerializer()
+
+class ProcessTaskSetSerializer(ProcessTaskSerializer):
+    class Meta:
+        model = ProcessTaskSerializer.Meta.model
+        fields = (
+            'url', 'name', 'params',
+        )
 
 class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
     tasks = ProcessTaskSerializer(many=True, read_only=True)
+    task_set = ProcessTaskSetSerializer(many=True, read_only=True)
     child_steps = RecursiveField(many=True, read_only=True)
 
     class Meta:

@@ -13,10 +13,13 @@ class DBTask(Task):
         except KeyError:
             print "Task requires taskobj set to a ProcessTask"
 
-        for k, v in self.taskobj.result_params.iteritems():
-            self.taskobj.params[k] = ProcessTask.objects.get(pk=v).result
+        try:
+            prev_result_dict = args[0]
+        except IndexError:
+            prev_result_dict = {}
 
-        print "init task with name {}, id {}".format(self.name, self.request.id)
+        for k, v in self.taskobj.result_params.iteritems():
+            self.taskobj.params[k] = prev_result_dict[v]
 
         self.taskobj.celery_id = self.request.id
         self.taskobj.status=celery_states.STARTED
@@ -26,10 +29,10 @@ class DBTask(Task):
         if self.taskobj.undo_type:
             return self.undo(**self.taskobj.params)
         else:
-            return self.run(**self.taskobj.params)
+            prev_result_dict[self.taskobj.id] = self.run(**self.taskobj.params)
+            return prev_result_dict
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
-        print "finalize task with id {}".format(task_id)
         self.taskobj.status = status
         self.taskobj.time_done = timezone.now()
         self.taskobj.save()
