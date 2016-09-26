@@ -165,7 +165,16 @@ class EventTypeSerializer(serializers.HyperlinkedModelSerializer):
         model = EventType
         fields = ('url', 'id', 'eventType', 'eventDetail',)
 
+
+class PermissionSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Permission
+        fields = ('url', 'id', 'name', 'codename', 'group_set')
+
+
 class UserSerializer(serializers.HyperlinkedModelSerializer):
+    user_permissions = PermissionSerializer(many=True)
+
     class Meta:
         model = User
         fields = (
@@ -178,14 +187,11 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         )
 
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
+    permissions = PermissionSerializer(many=True)
+
     class Meta:
         model = Group
         fields = ('url', 'id', 'name', 'permissions', 'user_set',)
-
-class PermissionSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Permission
-        fields = ('url', 'id', 'name', 'codename', 'group_set')
 
 
 class ProfileRelSerializer(serializers.HyperlinkedModelSerializer):
