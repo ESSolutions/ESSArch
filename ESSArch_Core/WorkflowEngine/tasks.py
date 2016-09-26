@@ -72,7 +72,7 @@ class PrepareIP(DBTask):
 
         return ip
 
-    def undo(self, label="", responsible={}):
+    def undo(self, label="", responsible={}, step=None):
         pass
 
 
@@ -105,8 +105,8 @@ class CreateIPRootDir(DBTask):
         self.set_progress(100, total=100)
         return information_package
 
-    def undo(self, information_package_id=None):
-        path = self.create_path(information_package_id)
+    def undo(self, information_package=None):
+        path = self.create_path(information_package.pk)
         shutil.rmtree(path)
 
 
@@ -136,7 +136,7 @@ class CreateEvent(DBTask):
         self.set_progress(100, total=100)
         return event.id
 
-    def undo(self, detail="", information_package_id=None):
+    def undo(self, information_package=None, detail=""):
         pass
 
 
