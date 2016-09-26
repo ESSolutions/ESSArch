@@ -111,7 +111,9 @@ class ProcessStep(Process):
                     true otherwise
 
         Returns:
-            None
+            The executed chain consisting of potential child steps followed by
+            tasks if called directly. The chain "non-executed" if direct is
+            false
         """
 
         child_steps = self.child_steps.all()
