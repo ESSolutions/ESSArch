@@ -421,7 +421,7 @@ filesToCreate = {
 
 folderToParse = "tmp"
 
-createXML(info, filesToCreate, folderToParse)
+#createXML(info, filesToCreate, folderToParse)
 
 
 ## TODO
