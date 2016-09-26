@@ -89,3 +89,13 @@ class ProcessTaskViewSet(viewsets.ModelViewSet):
     """
     queryset = ProcessTask.objects.all()
     serializer_class = ProcessTaskSerializer
+
+    @detail_route(methods=['post'])
+    def undo(self, request, pk=None):
+        self.get_object().undo()
+        return Response({'status': 'undoing task'})
+
+    @detail_route(methods=['post'])
+    def retry(self, request, pk=None):
+        self.get_object().retry()
+        return Response({'status': 'retries task'})

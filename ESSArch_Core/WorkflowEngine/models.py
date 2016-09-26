@@ -345,6 +345,24 @@ class ProcessTask(Process):
 
         return self._create_task(self.name).delay(taskobj=self)
 
+    def undo(self):
+        """
+        Undos the task
+        """
+
+        return self._create_task(self.name).delay(
+            taskobj=self.create_undo_obj()
+        )
+
+    def retry(self):
+        """
+        Retries the task
+        """
+
+        return self._create_task(self.name).delay(
+            taskobj=self.create_retry_obj()
+        )
+
     def create_undo_obj(self, attempt=uuid.uuid4()):
         """
         Create a new task that will be used to undo this task,
