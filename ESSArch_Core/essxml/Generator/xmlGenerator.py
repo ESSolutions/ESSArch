@@ -10,7 +10,6 @@ from django.conf import settings
 
 from xmlStructure import xmlElement, xmlAttribute, fileInfo, fileObject, dlog
 
-sortedFiles = []
 foundFiles = 0
 
 def calculateChecksum(filename):
@@ -28,36 +27,30 @@ def calculateChecksum(filename):
     os.close(fd)
     return hashSHA.hexdigest()
 
-def parseFiles(filename='/SIP/huge', level=3, resultFile=[]):
+def parseFiles(rootdir='/SIP/huge', level=3, resultFile=[], sortedFiles=[]):
     """
     walk through the choosen folder and parse all the files to their own temporary location
     """
     fileInfo = {}
-    mimetypes.init(files=[os.path.join(settings.BASE_DIR), 'demo/mime.types'])
+    mimetypes.init(files=[settings.BASE_DIR, 'demo/mime.types'])
 
-    for dirname, dirnames, filenames in os.walk(filename):
-        # print dirname
+    for dirname, dirnames, filenames in os.walk(rootdir):
         for file in filenames:
             found = False
+            filepath = os.path.join(dirname, file)
+
             for key, value in resultFile.iteritems():
-                if dirname+'/'+file == key:
+                if filepath == key:
                     found = True
 
-            if found == False:
-            # populate dictionary
-
-
-
-                fileInfo['FName'] = os.path.relpath(dirname+'/'+file, filename)
-                fileInfo['FChecksum'] = calculateChecksum(dirname+'/'+file)
-                fileInfo['FID'] = uuid.uuid4().__str__()
-                if '.'+file.split('.')[-1] in mimetypes.types_map:
-                    fileInfo['FMimetype'] = mimetypes.types_map['.'+file.split('.')[-1]]
-                else:
-                    fileInfo['FMimetype'] = 'unknown'
+            if not found:
+                fileInfo['FName'] = os.path.relpath(filepath, rootdir)
+                fileInfo['FChecksum'] = calculateChecksum(filepath)
+                fileInfo['FID'] = str(uuid.uuid4())
+                fileInfo['FMimetype'] = mimetypes.types_map.get('.'+file.split('.')[-1], 'unknown')
                 fileInfo['FCreated'] = '2016-02-21T11:18:44+01:00'
                 fileInfo['FFormatName'] = 'MS word'
-                fileInfo['FSize'] = str(os.path.getsize(dirname+'/'+file))
+                fileInfo['FSize'] = str(os.path.getsize(filepath))
                 fileInfo['FUse'] = 'DataFile'
                 fileInfo['FChecksumType'] = 'SHA-256'
                 fileInfo['FLoctype'] = 'URL'
@@ -65,20 +58,11 @@ def parseFiles(filename='/SIP/huge', level=3, resultFile=[]):
                 fileInfo['FChecksumLib'] = 'hashlib'
                 fileInfo['FLocationType'] = 'URI'
                 fileInfo['FIDType'] = 'UUID'
-                # write to file
 
                 for fi in sortedFiles:
-                    # print 'fi: %s (xmlFileName: %s, template: %s, namespace: %s, fid: %s, files: %s' % (
-                    #                                                                                    repr(fi),
-                    #                                                                                    fi.xmlFileName, 
-                    #                                                                                    fi.template, 
-                    #                                                                                    fi.namespace, 
-                    #                                                                                    fi.fid, 
-                    #                                                                                    fi.files)
                     for fil in fi.files:
                         if not fil.arguments:
                             for key, value in fil.element.iteritems():
-                                # print 'create 1 key: %s, value: %s, fileInfo: %s' % (key, value, fileInfo)
                                 t = createXMLStructure(key, value, fileInfo, namespace=fi.namespace)
                                 t.printXML(fil.fid,fil.level)
                         else:
@@ -89,7 +73,6 @@ def parseFiles(filename='/SIP/huge', level=3, resultFile=[]):
                                     break
                             if found:
                                 for key, value in fil.element.iteritems():
-                                    # print 'create 2 key: %s, value: %s, fileInfo: %s' % (key, value, fileInfo)
                                     t = createXMLStructure(key, value, fileInfo, namespace=fi.namespace)
                                     t.printXML(fil.fid,fil.level)
 
@@ -99,11 +82,7 @@ def getValue(key, info):
     """
     if key is not None:
         text = key.rstrip()
-        if text != '':
-            # print tree.text.replace('\n', '').replace(' ','')
-            if text in info:
-                return info[text]
-    return None
+        return info.get(text, None)
 
 def parseChild(name, content, info, namespace, t, fob, level=0):
     """
@@ -260,11 +239,7 @@ def createXML(info, filesToCreate, folderToParse):
     This is also the TASK to be run in the background.
     """
 
-    global sortedFiles
-    global foundFiles
-
     sortedFiles = []
-    foundFiles = 0
 
     for key, value in filesToCreate.iteritems():
         json_data=open(value).read()
@@ -284,7 +259,7 @@ def createXML(info, filesToCreate, folderToParse):
         fob.rootElement = rootEl
         #print 'namespace: %s' % rootE['-namespace']
 
-    parseFiles(folderToParse, resultFile=filesToCreate)
+    parseFiles(folderToParse, resultFile=filesToCreate, sortedFiles=sortedFiles)
 
     # add the tmp files to the bottom of the appropriate file and write out the next section of xml until it's done
     for fob in sortedFiles:
@@ -444,9 +419,9 @@ filesToCreate = {
     # "sip2.txt":"templates/JSONTemplate.json"
 }
 
-folderToParse = "/SIP/huge/csv/000"
+folderToParse = "tmp"
 
-# createXML(info, filesToCreate, folderToParse)
+createXML(info, filesToCreate, folderToParse)
 
 
 ## TODO
