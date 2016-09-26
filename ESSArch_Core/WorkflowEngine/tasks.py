@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import hashlib
 import os
 import shutil
 
@@ -150,3 +151,33 @@ class CreatePhysicalModel(DBTask):
             k = str(k)
             dirname = os.path.join(root, k)
             shutil.rmtree(dirname)
+
+
+class CalculateChecksum(DBTask):
+    def run(self, filename=None, block_size=65536, algorithm=hashlib.sha256):
+        """
+        Calculates the checksum for the given file, one chunk at a time
+
+        Args:
+            filename: The filename to calculate checksum for
+            block_size: The size of the chunk to calculate
+            algorithm: The algorithm to use
+
+        Returns:
+            The hexadecimal digest of the checksum
+        """
+
+        fd = os.open(filename, os.O_RDONLY)
+        hash_val = algorithm()
+
+        while True:
+            data = os.read(fd, block_size)
+            if data:
+                hash_val.update(data)
+            else:
+                break
+        os.close(fd)
+        return hash_val.hexdigest()
+
+    def undo(self, filename=None):
+        pass
