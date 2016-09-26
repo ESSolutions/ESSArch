@@ -139,8 +139,6 @@ class test_running_steps(TestCase):
         self.assertEqual(res[t2.id], res[t1.id] + t2_val)
         self.assertEqual(res[t3.id], res[t1.id] + t3_val)
 
-        self.assertEqual(res, t3.result)
-
     def test_undo_serialized_step(self):
         t1_val = 123
         t2_val = os.path.join(self.test_dir, "foo.txt")

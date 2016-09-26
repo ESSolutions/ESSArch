@@ -47,7 +47,11 @@ class DBTask(Task):
         ).update(status=celery_states.FAILURE)
 
     def on_success(self, retval, task_id, args, kwargs):
-        self.taskobj.result = retval
+        try:
+            self.taskobj.result = retval.get(self.taskobj.id, None)
+        except AttributeError:
+            self.taskobj.result = None
+
         self.taskobj.save()
 
     def set_progress(self, progress, total=None):

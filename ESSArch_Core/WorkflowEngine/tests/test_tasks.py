@@ -88,9 +88,8 @@ class test_running_tasks(TestCase):
         )
 
         task.run()
-        self.assertTrue(task.id in task.result)
         self.assertIsNone(task.traceback)
-        self.assertEqual(foo, task.result[task.id])
+        self.assertEqual(foo, task.result)
 
     def test_on_failure(self):
         """
