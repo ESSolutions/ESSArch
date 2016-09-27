@@ -326,6 +326,12 @@ class ProcessTask(Process):
     undone = models.BooleanField(default=False)
     undo_type = models.BooleanField(editable=False, default=False)
     retried = models.BooleanField(default=False)
+    information_package = models.ForeignKey(
+        'ip.InformationPackage',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True
+    )
 
     def clean(self):
         """
