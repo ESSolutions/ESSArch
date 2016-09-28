@@ -46,12 +46,12 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
     queryset = ProcessStep.objects.all()
     serializer_class = ProcessStepSerializer
 
-    @detail_route()
+    @detail_route(methods=['post'])
     def run(self, request, pk=None):
         self.get_object().run()
         return Response({'status': 'running step'})
 
-    @detail_route()
+    @detail_route(methods=['post'])
     def continue_step(self, request, pk=None):
         step = self.get_object()
         task = step.tasks.first()
@@ -68,17 +68,17 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
         step.parent_step.run(continuing=True)
         return Response({'status': 'continuing step'})
 
-    @detail_route()
+    @detail_route(methods=['post'])
     def undo(self, request, pk=None):
         self.get_object().undo()
         return Response({'status': 'undoing step'})
 
-    @detail_route(url_path='undo-failed')
+    @detail_route(methods=['post'], url_path='undo-failed')
     def undo_failed(self, request, pk=None):
         self.get_object().undo(only_failed=True)
         return Response({'status': 'undoing failed tasks in step'})
 
-    @detail_route()
+    @detail_route(methods=['post'])
     def retry(self, request, pk=None):
         self.get_object().retry()
         return Response({'status': 'retrying step'})
