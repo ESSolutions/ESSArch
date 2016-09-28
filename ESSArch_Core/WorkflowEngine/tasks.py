@@ -186,7 +186,8 @@ class GenerateXML(DBTask):
         self.set_progress(100, total=100)
 
     def undo(self, info={}, filesToCreate={}, folderToParse=None):
-        pass
+        for f, template in filesToCreate.iteritems():
+            os.remove(f)
 
 
 class ValidateFileFormat(DBTask):
