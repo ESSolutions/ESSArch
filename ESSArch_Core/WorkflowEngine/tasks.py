@@ -159,6 +159,8 @@ class CalculateChecksum(DBTask):
             else:
                 break
         os.close(fd)
+
+        self.set_progress(100, total=100)
         return hash_val.hexdigest()
 
     def undo(self, filename=None):
