@@ -18,3 +18,29 @@ def available_tasks():
             module_tasks
         )
     return tasks
+
+def create_event(eventType, detail, agent, ip=None):
+    """
+    Creates a new event and saves it to the database
+
+    Args:
+        eventType: The event type
+        detail: The detail of the event
+        agent: The agent creating the event
+        ip: The information package connected to the event
+
+    Returns:
+        The created event
+    """
+
+    from configuration.models import EventType
+    from ip.models import EventIP
+
+    return EventIP.objects.create(
+        eventType=EventType.objects.get(
+            eventType=eventType
+        ),
+        eventDetail=detail,
+        linkingAgentIdentifierValue=agent,
+        linkingObjectIdentifierValue=ip,
+    )
