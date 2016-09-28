@@ -181,7 +181,7 @@ def createXMLStructure(name, content, info, fob=None, namespace='', level=1):
             namespace = value
         elif key[:1] != '-':
             #child
-            if isinstance(value, OrderedDict) or isinstance(value, dict):
+            if isinstance(value, dict):
                 parseChild(key, value, info, namespace, t, fob, level)
             elif isinstance(value, list):
                 for l in value:
