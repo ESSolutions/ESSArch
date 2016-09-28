@@ -163,5 +163,5 @@ class CalculateChecksum(DBTask):
         self.set_progress(100, total=100)
         return hash_val.hexdigest()
 
-    def undo(self, filename=None):
+    def undo(self, filename=None, block_size=65536, algorithm=hashlib.sha256):
         pass
