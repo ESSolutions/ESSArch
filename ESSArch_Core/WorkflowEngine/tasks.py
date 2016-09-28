@@ -6,8 +6,9 @@ import shutil
 
 from configuration.models import EventType, Path
 from preingest.dbtask import DBTask
-from ip.models import EventIP, InformationPackage
+from ip.models import InformationPackage
 from preingest.models import ProcessStep
+from preingest.util import create_event
 
 class PrepareIP(DBTask):
     def run(self, label="", responsible={}, step=None):
@@ -45,6 +46,8 @@ class PrepareIP(DBTask):
             s = ProcessStep.objects.get(pk=step)
             ip.steps.add(s)
 
+        create_event(10100, "Preparing IP", "System", ip)
+
         self.set_progress(100, total=100)
 
         return ip
@@ -79,42 +82,16 @@ class CreateIPRootDir(DBTask):
         path = self.create_path(str(information_package.pk))
         os.makedirs(path)
 
+        create_event(
+            10100, "Creating IP root directory", "System", information_package
+        )
+
         self.set_progress(100, total=100)
         return information_package
 
     def undo(self, information_package=None):
         path = self.create_path(information_package.pk)
         shutil.rmtree(path)
-
-
-class CreateEvent(DBTask):
-    def run(self, information_package=None, detail=""):
-        """
-        Creates a new event and saves it to the database
-
-        Args:
-            detail: The detail of the event
-            information_package_id: The id of the IP connected to the event
-
-        Returns:
-            The created event
-        """
-
-
-        event = EventIP.objects.create(
-            eventType=EventType.objects.get(
-                eventType=10100
-            ),
-            eventDetail=detail,
-            linkingAgentIdentifierValue="System",
-            linkingObjectIdentifierValue=information_package,
-        )
-
-        self.set_progress(100, total=100)
-        return event.id
-
-    def undo(self, information_package=None, detail=""):
-        pass
 
 
 class CreatePhysicalModel(DBTask):
@@ -169,6 +146,11 @@ class CalculateChecksum(DBTask):
 
         fd = os.open(filename, os.O_RDONLY)
         hash_val = algorithm()
+
+        create_event(
+            10200,"Calculating checksum for %s" % filename, "System",
+            self.taskobj.information_package
+        )
 
         while True:
             data = os.read(fd, block_size)
