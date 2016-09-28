@@ -1,7 +1,6 @@
 import os, re
 import hashlib
 import uuid
-import json
 import copy
 from collections import OrderedDict
 import fileinput
@@ -242,13 +241,7 @@ def createXML(info, filesToCreate, folderToParse):
     sortedFiles = []
 
     for key, value in filesToCreate.iteritems():
-        json_data=open(value).read()
-        try:
-            data = json.loads(json_data, object_pairs_hook=OrderedDict)
-        except ValueError as err:
-            print err # implement logger
-            return  False
-        name, rootE = data.items()[0] # root element
+        name, rootE = value.items()[0] # root element
         xmlFile = os.open(key,os.O_RDWR|os.O_CREAT)
         os.write(xmlFile, '<?xml version="1.0" encoding="UTF-8"?>\n')
         namespace = rootE.get('-namespace', None)
