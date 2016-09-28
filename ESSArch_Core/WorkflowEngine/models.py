@@ -400,9 +400,9 @@ class ProcessTask(Process):
         self.save()
 
         return ProcessTask.objects.create(
-            processstep=self.processstep, name=self.name,
-            params=self.params, processstep_pos=self.processstep_pos,
-            attempt=attempt, status="PREPARED"
+            processstep=self.processstep, name=self.name, params=self.params,
+            processstep_pos=self.processstep_pos, attempt=attempt,
+            status="PREPARED", information_package=self.information_package,
         )
 
     class Meta:
