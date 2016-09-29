@@ -330,7 +330,10 @@ class AppendEvents(DBTask):
 
             appendXML(inputD)
 
-
+        create_event(
+            10200, "Appending events to %s" % (filename), "System",
+            self.taskobj.information_package
+        )
         self.set_progress(100, total=100)
 
     def undo(self, filename="", events={}):
