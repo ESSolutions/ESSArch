@@ -192,6 +192,149 @@ class GenerateXML(DBTask):
         for f, template in filesToCreate.iteritems():
             os.remove(f)
 
+class AppendEvents(DBTask):
+    """
+    """
+
+    def run(self, filename="", events={}):
+        for event in events:
+            inputD = {
+                "path": filename,
+                "elementToAppendTo": "premis:premis",
+                "template": {
+                    "event": {
+                        "-min": 1,
+                        "-max": 1,
+                        "-allowEmpty": 1,
+                        "-namespace": "premis",
+                        "eventIdentifier": {
+                            "-min": 1,
+                            "-max": 1,
+                            "-allowEmpty": 1,
+                            "-namespace": "premis",
+                            "eventIdentifierType": {
+                                "-min": 1,
+                                "-max": 1,
+                                "-namespace": "premis",
+                                "#content": [{"var":"eventIdentifierType"}]
+                            },
+                            "eventIdentifierValue": {
+                                "-min": 1,
+                                "-max": 1,
+                                "-allowEmpty": 1,
+                                "-namespace": "premis",
+                                "#content": [{"var": "eventIdentifierValue"}]
+                            },
+                        },
+                        "eventType": {
+                            "-min": 1,
+                            "-max": 1,
+                            "-allowEmpty": 1,
+                            "-namespace": "premis",
+                            "#content": [{"var": "eventType"}]
+                        },
+                        "eventDateTime": {
+                            "-min": 1,
+                            "-max": 1,
+                            "-allowEmpty": 1,
+                            "-namespace": "premis",
+                            "#content": [{"var": "eventDateTime"}]
+                        },
+                        "eventDetail": {
+                            "-min": 1,
+                            "-max": 1,
+                            "-allowEmpty": 1,
+                            "-namespace": "premis",
+                            "#content": [{"var": "eventDetail"}]
+                        },
+                        "eventOutcomeInformation": {
+                            "-min": 1,
+                            "-max": 1,
+                            "-allowEmpty": 1,
+                            "-namespace": "premis",
+                            "eventOutcome": {
+                                "-min": 1,
+                                "-max": 1,
+                                "-allowEmpty": 1,
+                                "-namespace": "premis",
+                                "#content": [{"var":"eventOutcome"}]
+                            },
+                            "eventOutcomeDetail": {
+                                "-min": 1,
+                                "-max": 1,
+                                "-allowEmpty": 1,
+                                "-namespace": "premis",
+                                "eventOutcomeDetailNote": {
+                                    "-min": 1,
+                                    "-max": 1,
+                                    "-allowEmpty": 1,
+                                    "-namespace": "premis",
+                                    "#content": [{"var":"eventOutcomeDetailNote"}]
+                                },
+                            },
+                        },
+                        "linkingAgentIdentifier": {
+                            "-min": 1,
+                            "-max": 1,
+                            "-allowEmpty": 1,
+                            "-namespace": "premis",
+                            "linkingAgentIdentifierType": {
+                                "-min": 1,
+                                "-max": 1,
+                                "-namespace": "premis",
+                                "#content": [{"var":"linkingAgentIdentifierType"}]
+                            },
+                            "linkingAgentIdentifierValue": {
+                                "-min": 1,
+                                "-max": 1,
+                                "-allowEmpty": 1,
+                                "-namespace": "premis",
+                                "#content": [{"var": "linkingAgentIdentifierValue"}]
+                            },
+                        },
+                        "linkingObjectIdentifier": {
+                            "-min": 1,
+                            "-max": 1,
+                            "-allowEmpty": 1,
+                            "-namespace": "premis",
+                            "linkingObjectIdentifierType": {
+                                "-min": 1,
+                                "-max": 1,
+                                "-namespace": "premis",
+                                "#content": [{"var":"linkingObjectIdentifierType"}]
+                            },
+                            "linkingObjectIdentifierValue": {
+                                "-min": 1,
+                                "-max": 1,
+                                "-allowEmpty": 1,
+                                "-namespace": "premis",
+                                "#content": [{"var": "linkingObjectIdentifierValue"}]
+                            },
+                        },
+                    }
+                },
+                "data": {
+                    "eventIdentifierType": "SE/RA",
+                    "eventIdentifierValue": str(event.id),
+                    "eventType": str(event.eventType.eventType),
+                    "eventDateTime": str(event.eventDateTime),
+                    "eventDetail": event.eventDetail,
+                    "eventOutcome": event.eventOutcome,
+                    "eventOutcomeDetailNote": event.eventOutcomeDetailNote,
+                    "linkingAgentIdentifierType": "SE/RA",
+                    "linkingAgentIdentifierValue": "admin",
+                    "linkingObjectIdentifierType": "SE/RA",
+                    "linkingObjectIdentifierValue": str(event.linkingObjectIdentifierValue.id),
+                }
+            }
+
+            appendXML(inputD)
+
+
+        self.set_progress(100, total=100)
+
+    def undo(self, filename="", events={}):
+        pass
 
 class CopySchemas(DBTask):
     """
