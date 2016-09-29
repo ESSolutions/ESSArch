@@ -71,6 +71,7 @@
         $scope.dataForTheTree = [];
         $scope.showSelected = function(sel, selected) {
           var data = vm.existingElements[sel];
+          console.log(data);
           vm.selectedNode = data;
           vm.title = data['name'].charAt(0).toUpperCase() + data['name'].slice(1);
           vm.min = data['min'];
@@ -170,12 +171,15 @@
         };
 
         vm.calculatePossibleChildren = function(child, existing) {
-          console.log(vm.choiseCount);
-          console.log(vm.allElements);
-        //   var el = vm.allElements[child['name']]['max'];
+          var templateElement;
+          if (child['name'] in vm.allElements) {
+              templateElement = vm.allElements[child['name']];
+          } else {
+              templateElement = 0;
+          }
           var allChildren = [];
           if (child['type'] == 'element') {
-            if ((!(child['name'] in existing)) || existing[child['name']] < vm.allElements[child['name']]['max'] || vm.allElements[child['name']]['max'] == -1) {
+            if ((!(child['name'] in existing)) || existing[child['name']] < templateElement['max'] || templateElement['max'] == -1) {
               allChildren.push(child['name']);
             }
           } else if (child['type'] == 'choise') {
@@ -186,7 +190,7 @@
               var el = child['elements'][i];
               if (el['type'] == 'element') {
                 if (el['name'] in existing) {
-                  var maxCount = vm.allElements[el['name']]['max'];
+                  var maxCount = templateElement['max'];
                   if (maxCount == -1 || existing[el['name']] < maxCount) {
                     return [el['name']];
                   } else {
