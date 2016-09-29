@@ -3,8 +3,11 @@ from __future__ import absolute_import
 import hashlib
 import os
 import shutil
+import urllib
 
-from demo.xmlGenerator import createXML
+from django.conf import settings
+
+from demo.xmlGenerator import createXML, appendXML
 
 from configuration.models import Path
 from preingest.dbtask import DBTask
@@ -107,20 +110,21 @@ class CreatePhysicalModel(DBTask):
             root: The root dictionary to be used
         """
 
-        root = str(root)
+        root = os.path.join(settings.BASE_DIR, str(root))
 
         for k, v in structure.iteritems():
-            k = str(k)
-            dirname = os.path.join(root, k)
-            os.makedirs(dirname)
+            if v['type'] == 'dir':
+                k = str(k)
+                dirname = os.path.join(root, k)
+                os.makedirs(dirname)
 
-            if isinstance(v, dict):
-                self.run(v, dirname)
+                if 'children' in v:
+                    self.run(v['children'], dirname)
 
         self.set_progress(1, total=1)
 
     def undo(self, structure={}, root=""):
-        root = str(root)
+        root = os.path.join(settings.BASE_DIR, str(root))
 
         if root:
             shutil.rmtree(root)
@@ -189,6 +193,42 @@ class GenerateXML(DBTask):
         for f, template in filesToCreate.iteritems():
             os.remove(f)
 
+
+class CopySchemas(DBTask):
+    """
+    Copies the schemas to a specified (?) location
+    """
+
+    def findDestination(self, dirname, structure, path=''):
+        for k, v in structure.iteritems():
+            if k == dirname and v['type'] == 'dir':
+                return os.path.join(path, dirname)
+            elif v['type'] == 'dir':
+                rec = self.findDestination(
+                    dirname, v['children'], os.path.join(path, k)
+                )
+                if rec: return rec
+
+    def run(self, schemas={}, root=None, structure=None):
+        for schema in schemas:
+            src = schema['location']
+            fname = os.path.basename(src.rstrip("/"))
+            dst = os.path.join(
+                root,
+                self.findDestination(schema['preservation_location'], structure),
+                fname
+            )
+            urllib.urlretrieve(src, dst)
+            create_event(
+                10200,
+                "Download from %s to %s" % (src, dst),
+                "System", self.taskobj.information_package
+            )
+
+        self.set_progress(100, total=100)
+
+    def undo(self, schemas={}, root=None, structure=None):
+        pass
 
 class ValidateFileFormat(DBTask):
     """
