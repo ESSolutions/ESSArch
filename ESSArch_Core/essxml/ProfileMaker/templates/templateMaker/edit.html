@@ -60,11 +60,29 @@
         {% csrf_token %}
         <button type="button" class="btn btn-primary" ng-click="vm.saveAttribute()" ng-disabled="vm.floatingform.$invalid">Add Attribute</button>
         <button type="button" class="btn btn-danger" ng-click="vm.closeFloatingForm()">Cancel</button>
+        <treecontrol class="tree-classic"
+            tree-model="allAttributes"
+            options="treeOptions"
+            on-selection="addAttribute(node.data)"
+            selected-node="node1"
+            expanded-nodes="expandedNodes"
+            style="float:left;">
+            <span class="{% verbatim %}{{node.templateOnly}}{% endverbatim %}">element: {% verbatim %}{{node.name}}{% endverbatim %}</span>
+        </treecontrol>
     </formly-form>
 
     <formly-form model="vm.floatingElementmodel" fields="vm.floatingElementfields" form="vm.floatingElementform" class="floatingForm" ng-show="vm.floatingElementVisable">
         {% csrf_token %}
         <button type="button" class="btn btn-primary" ng-click="vm.saveElement()" ng-disabled="vm.floatingElementform.$invalid">Add Element</button>
+        <treecontrol class="tree-classic"
+            tree-model="allElementsAvaliable"
+            options="treeOptions"
+            on-selection="addEl(node.data)"
+            selected-node="node1"
+            expanded-nodes="expandedNodes"
+            style="float:left;">
+            <span class="{% verbatim %}{{node.templateOnly}}{% endverbatim %}">element: {% verbatim %}{{node.name}}{% endverbatim %}</span>
+        </treecontrol>
     </formly-form>
 
     <div class="container col-md-4">

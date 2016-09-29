@@ -170,7 +170,9 @@
         };
 
         vm.calculatePossibleChildren = function(child, existing) {
-          console.log(vm.choiseCount)
+          console.log(vm.choiseCount);
+          console.log(vm.allElements);
+        //   var el = vm.allElements[child['name']]['max'];
           var allChildren = [];
           if (child['type'] == 'element') {
             if ((!(child['name'] in existing)) || existing[child['name']] < vm.allElements[child['name']]['max'] || vm.allElements[child['name']]['max'] == -1) {
@@ -252,7 +254,24 @@
         vm.addAttribute = function() {
             vm.floatingVisable = !vm.floatingVisable;
             vm.floatingmodel = [];
+            $http.get('/template/getAttributes/' + templateName + '/').then(function(res) {
+              console.log(res.data);
+              $scope.allAttributes = res.data;
+            });
+            // $scope.allAttributes = [];
         };
+
+        $scope.addAttribute = function(data) {
+            if (data == undefined) return;
+            console.log(data);
+            vm.fields.push(data);
+            vm.floatingVisable = false;
+            $http({
+                method: 'POST',
+                url: '/template/struct/addAttrib/' + templateName + '/' + vm.uuid + '/',
+                data: data
+            });
+        }
 
         vm.saveAttribute = function() {
             var attribute = {};
@@ -281,7 +300,29 @@
         vm.addElement = function() {
             vm.floatingElementVisable = !vm.floatingElementVisable;
             vm.floatingElementmodel = [];
+            $http.get('/template/getElements/' + templateName + '/').then(function(res) {
+            //   console.log(res.data);
+              $scope.allElementsAvaliable = res.data;
+            });
+            // $scope.allElementsAvaliable
         };
+
+        $scope.addEl = function(data) {
+            console.log(data);
+            data['parent'] = vm.uuid;
+            $http({
+                method: 'POST',
+                url: '/template/struct/addExtensionChild/' + templateName + '/',
+                data: data
+            }).then(function(res) {
+              console.log(res.data);
+                vm.floatingElementVisable = false;
+                $scope.treeElements = [];
+                $scope.treeElements.push(vm.buildTree('root', res.data));
+                vm.existingElements = res.data;
+                $scope.showSelected(vm.uuid, false);
+            });
+        }
 
         vm.saveElement = function() {
             // console.log(sle)

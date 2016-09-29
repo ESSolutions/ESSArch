@@ -4,8 +4,10 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template import Context, loader, RequestContext
-from models import templatePackage
+from models import templatePackage, extensionPackage
 from profiles.models import Profile
+import os
+from django.conf import settings
 #file upload
 # import the logging library and get an instance of a logger
 import logging
@@ -19,7 +21,7 @@ from collections import OrderedDict
 
 from django.views.generic import View
 from django.http import JsonResponse
-from esscore.template.templateGenerator.testXSDToJSON import generateJsonRes
+from esscore.template.templateGenerator.testXSDToJSON import generateJsonRes, generateExtensionRef
 from forms import AddTemplateForm
 
 
@@ -199,6 +201,23 @@ def getAllElements(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
     return JsonResponse(obj.allElements, safe=False)
 
+def getElements(request, name):
+    obj = get_object_or_404(templatePackage, pk=name)
+    res = []
+    for extension in obj.extensions.all():
+        if extension.existingElements != None and len(extension.existingElements) > 0:
+            r = {}
+            r['name'] = extension.namespace
+            children = []
+            for child in extension.existingElements:
+                c = {}
+                c['name'] = child
+                c['data'] = extension.existingElements[child]
+                children.append(c)
+            r['children'] = children
+            res.append(r)
+    return JsonResponse(res, safe=False)
+
 def removeChild(request, name, uuid):
     obj = get_object_or_404(templatePackage, pk=name)
     existingElements = obj.existingElements
@@ -247,12 +266,53 @@ def addUserChild(request, name):
     obj.save()
     return JsonResponse(obj.existingElements, safe=False)
 
+def addExtensionElement(request, name):
+    obj = get_object_or_404(templatePackage, pk=name)
+    newUuid = uuid.uuid4().__str__()
+    res = json.loads(request.body)
+    parent = obj.existingElements[res['parent']]
+    element = {}
+    element['anyAttribute'] = True
+    element['anyElement'] = True
+    element['avaliableChildren'] = []
+    if 'avaliableChildren' in res:
+        element['avaliableChildren'] = res['avaliableChildren']
+    element['children'] = []
+    element['containsFiles'] = False
+    element['form'] = []
+    if 'form' in res:
+        element['form'] = res['form']
+    element['formData'] = []
+    if 'formData' in res:
+        element['formData'] = res['formData']
+    element['max'] = res['max']
+    element['min'] = res['min']
+    element['name'] = res['name']
+    if 'namespace' not in res:
+        element['namespace'] = parent['namespace']
+    else:
+        element['namespace'] = res['namespace']
+    element['parent'] = res['parent']
+    element['userForm'] = []
+    obj.existingElements[newUuid] = element
+    e = {}
+    e['name'] = res['name']
+    e['uuid'] = newUuid
+    obj.existingElements[res['parent']]['children'].append(e)
+    obj.save()
+    return JsonResponse(obj.existingElements, safe=False)
+
 def addChild(request, name, newElementName, elementUuid):
     obj = get_object_or_404(templatePackage, pk=name)
     existingElements = obj.existingElements
     templates = obj.allElements
     newUuid = uuid.uuid4().__str__()
-    newElement = copy.deepcopy(templates[newElementName])
+    if newElementName in templates:
+        newElement = copy.deepcopy(templates[newElementName])
+    else:
+        for extension in obj.extensions.all():
+            if newElementName in extension.allElements:
+                newElement = copy.deepcopy(extension.allElements[newElementName])
     newElement['parent'] = elementUuid
     existingElements[newUuid] = newElement
 
@@ -284,6 +344,23 @@ def calculateChildrenBefore(children, newElementName):
         elif child['type'] == 'choise':
             arr = arr + calculateChildrenBefore(child['elements'], newElementName)
     return arr
+
+def getAttributes(request, name):
+    obj = get_object_or_404(templatePackage, pk=name)
+    res = []
+    for extension in obj.extensions.all():
+        if extension.allAttributes != None and len(extension.allAttributes) > 0:
+            r = {}
+            r['name'] = extension.namespace
+            children = []
+            for child in extension.allAttributes:
+                c = {}
+                c['name'] = child
+                c['data'] = extension.allAttributes[child]
+                children.append(c)
+            r['children'] = children
+            res.append(r)
+    return JsonResponse(res, safe=False)
 
 def addAttribute(request, name, uuid):
     obj = get_object_or_404(templatePackage, pk=name)
@@ -360,8 +437,19 @@ class add(View):
             return HttpResponse('ERROR: templatePackage with name "' + name + '" already exists!')
 
         existingElements, allElements = generateJsonRes(request.FILES['file'], request.POST['root_element'], request.POST['namespace_prefix']);
-        # return JsonResponse(existingElements, safe=False)
         t = templatePackage(existingElements=existingElements, allElements=allElements, name=name, namespace=request.POST['namespace_prefix'], root_element=request.POST['root_element'])
+        t.save()
+        extensionElements, extensionAll, attributes = generateExtensionRef(os.path.join(settings.BASE_DIR, 'esscore/template/templateGenerator/premis.xsd'), 'premis')
+        e = extensionPackage(namespace='premis', allElements=extensionAll, existingElements=extensionElements, allAttributes=attributes)
+        e.save()
+        t.extensions.add(e)
+
+        extensionElements, extensionAll, attributes = generateExtensionRef(os.path.join(settings.BASE_DIR, 'esscore/template/templateGenerator/xlink.xsd'), 'xlink')
+        e = extensionPackage(namespace='xmlns', allElements=extensionAll, existingElements=extensionElements, allAttributes=attributes)
+        e.save()
+        t.extensions.add(e)
+        # return JsonResponse(attributes, safe=False)
+
         t.save()
         return redirect('/template/edit/' + name)
 

@@ -11,3 +11,35 @@
       </form>
     </body>
 </html>
+
+<!-- <!doctype html>
+<html ng-app="add" ng-controller="MainController as vm">
+    <head>
+        <link rel="stylesheet" type="text/css" href="/static/templateMaker/angular/bootstrap/dist/css/bootstrap.css">
+        <link rel="stylesheet" type="text/css" href="/static/templateMaker/scripts/style.css">
+
+        Angular Scripts
+        <script src="/static/templateMaker/angular/api-check/dist/api-check.js"></script>
+        <script src="/static/templateMaker/angular/angular/angular.js"></script>
+        <script src="/static/templateMaker/angular/angular-formly/dist/formly.js"></script>
+        <script src="/static/templateMaker/angular/angular-formly-templates-bootstrap/dist/angular-formly-templates-bootstrap.js"></script>
+
+        <script src="/static/templateMaker/scripts/addApp.js"></script>
+        <title>TemplateMaker</title>
+    </head>
+    <body>
+      <form ng-submit="vm.onSubmit()" name="vm.form">
+        {% csrf_token %}
+        <formly-form model="vm.model" fields="vm.fields" form="vm.form" options="vm.options">
+            <input type="submit" value="Submit">
+        </formly-form>
+        {{ form }}
+        <tr><th><label for="id_template_name">Template name:</label></th><td><input id="id_template_name" maxlength="50" name="template_name" type="text" required /></td></tr>
+<tr><th><label for="id_namespace_prefix">Namespace prefix:</label></th><td><input id="id_namespace_prefix" maxlength="20" name="namespace_prefix" type="text" required /></td></tr>
+<tr><th><label for="id_root_element">Root element:</label></th><td><input id="id_root_element" maxlength="55" name="root_element" type="text" required /></td></tr>
+<tr><th><label for="id_file">File:</label></th><td><input id="id_file" name="file" type="file" required /></td></tr>
+<tr><th><label for="id_file2">File2:</label></th><td><input id="id_file2" name="file2" type="file" required /></td></tr>
+        <input type="submit" value="Submit" ng-click="vm.onSubmit()">
+      </form>
+    </body>
+</html> -->
