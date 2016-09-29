@@ -181,8 +181,9 @@ class GenerateXML(DBTask):
 
     def run(self, info={}, filesToCreate={}, folderToParse=None):
         create_event(
-            10200, "Generating XML", "System",
-            self.taskobj.information_package
+            10200,
+            "Generating XML files: %s" % ", ".join(filesToCreate.keys()),
+            "System", self.taskobj.information_package
         )
         createXML(info, filesToCreate, folderToParse)
 
