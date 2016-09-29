@@ -180,12 +180,11 @@ class GenerateXML(DBTask):
     """
 
     def run(self, info={}, filesToCreate={}, folderToParse=None):
-        if folderToParse:
-            create_event(
-                10200, "Generating XML", "System",
-                self.taskobj.information_package
-            )
-            createXML(info, filesToCreate, folderToParse)
+        create_event(
+            10200, "Generating XML", "System",
+            self.taskobj.information_package
+        )
+        createXML(info, filesToCreate, folderToParse)
 
         self.set_progress(100, total=100)
 

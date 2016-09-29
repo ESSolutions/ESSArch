@@ -269,7 +269,8 @@ def createXML(info, filesToCreate, folderToParse):
         fob.rootElement = rootEl
         #print 'namespace: %s' % rootE['-namespace']
 
-    parseFiles(folderToParse, resultFile=filesToCreate, sortedFiles=sortedFiles)
+    if folderToParse:
+        parseFiles(folderToParse, resultFile=filesToCreate, sortedFiles=sortedFiles)
 
     # add the tmp files to the bottom of the appropriate file and write out the next section of xml until it's done
     for fob in sortedFiles:
