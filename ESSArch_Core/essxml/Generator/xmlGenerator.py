@@ -9,6 +9,10 @@ from django.conf import settings
 
 from xmlStructure import xmlElement, xmlAttribute, fileInfo, fileObject, dlog
 
+from configuration.models import (
+    Path,
+)
+
 foundFiles = 0
 
 def calculateChecksum(filename):
@@ -31,7 +35,15 @@ def parseFiles(rootdir='/SIP/huge', level=3, resultFile=[], sortedFiles=[]):
     walk through the choosen folder and parse all the files to their own temporary location
     """
     fileInfo = {}
-    mimetypes.init(files=[settings.BASE_DIR, 'demo/mime.types'])
+
+    mimetypes.suffix_map={}
+    mimetypes.encodings_map={}
+    mimetypes.types_map={}
+    mimetypes.common_types={}
+    mimetypes_file = Path.objects.get(
+        entity="path_mimetypes_definitionfile"
+    ).value
+    mimetypes.init(files=[mimetypes_file])
 
     for dirname, dirnames, filenames in os.walk(rootdir):
         for file in filenames:
@@ -46,7 +58,12 @@ def parseFiles(rootdir='/SIP/huge', level=3, resultFile=[], sortedFiles=[]):
                 fileInfo['FName'] = os.path.relpath(filepath, rootdir)
                 fileInfo['FChecksum'] = calculateChecksum(filepath)
                 fileInfo['FID'] = str(uuid.uuid4())
-                fileInfo['FMimetype'] = mimetypes.types_map.get('.'+file.split('.')[-1], 'unknown')
+                if '.'+file.split('.')[-1] not in mimetypes.types_map:
+                    raise KeyError("Invalid file type!")
+                fileInfo['FMimetype'] = mimetypes.types_map.get(
+                    '.'+file.split('.')[-1],
+                    'application/octet-stream'
+                )
                 fileInfo['FCreated'] = '2016-02-21T11:18:44+01:00'
                 fileInfo['FFormatName'] = 'MS word'
                 fileInfo['FSize'] = str(os.path.getsize(filepath))
