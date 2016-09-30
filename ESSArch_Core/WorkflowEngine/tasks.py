@@ -1,9 +1,6 @@
 from __future__ import absolute_import
 
-import hashlib
-import os
-import shutil
-import urllib
+import hashlib, os, shutil, tarfile, urllib, zipfile
 
 from django.conf import settings
 
@@ -454,9 +451,10 @@ class CreateTAR(DBTask):
 
     def run(self, dirname=None, tarname=None):
         base_dir = os.path.basename(os.path.normpath(dirname))
-        dirname = dirname[:-len(base_dir)]
 
-        shutil.make_archive(tarname, "tar", dirname, base_dir)
+        with tarfile.TarFile(tarname, 'w') as new_tar:
+            new_tar.add(dirname, base_dir)
+
         create_event(
             10200, "Create %s.tar from %s" % (tarname, dirname), "System",
             self.taskobj.information_package
@@ -477,14 +475,22 @@ class CreateZIP(DBTask):
     """
 
     def run(self, dirname=None, zipname=None):
-        base_dir = os.path.basename(os.path.normpath(dirname))
-        dirname = dirname[:-len(base_dir)]
+        with zipfile.ZipFile(zipname, 'w') as new_zip:
+            for root, dirs, files in os.walk(dirname):
+                for d in dirs:
+                    filepath = os.path.join(root, d)
+                    arcname = filepath[len(dirname) + 1:]
+                    new_zip.write(filepath, arcname)
+                for f in files:
+                    filepath = os.path.join(root, f)
+                    arcname = filepath[len(dirname) + 1:]
+                    new_zip.write(filepath, arcname)
 
-        shutil.make_archive(zipname, "zip", dirname, base_dir)
         create_event(
             10200, "Create %s.zip from %s" % (zipname, dirname), "System",
             self.taskobj.information_package
         )
+
         self.set_progress(100, total=100)
 
     def undo(self, dirname=None, zipname=None):
