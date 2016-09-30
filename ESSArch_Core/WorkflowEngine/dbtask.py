@@ -4,7 +4,7 @@ import time
 
 from celery import states as celery_states, Task
 
-from django.core.exceptions import (
+from django.db import (
     OperationalError,
 )
 
