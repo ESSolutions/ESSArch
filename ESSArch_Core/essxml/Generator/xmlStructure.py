@@ -48,7 +48,7 @@ class xmlAttribute(object):
         Print out the attribute
         """
         if self.value is not '':
-            print ' ' + self.attrName + '="' + self.value + '"',
+            return self.attrName + '="' + self.value + '"'
 
 class xmlElement(object):
     '''
@@ -122,33 +122,27 @@ class xmlElement(object):
         """
         Print out the complete element.
         """
-        if self.printed == 2:
-            return False
-        if self.printed == 0:
-            pretty_print_string(level, pretty)
-            print '<' + self.completeTagName,
-            for a in self.attributes:
-                a.XMLToString()
-        if self.children or self.value is not '' or self.containsFiles:
-            if self.printed == 0:
-                print '>' + eol_,
-            if not self.containsFiles or self.printed == 1:
-                for child in self.children:
-                    if child.XMLToString(level + 1, pretty):
-                        self.printed = 1
-                        return True
-                if self.value is not '':
-                    pretty_print_string(level + 1, pretty)
-                    print self.value + eol_,
-                pretty_print_string(level, pretty)
-                print '</' + self.completeTagName + '>' + eol_,
-                self.printed = 2
-            else:
-                self.printed = 1
-                return True
+
+        pretty_print_string(level, pretty)
+
+        if self.value:
+            print '<%s>%s</%s>%s' % (self.completeTagName, self.value, self.completeTagName, eol_),
         else:
-            print '/>' + eol_,
-            self.printed = 2
+            attrs = [a.XMLToString() for a in self.attributes]
+            if attrs:
+                print '<%s %s>' % (self.completeTagName, " ".join(attrs))
+            else:
+                print '<%s>' % (self.completeTagName)
+
+            if self.children or self.containsFiles:
+                if not self.containsFiles:
+                    for child in self.children:
+                        if child.XMLToString(level + 1, pretty):
+                            return True
+                    pretty_print_string(level, pretty)
+                    print '</' + self.completeTagName + '>' + eol_,
+                else:
+                    return True
 
     def isEmpty(self):
         """
