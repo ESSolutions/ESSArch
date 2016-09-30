@@ -1,6 +1,12 @@
 from __future__ import absolute_import, division
 
+import time
+
 from celery import states as celery_states, Task
+
+from django.core.exceptions import (
+    OperationalError,
+)
 
 from django.utils import timezone
 
@@ -33,9 +39,16 @@ class DBTask(Task):
             return prev_result_dict
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
-        self.taskobj.status = status
-        self.taskobj.time_done = timezone.now()
-        self.taskobj.save()
+        try:
+            self.taskobj.status = status
+            self.taskobj.time_done = timezone.now()
+            self.taskobj.save()
+        except OperationalError:
+            print "Database locked, trying again after 2 seconds"
+            time.sleep(2)
+            self.taskobj.status = status
+            self.taskobj.time_done = timezone.now()
+            self.taskobj.save()
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         self.taskobj.traceback = einfo.traceback
