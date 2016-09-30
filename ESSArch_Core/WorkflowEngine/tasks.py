@@ -489,3 +489,13 @@ class CreateZIP(DBTask):
 
     def undo(self, dirname=None, zipname=None):
         pass
+
+class UpdateIPStatus(DBTask):
+
+    def run(self, ip=None, status=None):
+        ip.State = status
+        ip.save()
+        self.set_progress(100, total=100)
+
+    def undo(self, ip=None, status=None):
+        pass
