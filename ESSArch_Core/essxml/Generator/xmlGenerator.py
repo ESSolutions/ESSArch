@@ -54,15 +54,19 @@ def parseFiles(rootdir='/SIP/huge', level=3, resultFile=[], sortedFiles=[]):
                     found = True
 
             if not found:
-                fileInfo['FName'] = os.path.relpath(filepath, rootdir)
+                file_name, file_ext = os.path.splitext(
+                    os.path.relpath(filepath, rootdir)
+                )
+
+                try:
+                    mimetype = mimetypes.types_map[file_ext]
+                except KeyError:
+                    raise KeyError("Invalid file type: %s" % file_ext)
+
+                fileInfo['FName'] = file_name + file_ext
                 fileInfo['FChecksum'] = calculateChecksum(filepath)
                 fileInfo['FID'] = str(uuid.uuid4())
-                if '.'+file.split('.')[-1] not in mimetypes.types_map:
-                    raise KeyError("Invalid file type!")
-                fileInfo['FMimetype'] = mimetypes.types_map.get(
-                    '.'+file.split('.')[-1],
-                    'application/octet-stream'
-                )
+                fileInfo['FMimetype'] = mimetype
                 fileInfo['FCreated'] = '2016-02-21T11:18:44+01:00'
                 fileInfo['FFormatName'] = 'MS word'
                 fileInfo['FSize'] = str(os.path.getsize(filepath))
