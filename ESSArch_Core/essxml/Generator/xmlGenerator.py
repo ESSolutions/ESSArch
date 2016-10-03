@@ -198,13 +198,8 @@ def createXMLStructure(name, content, info, fob=None, namespace='', level=1):
                     parseChild(key, l, info, namespace, t, fob, level)
 
     if t.isEmpty():
-        if  '-allowEmpty' in content:
-            if content['-allowEmpty'] != 1:
-                return None
-            else:
-                return t
-        else:
-            return None
+        allowEmpty = content.get('-allowEmpty', None)
+        return t if allowEmpty == 1 else None
     else:
         return t
 
