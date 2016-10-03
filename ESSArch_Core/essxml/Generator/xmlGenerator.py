@@ -5,6 +5,7 @@ import copy
 from collections import OrderedDict
 import fileinput
 import mimetypes
+import tempfile
 from django.conf import settings
 
 from xmlStructure import xmlElement, xmlAttribute, fileInfo, fileObject, dlog
@@ -12,8 +13,6 @@ from xmlStructure import xmlElement, xmlAttribute, fileInfo, fileObject, dlog
 from configuration.models import (
     Path,
 )
-
-foundFiles = 0
 
 def calculateChecksum(filename):
     """
@@ -131,44 +130,39 @@ def parseChild(name, content, info, namespace, t, fob, level=0):
             else:
                 break
 
+def addFile(content, fob, level):
+    arg = None
+    con = {}
+
+    for key, value in content.iteritems():
+        if key[:1] != '-' and key[:1] != '#':
+            con[key] = value
+
+    if '-sortby' in content:
+        arg = content['-sortby']
+
+    (tmp_obj, tmp_name) = tempfile.mkstemp()
+
+    f = fileInfo(con, tmp_name, arg, level=level)
+    f.fid = tmp_obj
+    fob.files.append(f)
 
 def createXMLStructure(name, content, info, fob=None, namespace='', level=1):
     """
     The main XML element creator where the json structure is broken down and converted into a xml.
     """
-    global foundFiles
     t = xmlElement(name, namespace)
     # loop through all attribute and children
     if '-containsFiles' in content and fob is not None:
         t.containsFiles = True
         c = content['-containsFiles']
-        arg = None
         if isinstance(c, OrderedDict):
-            con = {}
-            for key, value in c.iteritems():
-                if key[:1] != '-' and key[:1] != '#':
-                    con[key] = value
-            if '-sortby' in c:
-                arg = c['-sortby']
-            f = fileInfo(con, "tmp" + str(foundFiles)+".txt", arg)
-            f.fid = os.open(f.filename,os.O_RDWR|os.O_CREAT)
-            f.level = level
-            fob.files.append(f)
-            foundFiles += 1
+            addFile(c, fob, level)
 
         elif isinstance(c, list):
             for co in c:
-                con = {}
-                for key, value in co.iteritems():
-                    if key[:1] != '-' and key[:1] != '#':
-                        con[key] = value
-                if '-sortby' in co:
-                    arg = co['-sortby']
-                f = fileInfo(con, "tmp" + str(foundFiles)+".txt", arg)
-                f.fid = os.open(f.filename,os.O_RDWR|os.O_CREAT)
-                f.level = level
-                fob.files.append(f)
-                foundFiles += 1
+                addFile(co, fob, level)
+
     for key, value in content.iteritems():
         if key == '#content':
             for c in value:
