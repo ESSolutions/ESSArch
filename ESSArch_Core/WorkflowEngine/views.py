@@ -9,6 +9,7 @@ from preingest.models import (
 from preingest.serializers import (
     ProcessStepSerializer,
     ProcessTaskSerializer,
+    ProcessTaskDetailSerializer,
     GroupSerializer,
     PermissionSerializer,
     UserSerializer,
@@ -89,6 +90,12 @@ class ProcessTaskViewSet(viewsets.ModelViewSet):
     """
     queryset = ProcessTask.objects.all()
     serializer_class = ProcessTaskSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ProcessTaskSerializer
+
+        return ProcessTaskDetailSerializer
 
     @detail_route(methods=['post'])
     def undo(self, request, pk=None):

@@ -30,23 +30,34 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ProcessTask
         fields = (
-            'url', 'id', 'name', 'params', 'result', 'traceback', 'status',
-            'progress','processstep', 'processstep_pos', 'time_started', 'time_done',
-            'undone',
+            'url', 'id', 'name', 'status', 'progress', 'processstep_pos',
+            'time_started', 'time_done', 'undone',
         )
 
         read_only_fields = (
-            'params', 'result', 'traceback', 'status', 'progress', 'time_started', 'time_done', 'undone',
+            'status', 'progress', 'time_started', 'time_done', 'undone',
         )
 
+
+class ProcessTaskDetailSerializer(serializers.HyperlinkedModelSerializer):
     params = PickledObjectFieldSerializer()
     result = PickledObjectFieldSerializer()
+
+    class Meta:
+        model = ProcessTaskSerializer.Meta.model
+        fields = ProcessTaskSerializer.Meta.fields + (
+            'params', 'result', 'traceback',
+        )
+        read_only_fields = ProcessTaskSerializer.Meta.read_only_fields + (
+            'params', 'result', 'traceback',
+        )
+
 
 class ProcessTaskSetSerializer(ProcessTaskSerializer):
     class Meta:
         model = ProcessTaskSerializer.Meta.model
         fields = (
-            'url', 'name', 'params',
+            'url', 'name',
         )
 
 class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
