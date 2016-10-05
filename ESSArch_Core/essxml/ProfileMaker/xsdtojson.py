@@ -58,7 +58,6 @@ def getSuffix(tag):
 def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
     global choiseCount
     global elCount
-    # print element.local-name()
     global complexTypes
     global attributeGroups
     global finishedGroups
@@ -81,22 +80,14 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
 
         if ref:
             key = ref
-            # tpyeDef = element.get('name') + key
-            # print element.get('ref')
             if ':' in key:
                 key = key.split(':')[1]
             if key not in usedTypes:
                 if key in elementTypes:
                     usedTypes.append(key)
                     analyze2(elementTypes[key], tree, usedTypes=usedTypes)
-                    # finishedComplexTypes[key] = tree.calculateChildren()
-                    # attributesComplexTypes[key] = tree.attributes
                 else:
                     print "type unknown: " +key
-            #     if key in finishedComplexTypes:
-            #         t.type = TYPE_TO
-            #         t.attributes = attributesComplexTypes[key]
-            #         tree.addChild(t)
         else:
             t = xmlElement(element.get('name'), namespace=tree.namespace)
             t.karMin = minC
@@ -190,7 +181,6 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
         if ref:
             if ':' in ref:
                 ref = ref.split(':')[1]
-            # print ref
             if ref in attributeGroups:
                 for child in attributeGroups[ref]:
                     analyze2(child, tree, usedTypes=usedTypes)
@@ -260,7 +250,6 @@ def parseAttribute(element):
             print "Odd use value for attribute. value: " + str(use)
             return None
         att['templateOptions'] = templateOptions
-        # print att
     else:
         if element.get('name') is not None:
             att['key'] = element.get('name')
@@ -311,8 +300,6 @@ def generateExtensionRef(schemaName, namespace):
     global attributeGroups
     global groups
     global elementTypes
-    # pars = etree.parse("esscore/template/templateGenerator/CSPackageMETS.xsd")
-    # pars = etree.parse(os.path.join(settings.BASE_DIR,"esscore/template/templateGenerator/CSPackageMETS.xsd"))
     parser = etree.XMLParser(remove_comments=True)
     pars = etree.parse(schemaName, parser=parser)
     schema = '{http://www.w3.org/2001/XMLSchema}'
@@ -369,25 +356,11 @@ def generateExtensionRef(schemaName, namespace):
             tag = printTag(child.tag)
             if tag != 'complexType' and tag != 'attributeGroup':
                 tree = xmlElement(child.get('name'), namespace=namespace)
-                # for ch in child:
                 analyze2(child, tree)
                 if tree is not None:
                     aE, e, a = tree.children[0].listAllElements()
                     allElements.update(aE)
-                    # existingElements = {}
                     existingElements[tree.tagName] = copy.deepcopy(allElements[tree.tagName])
-                #add xmlns
-                # attribute = {};
-                # attribute['type'] = 'input'
-                # attribute['key'] = 'schemalocation'
-                # to = {}
-                # to['required'] = True
-                # to['type'] = 'text'
-                # to['label'] = 'schemalocation'
-                # attribute['templateOptions'] = to
-                # existingElements['root']['form'].insert(0, attribute)
-                # existingElements['root']['formData']['schemalocation'] = thisSchema
-                # print existingElements
         elif child.tag == (schema + 'attribute'):
             attributes[child.get('name')] = parseAttribute(child)
 
@@ -398,8 +371,6 @@ def generateJsonRes(schemaName, rootElement, namespace):
     global attributeGroups
     global groups
     global elementTypes
-    # pars = etree.parse("esscore/template/templateGenerator/CSPackageMETS.xsd")
-    # pars = etree.parse(os.path.join(settings.BASE_DIR,"esscore/template/templateGenerator/CSPackageMETS.xsd"))
     parser = etree.XMLParser(remove_comments=True)
     pars = etree.parse(schemaName, parser=parser)
     schema = '{http://www.w3.org/2001/XMLSchema}'
@@ -449,17 +420,14 @@ def generateJsonRes(schemaName, rootElement, namespace):
 
     for child in root.iterfind(schema + 'element'):
         if child.get('name') == rootElement:
-            # print child.tag
             tag = printTag(child.tag)
             if tag != 'complexType' and tag != 'attributeGroup':
                 tree = xmlElement(child.get('name'), namespace=namespace)
-                # for ch in child:
                 analyze2(child, tree)
                 if tree is not None:
                     allElements, e, a = tree.children[0].listAllElements()
                     existingElements = {}
                     existingElements['root'] = copy.deepcopy(allElements[rootElement])
-                    #add xmlns
                     attribute = {};
                     attribute['type'] = 'input'
                     attribute['key'] = 'schemalocation'
@@ -470,14 +438,7 @@ def generateJsonRes(schemaName, rootElement, namespace):
                     attribute['templateOptions'] = to
                     existingElements['root']['form'].insert(0, attribute)
                     existingElements['root']['formData']['schemalocation'] = thisSchema
-                    # print existingElements
-
                     return existingElements, allElements
-    # pars = None
-    # root = None
-    # tree = None
-    # complexTypes = OrderedDict()
-    # attributeGroups = OrderedDict()
 
 # a,b,c=generateExtensionRef("/Users/Axenu/Developer/ESSArch_Tools_Producer/ESSArch_TP2/esscore/template/templateGenerator/xlink.xsd", 'ead')
 # print c

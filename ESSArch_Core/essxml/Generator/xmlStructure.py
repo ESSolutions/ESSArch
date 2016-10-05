@@ -111,7 +111,6 @@ class xmlElement(object):
                         self.printed = 1
                         return True
                 if self.value is not '':
-                    #pretty_print(fd, level + 1, pretty)
                     os.write(fd, self.value)
                     pretty_print(fd, level, False)
                 else:
@@ -197,9 +196,6 @@ class xmlElement(object):
             el['name'] = self.tagName
             return {}, [el], self.attributes
         elif self.type == TYPE_TO_CHOISE:
-            # for child in self.children:
-                # print child.type
-            # print self.children
             return {}, self.children, self.attributes
 
     def calculateChildren(self):
@@ -258,8 +254,6 @@ class xmlElement(object):
         for child in self.children:
             child.delete()
         self.children = []
-        # for att in self.attrib:
-        #     att = None
         self.attributes = []
         self.value = ''
         self.karMin = 0
