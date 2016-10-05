@@ -284,13 +284,26 @@ def appendXML(inputData):
     """
     Searches throught the file for the expected tag and appends the new element before the end (appending it to the end)
     """
-    for line in fileinput.FileInput(inputData['path'],inplace=1):
-        if "</"+inputData['elementToAppendTo']+">" in line:
-            name, rootE = inputData['template'].items()[0]
-            rootEl = createXMLStructure(name, rootE, inputData['data'])
-            level = (len(line) - len(line.lstrip(' ')))/4
-            rootEl.XMLToString(level+1)
-        print line,
+
+    fname = inputData['path']
+    data = inputData['data']
+    elementToAppendTo = inputData['elementToAppendTo']
+    template = inputData['template']
+
+    tmpfile, tmpfilename = tempfile.mkstemp()
+
+    with open(fname, 'r') as f:
+        for line in f:
+            if "</" + elementToAppendTo + ">" in line:
+                name, rootE = template.items()[0]
+                rootEl = createXMLStructure(name, rootE, data)
+                level = (len(line) - len(line.lstrip(' ')))/4
+                rootEl.printXML(tmpfile, level+1)
+
+            os.write(tmpfile, line)
+
+    os.close(tmpfile)
+    os.rename(tmpfilename, fname)
 
 #############################
 # example of input for appendXML

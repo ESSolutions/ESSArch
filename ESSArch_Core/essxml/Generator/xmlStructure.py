@@ -17,16 +17,8 @@ def pretty_print(fd, level, pretty):
     """
     Print some tabs to give the xml output a better structure
     """
-    if pretty:
-        for idx in range(level):
-            os.write(fd, '    ')
-def pretty_print_string(level, pretty):
-    """
-    Print some tabs to give the xml output a better structure
-    """
-    if pretty:
-        for idx in range(level):
-            print '   ',
+
+    os.write(fd, '    ' * level)
 
 class xmlAttribute(object):
     '''
@@ -95,7 +87,9 @@ class xmlElement(object):
         if self.printed == 2:
             return False
         if self.printed == 0:
-            pretty_print(fd, level, pretty)
+            if pretty:
+                pretty_print(fd, level)
+
             os.write(fd, '<' + self.completeTagName)
             for a in self.attributes:
                 a.printXML(fd)
@@ -112,9 +106,8 @@ class xmlElement(object):
                         return True
                 if self.value is not '':
                     os.write(fd, self.value)
-                    pretty_print(fd, level, False)
                 else:
-                    pretty_print(fd, level, True)
+                    pretty_print(fd, level)
 
                 os.write(fd, '</' + self.completeTagName + '>' + eol_)
                 self.printed = 2
@@ -124,32 +117,6 @@ class xmlElement(object):
         else:
             os.write(fd, '/>' + eol_)
             self.printed = 2
-
-    def XMLToString(self, level=0, pretty=True):
-        """
-        Print out the complete element.
-        """
-
-        pretty_print_string(level, pretty)
-
-        if self.value:
-            print '<%s>%s</%s>%s' % (self.completeTagName, self.value, self.completeTagName, eol_),
-        else:
-            attrs = [a.XMLToString() for a in self.attributes]
-            if attrs:
-                print '<%s %s>' % (self.completeTagName, " ".join(attrs))
-            else:
-                print '<%s>' % (self.completeTagName)
-
-            if self.children or self.containsFiles:
-                if not self.containsFiles:
-                    for child in self.children:
-                        if child.XMLToString(level + 1, pretty):
-                            return True
-                    pretty_print_string(level, pretty)
-                    print '</' + self.completeTagName + '>' + eol_,
-                else:
-                    return True
 
     def listAllElements(self, parent='none'):
         res = {}
