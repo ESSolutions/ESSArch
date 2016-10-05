@@ -66,10 +66,12 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
     global elementTypes
 
     tag = printTag(element.tag)
+    ref = element.get('ref')
+    el_type = element.get('type')
+
     if tag == 'element':
         minOccurs = element.get('minOccurs')
         maxOccurs = element.get('maxOccurs')
-        ref = element.get('ref')
 
         if minOccurs and int(minOccurs) >= 0:
             minC = int(minOccurs)
@@ -77,8 +79,8 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
         if maxOccurs:
             maxC = -1 if maxOccurs == 'unbounded' else int(maxOccurs)
 
-        if element.get('ref'):
-            key = element.get('ref')
+        if ref:
+            key = ref
             # tpyeDef = element.get('name') + key
             # print element.get('ref')
             if ':' in key:
@@ -100,11 +102,11 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
             t.karMin = minC
             t.karMax = maxC
 
-            if element.get('type') is None:
+            if el_type is None:
                 tree.addChild(t)
                 for child in element:
                     analyze2(child, t, usedTypes=usedTypes)
-            elif getPrefix(element.get('type')) == 'xs' or getPrefix(element.get('type')) == 'xsd':
+            elif getPrefix(el_type) == 'xs' or getPrefix(el_type) == 'xsd':
                 att = OrderedDict()
                 att['key'] = '#content'
                 att['type'] = 'input'
@@ -117,7 +119,7 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
                 t.attributes.append(att)
                 tree.addChild(t)
             else:
-                key = element.get('type')
+                key = el_type
                 if ':' in key:
                     key = key.split(':')[1]
                 tpyeDef = element.get('name') + key
@@ -130,7 +132,7 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
                         finishedComplexTypes[key] = tree.calculateChildren()
                         attributesComplexTypes[key] = tree.attributes
                     else:
-                        print "type unknown: " + element.get('type')
+                        print "type unknown: " + el_type
                 else:
                     if key in finishedComplexTypes:
                         t.type = TYPE_TO
@@ -172,8 +174,7 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
             analyze2(child, t, usedTypes=usedTypes, choise=choiseCount)
         choiseCount += 1
     elif tag == 'attribute':
-        if element.get('ref'):
-            ref = element.get('ref')
+        if ref:
             if ':' in ref:
                 ref = ref.split(':')[1]
             if ref in attributeGroups:
@@ -186,8 +187,7 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
             else:
                 print 'attribute == none'
     elif tag == 'attributeGroup':
-        if element.get('ref'):
-            ref = element.get('ref')
+        if ref:
             if ':' in ref:
                 ref = ref.split(':')[1]
             # print ref
@@ -222,18 +222,18 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
         for child in element:
             analyze2(child, tree, usedTypes=usedTypes, minC=minC, maxC=maxC)
     elif tag == 'group':
-        if element.get('ref') not in usedTypes:
-            if element.get('ref') in groups:
-                usedTypes.append(element.get('ref'))
-                for child in groups[element.get('ref')]:
+        if ref not in usedTypes:
+            if ref in groups:
+                usedTypes.append(ref)
+                for child in groups[ref]:
                     analyze2(child, tree, usedTypes=usedTypes)
-                finishedGroups[element.get('ref')] = tree.calculateChildren()
+                finishedGroups[ref] = tree.calculateChildren()
         else:
 
-            if element.get('ref') in finishedGroups:
+            if ref in finishedGroups:
                 t = xmlElement('finishedGroup', namespace=tree.namespace)
                 t.type = TYPE_TO_CHOISE
-                t.children = finishedGroups[element.get('ref')]
+                t.children = finishedGroups[ref]
                 tree.addChild(t)
     elif tag == 'annotation':
         pass # comments
