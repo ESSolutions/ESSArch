@@ -1,5 +1,9 @@
-import os
+import os, uuid
 
+TYPE_ELEMENT = 0
+TYPE_CHOISE = 1
+TYPE_TO = 2
+TYPE_TO_CHOISE = 3
 
 debug = False
 eol_ = '\n'
@@ -62,6 +66,10 @@ class xmlElement(object):
         self.value = ''
         self.karMin = 0
         self.karMax = -1
+        self.uuid = str(uuid.uuid4())
+        self.anyAttribute = False
+        self.anyElement = False
+        self.type = 0
         self.namespace = namespace
         self.completeTagName = ''
         self.containsFiles = False
@@ -144,6 +152,76 @@ class xmlElement(object):
                 else:
                     return True
 
+    def listAllElements(self, parent='none'):
+        res = {}
+        if self.type == TYPE_ELEMENT:
+            element = {}
+            element['name'] = self.tagName
+            element['min'] = self.karMin
+            element['max'] = self.karMax
+            element['form'] = self.attributes
+            element['userForm'] = []
+            element['formData'] = {}
+            element['userCreated'] = False
+            element['anyAttribute'] = self.anyAttribute
+            element['anyElement'] = self.anyElement
+            element['containsFiles'] = False
+            element['parent'] = parent
+            element['children'] = [];
+            element['namespace'] = self.namespace
+            children = []
+            for child in self.children:
+                r, c, a = child.listAllElements(self.tagName)
+                children = children + c
+                element['form'] = element['form'] + a
+                res.update(r)
+            element['avaliableChildren'] = children
+            res[self.tagName] = element
+            el = {}
+            el['type'] = 'element'
+            el['name'] = self.tagName
+            return res, [el], []
+        elif self.type == TYPE_CHOISE:
+            el = {}
+            el['type'] = 'choise'
+            children = []
+            for child in self.children:
+                r, c, a = child.listAllElements(parent)
+                children = children + c
+                res.update(r)
+            el['elements'] = children
+            return res, [el], []
+        elif self.type == TYPE_TO:
+            el = {}
+            el['type'] = 'element'
+            el['name'] = self.tagName
+            return {}, [el], self.attributes
+        elif self.type == TYPE_TO_CHOISE:
+            # for child in self.children:
+                # print child.type
+            # print self.children
+            return {}, self.children, self.attributes
+
+    def calculateChildren(self):
+        res = []
+        for child in self.children:
+            el = {}
+            if child.type == TYPE_CHOISE:
+                el['type'] = 'choise'
+                el['elements'] = child.calculateChildren()
+                res.append(el)
+            elif child.type == TYPE_ELEMENT:
+                el['name'] = child.tagName
+                el['type'] = 'element'
+                res.append(el)
+            elif child.type == TYPE_TO:
+                el['type'] = 'element'
+                el['name'] = child.tagName
+                res.append(el)
+            elif child.type == TYPE_TO_CHOISE:
+                res = res + child.children
+        return res
+
     def isEmpty(self):
         """
         Simple helper function to check if the tag sould have any contents
@@ -174,6 +252,18 @@ class xmlElement(object):
         if el.namespace == '':
             el.setNamespace(self.namespace)
         self.children.append(el)
+
+    def delete(self):
+        self.tagName = ''
+        for child in self.children:
+            child.delete()
+        self.children = []
+        # for att in self.attrib:
+        #     att = None
+        self.attributes = []
+        self.value = ''
+        self.karMin = 0
+        self.karMax = -1
 
 class fileInfo():
     """
