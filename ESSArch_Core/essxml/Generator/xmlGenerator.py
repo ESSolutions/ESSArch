@@ -3,7 +3,6 @@ import hashlib
 import uuid
 import copy
 from collections import OrderedDict
-import fileinput
 import mimetypes
 import tempfile
 from django.conf import settings

@@ -24,15 +24,7 @@ finishedComplexTypes = OrderedDict()
 attributesComplexTypes = {}
 
 def getIndent(level):
-    indent = ''
-    for i in range(level):
-        indent += '   '
-    return indent
-
-def pretty_print(fd, level, pretty):
-    if pretty:
-        for idx in range(level):
-            os.write(fd, '    ')
+    return '   ' * level
 
 def printTag(tag):
     if isinstance(tag, str):
@@ -97,7 +89,7 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
                 tree.addChild(t)
                 for child in element:
                     analyze2(child, t, usedTypes=usedTypes)
-            elif getPrefix(el_type) == 'xs' or getPrefix(el_type) == 'xsd':
+            elif getPrefix(el_type) in ['xs', 'xsd']:
                 att = OrderedDict()
                 att['key'] = '#content'
                 att['type'] = 'input'
@@ -129,10 +121,7 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
                         t.type = TYPE_TO
                         t.attributes = attributesComplexTypes[key]
                         tree.addChild(t)
-    elif tag == 'complexType':
-        for child in element:
-            analyze2(child, tree, usedTypes=usedTypes)
-    elif tag == 'complexContent':
+    elif tag in ['complexType', 'complexContent', 'sequence']:
         for child in element:
             analyze2(child, tree, usedTypes=usedTypes)
     elif tag == 'extension':
@@ -145,18 +134,15 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
                         analyze2(child, tree, usedTypes=usedTypes, minC=minC, maxC=maxC)
                     finishedComplexTypes[key] = tree.calculateChildren()
                     attributesComplexTypes[key] = tree.attributes
-            else:
-                if key in finishedComplexTypes:
-                    t = xmlElement('finishedGroup', namespace=tree.namespace)
-                    t.type = TYPE_TO_CHOISE
-                    t.attributes = attributesComplexTypes[key]
-                    t.children = finishedComplexTypes[key]
-                    tree.addChild(t)
+            elif key in finishedComplexTypes:
+                t = xmlElement('finishedGroup', namespace=tree.namespace)
+                t.type = TYPE_TO_CHOISE
+                t.attributes = attributesComplexTypes[key]
+                t.children = finishedComplexTypes[key]
+                tree.addChild(t)
+
             for child in element:
                 analyze2(child, tree, usedTypes=usedTypes)
-    elif tag == 'sequence':
-        for child in element:
-            analyze2(child, tree, usedTypes=usedTypes)
     elif tag == 'choice':
         t = xmlElement('choice', namespace=tree.namespace)
         t.type = TYPE_CHOISE
@@ -218,13 +204,12 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
                 for child in groups[ref]:
                     analyze2(child, tree, usedTypes=usedTypes)
                 finishedGroups[ref] = tree.calculateChildren()
-        else:
+        elif ref in finishedGroups:
+            t = xmlElement('finishedGroup', namespace=tree.namespace)
+            t.type = TYPE_TO_CHOISE
+            t.children = finishedGroups[ref]
+            tree.addChild(t)
 
-            if ref in finishedGroups:
-                t = xmlElement('finishedGroup', namespace=tree.namespace)
-                t.type = TYPE_TO_CHOISE
-                t.children = finishedGroups[ref]
-                tree.addChild(t)
     elif tag == 'annotation':
         pass # comments
     else:
@@ -234,13 +219,15 @@ def parseAttribute(element):
     global complexTypes
     global attributeGroups
     att = OrderedDict()
+    name = element.get('name')
+
     if element.get('type') is not None:
         att = OrderedDict()
         att['type'] = 'input'
-        att['key'] = element.get('name')
+        att['key'] = name
         templateOptions = OrderedDict()
         templateOptions['type'] = 'text'  #TODO add options
-        templateOptions['label'] = element.get('name')
+        templateOptions['label'] = name
         use = element.get('use')
         if use is None or use == 'optional':
             templateOptions['required'] = False
@@ -251,10 +238,10 @@ def parseAttribute(element):
             return None
         att['templateOptions'] = templateOptions
     else:
-        if element.get('name') is not None:
-            att['key'] = element.get('name')
+        if name:
+            att['key'] = name
             templateOptions = OrderedDict()
-            templateOptions['label'] = element.get('name')
+            templateOptions['label'] = name
             use = element.get('use')
             req = False
             if use is None or use == 'optional':
@@ -277,10 +264,8 @@ def parseAttribute(element):
                                     a['name'] = c.get('value')
                                     a['value'] = c.get('value')
                                     enumerations.append(a)
-                                else:
-                                    if isinstance(c.tag, str):
-                                        print "unknown restriction: " + c.tag #TODO handle regex string
-                                    pass
+                                elif isinstance(c.tag, str):
+                                    print "unknown restriction: " + c.tag #TODO handle regex string
                             if len(enumerations) > 0:
                                 if not req:
                                     a = OrderedDict()
