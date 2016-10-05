@@ -13,7 +13,7 @@ def dlog(string):
         print string
 
 
-def pretty_print(fd, level, pretty):
+def pretty_print(fd, level):
     """
     Print some tabs to give the xml output a better structure
     """
