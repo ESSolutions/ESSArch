@@ -189,7 +189,7 @@ class xmlElement(object):
         """
         Simple helper function to check if the tag sould have any contents
         """
-        if self.value != '' or self.children or self.containsFiles:
+        if self.value != '' or self.children or self.containsFiles or self.attributes:
             return False
         else:
             return True
