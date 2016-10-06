@@ -201,8 +201,13 @@ def createXMLStructure(name, content, info, fob=None, namespace='', level=1):
                     parseChild(key, l, info, namespace, t, fob, level)
 
     if t.isEmpty():
-        allowEmpty = content.get('-allowEmpty', None)
-        return t if allowEmpty == 1 else None
+        if content.get('-allowEmpty', None):
+            return t
+        else:
+            raise ValueError(
+                "Element %s does not contain any value, attributes, children or\
+                files, and allowEmpty is not set" % t.tagName
+            )
     else:
         return t
 
