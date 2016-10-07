@@ -1,0 +1,11 @@
+{
+    "name": "template-maker",
+    "private": true,
+    "dependencies": {
+        "angular-formly-templates-bootstrap": "^6.3.2",
+        "angular-formly": "^8.3.0",
+        "angular-tree-control": "^0.2.27",
+        "angular": "1.5.7",
+        "bootstrap": "^3.3.6"
+    }
+}

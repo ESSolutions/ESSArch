@@ -1,5 +1,0 @@
-{
-  // The purpose of this .eslintrc is just for editors and IDEs to pick it up.
-  // Webpack tells eslint which files to use explicitly.
-  "extends": "./other/test.eslintrc"
-}
