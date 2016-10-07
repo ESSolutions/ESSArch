@@ -141,7 +141,7 @@ class xmlElement(object):
                 children = children + c
                 element['form'] = element['form'] + a
                 res.update(r)
-            element['avaliableChildren'] = children
+            element['availableChildren'] = children
             res[self.tagName] = element
             el = {}
             el['type'] = 'element'

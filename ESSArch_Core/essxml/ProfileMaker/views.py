@@ -247,7 +247,7 @@ def addUserChild(request, name):
     element = {}
     element['anyAttribute'] = True
     element['anyElement'] = True
-    element['avaliableChildren'] = []
+    element['availableChildren'] = []
     element['children'] = []
     element['containsFiles'] = False
     element['form'] = []
@@ -274,9 +274,9 @@ def addExtensionElement(request, name):
     element = {}
     element['anyAttribute'] = True
     element['anyElement'] = True
-    element['avaliableChildren'] = []
-    if 'avaliableChildren' in res:
-        element['avaliableChildren'] = res['avaliableChildren']
+    element['availableChildren'] = []
+    if 'availableChildren' in res:
+        element['availableChildren'] = res['availableChildren']
     element['children'] = []
     element['containsFiles'] = False
     element['form'] = []
@@ -317,7 +317,7 @@ def addChild(request, name, newElementName, elementUuid):
     existingElements[newUuid] = newElement
 
     #calculate which elements should be before
-    cb = calculateChildrenBefore(existingElements[elementUuid]['avaliableChildren'], newElementName)
+    cb = calculateChildrenBefore(existingElements[elementUuid]['availableChildren'], newElementName)
 
     index = 0
     for child in existingElements[elementUuid]['children']:

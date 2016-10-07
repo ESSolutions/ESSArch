@@ -75,7 +75,7 @@
         {% csrf_token %}
         <button type="button" class="btn btn-primary" ng-click="vm.saveElement()" ng-disabled="vm.floatingElementform.$invalid">Add Element</button>
         <treecontrol class="tree-classic"
-            tree-model="allElementsAvaliable"
+            tree-model="allElementsAvailable"
             options="treeOptions"
             on-selection="addEl(node.data)"
             selected-node="node1"
@@ -100,7 +100,7 @@
                 <button type="button" class="btn btn-danger" ng-show="vm.canDelete" ng-click="vm.removeChild()">Delete</button>
                 <button type="button" class="btn btn-primary" ng-click="vm.containsFiles()">Toggle Contains Files</button>
             </formly-form>
-            <!-- <h3>Avaliable children</h3> -->
+            <!-- <h3>Available children</h3> -->
             <div>
                 <h3 ng-if="vm.possibleChildren.length > 0">PossibleChildren</h3>
                 <div ng-repeat="child in vm.possibleChildren" class="children">

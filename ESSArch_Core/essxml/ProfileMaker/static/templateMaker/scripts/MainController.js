@@ -159,8 +159,8 @@
           //calculate possible children
           var allChildren = [];
 
-          for (var i in data['avaliableChildren']) {
-            var child = data['avaliableChildren'][i];
+          for (var i in data['availableChildren']) {
+            var child = data['availableChildren'][i];
             var a = vm.calculatePossibleChildren(child, existing);
             allChildren = allChildren.concat(a);
           }
