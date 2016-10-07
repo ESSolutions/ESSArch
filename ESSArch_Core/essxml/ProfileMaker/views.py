@@ -402,7 +402,7 @@ def deleteTemplate(request, name):
         templatePackage.objects.get(pk=name).delete()
         return HttpResponse('deleted')
     else:
-        return HttpResponse('Error this page is only avaliable as post')
+        return HttpResponse('Error this page is only available as post')
 
 class index(View):
     template_name = 'templateMaker/index.html'

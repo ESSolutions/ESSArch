@@ -306,9 +306,9 @@
             vm.floatingElementmodel = [];
             $http.get('/template/getElements/' + templateName + '/').then(function(res) {
             //   console.log(res.data);
-              $scope.allElementsAvaliable = res.data;
+              $scope.allElementsAvailable = res.data;
             });
-            // $scope.allElementsAvaliable
+            // $scope.allElementsAvailable
         };
 
         $scope.addEl = function(data) {
