@@ -282,6 +282,24 @@ class ProcessStep(Process):
 
         return status
 
+    @property
+    def undone(self):
+        """
+        Gets the undone state of the step based on its tasks and child steps
+
+        Args:
+
+        Returns:
+            True if one or more child steps and/or tasks have undone set to
+            true, false otherwise
+        """
+
+        child_steps = self.child_steps.all()
+        undone_child_steps = any(c.undone for c in child_steps)
+        undone_tasks = self.tasks.filter(undone=True, retried=False).exists()
+
+        return undone_child_steps or undone_tasks
+
     class Meta:
         db_table = u'ProcessStep'
         ordering = ('parent_step_pos',)

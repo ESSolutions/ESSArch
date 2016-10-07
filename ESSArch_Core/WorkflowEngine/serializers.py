@@ -69,11 +69,10 @@ class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
         model = ProcessStep
         fields = (
             'url', 'id', 'name', 'result', 'type', 'user', 'parallel',
-            'status', 'progress', 'time_created', 'parent_step',
+            'status', 'progress', 'undone', 'time_created', 'parent_step',
             'parent_step_pos', 'information_package', 'child_steps', 'tasks',
             'task_set',
         )
-
 
 class PermissionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
