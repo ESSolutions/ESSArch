@@ -73,6 +73,10 @@ class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
             'parent_step_pos', 'information_package', 'child_steps', 'tasks',
             'task_set',
         )
+        read_only_fields = (
+            'status', 'progress', 'time_created', 'time_done', 'undone',
+        )
+
 
 class PermissionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
