@@ -31,11 +31,12 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
         model = ProcessTask
         fields = (
             'url', 'id', 'name', 'status', 'progress', 'processstep_pos',
-            'time_started', 'time_done', 'undone', 'undo_type',
+            'time_started', 'time_done', 'undone', 'undo_type', 'retried',
         )
 
         read_only_fields = (
             'status', 'progress', 'time_started', 'time_done', 'undone',
+            'undo_type', 'retried',
         )
 
 
