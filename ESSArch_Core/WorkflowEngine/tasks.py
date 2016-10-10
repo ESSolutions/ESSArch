@@ -110,7 +110,7 @@ class CreatePhysicalModel(DBTask):
         root = os.path.join(settings.BASE_DIR, str(root))
 
         for k, v in structure.iteritems():
-            if v['type'] == 'dir':
+            if v.get('type') == 'dir':
                 k = str(k)
                 dirname = os.path.join(root, k)
                 os.makedirs(dirname)
@@ -344,9 +344,9 @@ class CopySchemas(DBTask):
 
     def findDestination(self, dirname, structure, path=''):
         for k, v in structure.iteritems():
-            if k == dirname and v['type'] == 'dir':
+            if k == dirname and v.get('type') == 'dir':
                 return os.path.join(path, dirname)
-            elif v['type'] == 'dir':
+            elif v.get('type') == 'dir':
                 rec = self.findDestination(
                     dirname, v['children'], os.path.join(path, k)
                 )
