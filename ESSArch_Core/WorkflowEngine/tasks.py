@@ -447,6 +447,15 @@ class ValidateIntegrity(DBTask):
         """
         Validates the integrity(checksum) for the given file
         """
+        hash_val = algorithm()
+
+        with open(filename, 'r') as f:
+            while True:
+                data = f.read(block_size)
+                if data:
+                    hash_val.update(data)
+                else:
+                    break
 
         create_event(
             10200,
@@ -455,6 +464,8 @@ class ValidateIntegrity(DBTask):
         )
 
         self.set_progress(100, total=100)
+
+        return hash_val.hexdigest() == checksum
 
     def undo(self, filename=None,checksum=None,  block_size=65536, algorithm=hashlib.sha256):
         pass
