@@ -149,21 +149,20 @@ class CalculateChecksum(DBTask):
             The hexadecimal digest of the checksum
         """
 
-        fd = os.open(filename, os.O_RDONLY)
         hash_val = algorithm()
+
+        with open(filename, 'r') as f:
+            while True:
+                data = f.read(block_size)
+                if data:
+                    hash_val.update(data)
+                else:
+                    break
 
         create_event(
             10200,"Calculating checksum for %s" % filename, "System",
             self.taskobj.information_package
         )
-
-        while True:
-            data = os.read(fd, block_size)
-            if data:
-                hash_val.update(data)
-            else:
-                break
-        os.close(fd)
 
         self.set_progress(100, total=100)
         return hash_val.hexdigest()
