@@ -30,8 +30,9 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ProcessTask
         fields = (
-            'url', 'id', 'name', 'status', 'progress', 'processstep_pos',
-            'time_started', 'time_done', 'undone', 'undo_type', 'retried',
+            'url', 'id', 'name', 'status', 'progress',
+            'processstep', 'processstep_pos', 'time_started',
+            'time_done', 'undone', 'undo_type', 'retried',
         )
 
         read_only_fields = (
