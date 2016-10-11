@@ -6,11 +6,13 @@ from django.conf import settings
 
 from demo.xmlGenerator import createXML, appendXML
 
+from lxml import etree
+
 from configuration.models import Path
 from preingest.dbtask import DBTask
 from ip.models import InformationPackage
 from preingest.models import ProcessStep
-from preingest.util import create_event
+from preingest.util import create_event, getSchemas
 
 class PrepareIP(DBTask):
     def run(self, label="", responsible={}, step=None):
@@ -396,11 +398,30 @@ class ValidateXMLFile(DBTask):
     """
 
     def run(self, xml_filename=None, schema_filename=None):
+        try:
+            doc = etree.ElementTree(file=xml_filename)
+        except etree.XMLSyntaxError:
+            raise
+        except IOError:
+            raise
+
+        if schema_filename:
+            try:
+                xmlschema = etree.XMLSchema(etree.parse(schema_filename))
+            except etree.XMLSyntaxError:
+                raise
+            except IOError:
+                raise
+        else:
+            xmlschema = getSchemas(doc=doc)
+
         create_event(
-            10200, "Validate %s against %s" % (xml_filename, schema_filename),
+            10200, "Validate %s" % (xml_filename,),
             "System", self.taskobj.information_package
         )
         self.set_progress(100, total=100)
+
+        return xmlschema.validate(doc)
 
     def undo(self, xml_filename=None, schema_filename=None):
         pass
