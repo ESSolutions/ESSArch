@@ -42,8 +42,11 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ProcessTaskDetailSerializer(serializers.HyperlinkedModelSerializer):
-    params = PickledObjectFieldSerializer()
+    params = serializers.SerializerMethodField()
     result = PickledObjectFieldSerializer()
+
+    def get_params(self, obj):
+        return dict((str(k), str(v)) for k,v in obj.params.iteritems())
 
     class Meta:
         model = ProcessTaskSerializer.Meta.model
