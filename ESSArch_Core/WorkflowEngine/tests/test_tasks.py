@@ -45,7 +45,7 @@ class test_running_tasks(TestCase):
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
         with self.assertRaises(TypeError):
-            task = ProcessTask(
+            task = ProcessTask.objects.create(
                 name="preingest.tests.tasks.First",
                 params={
                     "bar": 123
@@ -62,7 +62,7 @@ class test_running_tasks(TestCase):
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
         with self.assertRaises(TypeError):
-            task = ProcessTask(
+            task = ProcessTask.objects.create(
                 name="preingest.tests.tasks.First",
                 params={
                     "foo": 123,
@@ -80,7 +80,7 @@ class test_running_tasks(TestCase):
 
         foo = 123
 
-        task = ProcessTask(
+        task = ProcessTask.objects.create(
             name="preingest.tests.tasks.First",
             params={
                 "foo": foo
