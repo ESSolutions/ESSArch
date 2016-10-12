@@ -6,6 +6,8 @@ from django.conf import settings
 
 from demo.xmlGenerator import createXML, appendXML
 
+from fido.fido import Fido
+
 from lxml import etree
 
 from configuration.models import Path
@@ -170,6 +172,38 @@ class CalculateChecksum(DBTask):
     def undo(self, filename=None, block_size=65536, algorithm=hashlib.sha256):
         pass
 
+class IdentifyFileFormat(DBTask):
+
+    def handle_matches(self, fullname, matches, delta_t, matchtype=''):
+        f, sigName = matches[-1]
+        self.lastFmt = f.find('name').text
+
+    def run(self, filename=None):
+        """
+        Identifies the format of the file using the fido library
+
+        Args:
+            filename: The filename to identify
+
+        Returns:
+            The format of the file
+        """
+
+        self.fid = Fido()
+        self.fid.handle_matches = self.handle_matches
+        self.fid.identify_file(filename)
+
+        create_event(
+            10200,"Identifying format of %s" % filename, "System",
+            self.taskobj.information_package
+        )
+
+        self.set_progress(100, total=100)
+
+        return self.lastFmt
+
+    def undo(self, filename=None):
+        pass
 
 class GenerateXML(DBTask):
     """
