@@ -63,7 +63,7 @@
         <treecontrol class="tree-classic"
             tree-model="allAttributes"
             options="treeOptions"
-            on-selection="addAttribute(node.data)"
+            on-selection="addAttribute(node.data, $parentNode)"
             selected-node="node1"
             expanded-nodes="expandedNodes"
             style="float:left;">

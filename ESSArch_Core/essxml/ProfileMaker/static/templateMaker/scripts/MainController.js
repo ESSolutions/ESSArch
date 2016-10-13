@@ -265,9 +265,14 @@
             // $scope.allAttributes = [];
         };
 
-        $scope.addAttribute = function(data) {
+        $scope.addAttribute = function(data, parent) {
             if (data == undefined) return;
-            console.log(data);
+
+            if (parent) {
+                data.key = parent.name + ':' + data.key
+                data.templateOptions.label = parent.name + ':' + data.templateOptions.label
+            }
+
             vm.fields.push(data);
             vm.floatingVisable = false;
             $http({
