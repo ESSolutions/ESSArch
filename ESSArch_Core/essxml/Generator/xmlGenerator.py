@@ -28,11 +28,13 @@ def calculateChecksum(filename):
     os.close(fd)
     return hashSHA.hexdigest()
 
-def parseFiles(rootdir='/SIP/huge', level=3, resultFile=[], sortedFiles=[]):
+def parseFile(filepath, relpath=None, level=3, resultFile=[], sortedFiles=[]):
     """
     walk through the choosen folder and parse all the files to their own temporary location
     """
     fileInfo = {}
+    if not relpath:
+        relpath = filepath
 
     mimetypes.suffix_map={}
     mimetypes.encodings_map={}
@@ -43,56 +45,56 @@ def parseFiles(rootdir='/SIP/huge', level=3, resultFile=[], sortedFiles=[]):
     ).value
     mimetypes.init(files=[mimetypes_file])
 
-    for dirname, dirnames, filenames in os.walk(rootdir):
-        for file in filenames:
-            found = False
-            filepath = os.path.join(dirname, file)
+    found = False
 
-            for key, value in resultFile.iteritems():
-                if filepath == key:
+    for key, value in resultFile.iteritems():
+        if filepath == key:
+            found = True
+
+    if not found:
+        file_name, file_ext = os.path.splitext(relpath)
+
+        try:
+            mimetype = mimetypes.types_map[file_ext]
+        except KeyError:
+            raise KeyError("Invalid file type: %s" % file_ext)
+
+        fileInfo['FName'] = file_name + file_ext
+        fileInfo['FChecksum'] = calculateChecksum(filepath)
+        fileInfo['FID'] = str(uuid.uuid4())
+
+        fileInfo['id'] = str(uuid.uuid4())
+        fileInfo['daotype'] = "borndigital"
+        fileInfo['href'] = relpath
+
+        fileInfo['FMimetype'] = mimetype
+        fileInfo['FCreated'] = '2016-02-21T11:18:44+01:00'
+        fileInfo['FFormatName'] = 'MS word'
+        fileInfo['FSize'] = str(os.path.getsize(filepath))
+        fileInfo['FUse'] = 'DataFile'
+        fileInfo['FChecksumType'] = 'SHA-256'
+        fileInfo['FLoctype'] = 'URL'
+        fileInfo['FLinkType'] = 'simple'
+        fileInfo['FChecksumLib'] = 'hashlib'
+        fileInfo['FLocationType'] = 'URI'
+        fileInfo['FIDType'] = 'UUID'
+
+        for fi in sortedFiles:
+            for fil in fi.files:
+                if not fil.arguments:
+                    for key, value in fil.element.iteritems():
+                        t = createXMLStructure(key, value, fileInfo, namespace=fi.namespace)
+                        t.printXML(fil.fid,fil.level)
+                else:
                     found = True
-
-            if not found:
-                file_name, file_ext = os.path.splitext(
-                    os.path.relpath(filepath, rootdir)
-                )
-
-                try:
-                    mimetype = mimetypes.types_map[file_ext]
-                except KeyError:
-                    raise KeyError("Invalid file type: %s" % file_ext)
-
-                fileInfo['FName'] = file_name + file_ext
-                fileInfo['FChecksum'] = calculateChecksum(filepath)
-                fileInfo['FID'] = str(uuid.uuid4())
-                fileInfo['FMimetype'] = mimetype
-                fileInfo['FCreated'] = '2016-02-21T11:18:44+01:00'
-                fileInfo['FFormatName'] = 'MS word'
-                fileInfo['FSize'] = str(os.path.getsize(filepath))
-                fileInfo['FUse'] = 'DataFile'
-                fileInfo['FChecksumType'] = 'SHA-256'
-                fileInfo['FLoctype'] = 'URL'
-                fileInfo['FLinkType'] = 'simple'
-                fileInfo['FChecksumLib'] = 'hashlib'
-                fileInfo['FLocationType'] = 'URI'
-                fileInfo['FIDType'] = 'UUID'
-
-                for fi in sortedFiles:
-                    for fil in fi.files:
-                        if not fil.arguments:
-                            for key, value in fil.element.iteritems():
-                                t = createXMLStructure(key, value, fileInfo, namespace=fi.namespace)
-                                t.printXML(fil.fid,fil.level)
-                        else:
-                            found = True
-                            for key, value in fil.arguments.iteritems():
-                                if re.search(value, fileInfo[key]) is None:
-                                    found = False
-                                    break
-                            if found:
-                                for key, value in fil.element.iteritems():
-                                    t = createXMLStructure(key, value, fileInfo, namespace=fi.namespace)
-                                    t.printXML(fil.fid,fil.level)
+                    for key, value in fil.arguments.iteritems():
+                        if re.search(value, fileInfo[key]) is None:
+                            found = False
+                            break
+                    if found:
+                        for key, value in fil.element.iteritems():
+                            t = createXMLStructure(key, value, fileInfo, namespace=fi.namespace)
+                            t.printXML(fil.fid,fil.level)
 
 def getValue(key, info):
     """
@@ -266,8 +268,14 @@ def createXML(info, filesToCreate, folderToParse):
         fob.rootElement = rootEl
         #print 'namespace: %s' % rootE['-namespace']
 
-    if folderToParse:
-        parseFiles(folderToParse, resultFile=filesToCreate, sortedFiles=sortedFiles)
+    if os.path.isfile(folderToParse):
+        parseFile(folderToParse, resultFile=filesToCreate, sortedFiles=sortedFiles)
+    elif os.path.isdir(folderToParse):
+        for root, dirnames, filenames in os.walk(folderToParse):
+            for fname in filenames:
+                filepath = os.path.join(root, fname)
+                relpath = os.path.relpath(filepath, folderToParse)
+                parseFile(filepath, relpath=relpath, resultFile=filesToCreate, sortedFiles=sortedFiles)
 
     # add the tmp files to the bottom of the appropriate file and write out the next section of xml until it's done
     for fob in sortedFiles:
