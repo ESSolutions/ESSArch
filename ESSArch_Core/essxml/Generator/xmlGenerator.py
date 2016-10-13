@@ -248,7 +248,7 @@ def parseAttribute(content, info):
     else:
         return None
 
-def createXML(info, filesToCreate, folderToParse):
+def createXML(info, filesToCreate, folderToParse=None):
     """
     The task method for executing the xmlGenerator and completing the xml files
     This is also the TASK to be run in the background.
@@ -268,14 +268,15 @@ def createXML(info, filesToCreate, folderToParse):
         fob.rootElement = rootEl
         #print 'namespace: %s' % rootE['-namespace']
 
-    if os.path.isfile(folderToParse):
-        parseFile(folderToParse, resultFile=filesToCreate, sortedFiles=sortedFiles)
-    elif os.path.isdir(folderToParse):
-        for root, dirnames, filenames in os.walk(folderToParse):
-            for fname in filenames:
-                filepath = os.path.join(root, fname)
-                relpath = os.path.relpath(filepath, folderToParse)
-                parseFile(filepath, relpath=relpath, resultFile=filesToCreate, sortedFiles=sortedFiles)
+    if folderToParse:
+        if os.path.isfile(folderToParse):
+            parseFile(folderToParse, resultFile=filesToCreate, sortedFiles=sortedFiles)
+        elif os.path.isdir(folderToParse):
+            for root, dirnames, filenames in os.walk(folderToParse):
+                for fname in filenames:
+                    filepath = os.path.join(root, fname)
+                    relpath = os.path.relpath(filepath, folderToParse)
+                    parseFile(filepath, relpath=relpath, resultFile=filesToCreate, sortedFiles=sortedFiles)
 
     # add the tmp files to the bottom of the appropriate file and write out the next section of xml until it's done
     for fob in sortedFiles:
