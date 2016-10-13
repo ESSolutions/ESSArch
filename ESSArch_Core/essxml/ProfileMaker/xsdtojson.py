@@ -413,16 +413,6 @@ def generateJsonRes(schemaName, rootElement, namespace):
                     allElements, e, a = tree.children[0].listAllElements()
                     existingElements = {}
                     existingElements['root'] = copy.deepcopy(allElements[rootElement])
-                    attribute = {};
-                    attribute['type'] = 'input'
-                    attribute['key'] = 'schemalocation'
-                    to = {}
-                    to['required'] = True
-                    to['type'] = 'text'
-                    to['label'] = 'schemalocation'
-                    attribute['templateOptions'] = to
-                    existingElements['root']['form'].insert(0, attribute)
-                    existingElements['root']['formData']['schemalocation'] = thisSchema
                     return existingElements, allElements
 
 # a,b,c=generateExtensionRef("/Users/Axenu/Developer/ESSArch_Tools_Producer/ESSArch_TP2/esscore/template/templateGenerator/xlink.xsd", 'ead')
