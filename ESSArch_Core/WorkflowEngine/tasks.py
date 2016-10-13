@@ -97,6 +97,9 @@ class CreateIPRootDir(DBTask):
         path = self.create_path(str(information_package.pk))
         os.makedirs(path)
 
+        information_package.ObjectPath = path
+        information_package.save()
+
         self.set_progress(100, total=100)
         return information_package
 
@@ -530,14 +533,44 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
     Validates the logical and physical representation of objects
     """
 
-    def run(self, logical=None, physical=None):
-        self.set_progress(100, total=100)
+    def run(self, ip=None, mets_path=None):
+        objpath = ip.ObjectPath
 
-    def undo(self, logical=None, physical=None):
+        metsdoc = etree.ElementTree(file=mets_path)
+
+        root = metsdoc.getroot()
+        nsmap = {k:v for k,v in root.nsmap.iteritems() if k}
+
+        logical_files = []
+        physical_files = []
+
+        for f in metsdoc.xpath('.//mets:file | .//mets:mdRef', namespaces=nsmap):
+            if f.tag == "{%s}mdRef" % nsmap['mets']:
+                filename = f.get('{%s}href' % nsmap['xlink'])
+            else:
+                filename = f.find('mets:FLocat', nsmap).get('{%s}href' % nsmap['xlink'])
+
+            filename = os.path.join(objpath, filename)
+            logical_files.append(filename)
+
+        for root, dirs, files in os.walk(objpath):
+            for f in files:
+                filename = os.path.join(root, str(f))
+
+                if filename != mets_path:
+                    physical_files.append(filename)
+
+        print "logical: %s" % logical_files
+        print "physical: %s" % physical_files
+
+        self.set_progress(100, total=100)
+        return logical_files == physical_files
+
+    def undo(self, ip=None, mets_path=None):
         pass
 
-    def get_event_args(self, logical=None, physical=None):
-        return [logical, physical]
+    def get_event_args(self, ip=None, mets_path=None):
+        return [mets_path, ip.ObjectPath]
 
 
 class ValidateIntegrity(DBTask):
