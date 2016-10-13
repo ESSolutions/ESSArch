@@ -675,3 +675,22 @@ class UpdateIPStatus(DBTask):
 
     def get_event_args(self, ip=None, status=None):
         return [ip.Label]
+
+class SubmitSIP(DBTask):
+    event_type = 10300
+
+    def run(self, ip=None):
+        reception = Path.objects.get(entity="path_preingest_reception").value
+
+        src = ip.ObjectPath + ".tar"
+        dst = os.path.join(reception, str(ip.pk) + ".tar")
+        shutil.copyfile(src, dst)
+
+        src = ip.ObjectPath + ".xml"
+        dst = os.path.join(reception, str(ip.pk) + ".xml")
+        shutil.copyfile(src, dst)
+
+        self.set_progress(100, total=100)
+
+    def undo(self, ip=None):
+        pass
