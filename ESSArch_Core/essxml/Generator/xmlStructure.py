@@ -118,7 +118,7 @@ class xmlElement(object):
             os.write(fd, '/>' + eol_)
             self.printed = 2
 
-    def listAllElements(self, parent='none'):
+    def listAllElements(self, parent=None):
         res = {}
         if self.type == TYPE_ELEMENT:
             element = {}
