@@ -103,7 +103,7 @@
             <!-- <h3>Available children</h3> -->
             <div>
                 <h3 ng-if="vm.possibleChildren.length > 0">PossibleChildren</h3>
-                <div ng-repeat="child in vm.possibleChildren" class="children">
+                <div ng-repeat="child in vm.possibleChildren track by $index" class="children">
                     <p>
                         {% verbatim %}{{child}}{% endverbatim %}
                     </p>
