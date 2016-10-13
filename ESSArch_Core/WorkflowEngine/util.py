@@ -24,13 +24,13 @@ def available_tasks():
         )
     return tasks
 
-def create_event(eventType, detail, agent, ip=None):
+def create_event(eventType, eventArgs, agent, ip=None):
     """
     Creates a new event and saves it to the database
 
     Args:
         eventType: The event type
-        detail: The detail of the event
+        eventArgs: The args that will be used to create the detail text
         agent: The agent creating the event
         ip: The information package connected to the event
 
@@ -38,14 +38,12 @@ def create_event(eventType, detail, agent, ip=None):
         The created event
     """
 
-    from configuration.models import EventType
     from ip.models import EventIP
 
+    detail = eventType.eventDetail % tuple(eventArgs)
+
     return EventIP.objects.create(
-        eventType=EventType.objects.get(
-            eventType=eventType
-        ),
-        eventDetail=detail,
+        eventType=eventType, eventDetail=detail,
         linkingAgentIdentifierValue=agent,
         linkingObjectIdentifierValue=ip,
     )

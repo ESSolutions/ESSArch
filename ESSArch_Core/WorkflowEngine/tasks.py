@@ -13,10 +13,13 @@ from lxml import etree
 from configuration.models import Path
 from preingest.dbtask import DBTask
 from ip.models import InformationPackage
-from preingest.models import ProcessStep
-from preingest.util import create_event, getSchemas
+from preingest.models import ProcessStep, ProcessTask
+
+from preingest.util import getSchemas
 
 class PrepareIP(DBTask):
+    event_type = 10100
+
     def run(self, label="", responsible={}, step=None):
         """
         Prepares a new information package
@@ -48,11 +51,12 @@ class PrepareIP(DBTask):
         )
         ip.save()
 
+        self.taskobj.information_package = ip
+        self.taskobj.save()
+
         if step is not None:
             s = ProcessStep.objects.get(pk=step)
             ip.steps.add(s)
-
-        create_event(10100, "Preparing IP", "System", ip)
 
         self.set_progress(100, total=100)
 
@@ -63,6 +67,8 @@ class PrepareIP(DBTask):
 
 
 class CreateIPRootDir(DBTask):
+    event_type = 10110
+
     def create_path(self, information_package_id):
         prepare_path = Path.objects.get(
             entity="path_preingest_prepare"
@@ -85,12 +91,11 @@ class CreateIPRootDir(DBTask):
             None
         """
 
+        self.taskobj.information_package = information_package
+        self.taskobj.save()
+
         path = self.create_path(str(information_package.pk))
         os.makedirs(path)
-
-        create_event(
-            10100, "Creating IP root directory", "System", information_package
-        )
 
         self.set_progress(100, total=100)
         return information_package
@@ -101,6 +106,7 @@ class CreateIPRootDir(DBTask):
 
 
 class CreatePhysicalModel(DBTask):
+    event_type = 10115
 
     def run(self, structure={}, root=""):
         """
@@ -138,6 +144,8 @@ class CreatePhysicalModel(DBTask):
 
 
 class CalculateChecksum(DBTask):
+    event_type = 10200
+
     def run(self, filename=None, block_size=65536, algorithm=hashlib.sha256):
         """
         Calculates the checksum for the given file, one chunk at a time
@@ -161,18 +169,17 @@ class CalculateChecksum(DBTask):
                 else:
                     break
 
-        create_event(
-            10200,"Calculating checksum for %s" % filename, "System",
-            self.taskobj.information_package
-        )
-
         self.set_progress(100, total=100)
         return hash_val.hexdigest()
 
     def undo(self, filename=None, block_size=65536, algorithm=hashlib.sha256):
         pass
 
+    def get_event_args(self, filename=None, block_size=65536, algorithm=hashlib.sha256):
+        return [filename]
+
 class IdentifyFileFormat(DBTask):
+    event_type = 10220
 
     def handle_matches(self, fullname, matches, delta_t, matchtype=''):
         f, sigName = matches[-1]
@@ -193,11 +200,6 @@ class IdentifyFileFormat(DBTask):
         self.fid.handle_matches = self.handle_matches
         self.fid.identify_file(filename)
 
-        create_event(
-            10200,"Identifying format of %s" % filename, "System",
-            self.taskobj.information_package
-        )
-
         self.set_progress(100, total=100)
 
         return self.lastFmt
@@ -205,18 +207,18 @@ class IdentifyFileFormat(DBTask):
     def undo(self, filename=None):
         pass
 
+    def get_event_args(self, filename=None):
+        return [filename]
+
 class GenerateXML(DBTask):
+    event_type = 10230
+
     """
     Generates the XML using the specified data and folder, and adds the XML to
     the specified files
     """
 
     def run(self, info={}, filesToCreate={}, folderToParse=None):
-        create_event(
-            10200,
-            "Generating XML files: %s" % ", ".join(filesToCreate.keys()),
-            "System", self.taskobj.information_package
-        )
         createXML(info, filesToCreate, folderToParse)
 
         self.set_progress(100, total=100)
@@ -225,7 +227,12 @@ class GenerateXML(DBTask):
         for f, template in filesToCreate.iteritems():
             os.remove(f)
 
+    def get_event_args(self, info={}, filesToCreate={}, folderToParse=None):
+        return [", ".join(filesToCreate.keys())]
+
 class AppendEvents(DBTask):
+    event_type = 10240
+
     """
     """
 
@@ -362,19 +369,19 @@ class AppendEvents(DBTask):
             }
 
             appendXML(inputD)
-
-        create_event(
-            10200, "Appending events to %s" % (filename), "System",
-            self.taskobj.information_package
-        )
         self.set_progress(100, total=100)
 
     def undo(self, filename="", events={}):
         pass
 
+    def get_event_args(self, filename="", events={}):
+        return [filename]
+
 class CopySchemas(DBTask):
+    event_type = 10250
+
     """
-    Copies the schemas to a specified (?) location
+    Copies the schema to a specified (?) location
     """
 
     def findDestination(self, dirname, structure, path=''):
@@ -387,45 +394,102 @@ class CopySchemas(DBTask):
                 )
                 if rec: return rec
 
-    def run(self, schemas={}, root=None, structure=None):
-        for schema in schemas:
-            src = schema['location']
-            fname = os.path.basename(src.rstrip("/"))
-            dst = os.path.join(
-                root,
-                self.findDestination(schema['preservation_location'], structure),
-                fname
-            )
-            urllib.urlretrieve(src, dst)
-            create_event(
-                10200,
-                "Download from %s to %s" % (src, dst),
-                "System", self.taskobj.information_package
-            )
+    def createSrcAndDst(self, schema, root, structure):
+        src = schema['location']
+        fname = os.path.basename(src.rstrip("/"))
+        dst = os.path.join(
+            root,
+            self.findDestination(schema['preservation_location'], structure),
+            fname
+        )
+
+        return src, dst
+
+    def run(self, schema={}, root=None, structure=None):
+
+        src, dst = self.createSrcAndDst(schema, root, structure)
+        urllib.urlretrieve(src, dst)
 
         self.set_progress(100, total=100)
 
-    def undo(self, schemas={}, root=None, structure=None):
+    def undo(self, schema={}, root=None, structure=None):
+        pass
+
+    def get_event_args(self, schema={}, root=None, structure=None):
+        src, dst = self.createSrcAndDst(schema, root, structure)
+        return [src, dst]
+
+
+class ValidateFiles(DBTask):
+    def run(self, ip, mets_path):
+        metsdoc = etree.ElementTree(file=mets_path)
+
+        root = metsdoc.getroot()
+        nsmap = {k:v for k,v in root.nsmap.iteritems() if k}
+
+        prepare_path = Path.objects.get(
+            entity="path_preingest_prepare"
+        ).value
+        ip_prepare_path = os.path.join(prepare_path, str(ip.pk))
+
+        step = ProcessStep.objects.create(
+            name="Validate Files",
+            parallel=True,
+            parent_step=self.taskobj.processstep
+        )
+
+        for f in metsdoc.findall('.//mets:file', nsmap):
+            filename = f.find('mets:FLocat', nsmap).get('{%s}href' % nsmap['xlink'])
+            filename = os.path.join(ip_prepare_path, filename)
+            fileformat = f.get("{%s}FILEFORMATNAME" % nsmap['ext'])
+            checksum = f.get("CHECKSUM")
+
+            step.tasks.add(ProcessTask.objects.create(
+                name="preingest.tasks.ValidateFileFormat",
+                params={
+                    "filename": filename,
+                    "fileformat": fileformat,
+                },
+                information_package=ip
+            ))
+
+            step.tasks.add(ProcessTask.objects.create(
+                name="preingest.tasks.ValidateIntegrity",
+                params={
+                    "filename": filename,
+                    "checksum": checksum,
+                },
+                information_package=ip
+            ))
+
+
+        self.set_progress(100, total=100)
+
+        step.run()
+
+    def undo(self, ip, mets_path):
         pass
 
 class ValidateFileFormat(DBTask):
+    event_type = 10260
+
     """
     Validates the format (PREFORMA, jhove, droid, etc.) of the given file
     """
 
     def run(self, filename=None, fileformat=None):
-        create_event(
-            10200,
-            "Validate file format for %s against %s" % (filename, fileformat),
-            "System", self.taskobj.information_package
-        )
         self.set_progress(100, total=100)
 
     def undo(self, filename=None, fileformat=None):
         pass
 
+    def get_event_args(self, filename=None, fileformat=None):
+        return [filename, fileformat]
+
 
 class ValidateXMLFile(DBTask):
+    event_type = 10261
+
     """
     Validates (using LXML) an XML file using a specified schema file
     """
@@ -448,10 +512,6 @@ class ValidateXMLFile(DBTask):
         else:
             xmlschema = getSchemas(doc=doc)
 
-        create_event(
-            10200, "Validate %s" % (xml_filename,),
-            "System", self.taskobj.information_package
-        )
         self.set_progress(100, total=100)
 
         return xmlschema.validate(doc)
@@ -459,53 +519,61 @@ class ValidateXMLFile(DBTask):
     def undo(self, xml_filename=None, schema_filename=None):
         pass
 
+    def get_event_args(self, xml_filename=None, schema_filename=None):
+        return [xml_filename]
+
 
 class ValidateLogicalPhysicalRepresentation(DBTask):
+    event_type = 10262
+
     """
     Validates the logical and physical representation of objects
     """
 
     def run(self, logical=None, physical=None):
-        create_event(
-            10200, "Validate %s against %s" % (logical, physical), "System",
-            self.taskobj.information_package
-        )
         self.set_progress(100, total=100)
 
     def undo(self, logical=None, physical=None):
         pass
 
+    def get_event_args(self, logical=None, physical=None):
+        return [logical, physical]
+
 
 class ValidateIntegrity(DBTask):
+    event_type = 10263
+
     def run(self, filename=None, checksum=None, block_size=65536, algorithm=hashlib.sha256):
         """
         Validates the integrity(checksum) for the given file
         """
-        hash_val = algorithm()
 
-        with open(filename, 'r') as f:
-            while True:
-                data = f.read(block_size)
-                if data:
-                    hash_val.update(data)
-                else:
-                    break
-
-        create_event(
-            10200,
-            "Validating checksum for %s using %s against %s" % (filename, algorithm, checksum),
-            "System", self.taskobj.information_package
+        t = ProcessTask(
+            name="preingest.tasks.CalculateChecksum",
+            params={
+                "filename": filename,
+                "block_size": block_size,
+                "algorithm": algorithm
+            },
+            information_package=self.taskobj.information_package
         )
+
+        digest = t.run_eagerly()
 
         self.set_progress(100, total=100)
 
-        return hash_val.hexdigest() == checksum
+        return digest == checksum
 
     def undo(self, filename=None,checksum=None,  block_size=65536, algorithm=hashlib.sha256):
         pass
 
+    def get_event_args(self, filename=None,checksum=None,  block_size=65536, algorithm=hashlib.sha256):
+        return [filename, algorithm, checksum]
+
 
 class CreateTAR(DBTask):
+    event_type = 10270
+
     """
     Creates a TAR file from the specified directory
 
@@ -520,17 +588,18 @@ class CreateTAR(DBTask):
         with tarfile.TarFile(tarname, 'w') as new_tar:
             new_tar.add(dirname, base_dir)
 
-        create_event(
-            10200, "Create %s.tar from %s" % (tarname, dirname), "System",
-            self.taskobj.information_package
-        )
         self.set_progress(100, total=100)
 
     def undo(self, dirname=None, tarname=None):
         pass
 
+    def get_event_args(self, dirname=None, tarname=None):
+        return [tarname, dirname]
+
 
 class CreateZIP(DBTask):
+    event_type = 10271
+
     """
     Creates a ZIP file from the specified directory
 
@@ -551,17 +620,16 @@ class CreateZIP(DBTask):
                     arcname = filepath[len(dirname) + 1:]
                     new_zip.write(filepath, arcname)
 
-        create_event(
-            10200, "Create %s.zip from %s" % (zipname, dirname), "System",
-            self.taskobj.information_package
-        )
-
         self.set_progress(100, total=100)
 
     def undo(self, dirname=None, zipname=None):
         pass
 
+    def get_event_args(self, dirname=None, zipname=None):
+        return [zipname, dirname]
+
 class UpdateIPStatus(DBTask):
+    event_type = 10280
 
     def run(self, ip=None, status=None):
         ip.State = status
@@ -570,3 +638,6 @@ class UpdateIPStatus(DBTask):
 
     def undo(self, ip=None, status=None):
         pass
+
+    def get_event_args(self, ip=None, status=None):
+        return [ip.Label]

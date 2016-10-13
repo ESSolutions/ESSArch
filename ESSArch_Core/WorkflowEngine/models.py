@@ -123,16 +123,23 @@ class ProcessStep(Process):
                 s for s in self.child_steps.all() if s.progress() < 100
             ]
 
-        child_steps = sliceUntilAttr(child_steps, "waitForParams", True)
+        child_steps = list(sliceUntilAttr(child_steps, "waitForParams", True))
 
         func = group if self.parallel else chain
+
+        tasks = self.tasks.all()
 
         step_canvas = func(s.run(direct=False) for s in child_steps)
         task_canvas = func(self._create_task(t.name).s(
             taskobj=t
-        ) for t in self.tasks.all())
+        ) for t in tasks)
 
-        workflow = (step_canvas | task_canvas)
+        if not child_steps:
+            workflow = task_canvas
+        elif not tasks:
+            workflow = step_canvas
+        else:
+            workflow = (step_canvas | task_canvas)
 
         return workflow() if direct else workflow
 
@@ -367,7 +374,19 @@ class ProcessTask(Process):
         Runs the task
         """
 
+        if not self.information_package:
+            raise AttributeError(
+                "An IP is required to be set on the task if not run eagerly"
+            )
+
         return self._create_task(self.name).delay(taskobj=self)
+
+    def run_eagerly(self, **kwargs):
+        """
+        Runs the task locally (as a "regular" function)
+        """
+
+        return self._create_task(self.name)(taskobj=self, eager=True)
 
     def undo(self):
         """
