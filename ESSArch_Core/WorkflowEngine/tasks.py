@@ -550,8 +550,9 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
             else:
                 filename = f.find('mets:FLocat', nsmap).get('{%s}href' % nsmap['xlink'])
 
-            filename = os.path.join(objpath, filename)
-            logical_files.append(filename)
+            if filename:
+                filename = os.path.join(objpath, filename)
+                logical_files.append(filename)
 
         for root, dirs, files in os.walk(objpath):
             for f in files:
