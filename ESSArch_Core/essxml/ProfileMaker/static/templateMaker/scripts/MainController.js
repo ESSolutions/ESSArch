@@ -210,7 +210,7 @@
 
         vm.countChildrenWithName = function(parentName, childName) {
           console.log(parentName);
-          if (parentName == 'none') {
+          if (!parentName) {
             return 0;
           } else {
             var data = vm.existingElements[parentName];
