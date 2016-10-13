@@ -1,6 +1,0 @@
-{
-    "steps": [
-        "preingest.steps.prepare_ip.json",
-        "preingest.steps.create_ip.json"
-    ]
-}

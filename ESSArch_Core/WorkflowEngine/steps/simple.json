@@ -1,7 +1,0 @@
-{
-    "steps": [
-        "preingest.steps.a.json",
-        "preingest.steps.b.json",
-        "preingest.steps.a.json"
-    ]
-}
