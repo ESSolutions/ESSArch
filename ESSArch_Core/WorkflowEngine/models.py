@@ -232,6 +232,9 @@ class ProcessStep(Process):
         progress = 0
         total = len(child_steps) + len(self.task_set())
 
+        if total == 0:
+            return 100
+
         progress += sum([c.progress() for c in child_steps])
 
         tasks = self.tasks.filter(
