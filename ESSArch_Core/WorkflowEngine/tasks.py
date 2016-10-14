@@ -680,7 +680,7 @@ class SubmitSIP(DBTask):
     event_type = 10300
 
     def run(self, ip=None):
-        reception = Path.objects.get(entity="path_preingest_reception").value
+        reception = Path.objects.get(entity="path_ingest_reception").value
 
         src = ip.ObjectPath + ".tar"
         dst = os.path.join(reception, str(ip.pk) + ".tar")
