@@ -28,19 +28,19 @@ from forms import AddTemplateForm
 def constructContent(text):
     res = []
     i = text.find('{{')
-    if i > 0:
+    if i > 0: # default text followed by variable
         d = {}
         d['text'] = text[0:i]
         res.append(d)
         r = constructContent(text[i:])
         for j in range(len(r)):
             res.append(r[j])
-    elif i == -1:
+    elif i == -1: # no variable found, only eventual default text
         if len(text) > 0:
             d = {}
             d['text'] = text
             res.append(d)
-    else:
+    else: # variable followed by eventual default text
         d = {};
         v = text[i+2:]
         i = v.find('}}')
@@ -52,6 +52,27 @@ def constructContent(text):
     return res
 
 def getTrail(elementTree, element, trail=[]):
+    """
+    Gets the path to the specified element via its parents.
+
+    Example:
+        Foo
+        |
+        --Bar
+            |
+            --Baz
+
+    When specifiing Baz as the element, this would return [Foo, Bar, Baz]
+
+    Args:
+        elementTree: The tree of elements to traverse
+        element: The element to get the trail for
+        trail: The trail so far
+
+    Returns:
+        A list containing the ancestors of the specified element
+    """
+
     parent = element.get('parent')
     trail.insert(0, element.get('name'))
 
