@@ -51,6 +51,15 @@ def constructContent(text):
             res.append(r[j])
     return res
 
+def getTrail(elementTree, element, trail=[]):
+    parent = element.get('parent')
+    trail.insert(0, element.get('name'))
+
+    if parent:
+        return getTrail(elementTree, elementTree[parent], trail)
+    else:
+        return trail
+
 def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, namespace=''):
     element = elements[currentUuid]
     el = OrderedDict()
@@ -65,84 +74,54 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, n
     # TODO namespace
     attributes = element['form'] + element['userForm']
     attributeList = []
+
+    if not containsFiles and not element.get('children'):
+        el['#content'] = []
+
     for attrib in attributes:
-        # return attrib
-        if attrib['key'] == '#content':
-            if attrib['key'] in element['formData']:
-                el['#content'] = constructContent(element['formData'][attrib['key']])
-                if not containsFiles:
-                    for part in el['#content']:
-                        if 'var' in part:
-                            # add form entry for element
-                            # ?? add information of parent? example: note for agent with role=Archivist&&typ=organization (probably not needed)
-                            # adding text if there occures at least one variable.
-                            field = {}
-                            key = part['var'] # check for doubles
-                            if key in takenNames:
-                                index = 0
-                                while (key + str(index)) in takenNames:
-                                    index += 1
-                                field['key'] = (key + str(index))
-                                takenNames.append((key + str(index)))
-                            else:
-                                field['key'] = key
-                                takenNames.append(key)
-                            field['type'] = 'input'
-                            to = {}
-                            to['type'] = 'text'
-                            to['label'] = part['var']
-                            field['templateOptions'] = to
-                            forms.append(field)
-                            data[field['key']] = ''
-            else:
-                el['#content'] = [] # TODO warning, should not be added if it can't contain any value
+        att = OrderedDict()
+        att['-name'] = attrib['key']
+        att['-req'] = 0
+        if 'required' in attrib['templateOptions']:
+            if attrib['templateOptions']['required']:
+                att['-req'] = 1
+            trail = getTrail(elements, element, [])
+            trailstr = '.'.join(trail)
+            var = trailstr + '.' + att['-name']
+
+
+        if attrib['key'] in element['formData']:
+            content = constructContent(element['formData'][attrib['key']])
+            att['#content'] = content
         else:
-            att = OrderedDict()
-            att['-name'] = attrib['key']
-            att['-req'] = 0
-            if 'required' in attrib['templateOptions']:
-                if attrib['templateOptions']['required']:
-                    att['-req'] = 1
-            if attrib['key'] in element['formData']:
-                att['#content'] = constructContent(element['formData'][attrib['key']])
-                if not containsFiles:
-                    for part in att['#content']:
-                        if 'var' in part:
-                            # add form entry for element
-                            # ?? add information of parent? example: note for agent with role=Archivist&&typ=organization (probably not needed)
-                            # adding text if there occures at least one variable.
-                            field = {}
-                            key = part['var'] # check for doubles
-                            if key in takenNames:
-                                index = 0
-                                while (key + str(index)) in takenNames:
-                                    index += 1
-                                field['key'] = (key + str(index))
-                                takenNames.append((key + str(index)))
-                            else:
-                                field['key'] = key
-                                takenNames.append(key)
-                            field['type'] = 'input'
+            att['#content'] = [{
+                'var': var
+            }]
 
-                            to = {}
-                            to['type'] = 'text'
-                            to['label'] = part['var']
+        to = {
+            'label': var,
+            'type': 'text',
+        }
 
-                            if 'desc' in attrib:
-                                to['desc'] = attrib['desc']
+        if 'desc' in attrib:
+            to['desc'] = attrib['desc']
 
-                            if 'hideExpression' in attrib:
-                                field['hideExpression'] = str(attrib['hideExpression']).lower()
+        if 'readonly' in attrib:
+            to['readonly'] = attrib['readonly']
 
-                            if 'readonly' in attrib:
-                                to['readonly'] = attrib['readonly']
+        field = {
+            'key': var,
+            'type': 'input',
+            'templateOptions': to,
+        }
 
-                            field['templateOptions'] = to
-                            forms.append(field)
-                            data[field['key']] = ''
-            else:
-                att['#content'] = [] # TODO warning, should not be added if it can't contain any value
-            attributeList.append(att)
+        if 'hideExpression' in attrib:
+            field['hideExpression'] = str(attrib['hideExpression']).lower()
+
+        forms.append(field)
+        data[field['key']] = ''
+
+        attributeList.append(att)
     el['-attr'] = attributeList
     for child in element['children']:
         if not elements[child['uuid']]['containsFiles']:
