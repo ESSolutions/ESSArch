@@ -102,16 +102,13 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, n
     for attrib in attributes:
         att = OrderedDict()
         att['-name'] = attrib['key']
-        att['-req'] = 0
-        if 'required' in attrib['templateOptions']:
-            if attrib['templateOptions']['required']:
-                att['-req'] = 1
-            trail = getTrail(elements, element, [])
-            trailstr = '.'.join(trail)
-            var = trailstr + '.' + att['-name']
+        att['-req'] = 1 if attrib['templateOptions'].get('required') else 0
 
+        trail = getTrail(elements, element, [])
+        trailstr = '.'.join(trail)
+        var = trailstr + '.' + att['-name']
 
-        if attrib['key'] in element['formData']:
+        if attrib['key'] in element['formData']: # if custom value has been entered
             content = constructContent(element['formData'][attrib['key']])
             att['#content'] = content
         else:
