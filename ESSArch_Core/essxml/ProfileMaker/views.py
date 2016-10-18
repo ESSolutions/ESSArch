@@ -3,7 +3,6 @@ from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
-from django.template import Context, loader, RequestContext
 from models import templatePackage, extensionPackage
 from profiles.models import Profile
 import os
@@ -179,16 +178,6 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, n
             cf.append(elDict)
             el['-containsFiles'] = cf
     return (el, forms, data)
-
-def generateTemplate(request, name):
-    obj = get_object_or_404(templatePackage, pk=name)
-    existingElements = obj.existingElements
-    jsonString = OrderedDict()
-    jsonString[existingElements['root']['name']], forms, data = generateElement(existingElements, 'root')
-
-    t = finishedTemplate(name='test', template=jsonString, form=forms, data=data)
-    t.save()
-    return JsonResponse(jsonString, safe=False)
 
 def getExistingElements(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
@@ -374,14 +363,6 @@ def setContainsFiles(request, name, uuid, containsFiles):
     obj.save()
     return JsonResponse(obj.existingElements, safe=False)
 
-def getForm(request, name):
-    obj = get_object_or_404(finishedTemplate, pk=name)
-    return JsonResponse(obj.form, safe=False)
-
-def getData(request, name):
-    obj = get_object_or_404(finishedTemplate, pk=name)
-    return JsonResponse(obj.data, safe=False)
-
 def saveForm(request, name):
 
     res = json.loads(request.body)
@@ -389,7 +370,6 @@ def saveForm(request, name):
     del res['uuid']
 
     obj = get_object_or_404(templatePackage, pk=name)
-    j = obj.existingElements
     obj.existingElements[uuid]['formData'] = res
     obj.save()
     return JsonResponse(res, safe=False)
@@ -520,25 +500,6 @@ class generate(View):
         return JsonResponse(t.specification_data, safe=False)
 
 
-class demo(View):
-    template_name = 'templateMaker/demo.html'
-
-    def get(self, request, *args, **kwargs):
-        context = {}
-        context['label'] = 'Edit template'
-
-        return render(request, self.template_name, context)
-
-    def post(self, request, *args, **kwargs):
-
-        res = json.loads(request.body)
-
-        obj = get_object_or_404(finishedTemplate, pk='test') # TODO not hardcoded
-        obj.data = res
-        obj.save()
-
-        return JsonResponse(request.body, safe=False)
-
 class create(View):
     template_name = 'templateMaker/create.html'
 
@@ -565,7 +526,6 @@ class edit(View):
         del res['uuid']
 
         obj = get_object_or_404(templatePackage, pk=kwargs['name'])
-        j = obj.existingElements
         obj.existingElements[uuid]['formData'] = res
         obj.save()
         return JsonResponse(res, safe=False)
