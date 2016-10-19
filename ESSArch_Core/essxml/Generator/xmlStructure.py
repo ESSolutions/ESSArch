@@ -60,7 +60,7 @@ class xmlElement(object):
         self.completeTagName = ''
         self.containsFiles = False
         self.printed = 0
-        if self.namespace != '':
+        if self.namespace:
             self.completeTagName += self.namespace + ':'
         self.completeTagName += str(self.tagName)
 
@@ -70,7 +70,7 @@ class xmlElement(object):
         """
         self.namespace = namespace
         self.completeTagName = ''
-        if self.namespace != '':
+        if self.namespace:
             self.completeTagName += self.namespace + ':'
         self.completeTagName += self.tagName
 
@@ -137,24 +137,28 @@ class xmlElement(object):
                 res.update(r)
             element['availableChildren'] = children
             res[self.tagName] = element
-            el = {}
-            el['type'] = 'element'
-            el['name'] = self.tagName
+            el = {
+                'type': 'element',
+                'name': self.tagName
+            }
             return res, [el], []
         elif self.type == TYPE_CHOISE:
-            el = {}
-            el['type'] = 'choise'
             children = []
             for child in self.children:
                 r, c, a = child.listAllElements(parent)
                 children = children + c
                 res.update(r)
-            el['elements'] = children
+
+            el = {
+                'type': 'choise',
+                'elements': children
+            }
             return res, [el], []
         elif self.type == TYPE_TO:
-            el = {}
-            el['type'] = 'element'
-            el['name'] = self.tagName
+            el = {
+                'type': 'element',
+                'name': self.tagName
+            }
             return {}, [el], self.attributes
         elif self.type == TYPE_TO_CHOISE:
             return {}, self.children, self.attributes
@@ -162,18 +166,17 @@ class xmlElement(object):
     def calculateChildren(self):
         res = []
         for child in self.children:
-            el = {}
             if child.type == TYPE_CHOISE:
-                el['type'] = 'choise'
-                el['elements'] = child.calculateChildren()
+                el = {
+                    'type': 'element',
+                    'elements': child.calculateChildren()
+                }
                 res.append(el)
-            elif child.type == TYPE_ELEMENT:
-                el['name'] = child.tagName
-                el['type'] = 'element'
-                res.append(el)
-            elif child.type == TYPE_TO:
-                el['type'] = 'element'
-                el['name'] = child.tagName
+            elif child.type in [TYPE_ELEMENT, TYPE_TO]:
+                el = {
+                    'type': 'element',
+                    'name': child.tagName
+                }
                 res.append(el)
             elif child.type == TYPE_TO_CHOISE:
                 res = res + child.children
@@ -185,8 +188,8 @@ class xmlElement(object):
         """
         if self.value != '' or self.children or self.containsFiles or self.attributes:
             return False
-        else:
-            return True
+
+        return True
 
     def printDebug(self):
         """
