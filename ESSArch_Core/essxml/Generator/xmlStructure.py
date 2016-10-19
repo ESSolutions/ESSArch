@@ -39,12 +39,6 @@ class xmlAttribute(object):
         if self.value is not '':
             os.write(fd, ' ' + self.attrName + '="' + self.value + '"')
 
-    def XMLToString(self):
-        """
-        Print out the attribute
-        """
-        if self.value is not '':
-            return self.attrName + '="' + self.value + '"'
 
 class xmlElement(object):
     '''
