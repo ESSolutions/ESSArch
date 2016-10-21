@@ -19,6 +19,7 @@
           <a href="{% url 'template_edit' name=tp.name %}">{{tp.name}}</a>
             <!-- <a href="{% url 'generate_template' name=tp.name %}">{{tp.name}}</a> -->
           <input class="btn btn-primary" type="button" onclick="location.href='{% url 'generate_template' name=tp.name %}';" value="Generate" />
+          <input class="btn btn-primary" type="button" onclick="location.href='{% url 'template_add_extension' name=tp.name %}';" value="Add Extension" />
           <input class="btn btn-danger" type="button" ng-click="vm.delete('{{tp.name}}')" value="Delete"/>
         </div>
         {% endfor %}

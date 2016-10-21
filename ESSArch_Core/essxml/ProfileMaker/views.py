@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from models import templatePackage, extensionPackage
 from profiles.models import Profile
+import requests
+from lxml import etree
 import os
 from django.conf import settings
 #file upload
@@ -21,7 +23,7 @@ from collections import OrderedDict
 from django.views.generic import View
 from django.http import JsonResponse
 from esscore.template.templateGenerator.testXSDToJSON import generateJsonRes, generateExtensionRef
-from forms import AddTemplateForm
+from forms import AddTemplateForm, AddExtensionForm
 
 
 def constructContent(text):
@@ -337,7 +339,7 @@ def getAttributes(request, name):
     for extension in obj.extensions.all():
         if extension.allAttributes != None and len(extension.allAttributes) > 0:
             r = {}
-            r['name'] = extension.namespace
+            r['name'] = extension.prefix
             children = []
             for child in extension.allAttributes:
                 c = {}
@@ -404,31 +406,85 @@ class add(View):
 
     def post(self, request, *args, **kwargs):
 
-        form = AddTemplateForm(request.POST, request.FILES)
-        if not form.is_valid():
-            return HttpResponse(request.FILES['file'].name + ' did not success in uploading')
+        form = AddTemplateForm(request.POST)
 
-        name = request.POST['template_name']
-        # name.replace(' ', '_')
-        if templatePackage.objects.filter(pk=name).exists():
-            return HttpResponse('ERROR: templatePackage with name "' + name + '" already exists!')
+        if form.is_valid():
+            name = form.cleaned_data.get('template_name')
+            prefix = form.cleaned_data.get('namespace_prefix')
+            root = form.cleaned_data.get('root_element')
+            schema = form.cleaned_data.get('schema')
 
-        existingElements, allElements = generateJsonRes(request.FILES['file'], request.POST['root_element'], request.POST['namespace_prefix']);
-        t = templatePackage(existingElements=existingElements, allElements=allElements, name=name, namespace=request.POST['namespace_prefix'], root_element=request.POST['root_element'])
-        t.save()
-        extensionElements, extensionAll, attributes = generateExtensionRef(os.path.join(settings.BASE_DIR, 'esscore/template/templateGenerator/premis.xsd'), 'premis')
-        e = extensionPackage(namespace='premis', allElements=extensionAll, existingElements=extensionElements, allAttributes=attributes)
-        e.save()
-        t.extensions.add(e)
+            if templatePackage.objects.filter(pk=name).exists():
+                return HttpResponse('ERROR: templatePackage with name "' + name + '" already exists!')
 
-        extensionElements, extensionAll, attributes = generateExtensionRef(os.path.join(settings.BASE_DIR, 'esscore/template/templateGenerator/xlink.xsd'), 'xlink')
-        e = extensionPackage(namespace='xmlns', allElements=extensionAll, existingElements=extensionElements, allAttributes=attributes)
-        e.save()
-        t.extensions.add(e)
-        # return JsonResponse(attributes, safe=False)
+            from requests.packages.urllib3.exceptions import (
+                InsecureRequestWarning, InsecurePlatformWarning
+            )
 
-        t.save()
-        return redirect('/template/edit/' + name)
+            requests.packages.urllib3.disable_warnings(InsecurePlatformWarning)
+            requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+            schema_request = requests.get(schema)
+            schema_request.raise_for_status()
+
+            schemadoc = etree.fromstring(schema_request.content)
+            targetNamespace = schemadoc.get('targetNamespace')
+
+            existingElements, allElements = generateJsonRes(schemadoc, root, prefix);
+            templatePackage.objects.create(
+                existingElements=existingElements, allElements=allElements,
+                name=name, prefix=prefix, schemaURL=schema,
+                targetNamespace=targetNamespace, root_element=root
+            )
+
+            return redirect('/template/edit/' + name)
+
+        return render(request, self.template_name, {'form': form})
+
+class addExtension(View):
+    template_name = 'templateMaker/add.html'
+
+    def get(self, request, *args, **kwargs):
+        context = {}
+        context['label'] = 'Add template'
+        context['form'] = AddExtensionForm()
+
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        obj = get_object_or_404(templatePackage, pk=kwargs['name'])
+
+        form = AddExtensionForm(request.POST)
+
+        if form.is_valid():
+            prefix = form.cleaned_data.get('namespace_prefix')
+            schema = form.cleaned_data.get('schema')
+
+            from requests.packages.urllib3.exceptions import (
+                InsecureRequestWarning, InsecurePlatformWarning
+            )
+
+            requests.packages.urllib3.disable_warnings(InsecurePlatformWarning)
+            requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+            schema_request = requests.get(schema)
+            schema_request.raise_for_status()
+
+            schemadoc = etree.fromstring(schema_request.content)
+            targetNamespace = schemadoc.get('targetNamespace')
+
+            extensionElements, extensionAll, attributes = generateExtensionRef(schemadoc, prefix)
+            e = extensionPackage.objects.create(
+                prefix=prefix, schemaURL=schema,
+                targetNamespace=targetNamespace, allElements=extensionAll,
+                existingElements=extensionElements, allAttributes=attributes
+            )
+            obj.extensions.add(e)
+            obj.save()
+
+            return HttpResponse('Success: Added extension schema')
+
+        return render(request, self.template_name, {'form': form})
 
 class generate(View):
     template_name = 'templateMaker/generate.html'
@@ -479,8 +535,45 @@ class generate(View):
 
         existingElements['root']['form'] = form
 
-        jsonString = OrderedDict()
-        jsonString[existingElements['root']['name']], forms, data = generateElement(existingElements, 'root')
+        jsonString, forms, data = generateElement(existingElements, 'root')
+        schemaLocation = ['%s %s' % (obj.targetNamespace, obj.schemaURL)]
+
+        XSI = 'http://www.w3.org/2001/XMLSchema-instance'
+
+        ns_attributes = []
+
+        ns_attributes.extend([
+            {
+                '-name': 'xmlns:xsi',
+                '#content': [{
+                    'text': XSI
+                }],
+            },{
+                '-name': 'xmlns:%s' % obj.prefix,
+                '#content': [{
+                    'text': obj.targetNamespace
+                }],
+            }
+        ])
+
+        for ext in obj.extensions.all():
+            ns_attributes.append({
+                '-name': 'xmlns:%s' % ext.prefix,
+                '#content': [{
+                    'text': ext.targetNamespace
+                }]
+            })
+
+            schemaLocation.append('%s %s' % (ext.targetNamespace, ext.schemaURL))
+
+        ns_attributes.append({
+            '-name': 'xsi:schemaLocation',
+            '#content': [{
+                'text': ' '.join(schemaLocation)
+            }]
+        })
+
+        jsonString['-attr'] += ns_attributes
 
         j = json.loads(request.body)
         t = Profile(profile_type=j['profile_type'],

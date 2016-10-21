@@ -4,6 +4,7 @@ from views import (
     edit,
     index,
     add,
+    addExtension,
     generate,
     # SubmitIPCreate,
 )
@@ -16,6 +17,7 @@ urlpatterns = [
     url(r'^$', index.as_view(), name='template_index'),
     url(r'^edit/(?P<name>[A-z0-9]+)/$', edit.as_view(), name='template_edit'),
     url(r'^add/$', add.as_view(), name='template_add'),
+    url(r'^add-extension/(?P<name>[A-z0-9]+)/$', addExtension.as_view(), name='template_add_extension'),
     # url(r'^reset/$', views.resetData, name='reset_data_template'),
     url(r'^generate/(?P<name>[A-z0-9]+)/$', generate.as_view(), name='generate_template'),
     url(r'^delete/(?P<name>[A-z0-9]+)/$', views.deleteTemplate, name='delete_template'),

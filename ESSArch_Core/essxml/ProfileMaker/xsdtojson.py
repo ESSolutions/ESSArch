@@ -280,19 +280,16 @@ def parseAttribute(element):
 
     return att
 
-def generateExtensionRef(schemaName, namespace):
+def generateExtensionRef(schemadoc, namespace):
     global complexTypes
     global attributeGroups
     global groups
     global elementTypes
-    parser = etree.XMLParser(remove_comments=True)
-    pars = etree.parse(schemaName, parser=parser)
     schema = '{http://www.w3.org/2001/XMLSchema}'
     thisSchema = ''
     thisVersion = ''
 
-    root = pars.getroot()
-    for key, value in root.attrib.iteritems():
+    for key, value in schemadoc.attrib.iteritems():
         if key == 'targetNamespace':
             thisSchema = value
         elif key == 'version':
@@ -312,31 +309,30 @@ def generateExtensionRef(schemaName, namespace):
         else:
             print 'unknown schema attribute: ' + key + ', ' + value
 
-    for child in root.iterfind(schema + 'complexType'):
+    for child in schemadoc.iterfind(schema + 'complexType'):
         if child.get('name'):
             complexTypes[child.get('name')] = child
 
-    for child in root.iterfind(schema + 'simpleType'):
+    for child in schemadoc.iterfind(schema + 'simpleType'):
         if child.get('name'):
             complexTypes[child.get('name')] = child
 
-    for child in root.iterfind(schema + 'attributeGroup'):
+    for child in schemadoc.iterfind(schema + 'attributeGroup'):
         if child.get('name'):
             attributeGroups[child.get('name')] = child
 
-    for child in root.iterfind(schema + 'group'):
+    for child in schemadoc.iterfind(schema + 'group'):
         if child.get('name'):
             groups[child.get('name')] = child
 
-    for child in root.iterfind(schema + 'element'):
+    for child in schemadoc.iterfind(schema + 'element'):
         if child.get('name'):
             elementTypes[child.get('name')] = child
 
     allElements = {}
     existingElements = {}
     attributes = {}
-    for child in root:
-        print child.tag
+    for child in schemadoc:
         if child.tag == (schema + 'element'):
             tag = printTag(child.tag)
             if tag != 'complexType' and tag != 'attributeGroup':
@@ -351,19 +347,16 @@ def generateExtensionRef(schemaName, namespace):
 
     return existingElements, allElements, attributes
 
-def generateJsonRes(schemaName, rootElement, namespace):
+def generateJsonRes(schemadoc, rootElement, namespace):
     global complexTypes
     global attributeGroups
     global groups
     global elementTypes
-    parser = etree.XMLParser(remove_comments=True)
-    pars = etree.parse(schemaName, parser=parser)
     schema = '{http://www.w3.org/2001/XMLSchema}'
     thisSchema = ''
     thisVersion = ''
 
-    root = pars.getroot()
-    for key, value in root.attrib.iteritems():
+    for key, value in schemadoc.attrib.iteritems():
         if key == 'targetNamespace':
             thisSchema = value
         elif key == 'version':
@@ -383,27 +376,27 @@ def generateJsonRes(schemaName, rootElement, namespace):
         else:
             print 'unknown schema attribute: ' + key + ', ' + value
 
-    for child in root.iterfind(schema + 'complexType'):
+    for child in schemadoc.iterfind(schema + 'complexType'):
         if child.get('name'):
             complexTypes[child.get('name')] = child
 
-    for child in root.iterfind(schema + 'simpleType'):
+    for child in schemadoc.iterfind(schema + 'simpleType'):
         if child.get('name'):
             complexTypes[child.get('name')] = child
 
-    for child in root.iterfind(schema + 'attributeGroup'):
+    for child in schemadoc.iterfind(schema + 'attributeGroup'):
         if child.get('name'):
             attributeGroups[child.get('name')] = child
 
-    for child in root.iterfind(schema + 'group'):
+    for child in schemadoc.iterfind(schema + 'group'):
         if child.get('name'):
             groups[child.get('name')] = child
 
-    for child in root.iterfind(schema + 'element'):
+    for child in schemadoc.iterfind(schema + 'element'):
         if child.get('name'):
             elementTypes[child.get('name')] = child
 
-    for child in root.iterfind(schema + 'element'):
+    for child in schemadoc.iterfind(schema + 'element'):
         if child.get('name') == rootElement:
             tag = printTag(child.tag)
             if tag != 'complexType' and tag != 'attributeGroup':
