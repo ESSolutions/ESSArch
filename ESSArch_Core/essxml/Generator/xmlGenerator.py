@@ -7,6 +7,8 @@ import mimetypes
 import tempfile
 from django.conf import settings
 
+from lxml import etree
+
 from xmlStructure import xmlElement, xmlAttribute, fileInfo, fileObject, dlog
 
 from configuration.models import (
@@ -299,24 +301,30 @@ def appendXML(inputData):
     """
 
     fname = inputData['path']
-    data = inputData['data']
-    elementToAppendTo = inputData['elementToAppendTo']
+    parser = etree.XMLParser(remove_blank_text=True)
+    tree = etree.parse(fname, parser)
+    rootEl = tree.getroot()
+
+    rootWithoutNS = etree.QName(rootEl).localname
+
+    if rootWithoutNS == inputData['elementToAppendTo']:
+        elementToAppendTo = rootEl
+    else:
+        elementToAppendTo = rootEl.find(".//{*}%s" % inputData['elementToAppendTo'])
+
     template = inputData['template']
+    name = template['-name']
+    ns = template.get('-namespace')
+    data = inputData['data']
 
-    tmpfile, tmpfilename = tempfile.mkstemp()
+    appendedRootEl = createXMLStructure(
+        name, template, data, nsmap=rootEl.nsmap, namespace=ns
+    )
 
-    with open(fname, 'r') as f:
-        for line in f:
-            if "</" + elementToAppendTo + ">" in line:
-                name, rootE = template.items()[0]
-                rootEl = createXMLStructure(name, rootE, data)
-                level = (len(line) - len(line.lstrip(' ')))/4
-                rootEl.printXML(tmpfile, level+1)
+    elementToAppendTo.append(appendedRootEl.createLXMLElement())
 
-            os.write(tmpfile, line)
-
-    os.close(tmpfile)
-    os.rename(tmpfilename, fname)
+    with open(fname, "w") as f:
+        tree.write(f, pretty_print=True)
 
 #############################
 # example of input for appendXML
