@@ -1,13 +1,10 @@
-import json, os, shutil
+import os, shutil
 
-from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from lxml import etree
 
 from demo import xmlGenerator
-from collections import OrderedDict
 
 from configuration.models import (
     Path,
