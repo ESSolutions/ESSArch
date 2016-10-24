@@ -216,7 +216,10 @@
             var data = vm.existingElements[parentName];
             var count = 0;
             for (var index in data['children']) {
-              if (data['children'][index]['name'] == childName) {
+              var cName = data['children'][index]['name'].split('#')[0]
+              var childName = childName.split('#')[0]
+
+              if (cName == childName) {
                 count += 1;
               }
             }

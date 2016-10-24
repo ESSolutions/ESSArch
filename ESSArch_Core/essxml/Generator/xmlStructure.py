@@ -1,5 +1,7 @@
 import os, uuid
 
+from lxml import etree
+
 TYPE_ELEMENT = 0
 TYPE_CHOISE = 1
 TYPE_TO = 2
@@ -45,8 +47,12 @@ class xmlElement(object):
     A class containing a complete XML element, a list of attributes and a list of children
     '''
 
-    def __init__(self, tagName='', namespace=''):
-        self.tagName = tagName
+    def __init__(self, tagName='', nsmap={}, namespace=None):
+        try:
+            self.tagName = tagName.split("#")[0]
+        except:
+            self.tagName = tagName
+
         self.children = []
         self.attributes = []
         self.value = ''
@@ -56,9 +62,15 @@ class xmlElement(object):
         self.anyAttribute = False
         self.anyElement = False
         self.type = 0
+        self.nsmap = nsmap
         self.namespace = namespace
+        try:
+            self.full_namespace = nsmap.get(namespace)
+        except:
+            self.full_namespace = None
         self.completeTagName = ''
         self.containsFiles = False
+        self.allowEmpty = False
         self.printed = 0
         if self.namespace:
             self.completeTagName += self.namespace + ':'
@@ -74,6 +86,22 @@ class xmlElement(object):
             self.completeTagName += self.namespace + ':'
         self.completeTagName += self.tagName
 
+    def createLXMLElement(self):
+        if self.full_namespace:
+            el = etree.Element("{%s}%s" % (self.full_namespace, self.tagName))
+        else:
+            el = etree.Element("%s" % self.tagName, nsmap=self.nsmap)
+
+        el.text = self.value
+
+        for attr in self.attributes:
+            el.set(attr.attrName, attr.value)
+
+        for child in self.children:
+            el.append(child.createLXMLElement())
+
+        return el
+
     def printXML(self, fd, level=0, pretty=True):
         """
         Print out the complete element.
@@ -87,7 +115,7 @@ class xmlElement(object):
             os.write(fd, '<' + self.completeTagName)
             for a in self.attributes:
                 a.printXML(fd)
-        if self.children or self.value is not '' or self.containsFiles:
+        if self.children or self.value or self.containsFiles:
             if self.printed == 0:
                 if self.value is not '':
                     os.write(fd, '>')
@@ -131,6 +159,9 @@ class xmlElement(object):
             element['namespace'] = self.namespace
             children = []
             for child in self.children:
+                if self.tagName == "daoset":
+                    print child.tagName
+
                 r, c, a = child.listAllElements(self.tagName)
                 children = children + c
                 element['form'] = element['form'] + a
@@ -237,7 +268,7 @@ class fileObject():
     """
     A container class for all the files in the xml
     """
-    def __init__(self, xmlFileName, template, namespace, fid):
+    def __init__(self, xmlFileName, template, fid, namespace=None):
         self.xmlFileName = xmlFileName
         self.template = template
         self.namespace = namespace

@@ -1,0 +1,1172 @@
+{
+    "mets": {
+        "-attr": [
+            {
+                "#content": [
+                    {
+                        "var": "xmlns:mets"
+                    }
+                ],
+                "-name": "xmlns:mets",
+                "-req": 1
+            },
+            {
+                "#content": [
+                    {
+                        "var": "xmlns:ext"
+                    }
+                ],
+                "-name": "xmlns:ext",
+                "-req": 1
+            },
+            {
+                "#content": [
+                    {
+                        "var": "xmlns:xlink"
+                    }
+                ],
+                "-name": "xmlns:xlink",
+                "-req": 1
+            },
+            {
+                "#content": [
+                    {
+                        "var": "xmlns:xsi"
+                    }
+                ],
+                "-name": "xmlns:xsi",
+                "-req": 1
+            },
+            {
+                "#content": [
+                    {
+                        "var": "xsi:schemaLocation"
+                    }
+                ],
+                "-name": "xsi:schemaLocation",
+                "-req": 1
+            },
+            {
+                "#content": [
+                    {
+                        "var": "PROFILE"
+                    }
+                ],
+                "-name": "PROFILE",
+                "-req": 1
+            },
+            {
+                "#content": [
+                    {
+                        "var": "LABEL"
+                    }
+                ],
+                "-name": "LABEL"
+            },
+            {
+                "#content": [
+                    {
+                        "var": "TYPE"
+                    }
+                ],
+                "-name": "TYPE",
+                "-req": 1
+            },
+            {
+                "#content": [
+                    {
+                        "var": "OBJID"
+                    }
+                ],
+                "-name": "OBJID",
+                "-req": 1
+            },
+            {
+                "#content": [
+                    {
+                        "var": "ext:CONTENTTYPESPECIFICATION"
+                    }
+                ],
+                "-name": "ext:CONTENTTYPESPECIFICATION"
+            },
+            {
+                "#content": [
+                    {
+                        "var": "ext:SYSTEMTYPE"
+                    }
+                ],
+                "-name": "ext:SYSTEMTYPE"
+            },
+            {
+                "#content": [
+                    {
+                        "var": "ext:DATASUBMISSIONSESSION"
+                    }
+                ],
+                "-name": "ext:DATASUBMISSIONSESSION"
+            },
+            {
+                "#content": [
+                    {
+                        "var": "ext:PACKAGENUMBER"
+                    }
+                ],
+                "-name": "ext:PACKAGENUMBER"
+            },
+            {
+                "#content": [
+                    {
+                        "var": "ext:ARCHIVALNAME"
+                    }
+                ],
+                "-name": "ext:ARCHIVALNAME"
+            },
+            {
+                "#content": [
+                    {
+                        "var": "ext:APPRAISAL"
+                    }
+                ],
+                "-name": "ext:APPRAISAL"
+            },
+            {
+                "#content": [
+                    {
+                        "var": "ext:ACCESSRESTRICT"
+                    }
+                ],
+                "-name": "ext:ACCESSRESTRICT"
+            },
+            {
+                "#content": [
+                    {
+                        "var": "ext:STARTDATE"
+                    }
+                ],
+                "-name": "ext:STARTDATE"
+            },
+            {
+                "#content": [
+                    {
+                        "var": "ext:ENDDATE"
+                    }
+                ],
+                "-name": "ext:ENDDATE"
+            },
+            {
+                "#content": [
+                    {
+                        "var": "ext:INFORMATIONCLASS"
+                    }
+                ],
+                "-name": "ext:INFORMATIONCLASS"
+            }
+        ],
+        "-max": 1,
+        "-min": 1,
+        "-namespace": "mets",
+        "amdSec": {
+            "-attr": [
+                {
+                    "#content": [
+                        {
+                            "var": "amdLink"
+                        }
+                    ],
+                    "-name": "ID",
+                    "-req": 1
+                }
+            ],
+            "digiprovMD": {
+                "-attr": [
+                    {
+                        "#content": [
+                            {
+                                "var": "digiprovLink"
+                            }
+                        ],
+                        "-name": "ID",
+                        "-req": 1
+                    }
+                ],
+                "mdRef": {
+                    "-allowEmpty": 1,
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "var": "LOCTYPE"
+                                }
+                            ],
+                            "-name": "LOCTYPE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "var": "MDTYPE"
+                                }
+                            ],
+                            "-name": "MDTYPE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "var": "xlink:href"
+                                }
+                            ],
+                            "-name": "xlink:href",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "var": "xlink:type"
+                                }
+                            ],
+                            "-name": "xlink:type",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "var": "ID"
+                                }
+                            ],
+                            "-name": "ID",
+                            "-req": 1
+                        }
+                    ]
+                }
+            }
+        },
+        "fileSec": {
+            "fileGrp001": [
+                {
+                    "-containsFiles": [
+                        {
+                            "-sortby": {
+                                "FName": ".*(.csv)"
+                            },
+                            "file": {
+                                "-attr": [
+                                    {
+                                        "#content": [
+                                            {
+                                                "var": "FChecksum"
+                                            }
+                                        ],
+                                        "-name": "CHECKSUM",
+                                        "-req": 1
+                                    },
+                                    {
+                                        "#content": [
+                                            {
+                                                "text": "ID"
+                                            },
+                                            {
+                                                "var": "FID"
+                                            }
+                                        ],
+                                        "-name": "ID",
+                                        "-req": 1
+                                    },
+                                    {
+                                        "#content": [
+                                            {
+                                                "var": "FMimetype"
+                                            }
+                                        ],
+                                        "-name": "MIMETYPE",
+                                        "-req": 1
+                                    },
+                                    {
+                                        "#content": [
+                                            {
+                                                "var": "FCreated"
+                                            }
+                                        ],
+                                        "-name": "CREATED",
+                                        "-req": 1
+                                    },
+                                    {
+                                        "#content": [
+                                            {
+                                                "var": "FFormatName"
+                                            }
+                                        ],
+                                        "-name": "ext:FILEFORMATNAME"
+                                    },
+                                    {
+                                        "#content": [
+                                            {
+                                                "var": "FSize"
+                                            }
+                                        ],
+                                        "-name": "SIZE",
+                                        "-req": 1
+                                    },
+                                    {
+                                        "#content": [
+                                            {
+                                                "var": "FUse"
+                                            }
+                                        ],
+                                        "-name": "USE",
+                                        "-req": 1
+                                    },
+                                    {
+                                        "#content": [
+                                            {
+                                                "var": "FChecksumType"
+                                            }
+                                        ],
+                                        "-name": "CHECKSUMTYPE",
+                                        "-req": 1
+                                    }
+                                ],
+                                "-min": 1,
+                                "FLocat": {
+                                    "-allowEmpty": 1,
+                                    "-attr": [
+                                        {
+                                            "#content": [
+                                                {
+                                                    "var": "FName"
+                                                }
+                                            ],
+                                            "-name": "xlink:href",
+                                            "-req": 1
+                                        },
+                                        {
+                                            "#content": [
+                                                {
+                                                    "var": "FLoctype"
+                                                }
+                                            ],
+                                            "-name": "LOCTYPE",
+                                            "-req": 1
+                                        },
+                                        {
+                                            "#content": [
+                                                {
+                                                    "var": "FLinkType"
+                                                }
+                                            ],
+                                            "-name": "xlink:type",
+                                            "-req": 1
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "fileGrp002": [
+                {
+                    "-containsFiles": [
+                        {
+                            "-sortby": {
+                                "FName": ".*(.txt)"
+                            },
+                            "file": {
+                                "-attr": [
+                                    {
+                                        "#content": [
+                                            {
+                                                "var": "FChecksum"
+                                            }
+                                        ],
+                                        "-name": "CHECKSUM",
+                                        "-req": 1
+                                    },
+                                    {
+                                        "#content": [
+                                            {
+                                                "text": "ID"
+                                            },
+                                            {
+                                                "var": "FID"
+                                            }
+                                        ],
+                                        "-name": "ID",
+                                        "-req": 1
+                                    },
+                                    {
+                                        "#content": [
+                                            {
+                                                "var": "FMimetype"
+                                            }
+                                        ],
+                                        "-name": "MIMETYPE",
+                                        "-req": 1
+                                    },
+                                    {
+                                        "#content": [
+                                            {
+                                                "var": "FCreated"
+                                            }
+                                        ],
+                                        "-name": "CREATED",
+                                        "-req": 1
+                                    },
+                                    {
+                                        "#content": [
+                                            {
+                                                "var": "FFormatName"
+                                            }
+                                        ],
+                                        "-name": "ext:FILEFORMATNAME"
+                                    },
+                                    {
+                                        "#content": [
+                                            {
+                                                "var": "FSize"
+                                            }
+                                        ],
+                                        "-name": "SIZE",
+                                        "-req": 1
+                                    },
+                                    {
+                                        "#content": [
+                                            {
+                                                "var": "FUse"
+                                            }
+                                        ],
+                                        "-name": "USE",
+                                        "-req": 1
+                                    },
+                                    {
+                                        "#content": [
+                                            {
+                                                "var": "FChecksumType"
+                                            }
+                                        ],
+                                        "-name": "CHECKSUMTYPE",
+                                        "-req": 1
+                                    }
+                                ],
+                                "-min": 1,
+                                "FLocat": {
+                                    "-allowEmpty": 1,
+                                    "-attr": [
+                                        {
+                                            "#content": [
+                                                {
+                                                    "var": "FName"
+                                                }
+                                            ],
+                                            "-name": "xlink:href",
+                                            "-req": 1
+                                        },
+                                        {
+                                            "#content": [
+                                                {
+                                                    "var": "FLoctype"
+                                                }
+                                            ],
+                                            "-name": "LOCTYPE",
+                                            "-req": 1
+                                        },
+                                        {
+                                            "#content": [
+                                                {
+                                                    "var": "FLinkType"
+                                                }
+                                            ],
+                                            "-name": "xlink:type",
+                                            "-req": 1
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "metsHdr": {
+            "-attr": [
+                {
+                    "#content": [
+                        {
+                            "var": "CREATEDATE"
+                        }
+                    ],
+                    "-name": "CREATEDATE",
+                    "-req": 1
+                },
+                {
+                    "#content": [
+                        {
+                            "var": "RECORDSTATUS"
+                        }
+                    ],
+                    "-name": "RECORDSTATUS",
+                    "-req": 1
+                },
+                {
+                    "#content": [
+                        {
+                            "var": "ext:OAISTYPE"
+                        }
+                    ],
+                    "-name": "ext:OAISTYPE",
+                    "-req": 1
+                }
+            ],
+            "-max": 1,
+            "-min": 1,
+            "agent": [
+                {
+                    "-arr": {
+                        "arguments": {
+                            "ROLE": "ARCHIVIST",
+                            "TYPE": "ORGANIZATION"
+                        },
+                        "arrayName": "agents"
+                    },
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "ARCHIVIST"
+                                }
+                            ],
+                            "-name": "ROLE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "text": "ORGANIZATION"
+                                }
+                            ],
+                            "-name": "TYPE",
+                            "-req": 1
+                        }
+                    ],
+                    "-max": 1,
+                    "-min": 1,
+                    "name": {
+                        "#content": [
+                            {
+                                "var": "name"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 1
+                    },
+                    "note": {
+                        "#content": [
+                            {
+                                "var": "note"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 1
+                    }
+                },
+                {
+                    "-arr": {
+                        "arguments": {
+                            "OTHERTYPE": "SOFTWARE",
+                            "ROLE": "ARCHIVIST",
+                            "TYPE": "OTHER"
+                        },
+                        "arrayName": "agents"
+                    },
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "ARCHIVIST"
+                                }
+                            ],
+                            "-name": "ROLE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "text": "OTHER"
+                                }
+                            ],
+                            "-name": "TYPE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "text": "SOFTWARE"
+                                }
+                            ],
+                            "-name": "OTHERTYPE",
+                            "-req": 1
+                        }
+                    ],
+                    "-max": 1,
+                    "-min": 1,
+                    "name": {
+                        "#content": [
+                            {
+                                "var": "name"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 1
+                    },
+                    "note": {
+                        "#content": [
+                            {
+                                "var": "note"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 0
+                    }
+                },
+                {
+                    "-arr": {
+                        "arguments": {
+                            "ROLE": "CREATOR",
+                            "TYPE": "ORGANIZATION"
+                        },
+                        "arrayName": "agents"
+                    },
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "CREATOR"
+                                }
+                            ],
+                            "-name": "ROLE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "text": "ORGANIZATION"
+                                }
+                            ],
+                            "-name": "TYPE",
+                            "-req": 1
+                        }
+                    ],
+                    "-max": 1,
+                    "-min": 1,
+                    "name": {
+                        "#content": [
+                            {
+                                "var": "name"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 1
+                    },
+                    "note": {
+                        "#content": [
+                            {
+                                "var": "note"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 0
+                    }
+                },
+                {
+                    "-arr": {
+                        "arguments": {
+                            "OTHERROLE": "PRODUCER",
+                            "ROLE": "OTHER",
+                            "TYPE": "ORGANIZATION"
+                        },
+                        "arrayName": "agents"
+                    },
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "OTHER"
+                                }
+                            ],
+                            "-name": "ROLE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "text": "PRODUCER"
+                                }
+                            ],
+                            "-name": "OTHERROLE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "text": "ORGANIZATION"
+                                }
+                            ],
+                            "-name": "TYPE",
+                            "-req": 1
+                        }
+                    ],
+                    "-max": 1,
+                    "-min": 0,
+                    "name": {
+                        "#content": [
+                            {
+                                "var": "name"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 1
+                    },
+                    "note": {
+                        "#content": [
+                            {
+                                "var": "note"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 0
+                    }
+                },
+                {
+                    "-arr": {
+                        "arguments": {
+                            "OTHERROLE": "SUBMITTER",
+                            "ROLE": "OTHER",
+                            "TYPE": "ORGANIZATION"
+                        },
+                        "arrayName": "agents"
+                    },
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "OTHER"
+                                }
+                            ],
+                            "-name": "ROLE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "text": "SUBMITTER"
+                                }
+                            ],
+                            "-name": "OTHERROLE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "text": "ORGANIZATION"
+                                }
+                            ],
+                            "-name": "TYPE",
+                            "-req": 1
+                        }
+                    ],
+                    "-max": 1,
+                    "-min": 0,
+                    "name": {
+                        "#content": [
+                            {
+                                "var": "name"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 1
+                    },
+                    "note": {
+                        "#content": [
+                            {
+                                "var": "note"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 0
+                    }
+                },
+                {
+                    "-arr": {
+                        "arguments": {
+                            "ROLE": "IPOWNER",
+                            "TYPE": "ORGANIZATION"
+                        },
+                        "arrayName": "agents"
+                    },
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "IPOWNER"
+                                }
+                            ],
+                            "-name": "ROLE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "text": "ORGANIZATION"
+                                }
+                            ],
+                            "-name": "TYPE",
+                            "-req": 1
+                        }
+                    ],
+                    "-max": 1,
+                    "-min": 0,
+                    "name": {
+                        "#content": [
+                            {
+                                "var": "name"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 1
+                    },
+                    "note": {
+                        "#content": [
+                            {
+                                "var": "note"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 0
+                    }
+                },
+                {
+                    "-arr": {
+                        "arguments": {
+                            "ROLE": "EDITOR",
+                            "TYPE": "ORGANIZATION"
+                        },
+                        "arrayName": "agents"
+                    },
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "EDITOR"
+                                }
+                            ],
+                            "-name": "ROLE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "text": "ORGANIZATION"
+                                }
+                            ],
+                            "-name": "TYPE",
+                            "-req": 1
+                        }
+                    ],
+                    "-min": 0,
+                    "name": {
+                        "#content": [
+                            {
+                                "var": "name"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 1
+                    },
+                    "note": {
+                        "#content": [
+                            {
+                                "var": "note"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 0
+                    }
+                },
+                {
+                    "-arr": {
+                        "arguments": {
+                            "OTHERTYPE": "SOFTWARE",
+                            "ROLE": "CREATOR",
+                            "TYPE": "OTHER"
+                        },
+                        "arrayName": "agents"
+                    },
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "CREATOR"
+                                }
+                            ],
+                            "-name": "ROLE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "text": "OTHER"
+                                }
+                            ],
+                            "-name": "TYPE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "text": "SOFTWARE"
+                                }
+                            ],
+                            "-name": "OTHERTYPE",
+                            "-req": 1
+                        }
+                    ],
+                    "-max": 1,
+                    "-min": 0,
+                    "name": {
+                        "#content": [
+                            {
+                                "var": "name"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 1
+                    },
+                    "note": {
+                        "#content": [
+                            {
+                                "var": "note"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 0
+                    }
+                },
+                {
+                    "-arr": {
+                        "arguments": {
+                            "ROLE": "CREATOR",
+                            "TYPE": "INDIVIDUAL"
+                        },
+                        "arrayName": "agents"
+                    },
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "CREATOR"
+                                }
+                            ],
+                            "-name": "ROLE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "text": "INDIVIDUAL"
+                                }
+                            ],
+                            "-name": "TYPE",
+                            "-req": 1
+                        }
+                    ],
+                    "-min": 0,
+                    "name": {
+                        "#content": [
+                            {
+                                "var": "name"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 1
+                    },
+                    "note": {
+                        "#content": [
+                            {
+                                "var": "note"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 0
+                    }
+                },
+                {
+                    "-arr": {
+                        "arguments": {
+                            "ROLE": "PRESERVATION",
+                            "TYPE": "ORGANIZATION"
+                        },
+                        "arrayName": "agents"
+                    },
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "PRESERVATION"
+                                }
+                            ],
+                            "-name": "ROLE",
+                            "-req": 1
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "text": "ORGANIZATION"
+                                }
+                            ],
+                            "-name": "TYPE",
+                            "-req": 1
+                        }
+                    ],
+                    "-max": 1,
+                    "-min": 0,
+                    "name": {
+                        "#content": [
+                            {
+                                "var": "name"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 1
+                    },
+                    "note": {
+                        "#content": [
+                            {
+                                "var": "note"
+                            }
+                        ],
+                        "-max": 1,
+                        "-min": 0
+                    }
+                }
+            ],
+            "altRecordID": [
+                {
+                    "#content": [
+                        {
+                            "var": "SUBMISSIONAGREEMENT"
+                        }
+                    ],
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "SUBMISSIONAGREEMENT"
+                                }
+                            ],
+                            "-name": "TYPE",
+                            "-req": 1
+                        }
+                    ],
+                    "-max": 1,
+                    "-min": 1
+                },
+                {
+                    "#content": [
+                        {
+                            "var": "PREVIOUSSUBMISSIONAGREEMENT"
+                        }
+                    ],
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "PREVIOUSSUBMISSIONAGREEMENT"
+                                }
+                            ],
+                            "-name": "TYPE",
+                            "-req": 1
+                        }
+                    ],
+                    "-min": 0
+                },
+                {
+                    "#content": [
+                        {
+                            "var": "REFERENCECODE"
+                        }
+                    ],
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "REFERENCECODE"
+                                }
+                            ],
+                            "-name": "TYPE",
+                            "-req": 1
+                        }
+                    ],
+                    "-max": 1,
+                    "-min": 0
+                },
+                {
+                    "#content": [
+                        {
+                            "var": "PREVIOUSREFERENCECODE"
+                        }
+                    ],
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "PREVIOUSREFERENCECODE"
+                                }
+                            ],
+                            "-name": "TYPE",
+                            "-req": 1
+                        }
+                    ],
+                    "-min": 0
+                }
+            ],
+            "metsDocumentID": "MetsIdentifier"
+        },
+        "structMap": {
+            "-attr": [
+                {
+                    "#content": [
+                        {
+                            "var": "SMLabel"
+                        }
+                    ],
+                    "-name": "LABEL"
+                }
+            ],
+            "-max": 1,
+            "-min": 1,
+            "div": {
+                "-containsFiles": [
+                    {
+                        "fptr": {
+                            "-allowEmpty": 1,
+                            "-attr": [
+                                {
+                                    "#content": [
+                                        {
+                                            "text": "ID"
+                                        },
+                                        {
+                                            "var": "FID"
+                                        }
+                                    ],
+                                    "-name": "FILEID",
+                                    "-req": 1
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}

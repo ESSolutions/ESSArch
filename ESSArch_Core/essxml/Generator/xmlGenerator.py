@@ -54,7 +54,8 @@ def parseFile(filepath, relpath=None, level=3, resultFile=[], sortedFiles=[]):
             found = True
 
     if not found:
-        file_name, file_ext = os.path.splitext(relpath)
+        base = os.path.basename(relpath)
+        file_name, file_ext = os.path.splitext(base)
 
         try:
             mimetype = mimetypes.types_map[file_ext]
@@ -84,9 +85,9 @@ def parseFile(filepath, relpath=None, level=3, resultFile=[], sortedFiles=[]):
         for fi in sortedFiles:
             for fil in fi.files:
                 if not fil.arguments:
-                    for key, value in fil.element.iteritems():
-                        t = createXMLStructure(key, value, fileInfo, namespace=fi.namespace)
-                        t.printXML(fil.fid,fil.level)
+                    value = fil.element
+                    t = createXMLStructure(value['-name'], value, fileInfo, namespace=fi.namespace)
+                    t.printXML(fil.fid,fil.level)
                 else:
                     found = True
                     for key, value in fil.arguments.iteritems():
@@ -106,12 +107,12 @@ def getValue(key, info):
         text = key.rstrip()
         return info.get(text, None)
 
-def parseChild(name, content, info, namespace, t, fob, level=0):
+def parseChild(name, content, info, namespace, t, fob, level=0, nsmap={}):
     """
     Parse a child to get the correct values even if the values are in an array
     """
     if '-arr' not in content:
-        c = createXMLStructure(name, content, info, fob, namespace, level+1)
+        c = createXMLStructure(name, content, info, fob=fob, nsmap=nsmap, namespace=namespace, level=level+1)
         if c is not None:
             t.addChild(c)
     else:
@@ -128,7 +129,7 @@ def parseChild(name, content, info, namespace, t, fob, level=0):
             dic = findMatchingSubDict(dictionaries, testArgs)
             if dic is not None:
                 #done, found matching entries
-                c = createXMLStructure(name, content, dic, fob, namespace, level+1)
+                c = createXMLStructure(name, content, dic, fob=fob, nsmap=nsmap, namespace=namespace, level=level+1)
                 if c is not None:
                     t.addChild(c)
                     dictionaries.remove(dic)
@@ -138,37 +139,26 @@ def parseChild(name, content, info, namespace, t, fob, level=0):
                 break
 
 def addFile(content, fob, level):
-    arg = None
-    con = {}
-
-    for key, value in content.iteritems():
-        if key[:1] != '-' and key[:1] != '#':
-            con[key] = value
-
-    if '-sortby' in content:
-        arg = content['-sortby']
+    arg = content.get('-sortby')
 
     (tmp_obj, tmp_name) = tempfile.mkstemp()
 
-    f = fileInfo(con, tmp_name, arg, level=level)
+    f = fileInfo(content, tmp_name, arg, level=level)
     f.fid = tmp_obj
     fob.files.append(f)
 
-def createXMLStructure(name, content, info, fob=None, namespace='', level=1):
+def createXMLStructure(name, content, info, fob=None, nsmap={}, namespace='', level=1):
     """
     The main XML element creator where the json structure is broken down and converted into a xml.
     """
-    t = xmlElement(name, namespace)
+    t = xmlElement(name, nsmap=nsmap, namespace=namespace)
+
     # loop through all attribute and children
     if '-containsFiles' in content and fob is not None:
         t.containsFiles = True
-        c = content['-containsFiles']
-        if isinstance(c, OrderedDict):
-            addFile(c, fob, level)
 
-        elif isinstance(c, list):
-            for co in c:
-                addFile(co, fob, level)
+        for child in content.get('-containsFiles', []):
+            addFile(child, fob, level)
 
     for key, value in content.iteritems():
         if key == '#content':
@@ -182,7 +172,7 @@ def createXMLStructure(name, content, info, fob=None, namespace='', level=1):
         elif key == '-attr':
             #parse attrib children
             for attrib in value:
-                attribute = parseAttribute(attrib, info)
+                attribute = parseAttribute(attrib, info, nsmap=nsmap)
                 if attribute is None:
                     if '-req' in attrib:
                         if attrib['-req'] == 1:
@@ -196,16 +186,13 @@ def createXMLStructure(name, content, info, fob=None, namespace='', level=1):
         elif key == '-namespace':
             t.setNamespace(value)
             namespace = value
-        elif key[:1] != '-':
-            #child
-            if isinstance(value, dict):
-                parseChild(key, value, info, namespace, t, fob, level)
-            elif isinstance(value, list):
-                for l in value:
-                    parseChild(key, l, info, namespace, t, fob, level)
+        elif key == '-children':
+            for child in value:
+                parseChild(child['-name'], child, info, namespace, t, fob, level, nsmap=nsmap)
 
     if t.isEmpty():
         if content.get('-allowEmpty', None):
+            t.allowEmpty = True
             return t
         else:
             raise ValueError(
@@ -232,19 +219,24 @@ def findMatchingSubDict(dictionaries, arguments):
             return dic
     return None
 
-def parseAttribute(content, info):
+def parseAttribute(content, info, nsmap={}):
     """
     parse the content of an attribute and return it
     """
     text = ''
     name = content['-name']
+    namespace = content.get('-namespace')
+
+    if namespace and nsmap:
+        name = "{%s}%s" % (nsmap[namespace], name)
+
     for c in content['#content']:
         if 'text' in c:
-            text += c['text']
+            text += str(c['text'])
         elif 'var' in c:
             t = getValue(c['var'], info)
             if t is not None:
-                text += t
+                text += str(t)
     if text is not '':
         return xmlAttribute(name, text)
     else:
@@ -258,14 +250,14 @@ def createXML(info, filesToCreate, folderToParse=None):
 
     sortedFiles = []
 
-    for key, value in filesToCreate.iteritems():
-        name, rootE = value.items()[0] # root element
+    for key, rootE in filesToCreate.iteritems():
+        name = rootE['-name']
         xmlFile = os.open(key,os.O_RDWR|os.O_CREAT)
         os.write(xmlFile, '<?xml version="1.0" encoding="UTF-8"?>\n')
-        namespace = rootE.get('-namespace', None)
-        fob = fileObject(key, value, namespace, xmlFile)
+        namespace = rootE.get('-namespace')
+        fob = fileObject(key, rootE, xmlFile, namespace=namespace)
         sortedFiles.append(fob)
-        rootEl = createXMLStructure(name, rootE, info, fob)
+        rootEl = createXMLStructure(name, rootE, info, fob, namespace=namespace)
         rootEl.printXML(xmlFile)
         fob.rootElement = rootEl
         #print 'namespace: %s' % rootE['-namespace']
