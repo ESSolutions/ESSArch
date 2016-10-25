@@ -565,6 +565,10 @@ class test_generateXML(TestCase):
                 {
                     '-name': 'b',
                     '-containsFiles': True,
+                    '#content': [{
+                        'var': 'href'
+                    }],
+                    "-filters": {"href":"record1/*"},
                 },
             ],
         }
@@ -662,6 +666,59 @@ class test_generateXML(TestCase):
         b = root.find('.//b')
 
         self.assertLess(root.index(b), root.index(a))
+
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'a',
+                    '-allowEmpty': True
+                },
+                {
+                    '-name': 'b',
+                    '-containsFiles': True,
+                    '#content': [{
+                        'var': 'href'
+                    }],
+                    "-filters": {"href":"record1/*"},
+                },
+                {
+                    '-name': 'c',
+                    '-allowEmpty': True
+                },
+                {
+                    '-name': 'd',
+                    '-containsFiles': True,
+                    '#content': [{
+                        'var': 'href'
+                    }],
+                    "-filters": {"href":"record2/*"},
+                },
+                {
+                    '-name': 'e',
+                    '-allowEmpty': True
+                },
+            ],
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate(self.datadir)
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        a = root.find('.//a')
+        b = root.find('.//b')
+        c = root.find('.//c')
+        d = root.find('.//d')
+        e = root.find('.//e')
+
+        self.assertLess(root.index(a), root.index(b))
+        self.assertLess(root.index(b), root.index(c))
+        self.assertLess(root.index(c), root.index(d))
+        self.assertLess(root.index(d), root.index(e))
 
     def test_append_element_with_namespace(self):
         nsmap = {
