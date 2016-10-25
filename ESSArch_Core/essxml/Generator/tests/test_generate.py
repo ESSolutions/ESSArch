@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from lxml import etree
 
-from demo import xmlGenerator
+from demo.xmlGenerator import XMLGenerator, parseContent
 
 from configuration.models import (
     Path,
@@ -33,51 +33,55 @@ class test_generateXML(TestCase):
             pass
 
     def test_generate_namespaces(self):
+        nsmap = {
+            'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+        }
+
         specification = {
             "-name": "foo",
+            '-nsmap': nsmap,
             "-attr": [
                 {
-                    "-name": "xmlns:xsi",
-                    "-req": 1,
-                    "#content": [{"var":"xmlns:xsi"}]
-                },{
-                    "-name": "xsi:schemaLocation",
+                    "-name": "schemaLocation",
+                    "-namespace": "xsi",
                     "-req": 1,
                     "#content": [{"var":"xsi:schemaLocation"}]
                 },
             ]
         }
 
-        specification_data = {
-            "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        info = {
             "xsi:schemaLocation": "http://www.w3.org/1999/xlink schemas/xlink.xsd",
         }
 
-        xmlGenerator.createXML(
-            specification_data,
-            {self.fname: specification}
+        generator = XMLGenerator(
+            {self.fname: specification}, info
         )
+
+        generator.generate()
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
 
         xsi_ns = root.nsmap.get("xsi")
 
-        self.assertEqual(xsi_ns, specification_data["xmlns:xsi"])
+        self.assertEqual(xsi_ns, nsmap.get("xsi"))
         self.assertEqual(
             root.attrib.get("{%s}schemaLocation" % xsi_ns),
-            specification_data["xsi:schemaLocation"]
+            info["xsi:schemaLocation"]
         )
 
     def test_generate_empty_element(self):
         specification = {'-name': "foo"}
 
         with self.assertRaises(ValueError):
-            xmlGenerator.createXML(
-                {}, {self.fname: specification}
+            generator = XMLGenerator(
+                {self.fname: specification}, {}
             )
 
-        self.assertTrue(os.path.exists(self.fname))
+            generator.generate()
+
+        self.assertFalse(os.path.exists(self.fname))
 
     def test_generate_multiple_element_same_name_same_level(self):
         specification = {
@@ -95,18 +99,23 @@ class test_generateXML(TestCase):
             ]
         }
 
-        xmlGenerator.createXML(
-            {}, {self.fname: specification}
+        generator = XMLGenerator(
+            {self.fname: specification}, {}
         )
+
+        generator.generate()
 
         tree = etree.parse(self.fname)
         self.assertEqual(len(tree.findall('.//bar')), 2)
 
     def test_generate_empty_element_with_allowEmpty(self):
         specification = {'-name': "foo", "-allowEmpty": 1}
-        xmlGenerator.createXML(
-            {}, {self.fname: specification}
+
+        generator = XMLGenerator(
+            {self.fname: specification}, {}
         )
+
+        generator.generate()
 
         self.assertTrue(os.path.exists(self.fname))
 
@@ -121,9 +130,11 @@ class test_generateXML(TestCase):
             ]
         }
 
-        xmlGenerator.createXML(
-            {}, {self.fname: specification}
+        generator = XMLGenerator(
+            {self.fname: specification}
         )
+
+        generator.generate()
 
         tree = etree.parse(self.fname)
         self.assertEqual("<foo>bar</foo>", etree.tostring(tree.getroot()))
@@ -143,9 +154,11 @@ class test_generateXML(TestCase):
             ]
         }
 
-        xmlGenerator.createXML(
-            {}, {self.fname: specification}
+        generator = XMLGenerator(
+            {self.fname: specification}
         )
+
+        generator.generate()
 
         tree = etree.parse(self.fname)
         self.assertEqual('<foo bar="baz"/>', etree.tostring(tree.getroot()))
@@ -173,9 +186,11 @@ class test_generateXML(TestCase):
             ]
         }
 
-        xmlGenerator.createXML(
-            {}, {self.fname: specification}
+        generator = XMLGenerator(
+            {self.fname: specification}
         )
+
+        generator.generate()
 
         tree = etree.parse(self.fname)
         self.assertEqual(
@@ -198,9 +213,12 @@ class test_generateXML(TestCase):
                 },
             ]
         }
-        xmlGenerator.createXML(
-            {}, {self.fname: specification}
+
+        generator = XMLGenerator(
+            {self.fname: specification}
         )
+
+        generator.generate()
 
         tree = etree.parse(self.fname)
         self.assertEqual(
@@ -223,9 +241,11 @@ class test_generateXML(TestCase):
             ]
         }
 
-        xmlGenerator.createXML(
-            {"bar": "baz"}, {self.fname: specification}
+        generator = XMLGenerator(
+            {self.fname: specification}, {'bar': 'baz'}
         )
+
+        generator.generate()
 
         tree = etree.parse(self.fname)
         self.assertEqual('<foo attr1="baz"/>', etree.tostring(tree.getroot()))
@@ -240,9 +260,11 @@ class test_generateXML(TestCase):
             ]
         }
 
-        xmlGenerator.createXML(
-            {"bar": "baz"}, {self.fname: specification}
+        generator = XMLGenerator(
+            {self.fname: specification}, {'bar': 'baz'}
         )
+
+        generator.generate()
 
         tree = etree.parse(self.fname)
         self.assertEqual('<foo>baz</foo>', etree.tostring(tree.getroot()))
@@ -262,22 +284,26 @@ class test_generateXML(TestCase):
             ]
         }
 
-        xmlGenerator.createXML(
-            {'bar': 'baz'}, {self.fname: specification}
+        generator = XMLGenerator(
+            {self.fname: specification}, {'bar': 'baz'}
         )
 
+        generator.generate()
+
         tree = etree.parse(self.fname)
+
         self.assertEqual(
-            '<foo>\n    <bar>baz</bar>\n</foo>',
+            '<foo>\n  <bar>baz</bar>\n</foo>',
             etree.tostring(tree.getroot())
         )
 
     def test_element_with_files(self):
         specification = {
             '-name': 'foo',
-            '-containsFiles': [
+            '-children': [
                 {
                     '-name': 'bar',
+                    '-containsFiles': True,
                     '-attr': [
                         {
                             '-name': 'name',
@@ -307,9 +333,11 @@ class test_generateXML(TestCase):
             ],
         }
 
-        xmlGenerator.createXML(
-            {}, {self.fname: specification}, self.datadir
+        generator = XMLGenerator(
+            {self.fname: specification}
         )
+
+        generator.generate(folderToParse=self.datadir)
 
         tree = etree.parse(self.fname)
 
@@ -333,6 +361,143 @@ class test_generateXML(TestCase):
         file_elements = tree.findall('.//bar')
         self.assertEqual(len(file_elements), num_of_files)
 
+    def test_element_with_files_and_namespace(self):
+        nsmap = {
+            'premis': 'http://www.loc.gov/premis/v3'
+        }
+
+        specification = {
+            '-name': 'foo',
+            '-nsmap': nsmap,
+            '-children': [
+                {
+                    '-name': 'bar',
+                    '-namespace': 'premis',
+                    '-containsFiles': True,
+                    '-attr': [
+                        {
+                            '-name': 'name',
+                            '#content': [
+                                {
+                                    'var': 'FName'
+                                }
+                            ]
+                        }
+                    ],
+                    '-children': [
+                        {
+                            '-name': 'baz',
+                            '-namespace': 'premis',
+                            '-attr': [
+                                {
+                                    '-name': 'href',
+                                    '#content': [
+                                        {
+                                            'var': 'href'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate(folderToParse=self.datadir)
+
+        tree = etree.parse(self.fname)
+
+        num_of_files = 0
+
+        for root, dirs, files in os.walk(self.datadir):
+            for f in files:
+                file_element = tree.find(".//{%s}bar[@name='%s']" % (nsmap['premis'], f))
+                self.assertIsNotNone(file_element)
+
+                filepath = os.path.join(root, f)
+                relpath = os.path.relpath(filepath, self.datadir)
+
+                filepath_element = tree.find(
+                    ".//{%s}bar[@name='%s']/{%s}baz[@href='%s']" % (nsmap['premis'], f, nsmap['premis'], relpath)
+                )
+                self.assertIsNotNone(filepath_element)
+
+                num_of_files += 1
+
+        file_elements = tree.findall('.//{%s}bar' % nsmap['premis'])
+        self.assertEqual(len(file_elements), num_of_files)
+
+    def test_element_with_filtered_files(self):
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'bar',
+                    '-containsFiles': True,
+                    "-filters": {"href":"record1/*"},
+                    '-attr': [
+                        {
+                            '-name': 'name',
+                            '#content': [
+                                {
+                                    'var': 'FName'
+                                }
+                            ]
+                        }
+                    ],
+                    '-children': [
+                        {
+                            '-name': 'baz',
+                            '-attr': [
+                                {
+                                    '-name': 'href',
+                                    '#content': [
+                                        {
+                                            'var': 'href'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate(folderToParse=self.datadir)
+
+        tree = etree.parse(self.fname)
+
+        num_of_files = 0
+
+        for root, dirs, files in os.walk(self.datadir):
+            for f in files:
+                filepath = os.path.join(root, f)
+                relpath = os.path.relpath(filepath, self.datadir)
+
+                filepath_element = tree.find(
+                    ".//bar[@name='%s']/baz[@href='%s']" % (f, relpath)
+                )
+
+                if relpath.startswith('record1'):
+                    self.assertIsNotNone(filepath_element)
+                    num_of_files += 1
+                else:
+                    self.assertIsNone(filepath_element)
+
+
+        file_elements = tree.findall('.//bar')
+        self.assertEqual(len(file_elements), num_of_files)
+
     def test_position_alphabetically(self):
         specification = {
             '-name': 'foo',
@@ -348,9 +513,11 @@ class test_generateXML(TestCase):
             ]
         }
 
-        xmlGenerator.createXML(
-            {}, {self.fname: specification}, self.datadir
+        generator = XMLGenerator(
+            {self.fname: specification}
         )
+
+        generator.generate()
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -374,9 +541,11 @@ class test_generateXML(TestCase):
             ]
         }
 
-        xmlGenerator.createXML(
-            {}, {self.fname: specification}, self.datadir
+        generator = XMLGenerator(
+            {self.fname: specification}
         )
+
+        generator.generate()
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -393,18 +562,18 @@ class test_generateXML(TestCase):
                     '-name': 'a',
                     '-allowEmpty': True
                 },
-            ],
-            '-containsFiles': [
                 {
                     '-name': 'b',
-                    '-allowEmpty': True
+                    '-containsFiles': True,
                 },
             ],
         }
 
-        xmlGenerator.createXML(
-            {}, {self.fname: specification}, self.datadir
+        generator = XMLGenerator(
+            {self.fname: specification}
         )
+
+        generator.generate(self.datadir)
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -413,21 +582,95 @@ class test_generateXML(TestCase):
 
         self.assertLess(root.index(a), root.index(b))
 
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'b',
+                    '-containsFiles': True,
+                },
+                {
+                    '-name': 'a',
+                    '-allowEmpty': True
+                },
+            ],
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate(self.datadir)
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        a = root.find('.//a')
+        b = root.find('.//b')
+
+        self.assertLess(root.index(b), root.index(a))
+
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'a',
+                    '-containsFiles': True,
+                },
+                {
+                    '-name': 'b',
+                    '-allowEmpty': True
+                },
+            ],
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate(self.datadir)
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        a = root.find('.//a')
+        b = root.find('.//b')
+
+        self.assertLess(root.index(a), root.index(b))
+
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'b',
+                    '-allowEmpty': True
+                },
+                {
+                    '-name': 'a',
+                    '-containsFiles': True,
+                },
+            ],
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate(self.datadir)
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        a = root.find('.//a')
+        b = root.find('.//b')
+
+        self.assertLess(root.index(b), root.index(a))
+
     def test_append_element_with_namespace(self):
-        PREMIS = 'http://www.loc.gov/premis/v3'
+        nsmap = {
+            'premis': 'http://www.loc.gov/premis/v3'
+        }
 
         specification = {
             '-name': 'root',
-            '-attr': [
-                {
-                    '-name': 'xmlns:premis',
-                    '#content': [
-                        {
-                            'text': PREMIS,
-                        }
-                    ]
-                }
-            ],
+            '-nsmap': nsmap,
             '-children': [
                 {
                     '-name': 'foo',
@@ -436,9 +679,11 @@ class test_generateXML(TestCase):
             ]
         }
 
-        xmlGenerator.createXML(
-            {}, {self.fname: specification}, self.datadir
+        generator = XMLGenerator(
+            {self.fname: specification}
         )
+
+        generator.generate()
 
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
@@ -454,37 +699,25 @@ class test_generateXML(TestCase):
         }
 
         for i in range(3):
-            xmlGenerator.appendXML(
-                {
-                    'path': self.fname,
-                    'elementToAppendTo': 'foo',
-                    'template': append_specification,
-                    'data': {},
-                }
+            generator.append(
+                self.fname, 'foo', append_specification, {},
             )
 
         tree = etree.parse(self.fname)
 
-        appended = tree.find('.//{%s}appended' % PREMIS)
+        appended = tree.find('.//{%s}appended' % nsmap.get('premis'))
 
         self.assertIsNotNone(appended)
         self.assertEqual(appended.text, 'append text')
 
     def test_append_nested_elements_with_namespace(self):
-        PREMIS = 'http://www.loc.gov/premis/v3'
+        nsmap = {
+            'premis': 'http://www.loc.gov/premis/v3'
+        }
 
         specification = {
             '-name': 'root',
-            '-attr': [
-                {
-                    '-name': 'xmlns:premis',
-                    '#content': [
-                        {
-                            'text': PREMIS,
-                        }
-                    ]
-                }
-            ],
+            '-nsmap': nsmap,
             '-children': [
                 {
                     '-name': 'foo',
@@ -493,9 +726,11 @@ class test_generateXML(TestCase):
             ]
         }
 
-        xmlGenerator.createXML(
-            {}, {self.fname: specification}, self.datadir
+        generator = XMLGenerator(
+            {self.fname: specification}
         )
+
+        generator.generate()
 
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
@@ -522,18 +757,13 @@ class test_generateXML(TestCase):
         }
 
         for i in range(3):
-            xmlGenerator.appendXML(
-                {
-                    'path': self.fname,
-                    'elementToAppendTo': 'foo',
-                    'template': append_specification,
-                    'data': {},
-                }
+            generator.append(
+                self.fname, 'foo', append_specification, {},
             )
 
         tree = etree.parse(self.fname)
 
-        bar = tree.find('.//{%s}bar' % PREMIS)
+        bar = tree.find('.//{%s}bar' % nsmap.get('premis'))
 
         self.assertIsNotNone(bar)
         self.assertEqual(bar.text, 'bar text')
@@ -549,9 +779,11 @@ class test_generateXML(TestCase):
             ]
         }
 
-        xmlGenerator.createXML(
-            {}, {self.fname: specification}, self.datadir
+        generator = XMLGenerator(
+            {self.fname: specification}
         )
+
+        generator.generate()
 
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
@@ -565,13 +797,8 @@ class test_generateXML(TestCase):
             ]
         }
 
-        xmlGenerator.appendXML(
-            {
-                'path': self.fname,
-                'elementToAppendTo': 'foo',
-                'template': append_specification,
-                'data': {},
-            }
+        generator.append(
+            self.fname, 'foo', append_specification, {},
         )
 
         tree = etree.parse(self.fname)
@@ -592,9 +819,11 @@ class test_generateXML(TestCase):
             ]
         }
 
-        xmlGenerator.createXML(
-            {}, {self.fname: specification}, self.datadir
+        generator = XMLGenerator(
+            {self.fname: specification}
         )
+
+        generator.generate()
 
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
@@ -613,13 +842,8 @@ class test_generateXML(TestCase):
             ]
         }
 
-        xmlGenerator.appendXML(
-            {
-                'path': self.fname,
-                'elementToAppendTo': 'foo',
-                'template': append_specification,
-                'data': {},
-            }
+        generator.append(
+            self.fname, 'foo', append_specification, {},
         )
 
         tree = etree.parse(self.fname)
@@ -629,59 +853,47 @@ class test_generateXML(TestCase):
         self.assertEqual(appended.get('bar'), 'append text')
 
 
-class test_parseAttribute(TestCase):
-    def test_parse_attribute_only_text(self):
-        attr = {
-            "-name": "foo",
-            "#content": [
-                {
-                    "text": "bar"
-                },
-            ]
-        }
+class test_parseContent(TestCase):
+    def test_parse_content_only_text(self):
+        content = [
+            {
+                "text": "bar"
+            },
+        ]
 
-        attrobj = xmlGenerator.parseAttribute(attr, {})
-        self.assertEqual(attrobj.attrName, "foo")
-        self.assertEqual(attrobj.value, "bar")
+        contentobj = parseContent(content, {})
+        self.assertEqual(contentobj, 'bar')
 
-    def test_parse_attribute_only_var(self):
-        attr = {
-            "-name": "foo",
-            "#content": [
-                {
-                    "var": "bar"
-                },
-            ]
-        }
+    def test_parse_content_only_var(self):
+        content = [
+            {
+                "var": "foo"
+            },
+        ]
 
         info = {
-            "bar": "baz"
+            "foo": "bar"
         }
 
-        attrobj = xmlGenerator.parseAttribute(attr, info)
-        self.assertEqual(attrobj.attrName, "foo")
-        self.assertEqual(attrobj.value, "baz")
+        contentobj = parseContent(content, info)
+        self.assertEqual(contentobj, 'bar')
 
-    def test_parse_attribute_var_and_text(self):
-        attr = {
-            "-name": "foo",
-            "#content": [
-                {
-                    "text": "before"
-                },
-                {
-                    "var": "bar"
-                },
-                {
-                    "text": "after"
-                },
-            ]
-        }
+    def test_parse_content_var_and_text(self):
+        content = [
+            {
+                "text": "before"
+            },
+            {
+                "var": "foo"
+            },
+            {
+                "text": "after"
+            },
+        ]
 
         info = {
-            "bar": "baz"
+            "foo": "bar"
         }
 
-        attrobj = xmlGenerator.parseAttribute(attr, info)
-        self.assertEqual(attrobj.attrName, "foo")
-        self.assertEqual(attrobj.value, "beforebazafter")
+        contentobj = parseContent(content, info)
+        self.assertEqual(contentobj, 'beforebarafter')

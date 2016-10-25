@@ -1,15 +1,9 @@
 import os, re
 import hashlib
 import uuid
-import copy
-from collections import OrderedDict
 import mimetypes
-import tempfile
-from django.conf import settings
 
 from lxml import etree
-
-from xmlStructure import xmlElement, xmlAttribute, fileInfo, fileObject, dlog
 
 from configuration.models import (
     Path,
@@ -30,30 +24,199 @@ def calculateChecksum(filename):
     os.close(fd)
     return hashSHA.hexdigest()
 
-def parseFile(filepath, relpath=None, level=3, resultFile=[], sortedFiles=[]):
+def parseContent(content, info):
+    if not content:
+        return None
+
+    arr = []
+    for c in content:
+        if 'text' in c:
+            arr.append(c['text'])
+        elif 'var' in c:
+            val = info.get(c['var'])
+
+            if val:
+                arr.append(val)
+
+    return ''.join(arr)
+
+
+class XMLElement(object):
+    def __init__(self, template, nsmap={}):
+        name = template.get('-name')
+        try:
+            self.name = name.split("#")[0]
+        except:
+            self.name = name
+
+        self.nsmap = template.get('-nsmap', {})
+        self.nsmap.update(nsmap)
+        self.namespace = template.get('-namespace')
+        self.attr = [XMLAttribute(a) for a in template.get('-attr', [])]
+        self.content = template.get('#content', [])
+        self.containsFiles = template.get('-containsFiles', False)
+        self.fileFilters = template.get('-filters', {})
+        self.allowEmpty = template.get('-allowEmpty', False)
+        self.children = []
+
+        for child in template.get('-children', []):
+            child_el = XMLElement(child)
+            self.children.append(child_el)
+
+    def parse(self, info):
+        return parseContent(self.content, info)
+
+    def isEmpty(self):
+        """
+        Simple helper function to check if the tag sould have any contents
+        """
+        if self.content or self.children or self.containsFiles or self.attr:
+            return False
+
+        return True
+
+    def createLXMLElement(self, info, nsmap={}, files=[]):
+        if self.isEmpty() and not self.allowEmpty:
+            raise ValueError(
+                "Element %s does not contain any value, attributes, children or\
+                files, and allowEmpty is not set" % self.name
+            )
+
+        full_nsmap = nsmap.copy()
+        full_nsmap.update(self.nsmap)
+
+        if self.namespace:
+            el = etree.Element("{%s}%s" % (full_nsmap[self.namespace], self.name), nsmap=full_nsmap)
+        else:
+            el = etree.Element("%s" % self.name, nsmap=full_nsmap)
+
+        el.text = self.parse(info)
+
+        for attr in self.attr:
+            name, content = attr.parse(info, nsmap=full_nsmap)
+            el.set(name, content)
+
+        for child in self.children:
+
+            if child.containsFiles:
+                for fileinfo in files:
+                    include = True
+
+                    for key, file_filter in child.fileFilters.iteritems():
+                        if not re.search(file_filter, fileinfo.get(key)):
+                            include = False
+
+                    if include:
+                        full_info = info.copy()
+                        full_info.update(fileinfo)
+                        el.append(child.createLXMLElement(full_info, full_nsmap, files=files))
+            else:
+                el.append(child.createLXMLElement(info, full_nsmap, files=files))
+
+        return el
+
+class XMLAttribute(object):
     """
-    walk through the choosen folder and parse all the files to their own temporary location
+        Args:
+            template: The template for the attribute, example:
+                {
+                    '-name': 'foo',
+                    '#content': [
+                        {
+                            'var': 'foo.bar'
+                        },
+                        {
+                            'text': 'baz'
+                        }
+                    ]
+                }
     """
-    fileInfo = {}
-    if not relpath:
-        relpath = filepath
 
-    mimetypes.suffix_map={}
-    mimetypes.encodings_map={}
-    mimetypes.types_map={}
-    mimetypes.common_types={}
-    mimetypes_file = Path.objects.get(
-        entity="path_mimetypes_definitionfile"
-    ).value
-    mimetypes.init(files=[mimetypes_file])
+    def __init__(self, template):
+        self.name = template.get('-name')
+        self.namespace = template.get('-namespace')
+        self.content = template.get('#content')
 
-    found = False
+    def parse(self, info, nsmap={}):
+        name = self.name
 
-    for key, value in resultFile.iteritems():
-        if filepath == key:
-            found = True
+        if self.namespace:
+            name = "{%s}%s" % (nsmap.get(self.namespace), self.name)
 
-    if not found:
+        return name, parseContent(self.content, info)
+
+class XMLGenerator(object):
+    def __init__(self, filesToCreate, info={}):
+        self.info = info
+        self.toCreate = []
+
+        for fname, template in filesToCreate.iteritems():
+            self.toCreate.append({
+                'file': fname,
+                'template': template,
+                'root': XMLElement(template)
+            })
+
+    def generate(self, folderToParse=None):
+        files = []
+
+        if folderToParse:
+            if os.path.isfile(folderToParse):
+                files.append(self.parseFile(folderToParse))
+            elif os.path.isdir(folderToParse):
+                for root, dirnames, filenames in os.walk(folderToParse):
+                    for fname in filenames:
+                        filepath = os.path.join(root, fname)
+                        relpath = os.path.relpath(filepath, folderToParse)
+                        files.append(self.parseFile(filepath, relpath=relpath))
+
+        for f in self.toCreate:
+            fname = f['file']
+            rootEl = f['root']
+
+            tree = etree.ElementTree(
+                rootEl.createLXMLElement(self.info, files=files)
+            )
+            tree.write(
+                fname, pretty_print=True, xml_declaration=True,
+                encoding='UTF-8'
+            )
+
+    def append(self, filename, elementToAppendTo, template, info={}):
+        parser = etree.XMLParser(remove_blank_text=True)
+        tree = etree.parse(filename, parser)
+        rootEl = tree.getroot()
+        rootWithoutNS = etree.QName(rootEl).localname
+
+        if rootWithoutNS == elementToAppendTo:
+            elementToAppendTo = rootEl
+        else:
+            elementToAppendTo = rootEl.find(".//{*}%s" % elementToAppendTo)
+
+        root_nsmap = {k:v for k,v in elementToAppendTo.nsmap.iteritems() if k}
+
+        appendedRootEl = XMLElement(template, nsmap=root_nsmap)
+
+        elementToAppendTo.append(appendedRootEl.createLXMLElement(info))
+
+        tree.write(filename, pretty_print=True)
+
+    def parseFile(self, filepath, relpath=None):
+        """
+        walk through the choosen folder and parse all the files to their own temporary location
+        """
+        if not relpath:
+            relpath = filepath
+
+        mimetypes.suffix_map = {}
+        mimetypes.encodings_map = {}
+        mimetypes.types_map = {}
+        mimetypes.common_types = {}
+        mimetypes_file = Path.objects.get(
+            entity="path_mimetypes_definitionfile"
+        ).value
+        mimetypes.init(files=[mimetypes_file])
+
         base = os.path.basename(relpath)
         file_name, file_ext = os.path.splitext(base)
 
@@ -62,404 +225,24 @@ def parseFile(filepath, relpath=None, level=3, resultFile=[], sortedFiles=[]):
         except KeyError:
             raise KeyError("Invalid file type: %s" % file_ext)
 
-        fileInfo['FName'] = file_name + file_ext
-        fileInfo['FChecksum'] = calculateChecksum(filepath)
-        fileInfo['FID'] = str(uuid.uuid4())
-
-        fileInfo['id'] = str(uuid.uuid4())
-        fileInfo['daotype'] = "borndigital"
-        fileInfo['href'] = relpath
-
-        fileInfo['FMimetype'] = mimetype
-        fileInfo['FCreated'] = '2016-02-21T11:18:44+01:00'
-        fileInfo['FFormatName'] = 'MS word'
-        fileInfo['FSize'] = str(os.path.getsize(filepath))
-        fileInfo['FUse'] = 'DataFile'
-        fileInfo['FChecksumType'] = 'SHA-256'
-        fileInfo['FLoctype'] = 'URL'
-        fileInfo['FLinkType'] = 'simple'
-        fileInfo['FChecksumLib'] = 'hashlib'
-        fileInfo['FLocationType'] = 'URI'
-        fileInfo['FIDType'] = 'UUID'
-
-        for fi in sortedFiles:
-            for fil in fi.files:
-                if not fil.arguments:
-                    value = fil.element
-                    t = createXMLStructure(value['-name'], value, fileInfo, namespace=fi.namespace)
-                    t.printXML(fil.fid,fil.level)
-                else:
-                    found = True
-                    for key, value in fil.arguments.iteritems():
-                        if re.search(value, fileInfo[key]) is None:
-                            found = False
-                            break
-                    if found:
-                        for key, value in fil.element.iteritems():
-                            t = createXMLStructure(key, value, fileInfo, namespace=fi.namespace)
-                            t.printXML(fil.fid,fil.level)
-
-def getValue(key, info):
-    """
-    remove excess of whitespaces and check if the key exists in the dictionary
-    """
-    if key is not None:
-        text = key.rstrip()
-        return info.get(text, None)
-
-def parseChild(name, content, info, namespace, t, fob, level=0, nsmap={}):
-    """
-    Parse a child to get the correct values even if the values are in an array
-    """
-    if '-arr' not in content:
-        c = createXMLStructure(name, content, info, fob=fob, nsmap=nsmap, namespace=namespace, level=level+1)
-        if c is not None:
-            t.addChild(c)
-    else:
-        occurrences = 1
-        if '-max' in content:
-            occurrences = content['-max']
-            if occurrences == -1:
-                occurrences = 10000000000 # unlikely to surpass this
-        #parse array string and pass info
-        arguments = content['-arr']
-        testArgs = arguments['arguments']
-        dictionaries = copy.deepcopy(info[arguments['arrayName']])
-        for used in xrange(0, occurrences):
-            dic = findMatchingSubDict(dictionaries, testArgs)
-            if dic is not None:
-                #done, found matching entries
-                c = createXMLStructure(name, content, dic, fob=fob, nsmap=nsmap, namespace=namespace, level=level+1)
-                if c is not None:
-                    t.addChild(c)
-                    dictionaries.remove(dic)
-                else:
-                    break
-            else:
-                break
-
-def addFile(content, fob, level):
-    arg = content.get('-sortby')
-
-    (tmp_obj, tmp_name) = tempfile.mkstemp()
-
-    f = fileInfo(content, tmp_name, arg, level=level)
-    f.fid = tmp_obj
-    fob.files.append(f)
-
-def createXMLStructure(name, content, info, fob=None, nsmap={}, namespace='', level=1):
-    """
-    The main XML element creator where the json structure is broken down and converted into a xml.
-    """
-    t = xmlElement(name, nsmap=nsmap, namespace=namespace)
-
-    # loop through all attribute and children
-    if '-containsFiles' in content and fob is not None:
-        t.containsFiles = True
-
-        for child in content.get('-containsFiles', []):
-            addFile(child, fob, level)
-
-    for key, value in content.iteritems():
-        if key == '#content':
-            for c in value:
-                if 'text' in c:
-                    t.value += c['text']
-                elif 'var' in c:
-                    text = getValue(c['var'], info)
-                    if text is not None:
-                        t.value += text
-        elif key == '-attr':
-            #parse attrib children
-            for attrib in value:
-                attribute = parseAttribute(attrib, info, nsmap=nsmap)
-                if attribute is None:
-                    if '-req' in attrib:
-                        if attrib['-req'] == 1:
-                            print "ERROR: missing required value for element: " + name + " and attribute: " + attrib['-name']
-                        else:
-                            dlog("INFO: missing optional value for: " + attrib['-name'])
-                    else:
-                        dlog("INFO: missing optional value for: " + attrib['-name'])
-                else:
-                    t.addAttribute(attribute)
-        elif key == '-namespace':
-            t.setNamespace(value)
-            namespace = value
-        elif key == '-children':
-            for child in value:
-                parseChild(child['-name'], child, info, namespace, t, fob, level, nsmap=nsmap)
-
-    if t.isEmpty():
-        if content.get('-allowEmpty', None):
-            t.allowEmpty = True
-            return t
-        else:
-            raise ValueError(
-                "Element %s does not contain any value, attributes, children or\
-                files, and allowEmpty is not set" % t.tagName
-            )
-    else:
-        return t
-
-def findMatchingSubDict(dictionaries, arguments):
-    """
-    test if all the arguments are present and correct in the selected dictionary
-    """
-    for dic in dictionaries:
-        # compare agent dicts
-        found = True
-        for key, value in arguments.iteritems():
-            if key in dic:
-                if dic[key] != value:
-                    found = False
-            else:
-                found = False
-        if found:
-            return dic
-    return None
-
-def parseAttribute(content, info, nsmap={}):
-    """
-    parse the content of an attribute and return it
-    """
-    text = ''
-    name = content['-name']
-    namespace = content.get('-namespace')
-
-    if namespace and nsmap:
-        name = "{%s}%s" % (nsmap[namespace], name)
-
-    for c in content['#content']:
-        if 'text' in c:
-            text += str(c['text'])
-        elif 'var' in c:
-            t = getValue(c['var'], info)
-            if t is not None:
-                text += str(t)
-    if text is not '':
-        return xmlAttribute(name, text)
-    else:
-        return None
-
-def createXML(info, filesToCreate, folderToParse=None):
-    """
-    The task method for executing the xmlGenerator and completing the xml files
-    This is also the TASK to be run in the background.
-    """
-
-    sortedFiles = []
-
-    for key, rootE in filesToCreate.iteritems():
-        name = rootE['-name']
-        xmlFile = os.open(key,os.O_RDWR|os.O_CREAT)
-        os.write(xmlFile, '<?xml version="1.0" encoding="UTF-8"?>\n')
-        namespace = rootE.get('-namespace')
-        fob = fileObject(key, rootE, xmlFile, namespace=namespace)
-        sortedFiles.append(fob)
-        rootEl = createXMLStructure(name, rootE, info, fob, namespace=namespace)
-        rootEl.printXML(xmlFile)
-        fob.rootElement = rootEl
-        #print 'namespace: %s' % rootE['-namespace']
-
-    if folderToParse:
-        if os.path.isfile(folderToParse):
-            parseFile(folderToParse, resultFile=filesToCreate, sortedFiles=sortedFiles)
-        elif os.path.isdir(folderToParse):
-            for root, dirnames, filenames in os.walk(folderToParse):
-                for fname in filenames:
-                    filepath = os.path.join(root, fname)
-                    relpath = os.path.relpath(filepath, folderToParse)
-                    parseFile(filepath, relpath=relpath, resultFile=filesToCreate, sortedFiles=sortedFiles)
-
-    # add the tmp files to the bottom of the appropriate file and write out the next section of xml until it's done
-    for fob in sortedFiles:
-        for fin in fob.files:
-            f = os.open(fin.filename, os.O_RDONLY)
-            while True:
-                data = os.read(f, 65536)
-                if data:
-                    os.write(fob.fid, data)
-                else:
-                    break
-            # print more XML
-            fob.rootElement.printXML(fob.fid)
-            os.close(f)
-            os.remove(fin.filename)
-
-def appendXML(inputData):
-    """
-    Searches throught the file for the expected tag and appends the new element before the end (appending it to the end)
-    """
-
-    fname = inputData['path']
-    parser = etree.XMLParser(remove_blank_text=True)
-    tree = etree.parse(fname, parser)
-    rootEl = tree.getroot()
-
-    rootWithoutNS = etree.QName(rootEl).localname
-
-    if rootWithoutNS == inputData['elementToAppendTo']:
-        elementToAppendTo = rootEl
-    else:
-        elementToAppendTo = rootEl.find(".//{*}%s" % inputData['elementToAppendTo'])
-
-    template = inputData['template']
-    name = template['-name']
-    ns = template.get('-namespace')
-    data = inputData['data']
-
-    appendedRootEl = createXMLStructure(
-        name, template, data, nsmap=rootEl.nsmap, namespace=ns
-    )
-
-    elementToAppendTo.append(appendedRootEl.createLXMLElement())
-
-    with open(fname, "w") as f:
-        tree.write(f, pretty_print=True)
-
-#############################
-# example of input for appendXML
-
-inputD = {
-    "path": "/SIP/sip2.txt",
-    "elementToAppendTo": "mets:fileGrp",
-    "template": {
-        "event": {
-            "-min": 1,
-            "-max": 1,
-            "-allowEmpty": 1,
-            "-namespace": "premis",
-            "-attr": [{
-                "-name": "xmlID",
-                "-req": 1,
-                "#content": [{"var": "xmlID"}]
-            }],
-            "eventIdentifierType": {
-                "-min": 1,
-                "-max": 1,
-                "#content": [{"var":"eventIdentifierType"}]
-            },
-            "eventIdentifierValue": {
-                "-min": 1,
-                "-max": 1,
-                "-allowEmpty": 1,
-                "#content": [{"var": "eventIdentifierValue"}]
-            }
+        fileinfo = {
+            'FName': file_name + file_ext,
+            'FChecksum': calculateChecksum(filepath),
+            'FID': str(uuid.uuid4()),
+            'id': str(uuid.uuid4()),
+            'daotype': "borndigital",
+            'href': relpath,
+            'FMimetype': mimetype,
+            'FCreated': '2016-02-21T11:18:44+01:00',
+            'FFormatName': 'MS word',
+            'FSize': str(os.path.getsize(filepath)),
+            'FUse': 'DataFile',
+            'FChecksumType': 'SHA-256',
+            'FLoctype': 'URL',
+            'FLinkType': 'simple',
+            'FChecksumLib': 'hashlib',
+            'FLocationType': 'URI',
+            'FIDType': 'UUID',
         }
-    },
-    "data": {
-        "xmlID": "some id",
-        "eventIdentifierType": "some event type",
-        "eventIdentifierValue": "some event value thing"
-    }
 
-}
-
-# appendXML(inputD)
-
-#############################
-# Example of info, filesToCreate, folderToParse:
-
-info = {
-        "xmlns:mets": "http://www.loc.gov/METS/",
-                "xmlns:ext": "ExtensionMETS",
-                "xmlns:xlink": "http://www.w3.org/1999/xlink",
-                "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
-                "xsi:schemaLocation": "http://www.loc.gov/METS/ http://xml.ra.se/e-arkiv/METS/CSPackageMETS.xsd "
-                "ExtensionMETS http://xml.ra.se/e-arkiv/METS/CSPackageExtensionMETS.xsd",
-                "xsi:schemaLocationPremis": "http://www.loc.gov/premis/v3 https://www.loc.gov/standards/premis/premis.xsd",
-                "PROFILE": "http://xml.ra.se/e-arkiv/METS/CommonSpecificationSwedenPackageProfile.xmll",
-                "LABEL": "Test of SIP 1",
-                "TYPE": "Personnel",
-                "OBJID": "UUID:9bc10faa-3fff-4a8f-bf9a-638841061065",
-                "ext:CONTENTTYPESPECIFICATION": "FGS Personal, version 1",
-                "CREATEDATE": "2016-06-08T10:44:00+02:00",
-                "RECORDSTATUS": "NEW",
-                "ext:OAISTYPE": "SIP",
-                "agentName": "name",
-                "agentNote": "note",
-                "REFERENCECODE": "SE/RA/123456/24/F",
-                "SUBMISSIONAGREEMENT": "RA 13-2011/5329, 2012-04-12",
-                "MetsIdentifier": "sip.xml",
-                "filename":"sip.txt",
-                "SMLabel":"Profilestructmap",
-                "amdLink":"IDce745fec-cfdd-4d14-bece-d49e867a2487",
-                "digiprovLink":"IDa32a20cb-5ff8-4d36-8202-f96519154de2",
-                "LOCTYPE":"URL",
-                "MDTYPE":"PREMIS",
-                "xlink:href":"file:///metadata/premis.xml",
-                "xlink:type":"simple",
-                "ID":"ID31e51159-9280-44d1-b26c-014077f8eeb5",
-                "agents":[{
-                        "ROLE":"ARCHIVIST",
-                        "TYPE":"ORGANIZATION",
-                        "name":"Arkivbildar namn",
-                        "note":"VAT:SE201345098701"
-                    },{
-                        "ROLE":"ARCHIVIST",
-                        "TYPE":"OTHER",
-                        "OTHERTYPE":"SOFTWARE",
-                        "name":"By hand Systems",
-                        "note":"1.0.0"
-                    },{
-                        "ROLE":"ARCHIVIST",
-                        "TYPE":"OTHER",
-                        "OTHERTYPE":"SOFTWARE",
-                        "name":"Other By hand Systems",
-                        "note":"1.2.0"
-                    },{
-                        "ROLE":"CREATOR",
-                        "TYPE":"ORGANIZATION",
-                        "name":"Arkivbildar namn",
-                        "note":"HSA:SE2098109810-AF87"
-                    },{
-                        "ROLE":"OTHER",
-                        "OTHERROLE":"PRODUCER",
-                        "TYPE":"ORGANIZATION",
-                        "name":"Sydarkivera",
-                        "note":"HSA:SE2098109810-AF87"
-                    },{
-                        "ROLE":"OTHER",
-                        "OTHERROLE":"SUBMITTER",
-                        "TYPE":"ORGANIZATION",
-                        "name":"Arkivbildare",
-                        "note":"HSA:SE2098109810-AF87"
-                    },{
-                        "ROLE":"IPOWNER",
-                        "TYPE":"ORGANIZATION",
-                        "name":"Informations agare",
-                        "note":"HSA:SE2098109810-AF87"
-                    },{
-                        "ROLE":"EDITOR",
-                        "TYPE":"ORGANIZATION",
-                        "name":"Axenu",
-                        "note":"VAT:SE9512114233"
-                    },{
-                        "ROLE":"CREATOR",
-                        "TYPE":"INDIVIDUAL",
-                        "name":"Simon Nilsson",
-                        "note":"0706758942, simonseregon@gmail.com"
-                    }],
-}
-
-filesToCreate = {
-    "sip.txt":"templates/JSONTemplate.json",
-    # "premis.txt":"templates/JSONPremisTemplate.json",
-    # "sip2.txt":"templates/JSONTemplate.json"
-}
-
-folderToParse = "tmp"
-
-#createXML(info, filesToCreate, folderToParse)
-
-
-## TODO
-
-# 1. enable -attr tag to contain dict only
-
-# Idea: format varaibles to be like
-
-#1. agents[0].name
-#2. agents{ROLE=CREATOR;TYPE=INDIVIDUAL}.name
-#3. dict1.dict2.arr[2].dict3.name
+        return fileinfo
