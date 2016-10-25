@@ -90,6 +90,7 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, n
     el['-name'] = element['name']
     el['-min'] = element['min']
     el['-max'] = element['max']
+    el['-containsFiles'] = element.get('containsFiles')
     if 'namespace' in element:
         if element['namespace'] != namespace:
             namespace = element['namespace']
@@ -148,25 +149,16 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, n
             attributeList.append(att)
     el['-attr'] = attributeList
 
-    children = []
+    el['-children'] = []
 
     for child in element['children']:
-        if not elements[child['uuid']]['containsFiles']:
-            e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=containsFiles, namespace=namespace)
-            if e:
-                children.append(e)
-                for field in f:
-                    forms.append(field)
-                data.update(d)
-        else:
-            #containsFiles
-            cf = []
-            e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=True, namespace=namespace)
-            if e:
-                cf.append(e)
-            el['-containsFiles'] = cf
+        e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=containsFiles, namespace=namespace)
+        if e:
+            el['-children'].append(e)
+            for field in f:
+                forms.append(field)
+            data.update(d)
 
-    el['-children'] = children
     return (el, forms, data)
 
 def getExistingElements(request, name):
