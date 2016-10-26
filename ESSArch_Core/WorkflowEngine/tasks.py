@@ -147,7 +147,7 @@ class CreatePhysicalModel(DBTask):
 
 
 class CalculateChecksum(DBTask):
-    event_type = 10200
+    event_type = 10210
 
     def run(self, filename=None, block_size=65536, algorithm=hashlib.sha256):
         """
