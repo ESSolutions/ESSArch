@@ -528,26 +528,16 @@ class ValidateXMLFile(DBTask):
     """
 
     def run(self, xml_filename=None, schema_filename=None):
-        try:
-            doc = etree.ElementTree(file=xml_filename)
-        except etree.XMLSyntaxError:
-            raise
-        except IOError:
-            raise
+        doc = etree.ElementTree(file=xml_filename)
 
         if schema_filename:
-            try:
-                xmlschema = etree.XMLSchema(etree.parse(schema_filename))
-            except etree.XMLSyntaxError:
-                raise
-            except IOError:
-                raise
+            xmlschema = etree.XMLSchema(etree.parse(schema_filename))
         else:
             xmlschema = getSchemas(doc=doc)
 
         self.set_progress(100, total=100)
 
-        return xmlschema.validate(doc)
+        xmlschema.assertValid(doc), "XML file %s is not valid", xml_filename
 
     def undo(self, xml_filename=None, schema_filename=None):
         pass
@@ -595,7 +585,7 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
         print "physical: %s" % physical_files
 
         self.set_progress(100, total=100)
-        return logical_files == physical_files
+        assert logical_files == physical_files, "the physical representation is not valid"
 
     def undo(self, ip=None, mets_path=None):
         pass
@@ -626,7 +616,7 @@ class ValidateIntegrity(DBTask):
 
         self.set_progress(100, total=100)
 
-        return digest == checksum
+        assert digest == checksum, "checksum for %s is not valid" % filename
 
     def undo(self, filename=None,checksum=None,  block_size=65536, algorithm=hashlib.sha256):
         pass
