@@ -4,7 +4,7 @@ import hashlib, os, shutil, tarfile, urllib, zipfile
 
 from django.conf import settings
 
-from demo.xmlGenerator import createXML, appendXML
+from demo.xmlGenerator import XMLGenerator
 
 from fido.fido import Fido
 
@@ -222,7 +222,11 @@ class GenerateXML(DBTask):
     """
 
     def run(self, info={}, filesToCreate={}, folderToParse=None):
-        createXML(info, filesToCreate, folderToParse)
+        generator = XMLGenerator(
+            filesToCreate, info
+        )
+
+        generator.generate(folderToParse=folderToParse)
 
         self.set_progress(100, total=100)
 
@@ -243,118 +247,144 @@ class AppendEvents(DBTask):
         for event in events:
             inputD = {
                 "path": filename,
-                "elementToAppendTo": "premis:premis",
+                "elementToAppendTo": "premis",
                 "template": {
-                    "event": {
-                        "-min": 1,
-                        "-max": 1,
-                        "-allowEmpty": 1,
-                        "-namespace": "premis",
-                        "eventIdentifier": {
+                    "-name": "event",
+                    "-min": 1,
+                    "-max": 1,
+                    "-allowEmpty": 1,
+                    "-namespace": "premis",
+                    "-children": [
+                        {
+                            "-name": "eventIdentifier",
                             "-min": 1,
                             "-max": 1,
                             "-allowEmpty": 1,
                             "-namespace": "premis",
-                            "eventIdentifierType": {
-                                "-min": 1,
-                                "-max": 1,
-                                "-namespace": "premis",
-                                "#content": [{"var":"eventIdentifierType"}]
-                            },
-                            "eventIdentifierValue": {
-                                "-min": 1,
-                                "-max": 1,
-                                "-allowEmpty": 1,
-                                "-namespace": "premis",
-                                "#content": [{"var": "eventIdentifierValue"}]
-                            },
+                            "-children": [
+                                {
+                                    "-name": "eventIdentifierType",
+                                    "-min": 1,
+                                    "-max": 1,
+                                    "-namespace": "premis",
+                                    "#content": [{"var":"eventIdentifierType"}]
+                                },{
+                                    "-name": "eventIdentifierValue",
+                                    "-min": 1,
+                                    "-max": 1,
+                                    "-allowEmpty": 1,
+                                    "-namespace": "premis",
+                                    "#content": [{"var": "eventIdentifierValue"}]
+                                },
+                            ]
                         },
-                        "eventType": {
+                        {
+                            "-name": "eventType",
                             "-min": 1,
                             "-max": 1,
                             "-allowEmpty": 1,
                             "-namespace": "premis",
                             "#content": [{"var": "eventType"}]
                         },
-                        "eventDateTime": {
+                        {
+                            "-name": "eventDateTime",
                             "-min": 1,
                             "-max": 1,
                             "-allowEmpty": 1,
                             "-namespace": "premis",
                             "#content": [{"var": "eventDateTime"}]
                         },
-                        "eventDetail": {
+                        {
+                            "-name": "eventDetail",
                             "-min": 1,
                             "-max": 1,
                             "-allowEmpty": 1,
                             "-namespace": "premis",
                             "#content": [{"var": "eventDetail"}]
                         },
-                        "eventOutcomeInformation": {
+                        {
+                            "-name": "eventOutcomeInformation",
                             "-min": 1,
                             "-max": 1,
                             "-allowEmpty": 1,
                             "-namespace": "premis",
-                            "eventOutcome": {
-                                "-min": 1,
-                                "-max": 1,
-                                "-allowEmpty": 1,
-                                "-namespace": "premis",
-                                "#content": [{"var":"eventOutcome"}]
-                            },
-                            "eventOutcomeDetail": {
-                                "-min": 1,
-                                "-max": 1,
-                                "-allowEmpty": 1,
-                                "-namespace": "premis",
-                                "eventOutcomeDetailNote": {
+                            "-children": [
+                                {
+                                    "-name": "eventOutcome",
                                     "-min": 1,
                                     "-max": 1,
                                     "-allowEmpty": 1,
                                     "-namespace": "premis",
-                                    "#content": [{"var":"eventOutcomeDetailNote"}]
+                                    "#content": [{"var":"eventOutcome"}]
                                 },
-                            },
+                                {
+                                    "-name": "eventOutcomeDetail",
+                                    "-min": 1,
+                                    "-max": 1,
+                                    "-allowEmpty": 1,
+                                    "-namespace": "premis",
+                                    "-children": [
+                                        {
+                                            "-name": "eventOutcomeDetailNote",
+                                            "-min": 1,
+                                            "-max": 1,
+                                            "-allowEmpty": 1,
+                                            "-namespace": "premis",
+                                            "#content": [{"var":"eventOutcomeDetailNote"}]
+                                        },
+                                    ]
+                                },
+                            ]
                         },
-                        "linkingAgentIdentifier": {
+                        {
+                            "-name": "linkingAgentIdentifier",
                             "-min": 1,
                             "-max": 1,
                             "-allowEmpty": 1,
                             "-namespace": "premis",
-                            "linkingAgentIdentifierType": {
-                                "-min": 1,
-                                "-max": 1,
-                                "-namespace": "premis",
-                                "#content": [{"var":"linkingAgentIdentifierType"}]
-                            },
-                            "linkingAgentIdentifierValue": {
-                                "-min": 1,
-                                "-max": 1,
-                                "-allowEmpty": 1,
-                                "-namespace": "premis",
-                                "#content": [{"var": "linkingAgentIdentifierValue"}]
-                            },
+                            "-children": [
+                                {
+                                    "-name": "linkingAgentIdentifierType",
+                                    "-min": 1,
+                                    "-max": 1,
+                                    "-namespace": "premis",
+                                    "#content": [{"var":"linkingAgentIdentifierType"}]
+                                },
+                                {
+                                    "-name": "linkingAgentIdentifierValue",
+                                    "-min": 1,
+                                    "-max": 1,
+                                    "-allowEmpty": 1,
+                                    "-namespace": "premis",
+                                    "#content": [{"var": "linkingAgentIdentifierValue"}]
+                                },
+                            ]
                         },
-                        "linkingObjectIdentifier": {
+                        {
+                            "-name": "linkingObjectIdentifier",
                             "-min": 1,
                             "-max": 1,
                             "-allowEmpty": 1,
                             "-namespace": "premis",
-                            "linkingObjectIdentifierType": {
-                                "-min": 1,
-                                "-max": 1,
-                                "-namespace": "premis",
-                                "#content": [{"var":"linkingObjectIdentifierType"}]
-                            },
-                            "linkingObjectIdentifierValue": {
-                                "-min": 1,
-                                "-max": 1,
-                                "-allowEmpty": 1,
-                                "-namespace": "premis",
-                                "#content": [{"var": "linkingObjectIdentifierValue"}]
-                            },
+                            "-children": [
+                                {
+                                    "-name": "linkingObjectIdentifierType",
+                                    "-min": 1,
+                                    "-max": 1,
+                                    "-namespace": "premis",
+                                    "#content": [{"var":"linkingObjectIdentifierType"}]
+                                },
+                                {
+                                    "-name": "linkingObjectIdentifierValue",
+                                    "-min": 1,
+                                    "-max": 1,
+                                    "-allowEmpty": 1,
+                                    "-namespace": "premis",
+                                    "#content": [{"var": "linkingObjectIdentifierValue"}]
+                                },
+                            ]
                         },
-                    }
+                    ]
                 },
                 "data": {
                     "eventIdentifierType": "SE/RA",
