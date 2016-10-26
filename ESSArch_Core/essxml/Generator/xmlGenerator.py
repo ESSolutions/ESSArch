@@ -161,14 +161,23 @@ class XMLGenerator(object):
         files = []
 
         if folderToParse:
+            mimetypes.suffix_map = {}
+            mimetypes.encodings_map = {}
+            mimetypes.types_map = {}
+            mimetypes.common_types = {}
+            mimetypes_file = Path.objects.get(
+                entity="path_mimetypes_definitionfile"
+            ).value
+            mimetypes.init(files=[mimetypes_file])
+
             if os.path.isfile(folderToParse):
-                files.append(self.parseFile(folderToParse))
+                files.append(self.parseFile(folderToParse, mimetypes))
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in os.walk(folderToParse):
                     for fname in filenames:
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, folderToParse)
-                        files.append(self.parseFile(filepath, relpath=relpath))
+                        files.append(self.parseFile(filepath, mimetypes, relpath=relpath))
 
         for f in self.toCreate:
             fname = f['file']
@@ -201,21 +210,12 @@ class XMLGenerator(object):
 
         tree.write(filename, pretty_print=True)
 
-    def parseFile(self, filepath, relpath=None):
+    def parseFile(self, filepath, mimetypes, relpath=None):
         """
         walk through the choosen folder and parse all the files to their own temporary location
         """
         if not relpath:
             relpath = filepath
-
-        mimetypes.suffix_map = {}
-        mimetypes.encodings_map = {}
-        mimetypes.types_map = {}
-        mimetypes.common_types = {}
-        mimetypes_file = Path.objects.get(
-            entity="path_mimetypes_definitionfile"
-        ).value
-        mimetypes.init(files=[mimetypes_file])
 
         base = os.path.basename(relpath)
         file_name, file_ext = os.path.splitext(base)
