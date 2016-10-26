@@ -225,11 +225,26 @@ class XMLGenerator(object):
         except KeyError:
             raise KeyError("Invalid file type: %s" % file_ext)
 
+        """
+        checksum = ProcessTask(
+            name="preingest.tasks.CalculateChecksum",
+            params={
+                "filename": filepath,
+            }
+        ).run_eagerly()
+        """
+
+        checksum = CalculateChecksum()(
+            eager=True,
+            params={
+                "filename": filepath,
+            }
+        )
+
         fileinfo = {
             'FName': file_name + file_ext,
             'FChecksum': calculateChecksum(filepath),
-            'FID': str(uuid.uuid4()),
-            'id': str(uuid.uuid4()),
+            'FID': "ID%s" % str(uuid.uuid4()),
             'daotype': "borndigital",
             'href': relpath,
             'FMimetype': mimetype,
