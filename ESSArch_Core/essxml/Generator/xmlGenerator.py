@@ -1,5 +1,4 @@
 import os, re
-import hashlib
 import uuid
 import mimetypes
 
@@ -9,20 +8,7 @@ from configuration.models import (
     Path,
 )
 
-def calculateChecksum(filename):
-    """
-    calculate the checksum for the selected file, one chunk at a time
-    """
-    fd = os.open(filename, os.O_RDONLY)
-    hashSHA = hashlib.sha256()
-    while True:
-        data = os.read(fd, 65536)
-        if data:
-            hashSHA.update(data)
-        else:
-            break
-    os.close(fd)
-    return hashSHA.hexdigest()
+from preingest.models import ProcessTask
 
 def parseContent(content, info):
     if not content:
@@ -225,25 +211,16 @@ class XMLGenerator(object):
         except KeyError:
             raise KeyError("Invalid file type: %s" % file_ext)
 
-        """
         checksum = ProcessTask(
             name="preingest.tasks.CalculateChecksum",
             params={
                 "filename": filepath,
             }
         ).run_eagerly()
-        """
-
-        checksum = CalculateChecksum()(
-            eager=True,
-            params={
-                "filename": filepath,
-            }
-        )
 
         fileinfo = {
             'FName': file_name + file_ext,
-            'FChecksum': calculateChecksum(filepath),
+            'FChecksum': checksum,
             'FID': "ID%s" % str(uuid.uuid4()),
             'daotype': "borndigital",
             'href': relpath,
