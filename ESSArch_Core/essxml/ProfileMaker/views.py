@@ -91,6 +91,7 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, n
     el['-min'] = element['min']
     el['-max'] = element['max']
     el['-containsFiles'] = element.get('containsFiles')
+    el['-nsmap'] = element.get('nsmap')
     if 'namespace' in element:
         if element['namespace'] != namespace:
             namespace = element['namespace']
@@ -453,8 +454,11 @@ class add(View):
 
             schemadoc = etree.fromstring(schema_request.content)
             targetNamespace = schemadoc.get('targetNamespace')
+            nsmap = {k:v for k,v in schemadoc.nsmap.iteritems() if k and k not in ["xsd", "xs"]}
 
             existingElements, allElements = generateJsonRes(schemadoc, root, prefix);
+            existingElements["root"]["nsmap"] = nsmap
+
             templatePackage.objects.create(
                 existingElements=existingElements, allElements=allElements,
                 name=name, prefix=prefix, schemaURL=schema,
@@ -495,15 +499,18 @@ class addExtension(View):
             schema_request.raise_for_status()
 
             schemadoc = etree.fromstring(schema_request.content)
+            nsmap = {k:v for k,v in schemadoc.nsmap.iteritems() if k and k not in ["xsd", "xs"]}
             targetNamespace = schemadoc.get('targetNamespace')
 
             extensionElements, extensionAll, attributes = generateExtensionRef(schemadoc, prefix)
+
             e = extensionPackage.objects.create(
                 prefix=prefix, schemaURL=schema,
                 targetNamespace=targetNamespace, allElements=extensionAll,
                 existingElements=extensionElements, allAttributes=attributes
             )
             obj.extensions.add(e)
+            obj.existingElements["root"]["nsmap"].update(nsmap)
             obj.save()
 
             return HttpResponse('Success: Added extension schema')
@@ -564,40 +571,26 @@ class generate(View):
 
         XSI = 'http://www.w3.org/2001/XMLSchema-instance'
 
-        ns_attributes = []
+        if not jsonString["-nsmap"].get("xsi"):
+            jsonString["-nsmap"]["xsi"] = XSI
 
-        ns_attributes.extend([
-            {
-                '-name': 'xmlns:xsi',
-                '#content': [{
-                    'text': XSI
-                }],
-            },{
-                '-name': 'xmlns:%s' % obj.prefix,
-                '#content': [{
-                    'text': obj.targetNamespace
-                }],
-            }
-        ])
+        if not jsonString["-nsmap"].get(obj.prefix):
+            jsonString["-nsmap"][obj.prefix] = obj.targetNamespace
 
         for ext in obj.extensions.all():
-            ns_attributes.append({
-                '-name': 'xmlns:%s' % ext.prefix,
-                '#content': [{
-                    'text': ext.targetNamespace
-                }]
-            })
+            jsonString["-nsmap"][ext.prefix] = ext.targetNamespace
 
             schemaLocation.append('%s %s' % (ext.targetNamespace, ext.schemaURL))
 
-        ns_attributes.append({
-            '-name': 'xsi:schemaLocation',
+        schemaLocation = ({
+            '-name': 'schemaLocation',
+            '-namespace': 'xsi',
             '#content': [{
                 'text': ' '.join(schemaLocation)
             }]
         })
 
-        jsonString['-attr'] += ns_attributes
+        jsonString['-attr'].append(schemaLocation)
 
         j = json.loads(request.body)
         t = Profile(profile_type=j['profile_type'],
