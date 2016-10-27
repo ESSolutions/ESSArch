@@ -91,7 +91,7 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, n
     el['-min'] = element['min']
     el['-max'] = element['max']
     el['-containsFiles'] = element.get('containsFiles')
-    el['-nsmap'] = element.get('nsmap')
+    el['-nsmap'] = element.get('nsmap', {})
     if 'namespace' in element:
         if element['namespace'] != namespace:
             namespace = element['namespace']
