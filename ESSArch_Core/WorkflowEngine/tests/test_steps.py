@@ -7,6 +7,8 @@ from configuration.models import (
     Path,
 )
 
+from ip.models import InformationPackage
+
 from preingest.models import (
     ProcessStep, ProcessTask,
 )
@@ -41,12 +43,15 @@ class test_running_steps(TestCase):
             name="Test",
         )
 
+        ip = InformationPackage.objects.create()
+
         t1 = ProcessTask.objects.create(
             name="preingest.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
             processstep_pos=0,
+            information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
@@ -55,6 +60,7 @@ class test_running_steps(TestCase):
                 "foo": t2_val,
             },
             processstep_pos=1,
+            information_package=ip,
         )
 
         t3 = ProcessTask.objects.create(
@@ -63,6 +69,7 @@ class test_running_steps(TestCase):
                 "foo": t3_val,
             },
             processstep_pos=2,
+            information_package=ip,
         )
 
         step.tasks = [t1, t2, t3]
@@ -89,6 +96,8 @@ class test_running_steps(TestCase):
             name="Test",
         )
 
+        ip = InformationPackage.objects.create()
+
         t1 = ProcessTask.objects.create(
             name="preingest.tests.tasks.Add",
             params={
@@ -96,6 +105,7 @@ class test_running_steps(TestCase):
                 "y": t1_val,
             },
             processstep_pos=0,
+            information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
@@ -107,6 +117,7 @@ class test_running_steps(TestCase):
                 "y": t1.id
             },
             processstep_pos=1,
+            information_package=ip,
         )
 
         t3 = ProcessTask.objects.create(
@@ -118,6 +129,7 @@ class test_running_steps(TestCase):
                 "y": t1.id
             },
             processstep_pos=2,
+            information_package=ip,
         )
 
         step.tasks = [t1, t2, t3]
@@ -147,12 +159,15 @@ class test_running_steps(TestCase):
             name="Test",
         )
 
+        ip = InformationPackage.objects.create()
+
         t1 = ProcessTask.objects.create(
             name="preingest.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
             processstep_pos=0,
+            information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
@@ -161,6 +176,7 @@ class test_running_steps(TestCase):
                 "filename": t2_val,
             },
             processstep_pos=1,
+            information_package=ip,
         )
 
         step.tasks = [t1, t2]
@@ -195,12 +211,15 @@ class test_running_steps(TestCase):
             name="Test",
         )
 
+        ip = InformationPackage.objects.create()
+
         t1 = ProcessTask.objects.create(
             name="preingest.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
             processstep_pos=0,
+            information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
@@ -209,6 +228,7 @@ class test_running_steps(TestCase):
                 "filename": t2_val,
             },
             processstep_pos=1,
+            information_package=ip,
         )
 
         step.tasks = [t1, t2]
@@ -243,12 +263,15 @@ class test_running_steps(TestCase):
             name="Test",
         )
 
+        ip = InformationPackage.objects.create()
+
         t1 = ProcessTask.objects.create(
             name="preingest.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
             processstep_pos=0,
+            information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
@@ -257,6 +280,7 @@ class test_running_steps(TestCase):
                 "filename": t2_val,
             },
             processstep_pos=1,
+            information_package=ip,
         )
 
         step.tasks = [t1, t2]
@@ -299,12 +323,15 @@ class test_running_steps(TestCase):
             name="Test",
         )
 
+        ip = InformationPackage.objects.create()
+
         t1 = ProcessTask.objects.create(
             name="preingest.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
             processstep_pos=0,
+            information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
@@ -313,6 +340,7 @@ class test_running_steps(TestCase):
                 "filename": t2_val,
             },
             processstep_pos=1,
+            information_package=ip,
         )
 
         step.tasks = [t1, t2]
@@ -362,11 +390,14 @@ class test_running_steps(TestCase):
             name="Test",
         )
 
+        ip = InformationPackage.objects.create()
+
         t1 = ProcessTask.objects.create(
             name="preingest.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
+            information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
@@ -374,6 +405,7 @@ class test_running_steps(TestCase):
             params={
                 "foo": t2_val,
             },
+            information_package=ip,
         )
 
         t3 = ProcessTask.objects.create(
@@ -381,6 +413,7 @@ class test_running_steps(TestCase):
             params={
                 "foo": t3_val,
             },
+            information_package=ip,
         )
 
         step.tasks = [t1, t2, t3]
@@ -407,11 +440,14 @@ class test_running_steps(TestCase):
             name="Test",
         )
 
+        ip = InformationPackage.objects.create()
+
         t1 = ProcessTask.objects.create(
             name="preingest.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
+            information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
@@ -419,6 +455,7 @@ class test_running_steps(TestCase):
             params={
                 "filename": t2_val,
             },
+            information_package=ip,
         )
 
         t3 = ProcessTask.objects.create(
@@ -426,6 +463,7 @@ class test_running_steps(TestCase):
             params={
                 "foo": t3_val,
             },
+            information_package=ip,
         )
 
         step.tasks = [t1, t2, t3]
@@ -460,11 +498,14 @@ class test_running_steps(TestCase):
             name="Test",
         )
 
+        ip = InformationPackage.objects.create()
+
         t1 = ProcessTask.objects.create(
             name="preingest.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
+            information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
@@ -472,6 +513,7 @@ class test_running_steps(TestCase):
             params={
                 "filename": t2_val,
             },
+            information_package=ip,
         )
 
         t3 = ProcessTask.objects.create(
@@ -479,6 +521,7 @@ class test_running_steps(TestCase):
             params={
                 "foo": t3_val,
             },
+            information_package=ip,
         )
 
         step.tasks = [t1, t2, t3]
@@ -513,11 +556,14 @@ class test_running_steps(TestCase):
             name="Test",
         )
 
+        ip = InformationPackage.objects.create()
+
         t1 = ProcessTask.objects.create(
             name="preingest.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
+            information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
@@ -525,6 +571,7 @@ class test_running_steps(TestCase):
             params={
                 "filename": t2_val,
             },
+            information_package=ip,
         )
 
         t3 = ProcessTask.objects.create(
@@ -532,6 +579,7 @@ class test_running_steps(TestCase):
             params={
                 "foo": t3_val,
             },
+            information_package=ip,
         )
 
         step.tasks = [t1, t2, t3]
@@ -576,11 +624,14 @@ class test_running_steps(TestCase):
             name="Test",
         )
 
+        ip = InformationPackage.objects.create()
+
         t1 = ProcessTask.objects.create(
             name="preingest.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
+            information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
@@ -588,6 +639,7 @@ class test_running_steps(TestCase):
             params={
                 "filename": t2_val,
             },
+            information_package=ip,
         )
 
         t3 = ProcessTask.objects.create(
@@ -595,6 +647,7 @@ class test_running_steps(TestCase):
             params={
                 "foo": t3_val,
             },
+            information_package=ip,
         )
 
         step.tasks = [t1, t2, t3]

@@ -377,11 +377,6 @@ class ProcessTask(Process):
         Runs the task
         """
 
-        if not self.information_package:
-            raise AttributeError(
-                "An IP is required to be set on the task if not run eagerly"
-            )
-
         return self._create_task(self.name).delay(taskobj=self)
 
     def run_eagerly(self, **kwargs):
@@ -424,7 +419,8 @@ class ProcessTask(Process):
         return ProcessTask.objects.create(
             processstep=self.processstep, name="%s undo" % self.name,
             params=self.params, processstep_pos=self.processstep_pos,
-            undo_type=True, attempt=attempt, status="PREPARED"
+            undo_type=True, attempt=attempt, status="PREPARED",
+            information_package=self.information_package
         )
 
     def create_retry_obj(self, attempt=uuid.uuid4()):

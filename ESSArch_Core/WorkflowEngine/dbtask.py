@@ -12,6 +12,8 @@ from django.db import (
 
 from django.utils import timezone
 
+from ip.models import InformationPackage
+
 from preingest.models import ProcessTask
 
 from preingest.util import create_event
@@ -27,6 +29,11 @@ class DBTask(Task):
 
         if self.eager:
             return self.run(**self.taskobj.params)
+
+        if not isinstance(self.taskobj.information_package, InformationPackage):
+            raise AttributeError(
+                "An IP is required to be set on the task if not run eagerly"
+            )
 
         try:
             prev_result_dict = args[0]

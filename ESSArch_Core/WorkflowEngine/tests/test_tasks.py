@@ -4,10 +4,18 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
+from install.install_default_config_etp import installDefaultEventTypes
+
+from ip.models import (
+    InformationPackage,
+)
+
 from preingest.models import (
     ProcessTask,
 )
 
+def setUpModule():
+    installDefaultEventTypes()
 
 class test_running_tasks(TestCase):
     def setUp(self):
@@ -49,7 +57,8 @@ class test_running_tasks(TestCase):
                 name="preingest.tests.tasks.First",
                 params={
                     "bar": 123
-                }
+                },
+                information_package=InformationPackage()
             )
 
             task.run()
@@ -67,7 +76,8 @@ class test_running_tasks(TestCase):
                 params={
                     "foo": 123,
                     "bar": 456
-                }
+                },
+                information_package=InformationPackage()
             )
 
             task.run()
@@ -84,7 +94,8 @@ class test_running_tasks(TestCase):
             name="preingest.tests.tasks.First",
             params={
                 "foo": foo
-            }
+            },
+            information_package=InformationPackage()
         )
 
         task.run()
@@ -103,7 +114,8 @@ class test_running_tasks(TestCase):
                 name="preingest.tests.tasks.First",
                 params={
                     "bar": foo
-                }
+                },
+                information_package=InformationPackage()
             )
             task.run()
         except TypeError:
