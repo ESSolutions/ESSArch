@@ -44,6 +44,7 @@ class XMLElement(object):
         self.fileFilters = template.get('-filters', {})
         self.allowEmpty = template.get('-allowEmpty', False)
         self.children = []
+        self.el = None
 
         for child in template.get('-children', []):
             child_el = XMLElement(child)
@@ -56,28 +57,29 @@ class XMLElement(object):
         """
         Simple helper function to check if the tag sould have any contents
         """
-        if self.content or self.children or self.containsFiles or self.attr:
+
+        any_attribute_with_value = any(value for value in self.el.attrib.values())
+        any_children_not_empty = any(not child.isEmpty() for child in self.children)
+
+        if self.content or any_children_not_empty or self.containsFiles or any_attribute_with_value:
             return False
 
         return True
 
     def createLXMLElement(self, info, nsmap={}, files=[]):
-        if self.isEmpty() and not self.allowEmpty:
-            return None
-
         full_nsmap = nsmap.copy()
         full_nsmap.update(self.nsmap)
 
         if self.namespace:
-            el = etree.Element("{%s}%s" % (full_nsmap[self.namespace], self.name), nsmap=full_nsmap)
+            self.el = etree.Element("{%s}%s" % (full_nsmap[self.namespace], self.name), nsmap=full_nsmap)
         else:
-            el = etree.Element("%s" % self.name, nsmap=full_nsmap)
+            self.el = etree.Element("%s" % self.name, nsmap=full_nsmap)
 
-        el.text = self.parse(info)
+        self.el.text = self.parse(info)
 
         for attr in self.attr:
             name, content = attr.parse(info, nsmap=full_nsmap)
-            el.set(name, content)
+            self.el.set(name, content)
 
         for child in self.children:
 
@@ -92,13 +94,16 @@ class XMLElement(object):
                     if include:
                         full_info = info.copy()
                         full_info.update(fileinfo)
-                        el.append(child.createLXMLElement(full_info, full_nsmap, files=files))
+                        self.el.append(child.createLXMLElement(full_info, full_nsmap, files=files))
             else:
                 child_el = child.createLXMLElement(info, full_nsmap, files=files)
                 if child_el is not None:
-                    el.append(child_el)
+                    self.el.append(child_el)
 
-        return el
+        if self.isEmpty() and not self.allowEmpty:
+            return None
+
+        return self.el
 
 class XMLAttribute(object):
     """
