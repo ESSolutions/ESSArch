@@ -123,7 +123,11 @@ class XMLAttribute(object):
     """
 
     def __init__(self, template):
-        self.name = template.get('-name')
+        try:
+            self.name = template['-name']
+        except KeyError:
+            raise KeyError("Attribute missing name")
+
         self.namespace = template.get('-namespace')
         self.content = template.get('#content')
 
