@@ -59,7 +59,7 @@ class XMLElement(object):
         """
 
         any_attribute_with_value = any(value for value in self.el.attrib.values())
-        any_children_not_empty = any(not child.isEmpty() for child in self.children)
+        any_children_not_empty = any(not child.isEmpty() or (child.isEmpty() and child.allowEmpty) for child in self.children)
 
         if self.content or any_children_not_empty or self.containsFiles or any_attribute_with_value:
             return False
