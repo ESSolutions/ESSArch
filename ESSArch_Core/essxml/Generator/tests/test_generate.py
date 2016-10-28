@@ -74,7 +74,7 @@ class test_generateXML(TestCase):
     def test_generate_empty_element(self):
         specification = {'-name': "foo"}
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AssertionError):
             generator = XMLGenerator(
                 {self.fname: specification}, {}
             )
