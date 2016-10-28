@@ -83,6 +83,87 @@ class test_generateXML(TestCase):
 
         self.assertFalse(os.path.exists(self.fname))
 
+    def test_generate_empty_element_with_children(self):
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'bar',
+                    '#content': [{
+                        'text': 'baz'
+                    }]
+                },
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}, {}
+        )
+
+        generator.generate()
+
+        self.assertTrue(os.path.exists(self.fname))
+
+    def test_generate_empty_element_with_empty_children(self):
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'bar',
+                },
+            ]
+        }
+
+        with self.assertRaises(AssertionError):
+            generator = XMLGenerator(
+                {self.fname: specification}, {}
+            )
+
+            generator.generate()
+
+        self.assertFalse(os.path.exists(self.fname))
+
+    def test_generate_empty_element_with_empty_children_with_allow_empty(self):
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'bar',
+                    '-allowEmpty': True
+                },
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}, {}
+        )
+
+        generator.generate()
+
+        self.assertTrue(os.path.exists(self.fname))
+
+    def test_generate_empty_element_with_empty_attribute(self):
+        specification = {
+            '-name': 'foo',
+            '-attr': [
+                {
+                    '-name': 'bar',
+                    '#content': [{
+                        'text': ''
+                    }]
+                },
+            ]
+        }
+
+        with self.assertRaises(AssertionError):
+            generator = XMLGenerator(
+                {self.fname: specification}, {}
+            )
+
+            generator.generate()
+
+        self.assertFalse(os.path.exists(self.fname))
+
     def test_generate_multiple_element_same_name_same_level(self):
         specification = {
             '-name': "foo",
