@@ -63,10 +63,7 @@ class XMLElement(object):
 
     def createLXMLElement(self, info, nsmap={}, files=[]):
         if self.isEmpty() and not self.allowEmpty:
-            raise ValueError(
-                "Element %s does not contain any value, attributes, children or\
-                files, and allowEmpty is not set" % self.name
-            )
+            return None
 
         full_nsmap = nsmap.copy()
         full_nsmap.update(self.nsmap)
@@ -97,7 +94,9 @@ class XMLElement(object):
                         full_info.update(fileinfo)
                         el.append(child.createLXMLElement(full_info, full_nsmap, files=files))
             else:
-                el.append(child.createLXMLElement(info, full_nsmap, files=files))
+                child_el = child.createLXMLElement(info, full_nsmap, files=files)
+                if child_el is not None:
+                    el.append(child_el)
 
         return el
 
