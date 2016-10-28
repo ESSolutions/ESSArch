@@ -140,7 +140,7 @@ class XMLAttribute(object):
         return name, parseContent(self.content, info)
 
 class XMLGenerator(object):
-    def __init__(self, filesToCreate, info={}):
+    def __init__(self, filesToCreate={}, info={}):
         self.info = info
         self.toCreate = []
 
