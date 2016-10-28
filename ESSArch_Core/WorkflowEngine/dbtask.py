@@ -30,11 +30,6 @@ class DBTask(Task):
         if self.eager:
             return self.run(**self.taskobj.params)
 
-        if not isinstance(self.taskobj.information_package, InformationPackage):
-            raise AttributeError(
-                "An IP is required to be set on the task if not run eagerly"
-            )
-
         try:
             prev_result_dict = args[0]
         except IndexError:
@@ -68,6 +63,11 @@ class DBTask(Task):
                 self.taskobj.save()
 
             if hasattr(self, "event_type"):
+                if not isinstance(self.taskobj.information_package, InformationPackage):
+                    raise AttributeError(
+                        "An IP is required to be set on the task to create an event"
+                    )
+
                 event_type = EventType.objects.get(eventType=self.event_type)
                 event_args = self.get_event_args(**self.taskobj.params)
 
