@@ -442,6 +442,36 @@ class test_generateXML(TestCase):
         file_elements = tree.findall('.//bar')
         self.assertEqual(len(file_elements), num_of_files)
 
+    def test_element_with_containsFiles_without_files(self):
+        specification = {
+            '-name': 'foo',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': 'bar',
+                    '-containsFiles': True,
+                    '-attr': [
+                        {
+                            '-name': 'name',
+                            '#content': [
+                                {
+                                    'var': 'FName'
+                                }
+                            ]
+                        }
+                    ],
+                }
+            ],
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate()
+
+        self.assertTrue(os.path.exists(self.fname))
+
     def test_element_with_files_and_namespace(self):
         nsmap = {
             'premis': 'http://www.loc.gov/premis/v3'

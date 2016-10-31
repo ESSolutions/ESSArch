@@ -58,6 +58,9 @@ class XMLElement(object):
         Simple helper function to check if the tag sould have any contents
         """
 
+        if self.el is None:
+            return True
+
         any_attribute_with_value = any(value for value in self.el.attrib.values())
         any_children_not_empty = any(not child.isEmpty() or (child.isEmpty() and child.allowEmpty) for child in self.children)
 
