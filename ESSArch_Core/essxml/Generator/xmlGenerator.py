@@ -10,6 +10,8 @@ from configuration.models import (
 
 from preingest.models import ProcessTask
 
+from preingest.util import creation_date, timestamp_to_datetime
+
 def parseContent(content, info):
     if not content:
         return None
@@ -227,6 +229,8 @@ class XMLGenerator(object):
 
         base = os.path.basename(relpath)
         file_name, file_ext = os.path.splitext(base)
+        timestamp = creation_date(filepath)
+        createdate = timestamp_to_datetime(timestamp)
 
         try:
             mimetype = mimetypes.types_map[file_ext]
@@ -247,7 +251,7 @@ class XMLGenerator(object):
             'daotype': "borndigital",
             'href': relpath,
             'FMimetype': mimetype,
-            'FCreated': '2016-02-21T11:18:44+01:00',
+            'FCreated': createdate.isoformat(),
             'FFormatName': 'MS word',
             'FSize': str(os.path.getsize(filepath)),
             'FUse': 'DataFile',
