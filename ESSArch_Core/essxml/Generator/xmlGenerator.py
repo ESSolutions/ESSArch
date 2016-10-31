@@ -244,6 +244,13 @@ class XMLGenerator(object):
             }
         ).run_eagerly()
 
+        fileformat = ProcessTask(
+            name="preingest.tasks.IdentifyFileFormat",
+            params={
+                "filename": filepath,
+            }
+        ).run_eagerly()
+
         fileinfo = {
             'FName': file_name + file_ext,
             'FChecksum': checksum,
@@ -252,7 +259,7 @@ class XMLGenerator(object):
             'href': relpath,
             'FMimetype': mimetype,
             'FCreated': createdate.isoformat(),
-            'FFormatName': 'MS word',
+            'FFormatName': fileformat,
             'FSize': str(os.path.getsize(filepath)),
             'FUse': 'DataFile',
             'FChecksumType': 'SHA-256',
