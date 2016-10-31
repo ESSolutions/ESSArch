@@ -188,7 +188,7 @@ class XMLGenerator(object):
                 encoding='UTF-8'
             )
 
-    def append(self, filename, elementToAppendTo, template, info={}):
+    def insert(self, filename, elementToAppendTo, template, info={}, index=None):
         parser = etree.XMLParser(remove_blank_text=True)
         tree = etree.parse(filename, parser)
         rootEl = tree.getroot()
@@ -203,7 +203,10 @@ class XMLGenerator(object):
 
         appendedRootEl = XMLElement(template, nsmap=root_nsmap)
 
-        elementToAppendTo.append(appendedRootEl.createLXMLElement(info))
+        if index is not None:
+            elementToAppendTo.insert(index, appendedRootEl.createLXMLElement(info))
+        else:
+            elementToAppendTo.append(appendedRootEl.createLXMLElement(info))
 
         tree.write(filename, pretty_print=True)
 

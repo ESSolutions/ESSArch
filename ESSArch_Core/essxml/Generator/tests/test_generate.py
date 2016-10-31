@@ -831,7 +831,7 @@ class test_generateXML(TestCase):
         self.assertLess(root.index(c), root.index(d))
         self.assertLess(root.index(d), root.index(e))
 
-    def test_append_element_with_namespace(self):
+    def test_insert_element_with_namespace(self):
         nsmap = {
             'premis': 'http://www.loc.gov/premis/v3'
         }
@@ -867,7 +867,7 @@ class test_generateXML(TestCase):
         }
 
         for i in range(3):
-            generator.append(
+            generator.insert(
                 self.fname, 'foo', append_specification, {},
             )
 
@@ -878,7 +878,80 @@ class test_generateXML(TestCase):
         self.assertIsNotNone(appended)
         self.assertEqual(appended.text, 'append text')
 
-    def test_append_nested_elements_with_namespace(self):
+    def test_insert_element_at_index(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'bar',
+                    '-allowEmpty': "1",
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//appended'))
+
+        append_specification = {
+            '-name': 'appended',
+            '#content': [
+                {
+                    'text': 'append text'
+                }
+            ]
+        }
+
+        generator.insert(
+            self.fname, 'root', append_specification, {}, index=0
+        )
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        foo = tree.find('.//foo')
+        appended = tree.find('.//appended')
+
+        self.assertLess(root.index(appended), root.index(foo))
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//appended'))
+
+        append_specification = {
+            '-name': 'appended',
+            '#content': [
+                {
+                    'text': 'append text'
+                }
+            ]
+        }
+
+        generator.insert(
+            self.fname, 'root', append_specification, {}, index=1
+        )
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        foo = tree.find('.//foo')
+        appended = tree.find('.//appended')
+
+        self.assertLess(root.index(foo), root.index(appended))
+
+    def test_insert_nested_elements_with_namespace(self):
         nsmap = {
             'premis': 'http://www.loc.gov/premis/v3'
         }
@@ -925,7 +998,7 @@ class test_generateXML(TestCase):
         }
 
         for i in range(3):
-            generator.append(
+            generator.insert(
                 self.fname, 'foo', append_specification, {},
             )
 
@@ -936,7 +1009,7 @@ class test_generateXML(TestCase):
         self.assertIsNotNone(bar)
         self.assertEqual(bar.text, 'bar text')
 
-    def test_append_element_with_content(self):
+    def test_insert_element_with_content(self):
         specification = {
             '-name': 'root',
             '-children': [
@@ -965,7 +1038,7 @@ class test_generateXML(TestCase):
             ]
         }
 
-        generator.append(
+        generator.insert(
             self.fname, 'foo', append_specification, {},
         )
 
@@ -976,7 +1049,7 @@ class test_generateXML(TestCase):
         self.assertIsNotNone(appended)
         self.assertEqual(appended.text, 'append text')
 
-    def test_append_element_with_attribute(self):
+    def test_insert_element_with_attribute(self):
         specification = {
             '-name': 'root',
             '-children': [
@@ -1010,7 +1083,7 @@ class test_generateXML(TestCase):
             ]
         }
 
-        generator.append(
+        generator.insert(
             self.fname, 'foo', append_specification, {},
         )
 
