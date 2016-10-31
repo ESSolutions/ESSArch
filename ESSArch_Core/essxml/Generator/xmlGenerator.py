@@ -81,8 +81,12 @@ class XMLElement(object):
         self.el.text = self.parse(info)
 
         for attr in self.attr:
-            name, content = attr.parse(info, nsmap=full_nsmap)
-            self.el.set(name, content)
+            name, content, required = attr.parse(info, nsmap=full_nsmap)
+
+            if required and not content:
+                raise ValueError("Missing value for required attribute '%s' on element '%s'" % (name, self.name))
+            elif content:
+                self.el.set(name, content)
 
         for child in self.children:
 
@@ -132,6 +136,7 @@ class XMLAttribute(object):
             raise KeyError("Attribute missing name")
 
         self.namespace = template.get('-namespace')
+        self.required = template.get('-req', False)
         self.content = template.get('#content')
 
     def parse(self, info, nsmap={}):
@@ -140,7 +145,7 @@ class XMLAttribute(object):
         if self.namespace:
             name = "{%s}%s" % (nsmap.get(self.namespace), self.name)
 
-        return name, parseContent(self.content, info)
+        return name, parseContent(self.content, info), self.required
 
 class XMLGenerator(object):
     def __init__(self, filesToCreate={}, info={}):
