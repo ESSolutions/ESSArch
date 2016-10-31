@@ -213,7 +213,10 @@ class XMLGenerator(object):
         else:
             elementToAppendTo.append(appendedRootEl.createLXMLElement(info))
 
-        tree.write(filename, pretty_print=True)
+        tree.write(
+            filename, pretty_print=True, xml_declaration=True,
+            encoding='UTF-8'
+        )
 
     def parseFile(self, filepath, mimetypes, relpath=None):
         """
