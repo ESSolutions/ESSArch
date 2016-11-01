@@ -236,6 +236,21 @@ class GenerateXML(DBTask):
     def get_event_args(self, info={}, filesToCreate={}, folderToParse=None):
         return [", ".join(filesToCreate.keys())]
 
+class InsertXML(DBTask):
+    """
+    Inserts XML to the specifed file
+    """
+
+    def run(self, filename=None, elementToAppendTo=None, spec={}, info={}, index=None):
+        generator = XMLGenerator()
+
+        generator.insert(filename, elementToAppendTo, spec, info=info, index=index)
+
+        self.set_progress(100, total=100)
+
+    def undo(self, filename=None, elementToAppendTo=None, spec={}, info={}, index=None):
+        pass
+
 class AppendEvents(DBTask):
     event_type = 10240
 
