@@ -510,7 +510,17 @@ class ValidateFileFormat(DBTask):
     """
 
     def run(self, filename=None, fileformat=None):
+        t = ProcessTask(
+            name="preingest.tasks.IdentifyFileFormat",
+            params={
+                "filename": filename,
+            },
+        )
+
+        res = t.run_eagerly()
+
         self.set_progress(100, total=100)
+        assert res == fileformat, "fileformat for %s is not valid" % filename
 
     def undo(self, filename=None, fileformat=None):
         pass
