@@ -22,10 +22,10 @@
 
 import versioneer
 versioneer.VCS = 'git'
-versioneer.versionfile_source = 'ESSArch_TP/_version.py'
+versioneer.versionfile_source = 'ESSArch_Core/_version.py'
 versioneer.versionfile_build = None
 versioneer.tag_prefix = '' # tags are like 1.2.0
-versioneer.parentdir_prefix = 'ESSArch_TP-'
+versioneer.parentdir_prefix = 'ESSArch_Core-'
 
 from setuptools import find_packages, setup  
 from setuptools.command.install import install as _install  
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     cmdclass=versioneer.get_cmdclass()
     cmdclass.update({'install': my_install})
     setup(
-        name='ESSArch_TP',
+        name='ESSArch_Core',
         version=versioneer.get_version(),
         description='ESSArch Tools Producer',
         author='Bjorn Skog',

@@ -1,9 +1,9 @@
 recursive-include * *.js *.html *.txt *.gif *.png *.css *.wsdl *.xml *.xsd *.sh *.map *.ico *.psd *.scss *.json *.swf
 include versioneer.py
-recursive-include ESSArch_TP/config *.conf *.crt *.key
-include ESSArch_TP/config/celeryd
-recursive-include ESSArch_TP/env *.xsd *.types
-recursive-include ESSArch_TP/static *
-recursive-include ESSArch_TP/testdata *
-recursive-include ESSArch_TP/static/bootstrap/fonts *
-recursive-include ESSArch_TP/static_root/bootstrap/fonts *
+recursive-include ESSArch_Core/config *.conf *.crt *.key
+include ESSArch_Core/config/celeryd
+recursive-include ESSArch_Core/env *.xsd *.types
+recursive-include ESSArch_Core/static *
+recursive-include ESSArch_Core/testdata *
+recursive-include ESSArch_Core/static/bootstrap/fonts *
+recursive-include ESSArch_Core/static_root/bootstrap/fonts *

@@ -1,0 +1,9 @@
+*.py[co]
+*.pyo
+*~
+/dist/
+/ESSArch_Core.egg-info/
+MANIFEST
+.settings/
+tools.db
+.DS_Store
