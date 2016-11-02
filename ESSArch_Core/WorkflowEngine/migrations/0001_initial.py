@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
                 ('status', models.IntegerField(blank=True, choices=[(-1, 'Undefined'), (0, 'Success'), (1, 'Error'), (2, 'Warning')], default=0)),
                 ('posted', models.DateTimeField(auto_now_add=True)),
                 ('hidden', models.BooleanField(default=False)),
-                ('archiveobject', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='preingest.ArchiveObject')),
+                ('archiveobject', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='WorkflowEngine.ArchiveObject')),
             ],
             options={
                 'db_table': 'ProcessStep',
@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
                 ('traceback', models.TextField(blank=True, null=True, verbose_name='traceback')),
                 ('hidden', models.BooleanField(db_index=True, default=False, editable=False)),
                 ('meta', picklefield.fields.PickledObjectField(default=None, editable=False, null=True)),
-                ('processstep', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='preingest.ProcessStep')),
+                ('processstep', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='WorkflowEngine.ProcessStep')),
             ],
             options={
                 'db_table': 'ProcessTask',

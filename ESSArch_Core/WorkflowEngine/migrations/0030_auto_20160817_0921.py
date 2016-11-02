@@ -9,13 +9,13 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('preingest', '0029_archiveobject_label'),
+        ('WorkflowEngine', '0029_archiveobject_label'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='processstep',
             name='archiveobject',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='steps', to='preingest.ArchiveObject'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='steps', to='WorkflowEngine.ArchiveObject'),
         ),
     ]

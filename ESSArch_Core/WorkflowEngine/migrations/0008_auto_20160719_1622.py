@@ -10,7 +10,7 @@ import picklefield.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('preingest', '0007_auto_20160718_2213'),
+        ('WorkflowEngine', '0007_auto_20160718_2213'),
     ]
 
     operations = [
@@ -19,8 +19,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('order', models.IntegerField()),
-                ('step', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='preingest.Step')),
-                ('task', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='preingest.Task')),
+                ('step', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='WorkflowEngine.Step')),
+                ('task', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='WorkflowEngine.Task')),
             ],
         ),
         migrations.AddField(
@@ -46,6 +46,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='step',
             name='tasks',
-            field=models.ManyToManyField(through='preingest.StepTask', to='preingest.Task'),
+            field=models.ManyToManyField(through='WorkflowEngine.StepTask', to='WorkflowEngine.Task'),
         ),
     ]

@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('templateMaker', '0006_auto_20160902_1308'),
+        ('ProfileMaker', '0006_auto_20160902_1308'),
     ]
 
     operations = [

@@ -9,7 +9,7 @@ import picklefield.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('preingest', '0015_remove_processstep_progress'),
+        ('WorkflowEngine', '0015_remove_processstep_progress'),
     ]
 
     operations = [

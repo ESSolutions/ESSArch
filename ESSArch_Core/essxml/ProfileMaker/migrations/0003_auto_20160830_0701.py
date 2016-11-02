@@ -9,7 +9,7 @@ import jsonfield.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('templateMaker', '0002_finishedtemplate'),
+        ('ProfileMaker', '0002_finishedtemplate'),
     ]
 
     operations = [

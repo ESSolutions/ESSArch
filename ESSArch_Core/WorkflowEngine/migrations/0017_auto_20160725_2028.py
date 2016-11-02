@@ -9,14 +9,14 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('preingest', '0016_processstep_task_set'),
+        ('WorkflowEngine', '0016_processstep_task_set'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='processtask',
             name='processstep',
-            field=models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, related_name='tasks', to='preingest.ProcessStep'),
+            field=models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, related_name='tasks', to='WorkflowEngine.ProcessStep'),
             preserve_default=False,
         ),
     ]

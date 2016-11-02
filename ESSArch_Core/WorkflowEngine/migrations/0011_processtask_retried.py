@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('preingest', '0010_processtask_undo_type'),
+        ('WorkflowEngine', '0010_processtask_undo_type'),
     ]
 
     operations = [

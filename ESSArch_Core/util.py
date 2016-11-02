@@ -42,7 +42,7 @@ def create_event(eventType, eventArgs, agent, ip=None):
         The created event
     """
 
-    from ip.models import EventIP
+    from ESSArch_Core.ip.models import EventIP
 
     detail = eventType.eventDetail % tuple(eventArgs)
 

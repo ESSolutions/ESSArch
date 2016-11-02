@@ -9,7 +9,7 @@ import jsonfield.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('preingest', '0041_auto_20160825_1753'),
+        ('WorkflowEngine', '0041_auto_20160825_1753'),
     ]
 
     operations = [

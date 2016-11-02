@@ -4,13 +4,13 @@ import mimetypes
 
 from lxml import etree
 
-from configuration.models import (
+from ESSArch_Core.configuration.models import (
     Path,
 )
 
-from preingest.models import ProcessTask
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
-from preingest.util import creation_date, timestamp_to_datetime
+from ESSArch_Core.util import creation_date, timestamp_to_datetime
 
 def parseContent(content, info):
     if not content:

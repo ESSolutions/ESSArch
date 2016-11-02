@@ -4,7 +4,8 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from models import templatePackage, extensionPackage
-from profiles.models import Profile
+from ESSArch_Core.profiles.models import Profile
+from ESSArch_Core.xml.ProfileMaker.xsdtojson import generateJsonRes, generateExtensionRef
 import requests
 from lxml import etree
 import os
@@ -22,7 +23,6 @@ from collections import OrderedDict
 
 from django.views.generic import View
 from django.http import JsonResponse
-from esscore.template.templateGenerator.testXSDToJSON import generateJsonRes, generateExtensionRef
 from forms import AddTemplateForm, AddExtensionForm
 
 

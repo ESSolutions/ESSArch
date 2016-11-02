@@ -8,13 +8,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('preingest', '0044_auto_20160916_0936'),
+        ('WorkflowEngine', '0044_auto_20160916_0936'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='processtask',
             name='name',
-            field=models.CharField(choices=[('preingest.tasks.ValidateMetadata', b'ValidateMetadata'), ('preingest.tasks.AddPremisToMetsAmdSec', b'AddPremisToMetsAmdSec'), ('preingest.tasks.CreateIPEventsFile', b'CreateIPEventsFile'), ('preingest.tasks.Third', b'Third'), ('preingest.tasks.PrepareIP', b'PrepareIP'), ('preingest.tasks.CreateTAR', b'CreateTAR'), ('preingest.tasks.UploadFile', b'UploadFile'), ('preingest.tasks.Sleepy', b'Sleepy'), ('preingest.tasks.GenerateXML', b'GenerateXML'), ('preingest.tasks.CreatePhysicalModel', b'CreatePhysicalModel'), ('preingest.tasks.Second', b'Second'), ('preingest.tasks.CreateIPRootDir', b'CreateIPRootDir'), ('preingest.tasks.CreateEvent', b'CreateEvent'), ('preingest.tasks.ValidateLogicalPhysical', b'ValidateLogicalPhysical'), ('preingest.tasks.First', b'First')], max_length=255),
+            field=models.CharField(choices=[('WorkflowEngine.tasks.ValidateMetadata', b'ValidateMetadata'), ('WorkflowEngine.tasks.AddPremisToMetsAmdSec', b'AddPremisToMetsAmdSec'), ('WorkflowEngine.tasks.CreateIPEventsFile', b'CreateIPEventsFile'), ('WorkflowEngine.tasks.Third', b'Third'), ('WorkflowEngine.tasks.PrepareIP', b'PrepareIP'), ('WorkflowEngine.tasks.CreateTAR', b'CreateTAR'), ('WorkflowEngine.tasks.UploadFile', b'UploadFile'), ('WorkflowEngine.tasks.Sleepy', b'Sleepy'), ('WorkflowEngine.tasks.GenerateXML', b'GenerateXML'), ('WorkflowEngine.tasks.CreatePhysicalModel', b'CreatePhysicalModel'), ('WorkflowEngine.tasks.Second', b'Second'), ('WorkflowEngine.tasks.CreateIPRootDir', b'CreateIPRootDir'), ('WorkflowEngine.tasks.CreateEvent', b'CreateEvent'), ('WorkflowEngine.tasks.ValidateLogicalPhysical', b'ValidateLogicalPhysical'), ('WorkflowEngine.tasks.First', b'First')], max_length=255),
         ),
     ]

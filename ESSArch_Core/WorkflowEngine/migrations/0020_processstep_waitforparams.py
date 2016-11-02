@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('preingest', '0019_processstep_parent_step'),
+        ('WorkflowEngine', '0019_processstep_parent_step'),
     ]
 
     operations = [

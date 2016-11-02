@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('ip', '0015_auto_20160915_0913'),
-        ('preingest', '0047_auto_20160925_1845'),
+        ('WorkflowEngine', '0047_auto_20160925_1845'),
     ]
 
     operations = [

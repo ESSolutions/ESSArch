@@ -12,7 +12,7 @@ from django.utils.translation import ugettext as _
 
 from picklefield.fields import PickledObjectField
 
-from preingest.util import available_tasks, sliceUntilAttr
+from ESSArch_Core.util import available_tasks, sliceUntilAttr
 
 
 class Process(models.Model):

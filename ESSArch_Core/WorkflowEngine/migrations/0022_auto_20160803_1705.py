@@ -10,7 +10,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('preingest', '0021_auto_20160803_1628'),
+        ('WorkflowEngine', '0021_auto_20160803_1628'),
     ]
 
     operations = [
@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
                 ('preservationIndividual', models.CharField(max_length=255)),
                 ('preservationOrganisationSoftware', models.CharField(max_length=255)),
                 ('preservationOrganisationSoftwareIdentity', models.CharField(max_length=255)),
-                ('nationality', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='preingest.Nationality')),
+                ('nationality', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='WorkflowEngine.Nationality')),
             ],
             options={
                 'db_table': 'Profile',
@@ -72,6 +72,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='profile',
             name='submissionAgreement',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='preingest.SubmissionAgreement'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='WorkflowEngine.SubmissionAgreement'),
         ),
     ]

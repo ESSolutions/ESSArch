@@ -9,7 +9,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('preingest', '0026_auto_20160805_1353'),
+        ('WorkflowEngine', '0026_auto_20160805_1353'),
     ]
 
     operations = [

@@ -4,7 +4,7 @@ import time
 
 from celery import states as celery_states, Task
 
-from configuration.models import EventType
+from ESSArch_Core.configuration.models import EventType
 
 from django.db import (
     OperationalError,
@@ -12,11 +12,11 @@ from django.db import (
 
 from django.utils import timezone
 
-from ip.models import InformationPackage
+from ESSArch_Core.ip.models import InformationPackage
 
-from preingest.models import ProcessTask
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
-from preingest.util import create_event
+from ESSArch_Core.util import create_event
 
 class DBTask(Task):
     def __call__(self, *args, **kwargs):

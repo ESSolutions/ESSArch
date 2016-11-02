@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('preingest', '0031_auto_20160817_1150'),
+        ('WorkflowEngine', '0031_auto_20160817_1150'),
     ]
 
     operations = [

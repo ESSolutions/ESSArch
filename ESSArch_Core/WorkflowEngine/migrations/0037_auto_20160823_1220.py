@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('preingest', '0036_auto_20160819_1354'),
+        ('WorkflowEngine', '0036_auto_20160819_1354'),
     ]
 
     operations = [

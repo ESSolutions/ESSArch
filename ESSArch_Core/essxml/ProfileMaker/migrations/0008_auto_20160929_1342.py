@@ -9,7 +9,7 @@ import jsonfield.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('templateMaker', '0007_auto_20160908_1428'),
+        ('ProfileMaker', '0007_auto_20160908_1428'),
     ]
 
     operations = [
@@ -26,6 +26,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='templatepackage',
             name='extensions',
-            field=models.ManyToManyField(to='templateMaker.extensionPackage'),
+            field=models.ManyToManyField(to='ProfileMaker.extensionPackage'),
         ),
     ]

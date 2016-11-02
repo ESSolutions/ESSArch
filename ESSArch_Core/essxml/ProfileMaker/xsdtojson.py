@@ -3,7 +3,7 @@ import os
 import copy
 from collections import OrderedDict
 
-from demo.xmlStructure import (
+from ESSArch_Core.xml.Generator.xmlStructure import (
     xmlElement,
     TYPE_ELEMENT,
     TYPE_CHOISE,

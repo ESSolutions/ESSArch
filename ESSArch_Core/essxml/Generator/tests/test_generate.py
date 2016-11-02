@@ -6,7 +6,7 @@ from lxml import etree
 
 from demo.xmlGenerator import XMLGenerator, parseContent
 
-from configuration.models import (
+from ESSArch_Core.configuration.models import (
     Path,
 )
 

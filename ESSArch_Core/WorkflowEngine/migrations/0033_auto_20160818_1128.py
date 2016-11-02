@@ -10,7 +10,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('preingest', '0032_processstep_parallel'),
+        ('WorkflowEngine', '0032_processstep_parallel'),
     ]
 
     operations = [
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('eventOutcome', models.IntegerField(null=True)),
                 ('eventOutcomeDetailNote', models.CharField(max_length=1024)),
                 ('linkingAgentIdentifierValue', models.CharField(max_length=45)),
-                ('archiveObject', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='events', to='preingest.ArchiveObject')),
+                ('archiveObject', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='events', to='WorkflowEngine.ArchiveObject')),
             ],
             options={
                 'db_table': 'Event',
@@ -49,6 +49,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='event',
             name='eventType',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='preingest.EventType'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='WorkflowEngine.EventType'),
         ),
     ]
