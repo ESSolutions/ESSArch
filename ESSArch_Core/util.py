@@ -116,15 +116,17 @@ def timestamp_to_datetime(timestamp):
 
 def find_destination(use, structure, path=""):
     for content in structure:
+        name = content.get('name')
         if content.get('use') == use:
-            return path
+            return path, name
 
-        dest = find_destination(
-            use, content.get('children', []), os.path.join(path, content['name'])
+        dest, fname = find_destination(
+            use, content.get('children', []), os.path.join(path, name)
         )
 
-        if dest: return dest
+        if dest: return dest, fname
 
+    return None, None
 
 def download_file(url, dst):
     r = requests.get(url, stream=True)

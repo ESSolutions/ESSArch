@@ -43,7 +43,7 @@ from ESSArch_Core.util import (
 )
 
 from ESSArch_Core.xml.Generator.xmlGenerator import (
-    downloadSchemas,
+    downloadSchemas, find_destination
 )
 
 import json, os, uuid
@@ -306,10 +306,12 @@ class InformationPackage(models.Model):
 
         premis_profile = sa.profile_preservation_metadata_rel.active()
         if premis_profile.locked(sa, self):
-            premis_path = os.path.join(ip_prepare_path, "premis.xml")
+            premis_dir, premis_name = find_destination("preservation_description_file", structure)
+            premis_path = os.path.join(self.ObjectPath, premis_dir, premis_name)
             filesToCreate[premis_path] = sa.profile_preservation_metadata_rel.active().specification
 
-        mets_path = os.path.join(ip_prepare_path, "mets.xml")
+        mets_dir, mets_name = find_destination("mets_file", structure)
+        mets_path = os.path.join(self.ObjectPath, mets_dir, mets_name)
         filesToCreate[mets_path] = sa.profile_sip_rel.active().specification
 
         for fname, template in filesToCreate.iteritems():

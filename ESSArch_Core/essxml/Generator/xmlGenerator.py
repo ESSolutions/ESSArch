@@ -37,7 +37,7 @@ def downloadSchemas(template, dirname, structure=[], root=""):
     schemaPreserveLoc = template.get('-schemaPreservationLocation')
 
     if schemaPreserveLoc and structure:
-        dirname = find_destination(
+        dirname, _ = find_destination(
             schemaPreserveLoc, structure
         )
         dirname = os.path.join(root, dirname)
