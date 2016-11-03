@@ -4,6 +4,8 @@ import mimetypes
 
 from lxml import etree
 
+from django.utils import timezone
+
 from ESSArch_Core.configuration.models import (
     Path,
 )
@@ -26,7 +28,16 @@ def parseContent(content, info):
         if 'text' in c:
             arr.append(c['text'])
         elif 'var' in c:
-            val = info.get(c['var'])
+            var = c['var']
+            val = info.get(var)
+
+            if var == '_UUID':
+                val = str(uuid.uuid4())
+
+            if var == '_NOW':
+                now = timezone.now()
+                local = timezone.localtime(now)
+                val = local.replace(microsecond=0).isoformat()
 
             if val:
                 arr.append(val)

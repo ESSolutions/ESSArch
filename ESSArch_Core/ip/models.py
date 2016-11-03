@@ -166,6 +166,7 @@ class InformationPackage(models.Model):
         structure = sa.profile_sip_rel.active().structure
 
         info = sa.profile_event_rel.active().specification_data
+        info["_OBJID"] = str(self.pk)
 
         events_path = os.path.join(ip_prepare_path, "ipevents.xml")
         filesToCreate = OrderedDict()
@@ -300,6 +301,7 @@ class InformationPackage(models.Model):
         )
 
         info = sa.profile_sip_rel.active().specification_data
+        info["_OBJID"] = str(self.pk)
 
         # ensure premis is created before mets
         filesToCreate = OrderedDict()
@@ -469,6 +471,7 @@ class InformationPackage(models.Model):
 
         sip_profile = sa.profile_sip_rel.active()
         info = sip_profile.specification_data
+        info["_OBJID"] = str(self.pk)
 
         prepare = Path.objects.get(entity="path_preingest_prepare").value
         infoxml = os.path.join(prepare, str(self.pk) + ".xml")
