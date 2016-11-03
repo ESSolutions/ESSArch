@@ -8,6 +8,8 @@ from datetime import datetime
 
 from lxml import etree
 
+import requests
+
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
 
@@ -110,3 +112,23 @@ def creation_date(path_to_file):
 def timestamp_to_datetime(timestamp):
     tz = get_current_timezone()
     return datetime.fromtimestamp(timestamp, tz)
+
+
+def find_destination(use, structure, path=""):
+    for content in structure:
+        if content.get('use') == use:
+            return path
+
+        dest = find_destination(
+            use, content.get('children', []), os.path.join(path, content['name'])
+        )
+
+        if dest: return dest
+
+
+def download_file(url, dst):
+    r = requests.get(url, stream=True)
+    if r.status_code == 200:
+        with open(dst, 'wb') as f:
+            for chunk in r:
+                f.write(chunk)

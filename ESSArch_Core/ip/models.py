@@ -42,6 +42,10 @@ from ESSArch_Core.util import (
     create_event,
 )
 
+from ESSArch_Core.xml.Generator.xmlGenerator import (
+    downloadSchemas,
+)
+
 import json, os, uuid
 
 
@@ -159,35 +163,19 @@ class InformationPackage(models.Model):
 
         ip_prepare_path = os.path.join(prepare_path, str(self.pk))
         sa = self.SubmissionAgreement
-
-        schemas = sa.profile_transfer_project_rel.active().schemas
         structure = sa.profile_sip_rel.active().structure
-
-        copy_schemas_step = ProcessStep.objects.create(
-            name="Copy schemas",
-        )
-
-        for schema in schemas:
-            copy_schemas_step.tasks.add(
-                ProcessTask.objects.create(
-                    name="preingest.tasks.CopySchemas",
-                    params={
-                        "schema": schema,
-                        "root": ip_prepare_path,
-                        "structure": structure,
-                    },
-                    processstep_pos=0,
-                    information_package=self
-                )
-            )
-
-        copy_schemas_step.save()
 
         info = sa.profile_event_rel.active().specification_data
 
         events_path = os.path.join(ip_prepare_path, "ipevents.xml")
         filesToCreate = OrderedDict()
         filesToCreate[events_path] = sa.profile_event_rel.active().specification
+
+        for fname, template in filesToCreate.iteritems():
+            dirname = os.path.dirname(fname)
+            downloadSchemas(
+                template, dirname, structure=structure, root=self.ObjectPath
+            )
 
         t0 = ProcessTask.objects.create(
             name="preingest.tasks.GenerateXML",
@@ -324,12 +312,18 @@ class InformationPackage(models.Model):
         mets_path = os.path.join(ip_prepare_path, "mets.xml")
         filesToCreate[mets_path] = sa.profile_sip_rel.active().specification
 
+        for fname, template in filesToCreate.iteritems():
+            dirname = os.path.dirname(fname)
+            downloadSchemas(
+                template, dirname, structure=structure, root=self.ObjectPath
+            )
+
         t1 = ProcessTask.objects.create(
             name="preingest.tasks.GenerateXML",
             params={
                 "info": info,
                 "filesToCreate": filesToCreate,
-                "folderToParse": ip_prepare_path
+                "folderToParse": ip_prepare_path,
             },
             processstep_pos=0,
             information_package=self
@@ -456,7 +450,7 @@ class InformationPackage(models.Model):
             name="Create IP",
         )
         main_step.child_steps = [
-            generate_xml_step, copy_schemas_step, validate_step,
+            generate_xml_step, validate_step,
             create_sip_step
         ]
         main_step.information_package = self
@@ -489,7 +483,7 @@ class InformationPackage(models.Model):
             params={
                 "info": info,
                 "filesToCreate": filesToCreate,
-                "folderToParse": folderToParse
+                "folderToParse": folderToParse,
             },
             information_package=self
         ))

@@ -10,7 +10,12 @@ from ESSArch_Core.configuration.models import (
 
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
-from ESSArch_Core.util import creation_date, timestamp_to_datetime
+from ESSArch_Core.util import (
+    creation_date,
+    download_file,
+    find_destination,
+    timestamp_to_datetime
+)
 
 def parseContent(content, info):
     if not content:
@@ -27,6 +32,19 @@ def parseContent(content, info):
                 arr.append(val)
 
     return ''.join(arr)
+
+def downloadSchemas(template, dirname, structure=[], root=""):
+    schemaPreserveLoc = template.get('-schemaPreservationLocation')
+
+    if schemaPreserveLoc and structure:
+        dirname = find_destination(
+            schemaPreserveLoc, structure
+        )
+        dirname = os.path.join(root, dirname)
+
+    for schema in template.get('-schemasToPreserve', []):
+        dst = os.path.join(dirname, os.path.basename(schema))
+        download_file(schema, dst)
 
 
 class XMLElement(object):
