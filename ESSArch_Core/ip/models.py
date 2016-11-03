@@ -467,7 +467,6 @@ class InformationPackage(models.Model):
 
         sip_profile = sa.profile_sip_rel.active()
         info = sip_profile.specification_data
-        info['agents'] = info['agents'].values()
 
         prepare = Path.objects.get(entity="path_preingest_prepare").value
         infoxml = os.path.join(prepare, str(self.pk) + ".xml")
