@@ -182,16 +182,16 @@ class XMLGenerator(object):
     def generate(self, folderToParse=None):
         files = []
 
-        if folderToParse:
-            mimetypes.suffix_map = {}
-            mimetypes.encodings_map = {}
-            mimetypes.types_map = {}
-            mimetypes.common_types = {}
-            mimetypes_file = Path.objects.get(
-                entity="path_mimetypes_definitionfile"
-            ).value
-            mimetypes.init(files=[mimetypes_file])
+        mimetypes.suffix_map = {}
+        mimetypes.encodings_map = {}
+        mimetypes.types_map = {}
+        mimetypes.common_types = {}
+        mimetypes_file = Path.objects.get(
+            entity="path_mimetypes_definitionfile"
+        ).value
+        mimetypes.init(files=[mimetypes_file])
 
+        if folderToParse:
             if os.path.isfile(folderToParse):
                 files.append(self.parseFile(folderToParse, mimetypes))
             elif os.path.isdir(folderToParse):
@@ -212,6 +212,13 @@ class XMLGenerator(object):
                 fname, pretty_print=True, xml_declaration=True,
                 encoding='UTF-8'
             )
+
+            try:
+                relpath = os.path.relpath(fname, folderToParse)
+            except:
+                relpath = fname
+
+            files.append(self.parseFile(fname, mimetypes, relpath))
 
     def insert(self, filename, elementToAppendTo, template, info={}, index=None):
         parser = etree.XMLParser(remove_blank_text=True)
