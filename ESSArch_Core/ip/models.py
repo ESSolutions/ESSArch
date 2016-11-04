@@ -21,6 +21,8 @@
 """
 
 # Create your models here.
+from celery import states as celery_states
+
 from collections import OrderedDict
 
 from django.conf import settings
@@ -511,6 +513,44 @@ class InformationPackage(models.Model):
 
         step.save()
         step.run()
+
+    @property
+    def step_state(self):
+        """
+        Gets the state of the IP based on its steps
+
+        Args:
+
+        Returns:
+            Can be one of the following:
+            SUCCESS, STARTED, FAILURE, PENDING
+
+            Which is decided by five scenarios:
+
+            * If there are no steps, then PENDING.
+            * If there are steps and they are all pending,
+              then PENDING.
+            * If a step has started, then STARTED.
+            * If a step has failed, then FAILURE.
+            * If all steps have succeeded, then SUCCESS.
+        """
+
+        steps = self.steps.all()
+        state = celery_states.SUCCESS
+
+        if not steps:
+            return celery_states.PENDING
+
+        for step in steps:
+            if step.status == celery_states.STARTED:
+                state = step.status
+            if (step.status == celery_states.PENDING and
+                    state != celery_states.STARTED):
+                state = step.status
+            if step.status == celery_states.FAILURE:
+                return step.status
+
+        return state
 
     def status(self):
         steps = self.steps.all()
