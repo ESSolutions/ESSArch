@@ -181,7 +181,13 @@ class InformationPackage(models.Model):
             entity="path_preingest_prepare"
         ).value
 
+        reception_path = Path.objects.get(
+            entity="path_preingest_reception"
+        ).value
+
         ip_prepare_path = os.path.join(prepare_path, str(self.pk))
+        ip_reception_path = os.path.join(reception_path, str(self.pk))
+
         sa = self.SubmissionAgreement
         structure = sa.profile_sip_rel.active().structure
 
@@ -360,8 +366,8 @@ class InformationPackage(models.Model):
         generate_xml_step.save()
 
         #dirname = os.path.join(ip_prepare_path, "data")
-        tarname = os.path.join(ip_prepare_path) + '.tar'
-        zipname = os.path.join(ip_prepare_path) + '.zip'
+        tarname = os.path.join(ip_reception_path) + '.tar'
+        zipname = os.path.join(ip_reception_path) + '.zip'
 
         validate_step = ProcessStep.objects.create(
             name="Validation",
@@ -490,14 +496,14 @@ class InformationPackage(models.Model):
         info = sip_profile.specification_data
         info["_OBJID"] = str(self.pk)
 
-        prepare = Path.objects.get(entity="path_preingest_prepare").value
-        infoxml = os.path.join(prepare, str(self.pk) + ".xml")
+        reception = Path.objects.get(entity="path_preingest_reception").value
+        infoxml = os.path.join(reception, str(self.pk) + ".xml")
 
         filesToCreate = {
             infoxml: sip_profile.specification
         }
 
-        folderToParse = self.ObjectPath + ".tar"
+        folderToParse = os.path.join(reception, str(self.pk) + ".tar")
 
         step.tasks.add(ProcessTask.objects.create(
             name="preingest.tasks.GenerateXML",
