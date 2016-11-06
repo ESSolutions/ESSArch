@@ -155,6 +155,21 @@ class InformationPackage(models.Model):
     )
 
     def create(self):
+        start_create_sip_step = ProcessStep.objects.create(
+            name="Update IP Status",
+            tasks=[
+                ProcessTask.objects.create(
+                    name="preingest.tasks.UpdateIPStatus",
+                    params={
+                        "ip": self,
+                        "status": "CREATING",
+                    },
+                    processstep_pos=0,
+                    information_package=self
+                )
+            ]
+        )
+
         event_type = EventType.objects.get(eventType=10200)
 
         create_event(event_type, [], "System", self)
@@ -456,7 +471,7 @@ class InformationPackage(models.Model):
             name="Create IP",
         )
         main_step.child_steps = [
-            generate_xml_step, validate_step,
+            start_create_sip_step, generate_xml_step, validate_step,
             create_sip_step
         ]
         main_step.information_package = self
