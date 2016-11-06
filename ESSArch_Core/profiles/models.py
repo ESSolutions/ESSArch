@@ -98,12 +98,32 @@ class ProfileRel(models.Model):
         return unicode(self.id)
 
 
-class ProfileLock(models.Model):
+class ProfileSALock(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
     profile = models.ForeignKey(
         'Profile', on_delete=models.CASCADE
+    )
+    submission_agreement = models.ForeignKey(
+        'SubmissionAgreement', on_delete=models.CASCADE
+    )
+    LockedBy = models.ForeignKey(
+        User, models.SET_NULL, null=True,
+    )
+    Unlockable = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return unicode(self.id)
+
+    class Meta:
+        unique_together = (
+            ("profile", "submission_agreement"),
+        )
+
+class SAIPLock(models.Model):
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False
     )
     submission_agreement = models.ForeignKey(
         'SubmissionAgreement', on_delete=models.CASCADE
@@ -121,7 +141,7 @@ class ProfileLock(models.Model):
 
     class Meta:
         unique_together = (
-            ("profile", "submission_agreement", "information_package"),
+            ("submission_agreement", "information_package"),
         )
 
 class SubmissionAgreement(models.Model):
@@ -276,6 +296,32 @@ class SubmissionAgreement(models.Model):
                 },
             )
 
+    def profile_locks(self):
+        return ProfileSALock.objects.filter(
+            submission_agreement=self
+        )
+
+    def ip_locks(self):
+        return SAIPLock.objects.filter(
+            submission_agreement=self
+        )
+
+    def lock(self, ip):
+        """
+        Locks the sa in relation to an IP stop further editing
+        (if you don't have the permission to unlock it again)
+
+        Args:
+            ip: The information package
+
+        Returns:
+            The created lock
+        """
+
+        return SAIPLock.objects.create(
+            submission_agreement=self, information_package=ip
+        )
+
     """
     def get_value_array(self):
         # make an associative array of all fields  mapping the field
@@ -416,66 +462,35 @@ class Profile(models.Model):
             status=1
         )
 
-    def locked(self, submission_agreement, information_package):
+    def locked(self, submission_agreement):
         """
-        Checks if the profiel is locked to the provided SA and IP
+        Checks if the profiel is locked to the provided SA
 
         Args:
             submission_agreement: The submission agreement
-            information_package: The information packaget
 
         Returns:
             True if locked, false otherwise
         """
 
-        return ProfileLock.objects.filter(
-            profile=self,
-            submission_agreement=submission_agreement,
-            information_package=information_package
+        return ProfileSALock.objects.filter(
+            profile=self, submission_agreement=submission_agreement,
         ).exists()
 
-    def lock(self, submission_agreement, information_package):
+    def lock(self, submission_agreement):
         """
-        Locks the profile in relation to an SA and IP to stop further editing
+        Locks the profile in relation to an SA stop further editing
         (if you don't have the permission to unlock it again)
 
         Args:
             submission_agreement: The submission agreement
-            information_package: The information packaget
 
         Returns:
             The created lock
         """
 
-        if self.profile_type == "sip":
-            root = os.path.join(
-                Path.objects.get(
-                    entity="path_preingest_prepare"
-                ).value,
-                str(information_package.pk)
-            )
-
-            step = ProcessStep.objects.create(
-                name="Create Physical Model",
-                information_package=information_package
-            )
-            task = ProcessTask.objects.create(
-                name="preingest.tasks.CreatePhysicalModel",
-                params={
-                    "structure": self.structure,
-                    "root": root
-                },
-                information_package=information_package
-            )
-
-            step.tasks = [task]
-            step.save()
-            step.run()
-
-        return ProfileLock.objects.create(
-            profile=self,
-            submission_agreement=submission_agreement,
-            information_package=information_package,
+        return ProfileSALock.objects.create(
+            profile=self, submission_agreement=submission_agreement,
         )
 
     def get_value_array(self):

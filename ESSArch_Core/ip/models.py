@@ -37,7 +37,7 @@ from ESSArch_Core.WorkflowEngine.models import (
 )
 
 from ESSArch_Core.profiles.models import (
-    ProfileLock, SubmissionAgreement as SA
+    SAIPLock, SubmissionAgreement as SA
 )
 
 from ESSArch_Core.util import (
@@ -580,7 +580,7 @@ class InformationPackage(models.Model):
         return 0
 
     def locks(self):
-        return ProfileLock.objects.filter(
+        return SAIPLock.objects.filter(
             information_package=self,
             submission_agreement=self.SubmissionAgreement
         )
