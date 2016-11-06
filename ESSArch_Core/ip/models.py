@@ -154,7 +154,10 @@ class InformationPackage(models.Model):
         null=True
     )
 
-    def create(self):
+    def create(self, validate_logical_physical_representation=True,
+               validate_xml_file=True, validate_file_format=True,
+               validate_integrity=True):
+
         start_create_sip_step = ProcessStep.objects.create(
             name="Update IP Status",
             tasks=[
@@ -324,7 +327,7 @@ class InformationPackage(models.Model):
         filesToCreate = OrderedDict()
 
         premis_profile = sa.profile_preservation_metadata_rel.active()
-        if premis_profile.locked(sa, self):
+        if premis_profile.locked(sa):
             premis_dir, premis_name = find_destination("preservation_description_file", structure)
             premis_path = os.path.join(self.ObjectPath, premis_dir, premis_name)
             filesToCreate[premis_path] = sa.profile_preservation_metadata_rel.active().specification
@@ -371,34 +374,48 @@ class InformationPackage(models.Model):
             name="Validation",
         )
 
-        validate_step.tasks.add(
-            ProcessTask.objects.create(
-                name="preingest.tasks.ValidateXMLFile",
-                params={
-                    "xml_filename": events_path,
-                },
-                processstep_pos=0,
-                information_package=self
-            )
-        )
-
-        validate_step.tasks.add(
-            ProcessTask.objects.create(
-                name="preingest.tasks.ValidateXMLFile",
-                params={
-                    "xml_filename": mets_path,
-                },
-                processstep_pos=0,
-                information_package=self
-            )
-        )
-
-        if premis_profile.locked(sa, self):
+        if validate_xml_file:
             validate_step.tasks.add(
                 ProcessTask.objects.create(
                     name="preingest.tasks.ValidateXMLFile",
                     params={
-                        "xml_filename": premis_path,
+                        "xml_filename": events_path,
+                    },
+                    processstep_pos=0,
+                    information_package=self
+                )
+            )
+
+            validate_step.tasks.add(
+                ProcessTask.objects.create(
+                    name="preingest.tasks.ValidateXMLFile",
+                    params={
+                        "xml_filename": mets_path,
+                    },
+                    processstep_pos=0,
+                    information_package=self
+                )
+            )
+
+            if premis_profile.locked(sa):
+                validate_step.tasks.add(
+                    ProcessTask.objects.create(
+                        name="preingest.tasks.ValidateXMLFile",
+                        params={
+                            "xml_filename": premis_path,
+                        },
+                        processstep_pos=0,
+                        information_package=self
+                    )
+                )
+
+        if validate_logical_physical_representation:
+            validate_step.tasks.add(
+                ProcessTask.objects.create(
+                    name="preingest.tasks.ValidateLogicalPhysicalRepresentation",
+                    params={
+                        "mets_path": mets_path,
+                        "ip": self
                     },
                     processstep_pos=0,
                     information_package=self
@@ -407,22 +424,12 @@ class InformationPackage(models.Model):
 
         validate_step.tasks.add(
             ProcessTask.objects.create(
-                name="preingest.tasks.ValidateLogicalPhysicalRepresentation",
-                params={
-                    "mets_path": mets_path,
-                    "ip": self
-                },
-                processstep_pos=0,
-                information_package=self
-            )
-        )
-
-        validate_step.tasks.add(
-            ProcessTask.objects.create(
                 name="preingest.tasks.ValidateFiles",
                 params={
                     "ip": self,
                     "mets_path": mets_path,
+                    "validate_fileformat": validate_file_format,
+                    "validate_integrity": validate_integrity,
                 },
                 processstep_pos=0,
                 information_package=self
