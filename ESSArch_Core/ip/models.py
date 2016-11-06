@@ -359,13 +359,6 @@ class InformationPackage(models.Model):
         generate_xml_step.tasks = [t0, t01, t02, t1]
         generate_xml_step.save()
 
-        filename = "foo.csv"
-        fileformat = "Comma Seperated Spreadsheet"
-        xmlfile = "premis.xml"
-        schemafile = "premis.xsd"
-        logical = "logical"
-        physical = "physical"
-        checksum = uuid.uuid4()
         #dirname = os.path.join(ip_prepare_path, "data")
         tarname = os.path.join(ip_prepare_path) + '.tar'
         zipname = os.path.join(ip_prepare_path) + '.zip'
