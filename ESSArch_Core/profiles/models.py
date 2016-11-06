@@ -178,6 +178,19 @@ class SubmissionAgreement(models.Model):
         through_fields=('submission_agreement', 'profile')
     )
 
+    include_profile_transfer_project = models.BooleanField(default=False)
+    include_profile_content_type = models.BooleanField(default=False)
+    include_profile_data_selection = models.BooleanField(default=False)
+    include_profile_classification = models.BooleanField(default=False)
+    include_profile_import = models.BooleanField(default=False)
+    include_profile_submit_description = models.BooleanField(default=False)
+    include_profile_sip = models.BooleanField(default=False)
+    include_profile_aip = models.BooleanField(default=False)
+    include_profile_dip = models.BooleanField(default=False)
+    include_profile_workflow = models.BooleanField(default=False)
+    include_profile_preservation_metadata = models.BooleanField(default=False)
+    include_profile_event = models.BooleanField(default=False)
+
     @property
     def profile_transfer_project_rel(self):
         return self.profilerel_set.filter(profile__profile_type="transfer_project")
