@@ -474,7 +474,7 @@ class InformationPackage(models.Model):
         create_sip_step.save()
 
         main_step = ProcessStep.objects.create(
-            name="Create IP",
+            name="Create SIP",
         )
         main_step.child_steps = [
             start_create_sip_step, generate_xml_step, validate_step,
