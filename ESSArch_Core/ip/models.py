@@ -232,7 +232,7 @@ class InformationPackage(models.Model):
         rel = getattr(self, "profile_%s_rel" % profile_type)
 
         if rel:
-            return rel.lockedBy is not None
+            return rel.LockedBy is not None
 
         return False
 
