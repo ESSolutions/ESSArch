@@ -165,7 +165,7 @@ class InformationPackage(models.Model):
                     name="preingest.tasks.UpdateIPStatus",
                     params={
                         "ip": self,
-                        "status": "CREATING",
+                        "status": "Creating",
                     },
                     processstep_pos=0,
                     information_package=self
@@ -461,7 +461,7 @@ class InformationPackage(models.Model):
             name="preingest.tasks.UpdateIPStatus",
             params={
                 "ip": self,
-                "status": "CREATED",
+                "status": "Created",
             },
             processstep_pos=0,
             information_package=self
@@ -527,7 +527,7 @@ class InformationPackage(models.Model):
             name="preingest.tasks.UpdateIPStatus",
             params={
                 "ip": self,
-                "status": "SUBMITTED"
+                "status": "Submitted"
             },
             information_package=self
         ))
