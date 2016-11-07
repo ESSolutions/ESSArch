@@ -27,51 +27,11 @@ from django.contrib import admin
 from .models import (
     SubmissionAgreement,
     Profile,
-    ProfileRel
+    ProfileSA,
 )
 
-class profile_transfer_project_Inline(admin.TabularInline):
-    model = ProfileRel
-    extra = 0
-
-class  profile_content_type_Inline(admin.TabularInline):
-    model = ProfileRel
-    extra = 0
-
-class profile_data_selection_Inline(admin.TabularInline):
-    model = ProfileRel
-    extra = 0
-
-class profile_classification_Inline(admin.TabularInline):
-    model = ProfileRel
-    extra = 0
-
-class profile_import_Inline(admin.TabularInline):
-    model = ProfileRel
-    extra = 0
-
-class profile_submit_description_Inline(admin.TabularInline):
-    model = ProfileRel
-    extra = 0
-
-class profile_sip_Inline(admin.TabularInline):
-    model = ProfileRel
-    extra = 0
-
-class profile_aip_Inline(admin.TabularInline):
-    model = ProfileRel
-    extra = 0
-
-class profile_dip_Inline(admin.TabularInline):
-    model = ProfileRel
-    extra = 0
-
-class profile_workflow_Inline(admin.TabularInline):
-    model = ProfileRel
-    extra = 0
-
-class profile_preservation_metadata_Inline(admin.TabularInline):
-    model = ProfileRel
+class profiles_Inline(admin.TabularInline):
+    model = ProfileSA
     extra = 0
 
 """
@@ -84,18 +44,8 @@ class SubmissionAgreementAdmin( admin.ModelAdmin ):
     list_filter = ('sa_name', 'sa_type')
     #fields = ('entity', 'value')
     inlines = (
-               profile_transfer_project_Inline,
-               profile_content_type_Inline,
-               profile_data_selection_Inline,
-               profile_classification_Inline,
-               profile_import_Inline,
-               profile_submit_description_Inline,
-               profile_sip_Inline,
-               profile_aip_Inline,
-               profile_dip_Inline,
-               profile_workflow_Inline,
-               profile_preservation_metadata_Inline,
-               )
+        profiles_Inline,
+    )
     fieldsets = (
                 (None,{
                    'classes': ('wide'),

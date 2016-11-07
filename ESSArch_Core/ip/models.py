@@ -37,7 +37,8 @@ from ESSArch_Core.WorkflowEngine.models import (
 )
 
 from ESSArch_Core.profiles.models import (
-    SAIPLock, SubmissionAgreement as SA
+    SubmissionAgreement as SA,
+    ProfileIP,
 )
 
 from ESSArch_Core.util import (
@@ -125,6 +126,7 @@ class InformationPackage(models.Model):
         default=None,
         null=True,
     )
+    SubmissionAgreementLocked = models.BooleanField(default=False)
     ArchivalInstitution = models.ForeignKey(
         ArchivalInstitution,
         on_delete=models.CASCADE,
@@ -153,6 +155,103 @@ class InformationPackage(models.Model):
         default=None,
         null=True
     )
+
+    @property
+    def profile_transfer_project_rel(self):
+        return ProfileIP.objects.filter(
+            ip=self, profile__profile_type="transfer_project"
+        ).first()
+
+    @property
+    def profile_content_type_rel(self):
+        return ProfileIP.objects.filter(
+            ip=self, profile__profile_type="content_type"
+        ).first()
+
+    @property
+    def profile_data_selection_rel(self):
+        return ProfileIP.objects.filter(
+            ip=self, profile__profile_type="data_selection"
+        ).first()
+
+    @property
+    def profile_classification_rel(self):
+        return ProfileIP.objects.filter(
+            ip=self, profile__profile_type="classification"
+        ).first()
+
+    @property
+    def profile_import_rel(self):
+        return ProfileIP.objects.filter(
+            ip=self, profile__profile_type="import"
+        ).first()
+
+    @property
+    def profile_submit_description_rel(self):
+        return ProfileIP.objects.filter(
+            ip=self, profile__profile_type="submit_description"
+        ).first()
+
+    @property
+    def profile_sip_rel(self):
+        return ProfileIP.objects.filter(
+            ip=self, profile__profile_type="sip"
+        ).first()
+
+    @property
+    def profile_aip_rel(self):
+        return ProfileIP.objects.filter(
+            ip=self, profile__profile_type="aip"
+        ).first()
+
+    @property
+    def profile_dip_rel(self):
+        return ProfileIP.objects.filter(
+            ip=self, profile__profile_type="dip"
+        ).first()
+
+    @property
+    def profile_workflow_rel(self):
+        return ProfileIP.objects.filter(
+            ip=self, profile__profile_type="workflow"
+        ).first()
+
+    @property
+    def profile_preservation_metadata_rel(self):
+        return ProfileIP.objects.filter(
+            ip=self, profile__profile_type="preservation_metadata"
+        ).first()
+
+    @property
+    def profile_event_rel(self):
+        return ProfileIP.objects.filter(
+            ip=self, profile__profile_type="event"
+        ).first()
+
+    def profile_locked(self, profile_type):
+        rel = getattr(self, "profile_%s_rel" % profile_type)
+
+        if rel:
+            return rel.lockedBy is not None
+
+        return False
+
+    def get_profile(self, profile_type):
+        rel = getattr(self, "profile_%s_rel" % profile_type)
+
+        if rel:
+            return rel.profile
+
+        return None
+
+    def change_profile(self, new_profile):
+        ptype = new_profile.profile_type
+        try:
+            pip = ProfileIP.objects.get(ip=self, profile__profile_type=ptype)
+            pip.profile = new_profile
+            pip.save()
+        except ProfileIP.DoesNotExist:
+            ProfileIP.objects.create(ip=self, profile=new_profile)
 
     def create(self, validate_logical_physical_representation=True,
                validate_xml_file=True, validate_file_format=True,
@@ -188,15 +287,14 @@ class InformationPackage(models.Model):
         ip_prepare_path = os.path.join(prepare_path, str(self.pk))
         ip_reception_path = os.path.join(reception_path, str(self.pk))
 
-        sa = self.SubmissionAgreement
-        structure = sa.profile_sip_rel.active().structure
+        structure = self.get_profile('sip').structure
 
-        info = sa.profile_event_rel.active().specification_data
+        info = self.get_profile('event').specification_data
         info["_OBJID"] = str(self.pk)
 
         events_path = os.path.join(ip_prepare_path, "ipevents.xml")
         filesToCreate = OrderedDict()
-        filesToCreate[events_path] = sa.profile_event_rel.active().specification
+        filesToCreate[events_path] = self.get_profile('event').specification
 
         for fname, template in filesToCreate.iteritems():
             dirname = os.path.dirname(fname)
@@ -326,21 +424,21 @@ class InformationPackage(models.Model):
             information_package=self
         )
 
-        info = sa.profile_sip_rel.active().specification_data
+        info = self.get_profile('sip').specification_data
         info["_OBJID"] = str(self.pk)
 
         # ensure premis is created before mets
         filesToCreate = OrderedDict()
 
-        premis_profile = sa.profile_preservation_metadata_rel.active()
-        if premis_profile.locked(sa):
+        if self.profile_locked('preservation_metadata'):
+            premis_profile = self.get_profile('preservation_metadata')
             premis_dir, premis_name = find_destination("preservation_description_file", structure)
             premis_path = os.path.join(self.ObjectPath, premis_dir, premis_name)
-            filesToCreate[premis_path] = sa.profile_preservation_metadata_rel.active().specification
+            filesToCreate[premis_path] = premis_profile.specification
 
         mets_dir, mets_name = find_destination("mets_file", structure)
         mets_path = os.path.join(self.ObjectPath, mets_dir, mets_name)
-        filesToCreate[mets_path] = sa.profile_sip_rel.active().specification
+        filesToCreate[mets_path] = self.get_profile('sip').specification
 
         for fname, template in filesToCreate.iteritems():
             dirname = os.path.dirname(fname)
@@ -396,7 +494,7 @@ class InformationPackage(models.Model):
                 )
             )
 
-            if premis_profile.locked(sa):
+            if self.profile_locked("preservation_metadata"):
                 validate_step.tasks.add(
                     ProcessTask.objects.create(
                         name="preingest.tasks.ValidateXMLFile",
@@ -492,7 +590,7 @@ class InformationPackage(models.Model):
 
         sa = self.SubmissionAgreement
 
-        sip_profile = sa.profile_sip_rel.active()
+        sip_profile = self.get_profile('sip')
         info = sip_profile.specification_data
         info["_OBJID"] = str(self.pk)
 
@@ -584,12 +682,6 @@ class InformationPackage(models.Model):
                 return 0
 
         return 0
-
-    def locks(self):
-        return SAIPLock.objects.filter(
-            information_package=self,
-            submission_agreement=self.SubmissionAgreement
-        )
 
     class Meta:
         ordering = ["id"]

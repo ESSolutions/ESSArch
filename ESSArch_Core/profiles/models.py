@@ -69,36 +69,7 @@ class ProfileQuerySet(models.query.QuerySet):
 
         return profile_set.first().profile
 
-
-class ProfileRelManager(models.Manager):
-    def get_queryset(self):
-        return ProfileQuerySet(self.model, using=self._db)
-
-    def active(self):
-        return self.get_queryset().active()
-
-
-class ProfileRel(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    status = models.IntegerField(
-        'Profile status',
-        choices=Profile_Status_CHOICES,
-        default=0
-    )
-    profile = models.ForeignKey('Profile')
-    submission_agreement = models.ForeignKey('SubmissionAgreement')
-    objects = ProfileRelManager()
-
-    class Meta:
-        base_manager_name = 'objects'
-        verbose_name = 'ProfileRel'
-        ordering = ['status']
-
-    def __unicode__(self):
-        return unicode(self.id)
-
-
-class ProfileSALock(models.Model):
+class ProfileSA(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
@@ -109,7 +80,7 @@ class ProfileSALock(models.Model):
         'SubmissionAgreement', on_delete=models.CASCADE
     )
     LockedBy = models.ForeignKey(
-        User, models.SET_NULL, null=True,
+        User, models.SET_NULL, null=True, blank=True,
     )
     Unlockable = models.BooleanField(default=False)
 
@@ -121,27 +92,31 @@ class ProfileSALock(models.Model):
             ("profile", "submission_agreement"),
         )
 
-class SAIPLock(models.Model):
+class ProfileIP(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
-    submission_agreement = models.ForeignKey(
-        'SubmissionAgreement', on_delete=models.CASCADE
+    profile = models.ForeignKey(
+        'Profile', on_delete=models.CASCADE
     )
-    information_package = models.ForeignKey(
+    ip = models.ForeignKey(
         'ip.InformationPackage', on_delete=models.CASCADE
     )
     LockedBy = models.ForeignKey(
-        User, models.SET_NULL, null=True,
+        User, models.SET_NULL, null=True, blank=True
     )
     Unlockable = models.BooleanField(default=False)
+
+    def lock(self, user):
+        self.LockedBy = user
+        self.save()
 
     def __unicode__(self):
         return unicode(self.id)
 
     class Meta:
         unique_together = (
-            ("submission_agreement", "information_package"),
+            ("profile", "ip"),
         )
 
 class SubmissionAgreement(models.Model):
@@ -191,12 +166,77 @@ class SubmissionAgreement(models.Model):
         max_length=255
     )
 
-    profiles = models.ManyToManyField(
-        'Profile',
-        related_name='submission_agreements',
-        through='ProfileRel',
-        through_fields=('submission_agreement', 'profile')
-    )
+    @property
+    def profile_transfer_project_rel(self):
+        return ProfileSA.objects.filter(
+            submission_agreement=self, profile__profile_type="transfer_project"
+        ).first()
+
+    @property
+    def profile_content_type_rel(self):
+        return ProfileSA.objects.filter(
+            submission_agreement=self, profile__profile_type="content_type"
+        ).first()
+
+    @property
+    def profile_data_selection_rel(self):
+        return ProfileSA.objects.filter(
+            submission_agreement=self, profile__profile_type="data_selection"
+        ).first()
+
+    @property
+    def profile_classification_rel(self):
+        return ProfileSA.objects.filter(
+            submission_agreement=self, profile__profile_type="classification"
+        ).first()
+
+    @property
+    def profile_import_rel(self):
+        return ProfileSA.objects.filter(
+            submission_agreement=self, profile__profile_type="import"
+        ).first()
+
+    @property
+    def profile_submit_description_rel(self):
+        return ProfileSA.objects.filter(
+            submission_agreement=self, profile__profile_type="submit_description"
+        ).first()
+
+    @property
+    def profile_sip_rel(self):
+        return ProfileSA.objects.filter(
+            submission_agreement=self, profile__profile_type="sip"
+        ).first()
+
+    @property
+    def profile_aip_rel(self):
+        return ProfileSA.objects.filter(
+            submission_agreement=self, profile__profile_type="aip"
+        ).first()
+
+    @property
+    def profile_dip_rel(self):
+        return ProfileSA.objects.filter(
+            submission_agreement=self, profile__profile_type="dip"
+        ).first()
+
+    @property
+    def profile_workflow_rel(self):
+        return ProfileSA.objects.filter(
+            submission_agreement=self, profile__profile_type="workflow"
+        ).first()
+
+    @property
+    def profile_preservation_metadata_rel(self):
+        return ProfileSA.objects.filter(
+            submission_agreement=self, profile__profile_type="preservation_metadata"
+        ).first()
+
+    @property
+    def profile_event_rel(self):
+        return ProfileSA.objects.filter(
+            submission_agreement=self, profile__profile_type="event"
+        ).first()
 
     include_profile_transfer_project = models.BooleanField(default=False)
     include_profile_content_type = models.BooleanField(default=False)
@@ -211,54 +251,6 @@ class SubmissionAgreement(models.Model):
     include_profile_preservation_metadata = models.BooleanField(default=False)
     include_profile_event = models.BooleanField(default=False)
 
-    @property
-    def profile_transfer_project_rel(self):
-        return self.profilerel_set.filter(profile__profile_type="transfer_project")
-
-    @property
-    def profile_content_type_rel(self):
-        return self.profilerel_set.filter(profile__profile_type="content_type")
-
-    @property
-    def profile_data_selection_rel(self):
-        return self.profilerel_set.filter(profile__profile_type="data_selection")
-
-    @property
-    def profile_classification_rel(self):
-        return self.profilerel_set.filter(profile__profile_type="classification")
-
-    @property
-    def profile_import_rel(self):
-        return self.profilerel_set.filter(profile__profile_type="import")
-
-    @property
-    def profile_submit_description_rel(self):
-        return self.profilerel_set.filter(profile__profile_type="submit_description")
-
-    @property
-    def profile_sip_rel(self):
-        return self.profilerel_set.filter(profile__profile_type="sip")
-
-    @property
-    def profile_aip_rel(self):
-        return self.profilerel_set.filter(profile__profile_type="aip")
-
-    @property
-    def profile_dip_rel(self):
-        return self.profilerel_set.filter(profile__profile_type="dip")
-
-    @property
-    def profile_workflow_rel(self):
-        return self.profilerel_set.filter(profile__profile_type="workflow")
-
-    @property
-    def profile_preservation_metadata_rel(self):
-        return self.profilerel_set.filter(profile__profile_type="preservation_metadata")
-
-    @property
-    def profile_event_rel(self):
-        return self.profilerel_set.filter(profile__profile_type="event")
-
     class Meta:
         ordering = ["sa_name"]
         verbose_name = 'Submission Agreement'
@@ -266,45 +258,6 @@ class SubmissionAgreement(models.Model):
     def __unicode__(self):
         # create a unicode representation of this object
         return '%s - %s' % (self.sa_name, self.id)
-
-    def change_profile(self, new_profile):
-        """
-        Sets the given profile as enabled profile of its type in this
-        submission agreement.
-
-        Args:
-            new_profile: The profile that will be set as enabled for its type
-
-        Returns:
-            None
-        """
-
-        old_profile = self.profilerel_set.filter(
-                profile__profile_type=new_profile.profile_type
-        ).active()
-        old_status = old_profile.get_sa_status(self)
-
-        if old_status == 1:
-            old_profile.set_sa_status(self, 0)
-
-        if new_profile.get_sa_status(self) != 2:
-            ProfileRel.objects.update_or_create(
-                submission_agreement=self,
-                profile=new_profile,
-                defaults={
-                    "status": 1
-                },
-            )
-
-    def profile_locks(self):
-        return ProfileSALock.objects.filter(
-            submission_agreement=self
-        )
-
-    def ip_locks(self):
-        return SAIPLock.objects.filter(
-            submission_agreement=self
-        )
 
     def lock(self, ip):
         """
@@ -393,62 +346,20 @@ class Profile(models.Model):
         # create a unicode representation of this object
         return '%s (%s) - %s' % (self.name, self.profile_type, self.id)
 
-    def get_sa_status(self, submission_agreement):
-        """
-        Gets the status between the profile and the given submission agreement.
-
-        Args:
-            submission_agreement: The submission agreement to check the status
-                                  with
-
-        Returns:
-            The status between the profile and the given submission agreement
-        """
-
-        try:
-            return self.profilerel_set.get(
-                submission_agreement=submission_agreement.pk
-            ).status
-        except ProfileRel.DoesNotExist:
-            return None
-
-    def set_sa_status(self, submission_agreement, status):
-        """
-        Sets the status between the profile and the given submission agreement.
-
-        Args:
-            submission_agreement: The submission agreement which relation
-                                  status we will update
-            status: The new status
-
-        Returns:
-            None
-        """
-
-        self.profilerel_set.filter(
-            submission_agreement=submission_agreement.pk
-        ).update(status=status)
-
-    def copy_and_switch(self, submission_agreement, specification_data, new_name, structure={}):
+    def copy_and_switch(self, ip, specification_data, new_name, structure={}):
         """
         Copies the profile and updates the name and specification_data of the
-        copy.  If the old profile has a status of 1 (enabled) in it's
-        connection to the given submission agreement then the old profile will
-        be given the status 0 (disabled). The status of the new profile and the
-        submission agreement will always be 1 (enabled).
+        copy. Switches the relation from the ip with the old profile to the new
+        profile
 
         Args:
-            submission_agreement: The submission agreement that the profile is
+            ip: The information package that the profile is
                                   switched in
             specification_data: The data to be used in the copy
             new_name: The name of the new profile
         Returns:
             None
         """
-
-        if self.get_sa_status(submission_agreement) == 1:
-            self.set_sa_status(submission_agreement, 0)
-            self.save()
 
         copy = Profile.objects.get(pk=self.pk)
         copy.id = None
@@ -457,10 +368,7 @@ class Profile(models.Model):
         copy.structure = structure
         copy.save()
 
-        ProfileRel.objects.create(
-            profile=copy, submission_agreement=submission_agreement,
-            status=1
-        )
+        ip.change_profile(copy)
 
     def locked(self, submission_agreement):
         """
