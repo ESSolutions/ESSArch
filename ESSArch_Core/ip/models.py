@@ -253,6 +253,11 @@ class InformationPackage(models.Model):
         except ProfileIP.DoesNotExist:
             ProfileIP.objects.create(ip=self, profile=new_profile)
 
+    def unlock_profile(self, ptype):
+        ProfileIP.objects.filter(
+            ip=self, profile__profile_type=ptype
+        ).delete()
+
     def create(self, validate_logical_physical_representation=True,
                validate_xml_file=True, validate_file_format=True,
                validate_integrity=True):
