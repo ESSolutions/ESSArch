@@ -606,10 +606,8 @@ class InformationPackage(models.Model):
             information_package = self
         )
 
-        sa = self.SubmissionAgreement
-
-        sip_profile = self.get_profile('sip')
-        info = sip_profile.specification_data
+        sd_profile = self.get_profile('submit_description')
+        info = sd_profile.specification_data
         info["_OBJID"] = str(self.pk)
         info["_LABEL"] = self.Label
 
@@ -617,7 +615,7 @@ class InformationPackage(models.Model):
         infoxml = os.path.join(reception, str(self.pk) + ".xml")
 
         filesToCreate = {
-            infoxml: sip_profile.specification
+            infoxml: sd_profile.specification
         }
 
         folderToParse = os.path.join(reception, str(self.pk) + ".tar")
