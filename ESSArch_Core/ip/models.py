@@ -43,11 +43,15 @@ from ESSArch_Core.profiles.models import (
 
 from ESSArch_Core.util import (
     create_event,
+    get_tree_count,
+    get_tree_size,
 )
 
 from ESSArch_Core.xml.Generator.xmlGenerator import (
     downloadSchemas, find_destination
 )
+
+from scandir import scandir, walk
 
 import json, os, uuid
 
@@ -113,8 +117,6 @@ class InformationPackage(models.Model):
     Responsible = models.CharField(max_length=255)
     CreateDate = models.DateTimeField(auto_now_add=True)
     State = models.CharField(max_length=255)
-    ObjectSize = models.CharField(max_length=255)
-    ObjectNumItems = models.CharField(max_length=255)
     ObjectPath = models.CharField(max_length=255)
     Startdate = models.DateTimeField(null=True)
     Enddate = models.DateTimeField(null=True)
@@ -155,6 +157,16 @@ class InformationPackage(models.Model):
         default=None,
         null=True
     )
+
+    @property
+    def ObjectSize(self):
+        if os.path.exists(self.ObjectPath):
+            return get_tree_size(self.ObjectPath)
+
+    @property
+    def ObjectNumItems(self):
+        if os.path.exists(self.ObjectPath):
+            return get_tree_count(self.ObjectPath)
 
     @property
     def profile_transfer_project_rel(self):
