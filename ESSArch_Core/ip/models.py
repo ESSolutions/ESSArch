@@ -423,7 +423,7 @@ class InformationPackage(models.Model):
 
         info = {
             'FIDType': "UUID",
-            'FID': "ID%s" % str(self.pk),
+            'FID': str(self.pk),
             'FFormatName': 'TAR',
             'FLocationType': 'URI',
             'FName': self.ObjectPath,
