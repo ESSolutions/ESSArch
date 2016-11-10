@@ -102,6 +102,7 @@ class ProfileIP(models.Model):
     ip = models.ForeignKey(
         'ip.InformationPackage', on_delete=models.CASCADE
     )
+    included = models.BooleanField(default=True)
     LockedBy = models.ForeignKey(
         User, models.SET_NULL, null=True, blank=True
     )
