@@ -299,7 +299,7 @@ class XMLGenerator(object):
         fileinfo = {
             'FName': file_name + file_ext,
             'FChecksum': checksum,
-            'FID': "ID%s" % str(uuid.uuid4()),
+            'FID': str(uuid.uuid4()),
             'daotype': "borndigital",
             'href': relpath,
             'FMimetype': mimetype,
