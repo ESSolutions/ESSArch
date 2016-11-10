@@ -204,7 +204,10 @@ class XMLGenerator(object):
 
         if folderToParse:
             if os.path.isfile(folderToParse):
-                files.append(self.parseFile(folderToParse, mimetypes))
+                files.append(self.parseFile(
+                    folderToParse, mimetypes,
+                    relpath=os.path.basename(folderToParse)
+                ))
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in os.walk(folderToParse):
                     for fname in filenames:
