@@ -216,7 +216,7 @@ class XMLGenerator(object):
             fname = f['file']
             rootEl = f['root']
 
-            self.info['_XML_FILENAME'] = fname
+            self.info['_XML_FILENAME'] = os.path.basename(fname)
 
             tree = etree.ElementTree(
                 rootEl.createLXMLElement(self.info, files=files)
