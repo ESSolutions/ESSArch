@@ -615,6 +615,7 @@ class InformationPackage(models.Model):
 
         info = sd_profile.specification_data
         info["_OBJID"] = str(self.pk)
+        info["_OBJLABEL"] = str(self.Label)
         info["_TAR_CREATEDATE"] = timestamp_to_datetime(creation_date(tarfile)).isoformat()
         info["_SA_ID"] = str(sa.pk)
 
