@@ -357,7 +357,7 @@ class InformationPackage(models.Model):
                         {
                             "-name": "objectIdentifierValue",
                             "-namespace": "premis",
-                            "#content": [{"text":"ID"},{"var": "FID"}],
+                            "#content": [{"var": "FID"}],
                             "-children": []
                         }
                     ]
