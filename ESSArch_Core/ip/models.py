@@ -446,6 +446,7 @@ class InformationPackage(models.Model):
 
         info = self.get_profile('sip').specification_data
         info["_OBJID"] = str(self.pk)
+        info["_OBJLABEL"] = self.Label
 
         # ensure premis is created before mets
         filesToCreate = OrderedDict()
