@@ -74,6 +74,7 @@ class XMLElement(object):
         self.containsFiles = template.get('-containsFiles', False)
         self.fileFilters = template.get('-filters', {})
         self.allowEmpty = template.get('-allowEmpty', False)
+        self.skipIfNoChildren = template.get('-skipIfNoChildren', False)
         self.children = []
         self.el = None
 
@@ -90,6 +91,9 @@ class XMLElement(object):
         """
 
         if self.el is None:
+            return True
+
+        if len(self.el) == 0 and self.skipIfNoChildren:
             return True
 
         any_attribute_with_value = any(value for value in self.el.attrib.values())
