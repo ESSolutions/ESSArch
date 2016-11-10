@@ -308,7 +308,7 @@ class InformationPackage(models.Model):
 
         info = self.get_profile('event').specification_data
         info["_OBJID"] = str(self.pk)
-        info["_LABEL"] = self.Label
+        info["_OBJLABEL"] = self.Label
 
         events_path = os.path.join(ip_prepare_path, "ipevents.xml")
         filesToCreate = OrderedDict()
@@ -609,7 +609,7 @@ class InformationPackage(models.Model):
         sd_profile = self.get_profile('submit_description')
         info = sd_profile.specification_data
         info["_OBJID"] = str(self.pk)
-        info["_LABEL"] = self.Label
+        info["_OBJLABEL"] = self.Label
 
         reception = Path.objects.get(entity="path_preingest_reception").value
         infoxml = os.path.join(reception, str(self.pk) + ".xml")
