@@ -43,8 +43,10 @@ from ESSArch_Core.profiles.models import (
 
 from ESSArch_Core.util import (
     create_event,
+    creation_date,
     get_tree_count,
     get_tree_size,
+    timestamp_to_datetime,
 )
 
 from ESSArch_Core.xml.Generator.xmlGenerator import (
@@ -606,26 +608,28 @@ class InformationPackage(models.Model):
             information_package = self
         )
 
+        reception = Path.objects.get(entity="path_preingest_reception").value
+        tarfile = os.path.join(reception, str(self.pk) + ".tar")
         sd_profile = self.get_profile('submit_description')
+        sa = self.SubmissionAgreement
+
         info = sd_profile.specification_data
         info["_OBJID"] = str(self.pk)
-        info["_OBJLABEL"] = self.Label
+        info["_TAR_CREATEDATE"] = timestamp_to_datetime(creation_date(tarfile)).isoformat()
+        info["_SA_ID"] = str(sa.pk)
 
-        reception = Path.objects.get(entity="path_preingest_reception").value
         infoxml = os.path.join(reception, str(self.pk) + ".xml")
 
         filesToCreate = {
             infoxml: sd_profile.specification
         }
 
-        folderToParse = os.path.join(reception, str(self.pk) + ".tar")
-
         step.tasks.add(ProcessTask.objects.create(
             name="preingest.tasks.GenerateXML",
             params={
                 "info": info,
                 "filesToCreate": filesToCreate,
-                "folderToParse": folderToParse,
+                "folderToParse": tarfile,
             },
             information_package=self
         ))
