@@ -306,7 +306,7 @@ class XMLGenerator(object):
             'FCreated': createdate.isoformat(),
             'FFormatName': fileformat,
             'FSize': str(os.path.getsize(filepath)),
-            'FUse': 'DataFile',
+            'FUse': 'Datafile',
             'FChecksumType': 'SHA-256',
             'FLoctype': 'URL',
             'FLinkType': 'simple',
