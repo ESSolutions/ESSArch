@@ -405,7 +405,7 @@ class InformationPackage(models.Model):
                                 {
                                     "-name": "contentLocationValue",
                                     "-namespace": "premis",
-                                    "#content": [{"text": "file:///"},{"var": "FName"}],
+                                    "#content": [{"text": "file:///%s.tar" % self.pk}],
                                     "-children": []
                                 }
                             ]
