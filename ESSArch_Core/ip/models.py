@@ -49,7 +49,7 @@ from ESSArch_Core.util import (
     timestamp_to_datetime,
 )
 
-from ESSArch_Core.xml.Generator.xmlGenerator import (
+from ESSArch_Core.essxml.Generator.xmlGenerator import (
     downloadSchemas, find_destination
 )
 

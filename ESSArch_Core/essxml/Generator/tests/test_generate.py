@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from lxml import etree
 
-from ESSArch_Core.xml.Generator.xmlGenerator import XMLGenerator, parseContent
+from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseContent
 
 from ESSArch_Core.configuration.models import (
     Path,

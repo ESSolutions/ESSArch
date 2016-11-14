@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from models import templatePackage, extensionPackage
 from ESSArch_Core.profiles.models import Profile
-from ESSArch_Core.xml.ProfileMaker.xsdtojson import generateJsonRes, generateExtensionRef
+from ESSArch_Core.essxml.ProfileMaker.xsdtojson import generateJsonRes, generateExtensionRef
 import requests
 from lxml import etree
 import os
