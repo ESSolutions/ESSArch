@@ -143,6 +143,17 @@ class ProcessStep(Process):
 
         return workflow() if direct else workflow
 
+    def run_eagerly(self, **kwargs):
+        """
+        Runs the step locally (as a "regular" function)
+        """
+
+        for c in self.child_steps.all():
+            c.run_eagerly()
+
+        for t in self.tasks.all():
+            t.run_eagerly()
+
     def undo(self, only_failed=False, direct=True):
         """
         Undos the process step by first undoing all tasks and then the
