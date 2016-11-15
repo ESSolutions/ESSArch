@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-import os, platform, pyclbr
+import os, platform, pyclbr, re
 
 from django.utils.timezone import get_current_timezone
 
@@ -20,6 +20,69 @@ def sliceUntilAttr(iterable, attr, val):
         if getattr(i, attr) == val:
             return
         yield i
+
+def remove_prefix(text, prefix):
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
+
+def get_elements_without_namespace(root, path):
+    els = path.split("/")
+    return root.xpath(".//" + "/".join(["*[local-name()='%s']" % e for e in els]))
+
+
+def get_value_from_path(el, path):
+    """
+    Gets the text or attribute from the given attribute using the given path.
+
+    Examples:
+        * Return the text of "element":
+            get_value_from_path(element, ".")
+
+        * Return the attribute "foo" of "element":
+            get_value_from_path(element, "@foo")
+
+        * Return the text of "element" > "foo" > "bar":
+            get_value_from_path(element, "foo/bar")
+
+        * Return the attribute "baz" of "element" > "foo" > "bar":
+            get_value_from_path(element, "foo/bar@baz")
+
+    attr:
+        el: A lxml Element
+        path: The path to the text or attribute
+    """
+
+    if path is None:
+        return None
+
+    if "@" in path:
+        try:
+            nested, attr = path.split('@')
+            try:
+                el = get_elements_without_namespace(el, nested)[0]
+            except IndexError:
+                pass
+
+            if el is None:
+                return None
+        except (ValueError, SyntaxError):
+            attr = path[1:]
+
+        for a, val in el.attrib.iteritems():
+            if re.sub(r'{.*}', '', a) == attr:
+                return val
+    else:
+        try:
+            el = get_elements_without_namespace(el, path)[0]
+        except IndexError:
+            pass
+
+        try:
+            return el.text
+        except AttributeError:
+            pass
+
 
 def available_tasks():
     modules = ["preingest.tasks", "preingest.tests.tasks"]
