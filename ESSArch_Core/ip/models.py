@@ -532,7 +532,7 @@ class InformationPackage(models.Model):
                 ProcessTask.objects.create(
                     name="preingest.tasks.ValidateLogicalPhysicalRepresentation",
                     params={
-                        "mets_path": mets_path,
+                        "xmlfile": mets_path,
                         "ip": self
                     },
                     processstep_pos=0,
@@ -545,7 +545,7 @@ class InformationPackage(models.Model):
                 name="preingest.tasks.ValidateFiles",
                 params={
                     "ip": self,
-                    "mets_path": mets_path,
+                    "xmlfile": mets_path,
                     "validate_fileformat": validate_file_format,
                     "validate_integrity": validate_integrity,
                 },
