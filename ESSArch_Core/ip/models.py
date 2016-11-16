@@ -21,6 +21,8 @@
 """
 
 # Create your models here.
+from __future__ import division
+
 from celery import states as celery_states
 
 from collections import OrderedDict
@@ -38,7 +40,7 @@ from ESSArch_Core.WorkflowEngine.models import (
 
 from ESSArch_Core.profiles.models import (
     SubmissionAgreement as SA,
-    ProfileIP,
+    ProfileIP, ProfileSA,
 )
 
 from ESSArch_Core.util import (
@@ -55,7 +57,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
 
 from scandir import scandir, walk
 
-import json, os, uuid
+import json, math, os, uuid
 
 
 class ArchivalInstitution(models.Model):
@@ -705,16 +707,45 @@ class InformationPackage(models.Model):
         return state
 
     def status(self):
-        steps = self.steps.all()
+        if self.State in ["Prepared", "Created", "Submitted"]:
+            return 100
 
-        if steps:
+        if self.State == "Preparing":
+            if self.SubmissionAgreementLocked:
+                return 100
+
+            progress = 33
+
             try:
-                progress = sum([s.progress() for s in steps])
-                return progress / len(steps)
-            except:
-                return 0
+                sa_profiles = ProfileSA.objects.filter(
+                    submission_agreement=self.SubmissionAgreement
+                )
 
-        return 0
+                ip_profiles_locked = ProfileIP.objects.filter(
+                    ip=self, LockedBy__isnull=False,
+                    profile__profile_type__in=sa_profiles.values(
+                        "profile__profile_type"
+                    )
+                )
+
+                progress += math.ceil(ip_profiles_locked.count() * (33 / sa_profiles.count()))
+
+            except ZeroDivisionError:
+                pass
+
+            return progress
+
+        if self.State in ["Creating", "Submitting"]:
+            steps = self.steps.all()
+
+            if steps:
+                try:
+                    progress = sum([s.progress() for s in steps])
+                    return progress / len(steps)
+                except:
+                    return 0
+
+            return 0
 
     class Meta:
         ordering = ["id"]
