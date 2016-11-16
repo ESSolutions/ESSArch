@@ -277,7 +277,7 @@ class ProcessStep(Process):
 
             Which is decided by five scenarios:
 
-            * If there are no child steps nor tasks, then PENDING.
+            * If there are no child steps nor tasks, then SUCCESS.
             * If there are child steps or tasks and they are all pending,
               then PENDING.
             * If a child step or task has started, then STARTED.
@@ -290,7 +290,7 @@ class ProcessStep(Process):
         status = celery_states.SUCCESS
 
         if not child_steps and not tasks:
-            return celery_states.PENDING
+            return celery_states.SUCCESS
 
         for i in list(child_steps) + list(tasks):
             if i.status == celery_states.STARTED:
