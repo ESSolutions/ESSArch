@@ -735,7 +735,7 @@ class InformationPackage(models.Model):
 
             return progress
 
-        if self.State in ["Creating", "Submitting"]:
+        if self.State in ["Creating", "Submitting", "Receiving"]:
             steps = self.steps.all()
 
             if steps:
