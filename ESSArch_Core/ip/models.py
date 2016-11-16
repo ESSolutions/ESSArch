@@ -609,6 +609,16 @@ class InformationPackage(models.Model):
             information_package = self
         )
 
+        step.tasks.add(ProcessTask.objects.create(
+            name="preingest.tasks.UpdateIPStatus",
+            params={
+                "ip": self,
+                "status": "Submitting",
+            },
+            processstep_pos=0,
+            information_package=self
+        ))
+
         reception = Path.objects.get(entity="path_preingest_reception").value
         tarfile = os.path.join(reception, str(self.pk) + ".tar")
         sd_profile = self.get_profile('submit_description')
