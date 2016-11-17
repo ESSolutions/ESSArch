@@ -278,20 +278,21 @@ class InformationPackage(models.Model):
                validate_xml_file=True, validate_file_format=True,
                validate_integrity=True):
 
+        t0 = ProcessTask.objects.create(
+            name="preingest.tasks.UpdateIPStatus",
+            params={
+                "ip": self,
+                "status": "Creating",
+            },
+            processstep_pos=0,
+            information_package=self
+        )
         start_create_sip_step = ProcessStep.objects.create(
             name="Update IP Status",
-            tasks=[
-                ProcessTask.objects.create(
-                    name="preingest.tasks.UpdateIPStatus",
-                    params={
-                        "ip": self,
-                        "status": "Creating",
-                    },
-                    processstep_pos=0,
-                    information_package=self
-                )
-            ]
+            parent_step_pos=0
         )
+
+        start_create_sip_step.tasks.add(t0)
 
         event_type = EventType.objects.get(eventType=10200)
 
@@ -340,7 +341,7 @@ class InformationPackage(models.Model):
                 "filename": events_path,
                 "events": self.events.all(),
             },
-            processstep_pos=0,
+            processstep_pos=1,
             information_package=self
         )
 
@@ -442,7 +443,7 @@ class InformationPackage(models.Model):
                 "info": info,
                 "index": 0
             },
-            processstep_pos=0,
+            processstep_pos=2,
             information_package=self
         )
 
@@ -476,12 +477,13 @@ class InformationPackage(models.Model):
                 "filesToCreate": filesToCreate,
                 "folderToParse": ip_prepare_path,
             },
-            processstep_pos=0,
+            processstep_pos=3,
             information_package=self
         )
 
         generate_xml_step = ProcessStep.objects.create(
             name="Generate XML",
+            parent_step_pos=1
         )
         generate_xml_step.tasks = [t0, t01, t02, t1]
         generate_xml_step.save()
@@ -492,6 +494,7 @@ class InformationPackage(models.Model):
 
         validate_step = ProcessStep.objects.create(
             name="Validation",
+            parent_step_pos=2
         )
 
         if validate_xml_file:
@@ -512,7 +515,7 @@ class InformationPackage(models.Model):
                     params={
                         "xml_filename": mets_path,
                     },
-                    processstep_pos=0,
+                    processstep_pos=1,
                     information_package=self
                 )
             )
@@ -524,7 +527,7 @@ class InformationPackage(models.Model):
                         params={
                             "xml_filename": premis_path,
                         },
-                        processstep_pos=0,
+                        processstep_pos=2,
                         information_package=self
                     )
                 )
@@ -537,7 +540,7 @@ class InformationPackage(models.Model):
                         "xmlfile": mets_path,
                         "ip": self
                     },
-                    processstep_pos=0,
+                    processstep_pos=3,
                     information_package=self
                 )
             )
@@ -551,7 +554,7 @@ class InformationPackage(models.Model):
                     "validate_fileformat": validate_file_format,
                     "validate_integrity": validate_integrity,
                 },
-                processstep_pos=0,
+                processstep_pos=4,
                 information_package=self
             )
         )
@@ -564,7 +567,7 @@ class InformationPackage(models.Model):
                 "dirname": ip_prepare_path,
                 "tarname": tarname,
             },
-            processstep_pos=0,
+            processstep_pos=4,
             information_package=self
         )
 
@@ -574,7 +577,7 @@ class InformationPackage(models.Model):
                 "dirname": ip_prepare_path,
                 "zipname": zipname,
             },
-            processstep_pos=0,
+            processstep_pos=5,
             information_package=self
         )
 
@@ -584,12 +587,13 @@ class InformationPackage(models.Model):
                 "ip": self,
                 "status": "Created",
             },
-            processstep_pos=0,
+            processstep_pos=6,
             information_package=self
         )
 
         create_sip_step = ProcessStep.objects.create(
-                name="Create SIP"
+                name="Create SIP",
+                parent_step_pos=3
         )
         create_sip_step.tasks = [t6, t7, t8]
         create_sip_step.save()
@@ -645,6 +649,7 @@ class InformationPackage(models.Model):
                 "filesToCreate": filesToCreate,
                 "folderToParse": tarfile,
             },
+            processstep_pos=1,
             information_package=self
         ))
 
@@ -653,6 +658,7 @@ class InformationPackage(models.Model):
             params={
                 "ip": self
             },
+            processstep_pos=2,
             information_package=self
         ))
 
@@ -662,6 +668,7 @@ class InformationPackage(models.Model):
                 "ip": self,
                 "status": "Submitted"
             },
+            processstep_pos=3,
             information_package=self
         ))
 
