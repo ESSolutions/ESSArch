@@ -46,8 +46,7 @@ from ESSArch_Core.profiles.models import (
 from ESSArch_Core.util import (
     create_event,
     creation_date,
-    get_tree_count,
-    get_tree_size,
+    get_tree_size_and_count,
     timestamp_to_datetime,
 )
 
@@ -163,14 +162,8 @@ class InformationPackage(models.Model):
     )
 
     @property
-    def ObjectSize(self):
-        if os.path.exists(self.ObjectPath):
-            return get_tree_size(self.ObjectPath)
-
-    @property
-    def ObjectNumItems(self):
-        if os.path.exists(self.ObjectPath):
-            return get_tree_count(self.ObjectPath)
+    def ObjectSizeAndNum(self):
+        return get_tree_size_and_count(self.ObjectPath)
 
     @property
     def profile_transfer_project_rel(self):

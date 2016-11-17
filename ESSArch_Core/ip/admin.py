@@ -68,7 +68,7 @@ class IPAdmin(admin.ModelAdmin):
     """
     Informaion Package
     """
-    list_display = ('ArchivistOrganization', 'Label', 'CreateDate', 'id', 'ObjectSize', 'ObjectNumItems', 'ObjectPath', 'State')
+    list_display = ('ArchivistOrganization', 'Label', 'CreateDate', 'id', 'ObjectPath', 'State')
     search_fields = ('ArchivistOrganization',)
     readonly_fields = ('id',)
     list_filter = ('ArchivistOrganization', 'Label')
@@ -84,8 +84,6 @@ class IPAdmin(admin.ModelAdmin):
                               'CreateDate',
                               'State',
                               'Status',
-                              'ObjectSize',
-                              'ObjectNumItems',
                               'ObjectPath',
                               'Startdate',
                               'Enddate',

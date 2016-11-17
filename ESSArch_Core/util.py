@@ -200,22 +200,22 @@ def download_file(url, dst):
             for chunk in r:
                 f.write(chunk)
 
-def get_tree_size(path):
-    """Return total size of files in given path and subdirs."""
-    total = 0
-    for entry in scandir(path):
-        if entry.is_dir(follow_symlinks=False):
-            total += get_tree_size(entry.path)
-        else:
-            total += entry.stat(follow_symlinks=False).st_size
-    return total
+def get_tree_size_and_count(path):
+    """Return total size and count of files in given path and subdirs."""
+    size = 0
+    count = 0
 
-def get_tree_count(path):
-    """Return total amount of files in given path and subdirs."""
-    total = 0
-    for root, dirs, files in walk(path):
-        total += len(files)
-    return total
+    if os.path.isdir(path):
+        for entry in scandir(path):
+            if entry.is_dir(follow_symlinks=False):
+                new_size, new_count = get_tree_size_and_count(entry.path)
+                size += new_size
+                count += new_count
+            else:
+                size += entry.stat(follow_symlinks=False).st_size
+                count += 1
+
+    return size, count
 
 def win_to_posix(path):
     return path.replace('\\', '/')
