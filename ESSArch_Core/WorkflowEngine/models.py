@@ -323,7 +323,7 @@ class ProcessStep(Process):
 
     class Meta:
         db_table = u'ProcessStep'
-        ordering = ('parent_step_pos',)
+        ordering = ('parent_step_pos', 'time_created')
 
         def __unicode__(self):
             return '%s - %s - archiveobject:%s' % (
