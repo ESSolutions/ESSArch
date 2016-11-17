@@ -16,7 +16,8 @@ from ESSArch_Core.util import (
     creation_date,
     download_file,
     find_destination,
-    timestamp_to_datetime
+    timestamp_to_datetime,
+    win_to_posix,
 )
 
 def parseContent(content, info):
@@ -271,6 +272,8 @@ class XMLGenerator(object):
         """
         if not relpath:
             relpath = filepath
+
+        relpath = win_to_posix(relpath)
 
         base = os.path.basename(relpath)
         file_name, file_ext = os.path.splitext(base)
