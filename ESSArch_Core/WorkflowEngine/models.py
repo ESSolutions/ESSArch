@@ -454,7 +454,7 @@ class ProcessTask(Process):
 
     class Meta:
         db_table = 'ProcessTask'
-        ordering = ('processstep_pos',)
+        ordering = ('processstep_pos', 'time_started')
 
         def __unicode__(self):
             return '%s - %s' % (self.name, self.id)
