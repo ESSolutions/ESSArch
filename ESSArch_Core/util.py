@@ -216,3 +216,6 @@ def get_tree_count(path):
     for root, dirs, files in walk(path):
         total += len(files)
     return total
+
+def win_to_posix(path):
+    return path.replace('\\', '/')
