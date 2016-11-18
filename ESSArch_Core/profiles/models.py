@@ -167,78 +167,6 @@ class SubmissionAgreement(models.Model):
         max_length=255
     )
 
-    @property
-    def profile_transfer_project_rel(self):
-        return ProfileSA.objects.filter(
-            submission_agreement=self, profile__profile_type="transfer_project"
-        ).first()
-
-    @property
-    def profile_content_type_rel(self):
-        return ProfileSA.objects.filter(
-            submission_agreement=self, profile__profile_type="content_type"
-        ).first()
-
-    @property
-    def profile_data_selection_rel(self):
-        return ProfileSA.objects.filter(
-            submission_agreement=self, profile__profile_type="data_selection"
-        ).first()
-
-    @property
-    def profile_classification_rel(self):
-        return ProfileSA.objects.filter(
-            submission_agreement=self, profile__profile_type="classification"
-        ).first()
-
-    @property
-    def profile_import_rel(self):
-        return ProfileSA.objects.filter(
-            submission_agreement=self, profile__profile_type="import"
-        ).first()
-
-    @property
-    def profile_submit_description_rel(self):
-        return ProfileSA.objects.filter(
-            submission_agreement=self, profile__profile_type="submit_description"
-        ).first()
-
-    @property
-    def profile_sip_rel(self):
-        return ProfileSA.objects.filter(
-            submission_agreement=self, profile__profile_type="sip"
-        ).first()
-
-    @property
-    def profile_aip_rel(self):
-        return ProfileSA.objects.filter(
-            submission_agreement=self, profile__profile_type="aip"
-        ).first()
-
-    @property
-    def profile_dip_rel(self):
-        return ProfileSA.objects.filter(
-            submission_agreement=self, profile__profile_type="dip"
-        ).first()
-
-    @property
-    def profile_workflow_rel(self):
-        return ProfileSA.objects.filter(
-            submission_agreement=self, profile__profile_type="workflow"
-        ).first()
-
-    @property
-    def profile_preservation_metadata_rel(self):
-        return ProfileSA.objects.filter(
-            submission_agreement=self, profile__profile_type="preservation_metadata"
-        ).first()
-
-    @property
-    def profile_event_rel(self):
-        return ProfileSA.objects.filter(
-            submission_agreement=self, profile__profile_type="event"
-        ).first()
-
     include_profile_transfer_project = models.BooleanField(default=False)
     include_profile_content_type = models.BooleanField(default=False)
     include_profile_data_selection = models.BooleanField(default=False)
@@ -259,6 +187,19 @@ class SubmissionAgreement(models.Model):
     def __unicode__(self):
         # create a unicode representation of this object
         return '%s - %s' % (self.sa_name, self.id)
+
+    def get_profile_rel(self, profile_type):
+        return self.profilesa_set.filter(
+            profile__profile_type=profile_type
+        ).first()
+
+    def get_profile(self, profile_type):
+        rel = self.get_profile_rel(profile_type)
+
+        if rel:
+            return rel.profile
+
+        return None
 
     def lock(self, ip):
         """
