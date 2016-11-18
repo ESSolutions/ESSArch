@@ -696,13 +696,15 @@ class InformationPackage(models.Model):
             return celery_states.PENDING
 
         for step in steps:
-            if step.status == celery_states.STARTED:
-                state = step.status
-            if (step.status == celery_states.PENDING and
+            step_status = step.status
+
+            if step_status == celery_states.STARTED:
+                state = step_status
+            if (step_status == celery_states.PENDING and
                     state != celery_states.STARTED):
-                state = step.status
-            if step.status == celery_states.FAILURE:
-                return step.status
+                state = step_status
+            if step_status == celery_states.FAILURE:
+                return step_status
 
         return state
 
