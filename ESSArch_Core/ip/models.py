@@ -682,6 +682,21 @@ class InformationPackage(models.Model):
 
             return 0
 
+    def delete(self, *args, **kwargs):
+        super(InformationPackage, self).delete(*args, **kwargs)
+        ArchivalInstitution.objects.filter(
+            information_packages__isnull=True
+        ).delete()
+        ArchivistOrganization.objects.filter(
+            information_packages__isnull=True
+        ).delete()
+        ArchivalType.objects.filter(
+            information_packages__isnull=True
+        ).delete()
+        ArchivalLocation.objects.filter(
+            information_packages__isnull=True
+        ).delete()
+
     class Meta:
         ordering = ["id"]
         verbose_name = 'Information Package'
