@@ -200,6 +200,14 @@ class InformationPackage(models.Model):
             ip=self, profile__profile_type=ptype
         ).delete()
 
+    def get_container_format(self):
+        try:
+            return self.get_profile('transfer_project').specification_data.get(
+                'container_format', 'tar'
+            )
+        except:
+            return 'tar'
+
     def create(self, validate_logical_physical_representation=True,
                validate_xml_file=True, validate_file_format=True,
                validate_integrity=True):
@@ -415,8 +423,6 @@ class InformationPackage(models.Model):
         generate_xml_step.save()
 
         #dirname = os.path.join(ip_prepare_path, "data")
-        tarname = os.path.join(ip_reception_path) + '.tar'
-        zipname = os.path.join(ip_reception_path) + '.zip'
 
         validate_step = ProcessStep.objects.create(
             name="Validation",
@@ -487,27 +493,33 @@ class InformationPackage(models.Model):
 
         validate_step.save()
 
-        t6 = ProcessTask.objects.create(
-            name="preingest.tasks.CreateTAR",
-            params={
-                "dirname": ip_prepare_path,
-                "tarname": tarname,
-            },
-            processstep_pos=4,
-            information_package=self
-        )
+        container_format = self.get_container_format()
+
+        if container_format.lower() == 'zip':
+            zipname = os.path.join(ip_reception_path) + '.zip'
+            t6 = ProcessTask.objects.create(
+                name="preingest.tasks.CreateZIP",
+                params={
+                    "dirname": ip_prepare_path,
+                    "zipname": zipname,
+                },
+                processstep_pos=4,
+                information_package=self
+            )
+
+        else:
+            tarname = os.path.join(ip_reception_path) + '.tar'
+            t6 = ProcessTask.objects.create(
+                name="preingest.tasks.CreateTAR",
+                params={
+                    "dirname": ip_prepare_path,
+                    "tarname": tarname,
+                },
+                processstep_pos=5,
+                information_package=self
+            )
 
         t7 = ProcessTask.objects.create(
-            name="preingest.tasks.CreateZIP",
-            params={
-                "dirname": ip_prepare_path,
-                "zipname": zipname,
-            },
-            processstep_pos=5,
-            information_package=self
-        )
-
-        t8 = ProcessTask.objects.create(
             name="preingest.tasks.UpdateIPStatus",
             params={
                 "ip": self,
@@ -521,7 +533,7 @@ class InformationPackage(models.Model):
                 name="Create SIP",
                 parent_step_pos=3
         )
-        create_sip_step.tasks = [t6, t7, t8]
+        create_sip_step.tasks = [t6, t7]
         create_sip_step.save()
 
         main_step = ProcessStep.objects.create(
@@ -552,14 +564,18 @@ class InformationPackage(models.Model):
         ))
 
         reception = Path.objects.get(entity="path_preingest_reception").value
-        tarfile = os.path.join(reception, str(self.pk) + ".tar")
+
         sd_profile = self.get_profile('submit_description')
+
+        container_format = self.get_container_format()
+        container_file = os.path.join(reception, str(self.pk) + ".%s" % container_format.lower())
+
         sa = self.SubmissionAgreement
 
         info = sd_profile.specification_data
         info["_OBJID"] = str(self.pk)
         info["_OBJLABEL"] = str(self.Label)
-        info["_TAR_CREATEDATE"] = timestamp_to_datetime(creation_date(tarfile)).isoformat()
+        info["_IP_CREATEDATE"] = timestamp_to_datetime(creation_date(container_file)).isoformat()
         info["_SA_ID"] = str(sa.pk)
 
         infoxml = os.path.join(reception, str(self.pk) + ".xml")
@@ -573,7 +589,7 @@ class InformationPackage(models.Model):
             params={
                 "info": info,
                 "filesToCreate": filesToCreate,
-                "folderToParse": tarfile,
+                "folderToParse": container_file,
             },
             processstep_pos=1,
             information_package=self
