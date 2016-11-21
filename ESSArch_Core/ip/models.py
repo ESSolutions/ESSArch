@@ -56,7 +56,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
 
 from scandir import scandir, walk
 
-import json, math, os, uuid
+import hashlib, json, math, os, uuid
 
 
 class ArchivalInstitution(models.Model):
@@ -208,6 +208,16 @@ class InformationPackage(models.Model):
         except:
             return 'tar'
 
+    def get_checksum_algorithm(self):
+        try:
+            name = self.get_profile('transfer_project').specification_data.get(
+                'checksum_algorithm', 'sha256'
+            )
+        except:
+            name = 'sha256'
+
+        return name
+
     def create(self, validate_logical_physical_representation=True,
                validate_xml_file=True, validate_file_format=True,
                validate_integrity=True):
@@ -264,6 +274,7 @@ class InformationPackage(models.Model):
             params={
                 "info": info,
                 "filesToCreate": filesToCreate,
+                "algorithm": self.get_checksum_algorithm(),
             },
             processstep_pos=0,
             information_package=self
@@ -410,6 +421,7 @@ class InformationPackage(models.Model):
                 "info": info,
                 "filesToCreate": filesToCreate,
                 "folderToParse": ip_prepare_path,
+                "algorithm": self.get_checksum_algorithm(),
             },
             processstep_pos=3,
             information_package=self
@@ -590,6 +602,7 @@ class InformationPackage(models.Model):
                 "info": info,
                 "filesToCreate": filesToCreate,
                 "folderToParse": container_file,
+                "algorithm": self.get_checksum_algorithm(),
             },
             processstep_pos=1,
             information_package=self

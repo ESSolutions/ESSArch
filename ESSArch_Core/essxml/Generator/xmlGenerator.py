@@ -195,7 +195,7 @@ class XMLGenerator(object):
                 'root': XMLElement(template)
             })
 
-    def generate(self, folderToParse=None):
+    def generate(self, folderToParse=None, algorithm='SHA-256'):
         files = []
 
         mimetypes.suffix_map = {}
@@ -211,14 +211,18 @@ class XMLGenerator(object):
             if os.path.isfile(folderToParse):
                 files.append(self.parseFile(
                     folderToParse, mimetypes,
-                    relpath=os.path.basename(folderToParse)
+                    relpath=os.path.basename(folderToParse),
+                    algorithm=algorithm
                 ))
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in os.walk(folderToParse):
                     for fname in filenames:
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, folderToParse)
-                        files.append(self.parseFile(filepath, mimetypes, relpath=relpath))
+                        files.append(self.parseFile(
+                            filepath, mimetypes, relpath=relpath,
+                            algorithm=algorithm
+                        ))
 
         for f in self.toCreate:
             fname = f['file']
@@ -266,7 +270,7 @@ class XMLGenerator(object):
             encoding='UTF-8'
         )
 
-    def parseFile(self, filepath, mimetypes, relpath=None):
+    def parseFile(self, filepath, mimetypes, relpath=None, algorithm='SHA-256'):
         """
         walk through the choosen folder and parse all the files to their own temporary location
         """
@@ -289,6 +293,7 @@ class XMLGenerator(object):
             name="preingest.tasks.CalculateChecksum",
             params={
                 "filename": filepath,
+                "algorithm": algorithm
             }
         ).run_eagerly()
 
@@ -310,7 +315,7 @@ class XMLGenerator(object):
             'FFormatName': fileformat,
             'FSize': str(os.path.getsize(filepath)),
             'FUse': 'Datafile',
-            'FChecksumType': 'SHA-256',
+            'FChecksumType': algorithm,
             'FLoctype': 'URL',
             'FLinkType': 'simple',
             'FChecksumLib': 'hashlib',
