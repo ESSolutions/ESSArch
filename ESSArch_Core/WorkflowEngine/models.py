@@ -396,7 +396,11 @@ class ProcessTask(Process):
         Runs the task locally (as a "regular" function)
         """
 
-        return self._create_task(self.name)(taskobj=self, eager=True)
+        t = self._create_task(self.name)
+        res = t(taskobj=self, eager=True)
+        t.create_event()
+
+        return res
 
     def undo(self):
         """

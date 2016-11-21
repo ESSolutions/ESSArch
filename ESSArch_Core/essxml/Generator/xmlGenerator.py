@@ -195,7 +195,7 @@ class XMLGenerator(object):
                 'root': XMLElement(template)
             })
 
-    def generate(self, folderToParse=None, algorithm='SHA-256'):
+    def generate(self, folderToParse=None, algorithm='SHA-256', ip=None):
         files = []
 
         mimetypes.suffix_map = {}
@@ -212,7 +212,7 @@ class XMLGenerator(object):
                 files.append(self.parseFile(
                     folderToParse, mimetypes,
                     relpath=os.path.basename(folderToParse),
-                    algorithm=algorithm
+                    algorithm=algorithm, ip=ip
                 ))
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in os.walk(folderToParse):
@@ -221,7 +221,7 @@ class XMLGenerator(object):
                         relpath = os.path.relpath(filepath, folderToParse)
                         files.append(self.parseFile(
                             filepath, mimetypes, relpath=relpath,
-                            algorithm=algorithm
+                            algorithm=algorithm, ip=ip
                         ))
 
         for f in self.toCreate:
@@ -243,7 +243,7 @@ class XMLGenerator(object):
             except:
                 relpath = fname
 
-            files.append(self.parseFile(fname, mimetypes, relpath))
+            files.append(self.parseFile(fname, mimetypes, relpath, algorithm=algorithm, ip=ip))
 
     def insert(self, filename, elementToAppendTo, template, info={}, index=None):
         parser = etree.XMLParser(remove_blank_text=True)
@@ -270,7 +270,7 @@ class XMLGenerator(object):
             encoding='UTF-8'
         )
 
-    def parseFile(self, filepath, mimetypes, relpath=None, algorithm='SHA-256'):
+    def parseFile(self, filepath, mimetypes, relpath=None, algorithm='SHA-256', ip=None):
         """
         walk through the choosen folder and parse all the files to their own temporary location
         """
@@ -294,14 +294,16 @@ class XMLGenerator(object):
             params={
                 "filename": filepath,
                 "algorithm": algorithm
-            }
+            },
+            information_package=ip
         ).run_eagerly()
 
         fileformat = ProcessTask(
             name="preingest.tasks.IdentifyFileFormat",
             params={
                 "filename": filepath,
-            }
+            },
+            information_package=ip
         ).run_eagerly()
 
         fileinfo = {

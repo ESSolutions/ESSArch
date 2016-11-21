@@ -62,19 +62,23 @@ class DBTask(Task):
                 self.taskobj.time_done = timezone.now()
                 self.taskobj.save()
 
-            if hasattr(self, "event_type"):
-                if not isinstance(self.taskobj.information_package, InformationPackage):
-                    raise AttributeError(
-                        "An IP is required to be set on the task to create an event"
-                    )
+            self.create_event()
 
-                event_type = EventType.objects.get(eventType=self.event_type)
-                event_args = self.get_event_args(**self.taskobj.params)
 
-                create_event(
-                    event_type, event_args, "System",
-                    self.taskobj.information_package
+    def create_event(self):
+        if hasattr(self, "event_type"):
+            if not isinstance(self.taskobj.information_package, InformationPackage):
+                raise AttributeError(
+                    "An IP is required to be set on the task to create an event"
                 )
+
+            event_type = EventType.objects.get(eventType=self.event_type)
+            event_args = self.get_event_args(**self.taskobj.params)
+
+            create_event(
+                event_type, event_args, "System",
+                self.taskobj.information_package
+            )
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         if not self.eager:
