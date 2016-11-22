@@ -590,6 +590,72 @@ class InformationPackage(models.Model):
         info["_IP_CREATEDATE"] = timestamp_to_datetime(creation_date(container_file)).isoformat()
         info["_SA_ID"] = str(sa.pk)
 
+        try:
+            info["_PROFILE_TRANSFER_PROJECT_ID"] = str(self.get_profile('transfer_project').pk)
+        except AttributeError:
+            pass
+
+        try:
+            info["_PROFILE_SUBMIT_DESCRIPTION_ID"] = str(self.get_profile('submit_description').pk)
+        except AttributeError:
+            pass
+
+        try:
+            info["_PROFILE_SIP_ID"] = str(self.get_profile('sip').pk)
+        except AttributeError:
+            pass
+
+        try:
+            info["_PROFILE_AIP_ID"] = str(self.get_profile('aip').pk)
+        except AttributeError:
+            pass
+
+        try:
+            info["_PROFILE_DIP_ID"] = str(self.get_profile('dip').pk)
+        except AttributeError:
+            pass
+
+        try:
+            info["_PROFILE_CONTENT_TYPE_ID"] = str(self.get_profile('content_type').pk)
+        except AttributeError:
+            pass
+
+        try:
+            info["_PROFILE_AUTHORITY_INFORMATION_ID"] = str(self.get_profile('authority_information').pk)
+        except AttributeError:
+            pass
+
+        try:
+            info["_PROFILE_ARCHIVAL_DESCRIPTION_ID"] = str(self.get_profile('archival_description').pk)
+        except AttributeError:
+            pass
+
+        try:
+            info["_PROFILE_PRESERVATION_METADATA_ID"] = str(self.get_profile('preservation_metadata').pk)
+        except AttributeError:
+            pass
+
+        try:
+            info["_PROFILE_EVENT_ID"] = str(self.get_profile('event').pk)
+        except AttributeError:
+            pass
+
+        try:
+            info["_PROFILE_DATA_SELECTION_ID"] = str(self.get_profile('data_selection').pk)
+        except AttributeError:
+            pass
+
+        try:
+            info["_PROFILE_IMPORT_ID"] = str(self.get_profile('import').pk)
+        except AttributeError:
+            pass
+
+        try:
+            info["_PROFILE_WORKFLOW_ID"] = str(self.get_profile('workflow').pk)
+        except AttributeError:
+            pass
+
+
         infoxml = os.path.join(reception, str(self.pk) + ".xml")
 
         filesToCreate = {
