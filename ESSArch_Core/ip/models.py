@@ -254,14 +254,116 @@ class InformationPackage(models.Model):
 
         ip_prepare_path = os.path.join(prepare_path, str(self.pk))
         ip_reception_path = os.path.join(reception_path, str(self.pk))
+        events_path = os.path.join(ip_prepare_path, "ipevents.xml")
 
         structure = self.get_profile('sip').structure
+
+        info = self.get_profile('sip').specification_data
+        info["_OBJID"] = str(self.pk)
+        info["_OBJLABEL"] = self.Label
+
+        # ensure premis is created before mets
+        filesToCreate = OrderedDict()
+
+        if self.profile_locked('preservation_metadata'):
+            premis_profile = self.get_profile('preservation_metadata')
+            premis_dir, premis_name = find_destination("preservation_description_file", structure)
+            premis_path = os.path.join(self.ObjectPath, premis_dir, premis_name)
+            filesToCreate[premis_path] = premis_profile.specification
+
+        mets_dir, mets_name = find_destination("mets_file", structure)
+        mets_path = os.path.join(self.ObjectPath, mets_dir, mets_name)
+        filesToCreate[mets_path] = self.get_profile('sip').specification
+
+        for fname, template in filesToCreate.iteritems():
+            dirname = os.path.dirname(fname)
+            downloadSchemas(
+                template, dirname, structure=structure, root=self.ObjectPath
+            )
+
+        t1 = ProcessTask.objects.create(
+            name="preingest.tasks.GenerateXML",
+            params={
+                "info": info,
+                "filesToCreate": filesToCreate,
+                "folderToParse": ip_prepare_path,
+                "algorithm": self.get_checksum_algorithm(),
+            },
+            processstep_pos=3,
+            information_package=self
+        )
+
+        generate_xml_step = ProcessStep.objects.create(
+            name="Generate XML",
+            parent_step_pos=1
+        )
+        generate_xml_step.tasks = [t1]
+        generate_xml_step.save()
+
+        #dirname = os.path.join(ip_prepare_path, "data")
+
+        validate_step = ProcessStep.objects.create(
+            name="Validation",
+            parent_step_pos=2
+        )
+
+        if validate_xml_file:
+            validate_step.tasks.add(
+                ProcessTask.objects.create(
+                    name="preingest.tasks.ValidateXMLFile",
+                    params={
+                        "xml_filename": mets_path,
+                    },
+                    processstep_pos=1,
+                    information_package=self
+                )
+            )
+
+            if self.profile_locked("preservation_metadata"):
+                validate_step.tasks.add(
+                    ProcessTask.objects.create(
+                        name="preingest.tasks.ValidateXMLFile",
+                        params={
+                            "xml_filename": premis_path,
+                        },
+                        processstep_pos=2,
+                        information_package=self
+                    )
+                )
+
+        if validate_logical_physical_representation:
+            validate_step.tasks.add(
+                ProcessTask.objects.create(
+                    name="preingest.tasks.ValidateLogicalPhysicalRepresentation",
+                    params={
+                        "xmlfile": mets_path,
+                        "ip": self
+                    },
+                    processstep_pos=3,
+                    information_package=self
+                )
+            )
+
+        validate_step.tasks.add(
+            ProcessTask.objects.create(
+                name="preingest.tasks.ValidateFiles",
+                params={
+                    "ip": self,
+                    "xmlfile": mets_path,
+                    "validate_fileformat": validate_file_format,
+                    "validate_integrity": validate_integrity,
+                },
+                processstep_pos=4,
+                information_package=self
+            )
+        )
+
+        validate_step.save()
 
         info = self.get_profile('event').specification_data
         info["_OBJID"] = str(self.pk)
         info["_OBJLABEL"] = self.Label
 
-        events_path = os.path.join(ip_prepare_path, "ipevents.xml")
         filesToCreate = OrderedDict()
         filesToCreate[events_path] = self.get_profile('event').specification
 
@@ -271,7 +373,12 @@ class InformationPackage(models.Model):
                 template, dirname, structure=structure, root=self.ObjectPath
             )
 
-        t0 = ProcessTask.objects.create(
+        create_sip_step = ProcessStep.objects.create(
+                name="Create SIP",
+                parent_step_pos=3
+        )
+
+        create_sip_step.tasks.add(ProcessTask.objects.create(
             name="preingest.tasks.GenerateXML",
             params={
                 "info": info,
@@ -280,17 +387,16 @@ class InformationPackage(models.Model):
             },
             processstep_pos=0,
             information_package=self
-        )
+        ))
 
-        t01 = ProcessTask.objects.create(
+        create_sip_step.tasks.add(ProcessTask.objects.create(
             name="preingest.tasks.AppendEvents",
             params={
                 "filename": events_path,
-                "events": self.events.all(),
             },
             processstep_pos=1,
             information_package=self
-        )
+        ))
 
         spec = {
             "-name": "object",
@@ -381,7 +487,7 @@ class InformationPackage(models.Model):
             'FName': self.ObjectPath,
         }
 
-        t02 = ProcessTask.objects.create(
+        create_sip_step.tasks.add(ProcessTask.objects.create(
             name="preingest.tasks.InsertXML",
             params={
                 "filename": events_path,
@@ -392,160 +498,61 @@ class InformationPackage(models.Model):
             },
             processstep_pos=2,
             information_package=self
-        )
-
-        info = self.get_profile('sip').specification_data
-        info["_OBJID"] = str(self.pk)
-        info["_OBJLABEL"] = self.Label
-
-        # ensure premis is created before mets
-        filesToCreate = OrderedDict()
-
-        if self.profile_locked('preservation_metadata'):
-            premis_profile = self.get_profile('preservation_metadata')
-            premis_dir, premis_name = find_destination("preservation_description_file", structure)
-            premis_path = os.path.join(self.ObjectPath, premis_dir, premis_name)
-            filesToCreate[premis_path] = premis_profile.specification
-
-        mets_dir, mets_name = find_destination("mets_file", structure)
-        mets_path = os.path.join(self.ObjectPath, mets_dir, mets_name)
-        filesToCreate[mets_path] = self.get_profile('sip').specification
-
-        for fname, template in filesToCreate.iteritems():
-            dirname = os.path.dirname(fname)
-            downloadSchemas(
-                template, dirname, structure=structure, root=self.ObjectPath
-            )
-
-        t1 = ProcessTask.objects.create(
-            name="preingest.tasks.GenerateXML",
-            params={
-                "info": info,
-                "filesToCreate": filesToCreate,
-                "folderToParse": ip_prepare_path,
-                "algorithm": self.get_checksum_algorithm(),
-            },
-            processstep_pos=3,
-            information_package=self
-        )
-
-        generate_xml_step = ProcessStep.objects.create(
-            name="Generate XML",
-            parent_step_pos=1
-        )
-        generate_xml_step.tasks = [t0, t01, t02, t1]
-        generate_xml_step.save()
-
-        #dirname = os.path.join(ip_prepare_path, "data")
-
-        validate_step = ProcessStep.objects.create(
-            name="Validation",
-            parent_step_pos=2
-        )
+        ))
 
         if validate_xml_file:
-            validate_step.tasks.add(
+            create_sip_step.tasks.add(
                 ProcessTask.objects.create(
                     name="preingest.tasks.ValidateXMLFile",
                     params={
                         "xml_filename": events_path,
-                    },
-                    processstep_pos=0,
-                    information_package=self
-                )
-            )
-
-            validate_step.tasks.add(
-                ProcessTask.objects.create(
-                    name="preingest.tasks.ValidateXMLFile",
-                    params={
-                        "xml_filename": mets_path,
-                    },
-                    processstep_pos=1,
-                    information_package=self
-                )
-            )
-
-            if self.profile_locked("preservation_metadata"):
-                validate_step.tasks.add(
-                    ProcessTask.objects.create(
-                        name="preingest.tasks.ValidateXMLFile",
-                        params={
-                            "xml_filename": premis_path,
-                        },
-                        processstep_pos=2,
-                        information_package=self
-                    )
-                )
-
-        if validate_logical_physical_representation:
-            validate_step.tasks.add(
-                ProcessTask.objects.create(
-                    name="preingest.tasks.ValidateLogicalPhysicalRepresentation",
-                    params={
-                        "xmlfile": mets_path,
-                        "ip": self
                     },
                     processstep_pos=3,
                     information_package=self
                 )
             )
 
-        validate_step.tasks.add(
-            ProcessTask.objects.create(
-                name="preingest.tasks.ValidateFiles",
-                params={
-                    "ip": self,
-                    "xmlfile": mets_path,
-                    "validate_fileformat": validate_file_format,
-                    "validate_integrity": validate_integrity,
-                },
-                processstep_pos=4,
-                information_package=self
-            )
-        )
-
-        validate_step.save()
 
         if container_format.lower() == 'zip':
             zipname = os.path.join(ip_reception_path) + '.zip'
-            t6 = ProcessTask.objects.create(
-                name="preingest.tasks.CreateZIP",
-                params={
-                    "dirname": ip_prepare_path,
-                    "zipname": zipname,
-                },
-                processstep_pos=4,
-                information_package=self
+            create_sip_step.tasks.add(
+                ProcessTask.objects.create(
+                    name="preingest.tasks.CreateZIP",
+                    params={
+                        "dirname": ip_prepare_path,
+                        "zipname": zipname,
+                    },
+                    processstep_pos=4,
+                    information_package=self
+                )
             )
 
         else:
             tarname = os.path.join(ip_reception_path) + '.tar'
-            t6 = ProcessTask.objects.create(
-                name="preingest.tasks.CreateTAR",
-                params={
-                    "dirname": ip_prepare_path,
-                    "tarname": tarname,
-                },
-                processstep_pos=5,
-                information_package=self
+            create_sip_step.tasks.add(
+                ProcessTask.objects.create(
+                    name="preingest.tasks.CreateTAR",
+                    params={
+                        "dirname": ip_prepare_path,
+                        "tarname": tarname,
+                    },
+                    processstep_pos=5,
+                    information_package=self
+                )
             )
 
-        t7 = ProcessTask.objects.create(
-            name="preingest.tasks.UpdateIPStatus",
-            params={
-                "ip": self,
-                "status": "Created",
-            },
-            processstep_pos=6,
-            information_package=self
+        create_sip_step.tasks.add(
+            ProcessTask.objects.create(
+                name="preingest.tasks.UpdateIPStatus",
+                params={
+                    "ip": self,
+                    "status": "Created",
+                },
+                processstep_pos=6,
+                information_package=self
+            )
         )
 
-        create_sip_step = ProcessStep.objects.create(
-                name="Create SIP",
-                parent_step_pos=3
-        )
-        create_sip_step.tasks = [t6, t7]
         create_sip_step.save()
 
         main_step = ProcessStep.objects.create(
