@@ -170,7 +170,8 @@ class SubmissionAgreement(models.Model):
     include_profile_transfer_project = models.BooleanField(default=False)
     include_profile_content_type = models.BooleanField(default=False)
     include_profile_data_selection = models.BooleanField(default=False)
-    include_profile_classification = models.BooleanField(default=False)
+    include_profile_authority_information = models.BooleanField(default=False)
+    include_profile_archival_description = models.BooleanField(default=False)
     include_profile_import = models.BooleanField(default=False)
     include_profile_submit_description = models.BooleanField(default=False)
     include_profile_sip = models.BooleanField(default=False)
@@ -229,7 +230,8 @@ profile_types = [
     "Transfer Project",
     "Content Type",
     "Data Selection",
-    "Classification",
+    "Authority Information",
+    "Archival Description",
     "Import",
     "Submit Description",
     "SIP",
