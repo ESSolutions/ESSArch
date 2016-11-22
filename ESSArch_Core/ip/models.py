@@ -169,6 +169,7 @@ class InformationPackage(models.Model):
 
         if not self.ObjectIdentifierValue:
             self.ObjectIdentifierValue = str(self.pk)
+            super(InformationPackage, self).save(*args, **kwargs)
 
     @property
     def ObjectSizeAndNum(self):
@@ -490,7 +491,7 @@ class InformationPackage(models.Model):
 
         info = {
             'FIDType': "UUID",
-            'FID': str(self.pk),
+            'FID': self.ObjectIdentifierValue,
             'FFormatName': container_format.upper(),
             'FLocationType': 'URI',
             'FName': self.ObjectPath,
