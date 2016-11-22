@@ -222,6 +222,8 @@ class InformationPackage(models.Model):
                validate_xml_file=True, validate_file_format=True,
                validate_integrity=True):
 
+        container_format = self.get_container_format()
+
         t0 = ProcessTask.objects.create(
             name="preingest.tasks.UpdateIPStatus",
             params={
@@ -353,7 +355,7 @@ class InformationPackage(models.Model):
                                 {
                                     "-name": "contentLocationValue",
                                     "-namespace": "premis",
-                                    "#content": [{"text": "file:///%s.tar" % self.pk}],
+                                    "#content": [{"text": "file:///%s.%s" % (self.pk, container_format.lower())}],
                                     "-children": []
                                 }
                             ]
@@ -374,7 +376,7 @@ class InformationPackage(models.Model):
         info = {
             'FIDType': "UUID",
             'FID': str(self.pk),
-            'FFormatName': 'TAR',
+            'FFormatName': container_format.upper(),
             'FLocationType': 'URI',
             'FName': self.ObjectPath,
         }
@@ -504,8 +506,6 @@ class InformationPackage(models.Model):
         )
 
         validate_step.save()
-
-        container_format = self.get_container_format()
 
         if container_format.lower() == 'zip':
             zipname = os.path.join(ip_reception_path) + '.zip'
