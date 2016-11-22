@@ -95,13 +95,14 @@ def available_tasks():
         )
     return tasks
 
-def create_event(eventType, eventArgs, agent, ip=None):
+def create_event(eventType, eventOutcome, eventOutcomeDetailNote, application, version, agent, ip=None):
     """
     Creates a new event and saves it to the database
 
     Args:
         eventType: The event type
-        eventArgs: The args that will be used to create the detail text
+        eventOutcome: Success (0) or Fail (1)
+        eventOutcomeDetailNote: The result or traceback of the task depending on the outcome
         agent: The agent creating the event
         ip: The information package connected to the event
 
@@ -111,12 +112,11 @@ def create_event(eventType, eventArgs, agent, ip=None):
 
     from ESSArch_Core.ip.models import EventIP
 
-    detail = eventType.eventDetail % tuple(eventArgs)
-
     return EventIP.objects.create(
-        eventType=eventType, eventDetail=detail,
-        linkingAgentIdentifierValue=agent,
-        linkingObjectIdentifierValue=ip,
+        eventType=eventType, eventOutcome=eventOutcome,
+        eventApplication=application, eventVersion=version,
+        eventOutcomeDetailNote=eventOutcomeDetailNote,
+        linkingAgentIdentifierValue=agent, linkingObjectIdentifierValue=ip,
     )
 
 

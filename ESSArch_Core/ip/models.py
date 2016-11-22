@@ -23,6 +23,8 @@
 # Create your models here.
 from __future__ import division
 
+from _version import get_versions
+
 from celery import states as celery_states
 
 from collections import OrderedDict
@@ -115,6 +117,7 @@ class InformationPackage(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
+    ObjectIdentifierValue = models.CharField(max_length=255, null=True)
     Label = models.CharField(max_length=255)
     Content = models.CharField(max_length=255)
     Responsible = models.CharField(max_length=255)
@@ -160,6 +163,12 @@ class InformationPackage(models.Model):
         default=None,
         null=True
     )
+
+    def save(self, *args, **kwargs):
+        super(InformationPackage, self).save(*args, **kwargs)
+
+        if not self.ObjectIdentifierValue:
+            self.ObjectIdentifierValue = str(self.pk)
 
     @property
     def ObjectSizeAndNum(self):
@@ -242,7 +251,7 @@ class InformationPackage(models.Model):
 
         event_type = EventType.objects.get(eventType=10200)
 
-        create_event(event_type, [], "System", self)
+        create_event(event_type, 0, "Created SIP", "Custom", get_versions()['version'], "System", self)
 
         prepare_path = Path.objects.get(
             entity="path_preingest_prepare"
@@ -821,16 +830,20 @@ class EventIP(models.Model):
     Events related to IP
     """
 
+    OUTCOME_CHOICES = (
+        (0, 'Success'),
+        (1, 'Fail')
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     eventType = models.ForeignKey(
         'configuration.EventType',
         on_delete=models.CASCADE
     )
     eventDateTime = models.DateTimeField(auto_now_add=True)
-    eventDetail = models.CharField(max_length=255) # For example "Prepare IP"
-    eventApplication = models.CharField(max_length=255)
-    eventVersion = models.CharField(max_length=255)
-    eventOutcome = models.CharField(max_length=255) # Success (0) or Fail (1)
+    eventApplication = models.CharField(max_length=255) # The task that generated the event
+    eventVersion = models.CharField(max_length=255) # The version number of the application (from versioneer)
+    eventOutcome = models.IntegerField(choices=OUTCOME_CHOICES, null=True, default=None) # Success (0) or Fail (1)
     eventOutcomeDetailNote = models.CharField(max_length=1024) # Result or traceback from IP
     linkingAgentIdentifierValue = models.CharField(max_length=255)
     linkingObjectIdentifierValue = models.ForeignKey(
@@ -845,7 +858,7 @@ class EventIP(models.Model):
 
     def __unicode__(self):
         # create a unicode representation of this object
-        return '%s (%s)' % (self.eventDetail, self.id)
+        return '%s (%s)' % (self.eventType.eventDetail, self.id)
 
     def get_value_array(self):
         # make an associative array of all fields  mapping the field

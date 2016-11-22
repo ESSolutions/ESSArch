@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import importlib
+import traceback
 import uuid
 
 from celery import chain, group, states as celery_states
@@ -397,8 +398,13 @@ class ProcessTask(Process):
         """
 
         t = self._create_task(self.name)
-        res = t(taskobj=self, eager=True)
-        t.create_event()
+        try:
+            res = t(taskobj=self, eager=True)
+            t.create_event(0, t.event_outcome_success(**self.params))
+        except:
+            tb = traceback.format_exc()
+            t.create_event(1, tb)
+
 
         return res
 

@@ -1,5 +1,7 @@
 from __future__ import absolute_import, division
 
+from _version import get_versions
+
 import time
 
 from celery import states as celery_states, Task
@@ -62,10 +64,7 @@ class DBTask(Task):
                 self.taskobj.time_done = timezone.now()
                 self.taskobj.save()
 
-            self.create_event()
-
-
-    def create_event(self):
+    def create_event(self, outcome, outcome_detail_note):
         if hasattr(self, "event_type"):
             if not isinstance(self.taskobj.information_package, InformationPackage):
                 raise AttributeError(
@@ -73,10 +72,10 @@ class DBTask(Task):
                 )
 
             event_type = EventType.objects.get(eventType=self.event_type)
-            event_args = self.get_event_args(**self.taskobj.params)
 
             create_event(
-                event_type, event_args, "System",
+                event_type, outcome, outcome_detail_note, self.taskobj.name,
+                get_versions()['version'], "System",
                 self.taskobj.information_package
             )
 
@@ -90,6 +89,14 @@ class DBTask(Task):
                 processstep_pos__gt=self.taskobj.processstep_pos
             ).update(status=celery_states.FAILURE)
 
+            outcome = 1
+            outcome_detail_note = "%s failed: %s" % (
+                self.taskobj.name, einfo.traceback
+            )
+            self.create_event(
+                outcome, outcome_detail_note
+            )
+
     def on_success(self, retval, task_id, args, kwargs):
         if not self.eager:
             try:
@@ -98,6 +105,14 @@ class DBTask(Task):
                 self.taskobj.result = None
 
             self.taskobj.save()
+
+            outcome = 0
+            outcome_detail_note = self.event_outcome_success(
+                **self.taskobj.params
+            )
+            self.create_event(
+                outcome, outcome_detail_note
+            )
 
     def set_progress(self, progress, total=None):
         if not self.eager:
@@ -108,8 +123,8 @@ class DBTask(Task):
             self.taskobj.save()
 
 
-    def get_event_args(self, *args, **kwargs):
-        return []
+    def event_outcome_success(self, *args, **kwargs):
+        raise NotImplementedError()
 
     def run(self, *args, **kwargs):
         raise NotImplementedError()
