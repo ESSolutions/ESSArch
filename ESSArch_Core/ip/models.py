@@ -356,7 +356,7 @@ class InformationPackage(models.Model):
 
         validate_step.tasks.add(
             ProcessTask.objects.create(
-                name="preingest.tasks.ValidateFiles",
+                name="ESSArch_Core.tasks.ValidateFiles",
                 params={
                     "ip": self,
                     "xmlfile": mets_path,
@@ -498,7 +498,7 @@ class InformationPackage(models.Model):
         }
 
         create_sip_step.tasks.add(ProcessTask.objects.create(
-            name="preingest.tasks.InsertXML",
+            name="ESSArch_Core.tasks.InsertXML",
             params={
                 "filename": events_path,
                 "elementToAppendTo": "premis",

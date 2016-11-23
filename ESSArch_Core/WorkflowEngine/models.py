@@ -401,12 +401,11 @@ class ProcessTask(Process):
         try:
             res = t(taskobj=self, eager=True)
             t.create_event(0, t.event_outcome_success(**self.params))
+            return res
         except:
             tb = traceback.format_exc()
             t.create_event(1, tb)
-
-
-        return res
+            raise
 
     def undo(self):
         """
