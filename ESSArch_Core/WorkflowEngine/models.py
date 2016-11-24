@@ -352,8 +352,8 @@ class ProcessTask(Process):
     result_params = PickledObjectField(null=True, default={})
     time_started = models.DateTimeField(_('started at'), null=True, blank=True)
     time_done = models.DateTimeField(_('done at'), null=True, blank=True)
-    traceback = models.TextField(
-        _('traceback'), blank=True, null=True, editable=False
+    einfo = PickledObjectField(
+        _('einfo'), blank=True, null=True, editable=False
     )
     hidden = models.BooleanField(editable=False, default=False, db_index=True)
     meta = PickledObjectField(null=True, default=None, editable=False)

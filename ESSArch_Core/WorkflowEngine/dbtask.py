@@ -81,7 +81,7 @@ class DBTask(Task):
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         if not self.eager:
-            self.taskobj.traceback = einfo.traceback
+            self.taskobj.einfo = einfo
             self.taskobj.save()
 
             ProcessTask.objects.filter(
