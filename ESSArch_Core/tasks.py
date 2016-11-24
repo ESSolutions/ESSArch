@@ -428,6 +428,7 @@ class ValidateFileFormat(DBTask):
 
         assert res == fileformat, "fileformat for %s is not valid" % filename
         self.set_progress(100, total=100)
+        return "Success"
 
     def undo(self, filename=None, fileformat=None):
         pass
@@ -456,6 +457,7 @@ class ValidateIntegrity(DBTask):
 
         assert digest == checksum, "checksum for %s is not valid (%s != %s)" % (filename, digest, checksum)
         self.set_progress(100, total=100)
+        return "Success"
 
     def undo(self, filename=None,checksum=None,  block_size=65536, algorithm='SHA-256'):
         pass
@@ -479,6 +481,7 @@ class ValidateXMLFile(DBTask):
 
         xmlschema.assertValid(doc)
         self.set_progress(100, total=100)
+        return "Success"
 
     def undo(self, xml_filename=None, schema_filename=None):
         pass
