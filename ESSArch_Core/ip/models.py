@@ -252,7 +252,7 @@ class InformationPackage(models.Model):
 
         event_type = EventType.objects.get(eventType=10200)
 
-        create_event(event_type, 0, "Created SIP", "Custom", get_versions()['version'], "System", self)
+        create_event(event_type, 0, "Created SIP", get_versions()['version'], "System", ip=self)
 
         prepare_path = Path.objects.get(
             entity="path_preingest_prepare"
@@ -842,7 +842,9 @@ class EventIP(models.Model):
         on_delete=models.CASCADE
     )
     eventDateTime = models.DateTimeField(auto_now_add=True)
-    eventApplication = models.CharField(max_length=255) # The task that generated the event
+    eventApplication = models.ForeignKey(
+        'WorkflowEngine.ProcessTask', on_delete=models.CASCADE, null=True
+    ) # The task that generated the event
     eventVersion = models.CharField(max_length=255) # The version number of the application (from versioneer)
     eventOutcome = models.IntegerField(choices=OUTCOME_CHOICES, null=True, default=None) # Success (0) or Fail (1)
     eventOutcomeDetailNote = models.CharField(max_length=1024) # Result or traceback from IP
@@ -852,6 +854,24 @@ class EventIP(models.Model):
         on_delete=models.CASCADE,
         related_name='events'
     )
+
+    def getEventOutcomeDetailNote(self):
+        max_len = 1024
+        task = self.eventApplication
+
+        if task and task.status == celery_states.FAILURE:
+            prefix = "%s (%s) failed: " % (task.name, task.pk)
+            exception = task.exception
+
+            total_len = len(prefix) + len(exception)
+
+            if total_len > max_len:
+                suffix = ' (truncated)'
+                return (prefix + exception)[:max_len - len(suffix)] + suffix
+
+            return prefix + exception
+
+        return self.eventOutcomeDetailNote
 
     class Meta:
         ordering = ["eventType"]

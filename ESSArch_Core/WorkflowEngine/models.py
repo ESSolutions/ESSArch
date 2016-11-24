@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import importlib
-import traceback
 import uuid
 
 from celery import chain, group, states as celery_states
@@ -374,6 +373,16 @@ class ProcessTask(Process):
         null=True
     )
 
+    @property
+    def exception(self):
+        if self.einfo:
+            return "%s: %s" % (self.einfo.type.__name__, self.einfo.exception)
+
+    @property
+    def traceback(self):
+        if self.einfo:
+            return self.einfo.traceback
+
     def clean(self):
         """
         Validates the task
@@ -393,18 +402,18 @@ class ProcessTask(Process):
         return self._create_task(self.name).delay(taskobj=self)
 
     def run_eagerly(self, **kwargs):
+        from billiard.einfo import ExceptionInfo
         """
         Runs the task locally (as a "regular" function)
         """
 
         t = self._create_task(self.name)
         try:
-            res = t(taskobj=self, eager=True)
+            self.result = t(taskobj=self, eager=True)
             t.create_event(0, t.event_outcome_success(**self.params))
-            return res
+            return self.result
         except:
-            tb = traceback.format_exc()
-            t.create_event(1, tb)
+            self.einfo = ExceptionInfo()
             raise
 
     def undo(self):

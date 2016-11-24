@@ -95,7 +95,7 @@ def available_tasks():
         )
     return tasks
 
-def create_event(eventType, eventOutcome, eventOutcomeDetailNote, application, version, agent, ip=None):
+def create_event(eventType, eventOutcome, eventOutcomeDetailNote, version, agent, application=None, ip=None):
     """
     Creates a new event and saves it to the database
 
@@ -112,13 +112,22 @@ def create_event(eventType, eventOutcome, eventOutcomeDetailNote, application, v
 
     from ESSArch_Core.ip.models import EventIP
 
-    return EventIP.objects.create(
-        eventType=eventType, eventOutcome=eventOutcome,
-        eventApplication=application, eventVersion=version,
-        eventOutcomeDetailNote=eventOutcomeDetailNote,
-        linkingAgentIdentifierValue=agent, linkingObjectIdentifierValue=ip,
-    )
+    try:
+        e = EventIP.objects.create(
+            eventType=eventType, eventOutcome=eventOutcome, eventVersion=version,
+            eventOutcomeDetailNote=eventOutcomeDetailNote,
+            linkingAgentIdentifierValue=agent, linkingObjectIdentifierValue=ip,
+        )
 
+        if application:
+            e.eventApplication = application
+            e.save()
+
+    except:
+        print application
+        raise
+
+    return e
 
 def getSchemas(doc=None, filename=None):
     """

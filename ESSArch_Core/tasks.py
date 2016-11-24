@@ -294,7 +294,7 @@ class AppendEvents(DBTask):
                 "eventType": str(event.eventType.eventType),
                 "eventDateTime": str(event.eventDateTime),
                 "eventDetail": event.eventType.eventDetail,
-                "eventOutcome": event.eventOutcome,
+                "eventOutcome": str(event.eventOutcome),
                 "eventOutcomeDetailNote": event.eventOutcomeDetailNote,
                 "linkingAgentIdentifierType": "SE/RA",
                 "linkingAgentIdentifierValue": event.linkingAgentIdentifierValue,
@@ -477,7 +477,7 @@ class ValidateXMLFile(DBTask):
         else:
             xmlschema = getSchemas(doc=doc)
 
-        xmlschema.assertValid(doc), "XML file %s is not valid", xml_filename
+        xmlschema.assertValid(doc)
         self.set_progress(100, total=100)
 
     def undo(self, xml_filename=None, schema_filename=None):

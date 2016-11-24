@@ -73,10 +73,14 @@ class DBTask(Task):
 
             event_type = EventType.objects.get(eventType=self.event_type)
 
+            application = None
+            if not self.eager:
+                application=self.taskobj
+
             create_event(
-                event_type, outcome, outcome_detail_note, self.taskobj.name,
-                get_versions()['version'], "System",
-                self.taskobj.information_package
+                event_type, outcome, outcome_detail_note,
+                get_versions()['version'], "System", application=application,
+                ip=self.taskobj.information_package
             )
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
@@ -90,9 +94,7 @@ class DBTask(Task):
             ).update(status=celery_states.FAILURE)
 
             outcome = 1
-            outcome_detail_note = "%s failed: %s" % (
-                self.taskobj.name, einfo.traceback
-            )
+            outcome_detail_note = einfo.traceback
             self.create_event(
                 outcome, outcome_detail_note
             )
