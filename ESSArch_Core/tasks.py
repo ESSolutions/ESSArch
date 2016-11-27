@@ -493,7 +493,7 @@ class ValidateXMLFile(DBTask):
 class UpdateIPStatus(DBTask):
     def run(self, ip=None, status=None):
         ip.State = status
-        ip.save()
+        ip.save(update_fields=['State'])
         self.set_progress(100, total=100)
 
     def undo(self, ip=None, status=None):
