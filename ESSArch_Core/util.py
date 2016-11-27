@@ -223,6 +223,9 @@ def get_tree_size_and_count(path):
             else:
                 size += entry.stat(follow_symlinks=False).st_size
                 count += 1
+    elif os.path.isfile(path):
+        size = os.stat(path).st_size
+        count = 1
 
     return size, count
 
