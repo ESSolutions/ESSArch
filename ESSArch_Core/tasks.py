@@ -501,3 +501,16 @@ class UpdateIPStatus(DBTask):
 
     def event_outcome_success(self, ip=None, status=None):
         return "Updated status of %s" % (ip.pk)
+
+
+class UpdateIPPath(DBTask):
+    def run(self, ip=None, path=None):
+        ip.ObjectPath = path
+        ip.save(update_fields=['ObjectPath'])
+        self.set_progress(100, total=100)
+
+    def undo(self, ip=None, path=None):
+        pass
+
+    def event_outcome_success(self, ip=None, path=None):
+        return "Updated path of '%s' (%s) to %s" % (ip.Label, ip.pk, path)

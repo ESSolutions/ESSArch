@@ -525,31 +525,43 @@ class InformationPackage(models.Model):
 
         if container_format.lower() == 'zip':
             zipname = os.path.join(ip_reception_path) + '.zip'
-            create_sip_step.tasks.add(
-                ProcessTask.objects.create(
-                    name="preingest.tasks.CreateZIP",
-                    params={
-                        "dirname": ip_prepare_path,
-                        "zipname": zipname,
-                    },
-                    processstep_pos=4,
-                    information_package=self
-                )
+            container_task = ProcessTask.objects.create(
+                name="preingest.tasks.CreateZIP",
+                params={
+                    "dirname": ip_prepare_path,
+                    "zipname": zipname,
+                },
+                processstep_pos=4,
+                information_package=self
             )
 
         else:
             tarname = os.path.join(ip_reception_path) + '.tar'
-            create_sip_step.tasks.add(
-                ProcessTask.objects.create(
-                    name="preingest.tasks.CreateTAR",
-                    params={
-                        "dirname": ip_prepare_path,
-                        "tarname": tarname,
-                    },
-                    processstep_pos=5,
-                    information_package=self
-                )
+            container_task = ProcessTask.objects.create(
+                name="preingest.tasks.CreateTAR",
+                params={
+                    "dirname": ip_prepare_path,
+                    "tarname": tarname,
+                },
+                processstep_pos=4,
+                information_package=self
             )
+
+        create_sip_step.tasks.add(container_task)
+
+        create_sip_step.tasks.add(
+            ProcessTask.objects.create(
+                name="preingest.tasks.UpdateIPPath",
+                params={
+                    "ip": self,
+                },
+                result_params={
+                    "path": container_task.pk
+                },
+                processstep_pos=5,
+                information_package=self
+            )
+        )
 
         create_sip_step.tasks.add(
             ProcessTask.objects.create(
