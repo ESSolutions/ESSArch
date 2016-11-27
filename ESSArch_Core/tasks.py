@@ -84,7 +84,7 @@ class IdentifyFileFormat(DBTask):
         pass
 
     def event_outcome_success(self, filename=None, block_size=65536, algorithm='SHA-256'):
-        return "Identified foramt of %s" % filename
+        return "Identified format of %s" % filename
 
 
 class GenerateXML(DBTask):
