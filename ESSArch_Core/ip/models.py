@@ -269,7 +269,7 @@ class InformationPackage(models.Model):
         return state
 
     def status(self):
-        if self.State in ["Prepared", "Created", "Submitted"]:
+        if self.State in ["Prepared", "Created", "Submitted", "Received", "Transferred"]:
             return 100
 
         if self.State == "Preparing":
@@ -297,7 +297,7 @@ class InformationPackage(models.Model):
 
             return progress
 
-        if self.State in ["Creating", "Submitting", "Receiving"]:
+        if self.State in ["Creating", "Submitting", "Receiving", "Transferring"]:
             steps = self.steps.all()
 
             if steps:
