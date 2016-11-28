@@ -346,8 +346,8 @@ class InformationPackage(models.Model):
                 ProcessTask.objects.create(
                     name="preingest.tasks.ValidateLogicalPhysicalRepresentation",
                     params={
+                        "dirname": self.ObjectPath,
                         "xmlfile": mets_path,
-                        "ip": self
                     },
                     processstep_pos=3,
                     information_package=self

@@ -16,6 +16,7 @@ from ESSArch_Core.util import (
     getSchemas,
     get_value_from_path,
     remove_prefix,
+    win_to_posix,
 )
 
 from fido.fido import Fido
@@ -488,6 +489,63 @@ class ValidateXMLFile(DBTask):
 
     def event_outcome_success(self, xml_filename=None, schema_filename=None):
         return "Validated %s against schema" % xml_filename
+
+
+class ValidateLogicalPhysicalRepresentation(DBTask):
+    """
+    Validates the logical and physical representation of objects.
+
+    The comparison checks if the lists contains the same elements (though not
+    the order of the elements).
+
+    See http://stackoverflow.com/a/7829388/1523238
+    """
+
+    def run(self, dirname=None, files=[], xmlfile=None):
+        if dirname:
+            xmlrelpath = os.path.relpath(xmlfile, dirname)
+            xmlrelpath = remove_prefix(xmlrelpath, "./")
+        else:
+            xmlrelpath = xmlfile
+
+        doc = etree.ElementTree(file=xmlfile)
+
+        root = doc.getroot()
+
+        logical_files = set()
+        physical_files = set()
+
+        for elname, props in settings.FILE_ELEMENTS.iteritems():
+            for f in doc.xpath('.//*[local-name()="%s"]' % elname):
+                filename = get_value_from_path(f, props["path"])
+
+                if filename:
+                    filename = remove_prefix(filename, props.get("pathprefix", ""))
+                    logical_files.add(filename)
+
+        if dirname:
+            for root, dirs, filenames in os.walk(dirname):
+                for f in filenames:
+                    if f != xmlrelpath:
+                        reldir = os.path.relpath(root, dirname)
+                        relfile = os.path.join(reldir, f)
+                        relfile = win_to_posix(relfile)
+                        relfile = remove_prefix(relfile, "./")
+
+                        physical_files.add(relfile)
+
+        for f in files:
+            physical_files.add(os.path.basename(f))
+
+        assert logical_files == physical_files, "the logical representation differs from the physical"
+        self.set_progress(100, total=100)
+        return "Success"
+
+    def undo(self, dirname=None, files=[], xmlfile=None):
+        pass
+
+    def event_outcome_success(self, dirname=None, files=[], xmlfile=None):
+        return "Validated logical and physical structure of %s and %s" % (xmlfile, dirname)
 
 
 class UpdateIPStatus(DBTask):
