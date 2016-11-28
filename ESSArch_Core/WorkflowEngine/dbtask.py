@@ -43,7 +43,11 @@ class DBTask(Task):
         self.taskobj.celery_id = self.request.id
         self.taskobj.status=celery_states.STARTED
         self.taskobj.time_started = timezone.now()
-        self.taskobj.save()
+        self.taskobj.save(
+            update_fields=[
+                'params', 'celery_id', 'status', 'time_started'
+            ]
+        )
 
         if self.taskobj.undo_type:
             return self.undo(**self.taskobj.params)
@@ -56,13 +60,11 @@ class DBTask(Task):
             try:
                 self.taskobj.status = status
                 self.taskobj.time_done = timezone.now()
-                self.taskobj.save()
+                self.taskobj.save(update_fields=['status', 'time_done'])
             except OperationalError:
                 print "Database locked, trying again after 2 seconds"
                 time.sleep(2)
-                self.taskobj.status = status
-                self.taskobj.time_done = timezone.now()
-                self.taskobj.save()
+                self.taskobj.save(update_fields=['status', 'time_done'])
 
     def create_event(self, outcome, outcome_detail_note):
         if hasattr(self, "event_type"):
@@ -86,7 +88,7 @@ class DBTask(Task):
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         if not self.eager:
             self.taskobj.einfo = einfo
-            self.taskobj.save()
+            self.taskobj.save(update_fields=['einfo'])
 
             ProcessTask.objects.filter(
                 attempt=self.taskobj.attempt,
@@ -106,7 +108,7 @@ class DBTask(Task):
             except AttributeError:
                 self.taskobj.result = None
 
-            self.taskobj.save()
+            self.taskobj.save(update_fields=['result'])
 
             outcome = 0
             outcome_detail_note = self.event_outcome_success(
@@ -122,7 +124,7 @@ class DBTask(Task):
                               meta={'current': progress, 'total': total})
 
             self.taskobj.progress = (progress/total) * 100
-            self.taskobj.save()
+            self.taskobj.save(update_fields=['progress'])
 
 
     def event_outcome_success(self, *args, **kwargs):
