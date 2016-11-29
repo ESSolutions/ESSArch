@@ -1,4 +1,4 @@
-import os, urllib
+import errno, os, shutil, urllib
 
 from django.conf import settings
 
@@ -572,3 +572,23 @@ class UpdateIPPath(DBTask):
 
     def event_outcome_success(self, ip=None, path=None):
         return "Updated path of '%s' (%s) to %s" % (ip.Label, ip.pk, path)
+
+
+class DeleteFiles(DBTask):
+    def run(self, path=None):
+        try:
+            shutil.rmtree(path)
+        except OSError as e:
+            if e.errno == errno.ENOTDIR:
+                try:
+                    os.remove(path)
+                except:
+                    raise
+
+        self.set_progress(100, total=100)
+
+    def undo(self, path=None):
+        pass
+
+    def event_outcome_success(self, path=None):
+        return "Deleted %s" % path
