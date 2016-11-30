@@ -313,6 +313,7 @@ class Profile(models.Model):
         copy.save()
 
         ip.change_profile(copy)
+        return copy
 
     def locked(self, submission_agreement):
         """
