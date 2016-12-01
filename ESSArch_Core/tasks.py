@@ -101,7 +101,7 @@ class GenerateXML(DBTask):
 
         generator.generate(
             folderToParse=folderToParse, algorithm=algorithm,
-            ip=self.taskobj.information_package
+            log=self.taskobj.log, ip=self.taskobj.information_package
         )
 
         self.set_progress(100, total=100)
@@ -355,6 +355,8 @@ class CopySchemas(DBTask):
 
 
 class ValidateFiles(DBTask):
+    fileformat_task = "ESSArch_Core.tasks.ValidateFileFormat"
+    checksum_task = "ESSArch_Core.tasks.ValidateIntegrity"
 
     def run(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
         if rootdir is None:
@@ -382,25 +384,29 @@ class ValidateFiles(DBTask):
 
                     if validate_fileformat and fformat is not None:
                         step.tasks.add(ProcessTask.objects.create(
-                            name="ESSArch_Core.tasks.ValidateFileFormat",
+                            name=self.fileformat_task,
                             params={
                                 "filename": os.path.join(rootdir, fpath),
                                 "fileformat": fformat,
                             },
+                            log=self.taskobj.log,
                             information_package=ip
                         ))
 
                     if validate_integrity and checksum is not None:
                         step.tasks.add(ProcessTask.objects.create(
-                            name="ESSArch_Core.tasks.ValidateIntegrity",
+                            name=self.checksum_task,
                             params={
                                 "filename": os.path.join(rootdir, fpath),
                                 "checksum": checksum,
                                 "algorithm": algorithm,
                             },
+                            log=self.taskobj.log,
                             information_package=ip
                         ))
 
+        self.taskobj.log = None
+        self.taskobj.save(update_fields=['log'])
         self.set_progress(100, total=100)
 
         return step.run()

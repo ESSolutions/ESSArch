@@ -14,11 +14,9 @@ from django.db import (
 
 from django.utils import timezone
 
-from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.ip.models import EventIP, InformationPackage
 
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
-
-from ESSArch_Core.util import create_event
 
 class DBTask(Task):
     def __call__(self, *args, **kwargs):
@@ -67,23 +65,32 @@ class DBTask(Task):
                 self.taskobj.save(update_fields=['status', 'time_done'])
 
     def create_event(self, outcome, outcome_detail_note):
-        if hasattr(self, "event_type"):
+        log = self.taskobj.log
+
+        if not log in [EventIP,]: # check if log is an event class
+            return
+
+        event_type = EventType.objects.get(eventType=self.event_type)
+
+        application = None
+        if not self.eager:
+            application=self.taskobj
+
+        event = log.objects.create(
+            eventType=event_type, eventOutcome=outcome,
+            eventVersion=get_versions()['version'],
+            eventOutcomeDetailNote=outcome_detail_note,
+            eventApplication=application, linkingAgentIdentifierValue='System',
+        )
+
+        if log == EventIP:
             if not isinstance(self.taskobj.information_package, InformationPackage):
                 raise AttributeError(
-                    "An IP is required to be set on the task to create an event"
+                    "An IP is required to be set on the task to create an IP event"
                 )
 
-            event_type = EventType.objects.get(eventType=self.event_type)
-
-            application = None
-            if not self.eager:
-                application=self.taskobj
-
-            create_event(
-                event_type, outcome, outcome_detail_note,
-                get_versions()['version'], "System", application=application,
-                ip=self.taskobj.information_package
-            )
+            event.linkingObjectIdentifierValue = self.taskobj.information_package
+            event.save(update_fields=['linkingObjectIdentifierValue'])
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         if not self.eager:

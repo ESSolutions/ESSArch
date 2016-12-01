@@ -402,7 +402,7 @@ class ProcessTask(Process):
 
         return self._create_task(self.name).delay(taskobj=self)
 
-    def run_eagerly(self, **kwargs):
+    def run_eagerly(self):
         from billiard.einfo import ExceptionInfo
         """
         Runs the task locally (as a "regular" function)
@@ -411,7 +411,8 @@ class ProcessTask(Process):
         t = self._create_task(self.name)
         try:
             self.result = t(taskobj=self, eager=True)
-            t.create_event(0, t.event_outcome_success(**self.params))
+            if self.log:
+                t.create_event(0, t.event_outcome_success(**self.params))
             return self.result
         except:
             self.einfo = ExceptionInfo()
