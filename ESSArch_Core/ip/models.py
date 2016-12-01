@@ -367,7 +367,8 @@ class EventIP(models.Model):
     linkingObjectIdentifierValue = models.ForeignKey(
         'InformationPackage',
         on_delete=models.CASCADE,
-        related_name='events'
+        related_name='events',
+        null=True,
     )
 
     def getEventOutcomeDetailNote(self):
