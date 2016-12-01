@@ -6,6 +6,8 @@ from lxml import etree
 
 from django.utils import timezone
 
+from scandir import walk
+
 from ESSArch_Core.configuration.models import (
     Path,
 )
@@ -215,7 +217,7 @@ class XMLGenerator(object):
                     algorithm=algorithm, ip=ip
                 ))
             elif os.path.isdir(folderToParse):
-                for root, dirnames, filenames in os.walk(folderToParse):
+                for root, dirnames, filenames in walk(folderToParse):
                     for fname in filenames:
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, folderToParse)
