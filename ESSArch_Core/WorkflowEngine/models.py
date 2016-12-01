@@ -372,6 +372,7 @@ class ProcessTask(Process):
         blank=True,
         null=True
     )
+    log = PickledObjectField(null=True, default=None)
 
     @property
     def exception(self):
