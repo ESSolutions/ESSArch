@@ -111,35 +111,45 @@
               var groupClass = 'display-flex';
               var fieldClass = 'flex-1';
 
-              var group = {
-                  className: groupClass,
-                  fieldGroup: [
-                      field,
-                      {
-                          className: fieldClass,
-                          type: 'input',
-                          key: field['key'] + '_desc',
-                          templateOptions: {
-                              label: 'Description'
+              if (angular.equals(Object.keys(field), ['template'])) {
+                  console.log("asdasd")
+                  var group = {
+                      className: groupClass,
+                      fieldGroup: [
+                          field
+                      ]
+                  }
+              } else {
+                  var group = {
+                      className: groupClass,
+                      fieldGroup: [
+                          field,
+                          {
+                              className: fieldClass,
+                              type: 'input',
+                              key: field['key'] + '_desc',
+                              templateOptions: {
+                                  label: 'Description'
+                              },
                           },
-                      },
-                      {
-                          className: fieldClass,
-                          type: 'checkbox',
-                          key: field['key'] + '_hideExpression',
-                          templateOptions: {
-                              label: 'Hidden'
+                          {
+                              className: fieldClass,
+                              type: 'checkbox',
+                              key: field['key'] + '_hideExpression',
+                              templateOptions: {
+                                  label: 'Hidden'
+                              },
                           },
-                      },
-                      {
-                          className: fieldClass,
-                          type: 'checkbox',
-                          key: field['key'] + '_readonly',
-                          templateOptions: {
-                              label: 'Read Only'
+                          {
+                              className: fieldClass,
+                              type: 'checkbox',
+                              key: field['key'] + '_readonly',
+                              templateOptions: {
+                                  label: 'Read Only'
+                              },
                           },
-                      },
-                  ]
+                      ]
+                  }
               }
               groups.push(group)
           });
