@@ -63,7 +63,7 @@ import hashlib, json, math, os, uuid
 
 class ArchivalInstitution(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     class Meta:
         verbose_name = 'ArchivalInstitution'
@@ -75,7 +75,7 @@ class ArchivalInstitution(models.Model):
 
 class ArchivistOrganization(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     class Meta:
         verbose_name = 'ArchivistOrganization'
@@ -87,7 +87,7 @@ class ArchivistOrganization(models.Model):
 
 class ArchivalType(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     class Meta:
         verbose_name = 'ArchivalType'
@@ -99,7 +99,7 @@ class ArchivalType(models.Model):
 
 class ArchivalLocation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     class Meta:
         verbose_name = 'ArchivalLocation'
