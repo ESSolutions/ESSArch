@@ -1,5 +1,9 @@
 from rest_framework import serializers
 
+from ESSArch_Core.ip.models import (
+    InformationPackage,
+)
+
 from ESSArch_Core.profiles.models import (
     SubmissionAgreement,
     Profile,
@@ -95,6 +99,25 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
+    specification_data = serializers.SerializerMethodField()
+
+    def get_specification_data(self, obj):
+        data = obj.specification_data
+        request = self.context.get('request')
+        if request:
+            sa = SubmissionAgreement.objects.filter(
+                pk=request.GET.get('sa')
+            ).first()
+            ip = InformationPackage.objects.filter(
+                pk=request.GET.get('ip')
+            ).first()
+
+            if not sa and ip:
+                sa = ip.SubmissionAgreement
+
+            data = obj.fill_specification_data(sa, ip)
+
+        return data
 
     class Meta:
         model = Profile
