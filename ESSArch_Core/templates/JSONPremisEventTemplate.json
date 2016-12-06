@@ -1,0 +1,132 @@
+{
+    "-max": 1,
+    "-namespace": "premis",
+    "-nsmap": {
+        "premis": "http://www.loc.gov/premis/v3",
+        "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+    },
+    "-attr": [
+        {
+            "-name": "version",
+            "#content": [
+                {
+                    "text": "3.0"
+                }
+            ],
+            "-req": 1
+        },
+        {
+            "-name": "schemaLocation",
+            "#content": [
+                {
+                    "text": "http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/premis.xsd"
+                }
+            ],
+            "-namespace": "xsi"
+        }
+    ],
+    "-name": "premis",
+    "-min": 0,
+    "-children": [
+        {
+            "-name": "object",
+            "-containsFiles": true,
+            "-children": [
+                {
+                    "-name": "objectIdentifier",
+                    "-children": [
+                        {
+                            "-name": "objectIdentifierType",
+                            "#content": [{"var": "FIDType"}],
+                            "-children": []
+                        },
+                        {
+                            "-name": "objectIdentifierValue",
+                            "#content": [{"text":"ID"},{"var": "FID"}],
+                            "-children": []
+                        }
+                    ]
+                },
+                {
+                    "-name": "objectCharacteristics",
+                    "-children": [
+                        {
+                            "-name": "compositionLevel",
+                            "#content": [{"var": "FCompositionLevel"}],
+                            "-children": []
+                        },
+                        {
+                            "-name": "fixity",
+                            "-children": [
+                                {
+                                    "-name": "messageDigestAlgorithm",
+                                    "#content": [{"var": "FChecksumType"}],
+                                    "-children": []
+                                },
+                                {
+                                    "-name": "messageDigest",
+                                    "#content": [{"var": "FChecksum"}],
+                                    "-children": []
+                                },
+                                {
+                                    "-name": "messageDigestOriginator",
+                                    "#content": [{"var": "FChecksumLib"}],
+                                    "-children": []
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "size",
+                            "#content": [{"var": "FSize"}],
+                            "-children": []
+                        },
+                        {
+                            "-name": "format",
+                            "-children": [
+                                {
+                                    "-name": "formatDesignation",
+                                    "-children": [
+                                        {
+                                            "-name": "formatName",
+                                            "#content": [{"var": "FFormatName"}],
+                                            "-children": []
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "-name": "storage",
+                    "-children": [
+                        {
+                            "-name": "contentLocation",
+                            "-children": [
+                                {
+                                    "-name": "contentLocationType",
+                                    "#content": [{"var": "FLocationType"}],
+                                    "-children": []
+                                },
+                                {
+                                    "-name": "contentLocationValue",
+                                    "#content": [{"text": "file:///"},{"var": "FName"}],
+                                    "-children": []
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "-max": 1,
+            "-attr": [
+                {
+                  "-name": "xsi:type",
+                  "-req": "1",
+                  "#content": [{"text":"premis:file"}]
+                }
+            ],
+            "-min": 0
+        }
+    ]
+}
