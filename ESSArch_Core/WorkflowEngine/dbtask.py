@@ -67,7 +67,7 @@ class DBTask(Task):
     def create_event(self, outcome, outcome_detail_note):
         log = self.taskobj.log
 
-        if not log in [EventIP,]: # check if log is an event class
+        if not log in [EventIP,] or not self.event_type: # check if log is an event class
             return
 
         event_type = EventType.objects.get(eventType=self.event_type)
