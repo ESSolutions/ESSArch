@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-import errno, hashlib, os, platform, pyclbr, re
+import errno, hashlib, json, os, platform, pyclbr, re
 
 from django.utils.timezone import get_current_timezone
 
@@ -260,3 +260,10 @@ def mkdir_p(path):
             pass
         else:
             raise
+
+
+def get_event_spec():
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    fname = 'templates/JSONPremisEventTemplate.json'
+    with open(os.path.join(dirname, fname)) as json_file:
+        return json.load(json_file)
