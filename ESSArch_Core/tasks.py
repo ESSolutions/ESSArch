@@ -390,7 +390,8 @@ class ValidateFiles(DBTask):
                                 "fileformat": fformat,
                             },
                             log=self.taskobj.log,
-                            information_package=ip
+                            information_package=ip,
+                            responsible=self.taskobj.responsible,
                         ))
 
                     if validate_integrity and checksum is not None:
@@ -402,7 +403,8 @@ class ValidateFiles(DBTask):
                                 "algorithm": algorithm,
                             },
                             log=self.taskobj.log,
-                            information_package=ip
+                            information_package=ip,
+                            responsible=self.taskobj.responsible,
                         ))
 
         self.taskobj.log = None
@@ -428,7 +430,8 @@ class ValidateFileFormat(DBTask):
             params={
                 "filename": filename,
             },
-            information_package=self.taskobj.information_package
+            information_package=self.taskobj.information_package,
+            responsible=self.taskobj.responsible,
         )
 
         res = t.run_eagerly()
@@ -457,7 +460,8 @@ class ValidateIntegrity(DBTask):
                 "block_size": block_size,
                 "algorithm": algorithm
             },
-            information_package=self.taskobj.information_package
+            information_package=self.taskobj.information_package,
+            responsible=self.taskobj.responsible,
         )
 
         digest = t.run_eagerly()

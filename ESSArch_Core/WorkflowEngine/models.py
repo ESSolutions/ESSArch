@@ -347,6 +347,9 @@ class ProcessTask(Process):
         _('state'), max_length=50, default=celery_states.PENDING,
         choices=TASK_STATE_CHOICES
     )
+    responsible = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL, related_name='tasks', null=True
+    )
     params = PickledObjectField(null=True, default={})
     result_params = PickledObjectField(null=True, default={})
     time_started = models.DateTimeField(_('started at'), null=True, blank=True)
