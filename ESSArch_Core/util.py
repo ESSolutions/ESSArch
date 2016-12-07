@@ -8,7 +8,7 @@ from datetime import datetime
 
 from lxml import etree
 
-from scandir import scandir, walk
+from scandir import scandir
 
 import requests
 

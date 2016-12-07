@@ -1,5 +1,3 @@
-from lxml import etree
-import os
 import copy
 from collections import OrderedDict
 

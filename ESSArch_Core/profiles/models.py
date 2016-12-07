@@ -23,16 +23,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-from ESSArch_Core.configuration.models import (
-    Path
-)
-
-from ESSArch_Core.WorkflowEngine.models import (
-    ProcessStep, ProcessTask,
-)
-
 import jsonfield
-import os
 import uuid
 
 Profile_Status_CHOICES = (
@@ -202,29 +193,6 @@ class SubmissionAgreement(models.Model):
 
         return None
 
-    def lock(self, ip):
-        """
-        Locks the sa in relation to an IP stop further editing
-        (if you don't have the permission to unlock it again)
-
-        Args:
-            ip: The information package
-
-        Returns:
-            The created lock
-        """
-
-        return SAIPLock.objects.create(
-            submission_agreement=self, information_package=ip
-        )
-
-    """
-    def get_value_array(self):
-        # make an associative array of all fields  mapping the field
-        # name to the current value of the field
-        return {field.name: field.value_to_string(self)
-                for field in SubmissionAgreement._meta.fields}
-    """
 
 profile_types = [
     "Transfer Project",
@@ -387,37 +355,6 @@ class Profile(models.Model):
 
         ip.change_profile(copy)
         return copy
-
-    def locked(self, submission_agreement):
-        """
-        Checks if the profiel is locked to the provided SA
-
-        Args:
-            submission_agreement: The submission agreement
-
-        Returns:
-            True if locked, false otherwise
-        """
-
-        return ProfileSALock.objects.filter(
-            profile=self, submission_agreement=submission_agreement,
-        ).exists()
-
-    def lock(self, submission_agreement):
-        """
-        Locks the profile in relation to an SA stop further editing
-        (if you don't have the permission to unlock it again)
-
-        Args:
-            submission_agreement: The submission agreement
-
-        Returns:
-            The created lock
-        """
-
-        return ProfileSALock.objects.create(
-            profile=self, submission_agreement=submission_agreement,
-        )
 
     def get_value_array(self):
         # make an associative array of all fields  mapping the field

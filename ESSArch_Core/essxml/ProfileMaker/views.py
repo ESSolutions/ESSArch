@@ -8,8 +8,6 @@ from ESSArch_Core.profiles.models import Profile
 from ESSArch_Core.essxml.ProfileMaker.xsdtojson import generateJsonRes, generateExtensionRef
 import requests
 from lxml import etree
-import os
-from django.conf import settings
 #file upload
 # import the logging library and get an instance of a logger
 import logging
@@ -19,7 +17,6 @@ logger = logging.getLogger('code.exceptions')
 import copy
 import json
 import uuid
-from collections import OrderedDict
 
 from django.views.generic import View
 from django.http import JsonResponse

@@ -23,22 +23,9 @@
 # Create your models here.
 from __future__ import division
 
-from _version import get_versions
-
 from celery import states as celery_states
 
-from collections import OrderedDict
-
-from django.conf import settings
 from django.db import models
-
-from ESSArch_Core.configuration.models import (
-    EventType, Path,
-)
-
-from ESSArch_Core.WorkflowEngine.models import (
-    ProcessStep, ProcessTask,
-)
 
 from ESSArch_Core.profiles.models import (
     SubmissionAgreement as SA,
@@ -46,19 +33,10 @@ from ESSArch_Core.profiles.models import (
 )
 
 from ESSArch_Core.util import (
-    create_event,
-    creation_date,
     get_tree_size_and_count,
-    timestamp_to_datetime,
 )
 
-from ESSArch_Core.essxml.Generator.xmlGenerator import (
-    downloadSchemas, find_destination
-)
-
-from scandir import scandir, walk
-
-import hashlib, json, math, os, uuid
+import math, uuid
 
 
 class ArchivalInstitution(models.Model):
