@@ -4,11 +4,14 @@ from _version import get_versions
 
 import time
 
+from billiard.einfo import ExceptionInfo
+
 from celery import states as celery_states, Task
 
 from ESSArch_Core.configuration.models import EventType
 
 from django.db import (
+    DatabaseError,
     OperationalError,
 )
 
@@ -27,9 +30,6 @@ class DBTask(Task):
 
         self.eager = kwargs.get("eager", False)
 
-        if self.eager:
-            return self.run(**self.taskobj.params)
-
         try:
             prev_result_dict = args[0]
         except IndexError:
@@ -46,6 +46,41 @@ class DBTask(Task):
                 'params', 'celery_id', 'status', 'time_started'
             ]
         )
+
+        if self.eager:
+            try:
+                res = self.run(**self.taskobj.params)
+                self.taskobj.result = res
+                self.taskobj.status = celery_states.SUCCESS
+                self.taskobj.time_done = timezone.now()
+
+                try:
+                    self.taskobj.save(update_fields=['result', 'status', 'time_done'])
+                except DatabaseError:
+                    self.taskobj.save()
+
+                if self.taskobj.log:
+                    self.create_event(
+                        0, self.event_outcome_success(**self.taskobj.params)
+                    )
+
+                return res
+            except:
+                self.taskobj.einfo = ExceptionInfo()
+                self.taskobj.status = celery_states.FAILURE
+                self.taskobj.time_done = timezone.now()
+
+                try:
+                    self.taskobj.save(update_fields=['einfo', 'status', 'time_done'])
+                except DatabaseError:
+                    self.taskobj.save()
+
+                outcome = 1
+                outcome_detail_note = self.taskobj.einfo.traceback
+                self.create_event(
+                    outcome, outcome_detail_note
+                )
+                raise
 
         if self.taskobj.undo_type:
             return self.undo(**self.taskobj.params)
@@ -126,12 +161,11 @@ class DBTask(Task):
             )
 
     def set_progress(self, progress, total=None):
-        if not self.eager:
-            self.update_state(state=celery_states.PENDING,
-                              meta={'current': progress, 'total': total})
+        self.update_state(state=celery_states.PENDING,
+                          meta={'current': progress, 'total': total})
 
-            self.taskobj.progress = (progress/total) * 100
-            self.taskobj.save(update_fields=['progress'])
+        self.taskobj.progress = (progress/total) * 100
+        self.taskobj.save(update_fields=['progress'])
 
 
     def event_outcome_success(self, *args, **kwargs):

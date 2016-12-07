@@ -293,7 +293,7 @@ class XMLGenerator(object):
         except KeyError:
             raise KeyError("Invalid file type: %s" % file_ext)
 
-        checksum = ProcessTask(
+        checksum = ProcessTask.objects.create(
             name="preingest.tasks.CalculateChecksum",
             params={
                 "filename": filepath,
@@ -303,7 +303,7 @@ class XMLGenerator(object):
             information_package=ip
         ).run_eagerly()
 
-        fileformat = ProcessTask(
+        fileformat = ProcessTask.objects.create(
             name="preingest.tasks.IdentifyFileFormat",
             params={
                 "filename": filepath,

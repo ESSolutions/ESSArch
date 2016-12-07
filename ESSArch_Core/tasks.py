@@ -425,7 +425,7 @@ class ValidateFileFormat(DBTask):
         """
         Validates the format of the given file
         """
-        t = ProcessTask(
+        t = ProcessTask.objects.create(
             name="ESSArch_Core.tasks.IdentifyFileFormat",
             params={
                 "filename": filename,
@@ -453,7 +453,7 @@ class ValidateIntegrity(DBTask):
         Validates the integrity(checksum) for the given file
         """
 
-        t = ProcessTask(
+        t = ProcessTask.objects.create(
             name="ESSArch_Core.tasks.CalculateChecksum",
             params={
                 "filename": filename,
