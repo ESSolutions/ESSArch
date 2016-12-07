@@ -101,7 +101,8 @@ class GenerateXML(DBTask):
 
         generator.generate(
             folderToParse=folderToParse, algorithm=algorithm,
-            log=self.taskobj.log, ip=self.taskobj.information_package
+            log=self.taskobj.log, ip=self.taskobj.information_package,
+            responsible=self.taskobj.responsible
         )
 
         self.set_progress(100, total=100)

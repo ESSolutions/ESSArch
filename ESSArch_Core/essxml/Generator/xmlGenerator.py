@@ -197,7 +197,7 @@ class XMLGenerator(object):
                 'root': XMLElement(template)
             })
 
-    def generate(self, folderToParse=None, algorithm='SHA-256', ip=None, log=None):
+    def generate(self, folderToParse=None, algorithm='SHA-256', ip=None, log=None, responsible=None):
         files = []
 
         mimetypes.suffix_map = {}
@@ -214,7 +214,8 @@ class XMLGenerator(object):
                 files.append(self.parseFile(
                     folderToParse, mimetypes,
                     relpath=os.path.basename(folderToParse),
-                    algorithm=algorithm, ip=ip, log=log
+                    algorithm=algorithm, ip=ip, log=log,
+                    responsible=responsible,
                 ))
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in walk(folderToParse):
@@ -223,7 +224,8 @@ class XMLGenerator(object):
                         relpath = os.path.relpath(filepath, folderToParse)
                         files.append(self.parseFile(
                             filepath, mimetypes, relpath=relpath,
-                            algorithm=algorithm, ip=ip, log=log
+                            algorithm=algorithm, ip=ip, log=log,
+                            responsible=responsible,
                         ))
 
         for f in self.toCreate:
@@ -246,7 +248,8 @@ class XMLGenerator(object):
                 relpath = fname
 
             files.append(self.parseFile(
-                fname, mimetypes, relpath, algorithm=algorithm, ip=ip, log=log
+                fname, mimetypes, relpath, algorithm=algorithm, ip=ip, log=log,
+                responsible=responsible,
             ))
 
     def insert(self, filename, elementToAppendTo, template, info={}, index=None):
@@ -274,7 +277,7 @@ class XMLGenerator(object):
             encoding='UTF-8'
         )
 
-    def parseFile(self, filepath, mimetypes, relpath=None, algorithm='SHA-256', ip=None, log=None):
+    def parseFile(self, filepath, mimetypes, relpath=None, algorithm='SHA-256', ip=None, log=None, responsible=None):
         """
         walk through the choosen folder and parse all the files to their own temporary location
         """
@@ -300,7 +303,8 @@ class XMLGenerator(object):
                 "algorithm": algorithm
             },
             log=log,
-            information_package=ip
+            information_package=ip,
+            responsible=responsible,
         ).run_eagerly()
 
         fileformat = ProcessTask.objects.create(
@@ -309,7 +313,8 @@ class XMLGenerator(object):
                 "filename": filepath,
             },
             log=log,
-            information_package=ip
+            information_package=ip,
+            responsible=responsible,
         ).run_eagerly()
 
         fileinfo = {

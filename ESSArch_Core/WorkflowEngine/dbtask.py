@@ -119,7 +119,8 @@ class DBTask(Task):
             eventType=event_type, eventOutcome=outcome,
             eventVersion=get_versions()['version'],
             eventOutcomeDetailNote=truncate(outcome_detail_note, 1024),
-            eventApplication=application, linkingAgentIdentifierValue='System',
+            eventApplication=application,
+            linkingAgentIdentifierValue=self.taskobj.responsible.username,
         )
 
         if log == EventIP:
