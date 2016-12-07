@@ -255,11 +255,22 @@ class Profile(models.Model):
 
         if sa:
             data['_SA_ID'] = str(sa.pk)
-            data['_SA_ARCHIVIST_ORGANIZATION'] = sa.sa_archivist_organization
 
         if ip:
             data['_OBJID'] = str(ip.pk)
             data['_OBJLABEL'] = ip.Label
+
+            if ip.ArchivistOrganization:
+                data['_IP_ARCHIVIST_ORGANIZATION'] = ip.ArchivistOrganization.name
+
+            if ip.ArchivalInstitution:
+                data['_IP_ARCHIVAL_INSTITUTION'] = ip.ArchivalInstitution.name
+
+            if ip.ArchivalType:
+                data['_IP_ARCHIVAL_TYPE'] = ip.ArchivalType.name
+
+            if ip.ArchivalLocation:
+                data['_IP_ARCHIVAL_LOCATION'] = ip.ArchivalLocation.name
 
             try:
                 data["_PROFILE_TRANSFER_PROJECT_ID"] = str(ip.get_profile('transfer_project').pk)
