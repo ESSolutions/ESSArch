@@ -273,10 +273,10 @@ class InformationPackage(models.Model):
             return 100
 
         if self.State == "Preparing":
-            if self.SubmissionAgreementLocked:
-                return 100
+            if not self.SubmissionAgreementLocked:
+                return 33
 
-            progress = 33
+            progress = 66
 
             try:
                 sa_profiles = ProfileSA.objects.filter(
@@ -290,7 +290,7 @@ class InformationPackage(models.Model):
                     )
                 )
 
-                progress += math.ceil(ip_profiles_locked.count() * (33 / sa_profiles.count()))
+                progress += math.ceil(ip_profiles_locked.count() * ((100-progress) / sa_profiles.count()))
 
             except ZeroDivisionError:
                 pass
