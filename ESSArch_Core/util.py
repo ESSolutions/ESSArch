@@ -267,3 +267,10 @@ def get_event_spec():
     fname = 'templates/JSONPremisEventTemplate.json'
     with open(os.path.join(dirname, fname)) as json_file:
         return json.load(json_file)
+
+
+def truncate(text, max_len, suffix=' (truncated)'):
+    if len(text) > max_len:
+        return text[:max_len - len(suffix)] + suffix
+
+    return text

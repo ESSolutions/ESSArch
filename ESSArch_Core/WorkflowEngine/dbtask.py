@@ -21,6 +21,10 @@ from ESSArch_Core.ip.models import EventIP, InformationPackage
 
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
+from ESSArch_Core.util import (
+    truncate
+)
+
 class DBTask(Task):
     def __call__(self, *args, **kwargs):
         try:
@@ -114,7 +118,7 @@ class DBTask(Task):
         event = log.objects.create(
             eventType=event_type, eventOutcome=outcome,
             eventVersion=get_versions()['version'],
-            eventOutcomeDetailNote=outcome_detail_note,
+            eventOutcomeDetailNote=truncate(outcome_detail_note, 1024),
             eventApplication=application, linkingAgentIdentifierValue='System',
         )
 

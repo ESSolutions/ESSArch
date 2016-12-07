@@ -371,24 +371,6 @@ class EventIP(models.Model):
         null=True,
     )
 
-    def getEventOutcomeDetailNote(self):
-        max_len = 1024
-        task = self.eventApplication
-
-        if task and task.status == celery_states.FAILURE:
-            prefix = "%s (%s) failed: " % (task.name, task.pk)
-            exception = task.exception
-
-            total_len = len(prefix) + len(exception)
-
-            if total_len > max_len:
-                suffix = ' (truncated)'
-                return (prefix + exception)[:max_len - len(suffix)] + suffix
-
-            return prefix + exception
-
-        return self.eventOutcomeDetailNote
-
     class Meta:
         ordering = ["eventType"]
         verbose_name = 'Events related to IP'
