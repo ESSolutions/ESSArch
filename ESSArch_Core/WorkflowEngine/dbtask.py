@@ -108,9 +108,7 @@ class DBTask(Task):
 
         event_type = EventType.objects.get(eventType=self.event_type)
 
-        application = None
-        if not self.eager:
-            application=self.taskobj
+        application=self.taskobj
 
         event = log.objects.create(
             eventType=event_type, eventOutcome=outcome,
