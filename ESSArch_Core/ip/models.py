@@ -335,9 +335,9 @@ class EventIP(models.Model):
         on_delete=models.CASCADE
     )
     eventDateTime = models.DateTimeField(auto_now_add=True)
-    eventApplication = models.ForeignKey(
+    eventApplication = models.OneToOneField(
         'WorkflowEngine.ProcessTask', on_delete=models.CASCADE, null=True,
-        related_name='events',
+        related_name='event',
     ) # The task that generated the event
     eventVersion = models.CharField(max_length=255) # The version number of the application (from versioneer)
     eventOutcome = models.IntegerField(choices=OUTCOME_CHOICES, null=True, default=None) # Success (0) or Fail (1)

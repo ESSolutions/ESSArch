@@ -86,6 +86,7 @@ class DBTask(Task):
             return self.undo(**self.taskobj.params)
         else:
             prev_result_dict[self.taskobj.id] = self.run(**self.taskobj.params)
+            self.create_event(None, "")
             return prev_result_dict
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
@@ -138,11 +139,10 @@ class DBTask(Task):
                 processstep_pos__gt=self.taskobj.processstep_pos
             ).update(status=celery_states.FAILURE)
 
-            outcome = 1
-            outcome_detail_note = einfo.traceback
-            self.create_event(
-                outcome, outcome_detail_note
-            )
+            event = self.taskobj.event
+            event.eventOutcome = 1
+            event.eventOutcomeDetailNote = einfo.traceback
+            event.save()
 
     def on_success(self, retval, task_id, args, kwargs):
         if not self.eager:
@@ -153,13 +153,12 @@ class DBTask(Task):
 
             self.taskobj.save(update_fields=['result'])
 
-            outcome = 0
-            outcome_detail_note = self.event_outcome_success(
+            event = self.taskobj.event
+            event.eventOutcome = 0
+            event.eventOutcomeDetailNote = self.event_outcome_success(
                 **self.taskobj.params
             )
-            self.create_event(
-                outcome, outcome_detail_note
-            )
+            event.save()
 
     def set_progress(self, progress, total=None):
         self.update_state(state=celery_states.PENDING,
