@@ -209,6 +209,15 @@ def download_file(url, dst):
             for chunk in r:
                 f.write(chunk)
 
+
+def get_files_and_dirs(path):
+    """Return all files and directories at a given path"""
+
+    if os.path.isdir(path):
+        return scandir(path)
+
+    return []
+
 def get_tree_size_and_count(path):
     """Return total size and count of files in given path and subdirs."""
     size = 0
