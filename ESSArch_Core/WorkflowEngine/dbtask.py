@@ -45,11 +45,7 @@ class DBTask(Task):
         self.taskobj.celery_id = self.request.id
         self.taskobj.status=celery_states.STARTED
         self.taskobj.time_started = timezone.now()
-        self.taskobj.save(
-            update_fields=[
-                'params', 'celery_id', 'status', 'time_started'
-            ]
-        )
+        self.taskobj.save()
 
         if self.eager:
             try:
