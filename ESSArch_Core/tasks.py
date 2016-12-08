@@ -96,13 +96,11 @@ class GenerateXML(DBTask):
         """
 
         generator = XMLGenerator(
-            filesToCreate, info
+            filesToCreate, info, self.taskobj
         )
 
         generator.generate(
             folderToParse=folderToParse, algorithm=algorithm,
-            log=self.taskobj.log, ip=self.taskobj.information_package,
-            responsible=self.taskobj.responsible
         )
 
         self.set_progress(100, total=100)

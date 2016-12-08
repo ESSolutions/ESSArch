@@ -186,9 +186,10 @@ class XMLAttribute(object):
         return name, parseContent(self.content, info), self.required
 
 class XMLGenerator(object):
-    def __init__(self, filesToCreate={}, info={}):
+    def __init__(self, filesToCreate={}, info={}, task=None):
         self.info = info
         self.toCreate = []
+        self.task = task
 
         for fname, template in filesToCreate.iteritems():
             self.toCreate.append({
@@ -197,7 +198,7 @@ class XMLGenerator(object):
                 'root': XMLElement(template)
             })
 
-    def generate(self, folderToParse=None, algorithm='SHA-256', ip=None, log=None, responsible=None):
+    def generate(self, folderToParse=None, algorithm='SHA-256'):
         files = []
 
         mimetypes.suffix_map = {}
@@ -214,8 +215,7 @@ class XMLGenerator(object):
                 files.append(self.parseFile(
                     folderToParse, mimetypes,
                     relpath=os.path.basename(folderToParse),
-                    algorithm=algorithm, ip=ip, log=log,
-                    responsible=responsible,
+                    algorithm=algorithm,
                 ))
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in walk(folderToParse):
@@ -224,8 +224,7 @@ class XMLGenerator(object):
                         relpath = os.path.relpath(filepath, folderToParse)
                         files.append(self.parseFile(
                             filepath, mimetypes, relpath=relpath,
-                            algorithm=algorithm, ip=ip, log=log,
-                            responsible=responsible,
+                            algorithm=algorithm,
                         ))
 
         for f in self.toCreate:
@@ -248,8 +247,7 @@ class XMLGenerator(object):
                 relpath = fname
 
             files.append(self.parseFile(
-                fname, mimetypes, relpath, algorithm=algorithm, ip=ip, log=log,
-                responsible=responsible,
+                fname, mimetypes, relpath, algorithm=algorithm,
             ))
 
     def insert(self, filename, elementToAppendTo, template, info={}, index=None):
@@ -277,7 +275,7 @@ class XMLGenerator(object):
             encoding='UTF-8'
         )
 
-    def parseFile(self, filepath, mimetypes, relpath=None, algorithm='SHA-256', ip=None, log=None, responsible=None):
+    def parseFile(self, filepath, mimetypes, relpath=None, algorithm='SHA-256'):
         """
         walk through the choosen folder and parse all the files to their own temporary location
         """
@@ -300,26 +298,38 @@ class XMLGenerator(object):
         except KeyError:
             raise KeyError("Invalid file type: %s" % file_ext)
 
-        checksum = ProcessTask.objects.create(
+        checksum_task = ProcessTask.objects.create(
             name="preingest.tasks.CalculateChecksum",
             params={
                 "filename": filepath,
                 "algorithm": algorithm
             },
-            log=log,
-            information_package=ip,
-            responsible=responsible,
-        ).run_eagerly()
+        )
 
-        fileformat = ProcessTask.objects.create(
+        fileformat_task = ProcessTask.objects.create(
             name="preingest.tasks.IdentifyFileFormat",
             params={
                 "filename": filepath,
             },
-            log=log,
-            information_package=ip,
-            responsible=responsible,
-        ).run_eagerly()
+            log=self.task.log,
+            information_package=self.task.ip,
+            responsible=self.task.responsible,
+        )
+
+        if self.task:
+            checksum_task.log = self.task.log
+            checksum_task.information_package = self.task.ip,
+            checksum_task.responsible = self.task.responsible,
+
+            fileformat_task.log = self.task.log
+            fileformat_task.information_package = self.task.ip,
+            fileformat_task.responsible = self.task.responsible,
+
+            checksum_task.save()
+            fileformat_task.save()
+
+        checksum = checksum_task.run_eagerly()
+        fileformat = fileformat_task.run_eagerly()
 
         fileinfo = {
             'FName': file_name + file_ext,
