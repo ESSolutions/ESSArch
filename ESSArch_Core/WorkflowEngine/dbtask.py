@@ -137,10 +137,13 @@ class DBTask(Task):
                 processstep_pos__gt=self.taskobj.processstep_pos
             ).update(status=celery_states.FAILURE)
 
-            event = self.taskobj.event
-            event.eventOutcome = 1
-            event.eventOutcomeDetailNote = einfo.traceback
-            event.save()
+            try:
+                event = self.taskobj.event
+                event.eventOutcome = 1
+                event.eventOutcomeDetailNote = einfo.traceback
+                event.save()
+            except EventIP.DoesNotExist:
+                pass
 
     def on_success(self, retval, task_id, args, kwargs):
         if not self.eager:
@@ -151,12 +154,15 @@ class DBTask(Task):
 
             self.taskobj.save(update_fields=['result'])
 
-            event = self.taskobj.event
-            event.eventOutcome = 0
-            event.eventOutcomeDetailNote = self.event_outcome_success(
-                **self.taskobj.params
-            )
-            event.save()
+            try:
+                event = self.taskobj.event
+                event.eventOutcome = 0
+                event.eventOutcomeDetailNote = self.event_outcome_success(
+                    **self.taskobj.params
+                )
+                event.save()
+            except EventIP.DoesNotExist:
+                pass
 
     def set_progress(self, progress, total=None):
         self.update_state(state=celery_states.PENDING,
