@@ -311,19 +311,16 @@ class XMLGenerator(object):
             params={
                 "filename": filepath,
             },
-            log=self.task.log,
-            information_package=self.task.ip,
-            responsible=self.task.responsible,
         )
 
         if self.task:
             checksum_task.log = self.task.log
-            checksum_task.information_package = self.task.ip,
-            checksum_task.responsible = self.task.responsible,
+            checksum_task.information_package = self.task.information_package
+            checksum_task.responsible = self.task.responsible
 
             fileformat_task.log = self.task.log
-            fileformat_task.information_package = self.task.ip,
-            fileformat_task.responsible = self.task.responsible,
+            fileformat_task.information_package = self.task.information_package
+            fileformat_task.responsible = self.task.responsible
 
             checksum_task.save()
             fileformat_task.save()
