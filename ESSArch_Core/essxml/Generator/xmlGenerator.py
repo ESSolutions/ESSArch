@@ -288,6 +288,10 @@ class XMLGenerator(object):
 
         base = os.path.basename(relpath)
         file_name, file_ext = os.path.splitext(base)
+
+        if not file_ext:
+            file_ext = file_name
+
         timestamp = creation_date(filepath)
         createdate = timestamp_to_datetime(timestamp)
 
