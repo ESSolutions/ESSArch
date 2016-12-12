@@ -255,6 +255,7 @@ class Profile(models.Model):
 
         if sa:
             data['_SA_ID'] = str(sa.pk)
+            data['_SA_NAME'] = str(sa.sa_name)
 
         if ip:
             data['_OBJID'] = str(ip.pk)
