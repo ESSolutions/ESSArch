@@ -297,7 +297,7 @@ class AppendEvents(DBTask):
                 "eventOutcome": str(event.eventOutcome),
                 "eventOutcomeDetailNote": event.eventOutcomeDetailNote,
                 "linkingAgentIdentifierType": "SE/RA",
-                "linkingAgentIdentifierValue": event.linkingAgentIdentifierValue,
+                "linkingAgentIdentifierValue": event.linkingAgentIdentifierValue.username,
                 "linkingObjectIdentifierType": "SE/RA",
                 "linkingObjectIdentifierValue": str(event.linkingObjectIdentifierValue.ObjectIdentifierValue),
             }
