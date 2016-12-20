@@ -53,14 +53,13 @@ class CanSubmitSIP(IsResponsibleOrReadOnly):
         return responsible or has_perm
 
 
-class CanTransferSIP(IsResponsibleOrReadOnly):
+class CanTransferSIP(permissions.BasePermission):
     message = "You are not allowed to transfer this SIP"
 
     def has_object_permission(self, request, view, obj):
-        responsible = self.is_responsible(request, obj)
         has_perm = request.user.has_perm('ip.transfer_sip')
 
-        return responsible or has_perm
+        return has_perm
 
 
 class CanChangeSA(IsResponsibleOrReadOnly):
