@@ -308,6 +308,15 @@ class InformationPackage(models.Model):
     class Meta:
         ordering = ["id"]
         verbose_name = 'Information Package'
+        permissions = (
+            ('set_uploaded', 'Can set IP as uploaded'),
+            ('create_sip', 'Can create SIP'),
+            ('submit_sip', 'Can submit SIP'),
+            ('transfer_sip', 'Can transfer SIP'),
+            ('change_sa', 'Can change SA connected to IP'),
+            ('lock_sa', 'Can lock SA to IP'),
+            ('unlock_profile', 'Can unlock profile connected to IP'),
+        )
 
     def __unicode__(self):
         # create a unicode representation of this object
