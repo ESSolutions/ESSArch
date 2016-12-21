@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-import errno, hashlib, json, os, platform, pyclbr, re
+import errno, hashlib, json, os, platform, pyclbr, re, shutil
 
 from django.utils.timezone import get_current_timezone
 
@@ -283,3 +283,13 @@ def truncate(text, max_len, suffix=' (truncated)'):
         return text[:max_len - len(suffix)] + suffix
 
     return text
+
+
+def delete_content(folder):
+    for entry in scandir(folder):
+        path = os.path.join(folder, entry)
+
+        if entry.is_file(path):
+            os.remove(path)
+        elif entry.is_dir(path):
+            shutil.rmtree(path)
