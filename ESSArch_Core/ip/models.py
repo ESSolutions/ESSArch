@@ -189,7 +189,7 @@ class InformationPackage(models.Model):
     def unlock_profile(self, ptype):
         ProfileIP.objects.filter(
             ip=self, profile__profile_type=ptype
-        ).delete()
+        ).update(LockedBy=None)
 
     def get_container_format(self):
         try:
