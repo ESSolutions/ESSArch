@@ -287,9 +287,7 @@ def truncate(text, max_len, suffix=' (truncated)'):
 
 def delete_content(folder):
     for entry in scandir(folder):
-        path = os.path.join(folder, entry)
-
-        if entry.is_file(path):
-            os.remove(path)
-        elif entry.is_dir(path):
-            shutil.rmtree(path)
+        if entry.is_file():
+            os.remove(entry.path)
+        elif entry.is_dir():
+            shutil.rmtree(entry.path)
