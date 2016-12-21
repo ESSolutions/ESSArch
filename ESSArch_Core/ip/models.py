@@ -191,6 +191,9 @@ class InformationPackage(models.Model):
             ip=self, profile__profile_type=ptype
         ).update(LockedBy=None)
 
+        self.State = 'Preparing'
+        self.save(update_fields=['State'])
+
     def get_container_format(self):
         try:
             return self.get_profile('transfer_project').specification_data.get(
