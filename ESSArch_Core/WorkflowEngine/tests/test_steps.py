@@ -2,11 +2,6 @@ from celery import states as celery_states
 from django.conf import settings
 from django.test import TestCase
 
-from ESSArch_Core.configuration.models import (
-    EventType,
-    Path,
-)
-
 from ESSArch_Core.ip.models import InformationPackage
 
 from ESSArch_Core.WorkflowEngine.models import (
