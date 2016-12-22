@@ -129,6 +129,7 @@ class DBTask(Task):
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         if not self.eager:
+            self.taskobj.refresh_from_db()
             self.taskobj.einfo = einfo
             self.taskobj.save(update_fields=['einfo'])
 
@@ -147,6 +148,7 @@ class DBTask(Task):
 
     def on_success(self, retval, task_id, args, kwargs):
         if not self.eager:
+            self.taskobj.refresh_from_db()
             try:
                 self.taskobj.result = retval.get(self.taskobj.id, None)
             except AttributeError:
