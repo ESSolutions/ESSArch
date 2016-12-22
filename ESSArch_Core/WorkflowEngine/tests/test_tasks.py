@@ -1,16 +1,17 @@
 import traceback
 
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from install.install_default_config_etp import installDefaultEventTypes
 
-from ip.models import (
+from ESSArch_Core.ip.models import (
     InformationPackage,
 )
 
-from preingest.models import (
+from ESSArch_Core.WorkflowEngine.models import (
     ProcessTask,
 )
 
@@ -22,6 +23,8 @@ class test_running_tasks(TestCase):
         settings.CELERY_ALWAYS_EAGER = True
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
 
+        self.user = User.objects.create(username="user1")
+
     def test_create_nonexistent_task(self):
         """
         Creates a task with a name that doesn't exist.
@@ -30,6 +33,7 @@ class test_running_tasks(TestCase):
         with self.assertRaises(ValidationError):
             task = ProcessTask(
                 name="nonexistent task",
+                responsible=self.user
             )
 
             task.full_clean()
@@ -41,6 +45,7 @@ class test_running_tasks(TestCase):
 
         task = ProcessTask(
             name="preingest.tests.tasks.First",
+            responsible=self.user
         )
 
         task.full_clean()
@@ -58,7 +63,7 @@ class test_running_tasks(TestCase):
                 params={
                     "bar": 123
                 },
-                information_package=InformationPackage()
+                information_package=InformationPackage.objects.create()
             )
 
             task.run()
@@ -77,7 +82,7 @@ class test_running_tasks(TestCase):
                     "foo": 123,
                     "bar": 456
                 },
-                information_package=InformationPackage()
+                information_package=InformationPackage.objects.create()
             )
 
             task.run()
@@ -95,7 +100,7 @@ class test_running_tasks(TestCase):
             params={
                 "foo": foo
             },
-            information_package=InformationPackage()
+            information_package=InformationPackage.objects.create()
         )
 
         task.run()
@@ -115,7 +120,7 @@ class test_running_tasks(TestCase):
                 params={
                     "bar": foo
                 },
-                information_package=InformationPackage()
+                information_package=InformationPackage.objects.create()
             )
             task.run()
         except TypeError:
