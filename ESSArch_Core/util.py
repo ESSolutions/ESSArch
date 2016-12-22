@@ -95,7 +95,7 @@ def get_value_from_path(el, path):
 
 
 def available_tasks():
-    modules = ["preingest.tasks", "preingest.tests.tasks"]
+    modules = ["preingest.tasks", "ESSArch_Core.WorkflowEngine.tests.tasks"]
     tasks = []
     for m in modules:
         module_tasks = pyclbr.readmodule(m)

@@ -266,7 +266,7 @@ class XMLGenerator(object):
         else:
             elementToAppendTo = rootEl.find(".//{*}%s" % elementToAppendTo)
 
-        root_nsmap = {k:v for k,v in elementToAppendTo.nsmap.iteritems() if k}
+        root_nsmap = {k: v for k, v in elementToAppendTo.nsmap.iteritems() if k}
 
         appendedRootEl = XMLElement(template, nsmap=root_nsmap)
 

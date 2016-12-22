@@ -16,8 +16,8 @@ class test_generateXML(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.bd = os.path.dirname(os.path.realpath(__file__))
-        cls.xmldir = os.path.join(cls.bd,"xmlfiles")
-        cls.datadir = os.path.join(cls.bd,"datafiles")
+        cls.xmldir = os.path.join(cls.bd, "xmlfiles")
+        cls.datadir = os.path.join(cls.bd, "datafiles")
         cls.fname = os.path.join(cls.xmldir, "test.xml")
 
         shutil.rmtree(cls.xmldir)
@@ -47,7 +47,7 @@ class test_generateXML(TestCase):
                     "-name": "schemaLocation",
                     "-namespace": "xsi",
                     "-req": 1,
-                    "#content": [{"var":"xsi:schemaLocation"}]
+                    "#content": [{"var": "xsi:schemaLocation"}]
                 },
             ]
         }
@@ -552,7 +552,7 @@ class test_generateXML(TestCase):
                 {
                     '-name': 'bar',
                     '-containsFiles': True,
-                    "-filters": {"href":"record1/*"},
+                    "-filters": {"href": "record1/*"},
                     '-attr': [
                         {
                             '-name': 'name',
@@ -680,7 +680,7 @@ class test_generateXML(TestCase):
                     '#content': [{
                         'var': 'href'
                     }],
-                    "-filters": {"href":"record1/*"},
+                    "-filters": {"href": "record1/*"},
                 },
             ],
         }
@@ -792,7 +792,7 @@ class test_generateXML(TestCase):
                     '#content': [{
                         'var': 'href'
                     }],
-                    "-filters": {"href":"record1/*"},
+                    "-filters": {"href": "record1/*"},
                 },
                 {
                     '-name': 'c',
@@ -804,7 +804,7 @@ class test_generateXML(TestCase):
                     '#content': [{
                         'var': 'href'
                     }],
-                    "-filters": {"href":"record2/*"},
+                    "-filters": {"href": "record2/*"},
                 },
                 {
                     '-name': 'e',

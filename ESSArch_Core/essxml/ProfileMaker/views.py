@@ -231,7 +231,7 @@ def removeChild(request, name, uuid):
     return JsonResponse(existingElements, safe=False)
 
 
-def removeChildren(existingElements ,element):
+def removeChildren(existingElements , element):
     for child in element['children']:
         removeChildren(existingElements, existingElements[child['uuid']])
         del existingElements[child['uuid']]
@@ -463,7 +463,7 @@ class add(View):
 
             schemadoc = etree.fromstring(schema_request.content)
             targetNamespace = schemadoc.get('targetNamespace')
-            nsmap = {k:v for k,v in schemadoc.nsmap.iteritems() if k and v != "http://www.w3.org/2001/XMLSchema"}
+            nsmap = {k: v for k, v in schemadoc.nsmap.iteritems() if k and v != "http://www.w3.org/2001/XMLSchema"}
 
             existingElements, allElements = generateJsonRes(schemadoc, root, prefix);
             existingElements["root"]["nsmap"] = nsmap
@@ -509,7 +509,7 @@ class addExtension(View):
             schema_request.raise_for_status()
 
             schemadoc = etree.fromstring(schema_request.content)
-            nsmap = {k:v for k,v in schemadoc.nsmap.iteritems() if k and v != "http://www.w3.org/2001/XMLSchema"}
+            nsmap = {k: v for k, v in schemadoc.nsmap.iteritems() if k and v != "http://www.w3.org/2001/XMLSchema"}
             targetNamespace = schemadoc.get('targetNamespace')
 
             extensionElements, extensionAll, attributes = generateExtensionRef(schemadoc, prefix)

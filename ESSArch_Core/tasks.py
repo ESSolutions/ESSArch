@@ -472,7 +472,7 @@ class ValidateIntegrity(DBTask):
         self.set_progress(100, total=100)
         return "Success"
 
-    def undo(self, filename=None,checksum=None,  block_size=65536, algorithm='SHA-256'):
+    def undo(self, filename=None, checksum=None,  block_size=65536, algorithm='SHA-256'):
         pass
 
     def event_outcome_success(self, filename=None, checksum=None, block_size=65536, algorithm='SHA-256'):

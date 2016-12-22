@@ -50,7 +50,7 @@ class SubmissionAgreementAdmin( admin.ModelAdmin ):
         profiles_Inline,
     )
     fieldsets = (
-                (None,{
+                (None, {
                    'classes': ('wide'),
                    'fields': (
                               'id', #'submission_agreement',
@@ -59,8 +59,8 @@ class SubmissionAgreementAdmin( admin.ModelAdmin ):
             			      'sa_status',
             			      'sa_label',
                               )}),
-                ('Change management',{
-                   'classes': ('collapse','wide'),
+                ('Change management', {
+                   'classes': ('collapse', 'wide'),
                    'fields': (
 			      'sa_cm_version',
 			      'sa_cm_release_date',
@@ -68,8 +68,8 @@ class SubmissionAgreementAdmin( admin.ModelAdmin ):
 			      'sa_cm_change_description',
 			      'sa_cm_sections_affected'
                               )}),
-                ('Informaton about Producer organization',{
-                   'classes': ('collapse','wide'),
+                ('Informaton about Producer organization', {
+                   'classes': ('collapse', 'wide'),
                    'fields': (
 			      'sa_producer_organization',
 			      'sa_producer_main_name',
@@ -83,8 +83,8 @@ class SubmissionAgreementAdmin( admin.ModelAdmin ):
 			      'sa_producer_individual_email',
 			      'sa_producer_individual_additional',
 			      )}),
-                ('Information about Archival organization',{
-                   'classes': ('collapse','wide'),
+                ('Information about Archival organization', {
+                   'classes': ('collapse', 'wide'),
                    'fields': (
 			      'sa_archivist_organization',
 			      'sa_archivist_main_name',
@@ -98,8 +98,8 @@ class SubmissionAgreementAdmin( admin.ModelAdmin ):
 			      'sa_archivist_individual_email',
 			      'sa_archivist_individual_additional',
 			      )}),
-                ('Information about designated community',{
-                   'classes': ('collapse','wide'),
+                ('Information about designated community', {
+                   'classes': ('collapse', 'wide'),
                    'fields': (
 			      'sa_designated_community_description',
 			      'sa_designated_community_individual_name',
@@ -153,7 +153,7 @@ class ProfileAdmin( admin.ModelAdmin ):
     list_filter = ('name', 'label')
     #fields = ('entity', 'value')
     fieldsets = (
-                (None,{
+                (None, {
                    'classes': ('wide'),
                    'fields': (
                               'id',
@@ -172,13 +172,13 @@ class ProfileAdmin( admin.ModelAdmin ):
                               'submission_schedule',
                               'submission_data_inventory',
                               )}),
-                ('physcial and logical structure',{
-                   'classes': ('collapse','wide'),
+                ('physcial and logical structure', {
+                   'classes': ('collapse', 'wide'),
                    'fields': (
                               'structure',
                               )}),
-                ('specification structure and data',{
-                   'classes': ('collapse','wide'),
+                ('specification structure and data', {
+                   'classes': ('collapse', 'wide'),
                    'fields': (
                               'specification',
                               'specification_data',

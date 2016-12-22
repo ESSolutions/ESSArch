@@ -392,7 +392,7 @@ class ProcessTask(Process):
         Validates the task
         """
 
-        full_task_names = [k for k,v in available_tasks()]
+        full_task_names = [k for k, v in available_tasks()]
 
         # Make sure that the task exists
         if self.name not in full_task_names:

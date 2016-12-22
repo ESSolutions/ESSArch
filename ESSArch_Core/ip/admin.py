@@ -74,7 +74,7 @@ class IPAdmin(admin.ModelAdmin):
     list_filter = ('ArchivistOrganization', 'Label')
     #fields = ('entity', 'value')
     fieldsets = (
-                (None,{
+                (None, {
                    'classes': ('wide'),
                    'fields': (
                               'id',

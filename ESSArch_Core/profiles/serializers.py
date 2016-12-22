@@ -129,7 +129,7 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
             'schemas', 'representation_info', 'preservation_descriptive_info',
             'supplemental', 'access_constraints', 'datamodel_reference',
             'cm_release_date', 'cm_change_authority', 'cm_change_description',
-            'cm_sections_affected','cm_version', 'additional',
+            'cm_sections_affected', 'cm_version', 'additional',
             'submission_method', 'submission_schedule',
             'submission_data_inventory', 'structure', 'template',
             'specification_data',
