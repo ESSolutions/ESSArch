@@ -19,7 +19,7 @@ class templatePackage(models.Model):
     # treeData = jsonfield.JSONField(null=True)
     allElements = jsonfield.JSONField(null=True)
     # isTreeCreated = models.BooleanField(default=True)
-    name = models.CharField(max_length = 255, primary_key=True)
+    name = models.CharField(max_length=255, primary_key=True)
     root_element = models.CharField(max_length=55, default='')
     extensions = models.ManyToManyField(extensionPackage)
 
