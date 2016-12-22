@@ -13,6 +13,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Copy from 0023 migration but set db_index=False to remove index
+        migrations.AlterField(
+            model_name='eventip',
+            name='eventApplication',
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='events', to='WorkflowEngine.ProcessTask', db_index=False),
+        ),
         migrations.AlterField(
             model_name='eventip',
             name='eventApplication',
