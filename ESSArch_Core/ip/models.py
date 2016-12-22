@@ -36,7 +36,8 @@ from ESSArch_Core.util import (
     get_tree_size_and_count,
 )
 
-import math, uuid
+import math
+import uuid
 
 
 class ArchivalInstitution(models.Model):

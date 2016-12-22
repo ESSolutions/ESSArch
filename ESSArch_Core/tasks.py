@@ -1,4 +1,7 @@
-import errno, os, shutil, urllib
+import errno
+import os
+import shutil
+import urllib
 
 from django.conf import settings
 

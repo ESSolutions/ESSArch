@@ -1,6 +1,13 @@
 from __future__ import absolute_import
 
-import errno, hashlib, json, os, platform, pyclbr, re, shutil
+import errno
+import hashlib
+import json
+import os
+import platform
+import pyclbr
+import re
+import shutil
 
 from django.utils.timezone import get_current_timezone
 
