@@ -60,6 +60,7 @@ class ProfileQuerySet(models.query.QuerySet):
 
         return profile_set.first().profile
 
+
 class ProfileSA(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
@@ -82,6 +83,7 @@ class ProfileSA(models.Model):
         unique_together = (
             ("profile", "submission_agreement"),
         )
+
 
 class ProfileIP(models.Model):
     id = models.UUIDField(
@@ -110,6 +112,7 @@ class ProfileIP(models.Model):
         unique_together = (
             ("profile", "ip"),
         )
+
 
 class SubmissionAgreement(models.Model):
     id = models.UUIDField(

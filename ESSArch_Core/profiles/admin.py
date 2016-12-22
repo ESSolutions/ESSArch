@@ -30,6 +30,7 @@ from .models import (
     ProfileSA,
 )
 
+
 class profiles_Inline(admin.TabularInline):
     model = ProfileSA
     extra = 0
@@ -37,6 +38,8 @@ class profiles_Inline(admin.TabularInline):
 """
 Submission Agreement
 """
+
+
 class SubmissionAgreementAdmin( admin.ModelAdmin ):
     list_display = ( 'sa_name', 'sa_type', 'sa_status', 'sa_label' )
     search_fields = ( 'sa_name', )
@@ -141,6 +144,8 @@ admin.site.register(SubmissionAgreement, SubmissionAgreementAdmin)
 """
 Profile
 """
+
+
 class ProfileAdmin( admin.ModelAdmin ):
     list_display = ( 'name', 'type', 'status', 'label' )
     search_fields = ( 'name', )

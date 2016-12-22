@@ -25,6 +25,7 @@ from ESSArch_Core.util import (
     truncate
 )
 
+
 class DBTask(Task):
     def __call__(self, *args, **kwargs):
         try:

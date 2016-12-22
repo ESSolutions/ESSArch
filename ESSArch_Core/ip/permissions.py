@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+
 class IsResponsibleOrReadOnly(permissions.BasePermission):
     message = "You are not responsible for this IP"
 

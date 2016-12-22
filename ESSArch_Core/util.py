@@ -22,16 +22,19 @@ import requests
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
 
+
 def sliceUntilAttr(iterable, attr, val):
     for i in iterable:
         if getattr(i, attr) == val:
             return
         yield i
 
+
 def remove_prefix(text, prefix):
     if text.startswith(prefix):
         return text[len(prefix):]
     return text
+
 
 def get_elements_without_namespace(root, path):
     els = path.split("/")
@@ -102,6 +105,7 @@ def available_tasks():
         )
     return tasks
 
+
 def create_event(eventType, eventOutcome, eventOutcomeDetailNote, version, agent, application=None, ip=None):
     """
     Creates a new event and saves it to the database
@@ -135,6 +139,7 @@ def create_event(eventType, eventOutcome, eventOutcomeDetailNote, version, agent
         raise
 
     return e
+
 
 def getSchemas(doc=None, filename=None):
     """
@@ -173,6 +178,7 @@ def getSchemas(doc=None, filename=None):
 
     return etree.XMLSchema(root)
 
+
 def creation_date(path_to_file):
     """
     Try to get the date that a file was created, falling back to when it was
@@ -189,6 +195,7 @@ def creation_date(path_to_file):
             # We're probably on Linux. No easy way to get creation dates here,
             # so we'll settle for when its content was last modified.
             return stat.st_mtime
+
 
 def timestamp_to_datetime(timestamp):
     tz = get_current_timezone()
@@ -209,6 +216,7 @@ def find_destination(use, structure, path=""):
 
     return None, None
 
+
 def download_file(url, dst):
     r = requests.get(url, stream=True)
     if r.status_code == 200:
@@ -224,6 +232,7 @@ def get_files_and_dirs(path):
         return scandir(path)
 
     return []
+
 
 def get_tree_size_and_count(path):
     """Return total size and count of files in given path and subdirs."""
@@ -245,8 +254,10 @@ def get_tree_size_and_count(path):
 
     return size, count
 
+
 def win_to_posix(path):
     return path.replace('\\', '/')
+
 
 def alg_from_str(algname):
     valid = {

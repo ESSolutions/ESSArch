@@ -21,8 +21,10 @@ finishedGroups = OrderedDict()
 finishedComplexTypes = OrderedDict()
 attributesComplexTypes = {}
 
+
 def getIndent(level):
     return '   ' * level
+
 
 def printTag(tag):
     if isinstance(tag, str):
@@ -34,16 +36,19 @@ def printTag(tag):
     else:
         return 'unknown tag: ' + str(type(tag))
 
+
 def getPrefix(tag):
     if tag is None:
         return None
 
     return tag.split(':')[0]
 
+
 def getSuffix(tag):
     if tag is None:
         return None
     tag = tag.split(':')[-1]
+
 
 def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
     global choiseCount
@@ -213,6 +218,7 @@ def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
     else:
         print 'other: ' + tag
 
+
 def parseAttribute(element):
     global complexTypes
     global attributeGroups
@@ -277,6 +283,7 @@ def parseAttribute(element):
             return None
 
     return att
+
 
 def generateExtensionRef(schemadoc, namespace):
     global complexTypes
@@ -344,6 +351,7 @@ def generateExtensionRef(schemadoc, namespace):
             attributes[child.get('name')] = parseAttribute(child)
 
     return existingElements, allElements, attributes
+
 
 def generateJsonRes(schemadoc, rootElement, namespace):
     global complexTypes

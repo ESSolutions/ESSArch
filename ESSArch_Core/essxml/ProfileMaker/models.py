@@ -13,6 +13,7 @@ class extensionPackage(models.Model):
     schemaURL = models.URLField()
     targetNamespace = models.CharField(max_length=255)
 
+
 class templatePackage(models.Model):
     existingElements = jsonfield.JSONField(null=True)
     # treeData = jsonfield.JSONField(null=True)

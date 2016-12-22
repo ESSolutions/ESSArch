@@ -21,12 +21,14 @@ class AgentSerializer(serializers.HyperlinkedModelSerializer):
         model = Agent
         fields = '__all__'
 
+
 class ParameterSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
 
     class Meta:
         model = Parameter
         fields = '__all__'
+
 
 class PathSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()

@@ -23,6 +23,7 @@ from ESSArch_Core.util import (
     win_to_posix,
 )
 
+
 def parseContent(content, info):
     if not content:
         return None
@@ -47,6 +48,7 @@ def parseContent(content, info):
                 arr.append(val)
 
     return ''.join(arr)
+
 
 def downloadSchemas(template, dirname, structure=[], root=""):
     schemaPreserveLoc = template.get('-schemaPreservationLocation')
@@ -151,6 +153,7 @@ class XMLElement(object):
 
         return self.el
 
+
 class XMLAttribute(object):
     """
         Args:
@@ -185,6 +188,7 @@ class XMLAttribute(object):
             name = "{%s}%s" % (nsmap.get(self.namespace), self.name)
 
         return name, parseContent(self.content, info), self.required
+
 
 class XMLGenerator(object):
     def __init__(self, filesToCreate={}, info={}, task=None):

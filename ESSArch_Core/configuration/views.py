@@ -14,6 +14,7 @@ from ESSArch_Core.configuration.serializers import(
 
 from rest_framework import viewsets
 
+
 class EventTypeViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows event types to be viewed or edited.
@@ -22,6 +23,7 @@ class EventTypeViewSet(viewsets.ModelViewSet):
     serializer_class = EventTypeSerializer
     pagination_class = None
 
+
 class AgentViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows agents to be viewed or edited.
@@ -29,12 +31,14 @@ class AgentViewSet(viewsets.ModelViewSet):
     queryset = Agent.objects.all()
     serializer_class = AgentSerializer
 
+
 class ParameterViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows parameters to be viewed or edited.
     """
     queryset = Parameter.objects.all()
     serializer_class = ParameterSerializer
+
 
 class PathViewSet(viewsets.ModelViewSet):
     """

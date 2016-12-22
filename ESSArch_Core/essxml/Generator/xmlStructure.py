@@ -11,6 +11,7 @@ TYPE_TO_CHOISE = 3
 debug = False
 eol_ = '\n'
 
+
 def dlog(string):
     if debug:
         print string
@@ -22,6 +23,7 @@ def pretty_print(fd, level):
     """
 
     os.write(fd, '    ' * level)
+
 
 class xmlAttribute(object):
     '''
@@ -255,6 +257,7 @@ class xmlElement(object):
         self.karMin = 0
         self.karMax = -1
 
+
 class fileInfo():
     """
     A way to contain the temporary files which are created
@@ -264,6 +267,7 @@ class fileInfo():
         self.filename = filename
         self.arguments = arguments
         self.level = level
+
 
 class fileObject():
     """

@@ -11,6 +11,7 @@ from ESSArch_Core.configuration.models import (
     Path,
 )
 
+
 class test_generateXML(TestCase):
     @classmethod
     def setUpTestData(cls):

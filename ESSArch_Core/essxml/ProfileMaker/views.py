@@ -49,6 +49,7 @@ def constructContent(text):
             res.append(r[j])
     return res
 
+
 def getTrail(elementTree, element, trail=[]):
     """
     Gets the path to the specified element via its parents.
@@ -78,6 +79,7 @@ def getTrail(elementTree, element, trail=[]):
         return getTrail(elementTree, elementTree[parent], trail)
     else:
         return trail
+
 
 def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, namespace=''):
     element = elements[currentUuid]
@@ -155,13 +157,16 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, n
 
     return (el, forms, data)
 
+
 def getExistingElements(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
     return JsonResponse(obj.existingElements, safe=False)
 
+
 def getAllElements(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
     return JsonResponse(obj.allElements, safe=False)
+
 
 def getElements(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
@@ -179,6 +184,7 @@ def getElements(request, name):
             r['children'] = children
             res.append(r)
     return JsonResponse(res, safe=False)
+
 
 def removeChild(request, name, uuid):
     obj = get_object_or_404(templatePackage, pk=name)
@@ -226,10 +232,12 @@ def removeChild(request, name, uuid):
     obj.save()
     return JsonResponse(existingElements, safe=False)
 
+
 def removeChildren(existingElements ,element):
     for child in element['children']:
         removeChildren(existingElements, existingElements[child['uuid']])
         del existingElements[child['uuid']]
+
 
 def addUserChild(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
@@ -257,6 +265,7 @@ def addUserChild(request, name):
     obj.existingElements[res['parent']]['children'].append(e)
     obj.save()
     return JsonResponse(obj.existingElements, safe=False)
+
 
 def addExtensionElement(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
@@ -293,6 +302,7 @@ def addExtensionElement(request, name):
     obj.existingElements[res['parent']]['children'].append(e)
     obj.save()
     return JsonResponse(obj.existingElements, safe=False)
+
 
 def addChild(request, name, newElementName, elementUuid):
     obj = get_object_or_404(templatePackage, pk=name)
@@ -339,6 +349,7 @@ def addChild(request, name, newElementName, elementUuid):
     obj.save()
     return JsonResponse(existingElements, safe=False)
 
+
 def calculateChildrenBefore(children, newElementName):
     arr = []
     for child in children:
@@ -350,6 +361,7 @@ def calculateChildrenBefore(children, newElementName):
         elif child['type'] == 'choise':
             arr = arr + calculateChildrenBefore(child['elements'], newElementName)
     return arr
+
 
 def getAttributes(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
@@ -368,11 +380,13 @@ def getAttributes(request, name):
             res.append(r)
     return JsonResponse(res, safe=False)
 
+
 def addAttribute(request, name, uuid):
     obj = get_object_or_404(templatePackage, pk=name)
     obj.existingElements[uuid]['userForm'].append(json.loads(request.body))
     obj.save()
     return JsonResponse(obj.existingElements[uuid]['userForm'], safe=False)
+
 
 def setContainsFiles(request, name, uuid, containsFiles):
     obj = get_object_or_404(templatePackage, pk=name)
@@ -382,6 +396,7 @@ def setContainsFiles(request, name, uuid, containsFiles):
         obj.existingElements[uuid]['containsFiles'] = False
     obj.save()
     return JsonResponse(obj.existingElements, safe=False)
+
 
 def saveForm(request, name):
 
@@ -394,12 +409,14 @@ def saveForm(request, name):
     obj.save()
     return JsonResponse(res, safe=False)
 
+
 def deleteTemplate(request, name):
     if request.method == 'POST':
         templatePackage.objects.get(pk=name).delete()
         return HttpResponse('deleted')
     else:
         return HttpResponse('Error this page is only available as post')
+
 
 class index(View):
     template_name = 'templateMaker/index.html'
@@ -411,6 +428,7 @@ class index(View):
         }
 
         return render(request, self.template_name, context)
+
 
 class add(View):
     template_name = 'templateMaker/add.html'
@@ -462,6 +480,7 @@ class add(View):
 
         return render(request, self.template_name, {'form': form})
 
+
 class addExtension(View):
     template_name = 'templateMaker/add.html'
 
@@ -509,6 +528,7 @@ class addExtension(View):
             return HttpResponse('Success: Added extension schema')
 
         return render(request, self.template_name, {'form': form})
+
 
 class generate(View):
     template_name = 'templateMaker/generate.html'
@@ -610,6 +630,7 @@ class create(View):
     def get(self, request, *args, **kwargs):
         context = {}
         return render(request, self.template_name, context)
+
 
 class edit(View):
     template_name = 'templateMaker/edit.html'

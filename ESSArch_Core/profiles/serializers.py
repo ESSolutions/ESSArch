@@ -11,6 +11,7 @@ from ESSArch_Core.profiles.models import (
     ProfileIP
 )
 
+
 class ProfileSASerializer(serializers.HyperlinkedModelSerializer):
     profile_type = serializers.SlugRelatedField(slug_field='profile_type', source='profile', read_only=True)
     profile_name = serializers.SlugRelatedField(slug_field='name', source='profile', read_only=True)
@@ -20,6 +21,7 @@ class ProfileSASerializer(serializers.HyperlinkedModelSerializer):
         fields = (
             'url', 'id', 'profile', 'submission_agreement', 'profile_name', 'profile_type', 'LockedBy', 'Unlockable'
         )
+
 
 class ProfileIPSerializer(serializers.HyperlinkedModelSerializer):
     profile_type = serializers.SlugRelatedField(slug_field='profile_type', source='profile', read_only=True)
@@ -96,6 +98,7 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
                 'include_profile_workflow',
                 'include_profile_preservation_metadata',
         )
+
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()

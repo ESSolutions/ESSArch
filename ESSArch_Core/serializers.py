@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+
 class DynamicHyperlinkedModelSerializer(serializers.HyperlinkedModelSerializer):
     """
     A ModelSerializer that takes an additional `fields` argument that

@@ -15,8 +15,10 @@ from ESSArch_Core.WorkflowEngine.models import (
     ProcessTask,
 )
 
+
 def setUpModule():
     installDefaultEventTypes()
+
 
 class test_running_tasks(TestCase):
     def setUp(self):
