@@ -607,7 +607,6 @@ class test_generateXML(TestCase):
                 else:
                     self.assertIsNone(filepath_element)
 
-
         file_elements = tree.findall('.//bar')
         self.assertEqual(len(file_elements), num_of_files)
 

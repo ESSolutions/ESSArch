@@ -147,7 +147,6 @@ def getSchemas(doc=None, filename=None):
         file's schemaLocation attribute
     """
 
-
     if filename:
         try:
             doc = etree.ElementTree(file=filename)

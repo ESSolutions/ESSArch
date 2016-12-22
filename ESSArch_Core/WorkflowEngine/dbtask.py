@@ -174,7 +174,6 @@ class DBTask(Task):
         self.taskobj.progress = (progress/total) * 100
         self.taskobj.save(update_fields=['progress'])
 
-
     def event_outcome_success(self, *args, **kwargs):
         raise NotImplementedError()
 

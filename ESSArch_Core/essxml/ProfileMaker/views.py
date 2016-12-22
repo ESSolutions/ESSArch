@@ -225,8 +225,6 @@ def removeChild(request, name, uuid):
 
                 existingElements[child["uuid"]]["name"] = child["name"]
 
-
-
     removeChildren(existingElements, oldElement)
     del existingElements[uuid]
     obj.save()
@@ -575,7 +573,6 @@ class generate(View):
             field = self.addExtraAttribute(field, formData, 'readonly')
 
             form[idx] = field
-
 
         existingElements['root']['form'] = form
 
