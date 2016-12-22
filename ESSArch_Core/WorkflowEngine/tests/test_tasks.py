@@ -46,7 +46,7 @@ class test_running_tasks(TestCase):
         """
 
         task = ProcessTask(
-            name="preingest.tests.tasks.First",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             responsible=self.user
         )
 
@@ -61,7 +61,7 @@ class test_running_tasks(TestCase):
 
         with self.assertRaises(TypeError):
             task = ProcessTask.objects.create(
-                name="preingest.tests.tasks.First",
+                name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
                 params={
                     "bar": 123
                 },
@@ -79,7 +79,7 @@ class test_running_tasks(TestCase):
 
         with self.assertRaises(TypeError):
             task = ProcessTask.objects.create(
-                name="preingest.tests.tasks.First",
+                name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
                 params={
                     "foo": 123,
                     "bar": 456
@@ -98,7 +98,7 @@ class test_running_tasks(TestCase):
         foo = 123
 
         task = ProcessTask.objects.create(
-            name="preingest.tests.tasks.First",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             params={
                 "foo": foo
             },
@@ -118,7 +118,7 @@ class test_running_tasks(TestCase):
         foo = 123
         try:
             task = ProcessTask(
-                name="preingest.tests.tasks.First",
+                name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
                 params={
                     "bar": foo
                 },

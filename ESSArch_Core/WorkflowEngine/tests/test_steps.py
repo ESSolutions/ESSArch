@@ -42,7 +42,7 @@ class test_running_steps(TestCase):
         ip = InformationPackage.objects.create()
 
         t1 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.First",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
@@ -51,7 +51,7 @@ class test_running_steps(TestCase):
         )
 
         t2 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.Second",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Second",
             params={
                 "foo": t2_val,
             },
@@ -60,7 +60,7 @@ class test_running_steps(TestCase):
         )
 
         t3 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.Third",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
             params={
                 "foo": t3_val,
             },
@@ -95,7 +95,7 @@ class test_running_steps(TestCase):
         ip = InformationPackage.objects.create()
 
         t1 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.Add",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
             params={
                 "x": t1_val,
                 "y": t1_val,
@@ -105,7 +105,7 @@ class test_running_steps(TestCase):
         )
 
         t2 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.Add",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
             params={
                 "x": t2_val
             },
@@ -117,7 +117,7 @@ class test_running_steps(TestCase):
         )
 
         t3 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.Add",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
             params={
                 "x": t3_val,
             },
@@ -158,7 +158,7 @@ class test_running_steps(TestCase):
         ip = InformationPackage.objects.create()
 
         t1 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.First",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
@@ -167,7 +167,7 @@ class test_running_steps(TestCase):
         )
 
         t2 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.FailIfFileNotExists",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
             params={
                 "filename": t2_val,
             },
@@ -210,7 +210,7 @@ class test_running_steps(TestCase):
         ip = InformationPackage.objects.create()
 
         t1 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.First",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
@@ -219,7 +219,7 @@ class test_running_steps(TestCase):
         )
 
         t2 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.FailIfFileNotExists",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
             params={
                 "filename": t2_val,
             },
@@ -262,7 +262,7 @@ class test_running_steps(TestCase):
         ip = InformationPackage.objects.create()
 
         t1 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.First",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
@@ -271,7 +271,7 @@ class test_running_steps(TestCase):
         )
 
         t2 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.FailIfFileNotExists",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
             params={
                 "filename": t2_val,
             },
@@ -304,7 +304,7 @@ class test_running_steps(TestCase):
         self.assertTrue(t2.retried)
 
         file_task = step.task_set().filter(
-            name="preingest.tests.tasks.FailIfFileNotExists",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
             status=celery_states.SUCCESS
         )
 
@@ -322,7 +322,7 @@ class test_running_steps(TestCase):
         ip = InformationPackage.objects.create()
 
         t1 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.First",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
@@ -331,7 +331,7 @@ class test_running_steps(TestCase):
         )
 
         t2 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.FailIfFileNotExists",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
             params={
                 "filename": t2_val,
             },
@@ -364,7 +364,7 @@ class test_running_steps(TestCase):
         self.assertTrue(t2.retried)
 
         file_task = step.task_set().filter(
-            name="preingest.tests.tasks.FailIfFileNotExists",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
             status=celery_states.SUCCESS
         )
 
@@ -372,7 +372,7 @@ class test_running_steps(TestCase):
         self.assertEqual(file_task.first().status, celery_states.SUCCESS)
 
         first_task = step.tasks.filter(
-            name="preingest.tests.tasks.First undo",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First undo",
         )
 
         self.assertTrue(first_task.exists())
@@ -389,7 +389,7 @@ class test_running_steps(TestCase):
         ip = InformationPackage.objects.create()
 
         t1 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.First",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
@@ -397,7 +397,7 @@ class test_running_steps(TestCase):
         )
 
         t2 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.Second",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Second",
             params={
                 "foo": t2_val,
             },
@@ -405,7 +405,7 @@ class test_running_steps(TestCase):
         )
 
         t3 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.Third",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
             params={
                 "foo": t3_val,
             },
@@ -439,7 +439,7 @@ class test_running_steps(TestCase):
         ip = InformationPackage.objects.create()
 
         t1 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.First",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
@@ -447,7 +447,7 @@ class test_running_steps(TestCase):
         )
 
         t2 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.FailIfFileNotExists",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
             params={
                 "filename": t2_val,
             },
@@ -455,7 +455,7 @@ class test_running_steps(TestCase):
         )
 
         t3 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.Third",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
             params={
                 "foo": t3_val,
             },
@@ -497,7 +497,7 @@ class test_running_steps(TestCase):
         ip = InformationPackage.objects.create()
 
         t1 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.First",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
@@ -505,7 +505,7 @@ class test_running_steps(TestCase):
         )
 
         t2 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.FailIfFileNotExists",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
             params={
                 "filename": t2_val,
             },
@@ -513,7 +513,7 @@ class test_running_steps(TestCase):
         )
 
         t3 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.Third",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
             params={
                 "foo": t3_val,
             },
@@ -555,7 +555,7 @@ class test_running_steps(TestCase):
         ip = InformationPackage.objects.create()
 
         t1 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.First",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
@@ -563,7 +563,7 @@ class test_running_steps(TestCase):
         )
 
         t2 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.FailIfFileNotExists",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
             params={
                 "filename": t2_val,
             },
@@ -571,7 +571,7 @@ class test_running_steps(TestCase):
         )
 
         t3 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.Third",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
             params={
                 "foo": t3_val,
             },
@@ -623,7 +623,7 @@ class test_running_steps(TestCase):
         ip = InformationPackage.objects.create()
 
         t1 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.First",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             params={
                 "foo": t1_val,
             },
@@ -631,7 +631,7 @@ class test_running_steps(TestCase):
         )
 
         t2 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.FailIfFileNotExists",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
             params={
                 "filename": t2_val,
             },
@@ -639,7 +639,7 @@ class test_running_steps(TestCase):
         )
 
         t3 = ProcessTask.objects.create(
-            name="preingest.tests.tasks.Third",
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
             params={
                 "foo": t3_val,
             },

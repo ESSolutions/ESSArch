@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from preingest.dbtask import DBTask
+from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 
 import os
 
