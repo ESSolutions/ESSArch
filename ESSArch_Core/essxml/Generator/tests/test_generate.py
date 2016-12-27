@@ -13,22 +13,36 @@ from ESSArch_Core.configuration.models import (
 
 
 class test_generateXML(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.bd = os.path.dirname(os.path.realpath(__file__))
-        cls.xmldir = os.path.join(cls.bd, "xmlfiles")
-        cls.datadir = os.path.join(cls.bd, "datafiles")
-        cls.fname = os.path.join(cls.xmldir, "test.xml")
+    def setUp(self):
+        self.bd = os.path.dirname(os.path.realpath(__file__))
+        self.xmldir = os.path.join(self.bd, "xmlfiles")
+        self.datadir = os.path.join(self.bd, "datafiles")
+        self.fname = os.path.join(self.xmldir, "test.xml")
 
-        shutil.rmtree(cls.xmldir)
-        os.mkdir(cls.xmldir)
+        os.mkdir(self.xmldir)
+        os.mkdir(self.datadir)
+        os.makedirs(os.path.join(self.datadir, "record1"))
+        os.makedirs(os.path.join(self.datadir, "record2"))
+
+        open(os.path.join(self.datadir, "record1/file1.txt"), "a").close()
+        open(os.path.join(self.datadir, "record2/file2.txt"), "a").close()
 
         Path.objects.create(
             entity="path_mimetypes_definitionfile",
-            value=os.path.join(cls.bd, "mime.types")
+            value=os.path.join(self.bd, "mime.types")
         )
 
     def tearDown(self):
+        try:
+            shutil.rmtree(self.xmldir)
+        except:
+            pass
+
+        try:
+            shutil.rmtree(self.datadir)
+        except:
+            pass
+
         try:
             os.remove(self.fname)
         except:
