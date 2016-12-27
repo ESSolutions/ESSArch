@@ -5,7 +5,10 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from install.install_default_config_etp import installDefaultEventTypes
+try:
+    from install.install_default_config_etp import installDefaultEventTypes
+except ImportError:
+    from install.install_default_config_eta import installDefaultEventTypes
 
 from ESSArch_Core.ip.models import (
     InformationPackage,
