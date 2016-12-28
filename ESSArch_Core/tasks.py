@@ -62,6 +62,9 @@ class CalculateChecksum(DBTask):
 
 class IdentifyFileFormat(DBTask):
     def handle_matches(self, fullname, matches, delta_t, matchtype=''):
+        if len(matches) == 0:
+            raise ValueError("No matches for %s" % fullname)
+
         f, sigName = matches[-1]
         self.lastFmt = f.find('name').text
 
