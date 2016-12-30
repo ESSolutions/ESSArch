@@ -4,6 +4,8 @@ import os
 import shutil
 import traceback
 
+from lxml import etree
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -13,6 +15,10 @@ try:
     from install.install_default_config_etp import installDefaultEventTypes
 except ImportError:
     from install.install_default_config_eta import installDefaultEventTypes
+
+from ESSArch_Core.configuration.models import (
+    Path
+)
 
 from ESSArch_Core.ip.models import (
     InformationPackage,
@@ -278,3 +284,136 @@ class IdentifyFileFormatTestCase(TestCase):
 
         with self.assertRaises(ValueError):
             task.run().get().get(task.pk)
+
+
+class GenerateXMLTestCase(TestCase):
+    def setUp(self):
+        self.taskname = "ESSArch_Core.tasks.GenerateXML"
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.fname = os.path.join(self.datadir, 'test1.xml')
+        self.spec = {
+            '-name': 'foo',
+            '-attr': [
+                {
+                    '-name': 'fooAttr',
+                    '#content': [{'var': 'foo'}]
+                }
+            ],
+            '-children': [
+                {
+                    '-name': 'bar',
+                    '#content': [{'var': 'bar'}]
+                },
+                {
+                    '-name': 'baz',
+                    '-containsFiles': True,
+                    '#content': [{'var': 'FName'}]
+                }
+            ]
+        }
+
+        self.specData = {
+            'foo': 'foodata',
+            'bar': 'bardata'
+        }
+
+        Path.objects.create(
+            entity="path_mimetypes_definitionfile",
+            value=os.path.join(self.root, "mime.types")
+        )
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def test_without_file(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'info': self.specData,
+                'filesToCreate': {
+                    self.fname: self.spec
+                }
+            }
+        )
+
+        task.run()
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+
+        self.assertEqual(root.get('fooAttr'), 'foodata')
+        self.assertEqual(root.find('bar').text, 'bardata')
+        self.assertNotIn('baz', root.attrib)
+
+    def test_with_file(self):
+        open(os.path.join(self.datadir, 'example.txt'), 'a').close()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'info': self.specData,
+                'filesToCreate': {
+                    self.fname: self.spec
+                },
+                'folderToParse': self.datadir
+            }
+        )
+
+        task.run()
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+
+        self.assertEqual(root.get('fooAttr'), 'foodata')
+        self.assertEqual(root.find('bar').text, 'bardata')
+        self.assertEqual(root.find('baz').text, 'example.txt')
+
+    def test_undo(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'info': self.specData,
+                'filesToCreate': {
+                    self.fname: self.spec
+                }
+            }
+        )
+
+        task.run()
+
+        self.assertTrue(os.path.isfile(self.fname))
+
+        task.undo()
+
+        self.assertFalse(os.path.isfile(self.fname))
+
+    def test_undo_multiple_created_files(self):
+        extra_file = os.path.join(self.datadir, 'test2.xml')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'info': self.specData,
+                'filesToCreate': {
+                    self.fname: self.spec,
+                    extra_file: self.spec
+                }
+            }
+        )
+
+        task.run()
+
+        self.assertTrue(os.path.isfile(self.fname))
+        self.assertTrue(os.path.isfile(extra_file))
+
+        task.undo()
+
+        self.assertFalse(os.path.isfile(self.fname))
+        self.assertFalse(os.path.isfile(extra_file))
