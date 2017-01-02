@@ -270,10 +270,16 @@ class XMLGenerator(object):
 
         appendedRootEl = XMLElement(template, nsmap=root_nsmap)
 
-        if index is not None:
-            elementToAppendTo.insert(index, appendedRootEl.createLXMLElement(info))
-        else:
-            elementToAppendTo.append(appendedRootEl.createLXMLElement(info))
+        try:
+            el = appendedRootEl.createLXMLElement(info)
+            if index is not None:
+                elementToAppendTo.insert(index, el)
+            else:
+                elementToAppendTo.append(el)
+        except TypeError:
+            if el is None:
+                raise "Can't insert null element into %s" % appendedRootEl
+
 
         tree.write(
             filename, pretty_print=True, xml_declaration=True,
