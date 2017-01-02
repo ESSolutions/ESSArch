@@ -17,10 +17,12 @@ except ImportError:
     from install.install_default_config_eta import installDefaultEventTypes
 
 from ESSArch_Core.configuration.models import (
+    EventType,
     Path
 )
 
 from ESSArch_Core.ip.models import (
+    EventIP,
     InformationPackage,
 )
 
@@ -632,3 +634,93 @@ class InsertXMLTestCase(TestCase):
 
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//inserted'))
+
+
+class AppendEventsTestCase(TestCase):
+    def setUp(self):
+        self.taskname = "ESSArch_Core.tasks.AppendEvents"
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.fname = os.path.join(self.datadir, 'test1.xml')
+        self.ip = InformationPackage.objects.create(Label="testip")
+        self.user = User.objects.create(username="testuser")
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+        root = etree.fromstring("""
+            <premis:premis xmlns:premis='http://xml.ra.se/PREMIS'
+            xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+            xmlns:xlink='http://www.w3.org/1999/xlink'
+            xsi:schemaLocation='http://xml.ra.se/PREMIS http://xml.ra.se/PREMIS/ESS/RA_PREMIS_PreVersion.xsd'
+            version='2.0'>
+            </premis:premis>
+        """)
+
+        with open(self.fname, 'w') as f:
+            f.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def test_undo(self):
+        event_type = EventType.objects.first()
+
+        for i in range(10):
+            EventIP.objects.create(
+                eventType=event_type, linkingAgentIdentifierValue=self.user,
+                linkingObjectIdentifierValue=self.ip
+            ),
+
+        task1 = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filename': self.fname,
+                'events': EventIP.objects.all()
+            },
+            information_package=self.ip
+        )
+
+        task1.run()
+
+        EventIP.objects.all().delete()
+
+        for i in range(10):
+            EventIP.objects.create(
+                eventType=event_type, linkingAgentIdentifierValue=self.user,
+                linkingObjectIdentifierValue=self.ip
+            ),
+
+        tree = etree.parse(self.fname)
+        found = tree.findall('.//{*}event')
+        self.assertEqual(len(found), 10)
+
+        task2 = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filename': self.fname,
+                'events': EventIP.objects.all()
+            },
+            information_package=self.ip
+        )
+
+        task2.run()
+
+        tree = etree.parse(self.fname)
+        found = tree.findall('.//{*}event')
+        self.assertEqual(len(found), 20)
+
+        task2.undo()
+
+        tree = etree.parse(self.fname)
+        found = tree.findall('.//{*}event')
+        self.assertEqual(len(found), 10)
+
+        task1.undo()
+
+        tree = etree.parse(self.fname)
+        found = tree.findall('.//{*}event')
+        self.assertEqual(len(found), 0)
