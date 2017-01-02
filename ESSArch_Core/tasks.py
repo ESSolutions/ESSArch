@@ -326,7 +326,14 @@ class AppendEvents(DBTask):
         self.set_progress(100, total=100)
 
     def undo(self, filename="", events={}):
-        pass
+        tree = etree.parse(filename)
+        parent = findElementWithoutNamespace(tree, 'premis')
+
+        # Remove last |events| from parent
+        for event_el in parent.findall('.//{*}event')[-len(events):]:
+            parent.remove(event_el)
+
+        tree.write(filename, pretty_print=True, xml_declaration=True, encoding='UTF-8')
 
     def event_outcome_success(self, filename="", events={}):
         return "Appended events to %s" % filename
