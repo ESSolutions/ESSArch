@@ -9,7 +9,10 @@ from ESSArch_Core.util import (
     alg_from_str,
 )
 
-from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
+from ESSArch_Core.essxml.Generator.xmlGenerator import (
+    findElementWithoutNamespace,
+    XMLGenerator
+)
 from ESSArch_Core.WorkflowEngine.models import (
     ProcessStep,
     ProcessTask,
@@ -132,7 +135,17 @@ class InsertXML(DBTask):
         self.set_progress(100, total=100)
 
     def undo(self, filename=None, elementToAppendTo=None, spec={}, info={}, index=None):
-        pass
+        tree = etree.parse(filename)
+        parent = findElementWithoutNamespace(tree, elementToAppendTo)
+
+        found = parent.findall('.//{*}%s' % spec['-name'])
+
+        if index is None or index >= len(parent):
+            parent.remove(found[-1])
+        else:
+            parent.remove(parent[index])
+
+        tree.write(filename, pretty_print=True, xml_declaration=True, encoding='UTF-8')
 
     def event_outcome_success(self, filename=None, elementToAppendTo=None, spec={}, info={}, index=None):
         return "Inserted XML to element %s in %s" % (elementToAppendTo, filename)
