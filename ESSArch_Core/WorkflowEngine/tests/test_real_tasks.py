@@ -32,7 +32,7 @@ from ESSArch_Core.WorkflowEngine.models import (
 def setUpModule():
     installDefaultEventTypes()
     settings.CELERY_ALWAYS_EAGER = True
-    settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
+    settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
 
 class CalculateChecksumTestCase(TestCase):
@@ -417,3 +417,218 @@ class GenerateXMLTestCase(TestCase):
 
         self.assertFalse(os.path.isfile(self.fname))
         self.assertFalse(os.path.isfile(extra_file))
+
+class InsertXMLTestCase(TestCase):
+    def setUp(self):
+        self.taskname = "ESSArch_Core.tasks.InsertXML"
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.fname = os.path.join(self.datadir, 'test1.xml')
+
+        self.spec = {
+            '-name': 'inserted',
+            '#content': [{'var': 'inserted_var'}]
+        }
+
+        Path.objects.create(
+            entity="path_mimetypes_definitionfile",
+            value=os.path.join(self.root, "mime.types")
+        )
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+        root = etree.fromstring("""
+            <root>
+                <foo><nested><duplicate></duplicate></nested></foo>
+                <bar><duplicate></duplicate></bar>
+            </root>
+        """)
+
+        with open(self.fname, 'w') as f:
+            f.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def test_insert_empty_to_root(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filename': self.fname,
+                'elementToAppendTo': 'root',
+                'spec': self.spec,
+            }
+        )
+
+        with self.assertRaises(TypeError):
+            task.run()
+
+    def test_insert_non_empty_to_root(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filename': self.fname,
+                'elementToAppendTo': 'root',
+                'spec': self.spec,
+                'info': {'inserted_var': 'inserted data'}
+            }
+        )
+
+        task.run()
+
+        tree = etree.parse(self.fname)
+        inserted = tree.find('.//inserted')
+
+        self.assertIsNotNone(inserted)
+        self.assertEqual(inserted.text, 'inserted data')
+
+    def test_insert_to_element_with_children(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filename': self.fname,
+                'elementToAppendTo': 'foo',
+                'spec': self.spec,
+                'info': {'inserted_var': 'inserted data'}
+            }
+        )
+
+        task.run()
+
+        tree = etree.parse(self.fname)
+
+        foo = tree.find('.//foo')
+        nested = tree.find('.//nested')
+        inserted = tree.find('.//inserted')
+
+        self.assertLess(foo.index(nested), foo.index(inserted))
+
+    def test_insert_at_index(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filename': self.fname,
+                'elementToAppendTo': 'foo',
+                'spec': self.spec,
+                'info': {'inserted_var': 'inserted data'},
+                'index': 0
+            }
+        )
+
+        task.run()
+
+        tree = etree.parse(self.fname)
+
+        foo = tree.find('.//foo')
+        nested = tree.find('.//nested')
+        inserted = tree.find('.//inserted')
+
+        self.assertLess(foo.index(inserted), foo.index(nested))
+
+    def test_insert_to_duplicate_element(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filename': self.fname,
+                'elementToAppendTo': 'duplicate',
+                'spec': self.spec,
+                'info': {'inserted_var': 'inserted data'},
+            }
+        )
+
+        task.run()
+
+        tree = etree.parse(self.fname)
+        duplicates = tree.findall('.//duplicate')
+
+        self.assertIsNotNone(duplicates[0].find('.//inserted'))
+        self.assertIsNone(duplicates[1].find('.//inserted'))
+
+    def test_undo(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filename': self.fname,
+                'elementToAppendTo': 'foo',
+                'spec': self.spec,
+                'info': {'inserted_var': 'inserted data'},
+            }
+        )
+
+        task.run()
+
+        tree = etree.parse(self.fname)
+        self.assertIsNotNone(tree.find('.//inserted'))
+
+        task.undo()
+
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//inserted'))
+
+    def test_undo_index(self):
+        task1 = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filename': self.fname,
+                'elementToAppendTo': 'foo',
+                'spec': self.spec,
+                'info': {'inserted_var': 'inserted 1'},
+            }
+        )
+
+        task2 = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filename': self.fname,
+                'elementToAppendTo': 'foo',
+                'spec': self.spec,
+                'info': {'inserted_var': 'inserted 2'},
+                'index': 0
+            }
+        )
+
+        task3 = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filename': self.fname,
+                'elementToAppendTo': 'foo',
+                'spec': self.spec,
+                'info': {'inserted_var': 'inserted 3'},
+                'index': 2
+            }
+        )
+
+        task1.run()
+        task2.run()
+        task3.run()
+
+        tree = etree.parse(self.fname)
+        found = tree.findall('.//inserted')
+        self.assertEqual(len(found), 3)
+        self.assertEqual(found[0].text, 'inserted 2')
+        self.assertEqual(found[1].text, 'inserted 3')
+        self.assertEqual(found[2].text, 'inserted 1')
+
+        task3.undo()
+
+        tree = etree.parse(self.fname)
+        found = tree.findall('.//inserted')
+        self.assertEqual(len(found), 2)
+        self.assertEqual(found[0].text, 'inserted 2')
+        self.assertEqual(found[1].text, 'inserted 1')
+
+        task2.undo()
+
+        tree = etree.parse(self.fname)
+        found = tree.findall('.//inserted')
+        self.assertEqual(len(found), 1)
+        self.assertEqual(found[0].text, 'inserted 1')
+
+        task1.undo()
+
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//inserted'))
