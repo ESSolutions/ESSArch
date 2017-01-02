@@ -91,7 +91,7 @@ class XMLElement(object):
     def parse(self, info):
         return parseContent(self.content, info)
 
-    def isEmpty(self):
+    def isEmpty(self, info={}):
         """
         Simple helper function to check if the tag sould have any contents
         """
@@ -103,9 +103,9 @@ class XMLElement(object):
             return True
 
         any_attribute_with_value = any(value for value in self.el.attrib.values())
-        any_children_not_empty = any(not child.isEmpty() or (child.isEmpty() and child.allowEmpty) for child in self.children)
+        any_children_not_empty = any(not child.isEmpty(info) or (child.isEmpty(info) and child.allowEmpty) for child in self.children)
 
-        if self.content or any_children_not_empty or self.containsFiles or any_attribute_with_value:
+        if parseContent(self.content, info) or any_children_not_empty or self.containsFiles or any_attribute_with_value:
             return False
 
         return True
@@ -148,7 +148,7 @@ class XMLElement(object):
                 if child_el is not None:
                     self.el.append(child_el)
 
-        if self.isEmpty() and not self.allowEmpty:
+        if self.isEmpty(info) and not self.allowEmpty:
             return None
 
         return self.el
