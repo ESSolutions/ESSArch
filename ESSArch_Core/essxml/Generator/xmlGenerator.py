@@ -64,6 +64,16 @@ def downloadSchemas(template, dirname, structure=[], root=""):
         download_file(schema, dst)
 
 
+def findElementWithoutNamespace(tree, el_name):
+    root = tree.getroot()
+    rootWithoutNS = etree.QName(root).localname
+
+    if rootWithoutNS == el_name:
+        return root
+    else:
+        return root.find(".//{*}%s" % el_name)
+
+
 class XMLElement(object):
     def __init__(self, template, nsmap={}):
         name = template.get('-name')
@@ -258,16 +268,8 @@ class XMLGenerator(object):
     def insert(self, filename, elementToAppendTo, template, info={}, index=None):
         parser = etree.XMLParser(remove_blank_text=True)
         tree = etree.parse(filename, parser)
-        rootEl = tree.getroot()
-        rootWithoutNS = etree.QName(rootEl).localname
-
-        if rootWithoutNS == elementToAppendTo:
-            elementToAppendTo = rootEl
-        else:
-            elementToAppendTo = rootEl.find(".//{*}%s" % elementToAppendTo)
-
+        elementToAppendTo = findElementWithoutNamespace(tree, elementToAppendTo)
         root_nsmap = {k: v for k, v in elementToAppendTo.nsmap.iteritems() if k}
-
         appendedRootEl = XMLElement(template, nsmap=root_nsmap)
 
         try:
