@@ -384,11 +384,6 @@ class ValidateFiles(DBTask):
     checksum_task = "ESSArch_Core.tasks.ValidateIntegrity"
 
     def run(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
-        if rootdir is None:
-            rootdir = ip.ObjectPath
-
-        doc = etree.ElementTree(file=xmlfile)
-
         step = ProcessStep.objects.create(
             name="Validate Files",
             parallel=True,
@@ -396,6 +391,11 @@ class ValidateFiles(DBTask):
         )
 
         if any([validate_fileformat, validate_integrity]):
+            if rootdir is None:
+                rootdir = ip.ObjectPath
+
+            doc = etree.ElementTree(file=xmlfile)
+
             for elname, props in settings.FILE_ELEMENTS.iteritems():
                 for f in doc.xpath('.//*[local-name()="%s"]' % elname):
                     fpath = get_value_from_path(f, props["path"])
