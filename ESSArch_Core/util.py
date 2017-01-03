@@ -308,3 +308,16 @@ def delete_content(folder):
             os.remove(entry.path)
         elif entry.is_dir():
             shutil.rmtree(entry.path)
+
+
+def find_and_replace_in_file(fname, old, new):
+    filedata = None
+    with open(fname, 'r') as f:
+        filedata = f.read()
+
+    # Replace the target string
+    filedata = filedata.replace(old, new)
+
+    # Write the file out again
+    with open(fname, 'w') as f:
+        f.write(filedata)

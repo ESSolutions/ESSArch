@@ -26,6 +26,8 @@ from ESSArch_Core.ip.models import (
     InformationPackage,
 )
 
+from ESSArch_Core.util import find_and_replace_in_file
+
 from ESSArch_Core.WorkflowEngine.models import (
     ProcessTask,
 )
@@ -724,3 +726,231 @@ class AppendEventsTestCase(TestCase):
         tree = etree.parse(self.fname)
         found = tree.findall('.//{*}event')
         self.assertEqual(len(found), 0)
+
+class ValidateFilesTestCase(TestCase):
+    def setUp(self):
+        self.taskname = "ESSArch_Core.tasks.ValidateFiles"
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.fname = os.path.join(self.datadir, 'test1.xml')
+        self.ip = InformationPackage.objects.create(Label="testip")
+        self.user = User.objects.create(username="testuser")
+
+        Path.objects.create(
+            entity="path_mimetypes_definitionfile",
+            value=os.path.join(self.root, "mime.types")
+        )
+
+        self.filesToCreate = {
+            self.fname: {
+                '-name': 'root',
+                '-children': [{
+                    '-name': 'object',
+                    '-containsFiles': True,
+                    '-filters': {'FName': '^((?!' + os.path.basename(self.fname) + ').)*$'},
+                    '-children': [
+                        {
+                            '-name': 'storage',
+                            '-children': [{
+                                '-name': 'contentLocation',
+                                '-children': [{
+                                    '-name': 'contentLocationValue',
+                                    '#content': [
+                                        {
+                                            'text': 'file:///',
+                                        },
+                                        {
+                                            'var': 'href'
+                                        }
+                                    ]
+                                }]
+                            }]
+                        },
+                        {
+                            '-name': 'objectCharacteristics',
+                            '-children': [
+                                {
+                                    '-name': 'fixity',
+                                    '-children': [
+                                        {
+                                            '-name': 'messageDigest',
+                                            '#content': [{
+                                                'var': 'FChecksum'
+                                            }]
+                                        },
+                                        {
+                                            '-name': 'messageDigestAlgorithm',
+                                            '#content': [{
+                                                'var': 'FChecksumType'
+                                            }]
+                                        }
+                                    ]
+                                },
+                                {
+                                    '-name': 'format',
+                                    '-children': [
+                                        {
+                                            '-name': 'formatDesignation',
+                                            '-children': [
+                                                {
+                                                    '-name': 'formatName',
+                                                    '#content': [
+                                                        {
+                                                            'var': 'FFormatName'
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            '-name': 'messageDigestAlgorithm',
+                                            '#content': [{
+                                                'var': 'FChecksumType'
+                                            }]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }]
+            }
+        }
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+        root = etree.fromstring('<root></root>')
+
+        with open(self.fname, 'w') as f:
+            f.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def test_no_validation(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'validate_fileformat': False,
+                'validate_integrity': False,
+            }
+        )
+
+        res = task.run().get().get(task.pk)
+
+        self.assertEqual(len(res), 0)
+
+    def test_validation_without_files(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip,
+                'xmlfile': self.fname
+            }
+        )
+
+        res = task.run().get().get(task.pk)
+
+        self.assertEqual(len(res), 0)
+
+    def test_validation_with_files(self):
+        num_of_files = 3
+
+        for i in range(num_of_files):
+            with open(os.path.join(self.datadir, '%s.txt' % i), 'w') as f:
+                f.write('%s' % i)
+
+        ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.GenerateXML',
+            params={
+                'filesToCreate': self.filesToCreate,
+                'folderToParse': self.datadir
+            }
+        ).run()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip,
+                'xmlfile': self.fname,
+                'rootdir': self.datadir
+            }
+        )
+
+        res = task.run().get().get(task.pk)
+
+        self.assertTrue(len(res) >= num_of_files)
+
+    def test_change_checksum(self):
+        num_of_files = 3
+
+        for i in range(num_of_files):
+            with open(os.path.join(self.datadir, '%s.txt' % i), 'w') as f:
+                f.write('%s' % i)
+
+        ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.GenerateXML',
+            params={
+                'filesToCreate': self.filesToCreate,
+                'folderToParse': self.datadir
+            }
+        ).run()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip,
+                'xmlfile': self.fname,
+                'rootdir': self.datadir
+            }
+        )
+
+        task.run()
+
+        for i in range(num_of_files):
+            with open(os.path.join(self.datadir, '%s.txt' % i), 'w') as f:
+                f.write('%s updated' % i)
+
+        with self.assertRaisesRegexp(AssertionError, 'checksum'):
+            task.run()
+
+    def test_change_file_format(self):
+        num_of_files = 3
+
+        for i in range(num_of_files):
+            with open(os.path.join(self.datadir, '%s.txt' % i), 'w') as f:
+                f.write('%s' % i)
+
+        ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.GenerateXML',
+            params={
+                'filesToCreate': self.filesToCreate,
+                'folderToParse': self.datadir
+            }
+        ).run()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip,
+                'xmlfile': self.fname,
+                'rootdir': self.datadir
+            }
+        )
+
+        task.run()
+
+        for i in range(num_of_files):
+            src = os.path.join(self.datadir, '%s.txt' % i)
+            dst = os.path.join(self.datadir, '%s.pdf' % i)
+
+            shutil.move(src, dst)
+
+        find_and_replace_in_file(self.fname, '.txt', '.pdf')
+
+        with self.assertRaisesRegexp(AssertionError, 'fileformat'):
+            task.run()
