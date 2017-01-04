@@ -1085,3 +1085,63 @@ class ValidateFileFormatTestCase(TestCase):
 
         with self.assertRaisesRegexp(AssertionError, 'format'):
             task.run()
+
+
+class ValidateXMLFileTestCase(TestCase):
+    def setUp(self):
+        self.taskname = "ESSArch_Core.tasks.ValidateXMLFile"
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.fname = os.path.join(self.datadir, 'test1.xml')
+        self.schema = os.path.join(self.datadir, 'test1.xsd')
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+        schema_root = etree.fromstring("""
+            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+                <xsd:element name="foo" type="xsd:integer"/>
+            </xsd:schema>
+        """)
+
+        with open(self.schema, 'w') as f:
+            f.write(etree.tostring(schema_root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def test_correct(self):
+        root = etree.fromstring('<foo>5</foo>')
+
+        with open(self.fname, 'w') as f:
+            f.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'xml_filename': self.fname,
+                'schema_filename': self.schema
+            }
+        )
+
+        task.run()
+
+    def test_incorrect(self):
+        root = etree.fromstring('<foo>bar</foo>')
+
+        with open(self.fname, 'w') as f:
+            f.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'xml_filename': self.fname,
+                'schema_filename': self.schema
+            }
+        )
+
+        with self.assertRaisesRegexp(etree.DocumentInvalid, 'not a valid value of the atomic type'):
+            task.run()
