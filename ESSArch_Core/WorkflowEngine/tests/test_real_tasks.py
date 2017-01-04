@@ -2,6 +2,7 @@
 
 import os
 import shutil
+import string
 import traceback
 
 from lxml import etree
@@ -953,4 +954,134 @@ class ValidateFilesTestCase(TestCase):
         find_and_replace_in_file(self.fname, '.txt', '.pdf')
 
         with self.assertRaisesRegexp(AssertionError, 'fileformat'):
+            task.run()
+
+
+class ValidateIntegrityTestCase(TestCase):
+    def setUp(self):
+        self.taskname = "ESSArch_Core.tasks.ValidateIntegrity"
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.fname = os.path.join(self.datadir, 'test1.txt')
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def test_correct(self):
+        open(self.fname, 'a').close()
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.CalculateChecksum',
+            params={
+                'filename': self.fname
+            }
+        )
+
+        checksum = t.run().get().get(t.pk)
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filename': self.fname,
+                'checksum': checksum,
+            }
+        )
+
+        task.run()
+
+    def test_incorrect(self):
+        open(self.fname, 'a').close()
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.CalculateChecksum',
+            params={
+                'filename': self.fname
+            }
+        )
+
+        checksum = t.run().get().get(t.pk)
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filename': self.fname,
+                'checksum': checksum,
+            }
+        )
+
+        with open(self.fname, 'w') as f:
+            f.write('foo')
+
+        with self.assertRaisesRegexp(AssertionError, 'checksum'):
+            task.run()
+
+
+class ValidateFileFormatTestCase(TestCase):
+    def setUp(self):
+        self.taskname = "ESSArch_Core.tasks.ValidateFileFormat"
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.fname = os.path.join(self.datadir, 'test1.txt')
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def test_correct(self):
+        open(self.fname, 'a').close()
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.IdentifyFileFormat',
+            params={
+                'filename': self.fname
+            }
+        )
+
+        fformat = t.run().get().get(t.pk)
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filename': self.fname,
+                'fileformat': fformat,
+            }
+        )
+
+        task.run()
+
+    def test_incorrect(self):
+        open(self.fname, 'a').close()
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.IdentifyFileFormat',
+            params={
+                'filename': self.fname
+            }
+        )
+
+        fformat = t.run().get().get(t.pk)
+
+        newfile = string.replace(self.fname, '.txt', '.pdf')
+        shutil.move(self.fname, newfile)
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filename': newfile,
+                'fileformat': fformat,
+            }
+        )
+
+        with self.assertRaisesRegexp(AssertionError, 'format'):
             task.run()
