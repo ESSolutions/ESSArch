@@ -1458,3 +1458,67 @@ class UpdateIPPathTestCase(TestCase):
 
         self.ip.refresh_from_db()
         self.assertEqual(self.ip.ObjectPath, 'initial')
+
+
+class DeleteFilesTestCase(TestCase):
+    def setUp(self):
+        self.taskname = "ESSArch_Core.tasks.DeleteFiles"
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def test_delete_empty_dir(self):
+        dirname = os.path.join(self.datadir, 'newdir')
+        os.mkdir(dirname)
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'path': dirname
+            }
+        )
+
+        task.run()
+
+        self.assertFalse(os.path.isdir(dirname))
+
+    def test_delete_dir_with_files(self):
+        dirname = os.path.join(self.datadir, 'newdir')
+        os.mkdir(dirname)
+
+        for i in range(3):
+            open(os.path.join(dirname, str(i)), 'a').close()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'path': dirname
+            }
+        )
+
+        task.run()
+
+        self.assertFalse(os.path.isdir(dirname))
+
+    def test_delete_file(self):
+        fname = os.path.join(self.datadir, 'test.txt')
+        open(fname, 'a').close()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'path': fname
+            }
+        )
+
+        task.run()
+
+        self.assertFalse(os.path.isfile(fname))
