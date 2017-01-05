@@ -1419,3 +1419,42 @@ class UpdateIPStatusTestCase(TestCase):
 
         self.ip.refresh_from_db()
         self.assertEqual(self.ip.State, 'initial')
+
+
+class UpdateIPPathTestCase(TestCase):
+    def setUp(self):
+        self.taskname = "ESSArch_Core.tasks.UpdateIPPath"
+        self.ip = InformationPackage.objects.create(Label="testip", ObjectPath='initial')
+
+    def test_update(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip,
+                'path': 'new'
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.ObjectPath, 'new')
+
+    def test_undo(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip,
+                'path': 'new'
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.ObjectPath, 'new')
+
+        task.undo()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.ObjectPath, 'initial')
