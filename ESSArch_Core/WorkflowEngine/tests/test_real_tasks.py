@@ -1145,3 +1145,238 @@ class ValidateXMLFileTestCase(TestCase):
 
         with self.assertRaisesRegexp(etree.DocumentInvalid, 'not a valid value of the atomic type'):
             task.run()
+
+
+class ValidateLogicalPhysicalRepresentationTestCase(TestCase):
+    def setUp(self):
+        self.taskname = "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation"
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.fname = os.path.join(self.datadir, 'test1.xml')
+        self.ip = InformationPackage.objects.create(Label="testip")
+        self.user = User.objects.create(username="testuser")
+
+        Path.objects.create(
+            entity="path_mimetypes_definitionfile",
+            value=os.path.join(self.root, "mime.types")
+        )
+
+        self.filesToCreate = {
+            self.fname: {
+                '-name': 'root',
+                '-children': [{
+                    '-name': 'object',
+                    '-containsFiles': True,
+                    '-filters': {'FName': '^((?!' + os.path.basename(self.fname) + ').)*$'},
+                    '-children': [
+                        {
+                            '-name': 'storage',
+                            '-children': [{
+                                '-name': 'contentLocation',
+                                '-children': [{
+                                    '-name': 'contentLocationValue',
+                                    '#content': [
+                                        {
+                                            'text': 'file:///',
+                                        },
+                                        {
+                                            'var': 'href'
+                                        }
+                                    ]
+                                }]
+                            }]
+                        }
+                    ]
+                }]
+            }
+        }
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+        root = etree.fromstring('<root></root>')
+
+        with open(self.fname, 'w') as f:
+            f.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def test_validation_without_files(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'xmlfile': self.fname
+            }
+        )
+
+        task.run()
+
+    def test_validation_with_files(self):
+        num_of_files = 3
+        files = []
+
+        for i in range(num_of_files):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('%s' % i)
+            files.append(fname)
+
+        ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.GenerateXML',
+            params={
+                'filesToCreate': self.filesToCreate,
+                'folderToParse': self.datadir
+            }
+        ).run()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'files': files,
+                'files_reldir': self.datadir,
+                'xmlfile': self.fname,
+            }
+        )
+
+        task.run()
+
+    def test_validation_with_incorrect_file_name(self):
+        num_of_files = 3
+        files = []
+
+        for i in range(num_of_files):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('%s' % i)
+            files.append(fname)
+
+        ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.GenerateXML',
+            params={
+                'filesToCreate': self.filesToCreate,
+                'folderToParse': self.datadir
+            }
+        ).run()
+
+        files[0] = string.replace(files[0], 'txt', 'txtx')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'files': files,
+                'files_reldir': self.datadir,
+                'xmlfile': self.fname,
+            }
+        )
+
+        with self.assertRaisesRegexp(AssertionError, "the logical representation differs from the physical"):
+            task.run()
+
+    def test_validation_with_too_many_files(self):
+        num_of_files = 3
+        files = []
+
+        for i in range(num_of_files):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('%s' % i)
+            files.append(fname)
+
+        ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.GenerateXML',
+            params={
+                'filesToCreate': self.filesToCreate,
+                'folderToParse': self.datadir
+            }
+        ).run()
+
+        fname = os.path.join(self.datadir, '%s.txt' % (num_of_files+1))
+        files.append(fname)
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'files': files,
+                'files_reldir': self.datadir,
+                'xmlfile': self.fname,
+            }
+        )
+
+        with self.assertRaisesRegexp(AssertionError, "the logical representation differs from the physical"):
+            task.run()
+
+    def test_validation_with_too_few_files(self):
+        num_of_files = 3
+        files = []
+
+        for i in range(num_of_files):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('%s' % i)
+            files.append(fname)
+
+        ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.GenerateXML',
+            params={
+                'filesToCreate': self.filesToCreate,
+                'folderToParse': self.datadir
+            }
+        ).run()
+
+        fname = os.path.join(self.datadir, '%s.txt' % (num_of_files+1))
+        files.pop()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'files': files,
+                'files_reldir': self.datadir,
+                'xmlfile': self.fname,
+            }
+        )
+
+        with self.assertRaisesRegexp(AssertionError, "the logical representation differs from the physical"):
+            task.run()
+
+    def test_validation_with_file_in_wrong_folder(self):
+        num_of_files = 3
+        files = []
+
+        for i in range(num_of_files):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('%s' % i)
+            files.append(fname)
+
+        ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.GenerateXML',
+            params={
+                'filesToCreate': self.filesToCreate,
+                'folderToParse': self.datadir
+            }
+        ).run()
+
+        moved_file = files[0]
+        new_dir = os.path.join(self.datadir, 'new_dir')
+        new_file = os.path.join(new_dir, os.path.basename(moved_file))
+
+        os.mkdir(new_dir)
+        shutil.move(moved_file, new_file)
+
+        files[0] = new_file
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'files': files,
+                'files_reldir': self.datadir,
+                'xmlfile': self.fname,
+            }
+        )
+
+        with self.assertRaisesRegexp(AssertionError, "the logical representation differs from the physical"):
+            task.run()
