@@ -592,7 +592,7 @@ class UpdateIPStatus(DBTask):
         self.set_progress(100, total=100)
 
     def undo(self, ip=None, status=None):
-        pass
+        ip.save()
 
     def event_outcome_success(self, ip=None, status=None):
         return "Updated status of %s" % (ip.pk)
