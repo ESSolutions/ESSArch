@@ -536,7 +536,7 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
     See http://stackoverflow.com/a/7829388/1523238
     """
 
-    def run(self, dirname=None, files=[], xmlfile=None):
+    def run(self, dirname=None, files=[], files_reldir=None, xmlfile=None):
         if dirname:
             xmlrelpath = os.path.relpath(xmlfile, dirname)
             xmlrelpath = remove_prefix(xmlrelpath, "./")
@@ -570,16 +570,18 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
                         physical_files.add(relfile)
 
         for f in files:
-            physical_files.add(os.path.basename(f))
+            if files_reldir:
+                f = os.path.relpath(f, files_reldir)
+            physical_files.add(f)
 
         assert logical_files == physical_files, "the logical representation differs from the physical"
         self.set_progress(100, total=100)
         return "Success"
 
-    def undo(self, dirname=None, files=[], xmlfile=None):
+    def undo(self, dirname=None, files=[], files_reldir=None, xmlfile=None):
         pass
 
-    def event_outcome_success(self, dirname=None, files=[], xmlfile=None):
+    def event_outcome_success(self, dirname=None, files=[], files_reldir=None, xmlfile=None):
         return "Validated logical and physical structure of %s and %s" % (xmlfile, dirname)
 
 
