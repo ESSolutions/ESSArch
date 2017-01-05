@@ -1380,3 +1380,42 @@ class ValidateLogicalPhysicalRepresentationTestCase(TestCase):
 
         with self.assertRaisesRegexp(AssertionError, "the logical representation differs from the physical"):
             task.run()
+
+
+class UpdateIPStatusTestCase(TestCase):
+    def setUp(self):
+        self.taskname = "ESSArch_Core.tasks.UpdateIPStatus"
+        self.ip = InformationPackage.objects.create(Label="testip", State='initial')
+
+    def test_update(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip,
+                'status': 'new'
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.State, 'new')
+
+    def test_undo(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip,
+                'status': 'new'
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.State, 'new')
+
+        task.undo()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.State, 'initial')
