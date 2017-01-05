@@ -605,7 +605,7 @@ class UpdateIPPath(DBTask):
         self.set_progress(100, total=100)
 
     def undo(self, ip=None, path=None):
-        pass
+        ip.save()
 
     def event_outcome_success(self, ip=None, path=None):
         return "Updated path of '%s' (%s) to %s" % (ip.Label, ip.pk, path)
