@@ -27,6 +27,8 @@ from ESSArch_Core.util import (
 
 
 class DBTask(Task):
+    queue = 'celery'
+
     def __call__(self, *args, **kwargs):
         try:
             self.taskobj = kwargs['taskobj']

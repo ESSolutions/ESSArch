@@ -403,7 +403,8 @@ class ProcessTask(Process):
         Runs the task
         """
 
-        return self._create_task(self.name).delay(taskobj=self)
+        t = self._create_task(self.name)
+        return t.apply_async(kwargs={'taskobj': self}, queue=t.queue)
 
     def run_eagerly(self):
         """
@@ -417,8 +418,10 @@ class ProcessTask(Process):
         Undos the task
         """
 
-        return self._create_task(self.name).delay(
-            taskobj=self.create_undo_obj()
+        t = self._create_task(self.name)
+        return t.apply_async(
+            kwargs={'taskobj': self.create_undo_obj()},
+            queue=t.queue
         )
 
     def retry(self):
@@ -426,8 +429,10 @@ class ProcessTask(Process):
         Retries the task
         """
 
-        return self._create_task(self.name).delay(
-            taskobj=self.create_retry_obj()
+        t = self._create_task(self.name)
+        return t.apply_async(
+            kwargs={'taskobj': self.create_retry_obj()},
+            queue=t.queue
         )
 
     def create_undo_obj(self, attempt=uuid.uuid4()):
