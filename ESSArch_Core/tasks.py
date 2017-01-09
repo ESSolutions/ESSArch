@@ -446,6 +446,8 @@ class ValidateFiles(DBTask):
 
 
 class ValidateFileFormat(DBTask):
+    queue = 'validation'
+
     def run(self, filename=None, fileformat=None):
         """
         Validates the format of the given file
@@ -473,6 +475,8 @@ class ValidateFileFormat(DBTask):
 
 
 class ValidateIntegrity(DBTask):
+    queue = 'validation'
+
     def run(self, filename=None, checksum=None, block_size=65536, algorithm='SHA-256'):
         """
         Validates the integrity(checksum) for the given file
@@ -503,6 +507,8 @@ class ValidateIntegrity(DBTask):
 
 
 class ValidateXMLFile(DBTask):
+    queue = 'validation'
+
     def run(self, xml_filename=None, schema_filename=None):
         """
         Validates (using LXML) an XML file using a specified schema file
@@ -535,6 +541,8 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 
     See http://stackoverflow.com/a/7829388/1523238
     """
+
+    queue = 'validation'
 
     def run(self, dirname=None, files=[], files_reldir=None, xmlfile=None):
         if dirname:
