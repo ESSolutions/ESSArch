@@ -128,5 +128,9 @@
             ],
             "-min": 0
         }
-    ]
+    ],
+    "-schemasToPreserve": [
+        "http://www.loc.gov/standards/premis/premis.xsd"
+    ],
+    "-schemaPreservationLocation": "xsd_files"
 }
