@@ -3,6 +3,8 @@ import os
 import shutil
 import urllib
 
+from celery.result import allow_join_result
+
 from django.conf import settings
 
 from ESSArch_Core.util import (
@@ -436,7 +438,8 @@ class ValidateFiles(DBTask):
         self.taskobj.save(update_fields=['log'])
         self.set_progress(100, total=100)
 
-        return step.run()
+        with allow_join_result():
+            return step.run().get()
 
     def undo(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
         pass
