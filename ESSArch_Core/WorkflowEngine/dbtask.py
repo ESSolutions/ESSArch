@@ -198,8 +198,9 @@ class DBTask(Task):
                 pass
 
     def set_progress(self, progress, total=None):
-        self.update_state(state=celery_states.PENDING,
-                          meta={'current': progress, 'total': total})
+        if not self.eager:
+            self.update_state(state=celery_states.PENDING,
+                              meta={'current': progress, 'total': total})
 
         self.taskobj.progress = (progress/total) * 100
         self.taskobj.save(update_fields=['progress'])
