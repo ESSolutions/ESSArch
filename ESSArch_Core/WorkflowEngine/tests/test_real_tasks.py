@@ -5,6 +5,8 @@ import shutil
 import string
 import traceback
 
+from celery import states as celery_states
+
 from lxml import etree
 
 from django.conf import settings
@@ -30,6 +32,7 @@ from ESSArch_Core.ip.models import (
 from ESSArch_Core.util import find_and_replace_in_file
 
 from ESSArch_Core.WorkflowEngine.models import (
+    ProcessStep,
     ProcessTask,
 )
 
@@ -955,6 +958,41 @@ class ValidateFilesTestCase(TestCase):
 
         with self.assertRaisesRegexp(AssertionError, 'fileformat'):
             task.run()
+
+    def test_fail_and_stop_step_when_inner_task_fails(self):
+        fname = os.path.join(self.datadir, 'test1.txt')
+        open(fname, 'a').close()
+
+        ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.GenerateXML',
+            params={
+                'filesToCreate': self.filesToCreate,
+                'folderToParse': self.datadir
+            }
+        ).run()
+
+        with open(fname, 'w') as f:
+            f.write('added')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip,
+                'xmlfile': self.fname,
+                'rootdir': self.datadir
+            }
+        )
+
+        with self.assertRaises(AssertionError):
+            task.run_eagerly()
+
+        step = ProcessStep.objects.first()
+
+        for t in step.tasks.all():
+            print "name: %s, status: %s" % (t.name, t.status)
+
+        self.assertEqual(task.status, celery_states.FAILURE)
+        self.assertEqual(step.status, celery_states.FAILURE)
 
 
 class ValidateIntegrityTestCase(TestCase):
