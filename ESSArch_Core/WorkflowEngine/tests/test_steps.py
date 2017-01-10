@@ -83,6 +83,76 @@ class test_running_steps(TestCase):
         self.assertEqual(res[t2.id], t2_val)
         self.assertEqual(res[t3.id], t3_val)
 
+    def test_failing_serialized_step(self):
+        step = ProcessStep.objects.create(name="Test",)
+
+        t1 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": 1},
+            processstep_pos=0,
+        )
+
+        t2 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
+            processstep_pos=1,
+        )
+
+        t3 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Second",
+            params={"foo": 2},
+            processstep_pos=2,
+        )
+
+        step.tasks = [t1, t2, t3]
+
+        with self.assertRaises(Exception):
+            step.run().get()
+
+        t1.refresh_from_db()
+        t2.refresh_from_db()
+        t3.refresh_from_db()
+
+        self.assertEqual(step.status, celery_states.FAILURE)
+
+        self.assertEqual(t1.status, celery_states.SUCCESS)
+        self.assertEqual(t2.status, celery_states.FAILURE)
+        self.assertEqual(t3.status, celery_states.PENDING)
+
+    def test_failing_parallel_step(self):
+        step = ProcessStep.objects.create(name="Test", parallel=True)
+
+        t1 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": 1},
+            processstep_pos=0,
+        )
+
+        t2 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
+            processstep_pos=1,
+        )
+
+        t3 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Second",
+            params={"foo": 2},
+            processstep_pos=2,
+        )
+
+        step.tasks = [t1, t2, t3]
+
+        with self.assertRaises(Exception):
+            step.run().get()
+
+        t1.refresh_from_db()
+        t2.refresh_from_db()
+        t3.refresh_from_db()
+
+        self.assertEqual(step.status, celery_states.FAILURE)
+
+        self.assertEqual(t1.status, celery_states.SUCCESS)
+        self.assertEqual(t2.status, celery_states.FAILURE)
+        self.assertEqual(t3.status, celery_states.SUCCESS)
+
     def test_result_params_step(self):
         t1_val = 1
         t2_val = 2
