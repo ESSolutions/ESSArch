@@ -5,11 +5,6 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-try:
-    from install.install_default_config_etp import installDefaultEventTypes
-except ImportError:
-    from install.install_default_config_eta import installDefaultEventTypes
-
 from ESSArch_Core.ip.models import (
     InformationPackage,
 )
@@ -17,10 +12,6 @@ from ESSArch_Core.ip.models import (
 from ESSArch_Core.WorkflowEngine.models import (
     ProcessTask,
 )
-
-
-def setUpModule():
-    installDefaultEventTypes()
 
 
 class test_running_tasks(TestCase):

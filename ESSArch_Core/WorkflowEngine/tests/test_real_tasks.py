@@ -14,11 +14,6 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-try:
-    from install.install_default_config_etp import installDefaultEventTypes
-except ImportError:
-    from install.install_default_config_eta import installDefaultEventTypes
-
 from ESSArch_Core.configuration.models import (
     EventType,
     Path
@@ -38,7 +33,6 @@ from ESSArch_Core.WorkflowEngine.models import (
 
 
 def setUpModule():
-    installDefaultEventTypes()
     settings.CELERY_ALWAYS_EAGER = True
     settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
@@ -673,7 +667,7 @@ class AppendEventsTestCase(TestCase):
         shutil.rmtree(self.datadir)
 
     def test_undo(self):
-        event_type = EventType.objects.first()
+        event_type = EventType.objects.create()
 
         for i in range(10):
             EventIP.objects.create(
