@@ -10,6 +10,8 @@ from celery import states as celery_states, Task
 
 from ESSArch_Core.configuration.models import EventType
 
+from django.conf import settings
+
 from django.db import (
     DatabaseError,
     OperationalError,
@@ -86,9 +88,35 @@ class DBTask(Task):
                 raise
 
         if self.taskobj.undo_type:
-            return self.undo(**self.taskobj.params)
+            if hasattr(settings, 'CELERY_ALWAYS_EAGER') and settings.CELERY_ALWAYS_EAGER:
+                try:
+                    res = self.undo(**self.taskobj.params)
+                    prev_result_dict[self.taskobj.id] = res
+                    self.on_success(prev_result_dict, None, args, kwargs)
+                    self.after_return(celery_states.SUCCESS, res, None, args, kwargs, None)
+                    return res
+                except Exception as e:
+                    einfo = ExceptionInfo()
+                    self.on_failure(e, None, args, kwargs, einfo)
+                    self.after_return(celery_states.FAILURE, e, None, args, kwargs, einfo)
+                    raise
+            else:
+                return self.undo(**self.taskobj.params)
         else:
-            prev_result_dict[self.taskobj.id] = self.run(**self.taskobj.params)
+            if hasattr(settings, 'CELERY_ALWAYS_EAGER') and settings.CELERY_ALWAYS_EAGER:
+                try:
+                    res = self.run(**self.taskobj.params)
+                    prev_result_dict[self.taskobj.id] = res
+                    self.on_success(prev_result_dict, None, args, kwargs)
+                    self.after_return(celery_states.SUCCESS, res, None, args, kwargs, None)
+                except Exception as e:
+                    einfo = ExceptionInfo()
+                    self.on_failure(e, None, args, kwargs, einfo)
+                    self.after_return(celery_states.FAILURE, e, None, args, kwargs, einfo)
+                    raise
+            else:
+                prev_result_dict[self.taskobj.id] = self.run(**self.taskobj.params)
+
             self.create_event(None, "")
             return prev_result_dict
 
