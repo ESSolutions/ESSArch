@@ -41,6 +41,14 @@ class Add(DBTask):
         pass
 
 
+class Fail(DBTask):
+    def run(self):
+        raise Exception
+
+    def undo(self):
+        pass
+
+
 class FailIfFileNotExists(DBTask):
     def run(self, filename=None):
         assert os.path.isfile(filename)
