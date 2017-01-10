@@ -11,6 +11,127 @@ from ESSArch_Core.WorkflowEngine.models import (
 import os
 import shutil
 
+class test_status(TestCase):
+    def setUp(self):
+        self.step = ProcessStep.objects.create()
+
+    def test_no_steps_or_tasks(self):
+        self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_pending_task(self):
+        t = ProcessTask.objects.create(status=celery_states.PENDING)
+        self.step.tasks = [t]
+        self.assertEqual(self.step.status, celery_states.PENDING)
+
+    def test_pending_child_step(self):
+        s = ProcessStep.objects.create()
+        t = ProcessTask.objects.create(status=celery_states.PENDING)
+
+        s.tasks = [t]
+        self.step.child_steps = [s]
+        self.assertEqual(self.step.status, celery_states.PENDING)
+
+    def test_pending_child_step_and_task(self):
+        s = ProcessStep.objects.create()
+        t1 = ProcessTask.objects.create(status=celery_states.PENDING)
+        t2 = ProcessTask.objects.create(status=celery_states.PENDING)
+
+        s.tasks = [t1]
+        self.step.tasks = [t2]
+        self.step.child_steps = [s]
+        self.assertEqual(self.step.status, celery_states.PENDING)
+
+    def test_started_task(self):
+        t = ProcessTask.objects.create(status=celery_states.STARTED)
+        self.step.tasks = [t]
+        self.assertEqual(self.step.status, celery_states.STARTED)
+
+    def test_started_child_step(self):
+        s = ProcessStep.objects.create()
+        t = ProcessTask.objects.create(status=celery_states.STARTED)
+
+        s.tasks = [t]
+        self.step.child_steps = [s]
+        self.assertEqual(self.step.status, celery_states.STARTED)
+
+    def test_started_child_step_and_task(self):
+        s = ProcessStep.objects.create()
+        t1 = ProcessTask.objects.create(status=celery_states.STARTED)
+        t2 = ProcessTask.objects.create(status=celery_states.STARTED)
+
+        s.tasks = [t1]
+        self.step.tasks = [t2]
+        self.step.child_steps = [s]
+        self.assertEqual(self.step.status, celery_states.STARTED)
+
+    def test_succeeded_task(self):
+        t = ProcessTask.objects.create(status=celery_states.SUCCESS)
+        self.step.tasks = [t]
+        self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_succeeded_child_step(self):
+        s = ProcessStep.objects.create()
+        t = ProcessTask.objects.create(status=celery_states.SUCCESS)
+
+        s.tasks = [t]
+        self.step.child_steps = [s]
+        self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_succeeded_child_step_and_task(self):
+        s = ProcessStep.objects.create()
+        t1 = ProcessTask.objects.create(status=celery_states.SUCCESS)
+        t2 = ProcessTask.objects.create(status=celery_states.SUCCESS)
+
+        s.tasks = [t1]
+        self.step.tasks = [t2]
+        self.step.child_steps = [s]
+        self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_failed_task(self):
+        t = ProcessTask.objects.create(status=celery_states.FAILURE)
+        self.step.tasks = [t]
+        self.assertEqual(self.step.status, celery_states.FAILURE)
+
+    def test_failed_child_step(self):
+        s = ProcessStep.objects.create()
+        t = ProcessTask.objects.create(status=celery_states.FAILURE)
+
+        s.tasks = [t]
+        self.step.child_steps = [s]
+        self.assertEqual(self.step.status, celery_states.FAILURE)
+
+    def test_failed_child_step_and_task(self):
+        s = ProcessStep.objects.create()
+        t1 = ProcessTask.objects.create(status=celery_states.FAILURE)
+        t2 = ProcessTask.objects.create(status=celery_states.FAILURE)
+
+        s.tasks = [t1]
+        self.step.tasks = [t2]
+        self.step.child_steps = [s]
+        self.assertEqual(self.step.status, celery_states.FAILURE)
+
+    def test_failed_task_after_succeeded(self):
+        t1 = ProcessTask.objects.create(status=celery_states.SUCCESS)
+        t2 = ProcessTask.objects.create(status=celery_states.FAILURE)
+
+        self.step.tasks = [t1, t2]
+        self.assertEqual(self.step.status, celery_states.FAILURE)
+
+    def test_started_task_after_succeeded(self):
+        t1 = ProcessTask.objects.create(status=celery_states.SUCCESS)
+        t2 = ProcessTask.objects.create(status=celery_states.STARTED)
+
+        self.step.tasks = [t1, t2]
+        self.assertEqual(self.step.status, celery_states.STARTED)
+
+    def test_failed_task_between_succeeded(self):
+        t1 = ProcessTask.objects.create(status=celery_states.SUCCESS)
+        t2 = ProcessTask.objects.create(status=celery_states.FAILURE)
+        t3 = ProcessTask.objects.create(status=celery_states.SUCCESS)
+
+        self.step.tasks = [t1, t2, t3]
+        self.assertEqual(self.step.status, celery_states.FAILURE)
+
 
 class test_running_steps(TestCase):
     def setUp(self):
