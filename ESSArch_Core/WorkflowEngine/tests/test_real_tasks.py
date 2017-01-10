@@ -988,9 +988,6 @@ class ValidateFilesTestCase(TestCase):
 
         step = ProcessStep.objects.first()
 
-        for t in step.tasks.all():
-            print "name: %s, status: %s" % (t.name, t.status)
-
         self.assertEqual(task.status, celery_states.FAILURE)
         self.assertEqual(step.status, celery_states.FAILURE)
 
