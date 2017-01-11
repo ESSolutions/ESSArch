@@ -11,6 +11,7 @@ from ESSArch_Core.WorkflowEngine.models import (
 import os
 import shutil
 
+
 class test_status(TestCase):
     def setUp(self):
         self.step = ProcessStep.objects.create()
@@ -164,27 +165,21 @@ class test_running_steps(TestCase):
 
         t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={
-                "foo": t1_val,
-            },
+            params={"foo": t1_val},
             processstep_pos=0,
             information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Second",
-            params={
-                "foo": t2_val,
-            },
+            params={"foo": t2_val},
             processstep_pos=1,
             information_package=ip,
         )
 
         t3 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
-            params={
-                "foo": t3_val,
-            },
+            params={"foo": t3_val},
             processstep_pos=2,
             information_package=ip,
         )
@@ -196,13 +191,9 @@ class test_running_steps(TestCase):
 
         self.assertEqual(step.status, celery_states.SUCCESS)
 
-        self.assertTrue(t1.id in res)
-        self.assertTrue(t2.id in res)
-        self.assertTrue(t3.id in res)
-
-        self.assertEqual(res[t1.id], t1_val)
-        self.assertEqual(res[t2.id], t2_val)
-        self.assertEqual(res[t3.id], t3_val)
+        self.assertEqual(res.get(t1.id), t1_val)
+        self.assertEqual(res.get(t2.id), t2_val)
+        self.assertEqual(res.get(t3.id), t3_val)
 
     def test_failing_serialized_step(self):
         step = ProcessStep.objects.create(name="Test",)
@@ -287,34 +278,23 @@ class test_running_steps(TestCase):
 
         t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
-            params={
-                "x": t1_val,
-                "y": t1_val,
-            },
+            params={"x": t1_val, "y": t1_val},
             processstep_pos=0,
             information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
-            params={
-                "x": t2_val
-            },
-            result_params={
-                "y": t1.id
-            },
+            params={"x": t2_val},
+            result_params={"y": t1.id},
             processstep_pos=1,
             information_package=ip,
         )
 
         t3 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
-            params={
-                "x": t3_val,
-            },
-            result_params={
-                "y": t1.id
-            },
+            params={"x": t3_val},
+            result_params={"y": t1.id},
             processstep_pos=2,
             information_package=ip,
         )
@@ -330,13 +310,9 @@ class test_running_steps(TestCase):
         t2.refresh_from_db()
         t3.refresh_from_db()
 
-        self.assertTrue(t1.id in res)
-        self.assertTrue(t2.id in res)
-        self.assertTrue(t3.id in res)
-
-        self.assertEqual(res[t1.id], t1_val*2)
-        self.assertEqual(res[t2.id], res[t1.id] + t2_val)
-        self.assertEqual(res[t3.id], res[t1.id] + t3_val)
+        self.assertEqual(res.get(t1.id), t1_val*2)
+        self.assertEqual(res.get(t2.id), res.get(t1.id) + t2_val)
+        self.assertEqual(res.get(t3.id), res.get(t1.id) + t3_val)
 
     def test_undo_serialized_step(self):
         t1_val = 123
@@ -350,18 +326,14 @@ class test_running_steps(TestCase):
 
         t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={
-                "foo": t1_val,
-            },
+            params={"foo": t1_val},
             processstep_pos=0,
             information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            params={
-                "filename": t2_val,
-            },
+            params={"filename": t2_val},
             processstep_pos=1,
             information_package=ip,
         )
@@ -394,26 +366,20 @@ class test_running_steps(TestCase):
         t1_val = 123
         t2_val = os.path.join(self.test_dir, "foo.txt")
 
-        step = ProcessStep.objects.create(
-            name="Test",
-        )
+        step = ProcessStep.objects.create(name="Test")
 
         ip = InformationPackage.objects.create()
 
         t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={
-                "foo": t1_val,
-            },
+            params={"foo": t1_val},
             processstep_pos=0,
             information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            params={
-                "filename": t2_val,
-            },
+            params={"filename": t2_val},
             processstep_pos=1,
             information_package=ip,
         )
@@ -454,18 +420,14 @@ class test_running_steps(TestCase):
 
         t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={
-                "foo": t1_val,
-            },
+            params={"foo": t1_val},
             processstep_pos=0,
             information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            params={
-                "filename": t2_val,
-            },
+            params={"filename": t2_val},
             processstep_pos=1,
             information_package=ip,
         )
@@ -514,18 +476,14 @@ class test_running_steps(TestCase):
 
         t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={
-                "foo": t1_val,
-            },
+            params={"foo": t1_val},
             processstep_pos=0,
             information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            params={
-                "filename": t2_val,
-            },
+            params={"filename": t2_val},
             processstep_pos=1,
             information_package=ip,
         )
@@ -581,25 +539,19 @@ class test_running_steps(TestCase):
 
         t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={
-                "foo": t1_val,
-            },
+            params={"foo": t1_val},
             information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Second",
-            params={
-                "foo": t2_val,
-            },
+            params={"foo": t2_val},
             information_package=ip,
         )
 
         t3 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
-            params={
-                "foo": t3_val,
-            },
+            params={"foo": t3_val},
             information_package=ip,
         )
 
@@ -631,25 +583,19 @@ class test_running_steps(TestCase):
 
         t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={
-                "foo": t1_val,
-            },
+            params={"foo": t1_val},
             information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            params={
-                "filename": t2_val,
-            },
+            params={"filename": t2_val},
             information_package=ip,
         )
 
         t3 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
-            params={
-                "foo": t3_val,
-            },
+            params={"foo": t3_val},
             information_package=ip,
         )
 
@@ -689,25 +635,19 @@ class test_running_steps(TestCase):
 
         t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={
-                "foo": t1_val,
-            },
+            params={"foo": t1_val},
             information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            params={
-                "filename": t2_val,
-            },
+            params={"filename": t2_val},
             information_package=ip,
         )
 
         t3 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
-            params={
-                "foo": t3_val,
-            },
+            params={"foo": t3_val},
             information_package=ip,
         )
 
@@ -747,25 +687,19 @@ class test_running_steps(TestCase):
 
         t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={
-                "foo": t1_val,
-            },
+            params={"foo": t1_val},
             information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            params={
-                "filename": t2_val,
-            },
+            params={"filename": t2_val},
             information_package=ip,
         )
 
         t3 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
-            params={
-                "foo": t3_val,
-            },
+            params={"foo": t3_val},
             information_package=ip,
         )
 
@@ -815,25 +749,19 @@ class test_running_steps(TestCase):
 
         t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={
-                "foo": t1_val,
-            },
+            params={"foo": t1_val},
             information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            params={
-                "filename": t2_val,
-            },
+            params={"filename": t2_val},
             information_package=ip,
         )
 
         t3 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
-            params={
-                "foo": t3_val,
-            },
+            params={"foo": t3_val},
             information_package=ip,
         )
 
