@@ -252,6 +252,42 @@ class test_running_steps(TestCase):
         self.assertEqual(t2.status, celery_states.SUCCESS)
         self.assertEqual(t3.status, celery_states.SUCCESS)
 
+    def test_child_steps(self):
+        main_step = ProcessStep.objects.create()
+        step1 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=1
+        )
+        step2 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=2
+        )
+        step3 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=3
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": 123}, processstep=step1
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Second",
+            params={"foo": 456}, processstep=step2
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
+            params={"foo": 789}, processstep=step3
+        )
+
+        main_step.run()
+
+        steps = ProcessStep.objects.all()
+        tasks = ProcessTask.objects.filter(status=celery_states.SUCCESS)
+
+        self.assertTrue(all([s.status == celery_states.SUCCESS for s in steps]))
+        self.assertEqual(steps.count(), 4)
+        self.assertEqual(tasks.count(), 3)
+
     def test_failing_serialized_step(self):
         step = ProcessStep.objects.create(name="Test",)
 
@@ -321,6 +357,40 @@ class test_running_steps(TestCase):
         self.assertEqual(t1.status, celery_states.SUCCESS)
         self.assertEqual(t2.status, celery_states.FAILURE)
         self.assertEqual(t3.status, celery_states.SUCCESS)
+
+    def test_failing_with_child_steps(self):
+        main_step = ProcessStep.objects.create()
+        step1 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=1
+        )
+        step2 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=2
+        )
+        step3 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=3
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": 123}, processstep=step1
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
+            params={"foo": 456}, processstep=step2
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
+            params={"foo": 789}, processstep=step3
+        )
+
+        with self.assertRaises(Exception):
+            main_step.run()
+
+        self.assertEqual(step1.status, celery_states.SUCCESS)
+        self.assertEqual(step2.status, celery_states.FAILURE)
+        self.assertEqual(step3.status, celery_states.PENDING)
 
     def test_result_params_step(self):
         t1_val = 1
@@ -551,6 +621,42 @@ class test_undoing_steps(TestCase):
         self.assertFalse(t1.undone)
         self.assertTrue(t2.undone)
         self.assertFalse(t3.undone)
+
+    def test_undo_with_child_steps(self):
+        main_step = ProcessStep.objects.create()
+        step1 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=1
+        )
+        step2 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=2
+        )
+        step3 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=3
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": 123}, processstep=step1
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
+            processstep=step2
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
+            params={"foo": 789}, processstep=step3
+        )
+
+        with self.assertRaises(Exception):
+            main_step.run()
+
+        main_step.undo()
+
+        self.assertEqual(step1.status, celery_states.SUCCESS)
+        self.assertEqual(step2.status, celery_states.SUCCESS)
+        self.assertEqual(step3.status, celery_states.SUCCESS)
 
 
 class test_retrying_steps(TestCase):
@@ -803,3 +909,45 @@ class test_retrying_steps(TestCase):
         self.assertFalse(t1.retried)
         self.assertTrue(t2.retried)
         self.assertFalse(t3.retried)
+
+    def test_retry_with_child_steps(self):
+        fname = os.path.join(self.test_dir, "foo.txt")
+
+        main_step = ProcessStep.objects.create()
+        step1 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=1
+        )
+        step2 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=2
+        )
+        step3 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=3
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": 123}, processstep=step1
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
+            params={"filename": fname}, processstep=step2
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
+            params={"foo": 789}, processstep=step3
+        )
+
+        with self.assertRaises(Exception):
+            main_step.run()
+
+        main_step.undo()
+
+        open(fname, 'a').close()
+
+        main_step.retry()
+
+        self.assertEqual(step1.status, celery_states.SUCCESS)
+        self.assertEqual(step2.status, celery_states.SUCCESS)
+        self.assertEqual(step3.status, celery_states.SUCCESS)
