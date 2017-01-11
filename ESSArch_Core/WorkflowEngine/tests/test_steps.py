@@ -135,23 +135,6 @@ class test_status(TestCase):
 
 
 class test_running_steps(TestCase):
-    def setUp(self):
-        self.test_dir = "test_dir"
-
-        try:
-            os.mkdir(self.test_dir)
-        except:
-            pass
-
-        settings.CELERY_ALWAYS_EAGER = True
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
-
-    def tearDown(self):
-        try:
-            shutil.rmtree(self.test_dir)
-        except:
-            pass
-
     def test_serialized_step(self):
         t1_val = 123
         t2_val = 456
@@ -194,6 +177,50 @@ class test_running_steps(TestCase):
         self.assertEqual(res.get(t1.id), t1_val)
         self.assertEqual(res.get(t2.id), t2_val)
         self.assertEqual(res.get(t3.id), t3_val)
+
+    def test_parallel_step(self):
+        t1_val = 123
+        t2_val = 456
+        t3_val = 789
+
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        ip = InformationPackage.objects.create()
+
+        t1 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": t1_val},
+            information_package=ip,
+        )
+
+        t2 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Second",
+            params={"foo": t2_val},
+            information_package=ip,
+        )
+
+        t3 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
+            params={"foo": t3_val},
+            information_package=ip,
+        )
+
+        step.tasks = [t1, t2, t3]
+        step.parallel = True
+        step.save()
+
+        step.run().get()
+        self.assertEqual(step.status, celery_states.SUCCESS)
+
+        t1.refresh_from_db()
+        t2.refresh_from_db()
+        t3.refresh_from_db()
+
+        self.assertEqual(t1.status, celery_states.SUCCESS)
+        self.assertEqual(t2.status, celery_states.SUCCESS)
+        self.assertEqual(t3.status, celery_states.SUCCESS)
 
     def test_failing_serialized_step(self):
         step = ProcessStep.objects.create(name="Test",)
@@ -314,80 +341,72 @@ class test_running_steps(TestCase):
         self.assertEqual(res.get(t2.id), res.get(t1.id) + t2_val)
         self.assertEqual(res.get(t3.id), res.get(t1.id) + t3_val)
 
-    def test_undo_serialized_step(self):
-        t1_val = 123
-        t2_val = os.path.join(self.test_dir, "foo.txt")
 
+class test_undoing_steps(TestCase):
+    def setUp(self):
+        settings.CELERY_ALWAYS_EAGER = True
+        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
+
+    def test_undo_serialized_step(self):
         step = ProcessStep.objects.create(
             name="Test",
         )
 
-        ip = InformationPackage.objects.create()
-
         t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={"foo": t1_val},
+            params={"foo": 123},
             processstep_pos=0,
-            information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            params={"filename": t2_val},
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
             processstep_pos=1,
-            information_package=ip,
         )
 
         step.tasks = [t1, t2]
         step.save()
 
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(Exception):
             step.run().get()
-
-        self.assertEqual(step.status, celery_states.FAILURE)
 
         step.undo().get()
 
         t1.refresh_from_db()
         t2.refresh_from_db()
 
-        self.assertIsNone(t1.traceback)
-        self.assertIsNotNone(t2.traceback)
-
         self.assertTrue(t1.undone)
         self.assertTrue(t2.undone)
 
-        task_names = step.tasks.values_list("name", flat=True)
+        t1_undo = ProcessTask.objects.filter(
+            name=t1.name + " undo", undo_type=True,
+            processstep=step
+        )
+        t2_undo = ProcessTask.objects.filter(
+            name=t2.name + " undo", undo_type=True,
+            processstep=step
+        )
 
-        self.assertIn("%s undo" % t1.name, task_names)
-        self.assertIn("%s undo" % t2.name, task_names)
+        self.assertTrue(t1_undo.exists())
+        self.assertTrue(t2_undo.exists())
 
     def test_undo_only_failed_serialized_step(self):
-        t1_val = 123
-        t2_val = os.path.join(self.test_dir, "foo.txt")
-
         step = ProcessStep.objects.create(name="Test")
-
-        ip = InformationPackage.objects.create()
 
         t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={"foo": t1_val},
+            params={"foo": 123},
             processstep_pos=0,
-            information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            params={"filename": t2_val},
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
             processstep_pos=1,
-            information_package=ip,
         )
 
         step.tasks = [t1, t2]
         step.save()
 
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(Exception):
             step.run().get()
 
         self.assertEqual(step.status, celery_states.FAILURE)
@@ -397,16 +416,130 @@ class test_running_steps(TestCase):
         t1.refresh_from_db()
         t2.refresh_from_db()
 
-        self.assertIsNone(t1.traceback)
-        self.assertIsNotNone(t2.traceback)
-
         self.assertFalse(t1.undone)
         self.assertTrue(t2.undone)
 
-        task_names = step.tasks.values_list("name", flat=True)
+        t1_undo = ProcessTask.objects.filter(name=t1.name + " undo")
+        t2_undo = ProcessTask.objects.filter(
+            name=t2.name + " undo", undo_type=True,
+            processstep=step
+        )
 
-        self.assertNotIn("%s undo" % t1.name, task_names)
-        self.assertIn("%s undo" % t2.name, task_names)
+        self.assertFalse(t1_undo.exists())
+        self.assertTrue(t2_undo.exists())
+
+    def test_undo_parallel_step(self):
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        ip = InformationPackage.objects.create()
+
+        t1 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": 123},
+            information_package=ip,
+        )
+
+        t2 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
+            information_package=ip,
+        )
+
+        t3 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
+            params={"foo": 456},
+            information_package=ip,
+        )
+
+        step.tasks = [t1, t2, t3]
+        step.parallel = True
+        step.save()
+
+        with self.assertRaises(Exception):
+            step.run().get()
+
+        self.assertEqual(step.status, celery_states.FAILURE)
+
+        step.undo().get()
+
+        t1.refresh_from_db()
+        t2.refresh_from_db()
+        t3.refresh_from_db()
+
+        self.assertEqual(t1.status, celery_states.SUCCESS)
+        self.assertEqual(t2.status, celery_states.FAILURE)
+        self.assertEqual(t3.status, celery_states.SUCCESS)
+
+        self.assertTrue(t1.undone)
+        self.assertTrue(t2.undone)
+        self.assertTrue(t3.undone)
+
+    def test_undo_only_failed_parallel_step(self):
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        ip = InformationPackage.objects.create()
+
+        t1 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": 123},
+            information_package=ip,
+        )
+
+        t2 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
+            information_package=ip,
+        )
+
+        t3 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
+            params={"foo": 456},
+            information_package=ip,
+        )
+
+        step.tasks = [t1, t2, t3]
+        step.parallel = True
+        step.save()
+
+        with self.assertRaises(Exception):
+            step.run().get()
+
+        self.assertEqual(step.status, celery_states.FAILURE)
+
+        step.undo(only_failed=True).get()
+
+        t1.refresh_from_db()
+        t2.refresh_from_db()
+        t3.refresh_from_db()
+
+        self.assertEqual(t1.status, celery_states.SUCCESS)
+        self.assertEqual(t2.status, celery_states.FAILURE)
+        self.assertEqual(t3.status, celery_states.SUCCESS)
+
+        self.assertFalse(t1.undone)
+        self.assertTrue(t2.undone)
+        self.assertFalse(t3.undone)
+
+
+class test_retrying_steps(TestCase):
+    def setUp(self):
+        self.test_dir = "test_dir"
+
+        try:
+            os.mkdir(self.test_dir)
+        except:
+            pass
+
+        settings.CELERY_ALWAYS_EAGER = True
+        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.test_dir)
+        except:
+            pass
 
     def test_retry_failed_serialized_step(self):
         t1_val = 123
@@ -416,20 +549,16 @@ class test_running_steps(TestCase):
             name="Test",
         )
 
-        ip = InformationPackage.objects.create()
-
         t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             params={"foo": t1_val},
             processstep_pos=0,
-            information_package=ip,
         )
 
         t2 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
             params={"filename": t2_val},
             processstep_pos=1,
-            information_package=ip,
         )
 
         step.tasks = [t1, t2]
@@ -437,8 +566,6 @@ class test_running_steps(TestCase):
 
         with self.assertRaises(AssertionError):
             step.run().get()
-
-        self.assertEqual(step.status, celery_states.FAILURE)
 
         step.undo(only_failed=True).get()
 
@@ -462,7 +589,6 @@ class test_running_steps(TestCase):
         )
 
         self.assertTrue(file_task.exists())
-        self.assertEqual(file_task.first().status, celery_states.SUCCESS)
 
     def test_retry_all_serialized_step(self):
         t1_val = 123
@@ -494,8 +620,6 @@ class test_running_steps(TestCase):
         with self.assertRaises(AssertionError):
             step.run().get()
 
-        self.assertEqual(step.status, celery_states.FAILURE)
-
         step.undo().get()
 
         open(t2_val, 'a').close()
@@ -518,161 +642,13 @@ class test_running_steps(TestCase):
         )
 
         self.assertTrue(file_task.exists())
-        self.assertEqual(file_task.first().status, celery_states.SUCCESS)
 
         first_task = step.tasks.filter(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.First undo",
-        )
-
-        self.assertTrue(first_task.exists())
-
-    def test_parallel_step(self):
-        t1_val = 123
-        t2_val = 456
-        t3_val = 789
-
-        step = ProcessStep.objects.create(
-            name="Test",
-        )
-
-        ip = InformationPackage.objects.create()
-
-        t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={"foo": t1_val},
-            information_package=ip,
+            status=celery_states.SUCCESS
         )
 
-        t2 = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.Second",
-            params={"foo": t2_val},
-            information_package=ip,
-        )
-
-        t3 = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
-            params={"foo": t3_val},
-            information_package=ip,
-        )
-
-        step.tasks = [t1, t2, t3]
-        step.parallel = True
-        step.save()
-
-        step.run().get()
-        self.assertEqual(step.status, celery_states.SUCCESS)
-
-        t1.refresh_from_db()
-        t2.refresh_from_db()
-        t3.refresh_from_db()
-
-        self.assertEqual(t1.status, celery_states.SUCCESS)
-        self.assertEqual(t2.status, celery_states.SUCCESS)
-        self.assertEqual(t3.status, celery_states.SUCCESS)
-
-    def test_undo_parallel_step(self):
-        t1_val = 123
-        t2_val = os.path.join(self.test_dir, "foo.txt")
-        t3_val = 789
-
-        step = ProcessStep.objects.create(
-            name="Test",
-        )
-
-        ip = InformationPackage.objects.create()
-
-        t1 = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={"foo": t1_val},
-            information_package=ip,
-        )
-
-        t2 = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            params={"filename": t2_val},
-            information_package=ip,
-        )
-
-        t3 = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
-            params={"foo": t3_val},
-            information_package=ip,
-        )
-
-        step.tasks = [t1, t2, t3]
-        step.parallel = True
-        step.save()
-
-        with self.assertRaises(AssertionError):
-            step.run().get()
-
-        self.assertEqual(step.status, celery_states.FAILURE)
-
-        step.undo().get()
-
-        t1.refresh_from_db()
-        t2.refresh_from_db()
-        t3.refresh_from_db()
-
-        self.assertEqual(t1.status, celery_states.SUCCESS)
-        self.assertEqual(t2.status, celery_states.FAILURE)
-        self.assertEqual(t3.status, celery_states.SUCCESS)
-
-        self.assertTrue(t1.undone)
-        self.assertTrue(t2.undone)
-        self.assertTrue(t3.undone)
-
-    def test_undo_only_failed_parallel_step(self):
-        t1_val = 123
-        t2_val = os.path.join(self.test_dir, "foo.txt")
-        t3_val = 789
-
-        step = ProcessStep.objects.create(
-            name="Test",
-        )
-
-        ip = InformationPackage.objects.create()
-
-        t1 = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={"foo": t1_val},
-            information_package=ip,
-        )
-
-        t2 = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            params={"filename": t2_val},
-            information_package=ip,
-        )
-
-        t3 = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
-            params={"foo": t3_val},
-            information_package=ip,
-        )
-
-        step.tasks = [t1, t2, t3]
-        step.parallel = True
-        step.save()
-
-        with self.assertRaises(AssertionError):
-            step.run().get()
-
-        self.assertEqual(step.status, celery_states.FAILURE)
-
-        step.undo(only_failed=True).get()
-
-        t1.refresh_from_db()
-        t2.refresh_from_db()
-        t3.refresh_from_db()
-
-        self.assertEqual(t1.status, celery_states.SUCCESS)
-        self.assertEqual(t2.status, celery_states.FAILURE)
-        self.assertEqual(t3.status, celery_states.SUCCESS)
-
-        self.assertFalse(t1.undone)
-        self.assertTrue(t2.undone)
-        self.assertFalse(t3.undone)
+        self.assertEqual(first_task.count(), 2)
 
     def test_retry_parallel_step(self):
         t1_val = 123
