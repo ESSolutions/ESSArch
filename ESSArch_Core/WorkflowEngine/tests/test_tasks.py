@@ -1,3 +1,5 @@
+import os
+import shutil
 import traceback
 
 from celery import states as celery_states
@@ -186,3 +188,108 @@ class test_undoing_tasks(TestCase):
         undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail undo")
         self.assertIsNotNone(undo_task)
         self.assertTrue(undo_task.undo_type)
+
+
+class test_retrying_tasks(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        settings.CELERY_ALWAYS_EAGER = True
+        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+
+        cls.root = os.path.dirname(os.path.realpath(__file__))
+        cls.datadir = os.path.join(cls.root, "datadir")
+
+        try:
+            os.mkdir(cls.datadir)
+        except OSError as e:
+            if e.errno == 17:  # file exists
+                shutil.rmtree(cls.datadir)
+                os.mkdir(cls.datadir)
+            else:
+                raise
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.datadir)
+
+    def test_retry_successful_task(self):
+        x = 2
+        y = 1
+
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
+            params={'x': x, 'y': y}
+        )
+
+        task.run()
+        task.undo()
+        task.retry()
+
+        self.assertTrue(task.undone)
+        self.assertFalse(task.undo_type)
+        self.assertTrue(task.retried)
+        self.assertEqual(task.status, celery_states.SUCCESS)
+
+        undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Add undo")
+        self.assertIsNotNone(undo_task)
+        self.assertTrue(undo_task.undo_type)
+
+        retry_task = ProcessTask.objects.get(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
+            undone=False
+        )
+        self.assertIsNotNone(retry_task)
+        self.assertFalse(retry_task.undone)
+        self.assertFalse(retry_task.undo_type)
+        self.assertFalse(retry_task.retried)
+        self.assertEqual(retry_task.status, celery_states.SUCCESS)
+
+    def test_retry_failed_task(self):
+        task = ProcessTask.objects.create(name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail")
+
+        with self.assertRaises(Exception):
+            task.run()
+
+        task.undo()
+
+        with self.assertRaises(Exception):
+            task.retry()
+
+        retry_task = ProcessTask.objects.get(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
+            undone=False
+        )
+        self.assertIsNotNone(retry_task)
+        self.assertFalse(retry_task.undone)
+        self.assertFalse(retry_task.undo_type)
+        self.assertFalse(retry_task.retried)
+        self.assertEqual(retry_task.status, celery_states.FAILURE)
+
+    def test_retry_failed_fixed_task(self):
+        fname = os.path.join(self.datadir, 'foo.txt')
+
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
+            params={"filename": fname}
+        )
+
+        with self.assertRaises(AssertionError):
+            task.run().get()
+
+        task.undo()
+
+        open(fname, 'a').close()
+
+        task.retry()
+
+        retry_task = ProcessTask.objects.get(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
+            undone=False
+        )
+        self.assertIsNotNone(retry_task)
+        self.assertFalse(retry_task.undone)
+        self.assertFalse(retry_task.undo_type)
+        self.assertFalse(retry_task.retried)
+        self.assertEqual(retry_task.status, celery_states.SUCCESS)
+        self.assertEqual(task.status, celery_states.FAILURE)
