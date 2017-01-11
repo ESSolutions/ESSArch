@@ -17,6 +17,8 @@ from lxml import etree
 
 from scandir import scandir
 
+from subprocess import Popen, PIPE
+
 import requests
 
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
@@ -321,3 +323,15 @@ def find_and_replace_in_file(fname, old, new):
     # Write the file out again
     with open(fname, 'w') as f:
         f.write(filedata)
+
+
+def run_shell_command(command, cwd):
+    """
+    Run command in shell and return results.
+    """
+
+    p = Popen(command, shell=True, cwd=cwd, stdout=PIPE)
+    stdout = p.communicate()[0]
+    if stdout:
+        stdout = stdout.strip()
+    return stdout
