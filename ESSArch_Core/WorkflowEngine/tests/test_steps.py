@@ -133,6 +133,36 @@ class test_status(TestCase):
         self.step.tasks = [t1, t2, t3]
         self.assertEqual(self.step.status, celery_states.FAILURE)
 
+    def test_succeeded_undone_task(self):
+        t1 = ProcessTask.objects.create(status=celery_states.SUCCESS, undone=True)
+        t1_undo = ProcessTask.objects.create(status=celery_states.SUCCESS, undo_type=True)
+
+        self.step.tasks = [t1, t1_undo]
+        self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_succeeded_retried_task(self):
+        t1 = ProcessTask.objects.create(status=celery_states.SUCCESS, undone=True)
+        t1_undo = ProcessTask.objects.create(status=celery_states.SUCCESS, undo_type=True)
+        t1_retry = ProcessTask.objects.create(status=celery_states.SUCCESS)
+
+        self.step.tasks = [t1, t1_undo, t1_retry]
+        self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_failed_undone_task(self):
+        t1 = ProcessTask.objects.create(status=celery_states.FAILURE, undone=True)
+        t1_undo = ProcessTask.objects.create(status=celery_states.SUCCESS, undo_type=True)
+
+        self.step.tasks = [t1, t1_undo]
+        self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_failed_retried_task(self):
+        t1 = ProcessTask.objects.create(status=celery_states.FAILURE, undone=True, retried=True)
+        t1_undo = ProcessTask.objects.create(status=celery_states.SUCCESS, undo_type=True)
+        t1_retry = ProcessTask.objects.create(status=celery_states.SUCCESS)
+
+        self.step.tasks = [t1, t1_undo, t1_retry]
+        self.assertEqual(self.step.status, celery_states.SUCCESS)
+
 
 class test_running_steps(TestCase):
     def test_serialized_step(self):
