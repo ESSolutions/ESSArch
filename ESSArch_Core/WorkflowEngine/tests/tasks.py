@@ -38,7 +38,7 @@ class Add(DBTask):
         return x+y
 
     def undo(self, x=None, y=None):
-        pass
+        return x-y
 
 
 class Fail(DBTask):

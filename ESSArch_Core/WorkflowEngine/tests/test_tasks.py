@@ -1,5 +1,7 @@
 import traceback
 
+from celery import states as celery_states
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -136,3 +138,51 @@ class test_running_tasks(TestCase):
 
         res = task.run().get().get(task.pk)
         self.assertEqual(res, foo)
+
+
+class test_undoing_tasks(TestCase):
+    def setUp(self):
+        settings.CELERY_ALWAYS_EAGER = True
+        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+
+    def test_undo_successful_task(self):
+        x = 2
+        y = 1
+
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
+            params={'x': x, 'y': y}
+        )
+
+        task.run()
+        self.assertEqual(task.status, celery_states.SUCCESS)
+
+        res = task.undo()
+        self.assertEqual(res.get(), x-y)
+        self.assertTrue(task.undone)
+        self.assertFalse(task.undo_type)
+        self.assertFalse(task.retried)
+
+        self.assertEqual(task.status, celery_states.SUCCESS)
+
+        undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Add undo")
+        self.assertIsNotNone(undo_task)
+        self.assertTrue(undo_task.undo_type)
+
+    def test_undo_failed_task(self):
+        task = ProcessTask.objects.create(name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail")
+
+        with self.assertRaises(Exception):
+            task.run()
+
+        self.assertEqual(task.status, celery_states.FAILURE)
+
+        task.undo()
+        self.assertTrue(task.undone)
+        self.assertFalse(task.undo_type)
+        self.assertFalse(task.retried)
+        self.assertEqual(task.status, celery_states.FAILURE)
+
+        undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail undo")
+        self.assertIsNotNone(undo_task)
+        self.assertTrue(undo_task.undo_type)
