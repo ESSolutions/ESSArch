@@ -185,10 +185,15 @@ class ProcessStep(Process):
 
         task_canvas = func(self._create_task(t.name).si(
             taskobj=t.create_undo_obj(attempt=attempt),
-        ) for t in reversed(tasks))
-        step_canvas = func(s.undo() for s in child_steps)
+        ) for t in tasks.reverse())
+        step_canvas = func(s.undo(direct=False) for s in child_steps.reverse())
 
-        workflow = (task_canvas | step_canvas)
+        if not child_steps:
+            workflow = task_canvas
+        elif not tasks:
+            workflow = step_canvas
+        else:
+            workflow = (task_canvas | step_canvas)
 
         return workflow() if direct else workflow
 
