@@ -237,6 +237,36 @@ class ProcessStep(Process):
 
         return workflow() if direct else workflow
 
+    def resume(self, direct=True):
+        """
+        Resumes the process step by running all pending child steps and tasks
+
+        Args:
+            direct: False if the step is called from a parent step,
+                    true otherwise
+
+        Returns:
+            The executed workflow if direct is true, the workflow non-executed
+            otherwise
+        """
+
+        func = group if self.parallel else chain
+
+        child_steps = self.child_steps.filter(tasks__status=celery_states.PENDING)
+        tasks = self.tasks.filter(undone=False, undo_type=False, status=celery_states.PENDING)
+
+        step_canvas = func(s.run(direct=False) for s in child_steps)
+        task_canvas = func(self._create_task(t.name).s(taskobj=t) for t in tasks)
+
+        if not child_steps:
+            workflow = task_canvas
+        elif not tasks:
+            workflow = step_canvas
+        else:
+            workflow = (step_canvas | task_canvas)
+
+        return workflow() if direct else workflow
+
     def progress(self):
         """
         Gets the progress of the step based on its child steps and tasks
