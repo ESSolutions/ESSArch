@@ -961,7 +961,7 @@ class test_retrying_steps(TestCase):
             params={"filename": fname}, processstep=step, processstep_pos=1
         )
 
-        ProcessTask.objects.create(
+        t2 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             params={"foo": 123}, processstep=step, processstep_pos=2
         )
@@ -973,18 +973,23 @@ class test_retrying_steps(TestCase):
         open(fname, 'a').close()
         t1.retry()
 
+        t1.refresh_from_db()
+        t2.refresh_from_db()
+
+        self.assertTrue(t1.retried)
+        self.assertFalse(t2.retried)
         self.assertEqual(step.status, celery_states.PENDING)
 
     def test_retry_step_with_failed_task_and_another_task_after(self):
         fname = os.path.join(self.test_dir, "foo.txt")
         step = ProcessStep.objects.create()
 
-        ProcessTask.objects.create(
+        t1 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
             params={"filename": fname}, processstep=step, processstep_pos=1
         )
 
-        ProcessTask.objects.create(
+        t2 = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             params={"foo": 123}, processstep=step, processstep_pos=2
         )
@@ -996,7 +1001,12 @@ class test_retrying_steps(TestCase):
         open(fname, 'a').close()
         step.retry()
 
+        t1.refresh_from_db()
+        t2.refresh_from_db()
+
         self.assertEqual(step.status, celery_states.SUCCESS)
+        self.assertTrue(t1.retried)
+        self.assertTrue(t2.retried)
 
     def test_retry_step_with_another_step_after(self):
         fname = os.path.join(self.test_dir, "foo.txt")
