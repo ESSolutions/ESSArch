@@ -382,6 +382,7 @@ class CopySchemas(DBTask):
 
 
 class ValidateFiles(DBTask):
+    hidden = True
     fileformat_task = "ESSArch_Core.tasks.ValidateFileFormat"
     checksum_task = "ESSArch_Core.tasks.ValidateIntegrity"
 
