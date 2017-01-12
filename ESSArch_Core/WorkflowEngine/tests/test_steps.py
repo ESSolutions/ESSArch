@@ -951,3 +951,78 @@ class test_retrying_steps(TestCase):
         self.assertEqual(step1.status, celery_states.SUCCESS)
         self.assertEqual(step2.status, celery_states.SUCCESS)
         self.assertEqual(step3.status, celery_states.SUCCESS)
+
+    def test_retry_task_with_another_task_after(self):
+        fname = os.path.join(self.test_dir, "foo.txt")
+        step = ProcessStep.objects.create()
+
+        t1 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
+            params={"filename": fname}, processstep=step, processstep_pos=1
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": 123}, processstep=step, processstep_pos=2
+        )
+
+        with self.assertRaises(Exception):
+            step.run()
+
+        t1.undo()
+        open(fname, 'a').close()
+        t1.retry()
+
+        self.assertEqual(step.status, celery_states.PENDING)
+
+    def test_retry_step_with_failed_task_and_another_task_after(self):
+        fname = os.path.join(self.test_dir, "foo.txt")
+        step = ProcessStep.objects.create()
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
+            params={"filename": fname}, processstep=step, processstep_pos=1
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": 123}, processstep=step, processstep_pos=2
+        )
+
+        with self.assertRaises(Exception):
+            step.run()
+
+        step.undo()
+        open(fname, 'a').close()
+        step.retry()
+
+        self.assertEqual(step.status, celery_states.SUCCESS)
+
+    def test_retry_step_with_another_step_after(self):
+        fname = os.path.join(self.test_dir, "foo.txt")
+        main_step = ProcessStep.objects.create()
+        step1 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=1
+        )
+        step2 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=2
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
+            params={"filename": fname}, processstep=step1
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": 123}, processstep=step2
+        )
+
+        with self.assertRaises(Exception):
+            main_step.run()
+
+        step1.undo()
+        open(fname, 'a').close()
+        step1.retry()
+
+        self.assertEqual(main_step.status, celery_states.PENDING)
