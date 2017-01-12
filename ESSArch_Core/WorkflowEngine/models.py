@@ -228,7 +228,12 @@ class ProcessStep(Process):
             taskobj=t.create_retry_obj(attempt=attempt),
         ) for t in tasks)
 
-        workflow = (step_canvas | task_canvas)
+        if not child_steps:
+            workflow = task_canvas
+        elif not tasks:
+            workflow = step_canvas
+        else:
+            workflow = (step_canvas | task_canvas)
 
         return workflow() if direct else workflow
 
