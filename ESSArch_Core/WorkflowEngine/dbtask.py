@@ -30,6 +30,7 @@ from ESSArch_Core.util import (
 
 class DBTask(Task):
     queue = 'celery'
+    hidden = False
 
     def __call__(self, *args, **kwargs):
         try:
@@ -47,6 +48,7 @@ class DBTask(Task):
         for k, v in self.taskobj.result_params.iteritems():
             self.taskobj.params[k] = prev_result_dict[v]
 
+        self.taskobj.hidden = self.taskobj.hidden or self.hidden
         self.taskobj.celery_id = self.request.id
         self.taskobj.status=celery_states.STARTED
         self.taskobj.time_started = timezone.now()
