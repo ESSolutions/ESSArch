@@ -83,7 +83,6 @@ class ProcessStep(Process):
         null=True
     )
     hidden = models.BooleanField(default=False)
-    waitForParams = models.BooleanField(default=False)
     parallel = models.BooleanField(default=False)
 
     def task_set(self):
@@ -99,14 +98,12 @@ class ProcessStep(Process):
             retried=False
         ).order_by("processstep_pos")
 
-    def run(self, continuing=False, direct=True):
+    def run(self, direct=True):
         """
         Runs the process step by first running the child steps and then the
         tasks.
 
         Args:
-            continuing: True if continuing a step that was waiting for params,
-                        false otherwise
             direct: False if the step is called from a parent step,
                     true otherwise
 
@@ -116,17 +113,9 @@ class ProcessStep(Process):
             false
         """
 
-        child_steps = self.child_steps.all()
-
-        if continuing:
-            child_steps = [
-                s for s in self.child_steps.all() if s.progress() < 100
-            ]
-
-        child_steps = list(sliceUntilAttr(child_steps, "waitForParams", True))
-
         func = group if self.parallel else chain
 
+        child_steps = self.child_steps.all()
         tasks = self.tasks.all()
 
         step_canvas = func(s.run(direct=False) for s in child_steps)
@@ -210,10 +199,7 @@ class ProcessStep(Process):
             none
         """
 
-        child_steps = sliceUntilAttr(
-            self.child_steps.all(),
-            "waitForParams", True
-        )
+        child_steps = self.child_steps.all()
 
         tasks = self.tasks.filter(
             undone=True,
