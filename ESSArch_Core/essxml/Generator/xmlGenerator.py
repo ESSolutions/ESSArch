@@ -3,6 +3,8 @@ import re
 import uuid
 import mimetypes
 
+from celery.result import allow_join_result
+
 from lxml import etree
 
 from django.utils import timezone
@@ -349,11 +351,12 @@ class XMLGenerator(object):
             checksum_task.save()
             fileformat_task.save()
 
-        if step:
-            step.resume().get()
-        else:
-            checksum_task.run().get()
-            fileformat_task.run().get()
+        with allow_join_result():
+            if step:
+                step.resume().get()
+            else:
+                checksum = checksum_task.run().get().get(checksum_task.pk)
+                fileformat_task.run().get().get(fileformat_task.pk)
 
         checksum_task.refresh_from_db()
         fileformat_task.refresh_from_db()
