@@ -980,7 +980,7 @@ class ValidateFilesTestCase(TestCase):
         with self.assertRaises(AssertionError):
             task.run_eagerly()
 
-        step = ProcessStep.objects.first()
+        step = ProcessStep.objects.get(name="Validate Files")
 
         self.assertEqual(task.status, celery_states.FAILURE)
         self.assertEqual(step.status, celery_states.FAILURE)
