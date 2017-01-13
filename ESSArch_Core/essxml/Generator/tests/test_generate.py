@@ -1,6 +1,7 @@
 import os
 import shutil
 
+from django.conf import settings
 from django.test import TestCase
 
 from lxml import etree
@@ -31,6 +32,8 @@ class test_generateXML(TestCase):
             entity="path_mimetypes_definitionfile",
             value=os.path.join(self.bd, "mime.types")
         )
+
+        settings.CELERY_ALWAYS_EAGER = True
 
     def tearDown(self):
         try:
