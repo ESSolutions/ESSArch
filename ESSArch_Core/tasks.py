@@ -32,6 +32,8 @@ from lxml import etree
 
 
 class CalculateChecksum(DBTask):
+    queue = 'file_operation'
+
     def run(self, filename=None, block_size=65536, algorithm='SHA-256'):
         """
         Calculates the checksum for the given file, one chunk at a time
@@ -66,6 +68,8 @@ class CalculateChecksum(DBTask):
 
 
 class IdentifyFileFormat(DBTask):
+    queue = 'file_operation'
+
     def handle_matches(self, fullname, matches, delta_t, matchtype=''):
         if len(matches) == 0:
             raise ValueError("No matches for %s" % fullname)
