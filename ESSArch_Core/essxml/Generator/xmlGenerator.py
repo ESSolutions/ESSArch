@@ -13,7 +13,7 @@ from ESSArch_Core.configuration.models import (
     Path,
 )
 
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 from ESSArch_Core.util import (
     creation_date,
@@ -214,6 +214,15 @@ class XMLGenerator(object):
             })
 
     def generate(self, folderToParse=None, algorithm='SHA-256'):
+        step = None
+
+        if self.task is not None:
+            step = ProcessStep.objects.create(
+                name="File Operations",
+                parallel=True,
+                parent_step=self.task.processstep
+            )
+
         files = []
 
         mimetypes.suffix_map = {}
@@ -230,7 +239,7 @@ class XMLGenerator(object):
                 files.append(self.parseFile(
                     folderToParse, mimetypes,
                     relpath=os.path.basename(folderToParse),
-                    algorithm=algorithm,
+                    algorithm=algorithm, step=step,
                 ))
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in walk(folderToParse):
@@ -239,7 +248,7 @@ class XMLGenerator(object):
                         relpath = os.path.relpath(filepath, folderToParse)
                         files.append(self.parseFile(
                             filepath, mimetypes, relpath=relpath,
-                            algorithm=algorithm,
+                            algorithm=algorithm, step=step,
                         ))
 
         for f in self.toCreate:
@@ -262,7 +271,7 @@ class XMLGenerator(object):
                 relpath = fname
 
             files.append(self.parseFile(
-                fname, mimetypes, relpath, algorithm=algorithm,
+                fname, mimetypes, relpath, algorithm=algorithm, step=step,
             ))
 
     def insert(self, filename, elementToAppendTo, template, info={}, index=None):
@@ -288,7 +297,7 @@ class XMLGenerator(object):
             encoding='UTF-8'
         )
 
-    def parseFile(self, filepath, mimetypes, relpath=None, algorithm='SHA-256'):
+    def parseFile(self, filepath, mimetypes, relpath=None, algorithm='SHA-256', step=None):
         """
         walk through the choosen folder and parse all the files to their own temporary location
         """
@@ -317,6 +326,7 @@ class XMLGenerator(object):
                 "filename": filepath,
                 "algorithm": algorithm
             },
+            processstep=step,
         )
 
         fileformat_task = ProcessTask.objects.create(
@@ -324,6 +334,7 @@ class XMLGenerator(object):
             params={
                 "filename": filepath,
             },
+            processstep=step,
         )
 
         if self.task:
@@ -338,8 +349,17 @@ class XMLGenerator(object):
             checksum_task.save()
             fileformat_task.save()
 
-        checksum = checksum_task.run_eagerly()
-        fileformat = fileformat_task.run_eagerly()
+        if step:
+            step.resume().get()
+        else:
+            checksum_task.run().get()
+            fileformat_task.run().get()
+
+        checksum_task.refresh_from_db()
+        fileformat_task.refresh_from_db()
+
+        checksum = checksum_task.result
+        fileformat = fileformat_task.result
 
         fileinfo = {
             'FName': file_name + file_ext,
