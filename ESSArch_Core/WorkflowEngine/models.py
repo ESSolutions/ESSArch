@@ -253,6 +253,16 @@ class ProcessStep(Process):
 
         return workflow() if direct else workflow
 
+    @property
+    def time_started(self):
+        if self.tasks.exists():
+            return self.tasks.first().time_started
+
+    @property
+    def time_done(self):
+        if self.tasks.exists():
+            return self.tasks.first().time_done
+
     def progress(self):
         """
         Gets the progress of the step based on its child steps and tasks
