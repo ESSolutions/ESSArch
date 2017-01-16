@@ -1,0 +1,31 @@
+
+{% if page.sidebar == "essarch_sidebar" %}
+{% assign sidebar = site.data.sidebars.essarch_sidebar.entries %}
+
+{% elsif page.sidebar == "ec_sidebar" %}
+{% assign sidebar = site.data.sidebars.ec_sidebar.entries %}
+
+{% elsif page.sidebar == "etp_sidebar" %}
+{% assign sidebar = site.data.sidebars.etp_sidebar.entries %}
+
+{% else %}
+{% assign sidebar = site.data.sidebars.essarch_sidebar.entries %}
+{% endif %}
+
+
+
+{% comment %}
+sidebar configuration for print files
+{% endcomment %}
+
+{% if site.product == "essarch" %}
+{% assign sidebar_pdf = site.data.sidebars.essarch_sidebar.entries %}
+{% endif %}
+
+{% if site.product == "ec" %}
+{% assign sidebar_pdf = site.data.sidebars.ec_sidebar.entries %}
+{% endif %}
+
+{% if site.product == "etp" %}
+{% assign sidebar_pdf = site.data.sidebars.etp_sidebar.entries %}
+{% endif %}

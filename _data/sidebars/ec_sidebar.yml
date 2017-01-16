@@ -1,0 +1,65 @@
+# This is your sidebar TOC. The sidebar code loops through sections here and provides the appropriate formatting.
+
+entries:
+- title: sidebar
+  product: ESSArch Core
+  version: 0.9.9
+  folders:
+
+  - title:
+    output: pdf
+    type: frontmatter
+    folderitems:
+    - title:
+      url: /titlepage
+      output: pdf
+      type: frontmatter
+    - title:
+      url: /tocpage
+      output: pdf
+      type: frontmatter
+
+  - title: Overview
+    output: web, pdf
+    folderitems:
+
+    - title: Get started
+      url: /ec_getting_started.html
+      output: web, pdf
+      type: homepage
+
+  - title: Release Notes
+    output: web, pdf
+    folderitems:
+
+    - title: 0.9.9 Release notes
+      url: /ec_release_notes_0_9_9.html
+      output: web, pdf
+
+    - title: 1.0 Release notes
+      url: /ec_release_notes_1_0_0.html
+      output: web, pdf
+
+  - title: Installation
+    output: web, pdf
+    folderitems:
+
+    - title: Prerequisites
+      url: /ec_prerequisites.html
+      output: web, pdf
+
+    - title: Prepare Environment
+      url: /ec_prepare_environment.html
+      output: web, pdf
+
+    - title: Install ESSArch Core
+      url: /ec_install.html
+      output: web, pdf
+
+    - title: Safety backup procedures
+      url: /ec_safety_backup_procedures.html
+      output: web, pdf
+
+    - title: Logfiles
+      url: /ec_logfiles.html
+      output: web, pdf
