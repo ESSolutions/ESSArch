@@ -35,7 +35,7 @@ Please download the latest installation package from  [GitHub](https://github.co
 
 ### ETP configuration
 
-    Path /ESSArch/config contains the configuration files for ESSArch. To change the configuration of the ETP, create the /ESSArch/config/file/local_etp_settings.py or update existing file.
+    Path /ESSArch/config contains the configuration files for ESSArch. To change the configuration of the ETP, create the /ESSArch/config/local_etp_settings.py or update existing file.
 
     You will also find configuration in the local database tables. To change the configuration please login as sysadmin user is ETP and select menu MANAGEMENT > Configuration
 

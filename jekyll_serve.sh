@@ -5,5 +5,5 @@ kill -9 $(ps aux | grep '[j]ekyll' | awk '{print $2}')
 clear
 
 echo "Run jekyll serve...";
-bundle exec jekyll serve;
+bundle exec jekyll serve --config _config_local.yml;
 echo "done";
