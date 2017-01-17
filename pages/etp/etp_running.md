@@ -17,12 +17,12 @@ Note that a startup or shutdown of ETP should always be controlled.
 
     Please run the following command as user root to start ETP.
     # service celerydetp start
-    # service httpd start
+    # service esshttpd start
 
 ### Stop ETP server
 
     Please run the following command as user root to stop ETP.
-    # service httpd stop
+    # service esshttpd stop
     # service celerydetp stop
 
 ### Access ETP web user interface
