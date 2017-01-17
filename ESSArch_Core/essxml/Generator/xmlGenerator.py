@@ -3,6 +3,7 @@ import re
 import uuid
 import mimetypes
 
+from celery import states as celery_states
 from celery.result import allow_join_result
 
 from lxml import etree
@@ -263,12 +264,15 @@ class XMLGenerator(object):
                                 'relpath': relpath,
                                 'algorithm': algorithm
                             },
+                            responsible=responsible,
                         )
                         step.tasks.add(task)
 
             with allow_join_result():
                 if not hasattr(settings, 'CELERY_ALWAYS_EAGER') or not settings.CELERY_ALWAYS_EAGER:
                     for (t_idx, fileinfo) in step.run().iter_native():
+                        if fileinfo['status'] == celery_states.FAILURE:
+                            raise fileinfo['result']
                         files.append(fileinfo['result'].itervalues().next())  # get the first (and only value)
                 else:
                     for fileinfo in step.run().get():
