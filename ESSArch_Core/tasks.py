@@ -2,6 +2,7 @@ import errno
 import os
 import shutil
 import urllib
+import uuid
 
 from celery.result import allow_join_result
 
@@ -21,9 +22,11 @@ from ESSArch_Core.WorkflowEngine.models import (
 )
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.util import (
+    creation_date,
     getSchemas,
     get_value_from_path,
     remove_prefix,
+    timestamp_to_datetime,
     win_to_posix,
 )
 
@@ -101,6 +104,94 @@ class IdentifyFileFormat(DBTask):
 
     def event_outcome_success(self, filename=None, block_size=65536, algorithm='SHA-256'):
         return "Identified format of %s" % filename
+
+
+class ParseFile(DBTask):
+    queue = 'file_operation'
+    hidden = True
+
+    def run(self, filepath=None, mimetypes=None, relpath=None, algorithm='SHA-256'):
+        if not relpath:
+            relpath = filepath
+
+        relpath = win_to_posix(relpath)
+
+        base = os.path.basename(relpath)
+        file_name, file_ext = os.path.splitext(base)
+
+        if not file_ext:
+            file_ext = file_name
+
+        timestamp = creation_date(filepath)
+        createdate = timestamp_to_datetime(timestamp)
+
+        try:
+            mimetype = mimetypes[file_ext]
+        except KeyError:
+            raise KeyError("Invalid file type: %s" % file_ext)
+
+        checksum_task = ProcessTask.objects.create(
+            name="preingest.tasks.CalculateChecksum",
+            params={
+                "filename": filepath,
+                "algorithm": algorithm
+            }
+        )
+
+        fileformat_task = ProcessTask.objects.create(
+            name="preingest.tasks.IdentifyFileFormat",
+            params={
+                "filename": filepath,
+            }
+        )
+
+        checksum_task.log = self.taskobj.log
+        checksum_task.information_package = self.taskobj.information_package
+        checksum_task.responsible = self.taskobj.responsible
+
+        fileformat_task.log = self.taskobj.log
+        fileformat_task.information_package = self.taskobj.information_package
+        fileformat_task.responsible = self.taskobj.responsible
+
+        if self.taskobj is not None and self.taskobj.processstep is not None:
+            checksum_task.processstep = self.taskobj.processstep
+            fileformat_task.processstep = self.taskobj.processstep
+
+        checksum_task.save()
+        fileformat_task.save()
+
+        checksum = checksum_task.run_eagerly()
+        self.set_progress(50, total=100)
+        fileformat = fileformat_task.run_eagerly()
+
+        fileinfo = {
+            'FName': file_name + file_ext,
+            'FChecksum': checksum,
+            'FID': str(uuid.uuid4()),
+            'daotype': "borndigital",
+            'href': relpath,
+            'FMimetype': mimetype,
+            'FCreated': createdate.isoformat(),
+            'FFormatName': fileformat,
+            'FSize': str(os.path.getsize(filepath)),
+            'FUse': 'Datafile',
+            'FChecksumType': algorithm,
+            'FLoctype': 'URL',
+            'FLinkType': 'simple',
+            'FChecksumLib': 'hashlib',
+            'FLocationType': 'URI',
+            'FIDType': 'UUID',
+        }
+
+        self.set_progress(100, total=100)
+
+        return fileinfo
+
+    def undo(self, filepath=None, mimetypes=None, relpath=None, algorithm='SHA-256'):
+        return ''
+
+    def event_outcome_success(self, filepath=None, mimetypes=None, relpath=None, algorithm='SHA-256'):
+        return "Parsed file %s" % filepath
 
 
 class GenerateXML(DBTask):

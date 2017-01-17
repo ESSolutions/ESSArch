@@ -7,6 +7,7 @@ from celery.result import allow_join_result
 
 from lxml import etree
 
+from django.conf import settings
 from django.utils import timezone
 
 from scandir import walk
@@ -216,15 +217,6 @@ class XMLGenerator(object):
             })
 
     def generate(self, folderToParse=None, algorithm='SHA-256'):
-        step = None
-
-        if self.task is not None:
-            step = ProcessStep.objects.create(
-                name="File Operations",
-                parallel=True,
-                parent_step=self.task.processstep
-            )
-
         files = []
 
         mimetypes.suffix_map = {}
@@ -235,23 +227,52 @@ class XMLGenerator(object):
             entity="path_mimetypes_definitionfile"
         ).value
         mimetypes.init(files=[mimetypes_file])
+        mtypes = mimetypes.types_map
 
         if folderToParse:
+            step = ProcessStep.objects.create(
+                name="File Operations",
+                parallel=True,
+            )
+
+            if self.task is not None and self.task.processstep is not None:
+                step.parent_step = self.task.processstep
+                step.save()
+
             if os.path.isfile(folderToParse):
-                files.append(self.parseFile(
-                    folderToParse, mimetypes,
-                    relpath=os.path.basename(folderToParse),
-                    algorithm=algorithm, step=step,
-                ))
+                ProcessTask.objects.create(
+                    name="ESSArch_Core.tasks.ParseFile",
+                    params={
+                        'filepath': folderToParse,
+                        'mimetypes': mtypes,
+                        'relpath': os.path.basename(folderToParse),
+                        'algorithm': algorithm
+                    },
+                    processstep=step,
+                )
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in walk(folderToParse):
                     for fname in filenames:
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, folderToParse)
-                        files.append(self.parseFile(
-                            filepath, mimetypes, relpath=relpath,
-                            algorithm=algorithm, step=step,
-                        ))
+                        task = ProcessTask.objects.create(
+                            name="ESSArch_Core.tasks.ParseFile",
+                            params={
+                                'filepath': filepath,
+                                'mimetypes': mtypes,
+                                'relpath': relpath,
+                                'algorithm': algorithm
+                            },
+                        )
+                        step.tasks.add(task)
+
+            with allow_join_result():
+                if not hasattr(settings, 'CELERY_ALWAYS_EAGER') or not settings.CELERY_ALWAYS_EAGER:
+                    for (t_idx, fileinfo) in step.run().iter_native():
+                        files.append(fileinfo['result'].itervalues().next())  # get the first (and only value)
+                else:
+                    for fileinfo in step.run().get():
+                        files.append(fileinfo.itervalues().next())
 
         for f in self.toCreate:
             fname = f['file']
@@ -272,9 +293,22 @@ class XMLGenerator(object):
             except:
                 relpath = fname
 
-            files.append(self.parseFile(
-                fname, mimetypes, relpath, algorithm=algorithm, step=step,
-            ))
+            parsefile_task = ProcessTask.objects.create(
+                name="ESSArch_Core.tasks.ParseFile",
+                params={
+                    'filepath': fname,
+                    'mimetypes': mtypes,
+                    'relpath': relpath,
+                    'algorithm': algorithm
+                },
+            )
+
+            if self.task is not None and self.task.processstep is not None:
+                parsefile_task.processstep = self.task.processstep
+                parsefile_task.save()
+
+            with allow_join_result():
+                files.append(parsefile_task.run().get().get(parsefile_task.pk))
 
     def insert(self, filename, elementToAppendTo, template, info={}, index=None):
         parser = etree.XMLParser(remove_blank_text=True)
@@ -298,89 +332,3 @@ class XMLGenerator(object):
             filename, pretty_print=True, xml_declaration=True,
             encoding='UTF-8'
         )
-
-    def parseFile(self, filepath, mimetypes, relpath=None, algorithm='SHA-256', step=None):
-        """
-        walk through the choosen folder and parse all the files to their own temporary location
-        """
-        if not relpath:
-            relpath = filepath
-
-        relpath = win_to_posix(relpath)
-
-        base = os.path.basename(relpath)
-        file_name, file_ext = os.path.splitext(base)
-
-        if not file_ext:
-            file_ext = file_name
-
-        timestamp = creation_date(filepath)
-        createdate = timestamp_to_datetime(timestamp)
-
-        try:
-            mimetype = mimetypes.types_map[file_ext]
-        except KeyError:
-            raise KeyError("Invalid file type: %s" % file_ext)
-
-        checksum_task = ProcessTask.objects.create(
-            name="preingest.tasks.CalculateChecksum",
-            params={
-                "filename": filepath,
-                "algorithm": algorithm
-            },
-            processstep=step,
-        )
-
-        fileformat_task = ProcessTask.objects.create(
-            name="preingest.tasks.IdentifyFileFormat",
-            params={
-                "filename": filepath,
-            },
-            processstep=step,
-        )
-
-        if self.task:
-            checksum_task.log = self.task.log
-            checksum_task.information_package = self.task.information_package
-            checksum_task.responsible = self.task.responsible
-
-            fileformat_task.log = self.task.log
-            fileformat_task.information_package = self.task.information_package
-            fileformat_task.responsible = self.task.responsible
-
-            checksum_task.save()
-            fileformat_task.save()
-
-        with allow_join_result():
-            if step:
-                step.resume().get()
-            else:
-                checksum = checksum_task.run().get().get(checksum_task.pk)
-                fileformat_task.run().get().get(fileformat_task.pk)
-
-        checksum_task.refresh_from_db()
-        fileformat_task.refresh_from_db()
-
-        checksum = checksum_task.result
-        fileformat = fileformat_task.result
-
-        fileinfo = {
-            'FName': file_name + file_ext,
-            'FChecksum': checksum,
-            'FID': str(uuid.uuid4()),
-            'daotype': "borndigital",
-            'href': relpath,
-            'FMimetype': mimetype,
-            'FCreated': createdate.isoformat(),
-            'FFormatName': fileformat,
-            'FSize': str(os.path.getsize(filepath)),
-            'FUse': 'Datafile',
-            'FChecksumType': algorithm,
-            'FLoctype': 'URL',
-            'FLinkType': 'simple',
-            'FChecksumLib': 'hashlib',
-            'FLocationType': 'URI',
-            'FIDType': 'UUID',
-        }
-
-        return fileinfo
