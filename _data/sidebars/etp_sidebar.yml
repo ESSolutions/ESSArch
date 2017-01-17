@@ -44,6 +44,10 @@ entries:
     output: web, pdf
     folderitems:
 
+    - title: Prerequisites
+      url: /etp_prerequisites.html
+      output: web, pdf
+
     - title: Prepare Environment
       url: /etp_prepare_environment.html
       output: web, pdf
