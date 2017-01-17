@@ -1,0 +1,18 @@
+destination: _site/
+url: "http://127.0.0.1:4010"
+baseurl: "/etp-pdf"
+port: 4010
+output: pdf
+product: etp
+print_title: ESSArch Tools Producer documentation
+print_subtitle: version 0.9.9
+output: pdf
+defaults:
+  -
+    scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "page_print"
+      comments: true
+      search: true
