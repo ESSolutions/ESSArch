@@ -165,6 +165,10 @@ class test_status(TestCase):
 
 
 class test_running_steps(TestCase):
+    def setUp(self):
+        settings.CELERY_ALWAYS_EAGER = True
+        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
+
     def test_serialized_step(self):
         t1_val = 123
         t2_val = 456
