@@ -230,6 +230,8 @@ class XMLGenerator(object):
         mimetypes.init(files=[mimetypes_file])
         mtypes = mimetypes.types_map
 
+        responsible = None
+
         if folderToParse:
             step = ProcessStep.objects.create(
                 name="File Operations",
@@ -237,6 +239,7 @@ class XMLGenerator(object):
             )
 
             if self.task is not None and self.task.processstep is not None:
+                responsible = self.task.responsible
                 step.parent_step = self.task.processstep
                 step.save()
 
@@ -250,6 +253,7 @@ class XMLGenerator(object):
                         'algorithm': algorithm
                     },
                     processstep=step,
+                    responsible=responsible,
                 )
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in walk(folderToParse):
@@ -305,6 +309,7 @@ class XMLGenerator(object):
                     'relpath': relpath,
                     'algorithm': algorithm
                 },
+                responsible=responsible,
             )
 
             if self.task is not None and self.task.processstep is not None:
