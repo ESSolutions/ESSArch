@@ -217,6 +217,17 @@ class XMLGenerator(object):
                 'root': XMLElement(template)
             })
 
+    def get_mimetype(self, mtypes, fname):
+        file_name, file_ext = os.path.splitext(fname)
+
+        if not file_ext:
+            file_ext = file_name
+
+        try:
+            return mtypes[file_ext]
+        except KeyError:
+            raise KeyError("Invalid file type: %s" % file_ext)
+
     def generate(self, folderToParse=None, algorithm='SHA-256'):
         files = []
 
@@ -248,7 +259,7 @@ class XMLGenerator(object):
                     name="ESSArch_Core.tasks.ParseFile",
                     params={
                         'filepath': folderToParse,
-                        'mimetypes': mtypes,
+                        'mimetype': self.get_mimetype(mtypes, folderToParse),
                         'relpath': os.path.basename(folderToParse),
                         'algorithm': algorithm
                     },
@@ -264,7 +275,7 @@ class XMLGenerator(object):
                             name="ESSArch_Core.tasks.ParseFile",
                             params={
                                 'filepath': filepath,
-                                'mimetypes': mtypes,
+                                'mimetype': self.get_mimetype(mtypes, filepath),
                                 'relpath': relpath,
                                 'algorithm': algorithm
                             },
@@ -305,7 +316,7 @@ class XMLGenerator(object):
                 name="ESSArch_Core.tasks.ParseFile",
                 params={
                     'filepath': fname,
-                    'mimetypes': mtypes,
+                    'mimetype': self.get_mimetype(mtypes, fname),
                     'relpath': relpath,
                     'algorithm': algorithm
                 },

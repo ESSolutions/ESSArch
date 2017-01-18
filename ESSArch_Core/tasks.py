@@ -110,25 +110,14 @@ class ParseFile(DBTask):
     queue = 'file_operation'
     hidden = True
 
-    def run(self, filepath=None, mimetypes=None, relpath=None, algorithm='SHA-256'):
+    def run(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256'):
         if not relpath:
             relpath = filepath
 
         relpath = win_to_posix(relpath)
 
-        base = os.path.basename(relpath)
-        file_name, file_ext = os.path.splitext(base)
-
-        if not file_ext:
-            file_ext = file_name
-
         timestamp = creation_date(filepath)
         createdate = timestamp_to_datetime(timestamp)
-
-        try:
-            mimetype = mimetypes[file_ext]
-        except KeyError:
-            raise KeyError("Invalid file type: %s" % file_ext)
 
         checksum_task = ProcessTask.objects.create(
             name="preingest.tasks.CalculateChecksum",
@@ -165,7 +154,7 @@ class ParseFile(DBTask):
         fileformat = fileformat_task.run_eagerly()
 
         fileinfo = {
-            'FName': file_name + file_ext,
+            'FName': os.path.basename(relpath),
             'FChecksum': checksum,
             'FID': str(uuid.uuid4()),
             'daotype': "borndigital",
@@ -187,10 +176,10 @@ class ParseFile(DBTask):
 
         return fileinfo
 
-    def undo(self, filepath=None, mimetypes=None, relpath=None, algorithm='SHA-256'):
+    def undo(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256'):
         return ''
 
-    def event_outcome_success(self, filepath=None, mimetypes=None, relpath=None, algorithm='SHA-256'):
+    def event_outcome_success(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256'):
         return "Parsed file %s" % filepath
 
 
