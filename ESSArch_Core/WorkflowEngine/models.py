@@ -387,7 +387,7 @@ class ProcessTask(Process):
         'auth.User', on_delete=models.SET_NULL, related_name='tasks', null=True
     )
     params = PickledObjectField(null=True, default={})
-    result_params = PickledObjectField(null=True, default={})
+    result_params = PickledObjectField(null=True)
     time_started = models.DateTimeField(_('started at'), null=True, blank=True)
     time_done = models.DateTimeField(_('done at'), null=True, blank=True)
     einfo = PickledObjectField(

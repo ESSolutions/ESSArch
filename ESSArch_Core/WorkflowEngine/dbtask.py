@@ -45,8 +45,9 @@ class DBTask(Task):
         except IndexError:
             prev_result_dict = {}
 
-        for k, v in self.taskobj.result_params.iteritems():
-            self.taskobj.params[k] = prev_result_dict[v]
+        if self.taskobj.result_params:
+            for k, v in self.taskobj.result_params.iteritems():
+                self.taskobj.params[k] = prev_result_dict[v]
 
         self.taskobj.hidden = self.taskobj.hidden or self.hidden
         self.taskobj.celery_id = self.request.id
