@@ -13,4 +13,5 @@ folder: etp
 
 Nothing more then ESSArch Core backup is required.
 
+[<img align="right" src="images/n.png">](etp_logfiles.html)
 {% include links.html %}

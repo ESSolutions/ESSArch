@@ -39,4 +39,5 @@ By default, for test purpose, the installation has configured the following user
 | admin | admin | admin |
 | sysadmin | sysadmin | sysadmin |
 
+[<img align="right" src="images/n.png">](etp_safety_backup_procedures.html)
 {% include links.html %}

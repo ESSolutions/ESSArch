@@ -11,7 +11,9 @@ folder: etp
 
 ## Events and log information
 
-Different types of events are logged both in physical files and tables in ESSArch database. Log entries are tagged with the log level - Debug, Critical, Error, Warning, Info. List of log files:
+Different types of events are logged both in physical files and tables in
+ESSArch database. Log entries are tagged with the log level - Debug, Critical,
+Error, Warning, Info. List of log files:
 
 - /ESSArch/log
 - /ESSArch/log/celery_workeretp.log

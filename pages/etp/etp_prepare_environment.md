@@ -19,4 +19,5 @@ Add the following rows to /home/arch/.bash_profile after "ESSArch Core" section:
     ##
     ### ETP end
 
+[<img align="right" src="images/n.png">](etp_install.html)
 {% include links.html %}

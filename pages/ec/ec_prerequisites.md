@@ -16,11 +16,13 @@ folder: ec
 | CentOS / Redhat | 7 (x86\_64) |   |
 | SUSE Linux Enterprise Server | 11 (x86\_64) |   |
 
-(Other Linux and Microsoft operating systems have been tested but are not yet fully supported, please send us a request with your needs)
+(Other Linux and Microsoft operating systems have been tested but are not yet
+fully supported, please send us a request with your needs)
 
 ## OS Packages
 
-Before installing ESSArch Core you need to verify that the following packages are installed on your platform
+Before installing ESSArch Core you need to verify that the following packages
+are installed on your platform
 
 | **Package** | **Minimum version** | **Note** | **Verified version** |
 | --- | --- | --- | --- |
@@ -73,10 +75,12 @@ Before installing ESSArch Core you need to verify that the following packages ar
 
 \*\* SUSE require extra package: [epel-release](http://download.opensuse.org/repositories/devel:/languages:/erlang/)
 
-    Install erlang-epmd without dependencies since it requires erlang and vice versa erlang requires erlang-epmd
+    Install erlang-epmd without dependencies since it requires erlang and vice
+    versa erlang requires erlang-epmd
     wget http://download.opensuse.org/repositories/devel:/languages:/erlang/SLE_11_SP4/x86_64/erlang-18.3-12.1.x86_64.rpm
     wget http://download.opensuse.org/repositories/devel:/languages:/erlang/SLE_11_SP4/x86_64/erlang-epmd-18.3-12.1.x86_64.rpm
     rpm -i --nodeps erlang-epmd-18.3-12.1.x86_64.rpm
     rpm -i erlang-18.3-12.1.x86_64.rpm
 
+[<img align="right" src="images/n.png">][ec_prepare_environment]
 {% include links.html %}

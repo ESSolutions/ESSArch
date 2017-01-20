@@ -22,4 +22,6 @@ Areas that need to be backed up to an external "backup system" daily is the foll
 - /ESSArch/log
 - /ESSArch/data
 
+[<img align="right" src="images/n.png">][ec_logfiles]
+
 {% include links.html %}

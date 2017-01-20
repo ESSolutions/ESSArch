@@ -18,10 +18,14 @@ Please download the latest installation package from  [GitHub](https://github.co
     [arch@server ~]$ cd ESSArch_Core_installer-x.x.x
     [arch@server ~]$ ./install
 
-    The installation of ESSArch is now running and dependent on hardware configuration, the installation may take some time. To see details of the installation progress please start a new terminal window and run the following command.
+    The installation of ESSArch is now running and dependent on hardware
+    configuration, the installation may take some time. To see details of the
+    installation progress please start a new terminal window and run the
+    following command.
     [arch@server ~]$ tail -f /ESSArch/install.log
 
-    When installation is finished, search in the log file /ESSArch/install.log for any unexpected errors indicating failure of installation of any modules.
+    When installation is finished, search in the log file /ESSArch/install.log
+    for any unexpected errors indicating failure of installation of any modules.
 
 ## Enable automatic startup at system boot
 
@@ -39,5 +43,13 @@ Please download the latest installation package from  [GitHub](https://github.co
     Please run the following command as user root.
     # chkconfig rabbitmq-server on
     # service rabbitmq-server start
+
+### Enable automatic backup of MySQL / MariaDB
+
+    Please run the following command as user root.
+    # cp /ESSArch/config/automysqlbackup/runmysqlbackup /etc/cron.daily/runmysqlbackup
+    # chmod 744 /etc/cron.daily/runmysqlbackup
+
+[<img align="right" src="images/n.png">][ec_safety_backup_procedures]
 
 {% include links.html %}
