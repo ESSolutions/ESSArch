@@ -9,6 +9,6 @@ permalink: essarch_support.html
 folder: essarch
 ---
 
-Service and support on ESSArch is regulated in maintenance contract with ES Solutions AB. A case is registered on the support portal [projects.essolutions.se](http://projects.essolutions.se)
+Service and support on ESSArch is regulated in maintenance contract with ES Solutions AB. A case is registered on the support portal [projects.essolutions.se](http://projects.essolutions.se){:target="_blank"}
 
 {% include links.html %}
