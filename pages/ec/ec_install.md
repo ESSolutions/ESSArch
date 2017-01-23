@@ -8,7 +8,7 @@ folder: ec
 
 ## EC installation script
 
-Please download the latest installation package from  [GitHub](https://github.com/ESSolutions/ESSArch_Core/releases/latest)
+Please download the latest installation package from  [GitHub](https://github.com/ESSolutions/ESSArch_Core/releases/latest){:target="_blank"}
 
     Change to user "arch" with the following command.
     # su - arch

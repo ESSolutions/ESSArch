@@ -82,5 +82,9 @@ are installed on your platform
     rpm -i --nodeps erlang-epmd-18.3-12.1.x86_64.rpm
     rpm -i erlang-18.3-12.1.x86_64.rpm
 
+**TIP:** If you extract the contents of the installation package for
+[ESSArch Core](https://github.com/ESSolutions/ESSArch_Core/releases/latest){:target="_blank"} and look in the directory folder "extra", there is help script to
+install required OS package.
+
 [<img align="right" src="images/n.png">][ec_prepare_environment]
 {% include links.html %}

@@ -8,7 +8,7 @@ folder: etp
 
 ## ETP installation script
 
-Please download the latest installation package from  [GitHub](https://github.com/ESSolutions/ESSArch_Tools_Producer/releases/latest)
+Please download the latest installation package from  [GitHub](https://github.com/ESSolutions/ESSArch_Tools_Producer/releases/latest){:target="_blank"}
 
     Change to user "arch" with the following command.
     # su - arch

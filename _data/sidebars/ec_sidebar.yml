@@ -3,7 +3,7 @@
 entries:
 - title: sidebar
   product: ESSArch Core
-  version: 0.9.9
+  version: 1.0.0
   folders:
 
   - title:
@@ -31,10 +31,6 @@ entries:
   - title: Release Notes
     output: web, pdf
     folderitems:
-
-    - title: 0.9.9 Release notes
-      url: /ec_release_notes_0_9_9.html
-      output: web, pdf
 
     - title: 1.0 Release notes
       url: /ec_release_notes_1_0_0.html

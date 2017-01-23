@@ -8,7 +8,7 @@ permalink: etp_prerequisites.html
 folder: etp
 ---
 
-This package requires that you have installed ESSArch Core package [link][ec_install]
+This package requires that you have installed ESSArch Core package [link][ec_prerequisites]
 
 [<img align="right" src="images/n.png">](etp_prepare_environment.html)
 {% include links.html %}
