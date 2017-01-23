@@ -15,7 +15,7 @@ This ESSArch Core package contains all core functions and is required to be inst
 
 SIP packaging and delivery tools for user producer.
 
-## ESSArch Tools Producer (ETA)
+## ESSArch Tools Producer ([ETA](eta_getting_started.html))
 
 SIP receiving tools for archives.
 

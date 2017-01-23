@@ -1,0 +1,65 @@
+# This is your sidebar TOC. The sidebar code loops through sections here and provides the appropriate formatting.
+
+entries:
+- title: sidebar
+  product: ESSArch Tools Archive
+  version: 1.0.0
+  folders:
+
+  - title:
+    output: pdf
+    type: frontmatter
+    folderitems:
+    - title:
+      url: /titlepage
+      output: pdf
+      type: frontmatter
+    - title:
+      url: /tocpage
+      output: pdf
+      type: frontmatter
+
+  - title: Overview
+    output: web, pdf
+    folderitems:
+
+    - title: Get started
+      url: /eta_getting_started.html
+      output: web, pdf
+      type: homepage
+
+  - title: Release Notes
+    output: web, pdf
+    folderitems:
+
+    - title: 1.0 Release notes
+      url: /eta_release_notes_1_0_0.html
+      output: web, pdf
+
+  - title: Installation
+    output: web, pdf
+    folderitems:
+
+    - title: Prerequisites
+      url: /eta_prerequisites.html
+      output: web, pdf
+
+    - title: Prepare Environment
+      url: /eta_prepare_environment.html
+      output: web, pdf
+
+    - title: Install ESSArch Tools Archive
+      url: /eta_install.html
+      output: web, pdf
+
+    - title: Running ESSArch Tools Archive
+      url: /eta_running.html
+      output: web, pdf
+
+    - title: Safety backup procedures
+      url: /eta_safety_backup_procedures.html
+      output: web, pdf
+
+    - title: Logfiles
+      url: /eta_logfiles.html
+      output: web, pdf

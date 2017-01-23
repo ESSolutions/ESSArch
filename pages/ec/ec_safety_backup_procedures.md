@@ -17,7 +17,7 @@ Everything in the file area /ESSArch should be backed up before and after config
 
 Areas that need to be backed up to an external "backup system" daily is the following:
 
-- /ESSArch/backups_mysql
+- /ESSArch/backup
 - /ESSArch/config
 - /ESSArch/log
 - /ESSArch/data

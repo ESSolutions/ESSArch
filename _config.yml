@@ -95,6 +95,7 @@ sidebars:
 - essarch_sidebar
 - ec_sidebar
 - etp_sidebar
+- eta_sidebar
 
 description: "Intended as a documentation theme based on Jekyll for technical writers documenting software and other technical products, this theme has all the elements you would need to handle multiple products with both multi-level sidebar navigation, tags, and other documentation features."
 # the description is used in the feed.xml file
