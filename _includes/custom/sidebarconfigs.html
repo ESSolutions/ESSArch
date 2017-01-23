@@ -11,6 +11,9 @@
 {% elsif page.sidebar == "eta_sidebar" %}
 {% assign sidebar = site.data.sidebars.eta_sidebar.entries %}
 
+{% elsif page.sidebar == "epp_sidebar" %}
+{% assign sidebar = site.data.sidebars.epp_sidebar.entries %}
+
 {% else %}
 {% assign sidebar = site.data.sidebars.essarch_sidebar.entries %}
 {% endif %}
@@ -35,4 +38,8 @@ sidebar configuration for print files
 
 {% if site.product == "eta" %}
 {% assign sidebar_pdf = site.data.sidebars.eta_sidebar.entries %}
+{% endif %}
+
+{% if site.product == "epp" %}
+{% assign sidebar_pdf = site.data.sidebars.epp_sidebar.entries %}
 {% endif %}

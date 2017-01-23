@@ -18,3 +18,5 @@ topnav_dropdowns:
           url: /etp_getting_started.html
         - title: ESSArch Tools Archive
           url: /eta_getting_started.html
+        - title: ESSArch Preservation Platform
+          url: /epp_getting_started.html

@@ -19,7 +19,7 @@ Note that a startup or shutdown of ETA should always be controlled.
     # service celerydeta start
     # service esshttpd start
 
-### Stop ETP server
+### Stop ETA server
 
     Please run the following command as user root to stop ETA.
     # service esshttpd stop

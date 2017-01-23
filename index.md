@@ -19,8 +19,8 @@ SIP packaging and delivery tools for user producer.
 
 SIP receiving tools for archives.
 
-## ESSArch Preservation Platform (EPP)
+## ESSArch Preservation Platform ([EPP](epp_getting_started.html))
 
-ESSArch Preservation Platform - an practical implementation of the OAIS (Reference Model for an Open Archival Information System)
+ESSArch Preservation Platform - an opensource based archiving and digital preservation system.
 
 {% include links.html %}

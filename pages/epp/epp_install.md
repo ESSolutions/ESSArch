@@ -1,40 +1,40 @@
 ---
-title: Install ESSArch Tools for Archive
-permalink: eta_install.html
-keywords: ESSArch ETA Tools Archive
-sidebar: eta_sidebar
-folder: eta
+title: Install ESSArch Preservation Platform
+permalink: epp_install.html
+keywords: ESSArch EPP Preservation Platform
+sidebar: epp_sidebar
+folder: epp
 ---
 
-## ETA installation script
+## EPP installation script
 
-Please download the latest installation package from  [GitHub](https://github.com/ESSolutions/ESSArch_Tools_Archive/releases/latest){:target="_blank"}
+Please download the latest installation package from  [GitHub](https://github.com/ESSolutions/ESSArch_EPP/releases/latest){:target="_blank"}
 
     Change to user "arch" with the following command.
     # su - arch
 
     Extract and install the downloaded package.
-    [arch@server ~]$ tar xvf ESSArch_TA_installer-x.x.x.tar.gz
-    [arch@server ~]$ cd ESSArch_TA_installer-x.x.x
+    [arch@server ~]$ tar xvf ESSArch_EPP_installer-x.x.x.tar.gz
+    [arch@server ~]$ cd ESSArch_EPP_installer-x.x.x
     [arch@server ~]$ ./install
 
     The installation of ESSArch is now running and dependent on hardware
     configuration, the installation may take some time. To see details of the
     installation progress please start a new terminal window and run the
     following command.
-    [arch@server ~]$ tail -f /ESSArch/install_eta.log
+    [arch@server ~]$ tail -f /ESSArch/install_epp.log
 
-    When installation is finished, search in the log file /ESSArch/install_eta.log
+    When installation is finished, search in the log file /ESSArch/install_epp.log
     for any unexpected errors indicating failure of installation of any modules.
 
 ## Configuring
 
 ### Apache httpd configuration
 
-    Edit file /ESSArch/config/httpd-eta.conf and change the configuration entry for
+    Edit file /ESSArch/config/httpd-epp.conf and change the configuration entry for
     "ServerName" to same as the hostname of the ESSArch server.
 
-    Add the line "Include /ESSArch/config/httpd-eta.conf" in the file
+    Add the line "Include /ESSArch/config/httpd-epp.conf" in the file
     /ESSArch/config/httpd.conf
 
     For test purpose you can use the existing configuration for SSL certificate,
@@ -45,24 +45,17 @@ Please download the latest installation package from  [GitHub](https://github.co
 ### Collect static files to be served by apache httpd
 
     Please run the following command as user: arch
-    [arch@server ~]$ python $ETA/manage.py collectstatic
+    [arch@server ~]$ python $EPP/manage.py collectstatic
 
-### ETA configuration
+### EPP configuration
 
     Path /ESSArch/config contains the configuration files for ESSArch. To change
-    the configuration of the ETA, create the /ESSArch/config/local_eta_settings.py
+    the configuration of the EPP, create the /ESSArch/config/local_settings.py
     or update existing file.
 
     You will also find configuration in the local database tables. To change
-    the configuration please login as sysadmin user is ETA and select
+    the configuration please login as sysadmin user is EPP and select
     menu MANAGEMENT > Configuration
-
-### RabbitMQ virtual host configuration for ETA
-
-    Add virtual host to RabbitMQ as root user:
-    # rabbitmqctl add_user guest guest
-    # rabbitmqctl add_vhost eta
-    # rabbitmqctl set_permissions -p eta guest ".*" ".*" ".*"
 
 ## Database
 
@@ -73,7 +66,7 @@ use MySQL/MariaDB.
 ### MySQL
 
 Follow the instructions below in order to create the user and tables required
-by ETA installation.
+by EPP installation.
 
     To enable MySQL on CentOS 6 run the following commands as user: root.
     /sbin/chkconfig mysqld on
@@ -84,18 +77,18 @@ by ETA installation.
     may be invoked as follows.
     # mysql -u root -p
 
-    Create the database. For example, to create a database named "eta", enter.
-    mysql> CREATE DATABASE eta DEFAULT CHARACTER SET utf8;
+    Create the database. For example, to create a database named "essarch", enter.
+    mysql> CREATE DATABASE essarch DEFAULT CHARACTER SET utf8;
 
     Set username, password and permissions for the database. For example, to
     set the permissions for user "arkiv" with password "password" on database
-    "eta", enter:
-    mysql> GRANT ALL ON eta.* TO arkiv@localhost IDENTIFIED BY 'password';
+    "essarch", enter:
+    mysql> GRANT ALL ON essarch.* TO arkiv@localhost IDENTIFIED BY 'password';
 
 ### MariaDB
 
 Follow the instructions below in order to create the user and tables required
-by ETA installation.
+by EPP installation.
 
     To enable MariaDB on CentOS 7 run the following commands as user: root.
     /sbin/chkconfig mariadb on
@@ -106,35 +99,61 @@ by ETA installation.
     may be invoked as follows.
     # mysql -u root -p
 
-    Create the database. For example, to create a database named "eta", enter.
-    mysql> CREATE DATABASE eta DEFAULT CHARACTER SET utf8;
+    Create the database. For example, to create a database named "essarch", enter.
+    mysql> CREATE DATABASE essarch DEFAULT CHARACTER SET utf8;
 
     Set username, password and permissions for the database. For example, to
     set the permissions for user "arkiv" with password "password" on
-    database "eta", enter:
-    mysql> GRANT ALL ON eta.* TO arkiv@localhost IDENTIFIED BY 'password';
+    database "essarch", enter:
+    mysql> GRANT ALL ON essarch.* TO arkiv@localhost IDENTIFIED BY 'password';
 
 ### Create default tables in database
 
     Please run the following command as user: arch
-    [arch@server ~]$ python $ETA/manage.py migrate
+    [arch@server ~]$ python $EPP/manage.py migrate
 
 ### Add default configuration data to database
 
+Use only this default configuration for test purpose, do not install this
+default configuration in production.
+
     Please run the following command as user: arch
-    [arch@server ~]$ python $ETA/install/install_default_config_eta.py
+    [arch@server ~]$ python $EPP/extra/install_config.py
+
+#### For production/custom installation
+
+For production environment you should first make a copy of this
+configuration file and update for example site_profile, site_name.
+
+    [arch@server ~]$ cp $EPP/extra/install_config.py /home/arch/install_config_custom.py
+
+Update /home/arch/install_config_custom.py
+
+Install configuration:
+
+    [arch@server ~]$ python /home/arch/install_config_custom.py
 
 ## Enable automatic startup at system boot
 
-    Login as root user and set ETA path variable:
-    # export ETA=/ESSArch/pd/python/lib/python2.7/site-packages/ESSArch_TA
+    Login as root user and set EPP path variable:
+    # export EPP=/ESSArch/pd/python/lib/python2.7/site-packages/ESSArch_PP
 
 ### Enable workerprocess
 
     Please run the following commands as root user.
-    # cp /home/arch/ESSArch_TA_installer-x.x.x/extra/celerydeta.sh /etc/init.d/celerydeta
-    # chmod 744 /etc/init.d/celerydeta
-    # chkconfig celerydeta on
+    # cp /home/arch/ESSArch_EPP_installer-x.x.x/extra/celeryd.sh /etc/init.d/celeryd
+    # chmod 744 /etc/init.d/celeryd    
+    # chkconfig celeryd on    
+    # cp /home/arch/ESSArch_EPP_installer-x.x.x/extra/celerybeat.sh /etc/init.d/celerybeat
+    # chmod 744 /etc/init.d/celerybeat
+    # chkconfig celerybeat on
 
-[<img align="right" src="images/n.png">](eta_running.html)
+### Enable EPP server processes
+
+    Please run the following commands as root user.
+    # cp /home/arch/ESSArch_EPP_installer-x.x.x/extra/essarch.sh /etc/init.d/essarch
+    # chmod 744 /etc/init.d/essarch  
+    # chkconfig essarch on    
+
+[<img align="right" src="images/n.png">](epp_running.html)
 {% include links.html %}
