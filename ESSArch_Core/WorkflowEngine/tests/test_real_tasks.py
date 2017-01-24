@@ -290,8 +290,6 @@ class IdentifyFileFormatTestCase(TestCase):
 
 class GenerateXMLTestCase(TestCase):
     def setUp(self):
-        settings.CELERY_ALWAYS_EAGER = False
-
         self.taskname = "ESSArch_Core.tasks.GenerateXML"
         self.root = os.path.dirname(os.path.realpath(__file__))
         self.datadir = os.path.join(self.root, "datadir")
@@ -334,7 +332,6 @@ class GenerateXMLTestCase(TestCase):
                 raise
 
     def tearDown(self):
-        settings.CELERY_ALWAYS_EAGER = True
         shutil.rmtree(self.datadir)
 
     def test_without_file(self):
@@ -348,7 +345,7 @@ class GenerateXMLTestCase(TestCase):
             }
         )
 
-        task.run().get()
+        task.run()
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -371,7 +368,7 @@ class GenerateXMLTestCase(TestCase):
             }
         )
 
-        task.run().get()
+        task.run()
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -391,11 +388,11 @@ class GenerateXMLTestCase(TestCase):
             }
         )
 
-        task.run().get()
+        task.run()
 
         self.assertTrue(os.path.isfile(self.fname))
 
-        task.undo().get()
+        task.undo()
 
         self.assertFalse(os.path.isfile(self.fname))
 
@@ -413,12 +410,12 @@ class GenerateXMLTestCase(TestCase):
             }
         )
 
-        task.run().get()
+        task.run()
 
         self.assertTrue(os.path.isfile(self.fname))
         self.assertTrue(os.path.isfile(extra_file))
 
-        task.undo().get()
+        task.undo()
 
         self.assertFalse(os.path.isfile(self.fname))
         self.assertFalse(os.path.isfile(extra_file))
