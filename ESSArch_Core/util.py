@@ -9,6 +9,7 @@ import pyclbr
 import re
 import shutil
 
+from rest_framework.exceptions import ValidationError
 from django.utils.timezone import get_current_timezone
 
 from datetime import datetime
@@ -335,3 +336,19 @@ def run_shell_command(command, cwd):
     if stdout:
         stdout = stdout.strip()
     return stdout
+
+def parse_content_range_header(header):
+    content_range_pattern = re.compile(
+        r'^bytes (?P<start>\d+)-(?P<end>\d+)/(?P<total>\d+)$'
+    )
+
+    match = content_range_pattern.match(header)
+
+    if match:
+        start = int(match.group('start'))
+        end = int(match.group('end'))
+        total = int(match.group('total'))
+
+        return (start, end, total)
+    else:
+        raise ValidationError(detail="Invalid Content-Range header")

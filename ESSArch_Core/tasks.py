@@ -4,8 +4,14 @@ import shutil
 import urllib
 import uuid
 
+import requests
+
+from requests_toolbelt import MultipartEncoder
+
 from celery.result import allow_join_result
 
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 from django.conf import settings
 
 from ESSArch_Core.util import (
@@ -725,3 +731,152 @@ class DeleteFiles(DBTask):
 
     def event_outcome_success(self, path=None):
         return "Deleted %s" % path
+
+
+class CopyChunk(DBTask):
+    def local(self, src, dst, block_size=65536, offset=0):
+        with open(src, 'r') as srcf, open(dst, 'a') as dstf:
+            srcf.seek(offset)
+            dstf.seek(offset)
+
+            dstf.write(srcf.read(block_size))
+
+    def remote(self, src, dst, requests_session, block_size=65536, offset=0, file_size=0):
+        with open(src, 'rb') as srcf:
+            srcf.seek(offset)
+
+            filename = os.path.basename(src)
+            chunk = srcf.read(block_size)
+
+            HTTP_CONTENT_RANGE = 'bytes %s-%s/%s' % (offset, offset+block_size-1, file_size)
+
+            data = MultipartEncoder(fields=(('chunk', chunk), ('filename', filename)))
+            headers = {
+                'Content-Type': data.content_type,
+                'Content-Range': HTTP_CONTENT_RANGE
+            }
+
+            response = requests.post(dst, data=data, headers=headers)
+
+            try:
+                response.raise_for_status()
+            except requests.exceptions.HTTPError:
+                raise ValueError
+
+    def run(self, src=None, dst=None, requests_session=None, offset=0, block_size=65536, file_size=0):
+        """
+        Copies the given chunk to the given destination
+
+        Args:
+            src: The file to copy
+            dst: Where the file should be copied to
+            requests_session: The session to be used
+            offset: The offset in the file
+            block_size: Size of each block to copy
+        Returns:
+            None
+        """
+
+        val = URLValidator(dst)
+
+        try:
+            val(dst)
+            self.remote(src, dst, requests_session, block_size, offset, file_size)
+        except ValidationError:
+            self.local(src, dst, block_size, offset)
+
+        self.set_progress(100, total=100)
+
+    def undo(self, src=None, dst=None, requests_session=None, offset=0, block_size=65536, file_size=0):
+        pass
+
+    def event_outcome_success(self, src=None, dst=None, requests_session=None, offset=0, block_size=65536, file_size=0):
+        return "Copied chunk at offset %s and size %s from %s to %s" % (offset, block_size, src, dst)
+
+
+class CopyFile(DBTask):
+    def local(self, src, dst, block_size=65536):
+        step = ProcessStep.objects.create(
+            name="Copy file",
+            parent_step=self.taskobj.processstep
+        )
+
+        fsize = os.stat(src).st_size
+        idx = 0
+
+        open(dst, 'w').close()  # remove content of destination if it exists
+
+        while idx*block_size <= fsize:
+            ProcessTask.objects.create(
+                name="ESSArch_Core.tasks.CopyChunk",
+                params={
+                    'src': src,
+                    'dst': dst,
+                    'offset': idx*block_size,
+                    'block_size': block_size
+                },
+                processstep=step,
+                processstep_pos=idx,
+            )
+            idx += 1
+
+        step.run()
+
+    def remote(self, src, dst, requests_session=None, block_size=65536):
+        step = ProcessStep.objects.create(
+            name="Copy file",
+            parent_step=self.taskobj.processstep
+        )
+
+        file_size = os.stat(src).st_size
+        idx = 0
+
+        while idx*block_size <= file_size:
+            ProcessTask.objects.create(
+                name="ESSArch_Core.tasks.CopyChunk",
+                params={
+                    'src': src,
+                    'dst': dst,
+                    'requests_session': requests_session,
+                    'offset': idx*block_size,
+                    'block_size': block_size,
+                    'file_size': file_size
+                },
+                processstep=step,
+                processstep_pos=idx,
+            )
+            idx += 1
+
+        step.run()
+
+    def run(self, src=None, dst=None, requests_session=None, block_size=65536):
+        """
+        Copies the given file to the given destination
+
+        Args:
+            src: The file to copy
+            dst: Where the file should be copied to
+            requests_session: The request session to be used
+            block_size: Size of each block to copy
+        Returns:
+            None
+        """
+
+        if dst is None:
+            raise ValueError
+
+        val = URLValidator(dst)
+
+        try:
+            val(dst)
+            self.remote(src, dst, requests_session, block_size)
+        except ValidationError:
+            self.local(src, dst, block_size)
+
+        self.set_progress(100, total=100)
+
+    def undo(self, src=None, dst=None, requests_session=None, block_size=65536):
+        pass
+
+    def event_outcome_success(self, src=None, dst=None, requests_session=None, block_size=65536):
+        return "Copied %s to %s" % (src, dst)
