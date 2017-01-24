@@ -32,7 +32,8 @@ Add the following rows to /home/arch/.bash_profile:
     export LANG=en_US.UTF-8
     export LD_LIBRARY_PATH=/ESSArch/pd/python/lib:/ESSArch/pd/libxslt/lib:/ESSArch/pd/libxml/lib:$LD_LIBRARY_PATH
     export EC=/ESSArch/pd/python/lib/python2.7/site-packages/ESSArch_Core
-    export PYTHONPATH=$EC:/ESSArch/config
+    export EC_PYTHONPATH=$EC:/ESSArch/config
+    export PYTHONPATH=$EC_PYTHONPATH
     export DJANGO_SETTINGS_MODULE=config.settings
     alias log='cd /ESSArch/log'
     ##
