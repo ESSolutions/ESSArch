@@ -21,6 +21,7 @@
 """
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import models
 
 import jsonfield
@@ -337,6 +338,11 @@ class Profile(models.Model):
                 pass
 
         return data
+
+    def clean(self):
+        for field in self.template:
+            if field['templateOptions'].get('required') and not self.specification_data.get(field.get('key')):
+                raise ValidationError("Required field (%s) can't be empty" % (field.get('key')))
 
     class Meta:
         ordering = ["name"]
