@@ -1888,7 +1888,7 @@ class CopyFileTestCase(TestCase):
         with self.assertRaises(ValueError):
             task.run()
 
-        step = ProcessStep.objects.get(name="Copy File")
+        step = ProcessStep.objects.get(name__startswith="Copy")
 
         step.undo(only_failed=True)
         step.retry()

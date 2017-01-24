@@ -797,7 +797,7 @@ class CopyChunk(DBTask):
 class CopyFile(DBTask):
     def local(self, src, dst, block_size=65536):
         step = ProcessStep.objects.create(
-            name="Copy file",
+            name="Copy %s to %s" % (src, dst),
             parent_step=self.taskobj.processstep
         )
 
@@ -824,7 +824,7 @@ class CopyFile(DBTask):
 
     def remote(self, src, dst, requests_session=None, block_size=65536):
         step = ProcessStep.objects.create(
-            name="Copy file",
+            name="Copy %s to %s" % (src, dst),
             parent_step=self.taskobj.processstep
         )
 
