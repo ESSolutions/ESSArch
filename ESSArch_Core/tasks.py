@@ -820,7 +820,7 @@ class CopyFile(DBTask):
             )
             idx += 1
 
-        step.run()
+        step.run().get()
 
     def remote(self, src, dst, requests_session=None, block_size=65536):
         step = ProcessStep.objects.create(
@@ -847,7 +847,7 @@ class CopyFile(DBTask):
             )
             idx += 1
 
-        step.run()
+        step.run().get()
 
     def run(self, src=None, dst=None, requests_session=None, block_size=65536):
         """
