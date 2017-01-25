@@ -341,7 +341,7 @@ class Profile(models.Model):
 
     def clean(self):
         for field in self.template:
-            if field['templateOptions'].get('required') and not self.specification_data.get(field.get('key')):
+            if field.get('templateOptions', {}).get('required') and not self.specification_data.get(field.get('key')):
                 raise ValidationError("Required field (%s) can't be empty" % (field.get('key')))
 
     class Meta:
