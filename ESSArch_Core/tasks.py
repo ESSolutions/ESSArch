@@ -12,6 +12,7 @@ from celery.result import allow_join_result
 
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
+from django.core.mail import EmailMessage
 from django.conf import settings
 
 from ESSArch_Core.util import (
@@ -880,3 +881,24 @@ class CopyFile(DBTask):
 
     def event_outcome_success(self, src=None, dst=None, requests_session=None, block_size=65536):
         return "Copied %s to %s" % (src, dst)
+
+
+class SendEmail(DBTask):
+    def run(self, sender=None, recipients=[], subject=None, body=None, attachments=[]):
+        email = EmailMessage(
+            subject,
+            body,
+            sender,
+            recipients,
+        )
+
+        for a in attachments:
+            email.attach_file(a)
+
+        email.send()
+
+    def undo(self, sender=None, recipients=[], subject=None, body=None, attachments=[]):
+        pass
+
+    def event_outcome_success(self, sender=None, recipients=[], subject=None, body=None, attachments=[]):
+        pass

@@ -18,6 +18,7 @@ from lxml import etree
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core import mail
 from django.test import TestCase
 
 from ESSArch_Core.configuration.models import (
@@ -1897,3 +1898,67 @@ class CopyFileTestCase(TestCase):
         self.assertTrue(os.path.isfile(src))
         self.assertTrue(filecmp.cmp(src, dst_file))
         self.assertEqual(open(dst_file).read(), content)
+
+
+class SendEmailTestCase(TestCase):
+    def setUp(self):
+        self.taskname = 'ESSArch_Core.tasks.SendEmail'
+
+        self.sender = 'from@example.com'
+        self.recipients = ['to1@example.com', 'to2@example2.com']
+        self.subject = 'this is the subject'
+        self.body = 'this is the body'
+
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+        self.fname = os.path.join(self.datadir, "file1.txt")
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def test_send(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'sender': self.sender,
+                'recipients': self.recipients,
+                'subject': self.subject,
+                'body': self.body
+            }
+        )
+
+        task.run()
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, self.subject)
+
+    def test_send_attachments(self):
+        with open(self.fname, 'w') as f:
+            f.write('foo')
+
+        attachments = [self.fname]
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'sender': self.sender,
+                'recipients': self.recipients,
+                'subject': self.subject,
+                'body': self.body,
+                'attachments': attachments
+            }
+        )
+
+        task.run()
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, self.subject)
+        self.assertEqual(len(mail.outbox[0].attachments), 1)
+        self.assertEqual(mail.outbox[0].attachments[0][0], os.path.basename(attachments[0]))
