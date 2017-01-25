@@ -22,6 +22,7 @@
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db import models
 
 import jsonfield
@@ -341,8 +342,15 @@ class Profile(models.Model):
 
     def clean(self):
         for field in self.template:
-            if field.get('templateOptions', {}).get('required') and not self.specification_data.get(field.get('key')):
+            key = field.get('key')
+            if field.get('templateOptions', {}).get('required') and not self.get_value_for_key(key):
                 raise ValidationError("Required field (%s) can't be empty" % (field.get('key')))
+
+            if field.get('templateOptions', {}).get('type') == 'email' and self.get_value_for_key(key):
+                validate_email(self.get_value_for_key(key))
+
+    def get_value_for_key(self, key):
+        return self.specification_data.get(key)
 
     class Meta:
         ordering = ["name"]
