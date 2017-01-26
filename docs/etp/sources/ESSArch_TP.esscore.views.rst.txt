@@ -1,0 +1,22 @@
+ESSArch_TP.esscore.views package
+================================
+
+Submodules
+----------
+
+ESSArch_TP.esscore.views.datatables module
+------------------------------------------
+
+.. automodule:: ESSArch_TP.esscore.views.datatables
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_TP.esscore.views
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,37 @@
+ESSArch_TP package
+==================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ESSArch_TP.config
+    ESSArch_TP.configuration
+    ESSArch_TP.esscore
+    ESSArch_TP.frontend
+    ESSArch_TP.install
+    ESSArch_TP.ip
+    ESSArch_TP.metadata_old
+    ESSArch_TP.preingest
+    ESSArch_TP.profiles
+
+Submodules
+----------
+
+ESSArch_TP.manage module
+------------------------
+
+.. automodule:: ESSArch_TP.manage
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_TP
+    :members:
+    :undoc-members:
+    :show-inheritance:

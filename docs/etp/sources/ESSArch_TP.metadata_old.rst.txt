@@ -1,0 +1,17 @@
+ESSArch_TP.metadata_old package
+===============================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ESSArch_TP.metadata_old.metadataGenerator
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_TP.metadata_old
+    :members:
+    :undoc-members:
+    :show-inheritance:

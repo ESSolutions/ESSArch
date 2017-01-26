@@ -1,0 +1,17 @@
+ESSArch_TP.esscore.metadata package
+===================================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ESSArch_TP.esscore.metadata.metadataGenerator
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_TP.esscore.metadata
+    :members:
+    :undoc-members:
+    :show-inheritance:

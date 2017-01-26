@@ -1,0 +1,30 @@
+ESSArch_TP.esscore.rest package
+===============================
+
+Submodules
+----------
+
+ESSArch_TP.esscore.rest.uploadchunkedrestclient module
+------------------------------------------------------
+
+.. automodule:: ESSArch_TP.esscore.rest.uploadchunkedrestclient
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_TP.esscore.rest.uploadrestclient module
+-----------------------------------------------
+
+.. automodule:: ESSArch_TP.esscore.rest.uploadrestclient
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_TP.esscore.rest
+    :members:
+    :undoc-members:
+    :show-inheritance:

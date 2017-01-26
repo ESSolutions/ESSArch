@@ -1,0 +1,1548 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ESSArch_TP.install.install_profiles_sydarkivera &#8212; ESSArch Tools Producer 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../../static/underscore.js"></script>
+    <script type="text/javascript" src="../../../static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ESSArch_TP.install.install_profiles_sydarkivera</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env /ESSArch/python27/bin/python</span>
+<span class="c1"># -*- coding: UTF-8 -*-</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    ESSArch is an OAIS Electronic Archiving Solution</span>
+
+<span class="sd">    ESSArch Tools for Producer (ETP)</span>
+<span class="sd">    Copyright (C) 2005-2017  ES Solutions AB</span>
+
+<span class="sd">    This program is free software: you can redistribute it and/or modify</span>
+<span class="sd">    it under the terms of the GNU General Public License as published by</span>
+<span class="sd">    the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">    (at your option) any later version.</span>
+
+<span class="sd">    This program is distributed in the hope that it will be useful,</span>
+<span class="sd">    but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="sd">    GNU General Public License for more details.</span>
+
+<span class="sd">    You should have received a copy of the GNU General Public License</span>
+<span class="sd">    along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">    Contact information:</span>
+<span class="sd">    Web - http://www.essolutions.se</span>
+<span class="sd">    Email - essarch@essolutions.se</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">django</span>
+<span class="n">django</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="k">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">django.contrib.auth.models</span> <span class="k">import</span> <span class="n">User</span>
+
+<span class="c1"># own models etc</span>
+<span class="kn">from</span> <span class="nn">ESSArch_Core.configuration.models</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">EventType</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">ESSArch_Core.ip.models</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">EventIP</span><span class="p">,</span>
+    <span class="n">InformationPackage</span><span class="p">,</span>
+    <span class="n">ArchivalInstitution</span><span class="p">,</span>
+    <span class="n">ArchivistOrganization</span><span class="p">,</span>
+    <span class="n">ArchivalType</span><span class="p">,</span>
+    <span class="n">ArchivalLocation</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">ESSArch_Core.WorkflowEngine.models</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">ProcessStep</span><span class="p">,</span>
+    <span class="n">ProcessTask</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">ip.steps</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">prepare_ip</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">ESSArch_Core.profiles.models</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">SubmissionAgreement</span><span class="p">,</span>
+    <span class="n">Profile</span><span class="p">,</span>
+    <span class="n">ProfileSA</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># settings</span>
+<span class="c1">#site_profile = &quot;SE&quot; # SE_NEW, SE, NO, EC</span>
+<span class="c1">#zone = &quot;zone1&quot; # ETP=zone1, ETA=zone2</span>
+
+
+<div class="viewcode-block" id="installProfiles"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installProfiles">[docs]</a><span class="k">def</span> <span class="nf">installProfiles</span><span class="p">():</span> <span class="c1"># Install all different profiles</span>
+    <span class="c1"># First remove all existing data</span>
+    <span class="n">EventIP</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+    <span class="n">ArchivalInstitution</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+    <span class="n">ArchivistOrganization</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+    <span class="n">ArchivalType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+    <span class="n">ArchivalLocation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+    <span class="n">InformationPackage</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+    <span class="n">SubmissionAgreement</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+    <span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+    <span class="n">ProcessStep</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+    <span class="n">ProcessTask</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+
+    <span class="c1"># install default configuration</span>
+    <span class="n">installProfileTransferProject</span><span class="p">()</span>   		<span class="c1"># Profile Transfer Project</span>
+    <span class="n">installProfileContentType</span><span class="p">()</span>         	<span class="c1"># Profile Content Type</span>
+    <span class="n">installProfileDataSelection</span><span class="p">()</span>       	<span class="c1"># Profile Data Selection</span>
+    <span class="n">installProfileAuthorityInformation</span><span class="p">()</span>   	<span class="c1"># Profile Authority Information</span>
+    <span class="n">installProfileArchivalDescription</span><span class="p">()</span>    	<span class="c1"># Profile Archival Description</span>
+    <span class="n">installProfileImport</span><span class="p">()</span>              	<span class="c1"># Profile Import</span>
+    <span class="n">installProfileSubmitDescription</span><span class="p">()</span>   	<span class="c1"># Profile Submit Description</span>
+    <span class="n">installProfileSIP</span><span class="p">()</span>				        <span class="c1"># Profile Submission Information Package</span>
+    <span class="n">installProfileAIP</span><span class="p">()</span>  			        <span class="c1"># Profile Archival Information Package</span>
+    <span class="n">installProfileDIP</span><span class="p">()</span>				        <span class="c1"># Profile Dissemination Information Package</span>
+    <span class="n">installProfileWorkflow</span><span class="p">()</span>			    <span class="c1"># Profile Workflow</span>
+    <span class="n">installProfilePreservationMetadata</span><span class="p">()</span>	<span class="c1"># Profile Preservation Metadata</span>
+    <span class="n">installSubmissionAgreement</span><span class="p">()</span>     		<span class="c1"># Submission Agreement</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="installIPs"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installIPs">[docs]</a><span class="k">def</span> <span class="nf">installIPs</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    installArchivalInstitution()                # Archival Institution</span>
+<span class="sd">    installArchivistOrganization()              # Archivist Organization</span>
+<span class="sd">    installArchivalType()                       # Archival Type</span>
+<span class="sd">    installArchivalLocation()                   # Archival Location</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># installInformationPackages()                # Information Package</span>
+    <span class="c1"># installEventIPs()                           # Events</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="installSubmissionAgreement"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installSubmissionAgreement">[docs]</a><span class="k">def</span> <span class="nf">installSubmissionAgreement</span><span class="p">():</span>
+
+    <span class="c1"># create submission agreement dictionaries</span>
+    <span class="n">dct</span> <span class="o">=</span> <span class="p">{</span>
+	  <span class="s1">&#39;sa_name&#39;</span><span class="p">:</span> <span class="s1">&#39;SA National Archive and Government 1&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_type&#39;</span><span class="p">:</span> <span class="s1">&#39;Standard&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_status&#39;</span><span class="p">:</span> <span class="s1">&#39;Agreed&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_label&#39;</span><span class="p">:</span> <span class="s1">&#39;Submission Agreement National Archive x and Government x&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_cm_version&#39;</span><span class="p">:</span> <span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_cm_release_date&#39;</span><span class="p">:</span> <span class="s1">&#39;2012-04-26T12:45:00+01:00&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_cm_change_authority&#39;</span><span class="p">:</span> <span class="s1">&#39;Ozzy Osbourne, NAxx&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_cm_change_description&#39;</span><span class="p">:</span> <span class="s1">&#39;Original&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_cm_sections_affected&#39;</span><span class="p">:</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_producer_organization&#39;</span><span class="p">:</span> <span class="s1">&#39;Government x&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_producer_main_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Elton John&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_producer_main_address&#39;</span><span class="p">:</span> <span class="s1">&#39;Bourbon Street 123, City x, Country y&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_producer_main_phone&#39;</span><span class="p">:</span> <span class="s1">&#39;46 (0)8-123450&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_producer_main_email&#39;</span><span class="p">:</span> <span class="s1">&#39;Elton.John@company.se&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_producer_main_additional&#39;</span><span class="p">:</span> <span class="s1">&#39;Responsible for contract&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_producer_individual_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Mike Oldfield&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_producer_individual_role&#39;</span><span class="p">:</span> <span class="s1">&#39;Archivist&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_producer_individual_phone&#39;</span><span class="p">:</span> <span class="s1">&#39;46 (0)8-123451&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_producer_individual_email&#39;</span><span class="p">:</span> <span class="s1">&#39;Mike.Oldfield@company.se&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_producer_individual_additional&#39;</span><span class="p">:</span> <span class="s1">&#39;Principal archivist&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_archivist_organization&#39;</span><span class="p">:</span> <span class="s1">&#39;National Archive xx&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_archivist_main_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Ozzy Osbourne&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_archivist_main_address&#39;</span><span class="p">:</span> <span class="s1">&#39;Main street 123, City x, Country y&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_archivist_main_phone&#39;</span><span class="p">:</span> <span class="s1">&#39;46 (0)8-1001001&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_archivist_main_email&#39;</span><span class="p">:</span> <span class="s1">&#39;Ozzy.Osbourne@archive.org&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_archivist_main_additional&#39;</span><span class="p">:</span> <span class="s1">&#39;Responsible for contract&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_archivist_individual_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Lita Ford&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_archivist_individual_role&#39;</span><span class="p">:</span> <span class="s1">&#39;Archivist&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_archivist_individual_phone&#39;</span><span class="p">:</span> <span class="s1">&#39;46 (0)8-1001002&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_archivist_individual_email&#39;</span><span class="p">:</span> <span class="s1">&#39;Lita.Ford@archive.org&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_archivist_individual_additional&#39;</span><span class="p">:</span> <span class="s1">&#39;Principal archivist&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_designated_community_description&#39;</span><span class="p">:</span> <span class="s1">&#39;Designated community description&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_designated_community_individual_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Elvis Presley&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_designated_community_individual_role&#39;</span><span class="p">:</span> <span class="s1">&#39;Artist&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_designated_community_individual_phone&#39;</span><span class="p">:</span> <span class="s1">&#39;46 (0)8-2002001&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_designated_community_individual_email&#39;</span><span class="p">:</span> <span class="s1">&#39;Elvis.Presley@xxx.org&#39;</span><span class="p">,</span>
+	  <span class="s1">&#39;sa_designated_community_individual_additional&#39;</span><span class="p">:</span> <span class="s1">&#39;Celebrity&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># create according to model with many fields</span>
+    <span class="n">sa1</span> <span class="o">=</span> <span class="n">SubmissionAgreement</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+    <span class="c1">#dct[&#39;sa_name&#39;] = &quot;SA National Archive and Government 2&quot;</span>
+    <span class="c1">#sa2 = SubmissionAgreement.objects.create(**dct)</span>
+    <span class="c1">#dct[&#39;sa_name&#39;] = &quot;SA National Archive and Government 3&quot;</span>
+    <span class="c1">#sa3 = SubmissionAgreement.objects.create(**dct)</span>
+
+    <span class="n">ProfileSA</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">bulk_create</span><span class="p">([</span>
+        <span class="n">ProfileSA</span><span class="p">(</span>
+            <span class="n">profile</span><span class="o">=</span><span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;550e8400-e29b-41d4a716-446655440001&quot;</span>
+            <span class="p">),</span>
+            <span class="n">submission_agreement</span><span class="o">=</span><span class="n">sa1</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">ProfileSA</span><span class="p">(</span>
+            <span class="n">profile</span><span class="o">=</span><span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;550e8400-e29b-41d4a716-446655440006&quot;</span>
+            <span class="p">),</span>
+            <span class="n">submission_agreement</span><span class="o">=</span><span class="n">sa1</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">ProfileSA</span><span class="p">(</span>
+            <span class="n">profile</span><span class="o">=</span><span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;550e8400-e29b-41d4a716-446655440018&quot;</span>
+            <span class="p">),</span>
+            <span class="n">submission_agreement</span><span class="o">=</span><span class="n">sa1</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">])</span>
+
+    <span class="c1">#logger.info(&#39;Installed Submission Agreement&#39;)</span>
+    <span class="nb">print</span> <span class="s1">&#39;Installed submission agreement&#39;</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="installProfileTransferProject"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installProfileTransferProject">[docs]</a><span class="k">def</span> <span class="nf">installProfileTransferProject</span><span class="p">():</span> <span class="c1"># Profile Transfer Project</span>
+
+    <span class="c1"># create profile transfer project dictionaries</span>
+
+    <span class="n">dct</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;550e8400-e29b-41d4a716-446655440001&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Transfer Project Profile 1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;profile_type&#39;</span><span class="p">:</span> <span class="s1">&#39;transfer_project&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Implementation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;Agreed&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Example of SIP Transfer Project&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;schemas&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;template&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;False&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Archival institution&quot;</span><span class="p">,</span>
+		            <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+               <span class="p">},</span>
+               <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+               <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;archival_institution&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;False&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Archivist organization&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;archivist_organization&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;False&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Archival type&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;archival_type&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;False&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Archival location&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;archival_location&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;False&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Archive Policy&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;archive_policy&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;container_format&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;select&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;templateOptions&#39;</span><span class="p">:</span> <span class="p">{</span>
+                  <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Container format&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;TAR&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;tar&#39;</span><span class="p">},</span>
+                    <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;ZIP&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;zip&#39;</span><span class="p">},</span>
+                  <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;False&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Container format compression&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;container_format_compression&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;checksum_algorithm&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;select&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;templateOptions&#39;</span><span class="p">:</span> <span class="p">{</span>
+                  <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Checksum algorithm&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;MD5&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;MD5&#39;</span><span class="p">},</span>
+                    <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;SHA-256&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;SHA-256&#39;</span><span class="p">},</span>
+                  <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Submission reception validation&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;submission_reception_validation&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Submission reception exception handling&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;submission_reception_exception_handling&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Submission reception receipt confirmation&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;submission_reception_receipt_confirmation&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Submission risk&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;submission_risk&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Submission mitigation&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;submission_mitigation&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Information package file&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;information_package_file&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Submission information package file&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;submission_information_package_file&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Archival information package file&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;archival_information_package_file&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Dissemination information package file&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;dissemination_information_package_file&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Submit description file&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;submit_description_file&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Content type specification file&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;content_type_specification_file&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Archival description file&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;archival_description_file&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Authority information file&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;authority_information_file&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Preservation description file&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;preservation_description_file&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;IP event description file&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;ip_event_description_file&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Mimetypes definition file&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;mimetypes_definition_file&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Preservation organization receiver email&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;preservation_organization_receiver_email&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">},</span> <span class="p">{</span>
+                <span class="s2">&quot;hideExpression&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Preservation organization receiver url&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;preservation_organization_receiver_url&quot;</span> <span class="c1"># Responds to specification data</span>
+            <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="s1">&#39;specification&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;specification_data&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;archivist_organization&quot;</span><span class="p">:</span> <span class="s2">&quot;National Archive xx&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;archival_institution&quot;</span><span class="p">:</span> <span class="s2">&quot;Riksarkivet&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;archival_type&quot;</span><span class="p">:</span> <span class="s2">&quot;document&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;archival_location&quot;</span><span class="p">:</span> <span class="s2">&quot;sweden-stockholm-nacka&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;archive_policy&quot;</span><span class="p">:</span> <span class="s2">&quot;archive policy 1&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;container_format&quot;</span><span class="p">:</span>	<span class="s2">&quot;tar&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;container_format_compression&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;checksum_algorithm&quot;</span><span class="p">:</span> <span class="s2">&quot;MD5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;submission_reception_validation&quot;</span><span class="p">:</span> <span class="s2">&quot;yes&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;submission_reception_exception_handling&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;submission_reception_receipt_confirmation&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;submission_risk&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;submission_mitigation&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;information_package_file&quot;</span><span class="p">:</span> <span class="s2">&quot;ip.xml&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;submission_information_package_file&quot;</span><span class="p">:</span> <span class="s2">&quot;sip.xml&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;archival_information_package_file&quot;</span><span class="p">:</span> <span class="s2">&quot;aip.xml&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;dissemination_information_package_file&quot;</span><span class="p">:</span> <span class="s2">&quot;dip.xml&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;submit_description_file&quot;</span><span class="p">:</span> <span class="s2">&quot;info.xml&quot;</span><span class="p">,</span> <span class="c1"># ip_uuid</span>
+            <span class="s2">&quot;content_type_specification_file&quot;</span><span class="p">:</span> <span class="s2">&quot;erms.xml&quot;</span><span class="p">,</span> <span class="c1"># siard.xml etc</span>
+            <span class="s2">&quot;archival_description_file&quot;</span><span class="p">:</span> <span class="s2">&quot;ead.xml&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;authority_information_file&quot;</span><span class="p">:</span> <span class="s2">&quot;eac_cpf.xml&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;preservation_description_file&quot;</span><span class="p">:</span> <span class="s2">&quot;premis.xml&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ip_event_description_file&quot;</span><span class="p">:</span> <span class="s2">&quot;ipevents.xml&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;mimetypes_definition_file&quot;</span><span class="p">:</span> <span class="s2">&quot;mime.types&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;preservation_organization_receiver_email&quot;</span><span class="p">:</span> <span class="s2">&quot;receiver@archive.xxx&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;preservation_organization_receiver_url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://eta-demo.essarch.org,reta,reta&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+
+    <span class="c1"># create according to model with many fields</span>
+    <span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+
+    <span class="c1">#logger.info(&#39;Installed Profile Transfer Project&#39;)</span>
+    <span class="nb">print</span> <span class="s1">&#39;Installed profile transfer project&#39;</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="installProfileContentType"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installProfileContentType">[docs]</a><span class="k">def</span> <span class="nf">installProfileContentType</span><span class="p">():</span> <span class="c1"># Profile Content Type</span>
+
+    <span class="c1"># create profile content type dictionaries</span>
+
+    <span class="n">dct</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;550e8400-e29b-41d4a716-446655440002&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;SE ERMS&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;profile_type&#39;</span><span class="p">:</span> <span class="s1">&#39;content_type&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Implementation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;Draft&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Content based on SE ERMS specification&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;specification&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;specification_data&#39;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="p">}</span>
+
+    <span class="c1"># create according to model with many fields</span>
+    <span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+
+    <span class="c1">#logger.info(&#39;Installed Profile Content Type&#39;)</span>
+    <span class="nb">print</span> <span class="s1">&#39;Installed profile content type&#39;</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="installProfileDataSelection"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installProfileDataSelection">[docs]</a><span class="k">def</span> <span class="nf">installProfileDataSelection</span><span class="p">():</span> <span class="c1"># Profile Data Selection</span>
+
+    <span class="c1"># create profile data selection dictionaries</span>
+
+    <span class="n">dct</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;550e8400-e29b-41d4a716-446655440003&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Data selection of business system xx&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;profile_type&#39;</span><span class="p">:</span> <span class="s1">&#39;data_selection&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Implementation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;Draft&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Data selection of business system xx&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;specification&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;specification_data&#39;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="p">}</span>
+
+    <span class="c1"># create according to model with many fields</span>
+    <span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+
+    <span class="c1">#logger.info(&#39;Installed Profile Data Selection&#39;)</span>
+    <span class="nb">print</span> <span class="s1">&#39;Installed profile data selection&#39;</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="installProfileAuthorityInformation"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installProfileAuthorityInformation">[docs]</a><span class="k">def</span> <span class="nf">installProfileAuthorityInformation</span><span class="p">():</span> <span class="c1"># Profile Authority Information</span>
+
+    <span class="c1"># create profile authority information dictionaries</span>
+
+    <span class="n">dct</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;550e8400-e29b-41d4a716-446655440004&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Authority Information 1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;profile_type&#39;</span><span class="p">:</span> <span class="s1">&#39;authority_information&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Implementation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;Draft&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Authority Information 1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;specification&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;specification_data&#39;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="p">}</span>
+
+    <span class="c1"># create according to model with many fields</span>
+    <span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+
+    <span class="nb">print</span> <span class="s1">&#39;Installed profile authority information&#39;</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="installProfileArchivalDescription"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installProfileArchivalDescription">[docs]</a><span class="k">def</span> <span class="nf">installProfileArchivalDescription</span><span class="p">():</span> <span class="c1"># Profile Archival Description</span>
+
+    <span class="c1"># create profile authority information dictionaries</span>
+
+    <span class="n">dct</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;550e8400-e29b-41d4a716-446655440104&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Archival Description 1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;profile_type&#39;</span><span class="p">:</span> <span class="s1">&#39;archival_description&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Implementation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;Draft&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Archival Description 1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;specification&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;specification_data&#39;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="p">}</span>
+
+    <span class="c1"># create according to model with many fields</span>
+    <span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+
+    <span class="nb">print</span> <span class="s1">&#39;Installed profile archival description&#39;</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="installProfileImport"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installProfileImport">[docs]</a><span class="k">def</span> <span class="nf">installProfileImport</span><span class="p">():</span> <span class="c1"># Profile Import</span>
+
+    <span class="c1"># create profile import dictionaries</span>
+
+    <span class="n">dct</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;550e8400-e29b-41d4a716-446655440005&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Transformation import profile for system xx&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;profile_type&#39;</span><span class="p">:</span> <span class="s1">&#39;import&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Implementation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;Draft&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Transformation from system x to specification y&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;specification&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;specification_data&#39;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="p">}</span>
+
+    <span class="c1"># create according to model with many fields</span>
+    <span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+
+    <span class="c1">#logger.info(&#39;Installed Profile Import&#39;)</span>
+    <span class="nb">print</span> <span class="s1">&#39;Installed profile import&#39;</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="installProfileSubmitDescription"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installProfileSubmitDescription">[docs]</a><span class="k">def</span> <span class="nf">installProfileSubmitDescription</span><span class="p">():</span> <span class="c1"># Profile Submit Description</span>
+
+    <span class="c1"># create profile submit description dictionaries</span>
+
+    <span class="n">dct</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;550e8400-e29b-41d4a716-446655440006&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Submit description of a single SIP&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;profile_type&#39;</span><span class="p">:</span> <span class="s1">&#39;submit_description&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Implementation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;Draft&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Submit description of a SIP&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;template&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Start Date&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;datepicker&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;startdate&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;End Date&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;datepicker&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;enddate&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Archivist Organization&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;_IP_ARCHIVIST_ORGANIZATION&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Creator&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;creator&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Submitter Organization&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;submitter_organization&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Submitter Individual&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;submitter_individual&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Producer Organization&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;producer_organization&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Producer Individual&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;producer_individual&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;IP Owner&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;ipowner&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Preservation Organization&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;preservation_organization&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;System Name&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;systemname&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;System Version&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;systemversion&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;System Type&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;systemtype&quot;</span>
+            <span class="p">},</span>
+        <span class="p">],</span>
+        <span class="s1">&#39;specification&#39;</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">BASE_DIR</span><span class="p">,</span> <span class="s1">&#39;templates/SDTemplate.json&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">read</span><span class="p">()),</span>
+        <span class="s1">&#39;specification_data&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;profile&quot;</span><span class="p">:</span> <span class="s2">&quot;my profile&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;startdate&quot;</span><span class="p">:</span> <span class="s2">&quot;2016-11-10&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;enddate&quot;</span><span class="p">:</span> <span class="s2">&quot;2016-12-20&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;creator&quot;</span><span class="p">:</span> <span class="s2">&quot;the creator&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;submitter_organization&quot;</span><span class="p">:</span> <span class="s2">&quot;the submitter organization&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;submitter_individual&quot;</span><span class="p">:</span> <span class="s2">&quot;the submitter individual&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;producer_organization&quot;</span><span class="p">:</span> <span class="s2">&quot;the submitter organization&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;producer_individual&quot;</span><span class="p">:</span> <span class="s2">&quot;the producer individual&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ipowner&quot;</span><span class="p">:</span> <span class="s2">&quot;the ip owner&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;preservation_organization&quot;</span><span class="p">:</span> <span class="s2">&quot;the preservation organization&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;systemname&quot;</span><span class="p">:</span> <span class="s2">&quot;the system name&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;systemversion&quot;</span><span class="p">:</span> <span class="s2">&quot;the system version&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;systemtype&quot;</span><span class="p">:</span> <span class="s2">&quot;the system type&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+
+    <span class="c1"># create according to model with many fields</span>
+    <span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+
+    <span class="c1">#logger.info(&#39;Installed Profile Submit Description&#39;)</span>
+    <span class="nb">print</span> <span class="s1">&#39;Installed profile submit description&#39;</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="installProfileSIP"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installProfileSIP">[docs]</a><span class="k">def</span> <span class="nf">installProfileSIP</span><span class="p">():</span> <span class="c1"># Profile Submission Information Package</span>
+
+    <span class="c1"># create profile submission information package dictionaries</span>
+
+    <span class="n">dct</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;550e8400-e29b-41d4a716-446655440018&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Sydarkivera&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;profile_type&#39;</span><span class="p">:</span> <span class="s1">&#39;sip&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Implementation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;Draft&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;SIP profile for Sydarkivera submissions&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;representation_info&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;preservation_descriptive_info&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 2&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;supplemental&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 3&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;access_constraints&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 4&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;datamodel_reference&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 5&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;additional&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 6&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;submission_method&#39;</span><span class="p">:</span> <span class="s1">&#39;Electronically&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;submission_schedule&#39;</span><span class="p">:</span> <span class="s1">&#39;Once&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;submission_data_inventory&#39;</span><span class="p">:</span> <span class="s1">&#39;According to submit description&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;structure&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;use&quot;</span><span class="p">:</span> <span class="s2">&quot;mets_file&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;mets.xml&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;folder&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;metadata&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;children&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;use&quot;</span><span class="p">:</span> <span class="s2">&quot;xsd_files&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;xsd_files&quot;</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;use&quot;</span><span class="p">:</span> <span class="s2">&quot;preservation_description_file&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;premis.xml&quot;</span>
+                    <span class="p">}</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;folder&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;content&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;children&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;use&quot;</span><span class="p">:</span> <span class="s2">&quot;content&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;content&quot;</span>
+                    <span class="p">}</span>
+                <span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="s1">&#39;template&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;content_type&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;select&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Content Type&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;options&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Electronic Record Management System&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;ERMS&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Personnel system&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Personnel&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Medical record(s)&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Medical record&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Economics&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Economics systems&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Databases&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Databases&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Webpages&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Webpages&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Geografical Information Systems&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;GIS&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;No specification&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;No specification&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Archival Information Collection&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;AIC&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Archival Information&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Archival Information&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Unstructured&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Unstructured&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Single records&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Single records&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Publication&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Publication&quot;</span>
+                        <span class="p">},</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Submission Agreement&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;_SA_NAME&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;access_restrict&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;select&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Access Restrict&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;options&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Secrecy&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Secrecy&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;PuL&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;PuL&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Secrecy and PuL&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Secrecy and PuL&quot;</span>
+                        <span class="p">},</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;_IP_ARCHIVIST_ORGANIZATION&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Archivist Organization&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;archivist_organization_note&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Archivist Organization Note&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;archivist_software&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Archivist Software&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;archivist_software_note&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Archivist Software Note&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;creator_organization&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Creator Organization&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;creator_organization_note&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Creator Organization Note&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;creator_software&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Creator Software&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;creator_software_note&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Creator Software Note&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;data_submission_session&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Data Submission Session&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;package_number&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Package Number&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;record_status&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;select&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;defaultValue&quot;</span><span class="p">:</span> <span class="s2">&quot;NEW&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Record Status&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;options&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;SUPPLEMENT&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;SUPPLEMENT&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;REPLACEMENT&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;REPLACEMENT&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;NEW&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;NEW&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;TEST&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;TEST&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;VERSION&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;VERSION&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;OTHER&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;OTHER&quot;</span>
+                        <span class="p">},</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;reference_code&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Reference Code&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;producer_organization&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Producer Organization&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;producer_organization_note&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Producer Organization Note&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;system_type&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;System Type&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;appraisal&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;select&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Appraisal&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;options&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Yes&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Yes&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;No&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;No&quot;</span>
+                        <span class="p">},</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;content_type_specification&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Content Type Specification&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;agreement_form&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;select&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Agreement Form&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;options&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;AGREEMENT&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;AGREEMENT&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;DEPOSIT&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;DEPOSIT&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;GIFT&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;GIFT&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Not specified&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Not specified&quot;</span>
+                        <span class="p">},</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;previous_submission_agreement&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Previous Submission Agreement&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;previous_reference_code&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Previous Reference Code&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;start_date&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;datepicker&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Start Date&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;end_date&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;datepicker&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;End Date&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;information_class&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;select&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Information Class&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;options&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Klass 1 (måttlig)&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Klass 1&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Klass 2 (kännbar)&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Klass 2&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Klass 3 (allvarlig)&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Klass 3&quot;</span>
+                        <span class="p">},</span>
+                        <span class="p">{</span>
+                          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Klass 4 (rikets säkerhet)&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Klass 4&quot;</span>
+                        <span class="p">},</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;editor_organization&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Editor Organization&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;editor_organization_note&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Editor Organization Note&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;preservation_organization&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Preservation Organization&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;preservation_organization_note&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Preservation Organization Note&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;creator_individual&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Creator Individual&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;creator_individual_note&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;templateOptions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Creator Individual Note&quot;</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+        <span class="p">],</span>
+        <span class="s1">&#39;specification&#39;</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">settings</span><span class="o">.</span><span class="n">BASE_DIR</span><span class="p">,</span>
+            <span class="s1">&#39;templates/SydarkiveraSIPTemplate.json&#39;</span>
+        <span class="p">))</span><span class="o">.</span><span class="n">read</span><span class="p">()),</span>
+        <span class="s1">&#39;specification_data&#39;</span><span class="p">:</span> <span class="p">{}</span>
+    <span class="p">}</span>
+
+    <span class="c1"># create according to model with many fields</span>
+    <span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+    <span class="c1">#Profile.objects.create(**dct2)</span>
+    <span class="c1">#Profile.objects.create(**dct3)</span>
+
+    <span class="c1">#logger.info(&#39;Installed Profile SIP&#39;)</span>
+    <span class="nb">print</span> <span class="s1">&#39;Installed profile SIP&#39;</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="installProfileAIP"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installProfileAIP">[docs]</a><span class="k">def</span> <span class="nf">installProfileAIP</span><span class="p">():</span> <span class="c1"># Profile Archival Information Package</span>
+
+    <span class="c1"># create profile archival information package dictionaries</span>
+
+    <span class="n">dct</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;550e8400-e29b-41d4a716-446655440008&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;AIP based on SE FGS Package&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;profile_type&#39;</span><span class="p">:</span> <span class="s1">&#39;aip&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Implementation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;Draft&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;AIP profile for SE Packages&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;representation_info&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;preservation_descriptive_info&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 2&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;supplemental&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 3&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;access_constraints&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 4&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;datamodel_reference&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 5&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;additional&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 6&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;submission_method&#39;</span><span class="p">:</span> <span class="s1">&#39;Electronically&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;submission_schedule&#39;</span><span class="p">:</span> <span class="s1">&#39;Once&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;submission_data_inventory&#39;</span><span class="p">:</span> <span class="s1">&#39;According to submit description&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;structure&#39;</span><span class="p">:</span> <span class="s1">&#39;AIP SE structure xx&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;specification&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;specification_data&#39;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="p">}</span>
+
+    <span class="c1"># create according to model with many fields</span>
+    <span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+
+    <span class="c1">#logger.info(&#39;Installed Profile AIP&#39;)</span>
+    <span class="nb">print</span> <span class="s1">&#39;Installed profile AIP&#39;</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="installProfileDIP"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installProfileDIP">[docs]</a><span class="k">def</span> <span class="nf">installProfileDIP</span><span class="p">():</span> <span class="c1"># Profile Dissemination Information Package</span>
+
+    <span class="c1"># create profile dissemination information package dictionaries</span>
+
+    <span class="n">dct</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;550e8400-e29b-41d4a716-446655440009&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;DIP based on SE FGS Package&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;profile_type&#39;</span><span class="p">:</span> <span class="s1">&#39;dip&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Implementation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;Draft&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;DIP profile for SE Packages&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;representation_info&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;preservation_descriptive_info&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 2&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;supplemental&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 3&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;access_constraints&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 4&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;datamodel_reference&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 5&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;additional&#39;</span><span class="p">:</span> <span class="s1">&#39;Documentation 6&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;submission_method&#39;</span><span class="p">:</span> <span class="s1">&#39;Electronically&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;submission_schedule&#39;</span><span class="p">:</span> <span class="s1">&#39;Once&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;submission_data_inventory&#39;</span><span class="p">:</span> <span class="s1">&#39;According to submit description&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;structure&#39;</span><span class="p">:</span> <span class="s1">&#39;DIP SE structure xx&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;specification&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;specification_data&#39;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="p">}</span>
+
+    <span class="c1"># create according to model with many fields</span>
+    <span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+
+    <span class="c1">#logger.info(&#39;Installed Profile DIP&#39;)</span>
+    <span class="nb">print</span> <span class="s1">&#39;Installed profile DIP&#39;</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="installProfileWorkflow"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installProfileWorkflow">[docs]</a><span class="k">def</span> <span class="nf">installProfileWorkflow</span><span class="p">():</span> <span class="c1"># Profile Workflow</span>
+
+    <span class="c1"># create profile workflow dictionaries</span>
+
+    <span class="n">dct</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;550e8400-e29b-41d4a716-446655440010&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Workflow xx for Pre-Ingest&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;profile_type&#39;</span><span class="p">:</span> <span class="s1">&#39;workflow&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Implementation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;Draft&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Workflow Create SIP for Pre-Ingest&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;specification&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;specification_data&#39;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="p">}</span>
+
+    <span class="c1"># create according to model with many fields</span>
+    <span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+
+    <span class="c1">#logger.info(&#39;Installed Profile Workflow&#39;)</span>
+    <span class="nb">print</span> <span class="s1">&#39;Installed profile workflow&#39;</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="installProfilePreservationMetadata"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installProfilePreservationMetadata">[docs]</a><span class="k">def</span> <span class="nf">installProfilePreservationMetadata</span><span class="p">():</span> <span class="c1"># Profile Preservation Metadata</span>
+
+    <span class="c1"># create profile preservation metadata dictionaries</span>
+
+    <span class="n">dct</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;550e8400-e29b-41d4a716-446655440011&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Preservation profile xx&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;profile_type&#39;</span><span class="p">:</span> <span class="s1">&#39;preservation_metadata&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Implementation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;Draft&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Preservation profile for AIP xxyy&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;specification&#39;</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">BASE_DIR</span><span class="p">,</span> <span class="s1">&#39;templates/JSONPremisTemplate.json&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">read</span><span class="p">()),</span>
+        <span class="s1">&#39;specification_data&#39;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="p">}</span>
+
+    <span class="c1"># create according to model with many fields</span>
+    <span class="n">Profile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+
+    <span class="c1">#logger.info(&#39;Installed Profile PreservationMetadata&#39;)</span>
+    <span class="nb">print</span> <span class="s1">&#39;Installed profile preservation metadata&#39;</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="installArchivalInstitution"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installArchivalInstitution">[docs]</a><span class="k">def</span> <span class="nf">installArchivalInstitution</span><span class="p">():</span>
+    <span class="n">lst</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;aa8e20d9-8794-4f26-9859-c3341a31f111&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;RA1&#39;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;aa8e20d9-8794-4f26-9859-c3341a31f112&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;RA2&#39;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;aa8e20d9-8794-4f26-9859-c3341a31f113&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;RA3&#39;</span>
+        <span class="p">},</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">dct</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+        <span class="n">ArchivalInstitution</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+
+    <span class="nb">print</span> <span class="s2">&quot;Installed archival institutions&quot;</span></div>
+
+
+<div class="viewcode-block" id="installArchivistOrganization"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installArchivistOrganization">[docs]</a><span class="k">def</span> <span class="nf">installArchivistOrganization</span><span class="p">():</span>
+    <span class="n">lst</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;2fe86f14-9b09-46e3-b272-a6e971b9d4e1&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Producer 1&#39;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;2fe86f14-9b09-46e3-b272-a6e971b9d4e2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Producer 2&#39;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;2fe86f14-9b09-46e3-b272-a6e971b9d4e3&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Producer 3&#39;</span>
+        <span class="p">},</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">dct</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+        <span class="n">ArchivistOrganization</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+
+    <span class="nb">print</span> <span class="s2">&quot;Installed archivist organization&quot;</span></div>
+
+
+<div class="viewcode-block" id="installArchivalType"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installArchivalType">[docs]</a><span class="k">def</span> <span class="nf">installArchivalType</span><span class="p">():</span>
+    <span class="n">lst</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;fc3f23aa-203c-4aee-bb20-92373a5eba81&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Dokument&#39;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;fc3f23aa-203c-4aee-bb20-92373a5eba82&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Dossier&#39;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;fc3f23aa-203c-4aee-bb20-92373a5eba83&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Fotografi&#39;</span>
+        <span class="p">},</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">dct</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+        <span class="n">ArchivalType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+
+    <span class="nb">print</span> <span class="s2">&quot;Installed archival type&quot;</span></div>
+
+
+<div class="viewcode-block" id="installArchivalLocation"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installArchivalLocation">[docs]</a><span class="k">def</span> <span class="nf">installArchivalLocation</span><span class="p">():</span>
+    <span class="n">lst</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;83f1f65d-7be0-4577-ade9-543c815417b1&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Stockholm&#39;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;83f1f65d-7be0-4577-ade9-543c815417b2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Göteborg&#39;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;83f1f65d-7be0-4577-ade9-543c815417b3&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Malmö&#39;</span>
+        <span class="p">},</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">dct</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+        <span class="n">ArchivalLocation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span>
+
+    <span class="nb">print</span> <span class="s2">&quot;Installed archival locations&quot;</span></div>
+
+
+<div class="viewcode-block" id="installInformationPackages"><a class="viewcode-back" href="../../../ESSArch_TP.install.html#ESSArch_TP.install.install_profiles_sydarkivera.installInformationPackages">[docs]</a><span class="k">def</span> <span class="nf">installInformationPackages</span><span class="p">():</span>
+    <span class="n">lst</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Arkiv 1&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;responsible&#39;</span><span class="p">:</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span>
+                <span class="n">username</span><span class="o">=</span><span class="s1">&#39;Freddie Mercury&#39;</span>
+            <span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Arkiv 2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;responsible&#39;</span><span class="p">:</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span>
+                <span class="n">username</span><span class="o">=</span><span class="s1">&#39;Roger Taylor&#39;</span>
+            <span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Arkiv 3&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;responsible&#39;</span><span class="p">:</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span>
+                <span class="n">username</span><span class="o">=</span><span class="s1">&#39;Brian May&#39;</span>
+            <span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="p">},</span>
+    <span class="p">]</span>
+
+    <span class="c1"># create according to model with many fields</span>
+    <span class="k">for</span> <span class="n">dct</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+        <span class="n">prepare_ip</span><span class="p">(</span><span class="o">**</span><span class="n">dct</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+    <span class="nb">print</span> <span class="s1">&#39;Installed information packages&#39;</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">installProfiles</span><span class="p">()</span>
+    <span class="n">installIPs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, ES Solutions.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
