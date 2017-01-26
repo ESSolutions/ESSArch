@@ -6,7 +6,6 @@ Subpackages
 
 .. toctree::
 
-    ESSArch_Core.WorkflowEngine.migrations
     ESSArch_Core.WorkflowEngine.tests
 
 Submodules

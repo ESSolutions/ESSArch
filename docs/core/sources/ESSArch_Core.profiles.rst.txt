@@ -1,13 +1,6 @@
 ESSArch_Core.profiles package
 =============================
 
-Subpackages
------------
-
-.. toctree::
-
-    ESSArch_Core.profiles.migrations
-
 Submodules
 ----------
 

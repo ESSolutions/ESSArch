@@ -142,62 +142,7 @@
     <span class="n">serializer_class</span> <span class="o">=</span> <span class="n">ArchivalInstitutionSerializer</span>
 
     <span class="n">filter_backends</span> <span class="o">=</span> <span class="p">(</span><span class="n">DjangoFilterBackend</span><span class="p">,)</span>
-    <span class="n">filter_class</span> <span class="o">=</span> <span class="n">ArchivalInstitutionFilter</span>
-
-<div class="viewcode-block" id="ArchivalInstitutionViewSet.myfunction"><a class="viewcode-back" href="../../../ESSArch_TP.ip.html#ESSArch_TP.ip.views.ArchivalInstitutionViewSet.myfunction">[docs]</a>    <span class="k">def</span> <span class="nf">myfunction</span><span class="p">(</span><span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;This is an example of a module level function.</span>
-
-<span class="sd">        Function parameters should be documented in the ``Args`` section. The name</span>
-<span class="sd">        of each parameter is required. The type and description of each parameter</span>
-<span class="sd">        is optional, but should be included if not obvious.</span>
-
-<span class="sd">        If \*args or \*\*kwargs are accepted,</span>
-<span class="sd">        they should be listed as ``*args`` and ``**kwargs``.</span>
-
-<span class="sd">        The format for a parameter is::</span>
-
-<span class="sd">            name (type): description</span>
-<span class="sd">                The description may span multiple lines. Following</span>
-<span class="sd">                lines should be indented. The &quot;(type)&quot; is optional.</span>
-
-<span class="sd">                Multiple paragraphs are supported in parameter</span>
-<span class="sd">                descriptions.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            param1 (int): The first parameter.</span>
-<span class="sd">            param2 (:obj:`str`, optional): The second parameter. Defaults to None.</span>
-<span class="sd">                Second line of description should be indented.</span>
-<span class="sd">            *args: Variable length argument list.</span>
-<span class="sd">            **kwargs: Arbitrary keyword arguments.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            bool: True if successful, False otherwise.</span>
-
-<span class="sd">            The return type is optional and may be specified at the beginning of</span>
-<span class="sd">            the ``Returns`` section followed by a colon.</span>
-
-<span class="sd">            The ``Returns`` section may span multiple lines and paragraphs.</span>
-<span class="sd">            Following lines should be indented to match the first line.</span>
-
-<span class="sd">            The ``Returns`` section supports any reStructuredText formatting,</span>
-<span class="sd">            including literal blocks::</span>
-
-<span class="sd">                {</span>
-<span class="sd">                    &#39;param1&#39;: param1,</span>
-<span class="sd">                    &#39;param2&#39;: param2</span>
-<span class="sd">                }</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            AttributeError: The ``Raises`` section is a list of all exceptions</span>
-<span class="sd">                that are relevant to the interface.</span>
-<span class="sd">            ValueError: If `param2` is equal to `param1`.</span>
-
-<span class="sd">	Examples can be given using either the ``Example`` or ``Examples``</span>
-<span class="sd">	sections. Sections support any reStructuredText formatting, including</span>
-<span class="sd">	literal blocks::</span>
-
-<span class="sd">		$ python example_google.py</span>
-<span class="sd">        &quot;&quot;&quot;</span></div></div>
+    <span class="n">filter_class</span> <span class="o">=</span> <span class="n">ArchivalInstitutionFilter</span></div>
 
 
 <div class="viewcode-block" id="ArchivistOrganizationViewSet"><a class="viewcode-back" href="../../../ESSArch_TP.ip.html#ESSArch_TP.ip.views.ArchivistOrganizationViewSet">[docs]</a><span class="k">class</span> <span class="nc">ArchivistOrganizationViewSet</span><span class="p">(</span><span class="n">viewsets</span><span class="o">.</span><span class="n">ModelViewSet</span><span class="p">):</span>
@@ -938,24 +883,6 @@
             <span class="n">information_package</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span>
             <span class="n">responsible</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
         <span class="p">))</span>
-
-        <span class="k">if</span> <span class="n">ip</span><span class="o">.</span><span class="n">get_email_recipient</span><span class="p">():</span>
-            <span class="n">recipients</span> <span class="o">=</span> <span class="p">[</span><span class="n">ip</span><span class="o">.</span><span class="n">get_email_recipient</span><span class="p">()]</span>
-            <span class="n">subject</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;subject&#39;</span><span class="p">)</span>
-            <span class="n">body</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;body&#39;</span><span class="p">)</span>
-
-            <span class="n">step</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ProcessTask</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ESSArch_Core.tasks.SendEmail&quot;</span><span class="p">,</span>
-                <span class="n">params</span><span class="o">=</span><span class="p">{</span>
-                    <span class="s1">&#39;sender&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
-                    <span class="s1">&#39;recipients&#39;</span><span class="p">:</span> <span class="n">recipients</span><span class="p">,</span>
-                    <span class="s1">&#39;subject&#39;</span><span class="p">:</span> <span class="n">subject</span><span class="p">,</span>
-                    <span class="s1">&#39;body&#39;</span><span class="p">:</span> <span class="n">body</span><span class="p">,</span>
-                <span class="p">},</span>
-                <span class="n">processstep_pos</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
-                <span class="n">information_package</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span>
-                <span class="n">responsible</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span>
-            <span class="p">))</span>
 
         <span class="n">step</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ProcessTask</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="s2">&quot;preingest.tasks.UpdateIPStatus&quot;</span><span class="p">,</span>

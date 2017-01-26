@@ -1,13 +1,6 @@
 ESSArch_Core.configuration package
 ==================================
 
-Subpackages
------------
-
-.. toctree::
-
-    ESSArch_Core.configuration.migrations
-
 Submodules
 ----------
 

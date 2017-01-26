@@ -1,13 +1,6 @@
 ESSArch_Core.ip package
 =======================
 
-Subpackages
------------
-
-.. toctree::
-
-    ESSArch_Core.ip.migrations
-
 Submodules
 ----------
 
