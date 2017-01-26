@@ -1,0 +1,45 @@
+ESSArch_Core.ip package
+=======================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ESSArch_Core.ip.migrations
+
+Submodules
+----------
+
+ESSArch_Core.ip.admin module
+----------------------------
+
+.. automodule:: ESSArch_Core.ip.admin
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_Core.ip.models module
+-----------------------------
+
+.. automodule:: ESSArch_Core.ip.models
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_Core.ip.permissions module
+----------------------------------
+
+.. automodule:: ESSArch_Core.ip.permissions
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_Core.ip
+    :members:
+    :undoc-members:
+    :show-inheritance:

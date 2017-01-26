@@ -1,0 +1,1245 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ESSArch_Core.essxml.Generator.tests.test_generate &#8212; ESSArch Core 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../../static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ESSArch_Core.essxml.Generator.tests.test_generate</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="k">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">django.test</span> <span class="k">import</span> <span class="n">TestCase</span>
+
+<span class="kn">from</span> <span class="nn">lxml</span> <span class="k">import</span> <span class="n">etree</span>
+
+<span class="kn">from</span> <span class="nn">ESSArch_Core.essxml.Generator.xmlGenerator</span> <span class="k">import</span> <span class="n">XMLGenerator</span><span class="p">,</span> <span class="n">parseContent</span>
+
+<span class="kn">from</span> <span class="nn">ESSArch_Core.configuration.models</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">Path</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="test_generateXML"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML">[docs]</a><span class="k">class</span> <span class="nc">test_generateXML</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="test_generateXML.setUp"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xmldir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bd</span><span class="p">,</span> <span class="s2">&quot;xmlfiles&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datadir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bd</span><span class="p">,</span> <span class="s2">&quot;datafiles&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xmldir</span><span class="p">,</span> <span class="s2">&quot;test.xml&quot;</span><span class="p">)</span>
+
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xmldir</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">,</span> <span class="s2">&quot;record1&quot;</span><span class="p">))</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">,</span> <span class="s2">&quot;record2&quot;</span><span class="p">))</span>
+
+        <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">,</span> <span class="s2">&quot;record1/file1.txt&quot;</span><span class="p">),</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">,</span> <span class="s2">&quot;record2/file2.txt&quot;</span><span class="p">),</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">Path</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">entity</span><span class="o">=</span><span class="s2">&quot;path_mimetypes_definitionfile&quot;</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bd</span><span class="p">,</span> <span class="s2">&quot;mime.types&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">settings</span><span class="o">.</span><span class="n">CELERY_ALWAYS_EAGER</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="test_generateXML.tearDown"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.tearDown">[docs]</a>    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xmldir</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_generate_namespaces"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_generate_namespaces">[docs]</a>    <span class="k">def</span> <span class="nf">test_generate_namespaces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">nsmap</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;xsi&#39;</span><span class="p">:</span> <span class="s1">&#39;http://www.w3.org/2001/XMLSchema-instance&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;-name&quot;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;-nsmap&#39;</span><span class="p">:</span> <span class="n">nsmap</span><span class="p">,</span>
+            <span class="s2">&quot;-attr&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;-name&quot;</span><span class="p">:</span> <span class="s2">&quot;schemaLocation&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;-namespace&quot;</span><span class="p">:</span> <span class="s2">&quot;xsi&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;-req&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;#content&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;var&quot;</span><span class="p">:</span> <span class="s2">&quot;xsi:schemaLocation&quot;</span><span class="p">}]</span>
+                <span class="p">},</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;xsi:schemaLocation&quot;</span><span class="p">:</span> <span class="s2">&quot;http://www.w3.org/1999/xlink schemas/xlink.xsd&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">},</span> <span class="n">info</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+
+        <span class="n">xsi_ns</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">nsmap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;xsi&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">xsi_ns</span><span class="p">,</span> <span class="n">nsmap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;xsi&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">root</span><span class="o">.</span><span class="n">attrib</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;{</span><span class="si">%s</span><span class="s2">}schemaLocation&quot;</span> <span class="o">%</span> <span class="n">xsi_ns</span><span class="p">),</span>
+            <span class="n">info</span><span class="p">[</span><span class="s2">&quot;xsi:schemaLocation&quot;</span><span class="p">]</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_generate_empty_element"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_generate_empty_element">[docs]</a>    <span class="k">def</span> <span class="nf">test_generate_empty_element</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span><span class="p">}</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="ne">AssertionError</span><span class="p">):</span>
+            <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+                <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">},</span> <span class="p">{}</span>
+            <span class="p">)</span>
+
+            <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_generate_empty_element_with_children"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_generate_empty_element_with_children">[docs]</a>    <span class="k">def</span> <span class="nf">test_generate_empty_element_with_children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[{</span>
+                        <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="s1">&#39;baz&#39;</span>
+                    <span class="p">}]</span>
+                <span class="p">},</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">},</span> <span class="p">{}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_generate_empty_element_with_empty_children"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_generate_empty_element_with_empty_children">[docs]</a>    <span class="k">def</span> <span class="nf">test_generate_empty_element_with_empty_children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="ne">AssertionError</span><span class="p">):</span>
+            <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+                <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">},</span> <span class="p">{}</span>
+            <span class="p">)</span>
+
+            <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_generate_empty_element_with_empty_children_with_allow_empty"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_generate_empty_element_with_empty_children_with_allow_empty">[docs]</a>    <span class="k">def</span> <span class="nf">test_generate_empty_element_with_empty_children_with_allow_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">},</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">},</span> <span class="p">{}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_generate_empty_element_with_empty_attribute"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_generate_empty_element_with_empty_attribute">[docs]</a>    <span class="k">def</span> <span class="nf">test_generate_empty_element_with_empty_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-attr&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[{</span>
+                        <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span>
+                    <span class="p">}]</span>
+                <span class="p">},</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="ne">AssertionError</span><span class="p">):</span>
+            <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+                <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">},</span> <span class="p">{}</span>
+            <span class="p">)</span>
+
+            <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_generate_multiple_element_same_name_same_level"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_generate_multiple_element_same_name_same_level">[docs]</a>    <span class="k">def</span> <span class="nf">test_generate_multiple_element_same_name_same_level</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;bar#1&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">},</span> <span class="p">{}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;.//bar&#39;</span><span class="p">)),</span> <span class="mi">2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_generate_empty_element_with_allowEmpty"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_generate_empty_element_with_allowEmpty">[docs]</a>    <span class="k">def</span> <span class="nf">test_generate_empty_element_with_allowEmpty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span><span class="p">,</span> <span class="s2">&quot;-allowEmpty&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">},</span> <span class="p">{}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">))</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()),</span> <span class="s2">&quot;&lt;foo/&gt;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_generate_element_with_content"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_generate_element_with_content">[docs]</a>    <span class="k">def</span> <span class="nf">test_generate_element_with_content</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#content&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;bar&quot;</span><span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;&lt;foo&gt;bar&lt;/foo&gt;&quot;</span><span class="p">,</span> <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_generate_empty_element_with_single_attribute"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_generate_empty_element_with_single_attribute">[docs]</a>    <span class="k">def</span> <span class="nf">test_generate_empty_element_with_single_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;-attr&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;-name&quot;</span><span class="p">:</span> <span class="s2">&quot;bar&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;#content&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;baz&quot;</span>
+                        <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s1">&#39;&lt;foo bar=&quot;baz&quot;/&gt;&#39;</span><span class="p">,</span> <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_generate_empty_element_with_multiple_attribute"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_generate_empty_element_with_multiple_attribute">[docs]</a>    <span class="k">def</span> <span class="nf">test_generate_empty_element_with_multiple_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;-attr&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;-name&quot;</span><span class="p">:</span> <span class="s2">&quot;attr1&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;#content&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;bar&quot;</span>
+                        <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;-name&quot;</span><span class="p">:</span> <span class="s2">&quot;attr2&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;#content&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;baz&quot;</span>
+                        <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="s1">&#39;&lt;foo attr1=&quot;bar&quot; attr2=&quot;baz&quot;/&gt;&#39;</span><span class="p">,</span>
+            <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">())</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_generate_element_with_content_and_attribute"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_generate_element_with_content_and_attribute">[docs]</a>    <span class="k">def</span> <span class="nf">test_generate_element_with_content_and_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">}],</span>
+            <span class="s1">&#39;-attr&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;-name&quot;</span><span class="p">:</span> <span class="s2">&quot;attr1&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;#content&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;baz&quot;</span>
+                        <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="s1">&#39;&lt;foo attr1=&quot;baz&quot;&gt;bar&lt;/foo&gt;&#39;</span><span class="p">,</span>
+            <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">())</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_generate_empty_element_with_attribute_using_var"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_generate_empty_element_with_attribute_using_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_generate_empty_element_with_attribute_using_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;-attr&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;-name&quot;</span><span class="p">:</span> <span class="s2">&quot;attr1&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;#content&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;var&quot;</span><span class="p">:</span> <span class="s2">&quot;bar&quot;</span>
+                        <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;bar&#39;</span><span class="p">:</span> <span class="s1">&#39;baz&#39;</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s1">&#39;&lt;foo attr1=&quot;baz&quot;/&gt;&#39;</span><span class="p">,</span> <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_generate_element_with_content_using_var"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_generate_element_with_content_using_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_generate_element_with_content_using_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#content&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;var&quot;</span><span class="p">:</span> <span class="s2">&quot;bar&quot;</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;bar&#39;</span><span class="p">:</span> <span class="s1">&#39;baz&#39;</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s1">&#39;&lt;foo&gt;baz&lt;/foo&gt;&#39;</span><span class="p">,</span> <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_generate_element_with_children"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_generate_element_with_children">[docs]</a>    <span class="k">def</span> <span class="nf">test_generate_element_with_children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="s1">&#39;baz&#39;</span>
+                        <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;bar&#39;</span><span class="p">:</span> <span class="s1">&#39;baz&#39;</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="s1">&#39;&lt;foo&gt;</span><span class="se">\n</span><span class="s1">  &lt;bar&gt;baz&lt;/bar&gt;</span><span class="se">\n</span><span class="s1">&lt;/foo&gt;&#39;</span><span class="p">,</span>
+            <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">())</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_element_with_files"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_element_with_files">[docs]</a>    <span class="k">def</span> <span class="nf">test_element_with_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-containsFiles&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s1">&#39;-attr&#39;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                                <span class="p">{</span>
+                                    <span class="s1">&#39;var&#39;</span><span class="p">:</span> <span class="s1">&#39;FName&#39;</span>
+                                <span class="p">}</span>
+                            <span class="p">]</span>
+                        <span class="p">}</span>
+                    <span class="p">],</span>
+                    <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;baz&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;-attr&#39;</span><span class="p">:</span> <span class="p">[</span>
+                                <span class="p">{</span>
+                                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;href&#39;</span><span class="p">,</span>
+                                    <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                                        <span class="p">{</span>
+                                            <span class="s1">&#39;var&#39;</span><span class="p">:</span> <span class="s1">&#39;href&#39;</span>
+                                        <span class="p">}</span>
+                                    <span class="p">]</span>
+                                <span class="p">}</span>
+                            <span class="p">]</span>
+                        <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">folderToParse</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">)</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+
+        <span class="n">num_of_files</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                <span class="n">file_element</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;.//bar[@name=&#39;</span><span class="si">%s</span><span class="s2">&#39;]&quot;</span> <span class="o">%</span> <span class="n">f</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNotNone</span><span class="p">(</span><span class="n">file_element</span><span class="p">)</span>
+
+                <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+                <span class="n">relpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">)</span>
+
+                <span class="n">filepath_element</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+                    <span class="s2">&quot;.//bar[@name=&#39;</span><span class="si">%s</span><span class="s2">&#39;]/baz[@href=&#39;</span><span class="si">%s</span><span class="s2">&#39;]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">relpath</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNotNone</span><span class="p">(</span><span class="n">filepath_element</span><span class="p">)</span>
+
+                <span class="n">num_of_files</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">file_elements</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;.//bar&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">file_elements</span><span class="p">),</span> <span class="n">num_of_files</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_element_with_containsFiles_without_files"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_element_with_containsFiles_without_files">[docs]</a>    <span class="k">def</span> <span class="nf">test_element_with_containsFiles_without_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-containsFiles&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s1">&#39;-attr&#39;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                                <span class="p">{</span>
+                                    <span class="s1">&#39;var&#39;</span><span class="p">:</span> <span class="s1">&#39;FName&#39;</span>
+                                <span class="p">}</span>
+                            <span class="p">]</span>
+                        <span class="p">}</span>
+                    <span class="p">],</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_element_with_files_and_namespace"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_element_with_files_and_namespace">[docs]</a>    <span class="k">def</span> <span class="nf">test_element_with_files_and_namespace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">nsmap</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;premis&#39;</span><span class="p">:</span> <span class="s1">&#39;http://www.loc.gov/premis/v3&#39;</span>
+        <span class="p">}</span>
+
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-nsmap&#39;</span><span class="p">:</span> <span class="n">nsmap</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-namespace&#39;</span><span class="p">:</span> <span class="s1">&#39;premis&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-containsFiles&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s1">&#39;-attr&#39;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                                <span class="p">{</span>
+                                    <span class="s1">&#39;var&#39;</span><span class="p">:</span> <span class="s1">&#39;FName&#39;</span>
+                                <span class="p">}</span>
+                            <span class="p">]</span>
+                        <span class="p">}</span>
+                    <span class="p">],</span>
+                    <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;baz&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;-namespace&#39;</span><span class="p">:</span> <span class="s1">&#39;premis&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;-attr&#39;</span><span class="p">:</span> <span class="p">[</span>
+                                <span class="p">{</span>
+                                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;href&#39;</span><span class="p">,</span>
+                                    <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                                        <span class="p">{</span>
+                                            <span class="s1">&#39;var&#39;</span><span class="p">:</span> <span class="s1">&#39;href&#39;</span>
+                                        <span class="p">}</span>
+                                    <span class="p">]</span>
+                                <span class="p">}</span>
+                            <span class="p">]</span>
+                        <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">folderToParse</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">)</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+
+        <span class="n">num_of_files</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                <span class="n">file_element</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;.//{</span><span class="si">%s</span><span class="s2">}bar[@name=&#39;</span><span class="si">%s</span><span class="s2">&#39;]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nsmap</span><span class="p">[</span><span class="s1">&#39;premis&#39;</span><span class="p">],</span> <span class="n">f</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNotNone</span><span class="p">(</span><span class="n">file_element</span><span class="p">)</span>
+
+                <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+                <span class="n">relpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">)</span>
+
+                <span class="n">filepath_element</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+                    <span class="s2">&quot;.//{</span><span class="si">%s</span><span class="s2">}bar[@name=&#39;</span><span class="si">%s</span><span class="s2">&#39;]/{</span><span class="si">%s</span><span class="s2">}baz[@href=&#39;</span><span class="si">%s</span><span class="s2">&#39;]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nsmap</span><span class="p">[</span><span class="s1">&#39;premis&#39;</span><span class="p">],</span> <span class="n">f</span><span class="p">,</span> <span class="n">nsmap</span><span class="p">[</span><span class="s1">&#39;premis&#39;</span><span class="p">],</span> <span class="n">relpath</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNotNone</span><span class="p">(</span><span class="n">filepath_element</span><span class="p">)</span>
+
+                <span class="n">num_of_files</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">file_elements</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;.//{</span><span class="si">%s</span><span class="s1">}bar&#39;</span> <span class="o">%</span> <span class="n">nsmap</span><span class="p">[</span><span class="s1">&#39;premis&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">file_elements</span><span class="p">),</span> <span class="n">num_of_files</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_element_with_filtered_files"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_element_with_filtered_files">[docs]</a>    <span class="k">def</span> <span class="nf">test_element_with_filtered_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-containsFiles&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;-filters&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;href&quot;</span><span class="p">:</span> <span class="s2">&quot;record1/*&quot;</span><span class="p">},</span>
+                    <span class="s1">&#39;-attr&#39;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                                <span class="p">{</span>
+                                    <span class="s1">&#39;var&#39;</span><span class="p">:</span> <span class="s1">&#39;FName&#39;</span>
+                                <span class="p">}</span>
+                            <span class="p">]</span>
+                        <span class="p">}</span>
+                    <span class="p">],</span>
+                    <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;baz&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;-attr&#39;</span><span class="p">:</span> <span class="p">[</span>
+                                <span class="p">{</span>
+                                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;href&#39;</span><span class="p">,</span>
+                                    <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                                        <span class="p">{</span>
+                                            <span class="s1">&#39;var&#39;</span><span class="p">:</span> <span class="s1">&#39;href&#39;</span>
+                                        <span class="p">}</span>
+                                    <span class="p">]</span>
+                                <span class="p">}</span>
+                            <span class="p">]</span>
+                        <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">folderToParse</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">)</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+
+        <span class="n">num_of_files</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+                <span class="n">relpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">)</span>
+
+                <span class="n">filepath_element</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+                    <span class="s2">&quot;.//bar[@name=&#39;</span><span class="si">%s</span><span class="s2">&#39;]/baz[@href=&#39;</span><span class="si">%s</span><span class="s2">&#39;]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">relpath</span><span class="p">)</span>
+                <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">relpath</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;record1&#39;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNotNone</span><span class="p">(</span><span class="n">filepath_element</span><span class="p">)</span>
+                    <span class="n">num_of_files</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">filepath_element</span><span class="p">)</span>
+
+        <span class="n">file_elements</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;.//bar&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">file_elements</span><span class="p">),</span> <span class="n">num_of_files</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_position_alphabetically"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_position_alphabetically">[docs]</a>    <span class="k">def</span> <span class="nf">test_position_alphabetically</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">},</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//a&#39;</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//b&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">b</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_position_non_alphabetically"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_position_non_alphabetically">[docs]</a>    <span class="k">def</span> <span class="nf">test_position_non_alphabetically</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">},</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//a&#39;</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//b&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">a</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_position_with_files"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_position_with_files">[docs]</a>    <span class="k">def</span> <span class="nf">test_position_with_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-containsFiles&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[{</span>
+                        <span class="s1">&#39;var&#39;</span><span class="p">:</span> <span class="s1">&#39;href&#39;</span>
+                    <span class="p">}],</span>
+                    <span class="s2">&quot;-filters&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;href&quot;</span><span class="p">:</span> <span class="s2">&quot;record1/*&quot;</span><span class="p">},</span>
+                <span class="p">},</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">)</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//a&#39;</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//b&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-containsFiles&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">},</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">)</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//a&#39;</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//b&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
+
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-containsFiles&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">},</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">)</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//a&#39;</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//b&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-containsFiles&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">)</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//a&#39;</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//b&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
+
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-containsFiles&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[{</span>
+                        <span class="s1">&#39;var&#39;</span><span class="p">:</span> <span class="s1">&#39;href&#39;</span>
+                    <span class="p">}],</span>
+                    <span class="s2">&quot;-filters&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;href&quot;</span><span class="p">:</span> <span class="s2">&quot;record1/*&quot;</span><span class="p">},</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-containsFiles&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[{</span>
+                        <span class="s1">&#39;var&#39;</span><span class="p">:</span> <span class="s1">&#39;href&#39;</span>
+                    <span class="p">}],</span>
+                    <span class="s2">&quot;-filters&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;href&quot;</span><span class="p">:</span> <span class="s2">&quot;record2/*&quot;</span><span class="p">},</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;e&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">},</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">)</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//a&#39;</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//b&#39;</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//c&#39;</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//d&#39;</span><span class="p">)</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//e&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">e</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_insert_element_with_namespace"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_insert_element_with_namespace">[docs]</a>    <span class="k">def</span> <span class="nf">test_insert_element_with_namespace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">nsmap</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;premis&#39;</span><span class="p">:</span> <span class="s1">&#39;http://www.loc.gov/premis/v3&#39;</span>
+        <span class="p">}</span>
+
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;root&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-nsmap&#39;</span><span class="p">:</span> <span class="n">nsmap</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//appended&#39;</span><span class="p">))</span>
+
+        <span class="n">append_specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;appended&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-namespace&#39;</span><span class="p">:</span> <span class="s1">&#39;premis&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="s1">&#39;append text&#39;</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">generator</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">append_specification</span><span class="p">,</span> <span class="p">{},</span>
+            <span class="p">)</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+
+        <span class="n">appended</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//{</span><span class="si">%s</span><span class="s1">}appended&#39;</span> <span class="o">%</span> <span class="n">nsmap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;premis&#39;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNotNone</span><span class="p">(</span><span class="n">appended</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">appended</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s1">&#39;append text&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_insert_element_at_index"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_insert_element_at_index">[docs]</a>    <span class="k">def</span> <span class="nf">test_insert_element_at_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;root&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//appended&#39;</span><span class="p">))</span>
+
+        <span class="n">append_specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;appended&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="s1">&#39;append text&#39;</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;root&#39;</span><span class="p">,</span> <span class="n">append_specification</span><span class="p">,</span> <span class="p">{},</span> <span class="n">index</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+        <span class="n">foo</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//foo&#39;</span><span class="p">)</span>
+        <span class="n">appended</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//appended&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">appended</span><span class="p">),</span> <span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">foo</span><span class="p">))</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//appended&#39;</span><span class="p">))</span>
+
+        <span class="n">append_specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;appended&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="s1">&#39;append text&#39;</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;root&#39;</span><span class="p">,</span> <span class="n">append_specification</span><span class="p">,</span> <span class="p">{},</span> <span class="n">index</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">)</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+        <span class="n">foo</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//foo&#39;</span><span class="p">)</span>
+        <span class="n">appended</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//appended&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">foo</span><span class="p">),</span> <span class="n">root</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">appended</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_insert_nested_elements_with_namespace"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_insert_nested_elements_with_namespace">[docs]</a>    <span class="k">def</span> <span class="nf">test_insert_nested_elements_with_namespace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">nsmap</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;premis&#39;</span><span class="p">:</span> <span class="s1">&#39;http://www.loc.gov/premis/v3&#39;</span>
+        <span class="p">}</span>
+
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;root&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-nsmap&#39;</span><span class="p">:</span> <span class="n">nsmap</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//appended&#39;</span><span class="p">))</span>
+
+        <span class="n">append_specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;appended&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-namespace&#39;</span><span class="p">:</span> <span class="s1">&#39;premis&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="s1">&#39;append text&#39;</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-namespace&#39;</span><span class="p">:</span> <span class="s1">&#39;premis&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="s1">&#39;bar text&#39;</span>
+                        <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">generator</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">append_specification</span><span class="p">,</span> <span class="p">{},</span>
+            <span class="p">)</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+
+        <span class="n">bar</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//{</span><span class="si">%s</span><span class="s1">}bar&#39;</span> <span class="o">%</span> <span class="n">nsmap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;premis&#39;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNotNone</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">bar</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s1">&#39;bar text&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_insert_element_with_content"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_insert_element_with_content">[docs]</a>    <span class="k">def</span> <span class="nf">test_insert_element_with_content</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;root&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//appended&#39;</span><span class="p">))</span>
+
+        <span class="n">append_specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;appended&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="s1">&#39;append text&#39;</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">append_specification</span><span class="p">,</span> <span class="p">{},</span>
+        <span class="p">)</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+
+        <span class="n">appended</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//appended&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNotNone</span><span class="p">(</span><span class="n">appended</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">appended</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s1">&#39;append text&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_generateXML.test_insert_element_with_attribute"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_generateXML.test_insert_element_with_attribute">[docs]</a>    <span class="k">def</span> <span class="nf">test_insert_element_with_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;root&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-children&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;-allowEmpty&#39;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">XMLGenerator</span><span class="p">(</span>
+            <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">:</span> <span class="n">specification</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//appended&#39;</span><span class="p">))</span>
+
+        <span class="n">append_specification</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;appended&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-attr&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;-name&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="s1">&#39;append text&#39;</span>
+                        <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">append_specification</span><span class="p">,</span> <span class="p">{},</span>
+        <span class="p">)</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">appended</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;.//appended&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNotNone</span><span class="p">(</span><span class="n">appended</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">appended</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bar&#39;</span><span class="p">),</span> <span class="s1">&#39;append text&#39;</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="test_parseContent"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_parseContent">[docs]</a><span class="k">class</span> <span class="nc">test_parseContent</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="test_parseContent.test_parse_content_only_text"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_parseContent.test_parse_content_only_text">[docs]</a>    <span class="k">def</span> <span class="nf">test_parse_content_only_text</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;bar&quot;</span>
+            <span class="p">},</span>
+        <span class="p">]</span>
+
+        <span class="n">contentobj</span> <span class="o">=</span> <span class="n">parseContent</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">contentobj</span><span class="p">,</span> <span class="s1">&#39;bar&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_parseContent.test_parse_content_only_var"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_parseContent.test_parse_content_only_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_parse_content_only_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;var&quot;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span>
+            <span class="p">},</span>
+        <span class="p">]</span>
+
+        <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;foo&quot;</span><span class="p">:</span> <span class="s2">&quot;bar&quot;</span>
+        <span class="p">}</span>
+
+        <span class="n">contentobj</span> <span class="o">=</span> <span class="n">parseContent</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">contentobj</span><span class="p">,</span> <span class="s1">&#39;bar&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_parseContent.test_parse_content_var_and_text"><a class="viewcode-back" href="../../../../../ESSArch_Core.essxml.Generator.tests.html#ESSArch_Core.essxml.Generator.tests.test_generate.test_parseContent.test_parse_content_var_and_text">[docs]</a>    <span class="k">def</span> <span class="nf">test_parse_content_var_and_text</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;before&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;var&quot;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;after&quot;</span>
+            <span class="p">},</span>
+        <span class="p">]</span>
+
+        <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;foo&quot;</span><span class="p">:</span> <span class="s2">&quot;bar&quot;</span>
+        <span class="p">}</span>
+
+        <span class="n">contentobj</span> <span class="o">=</span> <span class="n">parseContent</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">contentobj</span><span class="p">,</span> <span class="s1">&#39;beforebarafter&#39;</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, ES Solutions.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

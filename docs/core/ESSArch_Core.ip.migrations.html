@@ -1,0 +1,672 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ESSArch_Core.ip.migrations package &#8212; ESSArch Core 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ESSArch_Core.profiles package" href="ESSArch_Core.profiles.html" />
+    <link rel="prev" title="ESSArch_Core.ip package" href="ESSArch_Core.ip.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="essarch-core-ip-migrations-package">
+<h1>ESSArch_Core.ip.migrations package<a class="headerlink" href="#essarch-core-ip-migrations-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0001_initial">
+<span id="essarch-core-ip-migrations-0001-initial-module"></span><h2>ESSArch_Core.ip.migrations.0001_initial module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0001_initial" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0001_initial.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0001_initial.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0001_initial.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0001_initial.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0001_initial.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = []</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0001_initial.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0001_initial.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;CreateModel  fields=[(u'id', &lt;django.db.models.fields.UUIDField&gt;), (u'eventType', &lt;django.db.models.fields.CharField&gt;), (u'eventDateTime', &lt;django.db.models.fields.CharField&gt;), (u'eventDetail', &lt;django.db.models.fields.CharField&gt;), (u'eventApplication', &lt;django.db.models.fields.CharField&gt;), (u'eventVersion', &lt;django.db.models.fields.CharField&gt;), (u'eventOutcome', &lt;django.db.models.fields.CharField&gt;), (u'eventOutcomeDetailNote', &lt;django.db.models.fields.CharField&gt;), (u'linkingAgentIdentifierValue', &lt;django.db.models.fields.CharField&gt;)], options={u'ordering': [u'eventType'], u'verbose_name': u'Events related to IP'}, name=u'EventIP'&gt;, &lt;CreateModel  fields=[(u'id', &lt;django.db.models.fields.UUIDField&gt;), (u'Producer', &lt;django.db.models.fields.CharField&gt;), (u'Label', &lt;django.db.models.fields.CharField&gt;), (u'Content', &lt;django.db.models.fields.CharField&gt;), (u'Responsible', &lt;django.db.models.fields.CharField&gt;), (u'CreateDate', &lt;django.db.models.fields.CharField&gt;), (u'State', &lt;django.db.models.fields.CharField&gt;), (u'Status', &lt;django.db.models.fields.CharField&gt;), (u'ObjectSize', &lt;django.db.models.fields.CharField&gt;), (u'ObjectNumItems', &lt;django.db.models.fields.CharField&gt;), (u'ObjectPath', &lt;django.db.models.fields.CharField&gt;), (u'Startdate', &lt;django.db.models.fields.CharField&gt;), (u'Enddate', &lt;django.db.models.fields.CharField&gt;), (u'OAIStype', &lt;django.db.models.fields.CharField&gt;)], options={u'ordering': [u'id'], u'verbose_name': u'Information Package'}, name=u'InformationPackage'&gt;, &lt;AddField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'linkingObjectIdentifierValue', model_name=u'eventip'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0001_initial.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0002_auto_20160823_1220">
+<span id="essarch-core-ip-migrations-0002-auto-20160823-1220-module"></span><h2>ESSArch_Core.ip.migrations.0002_auto_20160823_1220 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0002_auto_20160823_1220" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0002_auto_20160823_1220.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0002_auto_20160823_1220.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0002_auto_20160823_1220.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0002_auto_20160823_1220.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0002_auto_20160823_1220.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'configuration', u'0001_initial'), (u'ip', u'0001_initial')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0002_auto_20160823_1220.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0002_auto_20160823_1220.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'eventType', model_name=u'eventip'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0002_auto_20160823_1220.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0003_auto_20160823_2313">
+<span id="essarch-core-ip-migrations-0003-auto-20160823-2313-module"></span><h2>ESSArch_Core.ip.migrations.0003_auto_20160823_2313 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0003_auto_20160823_2313" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0003_auto_20160823_2313.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0003_auto_20160823_2313.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0003_auto_20160823_2313.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0003_auto_20160823_2313.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0003_auto_20160823_2313.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0002_auto_20160823_1220')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0003_auto_20160823_2313.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0003_auto_20160823_2313.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;django.db.models.fields.CharField&gt;, name=u'ArchivalInstitution', model_name=u'informationpackage'&gt;, &lt;AddField  field=&lt;django.db.models.fields.CharField&gt;, name=u'ArchivalLocation', model_name=u'informationpackage'&gt;, &lt;AddField  field=&lt;django.db.models.fields.CharField&gt;, name=u'ArchivalType', model_name=u'informationpackage'&gt;, &lt;AddField  field=&lt;django.db.models.fields.CharField&gt;, name=u'ArchivistOrganization', model_name=u'informationpackage'&gt;, &lt;AddField  field=&lt;django.db.models.fields.CharField&gt;, name=u'SubmissionAgreement', model_name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0003_auto_20160823_2313.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0004_auto_20160831_0745">
+<span id="essarch-core-ip-migrations-0004-auto-20160831-0745-module"></span><h2>ESSArch_Core.ip.migrations.0004_auto_20160831_0745 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0004_auto_20160831_0745" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0004_auto_20160831_0745.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0004_auto_20160831_0745.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0004_auto_20160831_0745.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0004_auto_20160831_0745.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0004_auto_20160831_0745.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'profiles', u'0008_auto_20160830_1023'), (u'ip', u'0003_auto_20160823_2313')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0004_auto_20160831_0745.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0004_auto_20160831_0745.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'SubmissionAgreement', model_name=u'informationpackage'&gt;, &lt;AddField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'SA', model_name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0004_auto_20160831_0745.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0005_auto_20160831_0746">
+<span id="essarch-core-ip-migrations-0005-auto-20160831-0746-module"></span><h2>ESSArch_Core.ip.migrations.0005_auto_20160831_0746 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0005_auto_20160831_0746" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0005_auto_20160831_0746.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0005_auto_20160831_0746.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0005_auto_20160831_0746.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0005_auto_20160831_0746.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0005_auto_20160831_0746.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0004_auto_20160831_0745')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0005_auto_20160831_0746.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0005_auto_20160831_0746.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RenameField  new_name=u'SubmissionAgreement', model_name=u'informationpackage', old_name=u'SA'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0005_auto_20160831_0746.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0006_auto_20160831_1000">
+<span id="essarch-core-ip-migrations-0006-auto-20160831-1000-module"></span><h2>ESSArch_Core.ip.migrations.0006_auto_20160831_1000 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0006_auto_20160831_1000" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0006_auto_20160831_1000.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0006_auto_20160831_1000.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0006_auto_20160831_1000.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0006_auto_20160831_1000.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0006_auto_20160831_1000.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0005_auto_20160831_0746')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0006_auto_20160831_1000.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0006_auto_20160831_1000.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'SubmissionAgreement', model_name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0006_auto_20160831_1000.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0007_auto_20160831_1038">
+<span id="essarch-core-ip-migrations-0007-auto-20160831-1038-module"></span><h2>ESSArch_Core.ip.migrations.0007_auto_20160831_1038 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0007_auto_20160831_1038" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0007_auto_20160831_1038.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0007_auto_20160831_1038.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0007_auto_20160831_1038.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0007_auto_20160831_1038.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0007_auto_20160831_1038.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0006_auto_20160831_1000')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0007_auto_20160831_1038.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0007_auto_20160831_1038.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.DateTimeField&gt;, name=u'eventDateTime', model_name=u'eventip'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0007_auto_20160831_1038.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0008_auto_20160831_1120">
+<span id="essarch-core-ip-migrations-0008-auto-20160831-1120-module"></span><h2>ESSArch_Core.ip.migrations.0008_auto_20160831_1120 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0008_auto_20160831_1120" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0008_auto_20160831_1120.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0008_auto_20160831_1120.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0008_auto_20160831_1120.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0008_auto_20160831_1120.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0008_auto_20160831_1120.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0007_auto_20160831_1038')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0008_auto_20160831_1120.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0008_auto_20160831_1120.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RunPython &lt;function forwards_func at 0x8640de8&gt;, &lt;function reverse_func at 0x8640410&gt;&gt;, &lt;AlterField  field=&lt;django.db.models.fields.DateTimeField&gt;, name=u'CreateDate', model_name=u'informationpackage'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.DateTimeField&gt;, name=u'Enddate', model_name=u'informationpackage'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.DateTimeField&gt;, name=u'Startdate', model_name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0008_auto_20160831_1120.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ESSArch_Core.ip.migrations.0008_auto_20160831_1120.forwards_func">
+<code class="descclassname">ESSArch_Core.ip.migrations.0008_auto_20160831_1120.</code><code class="descname">forwards_func</code><span class="sig-paren">(</span><em>apps</em>, <em>schema_editor</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0008_auto_20160831_1120.html#forwards_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0008_auto_20160831_1120.forwards_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ESSArch_Core.ip.migrations.0008_auto_20160831_1120.reverse_func">
+<code class="descclassname">ESSArch_Core.ip.migrations.0008_auto_20160831_1120.</code><code class="descname">reverse_func</code><span class="sig-paren">(</span><em>apps</em>, <em>schema_editor</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0008_auto_20160831_1120.html#reverse_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0008_auto_20160831_1120.reverse_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0009_remove_informationpackage_producer">
+<span id="essarch-core-ip-migrations-0009-remove-informationpackage-producer-module"></span><h2>ESSArch_Core.ip.migrations.0009_remove_informationpackage_producer module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0009_remove_informationpackage_producer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0009_remove_informationpackage_producer.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0009_remove_informationpackage_producer.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0009_remove_informationpackage_producer.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0009_remove_informationpackage_producer.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0009_remove_informationpackage_producer.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0008_auto_20160831_1120')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0009_remove_informationpackage_producer.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0009_remove_informationpackage_producer.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'Producer', model_name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0009_remove_informationpackage_producer.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0010_remove_informationpackage_status">
+<span id="essarch-core-ip-migrations-0010-remove-informationpackage-status-module"></span><h2>ESSArch_Core.ip.migrations.0010_remove_informationpackage_status module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0010_remove_informationpackage_status" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0010_remove_informationpackage_status.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0010_remove_informationpackage_status.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0010_remove_informationpackage_status.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0010_remove_informationpackage_status.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0010_remove_informationpackage_status.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0009_remove_informationpackage_producer')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0010_remove_informationpackage_status.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0010_remove_informationpackage_status.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'Status', model_name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0010_remove_informationpackage_status.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0011_auto_20160901_1123">
+<span id="essarch-core-ip-migrations-0011-auto-20160901-1123-module"></span><h2>ESSArch_Core.ip.migrations.0011_auto_20160901_1123 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0011_auto_20160901_1123" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0011_auto_20160901_1123.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0011_auto_20160901_1123.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0011_auto_20160901_1123.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0011_auto_20160901_1123.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0011_auto_20160901_1123.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0010_remove_informationpackage_status')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0011_auto_20160901_1123.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0011_auto_20160901_1123.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RunPython &lt;function forwards_func at 0x81469b0&gt;, &lt;function reverse_func at 0x8622e60&gt;&gt;, &lt;CreateModel  fields=[(u'id', &lt;django.db.models.fields.UUIDField&gt;), (u'name', &lt;django.db.models.fields.CharField&gt;)], options={u'verbose_name': u'ArchivalInstitution'}, name=u'ArchivalInstitution'&gt;, &lt;CreateModel  fields=[(u'id', &lt;django.db.models.fields.UUIDField&gt;), (u'name', &lt;django.db.models.fields.CharField&gt;)], options={u'verbose_name': u'ArchivalLocation'}, name=u'ArchivalLocation'&gt;, &lt;CreateModel  fields=[(u'id', &lt;django.db.models.fields.UUIDField&gt;), (u'name', &lt;django.db.models.fields.CharField&gt;)], options={u'verbose_name': u'ArchivalType'}, name=u'ArchivalType'&gt;, &lt;CreateModel  fields=[(u'id', &lt;django.db.models.fields.UUIDField&gt;), (u'name', &lt;django.db.models.fields.CharField&gt;)], options={u'verbose_name': u'ArchivistOrganization'}, name=u'ArchivistOrganization'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'ArchivalInstitution', model_name=u'informationpackage'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'ArchivalLocation', model_name=u'informationpackage'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'ArchivalType', model_name=u'informationpackage'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'ArchivistOrganization', model_name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0011_auto_20160901_1123.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ESSArch_Core.ip.migrations.0011_auto_20160901_1123.forwards_func">
+<code class="descclassname">ESSArch_Core.ip.migrations.0011_auto_20160901_1123.</code><code class="descname">forwards_func</code><span class="sig-paren">(</span><em>apps</em>, <em>schema_editor</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0011_auto_20160901_1123.html#forwards_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0011_auto_20160901_1123.forwards_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ESSArch_Core.ip.migrations.0011_auto_20160901_1123.reverse_func">
+<code class="descclassname">ESSArch_Core.ip.migrations.0011_auto_20160901_1123.</code><code class="descname">reverse_func</code><span class="sig-paren">(</span><em>apps</em>, <em>schema_editor</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0011_auto_20160901_1123.html#reverse_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0011_auto_20160901_1123.reverse_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0012_auto_20160907_0915">
+<span id="essarch-core-ip-migrations-0012-auto-20160907-0915-module"></span><h2>ESSArch_Core.ip.migrations.0012_auto_20160907_0915 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0012_auto_20160907_0915" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0012_auto_20160907_0915.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0012_auto_20160907_0915.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0012_auto_20160907_0915.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0012_auto_20160907_0915.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0012_auto_20160907_0915.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'auth', u'__first__'), (u'ip', u'0011_auto_20160901_1123')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0012_auto_20160907_0915.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0012_auto_20160907_0915.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;django.db.models.fields.BooleanField&gt;, name=u'Locked', model_name=u'informationpackage'&gt;, &lt;AddField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'LockedBy', model_name=u'informationpackage'&gt;, &lt;AddField  field=&lt;django.db.models.fields.BooleanField&gt;, name=u'Unlockable', model_name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0012_auto_20160907_0915.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0013_auto_20160913_1116">
+<span id="essarch-core-ip-migrations-0013-auto-20160913-1116-module"></span><h2>ESSArch_Core.ip.migrations.0013_auto_20160913_1116 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0013_auto_20160913_1116" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0013_auto_20160913_1116.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0013_auto_20160913_1116.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0013_auto_20160913_1116.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0013_auto_20160913_1116.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0013_auto_20160913_1116.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0012_auto_20160907_0915')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0013_auto_20160913_1116.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0013_auto_20160913_1116.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'Locked', model_name=u'informationpackage'&gt;, &lt;RemoveField  name=u'LockedBy', model_name=u'informationpackage'&gt;, &lt;RemoveField  name=u'Unlockable', model_name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0013_auto_20160913_1116.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0014_auto_20160913_1557">
+<span id="essarch-core-ip-migrations-0014-auto-20160913-1557-module"></span><h2>ESSArch_Core.ip.migrations.0014_auto_20160913_1557 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0014_auto_20160913_1557" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0014_auto_20160913_1557.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0014_auto_20160913_1557.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0014_auto_20160913_1557.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0014_auto_20160913_1557.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0014_auto_20160913_1557.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0013_auto_20160913_1116')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0014_auto_20160913_1557.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0014_auto_20160913_1557.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.DateTimeField&gt;, name=u'CreateDate', model_name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0014_auto_20160913_1557.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0015_auto_20160915_0913">
+<span id="essarch-core-ip-migrations-0015-auto-20160915-0913-module"></span><h2>ESSArch_Core.ip.migrations.0015_auto_20160915_0913 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0015_auto_20160915_0913" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0015_auto_20160915_0913.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0015_auto_20160915_0913.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0015_auto_20160915_0913.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0015_auto_20160915_0913.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0015_auto_20160915_0913.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0014_auto_20160913_1557')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0015_auto_20160915_0913.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0015_auto_20160915_0913.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.DateTimeField&gt;, name=u'Enddate', model_name=u'informationpackage'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.DateTimeField&gt;, name=u'Startdate', model_name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0015_auto_20160915_0913.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0016_auto_20161107_1813">
+<span id="essarch-core-ip-migrations-0016-auto-20161107-1813-module"></span><h2>ESSArch_Core.ip.migrations.0016_auto_20161107_1813 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0016_auto_20161107_1813" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0016_auto_20161107_1813.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0016_auto_20161107_1813.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0016_auto_20161107_1813.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0016_auto_20161107_1813.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0016_auto_20161107_1813.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'profiles', u'0021_auto_20161107_1813'), (u'ip', u'0015_auto_20160915_0913')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0016_auto_20161107_1813.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0016_auto_20161107_1813.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;django.db.models.fields.BooleanField&gt;, name=u'SubmissionAgreementLocked', model_name=u'informationpackage'&gt;, &lt;AddField  field=&lt;django.db.models.fields.related.ManyToManyField&gt;, name=u'profiles', model_name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0016_auto_20161107_1813.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0017_remove_informationpackage_profiles">
+<span id="essarch-core-ip-migrations-0017-remove-informationpackage-profiles-module"></span><h2>ESSArch_Core.ip.migrations.0017_remove_informationpackage_profiles module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0017_remove_informationpackage_profiles" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0017_remove_informationpackage_profiles.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0017_remove_informationpackage_profiles.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0017_remove_informationpackage_profiles.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0017_remove_informationpackage_profiles.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0017_remove_informationpackage_profiles.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0016_auto_20161107_1813')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0017_remove_informationpackage_profiles.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0017_remove_informationpackage_profiles.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'profiles', model_name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0017_remove_informationpackage_profiles.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0018_auto_20161109_1114">
+<span id="essarch-core-ip-migrations-0018-auto-20161109-1114-module"></span><h2>ESSArch_Core.ip.migrations.0018_auto_20161109_1114 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0018_auto_20161109_1114" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0018_auto_20161109_1114.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0018_auto_20161109_1114.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0018_auto_20161109_1114.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0018_auto_20161109_1114.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0018_auto_20161109_1114.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0017_remove_informationpackage_profiles')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0018_auto_20161109_1114.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0018_auto_20161109_1114.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'ObjectNumItems', model_name=u'informationpackage'&gt;, &lt;RemoveField  name=u'ObjectSize', model_name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0018_auto_20161109_1114.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0019_auto_20161122_1721">
+<span id="essarch-core-ip-migrations-0019-auto-20161122-1721-module"></span><h2>ESSArch_Core.ip.migrations.0019_auto_20161122_1721 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0019_auto_20161122_1721" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0019_auto_20161122_1721.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0019_auto_20161122_1721.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0019_auto_20161122_1721.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0019_auto_20161122_1721.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0019_auto_20161122_1721.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0018_auto_20161109_1114')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0019_auto_20161122_1721.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0019_auto_20161122_1721.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'eventDetail', model_name=u'eventip'&gt;, &lt;AddField  field=&lt;django.db.models.fields.CharField&gt;, name=u'ObjectIdentifierValue', model_name=u'informationpackage'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.IntegerField&gt;, name=u'eventOutcome', model_name=u'eventip'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0019_auto_20161122_1721.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0020_auto_20161124_1143">
+<span id="essarch-core-ip-migrations-0020-auto-20161124-1143-module"></span><h2>ESSArch_Core.ip.migrations.0020_auto_20161124_1143 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0020_auto_20161124_1143" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0020_auto_20161124_1143.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0020_auto_20161124_1143.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0020_auto_20161124_1143.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0020_auto_20161124_1143.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0020_auto_20161124_1143.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0019_auto_20161122_1721')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0020_auto_20161124_1143.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0020_auto_20161124_1143.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'eventApplication', model_name=u'eventip'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0020_auto_20161124_1143.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0021_auto_20161201_1102">
+<span id="essarch-core-ip-migrations-0021-auto-20161201-1102-module"></span><h2>ESSArch_Core.ip.migrations.0021_auto_20161201_1102 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0021_auto_20161201_1102" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0021_auto_20161201_1102.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0021_auto_20161201_1102.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0021_auto_20161201_1102.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0021_auto_20161201_1102.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0021_auto_20161201_1102.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0020_auto_20161124_1143')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0021_auto_20161201_1102.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0021_auto_20161201_1102.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'linkingObjectIdentifierValue', model_name=u'eventip'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0021_auto_20161201_1102.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0022_auto_20161205_2226">
+<span id="essarch-core-ip-migrations-0022-auto-20161205-2226-module"></span><h2>ESSArch_Core.ip.migrations.0022_auto_20161205_2226 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0022_auto_20161205_2226" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0022_auto_20161205_2226.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0022_auto_20161205_2226.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0022_auto_20161205_2226.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0022_auto_20161205_2226.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0022_auto_20161205_2226.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0021_auto_20161201_1102')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0022_auto_20161205_2226.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0022_auto_20161205_2226.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.CharField&gt;, name=u'name', model_name=u'archivalinstitution'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.CharField&gt;, name=u'name', model_name=u'archivallocation'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.CharField&gt;, name=u'name', model_name=u'archivaltype'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.CharField&gt;, name=u'name', model_name=u'archivistorganization'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0022_auto_20161205_2226.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0023_auto_20161208_1047">
+<span id="essarch-core-ip-migrations-0023-auto-20161208-1047-module"></span><h2>ESSArch_Core.ip.migrations.0023_auto_20161208_1047 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0023_auto_20161208_1047" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0023_auto_20161208_1047.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0023_auto_20161208_1047.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0023_auto_20161208_1047.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0023_auto_20161208_1047.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0023_auto_20161208_1047.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0022_auto_20161205_2226')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0023_auto_20161208_1047.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0023_auto_20161208_1047.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'eventApplication', model_name=u'eventip'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0023_auto_20161208_1047.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0024_auto_20161208_1125">
+<span id="essarch-core-ip-migrations-0024-auto-20161208-1125-module"></span><h2>ESSArch_Core.ip.migrations.0024_auto_20161208_1125 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0024_auto_20161208_1125" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0024_auto_20161208_1125.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0024_auto_20161208_1125.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0024_auto_20161208_1125.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0024_auto_20161208_1125.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0024_auto_20161208_1125.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0023_auto_20161208_1047')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0024_auto_20161208_1125.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0024_auto_20161208_1125.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'eventApplication', model_name=u'eventip'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.related.OneToOneField&gt;, name=u'eventApplication', model_name=u'eventip'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0024_auto_20161208_1125.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0025_auto_20161216_1621">
+<span id="essarch-core-ip-migrations-0025-auto-20161216-1621-module"></span><h2>ESSArch_Core.ip.migrations.0025_auto_20161216_1621 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0025_auto_20161216_1621" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0025_auto_20161216_1621.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0025_auto_20161216_1621.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0025_auto_20161216_1621.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0025_auto_20161216_1621.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0025_auto_20161216_1621.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0024_auto_20161208_1125')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0025_auto_20161216_1621.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0025_auto_20161216_1621.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RunPython &lt;function forwards_func at 0x80226e0&gt;, &lt;function reverse_func at 0x8766848&gt;&gt;, &lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'linkingAgentIdentifierValue', model_name=u'eventip'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'Responsible', model_name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0025_auto_20161216_1621.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ESSArch_Core.ip.migrations.0025_auto_20161216_1621.forwards_func">
+<code class="descclassname">ESSArch_Core.ip.migrations.0025_auto_20161216_1621.</code><code class="descname">forwards_func</code><span class="sig-paren">(</span><em>apps</em>, <em>schema_editor</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0025_auto_20161216_1621.html#forwards_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0025_auto_20161216_1621.forwards_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ESSArch_Core.ip.migrations.0025_auto_20161216_1621.reverse_func">
+<code class="descclassname">ESSArch_Core.ip.migrations.0025_auto_20161216_1621.</code><code class="descname">reverse_func</code><span class="sig-paren">(</span><em>apps</em>, <em>schema_editor</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0025_auto_20161216_1621.html#reverse_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0025_auto_20161216_1621.reverse_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations.0026_auto_20161220_1033">
+<span id="essarch-core-ip-migrations-0026-auto-20161220-1033-module"></span><h2>ESSArch_Core.ip.migrations.0026_auto_20161220_1033 module<a class="headerlink" href="#module-ESSArch_Core.ip.migrations.0026_auto_20161220_1033" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.ip.migrations.0026_auto_20161220_1033.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.ip.migrations.0026_auto_20161220_1033.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/ip/migrations/0026_auto_20161220_1033.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.ip.migrations.0026_auto_20161220_1033.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0026_auto_20161220_1033.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0025_auto_20161216_1621')]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0026_auto_20161220_1033.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.ip.migrations.0026_auto_20161220_1033.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterModelOptions  options={u'ordering': [u'id'], u'verbose_name': u'Information Package', u'permissions': ((u'set_uploaded', u'Can set IP as uploaded'), (u'create_sip', u'Can create SIP'), (u'submit_sip', u'Can submit SIP'), (u'transfer_sip', u'Can transfer SIP'), (u'change_sa', u'Can change SA connected to IP'), (u'lock_sa', u'Can lock SA to IP'), (u'unlock_profile', u'Can unlock profile connected to IP'))}, name=u'informationpackage'&gt;]</em><a class="headerlink" href="#ESSArch_Core.ip.migrations.0026_auto_20161220_1033.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.ip.migrations">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ESSArch_Core.ip.migrations" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ESSArch_Core.ip.migrations package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0001_initial">ESSArch_Core.ip.migrations.0001_initial module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0002_auto_20160823_1220">ESSArch_Core.ip.migrations.0002_auto_20160823_1220 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0003_auto_20160823_2313">ESSArch_Core.ip.migrations.0003_auto_20160823_2313 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0004_auto_20160831_0745">ESSArch_Core.ip.migrations.0004_auto_20160831_0745 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0005_auto_20160831_0746">ESSArch_Core.ip.migrations.0005_auto_20160831_0746 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0006_auto_20160831_1000">ESSArch_Core.ip.migrations.0006_auto_20160831_1000 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0007_auto_20160831_1038">ESSArch_Core.ip.migrations.0007_auto_20160831_1038 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0008_auto_20160831_1120">ESSArch_Core.ip.migrations.0008_auto_20160831_1120 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0009_remove_informationpackage_producer">ESSArch_Core.ip.migrations.0009_remove_informationpackage_producer module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0010_remove_informationpackage_status">ESSArch_Core.ip.migrations.0010_remove_informationpackage_status module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0011_auto_20160901_1123">ESSArch_Core.ip.migrations.0011_auto_20160901_1123 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0012_auto_20160907_0915">ESSArch_Core.ip.migrations.0012_auto_20160907_0915 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0013_auto_20160913_1116">ESSArch_Core.ip.migrations.0013_auto_20160913_1116 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0014_auto_20160913_1557">ESSArch_Core.ip.migrations.0014_auto_20160913_1557 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0015_auto_20160915_0913">ESSArch_Core.ip.migrations.0015_auto_20160915_0913 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0016_auto_20161107_1813">ESSArch_Core.ip.migrations.0016_auto_20161107_1813 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0017_remove_informationpackage_profiles">ESSArch_Core.ip.migrations.0017_remove_informationpackage_profiles module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0018_auto_20161109_1114">ESSArch_Core.ip.migrations.0018_auto_20161109_1114 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0019_auto_20161122_1721">ESSArch_Core.ip.migrations.0019_auto_20161122_1721 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0020_auto_20161124_1143">ESSArch_Core.ip.migrations.0020_auto_20161124_1143 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0021_auto_20161201_1102">ESSArch_Core.ip.migrations.0021_auto_20161201_1102 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0022_auto_20161205_2226">ESSArch_Core.ip.migrations.0022_auto_20161205_2226 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0023_auto_20161208_1047">ESSArch_Core.ip.migrations.0023_auto_20161208_1047 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0024_auto_20161208_1125">ESSArch_Core.ip.migrations.0024_auto_20161208_1125 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0025_auto_20161216_1621">ESSArch_Core.ip.migrations.0025_auto_20161216_1621 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations.0026_auto_20161220_1033">ESSArch_Core.ip.migrations.0026_auto_20161220_1033 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.ip.migrations">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">ESSArch_Core</a><ul>
+  <li><a href="ESSArch_Core.html">ESSArch_Core package</a><ul>
+  <li><a href="ESSArch_Core.ip.html">ESSArch_Core.ip package</a><ul>
+      <li>Previous: <a href="ESSArch_Core.ip.html" title="previous chapter">ESSArch_Core.ip package</a></li>
+      <li>Next: <a href="ESSArch_Core.profiles.html" title="next chapter">ESSArch_Core.profiles package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="sources/ESSArch_Core.ip.migrations.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, ES Solutions.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="sources/ESSArch_Core.ip.migrations.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

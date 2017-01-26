@@ -69,7 +69,6 @@
 
 <span class="kn">from</span> <span class="nn">celery</span> <span class="k">import</span> <span class="n">states</span> <span class="k">as</span> <span class="n">celery_states</span>
 
-<span class="kn">from</span> <span class="nn">django.core.cache</span> <span class="k">import</span> <span class="n">cache</span>
 <span class="kn">from</span> <span class="nn">django.db</span> <span class="k">import</span> <span class="n">models</span>
 
 <span class="kn">from</span> <span class="nn">ESSArch_Core.profiles.models</span> <span class="k">import</span> <span class="p">(</span>
@@ -258,14 +257,6 @@
 
         <span class="k">return</span> <span class="n">name</span>
 
-    <span class="k">def</span> <span class="nf">get_email_recipient</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_profile</span><span class="p">(</span><span class="s1">&#39;transfer_project&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">specification_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="s1">&#39;preservation_organization_receiver_email&#39;</span>
-            <span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">step_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -287,17 +278,10 @@
 <span class="sd">            * If all steps have succeeded, then SUCCESS.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">cache_key</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_status&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
-        <span class="n">cached</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cache_key</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">cached</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">cached</span>
-
         <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
         <span class="n">state</span> <span class="o">=</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">SUCCESS</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">steps</span><span class="p">:</span>
-            <span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">PENDING</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">PENDING</span>
 
         <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
@@ -309,11 +293,7 @@
                     <span class="n">state</span> <span class="o">!=</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">STARTED</span><span class="p">):</span>
                 <span class="n">state</span> <span class="o">=</span> <span class="n">step_status</span>
             <span class="k">if</span> <span class="n">step_status</span> <span class="o">==</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">FAILURE</span><span class="p">:</span>
-                <span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">step_status</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">step_status</span>
-
-        <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
-            <span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">state</span>
 

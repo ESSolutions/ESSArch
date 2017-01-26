@@ -1,0 +1,61 @@
+ESSArch_Core.essxml.ProfileMaker package
+========================================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ESSArch_Core.essxml.ProfileMaker.migrations
+
+Submodules
+----------
+
+ESSArch_Core.essxml.ProfileMaker.forms module
+---------------------------------------------
+
+.. automodule:: ESSArch_Core.essxml.ProfileMaker.forms
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_Core.essxml.ProfileMaker.models module
+----------------------------------------------
+
+.. automodule:: ESSArch_Core.essxml.ProfileMaker.models
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_Core.essxml.ProfileMaker.urls module
+--------------------------------------------
+
+.. automodule:: ESSArch_Core.essxml.ProfileMaker.urls
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_Core.essxml.ProfileMaker.views module
+---------------------------------------------
+
+.. automodule:: ESSArch_Core.essxml.ProfileMaker.views
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_Core.essxml.ProfileMaker.xsdtojson module
+-------------------------------------------------
+
+.. automodule:: ESSArch_Core.essxml.ProfileMaker.xsdtojson
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_Core.essxml.ProfileMaker
+    :members:
+    :undoc-members:
+    :show-inheritance:

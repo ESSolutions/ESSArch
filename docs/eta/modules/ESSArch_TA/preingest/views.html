@@ -1,0 +1,245 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ESSArch_TA.preingest.views &#8212; ESSArch Tools Archive 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../../static/underscore.js"></script>
+    <script type="text/javascript" src="../../../static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ESSArch_TA.preingest.views</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">pytz</span>
+
+<span class="kn">from</span> <span class="nn">rest_framework.decorators</span> <span class="k">import</span> <span class="n">detail_route</span>
+<span class="kn">from</span> <span class="nn">rest_framework.response</span> <span class="k">import</span> <span class="n">Response</span>
+
+<span class="kn">from</span> <span class="nn">ESSArch_Core.WorkflowEngine.models</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">ProcessStep</span><span class="p">,</span>
+    <span class="n">ProcessTask</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">preingest.serializers</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">ProcessStepSerializer</span><span class="p">,</span>
+    <span class="n">ProcessStepDetailSerializer</span><span class="p">,</span>
+    <span class="n">ProcessStepChildrenSerializer</span><span class="p">,</span>
+    <span class="n">ProcessTaskSerializer</span><span class="p">,</span>
+    <span class="n">ProcessTaskDetailSerializer</span><span class="p">,</span>
+    <span class="n">GroupSerializer</span><span class="p">,</span>
+    <span class="n">GroupDetailSerializer</span><span class="p">,</span>
+    <span class="n">PermissionSerializer</span><span class="p">,</span>
+    <span class="n">UserSerializer</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">django.contrib.auth.models</span> <span class="k">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Group</span><span class="p">,</span> <span class="n">Permission</span>
+<span class="kn">from</span> <span class="nn">rest_framework</span> <span class="k">import</span> <span class="n">viewsets</span>
+
+
+<div class="viewcode-block" id="UserViewSet"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.UserViewSet">[docs]</a><span class="k">class</span> <span class="nc">UserViewSet</span><span class="p">(</span><span class="n">viewsets</span><span class="o">.</span><span class="n">ModelViewSet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API endpoint that allows users to be viewed or edited.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">queryset</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;-date_joined&#39;</span><span class="p">)</span>
+    <span class="n">serializer_class</span> <span class="o">=</span> <span class="n">UserSerializer</span></div>
+
+
+<div class="viewcode-block" id="GroupViewSet"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.GroupViewSet">[docs]</a><span class="k">class</span> <span class="nc">GroupViewSet</span><span class="p">(</span><span class="n">viewsets</span><span class="o">.</span><span class="n">ModelViewSet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API endpoint that allows groups to be viewed or edited.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">queryset</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+<div class="viewcode-block" id="GroupViewSet.get_serializer_class"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.GroupViewSet.get_serializer_class">[docs]</a>    <span class="k">def</span> <span class="nf">get_serializer_class</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;list&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">GroupSerializer</span>
+
+        <span class="k">return</span> <span class="n">GroupDetailSerializer</span></div></div>
+
+
+<div class="viewcode-block" id="PermissionViewSet"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.PermissionViewSet">[docs]</a><span class="k">class</span> <span class="nc">PermissionViewSet</span><span class="p">(</span><span class="n">viewsets</span><span class="o">.</span><span class="n">ModelViewSet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API endpoint that allows permissions to be viewed or edited.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">queryset</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="n">serializer_class</span> <span class="o">=</span> <span class="n">PermissionSerializer</span></div>
+
+
+<div class="viewcode-block" id="ProcessStepViewSet"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.ProcessStepViewSet">[docs]</a><span class="k">class</span> <span class="nc">ProcessStepViewSet</span><span class="p">(</span><span class="n">viewsets</span><span class="o">.</span><span class="n">ModelViewSet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API endpoint that allows steps to be viewed or edited.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">queryset</span> <span class="o">=</span> <span class="n">ProcessStep</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="n">serializer_class</span> <span class="o">=</span> <span class="n">ProcessStepSerializer</span>
+
+<div class="viewcode-block" id="ProcessStepViewSet.get_serializer_class"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.ProcessStepViewSet.get_serializer_class">[docs]</a>    <span class="k">def</span> <span class="nf">get_serializer_class</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;list&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ProcessStepSerializer</span>
+
+        <span class="k">return</span> <span class="n">ProcessStepDetailSerializer</span></div>
+
+    <span class="nd">@detail_route</span><span class="p">(</span><span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;get&#39;</span><span class="p">],</span> <span class="n">url_path</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="ProcessStepViewSet.children"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.ProcessStepViewSet.children">[docs]</a>    <span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span>
+        <span class="n">child_steps</span> <span class="o">=</span> <span class="n">step</span><span class="o">.</span><span class="n">child_steps</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="n">tasks</span> <span class="o">=</span> <span class="n">step</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">hidden</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;responsible&#39;</span><span class="p">)</span>
+        <span class="n">queryset</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">child_steps</span><span class="p">,</span> <span class="n">tasks</span><span class="p">),</span>
+            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">instance</span><span class="p">:</span> <span class="n">instance</span><span class="o">.</span><span class="n">time_started</span> <span class="ow">or</span>
+            <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">MAXYEAR</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pytz</span><span class="o">.</span><span class="n">UTC</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">paginate_queryset</span><span class="p">(</span><span class="n">queryset</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">page</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">serializers</span> <span class="o">=</span> <span class="n">ProcessStepChildrenSerializer</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;request&#39;</span><span class="p">:</span> <span class="n">request</span><span class="p">})</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_paginated_response</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">serializers</span> <span class="o">=</span> <span class="n">ProcessStepChildrenSerializer</span><span class="p">(</span><span class="n">queryset</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;request&#39;</span><span class="p">:</span> <span class="n">request</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+    <span class="nd">@detail_route</span><span class="p">(</span><span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;get&#39;</span><span class="p">],</span> <span class="n">url_path</span><span class="o">=</span><span class="s1">&#39;child-steps&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="ProcessStepViewSet.child_steps"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.ProcessStepViewSet.child_steps">[docs]</a>    <span class="k">def</span> <span class="nf">child_steps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span>
+        <span class="n">child_steps</span> <span class="o">=</span> <span class="n">step</span><span class="o">.</span><span class="n">child_steps</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">paginate_queryset</span><span class="p">(</span><span class="n">child_steps</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">page</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">serializers</span> <span class="o">=</span> <span class="n">ProcessStepSerializer</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;request&#39;</span><span class="p">:</span> <span class="n">request</span><span class="p">})</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_paginated_response</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">serializers</span> <span class="o">=</span> <span class="n">ProcessStepSerializer</span><span class="p">(</span><span class="n">child_steps</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;request&#39;</span><span class="p">:</span> <span class="n">request</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+    <span class="nd">@detail_route</span><span class="p">(</span><span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;get&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="ProcessStepViewSet.tasks"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.ProcessStepViewSet.tasks">[docs]</a>    <span class="k">def</span> <span class="nf">tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span>
+        <span class="n">tasks</span> <span class="o">=</span> <span class="n">step</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">hidden</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;responsible&#39;</span><span class="p">)</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">paginate_queryset</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">page</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">serializers</span> <span class="o">=</span> <span class="n">ProcessTaskSerializer</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;request&#39;</span><span class="p">:</span> <span class="n">request</span><span class="p">})</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_paginated_response</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">serializers</span> <span class="o">=</span> <span class="n">ProcessTaskSerializer</span><span class="p">(</span><span class="n">tasks</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;request&#39;</span><span class="p">:</span> <span class="n">request</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+    <span class="nd">@detail_route</span><span class="p">(</span><span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;post&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="ProcessStepViewSet.run"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.ProcessStepViewSet.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">({</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;running step&#39;</span><span class="p">})</span></div>
+
+    <span class="nd">@detail_route</span><span class="p">(</span><span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;post&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="ProcessStepViewSet.undo"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.ProcessStepViewSet.undo">[docs]</a>    <span class="k">def</span> <span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span><span class="o">.</span><span class="n">undo</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">({</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;undoing step&#39;</span><span class="p">})</span></div>
+
+    <span class="nd">@detail_route</span><span class="p">(</span><span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;post&#39;</span><span class="p">],</span> <span class="n">url_path</span><span class="o">=</span><span class="s1">&#39;undo-failed&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="ProcessStepViewSet.undo_failed"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.ProcessStepViewSet.undo_failed">[docs]</a>    <span class="k">def</span> <span class="nf">undo_failed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span><span class="o">.</span><span class="n">undo</span><span class="p">(</span><span class="n">only_failed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">({</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;undoing failed tasks in step&#39;</span><span class="p">})</span></div>
+
+    <span class="nd">@detail_route</span><span class="p">(</span><span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;post&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="ProcessStepViewSet.retry"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.ProcessStepViewSet.retry">[docs]</a>    <span class="k">def</span> <span class="nf">retry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span><span class="o">.</span><span class="n">retry</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">({</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;retrying step&#39;</span><span class="p">})</span></div>
+
+    <span class="nd">@detail_route</span><span class="p">(</span><span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;post&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="ProcessStepViewSet.resume"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.ProcessStepViewSet.resume">[docs]</a>    <span class="k">def</span> <span class="nf">resume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span><span class="o">.</span><span class="n">resume</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">({</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;resuming step&#39;</span><span class="p">})</span></div></div>
+
+
+<div class="viewcode-block" id="ProcessTaskViewSet"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.ProcessTaskViewSet">[docs]</a><span class="k">class</span> <span class="nc">ProcessTaskViewSet</span><span class="p">(</span><span class="n">viewsets</span><span class="o">.</span><span class="n">ModelViewSet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API endpoint that allows tasks to be viewed or edited.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">queryset</span> <span class="o">=</span> <span class="n">ProcessTask</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;responsible&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="n">serializer_class</span> <span class="o">=</span> <span class="n">ProcessTaskSerializer</span>
+
+<div class="viewcode-block" id="ProcessTaskViewSet.get_serializer_class"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.ProcessTaskViewSet.get_serializer_class">[docs]</a>    <span class="k">def</span> <span class="nf">get_serializer_class</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;list&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ProcessTaskSerializer</span>
+
+        <span class="k">return</span> <span class="n">ProcessTaskDetailSerializer</span></div>
+
+    <span class="nd">@detail_route</span><span class="p">(</span><span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;post&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="ProcessTaskViewSet.undo"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.ProcessTaskViewSet.undo">[docs]</a>    <span class="k">def</span> <span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span><span class="o">.</span><span class="n">undo</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">({</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;undoing task&#39;</span><span class="p">})</span></div>
+
+    <span class="nd">@detail_route</span><span class="p">(</span><span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;post&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="ProcessTaskViewSet.retry"><a class="viewcode-back" href="../../../ESSArch_TA.preingest.html#ESSArch_TA.preingest.views.ProcessTaskViewSet.retry">[docs]</a>    <span class="k">def</span> <span class="nf">retry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span><span class="o">.</span><span class="n">retry</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">({</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;retries task&#39;</span><span class="p">})</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, ES Solutions.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

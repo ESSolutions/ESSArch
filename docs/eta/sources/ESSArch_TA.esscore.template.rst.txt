@@ -1,0 +1,17 @@
+ESSArch_TA.esscore.template package
+===================================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ESSArch_TA.esscore.template.templateGenerator
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_TA.esscore.template
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,61 @@
+ESSArch_TA.preingest package
+============================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ESSArch_TA.preingest.tests
+
+Submodules
+----------
+
+ESSArch_TA.preingest.apps module
+--------------------------------
+
+.. automodule:: ESSArch_TA.preingest.apps
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_TA.preingest.pagination module
+--------------------------------------
+
+.. automodule:: ESSArch_TA.preingest.pagination
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_TA.preingest.serializers module
+---------------------------------------
+
+.. automodule:: ESSArch_TA.preingest.serializers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_TA.preingest.tasks module
+---------------------------------
+
+.. automodule:: ESSArch_TA.preingest.tasks
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_TA.preingest.views module
+---------------------------------
+
+.. automodule:: ESSArch_TA.preingest.views
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_TA.preingest
+    :members:
+    :undoc-members:
+    :show-inheritance:

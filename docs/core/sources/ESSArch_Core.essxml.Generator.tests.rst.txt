@@ -1,0 +1,22 @@
+ESSArch_Core.essxml.Generator.tests package
+===========================================
+
+Submodules
+----------
+
+ESSArch_Core.essxml.Generator.tests.test_generate module
+--------------------------------------------------------
+
+.. automodule:: ESSArch_Core.essxml.Generator.tests.test_generate
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_Core.essxml.Generator.tests
+    :members:
+    :undoc-members:
+    :show-inheritance:

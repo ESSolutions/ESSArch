@@ -1,0 +1,20 @@
+ESSArch_TA.esscore package
+==========================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ESSArch_TA.esscore.metadata
+    ESSArch_TA.esscore.rest
+    ESSArch_TA.esscore.template
+    ESSArch_TA.esscore.views
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_TA.esscore
+    :members:
+    :undoc-members:
+    :show-inheritance:

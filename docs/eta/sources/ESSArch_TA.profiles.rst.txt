@@ -1,0 +1,22 @@
+ESSArch_TA.profiles package
+===========================
+
+Submodules
+----------
+
+ESSArch_TA.profiles.views module
+--------------------------------
+
+.. automodule:: ESSArch_TA.profiles.views
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_TA.profiles
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,223 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ESSArch_Core.profiles.serializers &#8212; ESSArch Core 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../../static/underscore.js"></script>
+    <script type="text/javascript" src="../../../static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ESSArch_Core.profiles.serializers</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">rest_framework</span> <span class="k">import</span> <span class="n">serializers</span>
+
+<span class="kn">from</span> <span class="nn">ESSArch_Core.ip.models</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">InformationPackage</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">ESSArch_Core.profiles.models</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">SubmissionAgreement</span><span class="p">,</span>
+    <span class="n">Profile</span><span class="p">,</span>
+    <span class="n">ProfileSA</span><span class="p">,</span>
+    <span class="n">ProfileIP</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="ProfileSASerializer"><a class="viewcode-back" href="../../../ESSArch_Core.profiles.html#ESSArch_Core.profiles.serializers.ProfileSASerializer">[docs]</a><span class="k">class</span> <span class="nc">ProfileSASerializer</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">HyperlinkedModelSerializer</span><span class="p">):</span>
+    <span class="n">profile_type</span> <span class="o">=</span> <span class="n">serializers</span><span class="o">.</span><span class="n">SlugRelatedField</span><span class="p">(</span><span class="n">slug_field</span><span class="o">=</span><span class="s1">&#39;profile_type&#39;</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s1">&#39;profile&#39;</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">profile_name</span> <span class="o">=</span> <span class="n">serializers</span><span class="o">.</span><span class="n">SlugRelatedField</span><span class="p">(</span><span class="n">slug_field</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s1">&#39;profile&#39;</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ProfileSASerializer.Meta"><a class="viewcode-back" href="../../../ESSArch_Core.profiles.html#ESSArch_Core.profiles.serializers.ProfileSASerializer.Meta">[docs]</a>    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">ProfileSA</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s1">&#39;url&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;profile&#39;</span><span class="p">,</span> <span class="s1">&#39;submission_agreement&#39;</span><span class="p">,</span> <span class="s1">&#39;profile_name&#39;</span><span class="p">,</span> <span class="s1">&#39;profile_type&#39;</span><span class="p">,</span> <span class="s1">&#39;LockedBy&#39;</span><span class="p">,</span> <span class="s1">&#39;Unlockable&#39;</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ProfileIPSerializer"><a class="viewcode-back" href="../../../ESSArch_Core.profiles.html#ESSArch_Core.profiles.serializers.ProfileIPSerializer">[docs]</a><span class="k">class</span> <span class="nc">ProfileIPSerializer</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">HyperlinkedModelSerializer</span><span class="p">):</span>
+    <span class="n">profile_type</span> <span class="o">=</span> <span class="n">serializers</span><span class="o">.</span><span class="n">SlugRelatedField</span><span class="p">(</span><span class="n">slug_field</span><span class="o">=</span><span class="s1">&#39;profile_type&#39;</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s1">&#39;profile&#39;</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">profile_name</span> <span class="o">=</span> <span class="n">serializers</span><span class="o">.</span><span class="n">SlugRelatedField</span><span class="p">(</span><span class="n">slug_field</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s1">&#39;profile&#39;</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ProfileIPSerializer.Meta"><a class="viewcode-back" href="../../../ESSArch_Core.profiles.html#ESSArch_Core.profiles.serializers.ProfileIPSerializer.Meta">[docs]</a>    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">ProfileIP</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s1">&#39;url&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;profile&#39;</span><span class="p">,</span> <span class="s1">&#39;ip&#39;</span><span class="p">,</span> <span class="s1">&#39;profile_name&#39;</span><span class="p">,</span> <span class="s1">&#39;profile_type&#39;</span><span class="p">,</span> <span class="s1">&#39;included&#39;</span><span class="p">,</span> <span class="s1">&#39;LockedBy&#39;</span><span class="p">,</span> <span class="s1">&#39;Unlockable&#39;</span><span class="p">,</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SubmissionAgreementSerializer"><a class="viewcode-back" href="../../../ESSArch_Core.profiles.html#ESSArch_Core.profiles.serializers.SubmissionAgreementSerializer">[docs]</a><span class="k">class</span> <span class="nc">SubmissionAgreementSerializer</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">HyperlinkedModelSerializer</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">serializers</span><span class="o">.</span><span class="n">ReadOnlyField</span><span class="p">()</span>
+
+    <span class="n">profiles</span> <span class="o">=</span> <span class="n">ProfileSASerializer</span><span class="p">(</span><span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SubmissionAgreementSerializer.to_representation"><a class="viewcode-back" href="../../../ESSArch_Core.profiles.html#ESSArch_Core.profiles.serializers.SubmissionAgreementSerializer.to_representation">[docs]</a>    <span class="k">def</span> <span class="nf">to_representation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">SubmissionAgreementSerializer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">to_representation</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="n">profiles</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;profiles&#39;</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;profiles&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">types</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;transfer_project&#39;</span><span class="p">,</span> <span class="s1">&#39;content_type&#39;</span><span class="p">,</span> <span class="s1">&#39;data_selection&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;authority_information&#39;</span><span class="p">,</span> <span class="s1">&#39;archival_description&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;import&#39;</span><span class="p">,</span> <span class="s1">&#39;submit_description&#39;</span><span class="p">,</span> <span class="s1">&#39;sip&#39;</span><span class="p">,</span> <span class="s1">&#39;aip&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;dip&#39;</span><span class="p">,</span> <span class="s1">&#39;workflow&#39;</span><span class="p">,</span> <span class="s1">&#39;preservation_metadata&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">ptype</span> <span class="ow">in</span> <span class="n">types</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;profile_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ptype</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">profiles</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;profile_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">p</span><span class="p">[</span><span class="s1">&#39;profile_type&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">p</span>
+
+        <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;profiles&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="SubmissionAgreementSerializer.Meta"><a class="viewcode-back" href="../../../ESSArch_Core.profiles.html#ESSArch_Core.profiles.serializers.SubmissionAgreementSerializer.Meta">[docs]</a>    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">SubmissionAgreement</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s1">&#39;url&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;sa_name&#39;</span><span class="p">,</span> <span class="s1">&#39;sa_type&#39;</span><span class="p">,</span> <span class="s1">&#39;sa_status&#39;</span><span class="p">,</span> <span class="s1">&#39;sa_label&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_cm_version&#39;</span><span class="p">,</span> <span class="s1">&#39;sa_cm_release_date&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_cm_change_authority&#39;</span><span class="p">,</span> <span class="s1">&#39;sa_cm_change_description&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_cm_sections_affected&#39;</span><span class="p">,</span> <span class="s1">&#39;sa_producer_organization&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_producer_main_name&#39;</span><span class="p">,</span> <span class="s1">&#39;sa_producer_main_address&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_producer_main_phone&#39;</span><span class="p">,</span> <span class="s1">&#39;sa_producer_main_email&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_producer_main_additional&#39;</span><span class="p">,</span> <span class="s1">&#39;sa_producer_individual_name&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_producer_individual_role&#39;</span><span class="p">,</span> <span class="s1">&#39;sa_producer_individual_phone&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_producer_individual_email&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_producer_individual_additional&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_archivist_organization&#39;</span><span class="p">,</span> <span class="s1">&#39;sa_archivist_main_name&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_archivist_main_address&#39;</span><span class="p">,</span> <span class="s1">&#39;sa_archivist_main_phone&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_archivist_main_email&#39;</span><span class="p">,</span> <span class="s1">&#39;sa_archivist_main_additional&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_archivist_individual_name&#39;</span><span class="p">,</span> <span class="s1">&#39;sa_archivist_individual_role&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_archivist_individual_phone&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_archivist_individual_email&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_archivist_individual_additional&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_designated_community_description&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_designated_community_individual_name&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_designated_community_individual_role&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_designated_community_individual_phone&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_designated_community_individual_email&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sa_designated_community_individual_additional&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;information_packages&#39;</span><span class="p">,</span> <span class="s1">&#39;profiles&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;include_profile_transfer_project&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;include_profile_content_type&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;include_profile_data_selection&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;include_profile_authority_information&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;include_profile_archival_description&#39;</span><span class="p">,</span> <span class="s1">&#39;include_profile_import&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;include_profile_submit_description&#39;</span><span class="p">,</span> <span class="s1">&#39;include_profile_sip&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;include_profile_aip&#39;</span><span class="p">,</span> <span class="s1">&#39;include_profile_dip&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;include_profile_workflow&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;include_profile_preservation_metadata&#39;</span><span class="p">,</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ProfileSerializer"><a class="viewcode-back" href="../../../ESSArch_Core.profiles.html#ESSArch_Core.profiles.serializers.ProfileSerializer">[docs]</a><span class="k">class</span> <span class="nc">ProfileSerializer</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">HyperlinkedModelSerializer</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">serializers</span><span class="o">.</span><span class="n">ReadOnlyField</span><span class="p">()</span>
+    <span class="n">specification_data</span> <span class="o">=</span> <span class="n">serializers</span><span class="o">.</span><span class="n">SerializerMethodField</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ProfileSerializer.get_specification_data"><a class="viewcode-back" href="../../../ESSArch_Core.profiles.html#ESSArch_Core.profiles.serializers.ProfileSerializer.get_specification_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_specification_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">specification_data</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;request&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">request</span><span class="p">:</span>
+            <span class="n">sa</span> <span class="o">=</span> <span class="n">SubmissionAgreement</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">pk</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sa&#39;</span><span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+            <span class="n">ip</span> <span class="o">=</span> <span class="n">InformationPackage</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">pk</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ip&#39;</span><span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">sa</span> <span class="ow">and</span> <span class="n">ip</span><span class="p">:</span>
+                <span class="n">sa</span> <span class="o">=</span> <span class="n">ip</span><span class="o">.</span><span class="n">SubmissionAgreement</span>
+
+            <span class="n">data</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">fill_specification_data</span><span class="p">(</span><span class="n">sa</span><span class="p">,</span> <span class="n">ip</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="ProfileSerializer.Meta"><a class="viewcode-back" href="../../../ESSArch_Core.profiles.html#ESSArch_Core.profiles.serializers.ProfileSerializer.Meta">[docs]</a>    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Profile</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s1">&#39;url&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;profile_type&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;schemas&#39;</span><span class="p">,</span> <span class="s1">&#39;representation_info&#39;</span><span class="p">,</span> <span class="s1">&#39;preservation_descriptive_info&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;supplemental&#39;</span><span class="p">,</span> <span class="s1">&#39;access_constraints&#39;</span><span class="p">,</span> <span class="s1">&#39;datamodel_reference&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;cm_release_date&#39;</span><span class="p">,</span> <span class="s1">&#39;cm_change_authority&#39;</span><span class="p">,</span> <span class="s1">&#39;cm_change_description&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;cm_sections_affected&#39;</span><span class="p">,</span> <span class="s1">&#39;cm_version&#39;</span><span class="p">,</span> <span class="s1">&#39;additional&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;submission_method&#39;</span><span class="p">,</span> <span class="s1">&#39;submission_schedule&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;submission_data_inventory&#39;</span><span class="p">,</span> <span class="s1">&#39;structure&#39;</span><span class="p">,</span> <span class="s1">&#39;template&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;specification_data&#39;</span><span class="p">,</span>
+        <span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, ES Solutions.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

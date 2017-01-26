@@ -1,0 +1,53 @@
+ESSArch_TA.frontend package
+===========================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ESSArch_TA.frontend.migrations
+
+Submodules
+----------
+
+ESSArch_TA.frontend.models module
+---------------------------------
+
+.. automodule:: ESSArch_TA.frontend.models
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_TA.frontend.tests module
+--------------------------------
+
+.. automodule:: ESSArch_TA.frontend.tests
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_TA.frontend.urls module
+-------------------------------
+
+.. automodule:: ESSArch_TA.frontend.urls
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_TA.frontend.views module
+--------------------------------
+
+.. automodule:: ESSArch_TA.frontend.views
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_TA.frontend
+    :members:
+    :undoc-members:
+    :show-inheritance:

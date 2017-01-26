@@ -1,0 +1,60 @@
+ESSArch_Core package
+====================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ESSArch_Core.WorkflowEngine
+    ESSArch_Core.config
+    ESSArch_Core.configuration
+    ESSArch_Core.essxml
+    ESSArch_Core.ip
+    ESSArch_Core.profiles
+    ESSArch_Core.rest
+    ESSArch_Core.views
+
+Submodules
+----------
+
+ESSArch_Core.filters module
+---------------------------
+
+.. automodule:: ESSArch_Core.filters
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_Core.serializers module
+-------------------------------
+
+.. automodule:: ESSArch_Core.serializers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_Core.tasks module
+-------------------------
+
+.. automodule:: ESSArch_Core.tasks
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_Core.util module
+------------------------
+
+.. automodule:: ESSArch_Core.util
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_Core
+    :members:
+    :undoc-members:
+    :show-inheritance:

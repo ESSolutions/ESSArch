@@ -1,0 +1,1207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ESSArch_Core.WorkflowEngine.migrations package &#8212; ESSArch Core 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ESSArch_Core.WorkflowEngine.tests package" href="ESSArch_Core.WorkflowEngine.tests.html" />
+    <link rel="prev" title="ESSArch_Core.WorkflowEngine package" href="ESSArch_Core.WorkflowEngine.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="essarch-core-workflowengine-migrations-package">
+<h1>ESSArch_Core.WorkflowEngine.migrations package<a class="headerlink" href="#essarch-core-workflowengine-migrations-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0001_initial">
+<span id="essarch-core-workflowengine-migrations-0001-initial-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0001_initial module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0001_initial" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0001_initial.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0001_initial.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0001_initial.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0001_initial.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0001_initial.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = []</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0001_initial.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0001_initial.Migration.initial">
+<code class="descname">initial</code><em class="property"> = True</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0001_initial.Migration.initial" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0001_initial.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;CreateModel  fields=[(u'ObjectUUID', &lt;django.db.models.fields.UUIDField&gt;)], name=u'ArchiveObject'&gt;, &lt;CreateModel  fields=[(u'id', &lt;django.db.models.fields.UUIDField&gt;), (u'name', &lt;django.db.models.fields.CharField&gt;), (u'progress', &lt;django.db.models.fields.IntegerField&gt;), (u'type', &lt;django.db.models.fields.IntegerField&gt;), (u'user', &lt;django.db.models.fields.CharField&gt;), (u'result', &lt;picklefield.fields.PickledObjectField&gt;), (u'status', &lt;django.db.models.fields.IntegerField&gt;), (u'posted', &lt;django.db.models.fields.DateTimeField&gt;), (u'hidden', &lt;django.db.models.fields.BooleanField&gt;), (u'archiveobject', &lt;django.db.models.fields.related.ForeignKey&gt;)], options={u'db_table': u'ProcessStep'}, name=u'ProcessStep'&gt;, &lt;CreateModel  fields=[(u'id', &lt;django.db.models.fields.UUIDField&gt;), (u'name', &lt;django.db.models.fields.CharField&gt;), (u'progress', &lt;django.db.models.fields.IntegerField&gt;), (u'task_id', &lt;django.db.models.fields.CharField&gt;), (u'status', &lt;django.db.models.fields.CharField&gt;), (u'result', &lt;picklefield.fields.PickledObjectField&gt;), (u'date_done', &lt;django.db.models.fields.DateTimeField&gt;), (u'traceback', &lt;django.db.models.fields.TextField&gt;), (u'hidden', &lt;django.db.models.fields.BooleanField&gt;), (u'meta', &lt;picklefield.fields.PickledObjectField&gt;), (u'processstep', &lt;django.db.models.fields.related.ForeignKey&gt;)], options={u'db_table': u'ProcessTask'}, name=u'ProcessTask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0001_initial.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0002_auto_20160717_1120">
+<span id="essarch-core-workflowengine-migrations-0002-auto-20160717-1120-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0002_auto_20160717_1120 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0002_auto_20160717_1120" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0002_auto_20160717_1120.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0002_auto_20160717_1120.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0002_auto_20160717_1120.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0002_auto_20160717_1120.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0002_auto_20160717_1120.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0001_initial')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0002_auto_20160717_1120.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0002_auto_20160717_1120.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterModelTable  table=u'ArchiveObject', name=u'archiveobject'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0002_auto_20160717_1120.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0003_task">
+<span id="essarch-core-workflowengine-migrations-0003-task-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0003_task module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0003_task" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0003_task.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0003_task.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0003_task.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0003_task.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0003_task.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0002_auto_20160717_1120')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0003_task.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0003_task.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;CreateModel  fields=[(u'name', &lt;django.db.models.fields.CharField&gt;)], name=u'Task'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0003_task.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0004_auto_20160717_1815">
+<span id="essarch-core-workflowengine-migrations-0004-auto-20160717-1815-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0004_auto_20160717_1815 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0004_auto_20160717_1815" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0004_auto_20160717_1815.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0004_auto_20160717_1815.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0004_auto_20160717_1815.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0004_auto_20160717_1815.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0004_auto_20160717_1815.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0003_task')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0004_auto_20160717_1815.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0004_auto_20160717_1815.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterModelTable  table=u'Task', name=u'task'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0004_auto_20160717_1815.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0005_auto_20160718_1248">
+<span id="essarch-core-workflowengine-migrations-0005-auto-20160718-1248-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0005_auto_20160718_1248 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0005_auto_20160718_1248" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0005_auto_20160718_1248.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0005_auto_20160718_1248.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0005_auto_20160718_1248.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0005_auto_20160718_1248.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0005_auto_20160718_1248.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0004_auto_20160717_1815')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0005_auto_20160718_1248.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0005_auto_20160718_1248.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.IntegerField&gt;, name=u'status', model_name=u'processstep'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.IntegerField&gt;, name=u'type', model_name=u'processstep'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0005_auto_20160718_1248.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0006_step">
+<span id="essarch-core-workflowengine-migrations-0006-step-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0006_step module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0006_step" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0006_step.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0006_step.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0006_step.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0006_step.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0006_step.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0005_auto_20160718_1248')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0006_step.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0006_step.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;CreateModel  fields=[(u'name', &lt;django.db.models.fields.CharField&gt;)], options={u'db_table': u'Step'}, name=u'Step'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0006_step.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0007_auto_20160718_2213">
+<span id="essarch-core-workflowengine-migrations-0007-auto-20160718-2213-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0007_auto_20160718_2213 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0007_auto_20160718_2213" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0007_auto_20160718_2213.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0007_auto_20160718_2213.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0007_auto_20160718_2213.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0007_auto_20160718_2213.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0007_auto_20160718_2213.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0006_step')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0007_auto_20160718_2213.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0007_auto_20160718_2213.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.DateTimeField&gt;, name=u'date_done', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0007_auto_20160718_2213.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0008_auto_20160719_1622">
+<span id="essarch-core-workflowengine-migrations-0008-auto-20160719-1622-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0008_auto_20160719_1622 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0008_auto_20160719_1622" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0008_auto_20160719_1622.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0008_auto_20160719_1622.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0008_auto_20160719_1622.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0008_auto_20160719_1622.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0008_auto_20160719_1622.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0007_auto_20160718_2213')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0008_auto_20160719_1622.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0008_auto_20160719_1622.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;CreateModel  fields=[(u'id', &lt;django.db.models.fields.AutoField&gt;), (u'order', &lt;django.db.models.fields.IntegerField&gt;), (u'step', &lt;django.db.models.fields.related.ForeignKey&gt;), (u'task', &lt;django.db.models.fields.related.ForeignKey&gt;)], name=u'StepTask'&gt;, &lt;AddField  field=&lt;picklefield.fields.PickledObjectField&gt;, name=u'params', model_name=u'processtask'&gt;, &lt;AddField  field=&lt;django.db.models.fields.IntegerField&gt;, name=u'processstep_pos', model_name=u'processtask'&gt;, &lt;AddField  field=&lt;django.db.models.fields.DateTimeField&gt;, name=u'started', model_name=u'processtask'&gt;, &lt;AlterField  field=&lt;picklefield.fields.PickledObjectField&gt;, name=u'result', model_name=u'processstep'&gt;, &lt;AddField  field=&lt;django.db.models.fields.related.ManyToManyField&gt;, name=u'tasks', model_name=u'step'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0008_auto_20160719_1622.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0009_auto_20160721_2218">
+<span id="essarch-core-workflowengine-migrations-0009-auto-20160721-2218-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0009_auto_20160721_2218 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0009_auto_20160721_2218" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0009_auto_20160721_2218.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0009_auto_20160721_2218.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0009_auto_20160721_2218.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0009_auto_20160721_2218.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0009_auto_20160721_2218.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0008_auto_20160719_1622')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0009_auto_20160721_2218.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0009_auto_20160721_2218.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;django.db.models.fields.BooleanField&gt;, name=u'undone', model_name=u'processtask'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'processstep', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0009_auto_20160721_2218.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0010_processtask_undo_type">
+<span id="essarch-core-workflowengine-migrations-0010-processtask-undo-type-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0010_processtask_undo_type module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0010_processtask_undo_type" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0010_processtask_undo_type.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0010_processtask_undo_type.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0010_processtask_undo_type.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0010_processtask_undo_type.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0010_processtask_undo_type.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0009_auto_20160721_2218')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0010_processtask_undo_type.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0010_processtask_undo_type.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;django.db.models.fields.BooleanField&gt;, name=u'undo_type', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0010_processtask_undo_type.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0011_processtask_retried">
+<span id="essarch-core-workflowengine-migrations-0011-processtask-retried-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0011_processtask_retried module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0011_processtask_retried" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0011_processtask_retried.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0011_processtask_retried.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0011_processtask_retried.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0011_processtask_retried.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0011_processtask_retried.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0010_processtask_undo_type')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0011_processtask_retried.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0011_processtask_retried.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;django.db.models.fields.BooleanField&gt;, name=u'retried', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0011_processtask_retried.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0012_auto_20160723_1912">
+<span id="essarch-core-workflowengine-migrations-0012-auto-20160723-1912-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0012_auto_20160723_1912 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0012_auto_20160723_1912" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0012_auto_20160723_1912.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0012_auto_20160723_1912.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0012_auto_20160723_1912.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0012_auto_20160723_1912.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0012_auto_20160723_1912.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0011_processtask_retried')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0012_auto_20160723_1912.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0012_auto_20160723_1912.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.CharField&gt;, name=u'task_id', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0012_auto_20160723_1912.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0013_auto_20160724_1227">
+<span id="essarch-core-workflowengine-migrations-0013-auto-20160724-1227-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0013_auto_20160724_1227 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0013_auto_20160724_1227" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0013_auto_20160724_1227.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0013_auto_20160724_1227.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0013_auto_20160724_1227.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0013_auto_20160724_1227.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0013_auto_20160724_1227.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0012_auto_20160723_1912')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0013_auto_20160724_1227.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0013_auto_20160724_1227.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.DateTimeField&gt;, name=u'started', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0013_auto_20160724_1227.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0014_processtask_attempt">
+<span id="essarch-core-workflowengine-migrations-0014-processtask-attempt-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0014_processtask_attempt module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0014_processtask_attempt" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0014_processtask_attempt.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0014_processtask_attempt.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0014_processtask_attempt.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0014_processtask_attempt.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0014_processtask_attempt.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0013_auto_20160724_1227')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0014_processtask_attempt.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0014_processtask_attempt.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;django.db.models.fields.UUIDField&gt;, name=u'attempt', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0014_processtask_attempt.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0015_remove_processstep_progress">
+<span id="essarch-core-workflowengine-migrations-0015-remove-processstep-progress-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0015_remove_processstep_progress module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0015_remove_processstep_progress" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0015_remove_processstep_progress.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0015_remove_processstep_progress.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0015_remove_processstep_progress.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0015_remove_processstep_progress.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0015_remove_processstep_progress.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0014_processtask_attempt')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0015_remove_processstep_progress.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0015_remove_processstep_progress.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'progress', model_name=u'processstep'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0015_remove_processstep_progress.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0016_processstep_task_set">
+<span id="essarch-core-workflowengine-migrations-0016-processstep-task-set-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0016_processstep_task_set module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0016_processstep_task_set" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0016_processstep_task_set.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0016_processstep_task_set.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0016_processstep_task_set.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0016_processstep_task_set.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0016_processstep_task_set.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0015_remove_processstep_progress')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0016_processstep_task_set.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0016_processstep_task_set.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;picklefield.fields.PickledObjectField&gt;, name=u'task_set', model_name=u'processstep'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0016_processstep_task_set.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0017_auto_20160725_2028">
+<span id="essarch-core-workflowengine-migrations-0017-auto-20160725-2028-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0017_auto_20160725_2028 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0017_auto_20160725_2028" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0017_auto_20160725_2028.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0017_auto_20160725_2028.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0017_auto_20160725_2028.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0017_auto_20160725_2028.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0017_auto_20160725_2028.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0016_processstep_task_set')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0017_auto_20160725_2028.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0017_auto_20160725_2028.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, preserve_default=False, name=u'processstep', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0017_auto_20160725_2028.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0018_auto_20160725_2120">
+<span id="essarch-core-workflowengine-migrations-0018-auto-20160725-2120-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0018_auto_20160725_2120 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0018_auto_20160725_2120" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0018_auto_20160725_2120.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0018_auto_20160725_2120.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0018_auto_20160725_2120.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0018_auto_20160725_2120.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0018_auto_20160725_2120.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0017_auto_20160725_2028')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0018_auto_20160725_2120.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0018_auto_20160725_2120.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RenameField  new_name=u'time_created', model_name=u'processstep', old_name=u'posted'&gt;, &lt;RenameField  new_name=u'time_done', model_name=u'processtask', old_name=u'date_done'&gt;, &lt;RenameField  new_name=u'time_started', model_name=u'processtask', old_name=u'started'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0018_auto_20160725_2120.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0019_processstep_parent_step">
+<span id="essarch-core-workflowengine-migrations-0019-processstep-parent-step-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0019_processstep_parent_step module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0019_processstep_parent_step" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0019_processstep_parent_step.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0019_processstep_parent_step.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0019_processstep_parent_step.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0019_processstep_parent_step.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0019_processstep_parent_step.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0018_auto_20160725_2120')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0019_processstep_parent_step.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0019_processstep_parent_step.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'parent_step', model_name=u'processstep'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0019_processstep_parent_step.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0020_processstep_waitforparams">
+<span id="essarch-core-workflowengine-migrations-0020-processstep-waitforparams-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0020_processstep_waitforparams module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0020_processstep_waitforparams" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0020_processstep_waitforparams.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0020_processstep_waitforparams.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0020_processstep_waitforparams.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0020_processstep_waitforparams.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0020_processstep_waitforparams.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0019_processstep_parent_step')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0020_processstep_waitforparams.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0020_processstep_waitforparams.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;django.db.models.fields.BooleanField&gt;, name=u'waitForParams', model_name=u'processstep'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0020_processstep_waitforparams.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0021_auto_20160803_1628">
+<span id="essarch-core-workflowengine-migrations-0021-auto-20160803-1628-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0021_auto_20160803_1628 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0021_auto_20160803_1628" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0021_auto_20160803_1628.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0021_auto_20160803_1628.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0021_auto_20160803_1628.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0021_auto_20160803_1628.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0021_auto_20160803_1628.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0020_processstep_waitforparams')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0021_auto_20160803_1628.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0021_auto_20160803_1628.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterModelOptions  options={u'ordering': (u'processstep_pos',)}, name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0021_auto_20160803_1628.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0022_auto_20160803_1705">
+<span id="essarch-core-workflowengine-migrations-0022-auto-20160803-1705-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0022_auto_20160803_1705 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0022_auto_20160803_1705" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0022_auto_20160803_1705.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0022_auto_20160803_1705.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0022_auto_20160803_1705.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0022_auto_20160803_1705.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0022_auto_20160803_1705.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0021_auto_20160803_1628')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0022_auto_20160803_1705.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0022_auto_20160803_1705.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;CreateModel  fields=[(u'name', &lt;django.db.models.fields.CharField&gt;), (u'shortname', &lt;django.db.models.fields.CharField&gt;)], options={u'db_table': u'Nationality'}, name=u'Nationality'&gt;, &lt;CreateModel  fields=[(u'id', &lt;django.db.models.fields.UUIDField&gt;), (u'name', &lt;django.db.models.fields.CharField&gt;), (u'state', &lt;django.db.models.fields.CharField&gt;), (u'archivistOrganisation', &lt;django.db.models.fields.CharField&gt;), (u'archivistOrganisationIdentity', &lt;django.db.models.fields.CharField&gt;), (u'archivistOrganisationSoftware', &lt;django.db.models.fields.CharField&gt;), (u'archivistOrganisationSoftwareIdentity', &lt;django.db.models.fields.CharField&gt;), (u'creatorOrganisation', &lt;django.db.models.fields.CharField&gt;), (u'creatorOrganisationIdentity', &lt;django.db.models.fields.CharField&gt;), (u'creatorOrganisationSoftware', &lt;django.db.models.fields.CharField&gt;), (u'creatorOrganisationSoftwareIdentity', &lt;django.db.models.fields.CharField&gt;), (u'producerOrganisation', &lt;django.db.models.fields.CharField&gt;), (u'producerIndividual', &lt;django.db.models.fields.CharField&gt;), (u'producerOrganisationSoftware', &lt;django.db.models.fields.CharField&gt;), (u'producerOrganisationSoftwareIdentity', &lt;django.db.models.fields.CharField&gt;), (u'ipOwnerOrganisation', &lt;django.db.models.fields.CharField&gt;), (u'ipOwnerIndividual', &lt;django.db.models.fields.CharField&gt;), (u'ipOwnerOrganisationSoftware', &lt;django.db.models.fields.CharField&gt;), (u'ipOwnerOrganisationSoftwareIdentity', &lt;django.db.models.fields.CharField&gt;), (u'editorOrganisation', &lt;django.db.models.fields.CharField&gt;), (u'editorIndividual', &lt;django.db.models.fields.CharField&gt;), (u'editorOrganisationSoftware', &lt;django.db.models.fields.CharField&gt;), (u'editorOrganisationSoftwareIdentity', &lt;django.db.models.fields.CharField&gt;), (u'preservationOrganisation', &lt;django.db.models.fields.CharField&gt;), (u'preservationIndividual', &lt;django.db.models.fields.CharField&gt;), (u'preservationOrganisationSoftware', &lt;django.db.models.fields.CharField&gt;), (u'preservationOrganisationSoftwareIdentity', &lt;django.db.models.fields.CharField&gt;), (u'nationality', &lt;django.db.models.fields.related.ForeignKey&gt;)], options={u'db_table': u'Profile'}, name=u'Profile'&gt;, &lt;CreateModel  fields=[(u'name', &lt;django.db.models.fields.CharField&gt;)], options={u'db_table': u'SubmissionAgreement'}, name=u'SubmissionAgreement'&gt;, &lt;AddField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'submissionAgreement', model_name=u'profile'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0022_auto_20160803_1705.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0023_auto_20160804_2117">
+<span id="essarch-core-workflowengine-migrations-0023-auto-20160804-2117-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0023_auto_20160804_2117 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0023_auto_20160804_2117" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0023_auto_20160804_2117.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0023_auto_20160804_2117.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0023_auto_20160804_2117.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0023_auto_20160804_2117.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0023_auto_20160804_2117.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0022_auto_20160803_1705')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0023_auto_20160804_2117.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0023_auto_20160804_2117.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'task_set', model_name=u'processstep'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.CharField&gt;, name=u'name', model_name=u'processtask'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.TextField&gt;, name=u'traceback', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0023_auto_20160804_2117.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0024_auto_20160805_1345">
+<span id="essarch-core-workflowengine-migrations-0024-auto-20160805-1345-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0024_auto_20160805_1345 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0024_auto_20160805_1345" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0024_auto_20160805_1345.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0024_auto_20160805_1345.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0024_auto_20160805_1345.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0024_auto_20160805_1345.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0024_auto_20160805_1345.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0023_auto_20160804_2117')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0024_auto_20160805_1345.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0024_auto_20160805_1345.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.CharField&gt;, name=u'name', model_name=u'processstep'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0024_auto_20160805_1345.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0025_remove_processstep_status">
+<span id="essarch-core-workflowengine-migrations-0025-remove-processstep-status-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0025_remove_processstep_status module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0025_remove_processstep_status" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0025_remove_processstep_status.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0025_remove_processstep_status.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0025_remove_processstep_status.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0025_remove_processstep_status.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0025_remove_processstep_status.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0024_auto_20160805_1345')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0025_remove_processstep_status.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0025_remove_processstep_status.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'status', model_name=u'processstep'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0025_remove_processstep_status.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0026_auto_20160805_1353">
+<span id="essarch-core-workflowengine-migrations-0026-auto-20160805-1353-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0026_auto_20160805_1353 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0026_auto_20160805_1353" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0026_auto_20160805_1353.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0026_auto_20160805_1353.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0026_auto_20160805_1353.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0026_auto_20160805_1353.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0026_auto_20160805_1353.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0025_remove_processstep_status')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0026_auto_20160805_1353.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0026_auto_20160805_1353.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.IntegerField&gt;, name=u'type', model_name=u'processstep'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0026_auto_20160805_1353.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0027_auto_20160805_1702">
+<span id="essarch-core-workflowengine-migrations-0027-auto-20160805-1702-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0027_auto_20160805_1702 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0027_auto_20160805_1702" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0027_auto_20160805_1702.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0027_auto_20160805_1702.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0027_auto_20160805_1702.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0027_auto_20160805_1702.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0027_auto_20160805_1702.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0026_auto_20160805_1353')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0027_auto_20160805_1702.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0027_auto_20160805_1702.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.UUIDField&gt;, name=u'attempt', model_name=u'processtask'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.IntegerField&gt;, name=u'processstep_pos', model_name=u'processtask'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.IntegerField&gt;, name=u'progress', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0027_auto_20160805_1702.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0028_auto_20160808_1152">
+<span id="essarch-core-workflowengine-migrations-0028-auto-20160808-1152-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0028_auto_20160808_1152 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0028_auto_20160808_1152" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0028_auto_20160808_1152.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0028_auto_20160808_1152.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0028_auto_20160808_1152.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0028_auto_20160808_1152.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0028_auto_20160808_1152.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0027_auto_20160805_1702')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0028_auto_20160808_1152.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0028_auto_20160808_1152.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'task_id', model_name=u'processtask'&gt;, &lt;AddField  field=&lt;django.db.models.fields.UUIDField&gt;, name=u'celery_id', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0028_auto_20160808_1152.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0029_archiveobject_label">
+<span id="essarch-core-workflowengine-migrations-0029-archiveobject-label-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0029_archiveobject_label module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0029_archiveobject_label" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0029_archiveobject_label.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0029_archiveobject_label.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0029_archiveobject_label.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0029_archiveobject_label.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0029_archiveobject_label.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0028_auto_20160808_1152')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0029_archiveobject_label.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0029_archiveobject_label.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;django.db.models.fields.CharField&gt;, preserve_default=False, name=u'label', model_name=u'archiveobject'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0029_archiveobject_label.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0030_auto_20160817_0921">
+<span id="essarch-core-workflowengine-migrations-0030-auto-20160817-0921-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0030_auto_20160817_0921 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0030_auto_20160817_0921" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0030_auto_20160817_0921.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0030_auto_20160817_0921.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0030_auto_20160817_0921.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0030_auto_20160817_0921.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0030_auto_20160817_0921.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0029_archiveobject_label')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0030_auto_20160817_0921.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0030_auto_20160817_0921.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'archiveobject', model_name=u'processstep'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0030_auto_20160817_0921.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0031_auto_20160817_1150">
+<span id="essarch-core-workflowengine-migrations-0031-auto-20160817-1150-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0031_auto_20160817_1150 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0031_auto_20160817_1150" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0031_auto_20160817_1150.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0031_auto_20160817_1150.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0031_auto_20160817_1150.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0031_auto_20160817_1150.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0031_auto_20160817_1150.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0030_auto_20160817_0921')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0031_auto_20160817_1150.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0031_auto_20160817_1150.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;django.db.models.fields.CharField&gt;, name=u'checksum', model_name=u'archiveobject'&gt;, &lt;AddField  field=&lt;django.db.models.fields.CharField&gt;, name=u'checksum_algorithm', model_name=u'archiveobject'&gt;, &lt;AddField  field=&lt;django.db.models.fields.IntegerField&gt;, name=u'filesize', model_name=u'archiveobject'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0031_auto_20160817_1150.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0032_processstep_parallel">
+<span id="essarch-core-workflowengine-migrations-0032-processstep-parallel-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0032_processstep_parallel module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0032_processstep_parallel" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0032_processstep_parallel.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0032_processstep_parallel.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0032_processstep_parallel.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0032_processstep_parallel.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0032_processstep_parallel.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0031_auto_20160817_1150')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0032_processstep_parallel.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0032_processstep_parallel.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;django.db.models.fields.BooleanField&gt;, name=u'parallel', model_name=u'processstep'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0032_processstep_parallel.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0033_auto_20160818_1128">
+<span id="essarch-core-workflowengine-migrations-0033-auto-20160818-1128-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0033_auto_20160818_1128 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0033_auto_20160818_1128" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0033_auto_20160818_1128.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0033_auto_20160818_1128.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0033_auto_20160818_1128.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0033_auto_20160818_1128.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0033_auto_20160818_1128.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0032_processstep_parallel')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0033_auto_20160818_1128.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0033_auto_20160818_1128.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;CreateModel  fields=[(u'id', &lt;django.db.models.fields.UUIDField&gt;), (u'eventIdentifierValue', &lt;django.db.models.fields.CharField&gt;), (u'eventDateTime', &lt;django.db.models.fields.DateTimeField&gt;), (u'eventDetail', &lt;django.db.models.fields.CharField&gt;), (u'eventApplication', &lt;django.db.models.fields.CharField&gt;), (u'eventVersion', &lt;django.db.models.fields.CharField&gt;), (u'eventOutcome', &lt;django.db.models.fields.IntegerField&gt;), (u'eventOutcomeDetailNote', &lt;django.db.models.fields.CharField&gt;), (u'linkingAgentIdentifierValue', &lt;django.db.models.fields.CharField&gt;), (u'archiveObject', &lt;django.db.models.fields.related.ForeignKey&gt;)], options={u'db_table': u'Event'}, name=u'Event'&gt;, &lt;CreateModel  fields=[(u'id', &lt;django.db.models.fields.UUIDField&gt;), (u'code', &lt;django.db.models.fields.IntegerField&gt;), (u'desc_sv', &lt;django.db.models.fields.CharField&gt;), (u'desc_en', &lt;django.db.models.fields.CharField&gt;), (u'localDB', &lt;django.db.models.fields.IntegerField&gt;), (u'externalDB', &lt;django.db.models.fields.IntegerField&gt;)], options={u'db_table': u'EventType'}, name=u'EventType'&gt;, &lt;AddField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'eventType', model_name=u'event'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0033_auto_20160818_1128.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0034_auto_20160818_1349">
+<span id="essarch-core-workflowengine-migrations-0034-auto-20160818-1349-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0034_auto_20160818_1349 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0034_auto_20160818_1349" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0034_auto_20160818_1349.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0034_auto_20160818_1349.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0034_auto_20160818_1349.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0034_auto_20160818_1349.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0034_auto_20160818_1349.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0033_auto_20160818_1128')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0034_auto_20160818_1349.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0034_auto_20160818_1349.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'eventIdentifierValue', model_name=u'event'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.DateTimeField&gt;, name=u'eventDateTime', model_name=u'event'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0034_auto_20160818_1349.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0035_auto_20160819_1245">
+<span id="essarch-core-workflowengine-migrations-0035-auto-20160819-1245-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0035_auto_20160819_1245 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0035_auto_20160819_1245" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0035_auto_20160819_1245.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0035_auto_20160819_1245.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0035_auto_20160819_1245.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0035_auto_20160819_1245.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0035_auto_20160819_1245.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0034_auto_20160818_1349')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0035_auto_20160819_1245.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0035_auto_20160819_1245.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RenameField  new_name=u'application', model_name=u'event', old_name=u'eventApplication'&gt;, &lt;RenameField  new_name=u'dateTime', model_name=u'event', old_name=u'eventDateTime'&gt;, &lt;RenameField  new_name=u'detail', model_name=u'event', old_name=u'eventDetail'&gt;, &lt;RenameField  new_name=u'outcome', model_name=u'event', old_name=u'eventOutcome'&gt;, &lt;RenameField  new_name=u'outcomeDetailNote', model_name=u'event', old_name=u'eventOutcomeDetailNote'&gt;, &lt;RenameField  new_name=u'type', model_name=u'event', old_name=u'eventType'&gt;, &lt;RenameField  new_name=u'version', model_name=u'event', old_name=u'eventVersion'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0035_auto_20160819_1245.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0036_auto_20160819_1354">
+<span id="essarch-core-workflowengine-migrations-0036-auto-20160819-1354-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0036_auto_20160819_1354 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0036_auto_20160819_1354" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0036_auto_20160819_1354.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0036_auto_20160819_1354.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0036_auto_20160819_1354.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0036_auto_20160819_1354.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0036_auto_20160819_1354.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0035_auto_20160819_1245')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0036_auto_20160819_1354.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0036_auto_20160819_1354.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'tasks', model_name=u'step'&gt;, &lt;RemoveField  name=u'step', model_name=u'steptask'&gt;, &lt;RemoveField  name=u'task', model_name=u'steptask'&gt;, &lt;DeleteModel  name=u'Step'&gt;, &lt;DeleteModel  name=u'StepTask'&gt;, &lt;DeleteModel  name=u'Task'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0036_auto_20160819_1354.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0037_auto_20160823_1220">
+<span id="essarch-core-workflowengine-migrations-0037-auto-20160823-1220-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0037_auto_20160823_1220 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0037_auto_20160823_1220" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0037_auto_20160823_1220.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0037_auto_20160823_1220.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0037_auto_20160823_1220.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0037_auto_20160823_1220.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0037_auto_20160823_1220.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0036_auto_20160819_1354')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0037_auto_20160823_1220.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0037_auto_20160823_1220.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'archiveObject', model_name=u'event'&gt;, &lt;RemoveField  name=u'type', model_name=u'event'&gt;, &lt;RemoveField  name=u'nationality', model_name=u'profile'&gt;, &lt;RemoveField  name=u'submissionAgreement', model_name=u'profile'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'archiveobject', model_name=u'processstep'&gt;, &lt;DeleteModel  name=u'ArchiveObject'&gt;, &lt;DeleteModel  name=u'Event'&gt;, &lt;DeleteModel  name=u'EventType'&gt;, &lt;DeleteModel  name=u'Nationality'&gt;, &lt;DeleteModel  name=u'Profile'&gt;, &lt;DeleteModel  name=u'SubmissionAgreement'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0037_auto_20160823_1220.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0038_auto_20160824_1115">
+<span id="essarch-core-workflowengine-migrations-0038-auto-20160824-1115-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0038_auto_20160824_1115 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0038_auto_20160824_1115" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0038_auto_20160824_1115.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0038_auto_20160824_1115.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0038_auto_20160824_1115.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0038_auto_20160824_1115.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0038_auto_20160824_1115.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0037_auto_20160823_1220')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0038_auto_20160824_1115.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0038_auto_20160824_1115.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RenameField  new_name=u'information_package', model_name=u'processstep', old_name=u'archiveobject'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0038_auto_20160824_1115.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0039_processstep_parent_step_pos">
+<span id="essarch-core-workflowengine-migrations-0039-processstep-parent-step-pos-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0039_processstep_parent_step_pos module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0039_processstep_parent_step_pos" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0039_processstep_parent_step_pos.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0039_processstep_parent_step_pos.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0039_processstep_parent_step_pos.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0039_processstep_parent_step_pos.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0039_processstep_parent_step_pos.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0038_auto_20160824_1115')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0039_processstep_parent_step_pos.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0039_processstep_parent_step_pos.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;django.db.models.fields.IntegerField&gt;, name=u'parent_step_pos', model_name=u'processstep'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0039_processstep_parent_step_pos.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0040_auto_20160825_1751">
+<span id="essarch-core-workflowengine-migrations-0040-auto-20160825-1751-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0040_auto_20160825_1751 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0040_auto_20160825_1751" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0040_auto_20160825_1751.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0040_auto_20160825_1751.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0040_auto_20160825_1751.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0040_auto_20160825_1751.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0040_auto_20160825_1751.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0039_processstep_parent_step_pos')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0040_auto_20160825_1751.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0040_auto_20160825_1751.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterModelOptions  options={u'ordering': (u'parent_step_pos',)}, name=u'processstep'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0040_auto_20160825_1751.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0041_auto_20160825_1753">
+<span id="essarch-core-workflowengine-migrations-0041-auto-20160825-1753-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0041_auto_20160825_1753 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0041_auto_20160825_1753" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0041_auto_20160825_1753.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0041_auto_20160825_1753.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0041_auto_20160825_1753.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0041_auto_20160825_1753.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0041_auto_20160825_1753.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0040_auto_20160825_1751')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0041_auto_20160825_1753.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0041_auto_20160825_1753.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'processstep', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0041_auto_20160825_1753.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0042_auto_20160826_1338">
+<span id="essarch-core-workflowengine-migrations-0042-auto-20160826-1338-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0042_auto_20160826_1338 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0042_auto_20160826_1338" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0042_auto_20160826_1338.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0042_auto_20160826_1338.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0042_auto_20160826_1338.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0042_auto_20160826_1338.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0042_auto_20160826_1338.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0041_auto_20160825_1753')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0042_auto_20160826_1338.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0042_auto_20160826_1338.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;jsonfield.fields.JSONField&gt;, name=u'params', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0042_auto_20160826_1338.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0043_auto_20160831_0740">
+<span id="essarch-core-workflowengine-migrations-0043-auto-20160831-0740-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0043_auto_20160831_0740 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0043_auto_20160831_0740" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0043_auto_20160831_0740.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0043_auto_20160831_0740.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0043_auto_20160831_0740.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0043_auto_20160831_0740.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0043_auto_20160831_0740.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0042_auto_20160826_1338')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0043_auto_20160831_0740.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0043_auto_20160831_0740.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'processstep', model_name=u'processtask'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.DateTimeField&gt;, name=u'time_done', model_name=u'processtask'&gt;, &lt;AlterField  field=&lt;django.db.models.fields.DateTimeField&gt;, name=u'time_started', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0043_auto_20160831_0740.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0044_auto_20160916_0936">
+<span id="essarch-core-workflowengine-migrations-0044-auto-20160916-0936-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0044_auto_20160916_0936 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0044_auto_20160916_0936" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0044_auto_20160916_0936.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0044_auto_20160916_0936.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0044_auto_20160916_0936.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0044_auto_20160916_0936.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0044_auto_20160916_0936.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0043_auto_20160831_0740')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0044_auto_20160916_0936.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0044_auto_20160916_0936.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;jsonfield.fields.JSONField&gt;, name=u'result_params', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0044_auto_20160916_0936.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0045_auto_20160916_1134">
+<span id="essarch-core-workflowengine-migrations-0045-auto-20160916-1134-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0045_auto_20160916_1134 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0045_auto_20160916_1134" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0045_auto_20160916_1134.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0045_auto_20160916_1134.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0045_auto_20160916_1134.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0045_auto_20160916_1134.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0045_auto_20160916_1134.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0044_auto_20160916_0936')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0045_auto_20160916_1134.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0045_auto_20160916_1134.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.CharField&gt;, name=u'name', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0045_auto_20160916_1134.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0046_auto_20160916_1233">
+<span id="essarch-core-workflowengine-migrations-0046-auto-20160916-1233-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0046_auto_20160916_1233 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0046_auto_20160916_1233" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0046_auto_20160916_1233.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0046_auto_20160916_1233.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0046_auto_20160916_1233.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0046_auto_20160916_1233.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0046_auto_20160916_1233.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0045_auto_20160916_1134')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0046_auto_20160916_1233.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0046_auto_20160916_1233.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;django.db.models.fields.CharField&gt;, name=u'name', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0046_auto_20160916_1233.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0047_auto_20160925_1845">
+<span id="essarch-core-workflowengine-migrations-0047-auto-20160925-1845-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0047_auto_20160925_1845 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0047_auto_20160925_1845" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0047_auto_20160925_1845.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0047_auto_20160925_1845.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0047_auto_20160925_1845.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0047_auto_20160925_1845.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0047_auto_20160925_1845.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0046_auto_20160916_1233')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0047_auto_20160925_1845.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0047_auto_20160925_1845.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;picklefield.fields.PickledObjectField&gt;, name=u'params', model_name=u'processtask'&gt;, &lt;AlterField  field=&lt;picklefield.fields.PickledObjectField&gt;, name=u'result_params', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0047_auto_20160925_1845.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0048_processtask_information_package">
+<span id="essarch-core-workflowengine-migrations-0048-processtask-information-package-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0048_processtask_information_package module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0048_processtask_information_package" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0048_processtask_information_package.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0048_processtask_information_package.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0048_processtask_information_package.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0048_processtask_information_package.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0048_processtask_information_package.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'ip', u'0015_auto_20160915_0913'), (u'WorkflowEngine', u'0047_auto_20160925_1845')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0048_processtask_information_package.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0048_processtask_information_package.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'information_package', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0048_processtask_information_package.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0049_auto_20161118_1636">
+<span id="essarch-core-workflowengine-migrations-0049-auto-20161118-1636-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0049_auto_20161118_1636 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0049_auto_20161118_1636" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0049_auto_20161118_1636.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0049_auto_20161118_1636.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0049_auto_20161118_1636.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0049_auto_20161118_1636.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0049_auto_20161118_1636.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0048_processtask_information_package')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0049_auto_20161118_1636.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0049_auto_20161118_1636.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterModelOptions  options={u'ordering': (u'parent_step_pos', u'time_created')}, name=u'processstep'&gt;, &lt;AlterModelOptions  options={u'ordering': (u'processstep_pos', u'time_started')}, name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0049_auto_20161118_1636.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0050_auto_20161124_1116">
+<span id="essarch-core-workflowengine-migrations-0050-auto-20161124-1116-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0050_auto_20161124_1116 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0050_auto_20161124_1116" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0050_auto_20161124_1116.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0050_auto_20161124_1116.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0050_auto_20161124_1116.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0050_auto_20161124_1116.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0050_auto_20161124_1116.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0049_auto_20161118_1636')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0050_auto_20161124_1116.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0050_auto_20161124_1116.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'traceback', model_name=u'processtask'&gt;, &lt;AddField  field=&lt;picklefield.fields.PickledObjectField&gt;, name=u'einfo', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0050_auto_20161124_1116.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0051_processtask_log">
+<span id="essarch-core-workflowengine-migrations-0051-processtask-log-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0051_processtask_log module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0051_processtask_log" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0051_processtask_log.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0051_processtask_log.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0051_processtask_log.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0051_processtask_log.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0051_processtask_log.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0050_auto_20161124_1116')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0051_processtask_log.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0051_processtask_log.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;picklefield.fields.PickledObjectField&gt;, name=u'log', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0051_processtask_log.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0052_processtask_responsible">
+<span id="essarch-core-workflowengine-migrations-0052-processtask-responsible-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0052_processtask_responsible module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0052_processtask_responsible" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0052_processtask_responsible.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0052_processtask_responsible.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0052_processtask_responsible.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0052_processtask_responsible.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0052_processtask_responsible.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'auth', u'__first__'), (u'WorkflowEngine', u'0051_processtask_log')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0052_processtask_responsible.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0052_processtask_responsible.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AddField  field=&lt;django.db.models.fields.related.ForeignKey&gt;, name=u'responsible', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0052_processtask_responsible.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0053_remove_processstep_waitforparams">
+<span id="essarch-core-workflowengine-migrations-0053-remove-processstep-waitforparams-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0053_remove_processstep_waitforparams module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0053_remove_processstep_waitforparams" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0053_remove_processstep_waitforparams.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0053_remove_processstep_waitforparams.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0053_remove_processstep_waitforparams.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0053_remove_processstep_waitforparams.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0053_remove_processstep_waitforparams.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0052_processtask_responsible')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0053_remove_processstep_waitforparams.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0053_remove_processstep_waitforparams.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;RemoveField  name=u'waitForParams', model_name=u'processstep'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0053_remove_processstep_waitforparams.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations.0054_auto_20170119_1951">
+<span id="essarch-core-workflowengine-migrations-0054-auto-20170119-1951-module"></span><h2>ESSArch_Core.WorkflowEngine.migrations.0054_auto_20170119_1951 module<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations.0054_auto_20170119_1951" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0054_auto_20170119_1951.Migration">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.WorkflowEngine.migrations.0054_auto_20170119_1951.</code><code class="descname">Migration</code><span class="sig-paren">(</span><em>name</em>, <em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_Core/WorkflowEngine/migrations/0054_auto_20170119_1951.html#Migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0054_auto_20170119_1951.Migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.migrations.migration.Migration</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0054_auto_20170119_1951.Migration.dependencies">
+<code class="descname">dependencies</code><em class="property"> = [(u'WorkflowEngine', u'0053_remove_processstep_waitforparams')]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0054_auto_20170119_1951.Migration.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_Core.WorkflowEngine.migrations.0054_auto_20170119_1951.Migration.operations">
+<code class="descname">operations</code><em class="property"> = [&lt;AlterField  field=&lt;picklefield.fields.PickledObjectField&gt;, name=u'result_params', model_name=u'processtask'&gt;]</em><a class="headerlink" href="#ESSArch_Core.WorkflowEngine.migrations.0054_auto_20170119_1951.Migration.operations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_Core.WorkflowEngine.migrations">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ESSArch_Core.WorkflowEngine.migrations" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ESSArch_Core.WorkflowEngine.migrations package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0001_initial">ESSArch_Core.WorkflowEngine.migrations.0001_initial module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0002_auto_20160717_1120">ESSArch_Core.WorkflowEngine.migrations.0002_auto_20160717_1120 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0003_task">ESSArch_Core.WorkflowEngine.migrations.0003_task module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0004_auto_20160717_1815">ESSArch_Core.WorkflowEngine.migrations.0004_auto_20160717_1815 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0005_auto_20160718_1248">ESSArch_Core.WorkflowEngine.migrations.0005_auto_20160718_1248 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0006_step">ESSArch_Core.WorkflowEngine.migrations.0006_step module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0007_auto_20160718_2213">ESSArch_Core.WorkflowEngine.migrations.0007_auto_20160718_2213 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0008_auto_20160719_1622">ESSArch_Core.WorkflowEngine.migrations.0008_auto_20160719_1622 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0009_auto_20160721_2218">ESSArch_Core.WorkflowEngine.migrations.0009_auto_20160721_2218 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0010_processtask_undo_type">ESSArch_Core.WorkflowEngine.migrations.0010_processtask_undo_type module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0011_processtask_retried">ESSArch_Core.WorkflowEngine.migrations.0011_processtask_retried module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0012_auto_20160723_1912">ESSArch_Core.WorkflowEngine.migrations.0012_auto_20160723_1912 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0013_auto_20160724_1227">ESSArch_Core.WorkflowEngine.migrations.0013_auto_20160724_1227 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0014_processtask_attempt">ESSArch_Core.WorkflowEngine.migrations.0014_processtask_attempt module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0015_remove_processstep_progress">ESSArch_Core.WorkflowEngine.migrations.0015_remove_processstep_progress module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0016_processstep_task_set">ESSArch_Core.WorkflowEngine.migrations.0016_processstep_task_set module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0017_auto_20160725_2028">ESSArch_Core.WorkflowEngine.migrations.0017_auto_20160725_2028 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0018_auto_20160725_2120">ESSArch_Core.WorkflowEngine.migrations.0018_auto_20160725_2120 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0019_processstep_parent_step">ESSArch_Core.WorkflowEngine.migrations.0019_processstep_parent_step module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0020_processstep_waitforparams">ESSArch_Core.WorkflowEngine.migrations.0020_processstep_waitforparams module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0021_auto_20160803_1628">ESSArch_Core.WorkflowEngine.migrations.0021_auto_20160803_1628 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0022_auto_20160803_1705">ESSArch_Core.WorkflowEngine.migrations.0022_auto_20160803_1705 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0023_auto_20160804_2117">ESSArch_Core.WorkflowEngine.migrations.0023_auto_20160804_2117 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0024_auto_20160805_1345">ESSArch_Core.WorkflowEngine.migrations.0024_auto_20160805_1345 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0025_remove_processstep_status">ESSArch_Core.WorkflowEngine.migrations.0025_remove_processstep_status module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0026_auto_20160805_1353">ESSArch_Core.WorkflowEngine.migrations.0026_auto_20160805_1353 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0027_auto_20160805_1702">ESSArch_Core.WorkflowEngine.migrations.0027_auto_20160805_1702 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0028_auto_20160808_1152">ESSArch_Core.WorkflowEngine.migrations.0028_auto_20160808_1152 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0029_archiveobject_label">ESSArch_Core.WorkflowEngine.migrations.0029_archiveobject_label module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0030_auto_20160817_0921">ESSArch_Core.WorkflowEngine.migrations.0030_auto_20160817_0921 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0031_auto_20160817_1150">ESSArch_Core.WorkflowEngine.migrations.0031_auto_20160817_1150 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0032_processstep_parallel">ESSArch_Core.WorkflowEngine.migrations.0032_processstep_parallel module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0033_auto_20160818_1128">ESSArch_Core.WorkflowEngine.migrations.0033_auto_20160818_1128 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0034_auto_20160818_1349">ESSArch_Core.WorkflowEngine.migrations.0034_auto_20160818_1349 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0035_auto_20160819_1245">ESSArch_Core.WorkflowEngine.migrations.0035_auto_20160819_1245 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0036_auto_20160819_1354">ESSArch_Core.WorkflowEngine.migrations.0036_auto_20160819_1354 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0037_auto_20160823_1220">ESSArch_Core.WorkflowEngine.migrations.0037_auto_20160823_1220 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0038_auto_20160824_1115">ESSArch_Core.WorkflowEngine.migrations.0038_auto_20160824_1115 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0039_processstep_parent_step_pos">ESSArch_Core.WorkflowEngine.migrations.0039_processstep_parent_step_pos module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0040_auto_20160825_1751">ESSArch_Core.WorkflowEngine.migrations.0040_auto_20160825_1751 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0041_auto_20160825_1753">ESSArch_Core.WorkflowEngine.migrations.0041_auto_20160825_1753 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0042_auto_20160826_1338">ESSArch_Core.WorkflowEngine.migrations.0042_auto_20160826_1338 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0043_auto_20160831_0740">ESSArch_Core.WorkflowEngine.migrations.0043_auto_20160831_0740 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0044_auto_20160916_0936">ESSArch_Core.WorkflowEngine.migrations.0044_auto_20160916_0936 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0045_auto_20160916_1134">ESSArch_Core.WorkflowEngine.migrations.0045_auto_20160916_1134 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0046_auto_20160916_1233">ESSArch_Core.WorkflowEngine.migrations.0046_auto_20160916_1233 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0047_auto_20160925_1845">ESSArch_Core.WorkflowEngine.migrations.0047_auto_20160925_1845 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0048_processtask_information_package">ESSArch_Core.WorkflowEngine.migrations.0048_processtask_information_package module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0049_auto_20161118_1636">ESSArch_Core.WorkflowEngine.migrations.0049_auto_20161118_1636 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0050_auto_20161124_1116">ESSArch_Core.WorkflowEngine.migrations.0050_auto_20161124_1116 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0051_processtask_log">ESSArch_Core.WorkflowEngine.migrations.0051_processtask_log module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0052_processtask_responsible">ESSArch_Core.WorkflowEngine.migrations.0052_processtask_responsible module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0053_remove_processstep_waitforparams">ESSArch_Core.WorkflowEngine.migrations.0053_remove_processstep_waitforparams module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations.0054_auto_20170119_1951">ESSArch_Core.WorkflowEngine.migrations.0054_auto_20170119_1951 module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_Core.WorkflowEngine.migrations">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">ESSArch_Core</a><ul>
+  <li><a href="ESSArch_Core.html">ESSArch_Core package</a><ul>
+  <li><a href="ESSArch_Core.WorkflowEngine.html">ESSArch_Core.WorkflowEngine package</a><ul>
+      <li>Previous: <a href="ESSArch_Core.WorkflowEngine.html" title="previous chapter">ESSArch_Core.WorkflowEngine package</a></li>
+      <li>Next: <a href="ESSArch_Core.WorkflowEngine.tests.html" title="next chapter">ESSArch_Core.WorkflowEngine.tests package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="sources/ESSArch_Core.WorkflowEngine.migrations.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, ES Solutions.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="sources/ESSArch_Core.WorkflowEngine.migrations.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

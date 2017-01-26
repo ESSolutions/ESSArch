@@ -28,14 +28,6 @@ ESSArch_TP.install.install_profiles_se module
     :undoc-members:
     :show-inheritance:
 
-ESSArch_TP.install.install_profiles_sydarkivera module
-------------------------------------------------------
-
-.. automodule:: ESSArch_TP.install.install_profiles_sydarkivera
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------

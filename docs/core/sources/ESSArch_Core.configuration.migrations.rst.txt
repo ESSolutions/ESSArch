@@ -1,0 +1,38 @@
+ESSArch_Core.configuration.migrations package
+=============================================
+
+Submodules
+----------
+
+ESSArch_Core.configuration.migrations.0001_initial module
+---------------------------------------------------------
+
+.. automodule:: ESSArch_Core.configuration.migrations.0001_initial
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_Core.configuration.migrations.0002_agent module
+-------------------------------------------------------
+
+.. automodule:: ESSArch_Core.configuration.migrations.0002_agent
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_Core.configuration.migrations.0003_delete_schema module
+---------------------------------------------------------------
+
+.. automodule:: ESSArch_Core.configuration.migrations.0003_delete_schema
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_Core.configuration.migrations
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ESSArch_Core.WorkflowEngine.tests.tasks &#8212; ESSArch Core 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ESSArch_Core.WorkflowEngine.tests.tasks</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+
+<span class="kn">from</span> <span class="nn">ESSArch_Core.WorkflowEngine.dbtask</span> <span class="k">import</span> <span class="n">DBTask</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<div class="viewcode-block" id="First"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.First">[docs]</a><span class="k">class</span> <span class="nc">First</span><span class="p">(</span><span class="n">DBTask</span><span class="p">):</span>
+<div class="viewcode-block" id="First.run"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.First.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">foo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">foo</span></div>
+
+<div class="viewcode-block" id="First.undo"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.First.undo">[docs]</a>    <span class="k">def</span> <span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">foo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">pass</span></div></div>
+
+
+<div class="viewcode-block" id="Second"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.Second">[docs]</a><span class="k">class</span> <span class="nc">Second</span><span class="p">(</span><span class="n">DBTask</span><span class="p">):</span>
+<div class="viewcode-block" id="Second.run"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.Second.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">foo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">foo</span></div>
+
+<div class="viewcode-block" id="Second.undo"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.Second.undo">[docs]</a>    <span class="k">def</span> <span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">foo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">pass</span></div></div>
+
+
+<div class="viewcode-block" id="Third"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.Third">[docs]</a><span class="k">class</span> <span class="nc">Third</span><span class="p">(</span><span class="n">DBTask</span><span class="p">):</span>
+<div class="viewcode-block" id="Third.run"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.Third.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">foo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">foo</span></div>
+
+<div class="viewcode-block" id="Third.undo"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.Third.undo">[docs]</a>    <span class="k">def</span> <span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">foo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">pass</span></div></div>
+
+
+<div class="viewcode-block" id="Add"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.Add">[docs]</a><span class="k">class</span> <span class="nc">Add</span><span class="p">(</span><span class="n">DBTask</span><span class="p">):</span>
+<div class="viewcode-block" id="Add.run"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.Add.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">+</span><span class="n">y</span></div>
+
+<div class="viewcode-block" id="Add.undo"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.Add.undo">[docs]</a>    <span class="k">def</span> <span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">-</span><span class="n">y</span></div></div>
+
+
+<div class="viewcode-block" id="Fail"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.Fail">[docs]</a><span class="k">class</span> <span class="nc">Fail</span><span class="p">(</span><span class="n">DBTask</span><span class="p">):</span>
+<div class="viewcode-block" id="Fail.run"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.Fail.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span></div>
+
+<div class="viewcode-block" id="Fail.undo"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.Fail.undo">[docs]</a>    <span class="k">def</span> <span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div></div>
+
+
+<div class="viewcode-block" id="FailIfFileNotExists"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists">[docs]</a><span class="k">class</span> <span class="nc">FailIfFileNotExists</span><span class="p">(</span><span class="n">DBTask</span><span class="p">):</span>
+<div class="viewcode-block" id="FailIfFileNotExists.run"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">filename</span></div>
+
+<div class="viewcode-block" id="FailIfFileNotExists.undo"><a class="viewcode-back" href="../../../../ESSArch_Core.WorkflowEngine.tests.html#ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists.undo">[docs]</a>    <span class="k">def</span> <span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">pass</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, ES Solutions.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

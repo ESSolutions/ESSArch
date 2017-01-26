@@ -1,0 +1,45 @@
+ESSArch_Core.profiles package
+=============================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ESSArch_Core.profiles.migrations
+
+Submodules
+----------
+
+ESSArch_Core.profiles.admin module
+----------------------------------
+
+.. automodule:: ESSArch_Core.profiles.admin
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_Core.profiles.models module
+-----------------------------------
+
+.. automodule:: ESSArch_Core.profiles.models
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_Core.profiles.serializers module
+----------------------------------------
+
+.. automodule:: ESSArch_Core.profiles.serializers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_Core.profiles
+    :members:
+    :undoc-members:
+    :show-inheritance:

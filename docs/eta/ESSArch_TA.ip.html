@@ -1,0 +1,461 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ESSArch_TA.ip package &#8212; ESSArch Tools Archive 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ESSArch_TA.metadata_old package" href="ESSArch_TA.metadata_old.html" />
+    <link rel="prev" title="ESSArch_TA.install package" href="ESSArch_TA.install.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="essarch-ta-ip-package">
+<h1>ESSArch_TA.ip package<a class="headerlink" href="#essarch-ta-ip-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ESSArch_TA.ip.filters">
+<span id="essarch-ta-ip-filters-module"></span><h2>ESSArch_TA.ip.filters module<a class="headerlink" href="#module-ESSArch_TA.ip.filters" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_TA.ip.filters.ArchivalInstitutionFilter">
+<em class="property">class </em><code class="descclassname">ESSArch_TA.ip.filters.</code><code class="descname">ArchivalInstitutionFilter</code><span class="sig-paren">(</span><em>data=None</em>, <em>queryset=None</em>, <em>prefix=None</em>, <em>strict=None</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_TA/ip/filters.html#ArchivalInstitutionFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalInstitutionFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django_filters.filterset.FilterSet</span></code></p>
+<dl class="class">
+<dt id="ESSArch_TA.ip.filters.ArchivalInstitutionFilter.Meta">
+<em class="property">class </em><code class="descname">Meta</code><a class="reference internal" href="modules/ESSArch_TA/ip/filters.html#ArchivalInstitutionFilter.Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalInstitutionFilter.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivalInstitutionFilter.Meta.fields">
+<code class="descname">fields</code><em class="property"> = ('ip_state',)</em><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalInstitutionFilter.Meta.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivalInstitutionFilter.Meta.model">
+<code class="descname">model</code><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalInstitutionFilter.Meta.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">ArchivalInstitution</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivalInstitutionFilter.base_filters">
+<code class="descclassname">ArchivalInstitutionFilter.</code><code class="descname">base_filters</code><em class="property"> = OrderedDict([('ip_state', &lt;ESSArch_Core.filters.ListFilter object at 0x52cc090&gt;)])</em><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalInstitutionFilter.base_filters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivalInstitutionFilter.declared_filters">
+<code class="descclassname">ArchivalInstitutionFilter.</code><code class="descname">declared_filters</code><em class="property"> = OrderedDict([('ip_state', &lt;ESSArch_Core.filters.ListFilter object at 0x52cc090&gt;)])</em><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalInstitutionFilter.declared_filters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_TA.ip.filters.ArchivalLocationFilter">
+<em class="property">class </em><code class="descclassname">ESSArch_TA.ip.filters.</code><code class="descname">ArchivalLocationFilter</code><span class="sig-paren">(</span><em>data=None</em>, <em>queryset=None</em>, <em>prefix=None</em>, <em>strict=None</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_TA/ip/filters.html#ArchivalLocationFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalLocationFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django_filters.filterset.FilterSet</span></code></p>
+<dl class="class">
+<dt id="ESSArch_TA.ip.filters.ArchivalLocationFilter.Meta">
+<em class="property">class </em><code class="descname">Meta</code><a class="reference internal" href="modules/ESSArch_TA/ip/filters.html#ArchivalLocationFilter.Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalLocationFilter.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivalLocationFilter.Meta.fields">
+<code class="descname">fields</code><em class="property"> = ('ip_state',)</em><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalLocationFilter.Meta.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivalLocationFilter.Meta.model">
+<code class="descname">model</code><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalLocationFilter.Meta.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">ArchivalLocation</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivalLocationFilter.base_filters">
+<code class="descclassname">ArchivalLocationFilter.</code><code class="descname">base_filters</code><em class="property"> = OrderedDict([('ip_state', &lt;ESSArch_Core.filters.ListFilter object at 0x51a5fd0&gt;)])</em><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalLocationFilter.base_filters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivalLocationFilter.declared_filters">
+<code class="descclassname">ArchivalLocationFilter.</code><code class="descname">declared_filters</code><em class="property"> = OrderedDict([('ip_state', &lt;ESSArch_Core.filters.ListFilter object at 0x51a5fd0&gt;)])</em><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalLocationFilter.declared_filters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_TA.ip.filters.ArchivalTypeFilter">
+<em class="property">class </em><code class="descclassname">ESSArch_TA.ip.filters.</code><code class="descname">ArchivalTypeFilter</code><span class="sig-paren">(</span><em>data=None</em>, <em>queryset=None</em>, <em>prefix=None</em>, <em>strict=None</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_TA/ip/filters.html#ArchivalTypeFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalTypeFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django_filters.filterset.FilterSet</span></code></p>
+<dl class="class">
+<dt id="ESSArch_TA.ip.filters.ArchivalTypeFilter.Meta">
+<em class="property">class </em><code class="descname">Meta</code><a class="reference internal" href="modules/ESSArch_TA/ip/filters.html#ArchivalTypeFilter.Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalTypeFilter.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivalTypeFilter.Meta.fields">
+<code class="descname">fields</code><em class="property"> = ('ip_state',)</em><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalTypeFilter.Meta.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivalTypeFilter.Meta.model">
+<code class="descname">model</code><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalTypeFilter.Meta.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">ArchivalType</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivalTypeFilter.base_filters">
+<code class="descclassname">ArchivalTypeFilter.</code><code class="descname">base_filters</code><em class="property"> = OrderedDict([('ip_state', &lt;ESSArch_Core.filters.ListFilter object at 0x51a5090&gt;)])</em><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalTypeFilter.base_filters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivalTypeFilter.declared_filters">
+<code class="descclassname">ArchivalTypeFilter.</code><code class="descname">declared_filters</code><em class="property"> = OrderedDict([('ip_state', &lt;ESSArch_Core.filters.ListFilter object at 0x51a5090&gt;)])</em><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivalTypeFilter.declared_filters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_TA.ip.filters.ArchivistOrganizationFilter">
+<em class="property">class </em><code class="descclassname">ESSArch_TA.ip.filters.</code><code class="descname">ArchivistOrganizationFilter</code><span class="sig-paren">(</span><em>data=None</em>, <em>queryset=None</em>, <em>prefix=None</em>, <em>strict=None</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_TA/ip/filters.html#ArchivistOrganizationFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivistOrganizationFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django_filters.filterset.FilterSet</span></code></p>
+<dl class="class">
+<dt id="ESSArch_TA.ip.filters.ArchivistOrganizationFilter.Meta">
+<em class="property">class </em><code class="descname">Meta</code><a class="reference internal" href="modules/ESSArch_TA/ip/filters.html#ArchivistOrganizationFilter.Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivistOrganizationFilter.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivistOrganizationFilter.Meta.fields">
+<code class="descname">fields</code><em class="property"> = ('ip_state',)</em><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivistOrganizationFilter.Meta.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivistOrganizationFilter.Meta.model">
+<code class="descname">model</code><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivistOrganizationFilter.Meta.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">ArchivistOrganization</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivistOrganizationFilter.base_filters">
+<code class="descclassname">ArchivistOrganizationFilter.</code><code class="descname">base_filters</code><em class="property"> = OrderedDict([('ip_state', &lt;ESSArch_Core.filters.ListFilter object at 0x52cc390&gt;)])</em><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivistOrganizationFilter.base_filters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.ArchivistOrganizationFilter.declared_filters">
+<code class="descclassname">ArchivistOrganizationFilter.</code><code class="descname">declared_filters</code><em class="property"> = OrderedDict([('ip_state', &lt;ESSArch_Core.filters.ListFilter object at 0x52cc390&gt;)])</em><a class="headerlink" href="#ESSArch_TA.ip.filters.ArchivistOrganizationFilter.declared_filters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_TA.ip.filters.InformationPackageFilter">
+<em class="property">class </em><code class="descclassname">ESSArch_TA.ip.filters.</code><code class="descname">InformationPackageFilter</code><span class="sig-paren">(</span><em>data=None</em>, <em>queryset=None</em>, <em>prefix=None</em>, <em>strict=None</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_TA/ip/filters.html#InformationPackageFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.filters.InformationPackageFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django_filters.filterset.FilterSet</span></code></p>
+<dl class="class">
+<dt id="ESSArch_TA.ip.filters.InformationPackageFilter.Meta">
+<em class="property">class </em><code class="descname">Meta</code><a class="reference internal" href="modules/ESSArch_TA/ip/filters.html#InformationPackageFilter.Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.filters.InformationPackageFilter.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.InformationPackageFilter.Meta.fields">
+<code class="descname">fields</code><em class="property"> = ['state', 'archival_institution', 'archivist_organization', 'archival_type', 'archival_location']</em><a class="headerlink" href="#ESSArch_TA.ip.filters.InformationPackageFilter.Meta.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.InformationPackageFilter.Meta.model">
+<code class="descname">model</code><a class="headerlink" href="#ESSArch_TA.ip.filters.InformationPackageFilter.Meta.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">InformationPackage</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.InformationPackageFilter.base_filters">
+<code class="descclassname">InformationPackageFilter.</code><code class="descname">base_filters</code><em class="property"> = OrderedDict([('state', &lt;ESSArch_Core.filters.ListFilter object at 0x52ff690&gt;), ('archival_institution', &lt;django_filters.filters.UUIDFilter object at 0x52ff7d0&gt;), ('archivist_organization', &lt;django_filters.filters.UUIDFilter object at 0x52ff210&gt;), ('archival_type', &lt;django_filters.filters.UUIDFilter object at 0x52ffd90&gt;), ('archival_location', &lt;django_filters.filters.UUIDFilter object at 0x52ff290&gt;)])</em><a class="headerlink" href="#ESSArch_TA.ip.filters.InformationPackageFilter.base_filters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.filters.InformationPackageFilter.declared_filters">
+<code class="descclassname">InformationPackageFilter.</code><code class="descname">declared_filters</code><em class="property"> = OrderedDict([('state', &lt;ESSArch_Core.filters.ListFilter object at 0x52ff690&gt;), ('archival_institution', &lt;django_filters.filters.UUIDFilter object at 0x52ff7d0&gt;), ('archivist_organization', &lt;django_filters.filters.UUIDFilter object at 0x52ff210&gt;), ('archival_type', &lt;django_filters.filters.UUIDFilter object at 0x52ffd90&gt;), ('archival_location', &lt;django_filters.filters.UUIDFilter object at 0x52ff290&gt;)])</em><a class="headerlink" href="#ESSArch_TA.ip.filters.InformationPackageFilter.declared_filters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_TA.ip.serializers">
+<span id="essarch-ta-ip-serializers-module"></span><h2>ESSArch_TA.ip.serializers module<a class="headerlink" href="#module-ESSArch_TA.ip.serializers" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_TA.ip.serializers.ArchivalInstitutionSerializer">
+<em class="property">class </em><code class="descclassname">ESSArch_TA.ip.serializers.</code><code class="descname">ArchivalInstitutionSerializer</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#ArchivalInstitutionSerializer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivalInstitutionSerializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">ESSArch_Core.serializers.DynamicHyperlinkedModelSerializer</span></code></p>
+<dl class="class">
+<dt id="ESSArch_TA.ip.serializers.ArchivalInstitutionSerializer.Meta">
+<em class="property">class </em><code class="descname">Meta</code><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#ArchivalInstitutionSerializer.Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivalInstitutionSerializer.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="ESSArch_TA.ip.serializers.ArchivalInstitutionSerializer.Meta.fields">
+<code class="descname">fields</code><em class="property"> = ('url', 'id', 'name', 'information_packages')</em><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivalInstitutionSerializer.Meta.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.serializers.ArchivalInstitutionSerializer.Meta.model">
+<code class="descname">model</code><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivalInstitutionSerializer.Meta.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">ArchivalInstitution</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_TA.ip.serializers.ArchivalLocationSerializer">
+<em class="property">class </em><code class="descclassname">ESSArch_TA.ip.serializers.</code><code class="descname">ArchivalLocationSerializer</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#ArchivalLocationSerializer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivalLocationSerializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">ESSArch_Core.serializers.DynamicHyperlinkedModelSerializer</span></code></p>
+<dl class="class">
+<dt id="ESSArch_TA.ip.serializers.ArchivalLocationSerializer.Meta">
+<em class="property">class </em><code class="descname">Meta</code><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#ArchivalLocationSerializer.Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivalLocationSerializer.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="ESSArch_TA.ip.serializers.ArchivalLocationSerializer.Meta.fields">
+<code class="descname">fields</code><em class="property"> = ('url', 'id', 'name', 'information_packages')</em><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivalLocationSerializer.Meta.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.serializers.ArchivalLocationSerializer.Meta.model">
+<code class="descname">model</code><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivalLocationSerializer.Meta.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">ArchivalLocation</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_TA.ip.serializers.ArchivalTypeSerializer">
+<em class="property">class </em><code class="descclassname">ESSArch_TA.ip.serializers.</code><code class="descname">ArchivalTypeSerializer</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#ArchivalTypeSerializer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivalTypeSerializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">ESSArch_Core.serializers.DynamicHyperlinkedModelSerializer</span></code></p>
+<dl class="class">
+<dt id="ESSArch_TA.ip.serializers.ArchivalTypeSerializer.Meta">
+<em class="property">class </em><code class="descname">Meta</code><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#ArchivalTypeSerializer.Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivalTypeSerializer.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="ESSArch_TA.ip.serializers.ArchivalTypeSerializer.Meta.fields">
+<code class="descname">fields</code><em class="property"> = ('url', 'id', 'name', 'information_packages')</em><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivalTypeSerializer.Meta.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.serializers.ArchivalTypeSerializer.Meta.model">
+<code class="descname">model</code><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivalTypeSerializer.Meta.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">ArchivalType</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_TA.ip.serializers.ArchivistOrganizationSerializer">
+<em class="property">class </em><code class="descclassname">ESSArch_TA.ip.serializers.</code><code class="descname">ArchivistOrganizationSerializer</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#ArchivistOrganizationSerializer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivistOrganizationSerializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">ESSArch_Core.serializers.DynamicHyperlinkedModelSerializer</span></code></p>
+<dl class="class">
+<dt id="ESSArch_TA.ip.serializers.ArchivistOrganizationSerializer.Meta">
+<em class="property">class </em><code class="descname">Meta</code><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#ArchivistOrganizationSerializer.Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivistOrganizationSerializer.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="ESSArch_TA.ip.serializers.ArchivistOrganizationSerializer.Meta.fields">
+<code class="descname">fields</code><em class="property"> = ('url', 'id', 'name', 'information_packages')</em><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivistOrganizationSerializer.Meta.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.serializers.ArchivistOrganizationSerializer.Meta.model">
+<code class="descname">model</code><a class="headerlink" href="#ESSArch_TA.ip.serializers.ArchivistOrganizationSerializer.Meta.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">ArchivistOrganization</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_TA.ip.serializers.EventIPSerializer">
+<em class="property">class </em><code class="descclassname">ESSArch_TA.ip.serializers.</code><code class="descname">EventIPSerializer</code><span class="sig-paren">(</span><em>instance=None</em>, <em>data=&lt;class rest_framework.fields.empty at 0x4dead50&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#EventIPSerializer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.EventIPSerializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">rest_framework.serializers.HyperlinkedModelSerializer</span></code></p>
+<dl class="class">
+<dt id="ESSArch_TA.ip.serializers.EventIPSerializer.Meta">
+<em class="property">class </em><code class="descname">Meta</code><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#EventIPSerializer.Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.EventIPSerializer.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="ESSArch_TA.ip.serializers.EventIPSerializer.Meta.fields">
+<code class="descname">fields</code><em class="property"> = ('url', 'id', 'eventType', 'eventDateTime', 'eventDetail', 'eventApplication', 'eventVersion', 'eventOutcome', 'eventOutcomeDetailNote', 'linkingAgentIdentifierValue', 'linkingObjectIdentifierValue')</em><a class="headerlink" href="#ESSArch_TA.ip.serializers.EventIPSerializer.Meta.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.serializers.EventIPSerializer.Meta.model">
+<code class="descname">model</code><a class="headerlink" href="#ESSArch_TA.ip.serializers.EventIPSerializer.Meta.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">EventIP</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_TA.ip.serializers.InformationPackageDetailSerializer">
+<em class="property">class </em><code class="descclassname">ESSArch_TA.ip.serializers.</code><code class="descname">InformationPackageDetailSerializer</code><span class="sig-paren">(</span><em>instance=None</em>, <em>data=&lt;class rest_framework.fields.empty at 0x4dead50&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#InformationPackageDetailSerializer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.InformationPackageDetailSerializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ESSArch_TA.ip.serializers.InformationPackageSerializer" title="ESSArch_TA.ip.serializers.InformationPackageSerializer"><code class="xref py py-class docutils literal"><span class="pre">ESSArch_TA.ip.serializers.InformationPackageSerializer</span></code></a></p>
+<dl class="class">
+<dt id="ESSArch_TA.ip.serializers.InformationPackageDetailSerializer.Meta">
+<em class="property">class </em><code class="descname">Meta</code><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#InformationPackageDetailSerializer.Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.InformationPackageDetailSerializer.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="ESSArch_TA.ip.serializers.InformationPackageDetailSerializer.Meta.fields">
+<code class="descname">fields</code><em class="property"> = ('url', 'id', 'Label', 'Content', 'Responsible', 'CreateDate', 'State', 'status', 'step_state', 'ObjectPath', 'Startdate', 'Enddate', 'OAIStype', 'SubmissionAgreement', 'ArchivalInstitution', 'ArchivistOrganization', 'ArchivalType', 'ArchivalLocation', 'SubmissionAgreementLocked', 'profiles', 'ObjectSize', 'ObjectNumItems')</em><a class="headerlink" href="#ESSArch_TA.ip.serializers.InformationPackageDetailSerializer.Meta.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.serializers.InformationPackageDetailSerializer.Meta.model">
+<code class="descname">model</code><a class="headerlink" href="#ESSArch_TA.ip.serializers.InformationPackageDetailSerializer.Meta.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">InformationPackage</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="ESSArch_TA.ip.serializers.InformationPackageDetailSerializer.get_ObjectNumItems">
+<code class="descclassname">InformationPackageDetailSerializer.</code><code class="descname">get_ObjectNumItems</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#InformationPackageDetailSerializer.get_ObjectNumItems"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.InformationPackageDetailSerializer.get_ObjectNumItems" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ESSArch_TA.ip.serializers.InformationPackageDetailSerializer.get_ObjectSize">
+<code class="descclassname">InformationPackageDetailSerializer.</code><code class="descname">get_ObjectSize</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#InformationPackageDetailSerializer.get_ObjectSize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.InformationPackageDetailSerializer.get_ObjectSize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_TA.ip.serializers.InformationPackageSerializer">
+<em class="property">class </em><code class="descclassname">ESSArch_TA.ip.serializers.</code><code class="descname">InformationPackageSerializer</code><span class="sig-paren">(</span><em>instance=None</em>, <em>data=&lt;class rest_framework.fields.empty at 0x4dead50&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#InformationPackageSerializer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.InformationPackageSerializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">rest_framework.serializers.HyperlinkedModelSerializer</span></code></p>
+<dl class="class">
+<dt id="ESSArch_TA.ip.serializers.InformationPackageSerializer.Meta">
+<em class="property">class </em><code class="descname">Meta</code><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#InformationPackageSerializer.Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.InformationPackageSerializer.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="ESSArch_TA.ip.serializers.InformationPackageSerializer.Meta.fields">
+<code class="descname">fields</code><em class="property"> = ('url', 'id', 'Label', 'Content', 'Responsible', 'CreateDate', 'State', 'status', 'step_state', 'ObjectPath', 'Startdate', 'Enddate', 'OAIStype', 'SubmissionAgreement', 'ArchivalInstitution', 'ArchivistOrganization', 'ArchivalType', 'ArchivalLocation', 'SubmissionAgreementLocked', 'profiles')</em><a class="headerlink" href="#ESSArch_TA.ip.serializers.InformationPackageSerializer.Meta.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_TA.ip.serializers.InformationPackageSerializer.Meta.model">
+<code class="descname">model</code><a class="headerlink" href="#ESSArch_TA.ip.serializers.InformationPackageSerializer.Meta.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">InformationPackage</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="ESSArch_TA.ip.serializers.InformationPackageSerializer.to_representation">
+<code class="descclassname">InformationPackageSerializer.</code><code class="descname">to_representation</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_TA/ip/serializers.html#InformationPackageSerializer.to_representation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_TA.ip.serializers.InformationPackageSerializer.to_representation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="essarch-ta-ip-views-module">
+<h2>ESSArch_TA.ip.views module<a class="headerlink" href="#essarch-ta-ip-views-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ESSArch_TA.ip">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ESSArch_TA.ip" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ESSArch_TA.ip package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-ESSArch_TA.ip.filters">ESSArch_TA.ip.filters module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_TA.ip.serializers">ESSArch_TA.ip.serializers module</a></li>
+<li><a class="reference internal" href="#essarch-ta-ip-views-module">ESSArch_TA.ip.views module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_TA.ip">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">ESSArch_TA</a><ul>
+  <li><a href="ESSArch_TA.html">ESSArch_TA package</a><ul>
+      <li>Previous: <a href="ESSArch_TA.install.html" title="previous chapter">ESSArch_TA.install package</a></li>
+      <li>Next: <a href="ESSArch_TA.metadata_old.html" title="next chapter">ESSArch_TA.metadata_old package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="sources/ESSArch_TA.ip.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, ES Solutions.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="sources/ESSArch_TA.ip.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

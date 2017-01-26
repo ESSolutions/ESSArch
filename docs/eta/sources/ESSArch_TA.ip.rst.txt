@@ -1,0 +1,38 @@
+ESSArch_TA.ip package
+=====================
+
+Submodules
+----------
+
+ESSArch_TA.ip.filters module
+----------------------------
+
+.. automodule:: ESSArch_TA.ip.filters
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_TA.ip.serializers module
+--------------------------------
+
+.. automodule:: ESSArch_TA.ip.serializers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_TA.ip.views module
+--------------------------
+
+.. automodule:: ESSArch_TA.ip.views
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_TA.ip
+    :members:
+    :undoc-members:
+    :show-inheritance:
