@@ -29,7 +29,7 @@ entries:
       type: homepage
 
     - title: Source Code Documentation
-      external_url: /docs/etp/index.html
+      external_url: docs/etp/index.html
       output: web
 
   - title: Release Notes
