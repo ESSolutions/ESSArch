@@ -28,6 +28,10 @@ entries:
       output: web, pdf
       type: homepage
 
+    - title: Source Code Documentation
+      external_url: docs/core/index.html
+      output: web
+
   - title: Release Notes
     output: web, pdf
     folderitems:
