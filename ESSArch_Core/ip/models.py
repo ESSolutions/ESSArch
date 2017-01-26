@@ -213,6 +213,14 @@ class InformationPackage(models.Model):
 
         return name
 
+    def get_email_recipient(self):
+        try:
+            return self.get_profile('transfer_project').specification_data.get(
+                'preservation_organization_receiver_email'
+            )
+        except:
+            return None
+
     @property
     def step_state(self):
         """
