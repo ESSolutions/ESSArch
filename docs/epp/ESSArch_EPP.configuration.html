@@ -1,0 +1,596 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ESSArch_EPP.configuration package &#8212; ESSArch Preservation Platform 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ESSArch_EPP.controlarea package" href="ESSArch_EPP.controlarea.html" />
+    <link rel="prev" title="ESSArch_EPP.config package" href="ESSArch_EPP.config.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="essarch-epp-configuration-package">
+<h1>ESSArch_EPP.configuration package<a class="headerlink" href="#essarch-epp-configuration-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ESSArch_EPP.configuration.admin">
+<span id="essarch-epp-configuration-admin-module"></span><h2>ESSArch_EPP.configuration.admin module<a class="headerlink" href="#module-ESSArch_EPP.configuration.admin" title="Permalink to this headline">¶</a></h2>
+<p>ESSArch - ESSArch is an Electronic Archive system
+Copyright (C) 2010-2013  ES Solutions AB</p>
+<p>This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>Contact information:
+Web - <a class="reference external" href="http://www.essolutions.se">http://www.essolutions.se</a>
+Email - <a class="reference external" href="mailto:essarch&#37;&#52;&#48;essolutions&#46;se">essarch<span>&#64;</span>essolutions<span>&#46;</span>se</a></p>
+<dl class="class">
+<dt id="ESSArch_EPP.configuration.admin.ArchivePolicyAdmin">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.configuration.admin.</code><code class="descname">ArchivePolicyAdmin</code><span class="sig-paren">(</span><em>model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/admin.html#ArchivePolicyAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ArchivePolicyAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">nested_inline.admin.NestedModelAdmin</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ArchivePolicyAdmin.fieldsets">
+<code class="descname">fieldsets</code><em class="property"> = ((None, {'fields': ('PolicyName', 'PolicyID', 'PolicyStat', 'AISProjectName', 'AISProjectID', 'Mode', 'WaitProjectApproval', 'ChecksumAlgorithm', 'ValidateChecksum', 'ValidateXML', 'ManualControll', 'AIPType', 'AIPpath', 'PreIngestMetadata', 'IngestMetadata', 'INFORMATIONCLASS', 'IngestPath', 'IngestDelete')}),)</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ArchivePolicyAdmin.fieldsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ArchivePolicyAdmin.inlines">
+<code class="descname">inlines</code><em class="property"> = [&lt;class 'ESSArch_EPP.configuration.admin.StorageMethodInline'&gt;]</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ArchivePolicyAdmin.inlines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ArchivePolicyAdmin.list_display">
+<code class="descname">list_display</code><em class="property"> = ('PolicyName', 'PolicyID', 'PolicyStat', 'AISProjectName', 'AISProjectID', 'Mode')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ArchivePolicyAdmin.list_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ArchivePolicyAdmin.media">
+<code class="descname">media</code><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ArchivePolicyAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ArchivePolicyAdmin.model">
+<code class="descname">model</code><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ArchivePolicyAdmin.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">ArchivePolicy</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_EPP.configuration.admin.DefaultValueAdmin">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.configuration.admin.</code><code class="descname">DefaultValueAdmin</code><span class="sig-paren">(</span><em>model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/admin.html#DefaultValueAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.admin.DefaultValueAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.contrib.admin.options.ModelAdmin</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.DefaultValueAdmin.fields">
+<code class="descname">fields</code><em class="property"> = ('entity', 'value')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.DefaultValueAdmin.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.DefaultValueAdmin.list_display">
+<code class="descname">list_display</code><em class="property"> = ('entity', 'value')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.DefaultValueAdmin.list_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.DefaultValueAdmin.media">
+<code class="descname">media</code><a class="headerlink" href="#ESSArch_EPP.configuration.admin.DefaultValueAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.DefaultValueAdmin.readonly_fields">
+<code class="descname">readonly_fields</code><em class="property"> = ('entity',)</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.DefaultValueAdmin.readonly_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.DefaultValueAdmin.search_fields">
+<code class="descname">search_fields</code><em class="property"> = ('entity',)</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.DefaultValueAdmin.search_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_EPP.configuration.admin.ESSConfigAdmin">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.configuration.admin.</code><code class="descname">ESSConfigAdmin</code><span class="sig-paren">(</span><em>model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/admin.html#ESSConfigAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ESSConfigAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.contrib.admin.options.ModelAdmin</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ESSConfigAdmin.fields">
+<code class="descname">fields</code><em class="property"> = ('Name', 'Value')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ESSConfigAdmin.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ESSConfigAdmin.list_display">
+<code class="descname">list_display</code><em class="property"> = ('Name', 'Value')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ESSConfigAdmin.list_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ESSConfigAdmin.media">
+<code class="descname">media</code><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ESSConfigAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ESSConfigAdmin.readonly_fields">
+<code class="descname">readonly_fields</code><em class="property"> = ('Name',)</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ESSConfigAdmin.readonly_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_EPP.configuration.admin.ESSProcAdmin">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.configuration.admin.</code><code class="descname">ESSProcAdmin</code><span class="sig-paren">(</span><em>model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/admin.html#ESSProcAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ESSProcAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.contrib.admin.options.ModelAdmin</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ESSProcAdmin.fields">
+<code class="descname">fields</code><em class="property"> = ('Name', 'Path', 'LogFile', 'Time', 'PID', 'expected_pids', 'Status', 'Run', 'Pause', 'alarm')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ESSProcAdmin.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ESSProcAdmin.list_display">
+<code class="descname">list_display</code><em class="property"> = ('Name', 'PID', 'child_pids', 'expected_pids', 'Status', 'Run', 'Pause', 'alarm')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ESSProcAdmin.list_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ESSProcAdmin.media">
+<code class="descname">media</code><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ESSProcAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ESSProcAdmin.readonly_fields">
+<code class="descname">readonly_fields</code><em class="property"> = ('Name',)</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ESSProcAdmin.readonly_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_EPP.configuration.admin.IPParameterAdmin">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.configuration.admin.</code><code class="descname">IPParameterAdmin</code><span class="sig-paren">(</span><em>model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/admin.html#IPParameterAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.admin.IPParameterAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.contrib.admin.options.ModelAdmin</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.IPParameterAdmin.fieldsets">
+<code class="descname">fieldsets</code><em class="property"> = ((None, {'fields': ('label', 'type', 'objid', 'createdate', 'recordstatus', 'deliverytype'), 'classes': 'wide'}), ('General metadata for information package', {'fields': ('deliveryspecification', 'submissionagreement', 'previoussubmissionagreement', 'datasubmissionsession', 'packagenumber', 'referencecode', 'previousreferencecode', 'appraisal', 'accessrestrict', 'archivist_organization', 'archivist_organization_id', 'archivist_organization_software', 'archivist_organization_software_id', 'creator_organization', 'creator_organization_id', 'creator_individual', 'creator_individual_details', 'creator_software', 'creator_software_id', 'editor_organization', 'editor_organization_id', 'preservation_organization', 'preservation_organization_id', 'preservation_organization_software', 'preservation_organization_software_id'), 'classes': ('collapse', 'in')}), ('Additional metadata for information package', {'fields': ('startdate', 'enddate', 'aic_id', 'informationclass', 'projectname', 'policyid', 'receipt_email'), 'classes': ('collapse', 'in')}))</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.IPParameterAdmin.fieldsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.IPParameterAdmin.list_display">
+<code class="descname">list_display</code><em class="property"> = ('type', 'label', 'createdate', 'recordstatus', 'deliverytype')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.IPParameterAdmin.list_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.IPParameterAdmin.list_filter">
+<code class="descname">list_filter</code><em class="property"> = ('type', 'label')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.IPParameterAdmin.list_filter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.IPParameterAdmin.media">
+<code class="descname">media</code><a class="headerlink" href="#ESSArch_EPP.configuration.admin.IPParameterAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.IPParameterAdmin.readonly_fields">
+<code class="descname">readonly_fields</code><em class="property"> = ('objid',)</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.IPParameterAdmin.readonly_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.IPParameterAdmin.search_fields">
+<code class="descname">search_fields</code><em class="property"> = ('type',)</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.IPParameterAdmin.search_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_EPP.configuration.admin.ParameterAdmin">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.configuration.admin.</code><code class="descname">ParameterAdmin</code><span class="sig-paren">(</span><em>model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/admin.html#ParameterAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ParameterAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.contrib.admin.options.ModelAdmin</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ParameterAdmin.fields">
+<code class="descname">fields</code><em class="property"> = ('entity', 'value')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ParameterAdmin.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ParameterAdmin.list_display">
+<code class="descname">list_display</code><em class="property"> = ('entity', 'value')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ParameterAdmin.list_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ParameterAdmin.media">
+<code class="descname">media</code><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ParameterAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ParameterAdmin.readonly_fields">
+<code class="descname">readonly_fields</code><em class="property"> = ('entity',)</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ParameterAdmin.readonly_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.ParameterAdmin.search_fields">
+<code class="descname">search_fields</code><em class="property"> = ('entity',)</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.ParameterAdmin.search_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_EPP.configuration.admin.PathAdmin">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.configuration.admin.</code><code class="descname">PathAdmin</code><span class="sig-paren">(</span><em>model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/admin.html#PathAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.admin.PathAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.contrib.admin.options.ModelAdmin</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.PathAdmin.fields">
+<code class="descname">fields</code><em class="property"> = ('entity', 'value')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.PathAdmin.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.PathAdmin.list_display">
+<code class="descname">list_display</code><em class="property"> = ('entity', 'value')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.PathAdmin.list_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.PathAdmin.media">
+<code class="descname">media</code><a class="headerlink" href="#ESSArch_EPP.configuration.admin.PathAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.PathAdmin.readonly_fields">
+<code class="descname">readonly_fields</code><em class="property"> = ('entity',)</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.PathAdmin.readonly_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.PathAdmin.search_fields">
+<code class="descname">search_fields</code><em class="property"> = ('entity',)</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.PathAdmin.search_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_EPP.configuration.admin.SchemaProfileAdmin">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.configuration.admin.</code><code class="descname">SchemaProfileAdmin</code><span class="sig-paren">(</span><em>model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/admin.html#SchemaProfileAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.admin.SchemaProfileAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.contrib.admin.options.ModelAdmin</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.SchemaProfileAdmin.fields">
+<code class="descname">fields</code><em class="property"> = ('entity', 'value')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.SchemaProfileAdmin.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.SchemaProfileAdmin.list_display">
+<code class="descname">list_display</code><em class="property"> = ('entity', 'value')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.SchemaProfileAdmin.list_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.SchemaProfileAdmin.media">
+<code class="descname">media</code><a class="headerlink" href="#ESSArch_EPP.configuration.admin.SchemaProfileAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.SchemaProfileAdmin.readonly_fields">
+<code class="descname">readonly_fields</code><em class="property"> = ('entity',)</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.SchemaProfileAdmin.readonly_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.SchemaProfileAdmin.search_fields">
+<code class="descname">search_fields</code><em class="property"> = ('entity',)</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.SchemaProfileAdmin.search_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_EPP.configuration.admin.StorageMethodInline">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.configuration.admin.</code><code class="descname">StorageMethodInline</code><span class="sig-paren">(</span><em>parent_model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/admin.html#StorageMethodInline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageMethodInline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">nested_inline.admin.NestedStackedInline</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageMethodInline.extra">
+<code class="descname">extra</code><em class="property"> = 0</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageMethodInline.extra" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageMethodInline.fieldsets">
+<code class="descname">fieldsets</code><em class="property"> = ((None, {'fields': ('name', 'status', 'type')}),)</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageMethodInline.fieldsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageMethodInline.fk_name">
+<code class="descname">fk_name</code><em class="property"> = 'archivepolicy'</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageMethodInline.fk_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageMethodInline.inlines">
+<code class="descname">inlines</code><em class="property"> = [&lt;class 'ESSArch_EPP.configuration.admin.StorageTargetInline'&gt;]</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageMethodInline.inlines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageMethodInline.media">
+<code class="descname">media</code><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageMethodInline.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageMethodInline.model">
+<code class="descname">model</code><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageMethodInline.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">StorageMethod</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_EPP.configuration.admin.StorageTargetInline">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.configuration.admin.</code><code class="descname">StorageTargetInline</code><span class="sig-paren">(</span><em>parent_model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/admin.html#StorageTargetInline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageTargetInline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">nested_inline.admin.NestedStackedInline</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageTargetInline.extra">
+<code class="descname">extra</code><em class="property"> = 0</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageTargetInline.extra" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageTargetInline.fields">
+<code class="descname">fields</code><em class="property"> = ('name', 'status', 'target')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageTargetInline.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageTargetInline.fk_name">
+<code class="descname">fk_name</code><em class="property"> = 'storagemethod'</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageTargetInline.fk_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageTargetInline.media">
+<code class="descname">media</code><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageTargetInline.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageTargetInline.model">
+<code class="descname">model</code><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageTargetInline.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">StorageTarget</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageTargetInline.verbose_name_plural">
+<code class="descname">verbose_name_plural</code><em class="property"> = ''</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageTargetInline.verbose_name_plural" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_EPP.configuration.admin.StorageTargetsAdmin">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.configuration.admin.</code><code class="descname">StorageTargetsAdmin</code><span class="sig-paren">(</span><em>model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/admin.html#StorageTargetsAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageTargetsAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.contrib.admin.options.ModelAdmin</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageTargetsAdmin.fieldsets">
+<code class="descname">fieldsets</code><em class="property"> = ((None, {'fields': ('name', 'status', 'type', 'format', 'blocksize', 'maxCapacity', 'minChunkSize', 'minContainerSize', 'minCapacityWarning', 'remote_server', 'master_server', 'target')}),)</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageTargetsAdmin.fieldsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageTargetsAdmin.list_display">
+<code class="descname">list_display</code><em class="property"> = ('name', 'target')</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageTargetsAdmin.list_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageTargetsAdmin.media">
+<code class="descname">media</code><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageTargetsAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.configuration.admin.StorageTargetsAdmin.sortable_field_name">
+<code class="descname">sortable_field_name</code><em class="property"> = 'name'</em><a class="headerlink" href="#ESSArch_EPP.configuration.admin.StorageTargetsAdmin.sortable_field_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="essarch-epp-configuration-models-module">
+<h2>ESSArch_EPP.configuration.models module<a class="headerlink" href="#essarch-epp-configuration-models-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ESSArch_EPP.configuration.tests">
+<span id="essarch-epp-configuration-tests-module"></span><h2>ESSArch_EPP.configuration.tests module<a class="headerlink" href="#module-ESSArch_EPP.configuration.tests" title="Permalink to this headline">¶</a></h2>
+<p>ESSArch - ESSArch is an Electronic Archive system
+Copyright (C) 2010-2013  ES Solutions AB</p>
+<p>This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>Contact information:
+Web - <a class="reference external" href="http://www.essolutions.se">http://www.essolutions.se</a>
+Email - <a class="reference external" href="mailto:essarch&#37;&#52;&#48;essolutions&#46;se">essarch<span>&#64;</span>essolutions<span>&#46;</span>se</a></p>
+<dl class="class">
+<dt id="ESSArch_EPP.configuration.tests.SimpleTest">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.configuration.tests.</code><code class="descname">SimpleTest</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/tests.html#SimpleTest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.tests.SimpleTest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.test.testcases.TestCase</span></code></p>
+<dl class="method">
+<dt id="ESSArch_EPP.configuration.tests.SimpleTest.test_basic_addition">
+<code class="descname">test_basic_addition</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/tests.html#SimpleTest.test_basic_addition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.tests.SimpleTest.test_basic_addition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tests that 1 + 1 always equals 2.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_EPP.configuration.urls">
+<span id="essarch-epp-configuration-urls-module"></span><h2>ESSArch_EPP.configuration.urls module<a class="headerlink" href="#module-ESSArch_EPP.configuration.urls" title="Permalink to this headline">¶</a></h2>
+<p>ESSArch - ESSArch is an Electronic Archive system
+Copyright (C) 2010-2013  ES Solutions AB</p>
+<p>This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>Contact information:
+Web - <a class="reference external" href="http://www.essolutions.se">http://www.essolutions.se</a>
+Email - <a class="reference external" href="mailto:essarch&#37;&#52;&#48;essolutions&#46;se">essarch<span>&#64;</span>essolutions<span>&#46;</span>se</a></p>
+</div>
+<div class="section" id="module-ESSArch_EPP.configuration.views">
+<span id="essarch-epp-configuration-views-module"></span><h2>ESSArch_EPP.configuration.views module<a class="headerlink" href="#module-ESSArch_EPP.configuration.views" title="Permalink to this headline">¶</a></h2>
+<p>ESSArch - ESSArch is an Electronic Archive system
+Copyright (C) 2010-2013  ES Solutions AB</p>
+<p>This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>Contact information:
+Web - <a class="reference external" href="http://www.essolutions.se">http://www.essolutions.se</a>
+Email - <a class="reference external" href="mailto:essarch&#37;&#52;&#48;essolutions&#46;se">essarch<span>&#64;</span>essolutions<span>&#46;</span>se</a></p>
+<dl class="function">
+<dt id="ESSArch_EPP.configuration.views.change_password">
+<code class="descclassname">ESSArch_EPP.configuration.views.</code><code class="descname">change_password</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/views.html#change_password"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.views.change_password" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ESSArch_EPP.configuration.views.createdefaultusers">
+<code class="descclassname">ESSArch_EPP.configuration.views.</code><code class="descname">createdefaultusers</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/views.html#createdefaultusers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.views.createdefaultusers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ESSArch_EPP.configuration.views.index">
+<code class="descclassname">ESSArch_EPP.configuration.views.</code><code class="descname">index</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/views.html#index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.views.index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ESSArch_EPP.configuration.views.installIPParameter">
+<code class="descclassname">ESSArch_EPP.configuration.views.</code><code class="descname">installIPParameter</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/views.html#installIPParameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.views.installIPParameter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ESSArch_EPP.configuration.views.installdefaultparameters">
+<code class="descclassname">ESSArch_EPP.configuration.views.</code><code class="descname">installdefaultparameters</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/views.html#installdefaultparameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.views.installdefaultparameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ESSArch_EPP.configuration.views.installdefaultpaths">
+<code class="descclassname">ESSArch_EPP.configuration.views.</code><code class="descname">installdefaultpaths</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/views.html#installdefaultpaths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.views.installdefaultpaths" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ESSArch_EPP.configuration.views.installdefaultschemaprofiles">
+<code class="descclassname">ESSArch_EPP.configuration.views.</code><code class="descname">installdefaultschemaprofiles</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/views.html#installdefaultschemaprofiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.views.installdefaultschemaprofiles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ESSArch_EPP.configuration.views.logout_view">
+<code class="descclassname">ESSArch_EPP.configuration.views.</code><code class="descname">logout_view</code><span class="sig-paren">(</span><em>request</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/configuration/views.html#logout_view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.configuration.views.logout_view" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_EPP.configuration">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ESSArch_EPP.configuration" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ESSArch_EPP.configuration package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-ESSArch_EPP.configuration.admin">ESSArch_EPP.configuration.admin module</a></li>
+<li><a class="reference internal" href="#essarch-epp-configuration-models-module">ESSArch_EPP.configuration.models module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_EPP.configuration.tests">ESSArch_EPP.configuration.tests module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_EPP.configuration.urls">ESSArch_EPP.configuration.urls module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_EPP.configuration.views">ESSArch_EPP.configuration.views module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_EPP.configuration">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">ESSArch_EPP</a><ul>
+  <li><a href="ESSArch_EPP.html">ESSArch_EPP package</a><ul>
+      <li>Previous: <a href="ESSArch_EPP.config.html" title="previous chapter">ESSArch_EPP.config package</a></li>
+      <li>Next: <a href="ESSArch_EPP.controlarea.html" title="next chapter">ESSArch_EPP.controlarea package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="sources/ESSArch_EPP.configuration.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, ES Solutions.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="sources/ESSArch_EPP.configuration.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

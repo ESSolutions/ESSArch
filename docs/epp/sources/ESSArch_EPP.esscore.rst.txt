@@ -1,0 +1,18 @@
+ESSArch_EPP.esscore package
+===========================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ESSArch_EPP.esscore.rest
+    ESSArch_EPP.esscore.views
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_EPP.esscore
+    :members:
+    :undoc-members:
+    :show-inheritance:

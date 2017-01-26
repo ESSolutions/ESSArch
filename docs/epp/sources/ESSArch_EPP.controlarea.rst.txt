@@ -1,0 +1,86 @@
+ESSArch_EPP.controlarea package
+===============================
+
+Submodules
+----------
+
+ESSArch_EPP.controlarea.ControlAreaFunc module
+----------------------------------------------
+
+.. automodule:: ESSArch_EPP.controlarea.ControlAreaFunc
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.controlarea.models module
+-------------------------------------
+
+.. automodule:: ESSArch_EPP.controlarea.models
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.controlarea.tasks module
+------------------------------------
+
+.. automodule:: ESSArch_EPP.controlarea.tasks
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.controlarea.tasks_old module
+----------------------------------------
+
+.. automodule:: ESSArch_EPP.controlarea.tasks_old
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.controlarea.tests module
+------------------------------------
+
+.. automodule:: ESSArch_EPP.controlarea.tests
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.controlarea.urls module
+-----------------------------------
+
+.. automodule:: ESSArch_EPP.controlarea.urls
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.controlarea.urls_old module
+---------------------------------------
+
+.. automodule:: ESSArch_EPP.controlarea.urls_old
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.controlarea.views module
+------------------------------------
+
+.. automodule:: ESSArch_EPP.controlarea.views
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.controlarea.views_old module
+----------------------------------------
+
+.. automodule:: ESSArch_EPP.controlarea.views_old
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_EPP.controlarea
+    :members:
+    :undoc-members:
+    :show-inheritance:

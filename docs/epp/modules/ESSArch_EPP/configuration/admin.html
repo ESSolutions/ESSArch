@@ -1,0 +1,409 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ESSArch_EPP.configuration.admin &#8212; ESSArch Preservation Platform 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../../static/underscore.js"></script>
+    <script type="text/javascript" src="../../../static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ESSArch_EPP.configuration.admin</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env /ESSArch/python27/bin/python</span>
+<span class="c1"># -*- coding: UTF-8 -*-</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    ESSArch - ESSArch is an Electronic Archive system</span>
+<span class="sd">    Copyright (C) 2010-2013  ES Solutions AB</span>
+
+<span class="sd">    This program is free software: you can redistribute it and/or modify</span>
+<span class="sd">    it under the terms of the GNU General Public License as published by</span>
+<span class="sd">    the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">    (at your option) any later version.</span>
+
+<span class="sd">    This program is distributed in the hope that it will be useful,</span>
+<span class="sd">    but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="sd">    GNU General Public License for more details.</span>
+
+<span class="sd">    You should have received a copy of the GNU General Public License</span>
+<span class="sd">    along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">    Contact information:</span>
+<span class="sd">    Web - http://www.essolutions.se</span>
+<span class="sd">    Email - essarch@essolutions.se</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="n">__majorversion__</span> <span class="o">=</span> <span class="s2">&quot;2.5&quot;</span>
+<span class="n">__revision__</span> <span class="o">=</span> <span class="s2">&quot;$Revision$&quot;</span>
+<span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;$Date$&quot;</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;$Author$&quot;</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">__majorversion__</span><span class="p">,</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;[\D]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span><span class="n">__revision__</span><span class="p">))</span>
+
+<span class="kn">from</span> <span class="nn">configuration.models</span> <span class="k">import</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">SchemaProfile</span><span class="p">,</span> <span class="n">Path</span><span class="p">,</span> <span class="n">IPParameter</span><span class="p">,</span> <span class="n">ESSConfig</span><span class="p">,</span> <span class="n">ESSProc</span><span class="p">,</span> <span class="n">DefaultValue</span><span class="p">,</span> <span class="n">ArchivePolicy</span><span class="p">,</span>  <span class="n">StorageMethod</span><span class="p">,</span> <span class="n">StorageTarget</span><span class="p">,</span> <span class="n">StorageTargets</span>
+<span class="kn">from</span> <span class="nn">django.contrib</span> <span class="k">import</span> <span class="n">admin</span>
+<span class="c1">#import nested_admin</span>
+<span class="kn">from</span> <span class="nn">nested_inline.admin</span> <span class="k">import</span> <span class="n">NestedStackedInline</span><span class="p">,</span> <span class="n">NestedModelAdmin</span>
+ 
+<span class="c1"># XML schemas and namespaces</span>
+<div class="viewcode-block" id="SchemaProfileAdmin"><a class="viewcode-back" href="../../../ESSArch_EPP.configuration.html#ESSArch_EPP.configuration.admin.SchemaProfileAdmin">[docs]</a><span class="k">class</span> <span class="nc">SchemaProfileAdmin</span><span class="p">(</span> <span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span> <span class="p">):</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span> <span class="p">)</span>
+    <span class="n">search_fields</span> <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">readonly_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;entity&#39;</span><span class="p">,)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span></div>
+    
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">SchemaProfile</span><span class="p">,</span> <span class="n">SchemaProfileAdmin</span><span class="p">)</span>
+
+<span class="c1"># Parameters</span>
+<div class="viewcode-block" id="ParameterAdmin"><a class="viewcode-back" href="../../../ESSArch_EPP.configuration.html#ESSArch_EPP.configuration.admin.ParameterAdmin">[docs]</a><span class="k">class</span> <span class="nc">ParameterAdmin</span><span class="p">(</span> <span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span> <span class="p">):</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span> <span class="p">)</span>
+    <span class="n">search_fields</span> <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">readonly_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;entity&#39;</span><span class="p">,)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span></div>
+
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Parameter</span><span class="p">,</span> <span class="n">ParameterAdmin</span><span class="p">)</span>
+
+<span class="c1"># Paths</span>
+<div class="viewcode-block" id="PathAdmin"><a class="viewcode-back" href="../../../ESSArch_EPP.configuration.html#ESSArch_EPP.configuration.admin.PathAdmin">[docs]</a><span class="k">class</span> <span class="nc">PathAdmin</span><span class="p">(</span> <span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span> <span class="p">):</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span> <span class="p">)</span>
+    <span class="n">search_fields</span> <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">readonly_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;entity&#39;</span><span class="p">,)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span></div>
+
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Path</span><span class="p">,</span> <span class="n">PathAdmin</span><span class="p">)</span>
+
+<span class="c1"># General metadata for information package</span>
+<div class="viewcode-block" id="IPParameterAdmin"><a class="viewcode-back" href="../../../ESSArch_EPP.configuration.html#ESSArch_EPP.configuration.admin.IPParameterAdmin">[docs]</a><span class="k">class</span> <span class="nc">IPParameterAdmin</span><span class="p">(</span> <span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span> <span class="p">):</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="s1">&#39;createdate&#39;</span><span class="p">,</span> <span class="s1">&#39;recordstatus&#39;</span><span class="p">,</span> <span class="s1">&#39;deliverytype&#39;</span> <span class="p">)</span>
+    <span class="n">search_fields</span> <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">readonly_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;objid&#39;</span><span class="p">,)</span>
+    <span class="n">list_filter</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">)</span>
+    <span class="n">fieldsets</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">(</span><span class="kc">None</span><span class="p">,{</span>
+                   <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;wide&#39;</span><span class="p">),</span>
+                   <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">(</span>
+                              <span class="s1">&#39;label&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;type&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;objid&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;createdate&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;recordstatus&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;deliverytype&#39;</span>
+                              <span class="p">)}),</span>
+                <span class="p">(</span><span class="s1">&#39;General metadata for information package&#39;</span><span class="p">,{</span>
+                   <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;collapse&#39;</span><span class="p">,</span><span class="s1">&#39;in&#39;</span><span class="p">),</span>
+                   <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">(</span>
+                              <span class="s1">&#39;deliveryspecification&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;submissionagreement&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;previoussubmissionagreement&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;datasubmissionsession&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;packagenumber&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;referencecode&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;previousreferencecode&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;appraisal&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;accessrestrict&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;archivist_organization&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;archivist_organization_id&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;archivist_organization_software&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;archivist_organization_software_id&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;creator_organization&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;creator_organization_id&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;creator_individual&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;creator_individual_details&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;creator_software&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;creator_software_id&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;editor_organization&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;editor_organization_id&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;preservation_organization&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;preservation_organization_id&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;preservation_organization_software&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;preservation_organization_software_id&#39;</span>
+                              <span class="p">)}),</span>
+                <span class="p">(</span><span class="s1">&#39;Additional metadata for information package&#39;</span><span class="p">,{</span>
+                   <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;collapse&#39;</span><span class="p">,</span> <span class="s1">&#39;in&#39;</span><span class="p">),</span>
+                   <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">(</span>
+                              <span class="s1">&#39;startdate&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;enddate&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;aic_id&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;informationclass&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;projectname&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;policyid&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;receipt_email&#39;</span>
+                              <span class="p">)}),</span>
+                <span class="p">)</span></div>
+
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">IPParameter</span><span class="p">,</span> <span class="n">IPParameterAdmin</span><span class="p">)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd"># ESSArchPolicy</span>
+<span class="sd">class ESSArchPolicyAdmin( admin.ModelAdmin ):</span>
+<span class="sd">    list_display = ( &#39;PolicyName&#39;, &#39;PolicyID&#39;, &#39;PolicyStat&#39;, &#39;AISProjectName&#39;, &#39;AISProjectID&#39;, &#39;Mode&#39; )</span>
+<span class="sd">    fieldsets = (</span>
+<span class="sd">                (None,{</span>
+<span class="sd">                   &#39;classes&#39;: (&#39;wide&#39;),</span>
+<span class="sd">                   &#39;fields&#39;: (</span>
+<span class="sd">                              &#39;PolicyName&#39;,</span>
+<span class="sd">                              &#39;PolicyID&#39;,</span>
+<span class="sd">                              &#39;PolicyStat&#39;,</span>
+<span class="sd">                              &#39;AISProjectName&#39;,</span>
+<span class="sd">                              &#39;AISProjectID&#39;,</span>
+<span class="sd">                              &#39;Mode&#39;,</span>
+<span class="sd">                              &#39;WaitProjectApproval&#39;,</span>
+<span class="sd">                              &#39;ChecksumAlgorithm&#39;,</span>
+<span class="sd">                              &#39;ValidateChecksum&#39;,</span>
+<span class="sd">                              &#39;ValidateXML&#39;,</span>
+<span class="sd">                              &#39;ManualControll&#39;,</span>
+<span class="sd">                              &#39;AIPType&#39;,</span>
+<span class="sd">                              &#39;AIPpath&#39;,</span>
+<span class="sd">                              &#39;PreIngestMetadata&#39;,</span>
+<span class="sd">                              &#39;IngestMetadata&#39;,</span>
+<span class="sd">                              &#39;INFORMATIONCLASS&#39;,</span>
+<span class="sd">                              &#39;IngestPath&#39;,</span>
+<span class="sd">                              &#39;IngestDelete&#39;,</span>
+<span class="sd">                              )}),</span>
+<span class="sd">                (&#39;Storage method 1&#39;,{</span>
+<span class="sd">                   &#39;classes&#39;: (&#39;collapse&#39;,&#39;in&#39;),</span>
+<span class="sd">                   &#39;fields&#39;: (</span>
+<span class="sd">                              &#39;sm_1&#39;,</span>
+<span class="sd">                              &#39;sm_type_1&#39;,</span>
+<span class="sd">                              &#39;sm_format_1&#39;,</span>
+<span class="sd">                              &#39;sm_blocksize_1&#39;,</span>
+<span class="sd">                              &#39;sm_maxCapacity_1&#39;,</span>
+<span class="sd">                              &#39;sm_minChunkSize_1&#39;,</span>
+<span class="sd">                              &#39;sm_minContainerSize_1&#39;,</span>
+<span class="sd">                              &#39;sm_minCapacityWarning_1&#39;,</span>
+<span class="sd">                              &#39;sm_target_1&#39;,</span>
+<span class="sd">                              )}),</span>
+<span class="sd">                (&#39;Storage method 2&#39;,{</span>
+<span class="sd">                   &#39;classes&#39;: (&#39;collapse&#39;,&#39;in&#39;),</span>
+<span class="sd">                   &#39;fields&#39;: (</span>
+<span class="sd">                              &#39;sm_2&#39;,</span>
+<span class="sd">                              &#39;sm_type_2&#39;,</span>
+<span class="sd">                              &#39;sm_format_2&#39;,</span>
+<span class="sd">                              &#39;sm_blocksize_2&#39;,</span>
+<span class="sd">                              &#39;sm_maxCapacity_2&#39;,</span>
+<span class="sd">                              &#39;sm_minChunkSize_2&#39;,</span>
+<span class="sd">                              &#39;sm_minContainerSize_2&#39;,</span>
+<span class="sd">                              &#39;sm_minCapacityWarning_2&#39;,</span>
+<span class="sd">                              &#39;sm_target_2&#39;,</span>
+<span class="sd">                              )}),</span>
+<span class="sd">                (&#39;Storage method 3&#39;,{</span>
+<span class="sd">                   &#39;classes&#39;: (&#39;collapse&#39;,&#39;in&#39;),</span>
+<span class="sd">                   &#39;fields&#39;: (</span>
+<span class="sd">                              &#39;sm_3&#39;,</span>
+<span class="sd">                              &#39;sm_type_3&#39;,</span>
+<span class="sd">                              &#39;sm_format_3&#39;,</span>
+<span class="sd">                              &#39;sm_blocksize_3&#39;,</span>
+<span class="sd">                              &#39;sm_maxCapacity_3&#39;,</span>
+<span class="sd">                              &#39;sm_minChunkSize_3&#39;,</span>
+<span class="sd">                              &#39;sm_minContainerSize_3&#39;,</span>
+<span class="sd">                              &#39;sm_minCapacityWarning_3&#39;,</span>
+<span class="sd">                              &#39;sm_target_3&#39;,</span>
+<span class="sd">                              )}),</span>
+<span class="sd">                (&#39;Storage method 4&#39;,{</span>
+<span class="sd">                   &#39;classes&#39;: (&#39;collapse&#39;,&#39;in&#39;),</span>
+<span class="sd">                   &#39;fields&#39;: (</span>
+<span class="sd">                              &#39;sm_4&#39;,</span>
+<span class="sd">                              &#39;sm_type_4&#39;,</span>
+<span class="sd">                              &#39;sm_format_4&#39;,</span>
+<span class="sd">                              &#39;sm_blocksize_4&#39;,</span>
+<span class="sd">                              &#39;sm_maxCapacity_4&#39;,</span>
+<span class="sd">                              &#39;sm_minChunkSize_4&#39;,</span>
+<span class="sd">                              &#39;sm_minContainerSize_4&#39;,</span>
+<span class="sd">                              &#39;sm_minCapacityWarning_4&#39;,</span>
+<span class="sd">                              &#39;sm_target_4&#39;,</span>
+<span class="sd">                              )}),</span>
+<span class="sd">                )</span>
+
+<span class="sd">admin.site.register(ESSArchPolicy, ESSArchPolicyAdmin)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># ArchivePolicy</span>
+<div class="viewcode-block" id="StorageTargetInline"><a class="viewcode-back" href="../../../ESSArch_EPP.configuration.html#ESSArch_EPP.configuration.admin.StorageTargetInline">[docs]</a><span class="k">class</span> <span class="nc">StorageTargetInline</span><span class="p">(</span><span class="n">NestedStackedInline</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">StorageTarget</span>
+    <span class="n">fk_name</span> <span class="o">=</span> <span class="s1">&#39;storagemethod&#39;</span>
+    <span class="n">extra</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;target&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="c1">#verbose_name = &#39;bla&#39;</span>
+    <span class="n">verbose_name_plural</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span></div>
+
+<span class="c1">#class StorageMethodInline(nested_admin.NestedStackedInline):</span>
+<div class="viewcode-block" id="StorageMethodInline"><a class="viewcode-back" href="../../../ESSArch_EPP.configuration.html#ESSArch_EPP.configuration.admin.StorageMethodInline">[docs]</a><span class="k">class</span> <span class="nc">StorageMethodInline</span><span class="p">(</span><span class="n">NestedStackedInline</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">StorageMethod</span>
+    <span class="n">fk_name</span> <span class="o">=</span> <span class="s1">&#39;archivepolicy&#39;</span>
+    <span class="n">extra</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">fieldsets</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="c1">#(&#39;test collapse&#39;,{</span>
+        <span class="p">(</span><span class="kc">None</span><span class="p">,{</span>
+            <span class="c1">#&#39;classes&#39;: (&#39;collapse&#39;,&#39;in&#39;,),</span>
+            <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">(</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;status&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">,</span>
+                <span class="p">)}),</span>
+    <span class="p">)</span>
+    <span class="n">inlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">StorageTargetInline</span><span class="p">]</span></div>
+
+<span class="c1">#class ArchivePolicyAdmin( nested_admin.NestedAdmin ):</span>
+<div class="viewcode-block" id="ArchivePolicyAdmin"><a class="viewcode-back" href="../../../ESSArch_EPP.configuration.html#ESSArch_EPP.configuration.admin.ArchivePolicyAdmin">[docs]</a><span class="k">class</span> <span class="nc">ArchivePolicyAdmin</span><span class="p">(</span><span class="n">NestedModelAdmin</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">ArchivePolicy</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;PolicyName&#39;</span><span class="p">,</span> <span class="s1">&#39;PolicyID&#39;</span><span class="p">,</span> <span class="s1">&#39;PolicyStat&#39;</span><span class="p">,</span> <span class="s1">&#39;AISProjectName&#39;</span><span class="p">,</span> <span class="s1">&#39;AISProjectID&#39;</span><span class="p">,</span> <span class="s1">&#39;Mode&#39;</span> <span class="p">)</span>
+    <span class="n">fieldsets</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">(</span><span class="kc">None</span><span class="p">,{</span>
+                   <span class="c1">#&#39;classes&#39;: (&#39;collapse&#39;,&#39;in&#39;),</span>
+                   <span class="c1">#&#39;classes&#39;: (&#39;wide&#39;,),</span>
+                   <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">(</span>
+                              <span class="s1">&#39;PolicyName&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;PolicyID&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;PolicyStat&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;AISProjectName&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;AISProjectID&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;Mode&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;WaitProjectApproval&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;ChecksumAlgorithm&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;ValidateChecksum&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;ValidateXML&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;ManualControll&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;AIPType&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;AIPpath&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;PreIngestMetadata&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;IngestMetadata&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;INFORMATIONCLASS&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;IngestPath&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;IngestDelete&#39;</span><span class="p">,</span>
+                              <span class="p">)}),</span>
+                <span class="p">)</span>
+    <span class="n">inlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">StorageMethodInline</span><span class="p">]</span></div>
+<span class="c1">#    class Media:</span>
+<span class="c1">#        js = [&#39;js/collapsed_stacked_inlines.js&#39;,]</span>
+
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">ArchivePolicy</span><span class="p">,</span> <span class="n">ArchivePolicyAdmin</span><span class="p">)</span>
+
+<span class="c1"># StorageTargets</span>
+<div class="viewcode-block" id="StorageTargetsAdmin"><a class="viewcode-back" href="../../../ESSArch_EPP.configuration.html#ESSArch_EPP.configuration.admin.StorageTargetsAdmin">[docs]</a><span class="k">class</span> <span class="nc">StorageTargetsAdmin</span><span class="p">(</span> <span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span> <span class="p">):</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;target&#39;</span> <span class="p">)</span>
+    <span class="n">sortable_field_name</span> <span class="o">=</span> <span class="s2">&quot;name&quot;</span>
+    <span class="n">fieldsets</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="kc">None</span><span class="p">,{</span>
+            <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">(</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;status&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;format&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;blocksize&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;maxCapacity&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;minChunkSize&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;minContainerSize&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;minCapacityWarning&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;remote_server&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;master_server&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;target&#39;</span><span class="p">,</span>
+                <span class="p">)}),</span>
+    <span class="p">)</span></div>
+    <span class="c1">#def has_add_permission(self, request):</span>
+    <span class="c1">#    return False</span>
+
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">StorageTargets</span><span class="p">,</span> <span class="n">StorageTargetsAdmin</span><span class="p">)</span>
+
+<span class="c1"># ESSConfig (core)</span>
+<div class="viewcode-block" id="ESSConfigAdmin"><a class="viewcode-back" href="../../../ESSArch_EPP.configuration.html#ESSArch_EPP.configuration.admin.ESSConfigAdmin">[docs]</a><span class="k">class</span> <span class="nc">ESSConfigAdmin</span><span class="p">(</span> <span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span> <span class="p">):</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="s1">&#39;Value&#39;</span> <span class="p">)</span>
+    <span class="n">readonly_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Name&#39;</span><span class="p">,)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="s1">&#39;Value&#39;</span><span class="p">)</span></div>
+
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">ESSConfig</span><span class="p">,</span> <span class="n">ESSConfigAdmin</span><span class="p">)</span>
+
+<span class="c1"># ESSProc (core)</span>
+<div class="viewcode-block" id="ESSProcAdmin"><a class="viewcode-back" href="../../../ESSArch_EPP.configuration.html#ESSArch_EPP.configuration.admin.ESSProcAdmin">[docs]</a><span class="k">class</span> <span class="nc">ESSProcAdmin</span><span class="p">(</span> <span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span> <span class="p">):</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="s1">&#39;PID&#39;</span><span class="p">,</span> <span class="s1">&#39;child_pids&#39;</span><span class="p">,</span> <span class="s1">&#39;expected_pids&#39;</span><span class="p">,</span> <span class="s1">&#39;Status&#39;</span><span class="p">,</span> <span class="s1">&#39;Run&#39;</span> <span class="p">,</span> <span class="s1">&#39;Pause&#39;</span><span class="p">,</span><span class="s1">&#39;alarm&#39;</span><span class="p">)</span>
+    <span class="n">readonly_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Name&#39;</span><span class="p">,)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="s1">&#39;Path&#39;</span><span class="p">,</span> <span class="s1">&#39;LogFile&#39;</span><span class="p">,</span> <span class="s1">&#39;Time&#39;</span><span class="p">,</span> <span class="s1">&#39;PID&#39;</span><span class="p">,</span> <span class="s1">&#39;expected_pids&#39;</span><span class="p">,</span> <span class="s1">&#39;Status&#39;</span><span class="p">,</span> <span class="s1">&#39;Run&#39;</span><span class="p">,</span> <span class="s1">&#39;Pause&#39;</span><span class="p">,</span><span class="s1">&#39;alarm&#39;</span><span class="p">)</span></div>
+
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">ESSProc</span><span class="p">,</span> <span class="n">ESSProcAdmin</span><span class="p">)</span>
+
+<span class="c1"># Default value</span>
+<div class="viewcode-block" id="DefaultValueAdmin"><a class="viewcode-back" href="../../../ESSArch_EPP.configuration.html#ESSArch_EPP.configuration.admin.DefaultValueAdmin">[docs]</a><span class="k">class</span> <span class="nc">DefaultValueAdmin</span><span class="p">(</span> <span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span> <span class="p">):</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span> <span class="p">)</span>
+    <span class="n">search_fields</span> <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">readonly_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;entity&#39;</span><span class="p">,)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span></div>
+
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">DefaultValue</span><span class="p">,</span> <span class="n">DefaultValueAdmin</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, ES Solutions.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

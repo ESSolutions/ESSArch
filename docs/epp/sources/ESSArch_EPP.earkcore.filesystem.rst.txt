@@ -1,0 +1,30 @@
+ESSArch_EPP.earkcore.filesystem package
+=======================================
+
+Submodules
+----------
+
+ESSArch_EPP.earkcore.filesystem.chunked module
+----------------------------------------------
+
+.. automodule:: ESSArch_EPP.earkcore.filesystem.chunked
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.earkcore.filesystem.fsinfo module
+---------------------------------------------
+
+.. automodule:: ESSArch_EPP.earkcore.filesystem.fsinfo
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_EPP.earkcore.filesystem
+    :members:
+    :undoc-members:
+    :show-inheritance:

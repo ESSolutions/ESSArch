@@ -1,0 +1,38 @@
+ESSArch_EPP.earkcore.packaging package
+======================================
+
+Submodules
+----------
+
+ESSArch_EPP.earkcore.packaging.extraction module
+------------------------------------------------
+
+.. automodule:: ESSArch_EPP.earkcore.packaging.extraction
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.earkcore.packaging.manifestcreation module
+------------------------------------------------------
+
+.. automodule:: ESSArch_EPP.earkcore.packaging.manifestcreation
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.earkcore.packaging.task_utils module
+------------------------------------------------
+
+.. automodule:: ESSArch_EPP.earkcore.packaging.task_utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_EPP.earkcore.packaging
+    :members:
+    :undoc-members:
+    :show-inheritance:

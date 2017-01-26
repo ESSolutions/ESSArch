@@ -1,0 +1,46 @@
+ESSArch_EPP.StorageMethodCAS package
+====================================
+
+Submodules
+----------
+
+ESSArch_EPP.StorageMethodCAS.hdfs_storage_client module
+-------------------------------------------------------
+
+.. automodule:: ESSArch_EPP.StorageMethodCAS.hdfs_storage_client
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.StorageMethodCAS.tasks module
+-----------------------------------------
+
+.. automodule:: ESSArch_EPP.StorageMethodCAS.tasks
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.StorageMethodCAS.tasks_hdfs module
+----------------------------------------------
+
+.. automodule:: ESSArch_EPP.StorageMethodCAS.tasks_hdfs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.StorageMethodCAS.tests module
+-----------------------------------------
+
+.. automodule:: ESSArch_EPP.StorageMethodCAS.tests
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_EPP.StorageMethodCAS
+    :members:
+    :undoc-members:
+    :show-inheritance:

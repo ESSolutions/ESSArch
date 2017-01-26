@@ -1,0 +1,38 @@
+ESSArch_EPP.earkcore.metadata.mets package
+==========================================
+
+Submodules
+----------
+
+ESSArch_EPP.earkcore.metadata.mets.MetsValidation module
+--------------------------------------------------------
+
+.. automodule:: ESSArch_EPP.earkcore.metadata.mets.MetsValidation
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.earkcore.metadata.mets.ParsedMets module
+----------------------------------------------------
+
+.. automodule:: ESSArch_EPP.earkcore.metadata.mets.ParsedMets
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.earkcore.metadata.mets.metsgenerator module
+-------------------------------------------------------
+
+.. automodule:: ESSArch_EPP.earkcore.metadata.mets.metsgenerator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_EPP.earkcore.metadata.mets
+    :members:
+    :undoc-members:
+    :show-inheritance:

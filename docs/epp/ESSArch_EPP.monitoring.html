@@ -1,0 +1,600 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ESSArch_EPP.monitoring package &#8212; ESSArch Preservation Platform 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ESSArch_EPP.monitoring.management package" href="ESSArch_EPP.monitoring.management.html" />
+    <link rel="prev" title="ESSArch_EPP.ingest package" href="ESSArch_EPP.ingest.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="essarch-epp-monitoring-package">
+<h1>ESSArch_EPP.monitoring package<a class="headerlink" href="#essarch-epp-monitoring-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ESSArch_EPP.monitoring.management.html">ESSArch_EPP.monitoring.management package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ESSArch_EPP.monitoring.management.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ESSArch_EPP.monitoring.management.commands.html">ESSArch_EPP.monitoring.management.commands package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ESSArch_EPP.monitoring.management.commands.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ESSArch_EPP.monitoring.management.commands.html#module-ESSArch_EPP.monitoring.management.commands.check_mysql_structure">ESSArch_EPP.monitoring.management.commands.check_mysql_structure module</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="ESSArch_EPP.monitoring.management.commands.html#usage">Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="ESSArch_EPP.monitoring.management.commands.html#module-ESSArch_EPP.monitoring.management.commands">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ESSArch_EPP.monitoring.management.html#module-ESSArch_EPP.monitoring.management">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ESSArch_EPP.monitoring.admin">
+<span id="essarch-epp-monitoring-admin-module"></span><h2>ESSArch_EPP.monitoring.admin module<a class="headerlink" href="#module-ESSArch_EPP.monitoring.admin" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_EPP.monitoring.admin.LogAdmin">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.monitoring.admin.</code><code class="descname">LogAdmin</code><span class="sig-paren">(</span><em>model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/admin.html#LogAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.contrib.admin.options.ModelAdmin</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.LogAdmin.fieldsets">
+<code class="descname">fieldsets</code><em class="property"> = ((None, {'fields': (('level', 'datetime'), ('msg',))}),)</em><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogAdmin.fieldsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.LogAdmin.list_display">
+<code class="descname">list_display</code><em class="property"> = ['level', 'datetime', 'msg']</em><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogAdmin.list_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.LogAdmin.list_filter">
+<code class="descname">list_filter</code><em class="property"> = ['level']</em><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogAdmin.list_filter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.LogAdmin.media">
+<code class="descname">media</code><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.LogAdmin.readonly_fields">
+<code class="descname">readonly_fields</code><em class="property"> = ['level', 'datetime', 'msg']</em><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogAdmin.readonly_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.LogAdmin.search_fields">
+<code class="descname">search_fields</code><em class="property"> = ['msg']</em><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogAdmin.search_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_EPP.monitoring.admin.LogEntryAdmin">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.monitoring.admin.</code><code class="descname">LogEntryAdmin</code><span class="sig-paren">(</span><em>model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/admin.html#LogEntryAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogEntryAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.contrib.admin.options.ModelAdmin</span></code></p>
+<dl class="method">
+<dt id="ESSArch_EPP.monitoring.admin.LogEntryAdmin.action_description">
+<code class="descname">action_description</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/admin.html#LogEntryAdmin.action_description"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogEntryAdmin.action_description" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.LogEntryAdmin.date_hierarchy">
+<code class="descname">date_hierarchy</code><em class="property"> = 'action_time'</em><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogEntryAdmin.date_hierarchy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ESSArch_EPP.monitoring.admin.LogEntryAdmin.has_add_permission">
+<code class="descname">has_add_permission</code><span class="sig-paren">(</span><em>request</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/admin.html#LogEntryAdmin.has_add_permission"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogEntryAdmin.has_add_permission" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ESSArch_EPP.monitoring.admin.LogEntryAdmin.has_change_permission">
+<code class="descname">has_change_permission</code><span class="sig-paren">(</span><em>request</em>, <em>obj=None</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/admin.html#LogEntryAdmin.has_change_permission"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogEntryAdmin.has_change_permission" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ESSArch_EPP.monitoring.admin.LogEntryAdmin.has_delete_permission">
+<code class="descname">has_delete_permission</code><span class="sig-paren">(</span><em>request</em>, <em>obj=None</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/admin.html#LogEntryAdmin.has_delete_permission"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogEntryAdmin.has_delete_permission" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.LogEntryAdmin.list_display">
+<code class="descname">list_display</code><em class="property"> = ['action_time', 'user', 'content_type', 'object_link', 'action_description', 'change_message']</em><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogEntryAdmin.list_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.LogEntryAdmin.list_filter">
+<code class="descname">list_filter</code><em class="property"> = ['user', 'content_type', 'action_flag']</em><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogEntryAdmin.list_filter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.LogEntryAdmin.media">
+<code class="descname">media</code><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogEntryAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ESSArch_EPP.monitoring.admin.LogEntryAdmin.object_link">
+<code class="descname">object_link</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/admin.html#LogEntryAdmin.object_link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogEntryAdmin.object_link" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.LogEntryAdmin.readonly_fields">
+<code class="descname">readonly_fields</code><em class="property"> = ['object_link', 'action_description']</em><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogEntryAdmin.readonly_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.LogEntryAdmin.search_fields">
+<code class="descname">search_fields</code><em class="property"> = ['object_repr', 'change_message']</em><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.LogEntryAdmin.search_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_EPP.monitoring.admin.MonitoringObjectAdmin">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.monitoring.admin.</code><code class="descname">MonitoringObjectAdmin</code><span class="sig-paren">(</span><em>model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/admin.html#MonitoringObjectAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.MonitoringObjectAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.contrib.admin.options.ModelAdmin</span></code></p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.MonitoringObjectAdmin.fields">
+<code class="descname">fields</code><em class="property"> = ('key', 'alarm', 'alarm_num', 'alarm_sub', 'alarm_msg')</em><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.MonitoringObjectAdmin.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.MonitoringObjectAdmin.list_display">
+<code class="descname">list_display</code><em class="property"> = ('key', 'alarm', 'checked')</em><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.MonitoringObjectAdmin.list_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.MonitoringObjectAdmin.media">
+<code class="descname">media</code><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.MonitoringObjectAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.admin.MonitoringObjectAdmin.readonly_fields">
+<code class="descname">readonly_fields</code><em class="property"> = ('key',)</em><a class="headerlink" href="#ESSArch_EPP.monitoring.admin.MonitoringObjectAdmin.readonly_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_EPP.monitoring.log">
+<span id="essarch-epp-monitoring-log-module"></span><h2>ESSArch_EPP.monitoring.log module<a class="headerlink" href="#module-ESSArch_EPP.monitoring.log" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ESSArch_EPP.monitoring.log.DbLogHandler">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.monitoring.log.</code><code class="descname">DbLogHandler</code><span class="sig-paren">(</span><em>level=0</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/log.html#DbLogHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.log.DbLogHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">logging.Handler</span></code></p>
+<dl class="method">
+<dt id="ESSArch_EPP.monitoring.log.DbLogHandler.emit">
+<code class="descname">emit</code><span class="sig-paren">(</span><em>record</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/log.html#DbLogHandler.emit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.log.DbLogHandler.emit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="essarch-epp-monitoring-models-module">
+<h2>ESSArch_EPP.monitoring.models module<a class="headerlink" href="#essarch-epp-monitoring-models-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ESSArch_EPP.monitoring.tasks">
+<span id="essarch-epp-monitoring-tasks-module"></span><h2>ESSArch_EPP.monitoring.tasks module<a class="headerlink" href="#module-ESSArch_EPP.monitoring.tasks" title="Permalink to this headline">¶</a></h2>
+<p>ESSArch - ESSArch is an Electronic Archive system
+Copyright (C) 2010-2016  ES Solutions AB</p>
+<p>This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>Contact information:
+Web - <a class="reference external" href="http://www.essolutions.se">http://www.essolutions.se</a>
+Email - <a class="reference external" href="mailto:essarch&#37;&#52;&#48;essolutions&#46;se">essarch<span>&#64;</span>essolutions<span>&#46;</span>se</a></p>
+<dl class="class">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.monitoring.tasks.</code><code class="descname">CheckProcFilesTask</code><a class="reference internal" href="modules/ESSArch_EPP/monitoring/tasks.html#CheckProcFilesTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">jobtastic.task.JobtasticTask</span></code></p>
+<p>Check if all proc files have size &gt; 0</p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.acks_late">
+<code class="descname">acks_late</code><em class="property"> = False</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.acks_late" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.cache_duration">
+<code class="descname">cache_duration</code><em class="property"> = 10</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.cache_duration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.calculate_result">
+<code class="descname">calculate_result</code><span class="sig-paren">(</span><em>proc_log_path</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/tasks.html#CheckProcFilesTask.calculate_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.calculate_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.delivery_mode">
+<code class="descname">delivery_mode</code><em class="property"> = 2</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.delivery_mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.exchange_type">
+<code class="descname">exchange_type</code><em class="property"> = 'direct'</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.exchange_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.herd_avoidance_timeout">
+<code class="descname">herd_avoidance_timeout</code><em class="property"> = 5</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.herd_avoidance_timeout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.ignore_result">
+<code class="descname">ignore_result</code><em class="property"> = False</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.ignore_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.name">
+<code class="descname">name</code><em class="property"> = 'ESSArch_EPP.monitoring.tasks.CheckProcFilesTask'</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.rate_limit">
+<code class="descname">rate_limit</code><em class="property"> = None</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.rate_limit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.request_stack">
+<code class="descname">request_stack</code><em class="property"> = &lt;celery.utils.threads._LocalStack object at 0x6b77290&gt;</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.request_stack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.send_error_emails">
+<code class="descname">send_error_emails</code><em class="property"> = False</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.send_error_emails" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.serializer">
+<code class="descname">serializer</code><em class="property"> = 'pickle'</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.serializer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.significant_kwargs">
+<code class="descname">significant_kwargs</code><em class="property"> = [('proc_log_path', &lt;type 'str'&gt;)]</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.significant_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.store_errors_even_if_ignored">
+<code class="descname">store_errors_even_if_ignored</code><em class="property"> = False</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.store_errors_even_if_ignored" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.time_limit">
+<code class="descname">time_limit</code><em class="property"> = 60</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.time_limit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.track_started">
+<code class="descname">track_started</code><em class="property"> = False</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcFilesTask.track_started" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.monitoring.tasks.</code><code class="descname">CheckProcessTask</code><a class="reference internal" href="modules/ESSArch_EPP/monitoring/tasks.html#CheckProcessTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">jobtastic.task.JobtasticTask</span></code></p>
+<p>Check if all ESSArch processes is running</p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.acks_late">
+<code class="descname">acks_late</code><em class="property"> = False</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.acks_late" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.cache_duration">
+<code class="descname">cache_duration</code><em class="property"> = 10</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.cache_duration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.calculate_result">
+<code class="descname">calculate_result</code><span class="sig-paren">(</span><em>process_list</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/tasks.html#CheckProcessTask.calculate_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.calculate_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.delivery_mode">
+<code class="descname">delivery_mode</code><em class="property"> = 2</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.delivery_mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.exchange_type">
+<code class="descname">exchange_type</code><em class="property"> = 'direct'</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.exchange_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.get_ps_dict">
+<code class="descname">get_ps_dict</code><span class="sig-paren">(</span><em>process_list</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/tasks.html#CheckProcessTask.get_ps_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.get_ps_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count number of processes is running local server. Return a dict with processes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.herd_avoidance_timeout">
+<code class="descname">herd_avoidance_timeout</code><em class="property"> = 5</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.herd_avoidance_timeout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.ignore_result">
+<code class="descname">ignore_result</code><em class="property"> = False</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.ignore_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.name">
+<code class="descname">name</code><em class="property"> = 'ESSArch_EPP.monitoring.tasks.CheckProcessTask'</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.rate_limit">
+<code class="descname">rate_limit</code><em class="property"> = None</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.rate_limit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.request_stack">
+<code class="descname">request_stack</code><em class="property"> = &lt;celery.utils.threads._LocalStack object at 0x6b77850&gt;</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.request_stack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.send_error_emails">
+<code class="descname">send_error_emails</code><em class="property"> = False</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.send_error_emails" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.serializer">
+<code class="descname">serializer</code><em class="property"> = 'pickle'</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.serializer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.significant_kwargs">
+<code class="descname">significant_kwargs</code><em class="property"> = [('process_list', &lt;type 'str'&gt;)]</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.significant_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.store_errors_even_if_ignored">
+<code class="descname">store_errors_even_if_ignored</code><em class="property"> = False</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.store_errors_even_if_ignored" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.time_limit">
+<code class="descname">time_limit</code><em class="property"> = 60</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.time_limit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckProcessTask.track_started">
+<code class="descname">track_started</code><em class="property"> = False</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckProcessTask.track_started" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask">
+<em class="property">class </em><code class="descclassname">ESSArch_EPP.monitoring.tasks.</code><code class="descname">CheckStorageMediumsTask</code><a class="reference internal" href="modules/ESSArch_EPP/monitoring/tasks.html#CheckStorageMediumsTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">jobtastic.task.JobtasticTask</span></code></p>
+<p>Check if tapemedia is marked as FUll och Error</p>
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.acks_late">
+<code class="descname">acks_late</code><em class="property"> = False</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.acks_late" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.cache_duration">
+<code class="descname">cache_duration</code><em class="property"> = 10</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.cache_duration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.calculate_result">
+<code class="descname">calculate_result</code><span class="sig-paren">(</span><em>email='admin'</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/tasks.html#CheckStorageMediumsTask.calculate_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.calculate_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.delivery_mode">
+<code class="descname">delivery_mode</code><em class="property"> = 2</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.delivery_mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.exchange_type">
+<code class="descname">exchange_type</code><em class="property"> = 'direct'</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.exchange_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.herd_avoidance_timeout">
+<code class="descname">herd_avoidance_timeout</code><em class="property"> = 5</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.herd_avoidance_timeout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.ignore_result">
+<code class="descname">ignore_result</code><em class="property"> = False</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.ignore_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.name">
+<code class="descname">name</code><em class="property"> = 'ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask'</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.rate_limit">
+<code class="descname">rate_limit</code><em class="property"> = None</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.rate_limit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.request_stack">
+<code class="descname">request_stack</code><em class="property"> = &lt;celery.utils.threads._LocalStack object at 0x6b77e50&gt;</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.request_stack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.send_error_emails">
+<code class="descname">send_error_emails</code><em class="property"> = False</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.send_error_emails" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.serializer">
+<code class="descname">serializer</code><em class="property"> = 'pickle'</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.serializer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.significant_kwargs">
+<code class="descname">significant_kwargs</code><em class="property"> = []</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.significant_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.store_errors_even_if_ignored">
+<code class="descname">store_errors_even_if_ignored</code><em class="property"> = False</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.store_errors_even_if_ignored" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.time_limit">
+<code class="descname">time_limit</code><em class="property"> = 60</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.time_limit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.track_started">
+<code class="descname">track_started</code><em class="property"> = False</em><a class="headerlink" href="#ESSArch_EPP.monitoring.tasks.CheckStorageMediumsTask.track_started" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="essarch-epp-monitoring-tests-module">
+<h2>ESSArch_EPP.monitoring.tests module<a class="headerlink" href="#essarch-epp-monitoring-tests-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ESSArch_EPP.monitoring.urls">
+<span id="essarch-epp-monitoring-urls-module"></span><h2>ESSArch_EPP.monitoring.urls module<a class="headerlink" href="#module-ESSArch_EPP.monitoring.urls" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ESSArch_EPP.monitoring.views">
+<span id="essarch-epp-monitoring-views-module"></span><h2>ESSArch_EPP.monitoring.views module<a class="headerlink" href="#module-ESSArch_EPP.monitoring.views" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ESSArch_EPP.monitoring.views.sysinfo">
+<code class="descclassname">ESSArch_EPP.monitoring.views.</code><code class="descname">sysinfo</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/views.html#sysinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.views.sysinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build page providing information about the state of the system.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ESSArch_EPP.monitoring.views.sysstat">
+<code class="descclassname">ESSArch_EPP.monitoring.views.</code><code class="descname">sysstat</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/ESSArch_EPP/monitoring/views.html#sysstat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_EPP.monitoring.views.sysstat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build page providing information about the state of the system.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ESSArch_EPP.monitoring">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ESSArch_EPP.monitoring" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ESSArch_EPP.monitoring package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-ESSArch_EPP.monitoring.admin">ESSArch_EPP.monitoring.admin module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_EPP.monitoring.log">ESSArch_EPP.monitoring.log module</a></li>
+<li><a class="reference internal" href="#essarch-epp-monitoring-models-module">ESSArch_EPP.monitoring.models module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_EPP.monitoring.tasks">ESSArch_EPP.monitoring.tasks module</a></li>
+<li><a class="reference internal" href="#essarch-epp-monitoring-tests-module">ESSArch_EPP.monitoring.tests module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_EPP.monitoring.urls">ESSArch_EPP.monitoring.urls module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_EPP.monitoring.views">ESSArch_EPP.monitoring.views module</a></li>
+<li><a class="reference internal" href="#module-ESSArch_EPP.monitoring">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">ESSArch_EPP</a><ul>
+  <li><a href="ESSArch_EPP.html">ESSArch_EPP package</a><ul>
+      <li>Previous: <a href="ESSArch_EPP.ingest.html" title="previous chapter">ESSArch_EPP.ingest package</a></li>
+      <li>Next: <a href="ESSArch_EPP.monitoring.management.html" title="next chapter">ESSArch_EPP.monitoring.management package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="sources/ESSArch_EPP.monitoring.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, ES Solutions.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="sources/ESSArch_EPP.monitoring.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

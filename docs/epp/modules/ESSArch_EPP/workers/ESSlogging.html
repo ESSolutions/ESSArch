@@ -1,0 +1,492 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ESSArch_EPP.workers.ESSlogging &#8212; ESSArch Preservation Platform 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../../static/underscore.js"></script>
+    <script type="text/javascript" src="../../../static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ESSArch_EPP.workers.ESSlogging</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env /ESSArch/pd/python/bin/python</span>
+<span class="c1"># coding: iso-8859-1</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    ESSArch - ESSArch is an Electronic Archive system</span>
+<span class="sd">    Copyright (C) 2010-2013  ES Solutions AB, Henrik Ek</span>
+
+<span class="sd">    This program is free software: you can redistribute it and/or modify</span>
+<span class="sd">    it under the terms of the GNU General Public License as published by</span>
+<span class="sd">    the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">    (at your option) any later version.</span>
+
+<span class="sd">    This program is distributed in the hope that it will be useful,</span>
+<span class="sd">    but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="sd">    GNU General Public License for more details.</span>
+
+<span class="sd">    You should have received a copy of the GNU General Public License</span>
+<span class="sd">    along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">    Contact information:</span>
+<span class="sd">    Web - http://www.essolutions.se</span>
+<span class="sd">    Email - essarch@essolutions.se</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="n">__majorversion__</span> <span class="o">=</span> <span class="s2">&quot;2.5&quot;</span>
+<span class="n">__revision__</span> <span class="o">=</span> <span class="s2">&quot;$Revision$&quot;</span>
+<span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;$Date$&quot;</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;$Author$&quot;</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">__majorversion__</span><span class="p">,</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;[\D]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span><span class="n">__revision__</span><span class="p">))</span>
+<span class="kn">import</span> <span class="nn">cPickle</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">logging.handlers</span>
+<span class="kn">import</span> <span class="nn">SocketServer</span>
+<span class="kn">import</span> <span class="nn">socket</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">ESSDB</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="k">import</span> <span class="n">OptionParser</span>
+
+<span class="c1">#class SingleLevelFilter(logging.Filter): </span>
+<span class="c1">#    def __init__(self, passlevel, reject): </span>
+<span class="c1">#        self.passlevel = passlevel </span>
+<span class="c1">#        self.reject = reject </span>
+<span class="c1"># </span>
+<span class="c1">#    def filter(self, record): </span>
+<span class="c1">#        if self.reject: </span>
+<span class="c1">#            return (record.levelno != self.passlevel) </span>
+<span class="c1">#        else: </span>
+<span class="c1">#            return (record.levelno == self.passlevel) </span>
+
+<div class="viewcode-block" id="ESSSocketHandler"><a class="viewcode-back" href="../../../ESSArch_EPP.workers.html#ESSArch_EPP.workers.ESSlogging.ESSSocketHandler">[docs]</a><span class="k">class</span> <span class="nc">ESSSocketHandler</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">SocketHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="ESSSocketHandler.createSocket"><a class="viewcode-back" href="../../../ESSArch_EPP.workers.html#ESSArch_EPP.workers.ESSlogging.ESSSocketHandler.createSocket">[docs]</a>    <span class="k">def</span> <span class="nf">createSocket</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Try to create a socket</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="c1"># Either retryTime is None, in which case this</span>
+        <span class="c1"># is the first time back after a disconnect, or</span>
+        <span class="c1"># we&#39;ve waited long enough.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">retryTime</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">attempt</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">attempt</span> <span class="o">=</span> <span class="p">(</span><span class="n">now</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">retryTime</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">attempt</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeSocket</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">retryTime</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># next time, no delay before trying</span>
+            <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">,(</span><span class="n">why</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem to make TCP socket to logging server, error: </span><span class="si">%s</span><span class="s2">, #record: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">why</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">record</span><span class="p">)))</span>
+                <span class="c1">#Creation failed, so set the retry time and return.</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">retryTime</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">retryPeriod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">retryStart</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">retryPeriod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">retryPeriod</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">retryFactor</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">retryPeriod</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">retryMax</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">retryPeriod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">retryMax</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">retryTime</span> <span class="o">=</span> <span class="n">now</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">retryPeriod</span></div>
+
+<div class="viewcode-block" id="ESSSocketHandler.send"><a class="viewcode-back" href="../../../ESSArch_EPP.workers.html#ESSArch_EPP.workers.ESSlogging.ESSSocketHandler.send">[docs]</a>    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Send a pickled string to the socket.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createSocket</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="p">,</span> <span class="s2">&quot;sendall&quot;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">sentsofar</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">left</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                    <span class="k">while</span> <span class="n">left</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">sent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">sentsofar</span><span class="p">:])</span>
+                        <span class="n">sentsofar</span> <span class="o">=</span> <span class="n">sentsofar</span> <span class="o">+</span> <span class="n">sent</span>
+                        <span class="n">left</span> <span class="o">=</span> <span class="n">left</span> <span class="o">-</span> <span class="n">sent</span>
+            <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">,(</span><span class="n">why</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem to send logrecord to logging server, error: </span><span class="si">%s</span><span class="s2">, #record: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">why</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">record</span><span class="p">)))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># so we can call createSocket next time</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Missing TCP socket, error: </span><span class="si">%s</span><span class="s2">, #record: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;unknown&#39;</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">record</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="ESSSocketHandler.handleError"><a class="viewcode-back" href="../../../ESSArch_EPP.workers.html#ESSArch_EPP.workers.ESSlogging.ESSSocketHandler.handleError">[docs]</a>    <span class="k">def</span> <span class="nf">handleError</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle an error during logging.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">closeOnError</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="kc">None</span>        <span class="c1">#try to reconnect next time</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ei</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">traceback</span><span class="o">.</span><span class="n">print_exception</span><span class="p">(</span><span class="n">ei</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ei</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ei</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                <span class="k">pass</span>    <span class="c1"># see issue 5971</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">ei</span></div>
+
+<div class="viewcode-block" id="ESSSocketHandler.emit"><a class="viewcode-back" href="../../../ESSArch_EPP.workers.html#ESSArch_EPP.workers.ESSlogging.ESSSocketHandler.emit">[docs]</a>    <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Emit a record.</span>
+
+<span class="sd">        Pickles the record and writes it to the socket in binary format.</span>
+<span class="sd">        If there is an error with the socket, silently drop the packet.</span>
+<span class="sd">        If there was a problem with the socket, re-establishes the</span>
+<span class="sd">        socket.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">record</span> <span class="o">=</span> <span class="n">record</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">makePickle</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyboardInterrupt</span><span class="p">,</span> <span class="ne">SystemExit</span><span class="p">):</span>
+            <span class="k">raise</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handleError</span><span class="p">(</span><span class="n">record</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ESSSocketHandler.close"><a class="viewcode-back" href="../../../ESSArch_EPP.workers.html#ESSArch_EPP.workers.ESSlogging.ESSSocketHandler.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Closes the socket.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">Handler</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="nameFilter"><a class="viewcode-back" href="../../../ESSArch_EPP.workers.html#ESSArch_EPP.workers.ESSlogging.nameFilter">[docs]</a><span class="k">class</span> <span class="nc">nameFilter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Filter</span><span class="p">):</span> 
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span> 
+ 
+<div class="viewcode-block" id="nameFilter.filter"><a class="viewcode-back" href="../../../ESSArch_EPP.workers.html#ESSArch_EPP.workers.ESSlogging.nameFilter.filter">[docs]</a>    <span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span> 
+        <span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> 
+            <span class="k">return</span> <span class="kc">True</span> 
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">return</span> <span class="kc">False</span> </div></div>
+
+<div class="viewcode-block" id="LogRecordStreamHandler"><a class="viewcode-back" href="../../../ESSArch_EPP.workers.html#ESSArch_EPP.workers.ESSlogging.LogRecordStreamHandler">[docs]</a><span class="k">class</span> <span class="nc">LogRecordStreamHandler</span><span class="p">(</span><span class="n">SocketServer</span><span class="o">.</span><span class="n">StreamRequestHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Handler for a streaming logging request.</span>
+
+<span class="sd">    This basically logs the record using whatever logging policy is</span>
+<span class="sd">    configured locally.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LogRecordStreamHandler.handle"><a class="viewcode-back" href="../../../ESSArch_EPP.workers.html#ESSArch_EPP.workers.ESSlogging.LogRecordStreamHandler.handle">[docs]</a>    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle multiple requests - each expected to be a 4-byte length,</span>
+<span class="sd">        followed by the LogRecord in pickle format. Logs the record</span>
+<span class="sd">        according to whatever policy is configured locally.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">slen</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="n">chunk</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="n">slen</span><span class="p">)</span>
+            <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">slen</span><span class="p">:</span>
+                <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="n">slen</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">))</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unPickle</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">makeLogRecord</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handleLogRecord</span><span class="p">(</span><span class="n">record</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LogRecordStreamHandler.unPickle"><a class="viewcode-back" href="../../../ESSArch_EPP.workers.html#ESSArch_EPP.workers.ESSlogging.LogRecordStreamHandler.unPickle">[docs]</a>    <span class="k">def</span> <span class="nf">unPickle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LogRecordStreamHandler.handleLogRecord"><a class="viewcode-back" href="../../../ESSArch_EPP.workers.html#ESSArch_EPP.workers.ESSlogging.LogRecordStreamHandler.handleLogRecord">[docs]</a>    <span class="k">def</span> <span class="nf">handleLogRecord</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+        <span class="c1"># if a name is specified, we use the named logger rather than the one</span>
+        <span class="c1"># implied by the record.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logname</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="c1"># N.B. EVERY record gets logged. This is because Logger.handle</span>
+        <span class="c1"># is normally called AFTER logger-level filtering. If you want</span>
+        <span class="c1"># to do filtering, do it at the client end to save wasting</span>
+        <span class="c1"># cycles and network bandwidth!</span>
+        <span class="c1">#print &#39;record: %s&#39; % str(record)</span>
+        <span class="c1">#print &#39;record.levelno: %s&#39; % str(record.levelno)</span>
+        <span class="c1">#print &#39;record.name: %s&#39; % str(record.name)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">record</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="LogRecordSocketReceiver"><a class="viewcode-back" href="../../../ESSArch_EPP.workers.html#ESSArch_EPP.workers.ESSlogging.LogRecordSocketReceiver">[docs]</a><span class="k">class</span> <span class="nc">LogRecordSocketReceiver</span><span class="p">(</span><span class="n">SocketServer</span><span class="o">.</span><span class="n">ThreadingTCPServer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;simple TCP socket-based logging receiver.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">allow_reuse_address</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s1">&#39;localhost&#39;</span><span class="p">,</span>
+                 <span class="n">port</span><span class="o">=</span><span class="mi">60100</span><span class="p">,</span>
+                 <span class="n">handler</span><span class="o">=</span><span class="n">LogRecordStreamHandler</span><span class="p">):</span>
+        <span class="n">SocketServer</span><span class="o">.</span><span class="n">ThreadingTCPServer</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">),</span> <span class="n">handler</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">abort</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logname</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="LogRecordSocketReceiver.serve_until_stopped"><a class="viewcode-back" href="../../../ESSArch_EPP.workers.html#ESSArch_EPP.workers.ESSlogging.LogRecordSocketReceiver.serve_until_stopped">[docs]</a>    <span class="k">def</span> <span class="nf">serve_until_stopped</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ESS logging server running&#39;</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">select</span>
+        <span class="n">abort</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">abort</span><span class="p">:</span>
+            <span class="n">rd</span><span class="p">,</span> <span class="n">wr</span><span class="p">,</span> <span class="n">ex</span> <span class="o">=</span> <span class="n">select</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">fileno</span><span class="p">()],</span>
+                                       <span class="p">[],</span> <span class="p">[],</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rd</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">handle_request</span><span class="p">()</span>
+            <span class="n">abort</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abort</span></div></div>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../ESSArch_EPP.workers.html#ESSArch_EPP.workers.ESSlogging.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c1">#LogLevel = logging.INFO</span>
+    <span class="n">LogLevel</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>
+    <span class="c1">#LogLevel = multiprocessing.SUBDEBUG</span>
+    <span class="n">MultiProc</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">Console</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1">##########################</span>
+    <span class="c1"># Log format</span>
+    <span class="k">if</span> <span class="n">MultiProc</span><span class="p">:</span>
+        <span class="n">essFormatter1</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(name)s</span><span class="s1"> </span><span class="si">%(levelname)s</span><span class="s1">/</span><span class="si">%(processName)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> %b %Y %H:%M:%S&#39;</span><span class="p">)</span>
+        <span class="n">essFormatter2</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(name)s</span><span class="s1"> </span><span class="si">%(levelname)s</span><span class="s1">/</span><span class="si">%(processName)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> %b %Y %H:%M:%S&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">essFormatter1</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(levelname)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> %b %Y %H:%M:%S&#39;</span><span class="p">)</span>
+        <span class="n">essFormatter2</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(levelname)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> %b %Y %H:%M:%S&#39;</span><span class="p">)</span>
+    <span class="c1">###########################</span>
+    <span class="c1"># LocalFileHandler</span>
+    <span class="n">LogFile</span> <span class="o">=</span> <span class="s1">&#39;/tmp/IOEngine.log&#39;</span>
+    <span class="c1">#essLocalFileHandler = logging.handlers.TimedRotatingFileHandler(LogFile, when=&#39;W6&#39;, backupCount=1040)</span>
+    <span class="n">LocalFileHandler_IOEngine</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">TimedRotatingFileHandler</span><span class="p">(</span><span class="n">LogFile</span><span class="p">,</span> <span class="n">when</span><span class="o">=</span><span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">backupCount</span><span class="o">=</span><span class="mi">1040</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_IOEngine</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">LogLevel</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_IOEngine</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">essFormatter1</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_IOEngine</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">nameFilter</span><span class="p">(</span><span class="s1">&#39;IOEngine&#39;</span><span class="p">))</span>
+    <span class="c1">###########################</span>
+    <span class="c1"># LocalFileHandler</span>
+    <span class="n">LogFile</span> <span class="o">=</span> <span class="s1">&#39;/tmp/AIPWriter.log&#39;</span>
+    <span class="c1">#essLocalFileHandler = logging.handlers.TimedRotatingFileHandler(LogFile, when=&#39;W6&#39;, backupCount=1040)</span>
+    <span class="n">LocalFileHandler_AIPWriter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">TimedRotatingFileHandler</span><span class="p">(</span><span class="n">LogFile</span><span class="p">,</span> <span class="n">when</span><span class="o">=</span><span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">backupCount</span><span class="o">=</span><span class="mi">1040</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_AIPWriter</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">LogLevel</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_AIPWriter</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">essFormatter1</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_AIPWriter</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">nameFilter</span><span class="p">(</span><span class="s1">&#39;AIPWriter&#39;</span><span class="p">))</span>
+    <span class="c1">#essLocalFileHandler.doRollover()</span>
+    <span class="c1">###########################</span>
+    <span class="c1"># LocalConsoleHandler</span>
+    <span class="n">essConsoleHandler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+    <span class="n">essConsoleHandler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">LogLevel</span><span class="p">)</span>
+    <span class="n">essConsoleHandler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">essFormatter2</span><span class="p">)</span>
+    <span class="c1">##########################</span>
+    <span class="c1"># Add handlers to default logger</span>
+    <span class="n">rootlogger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">rootlogger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1">#rootlogger.addHandler(LocalFileHandler_IOEngine)</span>
+    <span class="c1">#logger_IOEngine = logging.getLogger(&#39;IOEngine&#39;)</span>
+    <span class="c1">#logger_IOEngine.addHandler(LocalFileHandler_IOEngine)</span>
+    <span class="n">rootlogger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">LocalFileHandler_IOEngine</span><span class="p">)</span>
+    <span class="c1">#logger_AIPWriter = logging.getLogger(&#39;AIPWriter&#39;)</span>
+    <span class="c1">#logger_AIPWriter.addHandler(LocalFileHandler_AIPWriter)</span>
+    <span class="n">rootlogger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">LocalFileHandler_AIPWriter</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">Console</span><span class="p">:</span>
+        <span class="n">rootlogger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">essConsoleHandler</span><span class="p">)</span>
+
+    <span class="k">global</span> <span class="n">abort_main</span>
+    <span class="n">abort_main</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">tcpserver</span> <span class="o">=</span> <span class="n">LogRecordSocketReceiver</span><span class="p">()</span>
+    <span class="nb">print</span> <span class="s2">&quot;About to start TCP server...&quot;</span>
+    <span class="n">p1</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">tcpserver</span><span class="o">.</span><span class="n">serve_until_stopped</span><span class="p">)</span>
+    <span class="n">p1</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="c1">#tcpserver.serve_until_stopped()</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="s1">&#39;try to stop&#39;</span>
+    <span class="n">abort_main</span> <span class="o">=</span> <span class="mi">1</span></div>
+    <span class="c1">#p1.terminate()</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">ProcName</span> <span class="o">=</span> <span class="s1">&#39;ESSlogging&#39;</span>
+    <span class="n">ProcVersion</span> <span class="o">=</span> <span class="n">__version__</span>
+
+    <span class="n">op</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="n">ProcName</span><span class="p">,</span><span class="n">usage</span><span class="o">=</span><span class="s2">&quot;usage: %prog [options] arg&quot;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;%prog Version &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ProcVersion</span><span class="p">))</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-x&quot;</span><span class="p">,</span> <span class="s2">&quot;--LogLevel&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Set LogLevel (LEVEL: CRITICAL, ERROR, WARNING, INFO, DEBUG) (Default INFO)&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;LogLevel&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;LEVEL&quot;</span><span class="p">)</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-p&quot;</span><span class="p">,</span> <span class="s2">&quot;--process&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;ESSArch process&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;process&quot;</span><span class="p">)</span>
+    <span class="n">options</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">optionflag</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">process</span><span class="p">:</span>
+        <span class="n">optionflag</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">optionflag</span><span class="p">:</span> <span class="n">op</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;incorrect options&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">LogLevel</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">LogLevel</span> <span class="o">==</span> <span class="s1">&#39;CRITICAL&#39;</span><span class="p">:</span> <span class="n">LogLevel</span> <span class="o">=</span> <span class="mi">50</span>
+        <span class="k">elif</span> <span class="n">options</span><span class="o">.</span><span class="n">LogLevel</span> <span class="o">==</span> <span class="s1">&#39;ERROR&#39;</span><span class="p">:</span> <span class="n">LogLevel</span> <span class="o">=</span> <span class="mi">40</span>
+        <span class="k">elif</span> <span class="n">options</span><span class="o">.</span><span class="n">LogLevel</span> <span class="o">==</span> <span class="s1">&#39;WARNING&#39;</span><span class="p">:</span> <span class="n">LogLevel</span> <span class="o">=</span> <span class="mi">30</span>
+        <span class="k">elif</span> <span class="n">options</span><span class="o">.</span><span class="n">LogLevel</span> <span class="o">==</span> <span class="s1">&#39;INFO&#39;</span><span class="p">:</span> <span class="n">LogLevel</span> <span class="o">=</span> <span class="mi">20</span>
+        <span class="k">elif</span> <span class="n">options</span><span class="o">.</span><span class="n">LogLevel</span> <span class="o">==</span> <span class="s1">&#39;DEBUG&#39;</span><span class="p">:</span> <span class="n">LogLevel</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="k">else</span><span class="p">:</span> <span class="n">op</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid LogLevel&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">LogLevel</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span> <span class="n">Debug</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span> <span class="n">Debug</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">LogLevel</span> <span class="o">=</span> <span class="mi">20</span>
+
+    <span class="c1">#Console = 1</span>
+    <span class="n">Console</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">process</span><span class="p">:</span>
+        <span class="n">LogFile</span><span class="p">,</span><span class="n">Time</span><span class="p">,</span><span class="n">Status</span><span class="p">,</span><span class="n">Run</span> <span class="o">=</span> <span class="n">ESSDB</span><span class="o">.</span><span class="n">DB</span><span class="p">()</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="s1">&#39;ESSProc&#39;</span><span class="p">,</span><span class="s1">&#39;GET&#39;</span><span class="p">,(</span><span class="s1">&#39;LogFile&#39;</span><span class="p">,</span><span class="s1">&#39;Time&#39;</span><span class="p">,</span><span class="s1">&#39;Status&#39;</span><span class="p">,</span><span class="s1">&#39;Run&#39;</span><span class="p">),(</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span><span class="n">ProcName</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">LogFile</span> <span class="o">=</span> <span class="s1">&#39;/ESSArch/log/ESSlogging.log&#39;</span>
+    <span class="c1">##########################</span>
+    <span class="c1"># Log format</span>
+    <span class="n">MultiProc</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">MultiProc</span><span class="p">:</span>
+        <span class="n">essFormatter1</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(name)s</span><span class="s1"> </span><span class="si">%(levelname)s</span><span class="s1">/</span><span class="si">%(processName)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> %b %Y %H:%M:%S&#39;</span><span class="p">)</span>
+        <span class="n">essFormatter2</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(name)s</span><span class="s1"> </span><span class="si">%(levelname)s</span><span class="s1">/</span><span class="si">%(processName)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> %b %Y %H:%M:%S&#39;</span><span class="p">)</span>
+        <span class="c1">#essFormatter1 = logging.Formatter(&#39;%(asctime)s %(levelname)s/%(processName)-8s %(message)s&#39;,&#39;%d %b %Y %H:%M:%S&#39;)</span>
+        <span class="c1">#essFormatter2 = logging.Formatter(&#39;%(levelname)s/%(processName)-8s %(message)s&#39;,&#39;%d %b %Y %H:%M:%S&#39;)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">essFormatter1</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(levelname)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> %b %Y %H:%M:%S&#39;</span><span class="p">)</span>
+        <span class="n">essFormatter2</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(levelname)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> %b %Y %H:%M:%S&#39;</span><span class="p">)</span>
+    <span class="c1">###########################</span>
+    <span class="c1"># LocalFileHandler (main or root)</span>
+    <span class="n">LocalFileHandler_root</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">TimedRotatingFileHandler</span><span class="p">(</span><span class="n">LogFile</span><span class="p">,</span> <span class="n">when</span><span class="o">=</span><span class="s1">&#39;W6&#39;</span><span class="p">,</span> <span class="n">backupCount</span><span class="o">=</span><span class="mi">1040</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_root</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">LogLevel</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_root</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">essFormatter1</span><span class="p">)</span>
+    <span class="c1">###########################</span>
+    <span class="c1"># LocalFileHandler</span>
+    <span class="n">log_ProcName</span> <span class="o">=</span> <span class="s1">&#39;AIPWriter&#39;</span>
+    <span class="n">LogFile</span> <span class="o">=</span> <span class="n">ESSDB</span><span class="o">.</span><span class="n">DB</span><span class="p">()</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="s1">&#39;ESSProc&#39;</span><span class="p">,</span><span class="s1">&#39;GET&#39;</span><span class="p">,(</span><span class="s1">&#39;LogFile&#39;</span><span class="p">,),(</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span><span class="n">log_ProcName</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">LogFile</span> <span class="o">=</span> <span class="n">LogFile</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_2.log&#39;</span>
+    <span class="n">LocalFileHandler_AIPWriter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">TimedRotatingFileHandler</span><span class="p">(</span><span class="n">LogFile</span><span class="p">,</span> <span class="n">when</span><span class="o">=</span><span class="s1">&#39;W6&#39;</span><span class="p">,</span> <span class="n">backupCount</span><span class="o">=</span><span class="mi">1040</span><span class="p">)</span>
+    <span class="c1">#LocalFileHandler_AIPWriter = logging.handlers.TimedRotatingFileHandler(LogFile, when=&#39;M&#39;, interval=1, backupCount=1040)</span>
+    <span class="n">LocalFileHandler_AIPWriter</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">LogLevel</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_AIPWriter</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">essFormatter1</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_AIPWriter</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">nameFilter</span><span class="p">(</span><span class="n">log_ProcName</span><span class="p">))</span>
+    <span class="c1">###########################</span>
+    <span class="c1"># LocalFileHandler</span>
+    <span class="n">log_ProcName</span> <span class="o">=</span> <span class="s1">&#39;TLD&#39;</span>
+    <span class="n">LogFile</span> <span class="o">=</span> <span class="n">ESSDB</span><span class="o">.</span><span class="n">DB</span><span class="p">()</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="s1">&#39;ESSProc&#39;</span><span class="p">,</span><span class="s1">&#39;GET&#39;</span><span class="p">,(</span><span class="s1">&#39;LogFile&#39;</span><span class="p">,),(</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span><span class="n">log_ProcName</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">LogFile</span> <span class="o">=</span> <span class="n">LogFile</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_2.log&#39;</span>
+    <span class="n">LocalFileHandler_TLD</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">TimedRotatingFileHandler</span><span class="p">(</span><span class="n">LogFile</span><span class="p">,</span> <span class="n">when</span><span class="o">=</span><span class="s1">&#39;W6&#39;</span><span class="p">,</span> <span class="n">backupCount</span><span class="o">=</span><span class="mi">1040</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_TLD</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">LogLevel</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_TLD</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">essFormatter1</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_TLD</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">nameFilter</span><span class="p">(</span><span class="n">log_ProcName</span><span class="p">))</span>
+    <span class="c1">###########################</span>
+    <span class="c1"># LocalFileHandler</span>
+    <span class="n">log_ProcName</span> <span class="o">=</span> <span class="s1">&#39;web_gui_index&#39;</span>
+    <span class="n">LogFile</span> <span class="o">=</span> <span class="s1">&#39;/ESSArch/log/&#39;</span> <span class="o">+</span> <span class="n">log_ProcName</span> <span class="o">+</span> <span class="s1">&#39;_2.log&#39;</span> 
+    <span class="n">LocalFileHandler_web_gui_index</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">TimedRotatingFileHandler</span><span class="p">(</span><span class="n">LogFile</span><span class="p">,</span> <span class="n">when</span><span class="o">=</span><span class="s1">&#39;W6&#39;</span><span class="p">,</span> <span class="n">backupCount</span><span class="o">=</span><span class="mi">1040</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_web_gui_index</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">LogLevel</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_web_gui_index</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">essFormatter1</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_web_gui_index</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">nameFilter</span><span class="p">(</span><span class="n">log_ProcName</span><span class="p">))</span>
+    <span class="c1">###########################</span>
+    <span class="c1"># LocalFileHandler</span>
+    <span class="n">log_ProcName</span> <span class="o">=</span> <span class="s1">&#39;web_gui_robot&#39;</span>
+    <span class="n">LogFile</span> <span class="o">=</span> <span class="s1">&#39;/ESSArch/log/&#39;</span> <span class="o">+</span> <span class="n">log_ProcName</span> <span class="o">+</span> <span class="s1">&#39;_2.log&#39;</span>
+    <span class="n">LocalFileHandler_web_gui_robot</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">TimedRotatingFileHandler</span><span class="p">(</span><span class="n">LogFile</span><span class="p">,</span> <span class="n">when</span><span class="o">=</span><span class="s1">&#39;W6&#39;</span><span class="p">,</span> <span class="n">backupCount</span><span class="o">=</span><span class="mi">1040</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_web_gui_robot</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">LogLevel</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_web_gui_robot</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">essFormatter1</span><span class="p">)</span>
+    <span class="n">LocalFileHandler_web_gui_robot</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">nameFilter</span><span class="p">(</span><span class="n">log_ProcName</span><span class="p">))</span>
+    <span class="c1">###########################</span>
+    <span class="c1"># LocalConsoleHandler</span>
+    <span class="n">essConsoleHandler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+    <span class="n">essConsoleHandler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">LogLevel</span><span class="p">)</span>
+    <span class="n">essConsoleHandler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">essFormatter2</span><span class="p">)</span>
+    <span class="c1">##########################</span>
+    <span class="c1"># Add handlers to default logger</span>
+    <span class="n">rootlogger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">rootlogger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">rootlogger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">LocalFileHandler_root</span><span class="p">)</span>
+    <span class="n">rootlogger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">LocalFileHandler_AIPWriter</span><span class="p">)</span>
+    <span class="n">rootlogger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">LocalFileHandler_TLD</span><span class="p">)</span>
+    <span class="n">rootlogger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">LocalFileHandler_web_gui_index</span><span class="p">)</span>
+    <span class="n">rootlogger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">LocalFileHandler_web_gui_robot</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">Console</span><span class="p">:</span>
+        <span class="n">rootlogger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">essConsoleHandler</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">process</span><span class="p">:</span>
+        <span class="n">tcpserver</span> <span class="o">=</span> <span class="n">LogRecordSocketReceiver</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;About to start TCP server...&#39;</span><span class="p">)</span>
+        <span class="n">p1</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">tcpserver</span><span class="o">.</span><span class="n">serve_until_stopped</span><span class="p">)</span>
+        <span class="n">p1</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">Time</span><span class="p">,</span><span class="n">Status</span><span class="p">,</span><span class="n">Run</span> <span class="o">=</span> <span class="n">ESSDB</span><span class="o">.</span><span class="n">DB</span><span class="p">()</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="s1">&#39;ESSProc&#39;</span><span class="p">,</span><span class="s1">&#39;GET&#39;</span><span class="p">,(</span><span class="s1">&#39;Time&#39;</span><span class="p">,</span><span class="s1">&#39;Status&#39;</span><span class="p">,</span><span class="s1">&#39;Run&#39;</span><span class="p">),(</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span><span class="n">ProcName</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">Run</span> <span class="o">==</span> <span class="s1">&#39;0&#39;</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Stopping &#39;</span> <span class="o">+</span> <span class="n">ProcName</span><span class="p">)</span>
+                <span class="n">ESSDB</span><span class="o">.</span><span class="n">DB</span><span class="p">()</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="s1">&#39;ESSProc&#39;</span><span class="p">,</span><span class="s1">&#39;UPD&#39;</span><span class="p">,(</span><span class="s1">&#39;Status&#39;</span><span class="p">,</span><span class="s1">&#39;0&#39;</span><span class="p">,</span><span class="s1">&#39;Run&#39;</span><span class="p">,</span><span class="s1">&#39;0&#39;</span><span class="p">,</span><span class="s1">&#39;PID&#39;</span><span class="p">,</span><span class="s1">&#39;0&#39;</span><span class="p">),(</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span><span class="n">ProcName</span><span class="p">))</span>
+                <span class="n">p1</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+                <span class="k">break</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, ES Solutions.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

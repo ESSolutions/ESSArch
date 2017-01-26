@@ -1,0 +1,31 @@
+ESSArch_EPP.earkcore.metadata package
+=====================================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ESSArch_EPP.earkcore.metadata.identification
+    ESSArch_EPP.earkcore.metadata.mets
+    ESSArch_EPP.earkcore.metadata.premis
+
+Submodules
+----------
+
+ESSArch_EPP.earkcore.metadata.XmlHelper module
+----------------------------------------------
+
+.. automodule:: ESSArch_EPP.earkcore.metadata.XmlHelper
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_EPP.earkcore.metadata
+    :members:
+    :undoc-members:
+    :show-inheritance:

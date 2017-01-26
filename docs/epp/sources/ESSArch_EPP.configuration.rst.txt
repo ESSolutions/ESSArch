@@ -1,0 +1,54 @@
+ESSArch_EPP.configuration package
+=================================
+
+Submodules
+----------
+
+ESSArch_EPP.configuration.admin module
+--------------------------------------
+
+.. automodule:: ESSArch_EPP.configuration.admin
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.configuration.models module
+---------------------------------------
+
+.. automodule:: ESSArch_EPP.configuration.models
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.configuration.tests module
+--------------------------------------
+
+.. automodule:: ESSArch_EPP.configuration.tests
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.configuration.urls module
+-------------------------------------
+
+.. automodule:: ESSArch_EPP.configuration.urls
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ESSArch_EPP.configuration.views module
+--------------------------------------
+
+.. automodule:: ESSArch_EPP.configuration.views
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ESSArch_EPP.configuration
+    :members:
+    :undoc-members:
+    :show-inheritance:
