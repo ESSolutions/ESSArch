@@ -50,6 +50,6 @@ Please download the latest installation package from  [GitHub](https://github.co
     # cp /ESSArch/config/automysqlbackup/runmysqlbackup /etc/cron.daily/runmysqlbackup
     # chmod 744 /etc/cron.daily/runmysqlbackup
 
-[<img align="right" src="images/n.png">][ec_safety_backup_procedures]
+[<img align="right" src="images/n.png">](ec_safety_backup_procedures.html)
 
 {% include links.html %}

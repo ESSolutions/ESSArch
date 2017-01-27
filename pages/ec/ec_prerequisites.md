@@ -86,5 +86,5 @@ are installed on your platform
 [ESSArch Core](https://github.com/ESSolutions/ESSArch_Core/releases/latest){:target="_blank"} and look in the directory folder "extra", there is help script to
 install required OS package.
 
-[<img align="right" src="images/n.png">][ec_prepare_environment]
+[<img align="right" src="images/n.png">](ec_prepare_environment.html)
 {% include links.html %}

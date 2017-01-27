@@ -45,6 +45,6 @@ Add the following rows to /home/arch/.bash_profile:
     # mkdir /ESSArch
     # chown -R arch:arch /ESSArch
 
-[<img align="right" src="images/n.png">][ec_install]
+[<img align="right" src="images/n.png">](ec_install.html)
 
 {% include links.html %}
