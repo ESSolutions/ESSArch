@@ -897,6 +897,8 @@ class SendEmail(DBTask):
 
         email.send()
 
+        self.set_progress(100, total=100)
+
     def undo(self, sender=None, recipients=[], subject=None, body=None, attachments=[]):
         pass
 
