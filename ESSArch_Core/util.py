@@ -219,14 +219,6 @@ def find_destination(use, structure, path=""):
     return None, None
 
 
-def download_file(url, dst):
-    r = requests.get(url, stream=True)
-    if r.status_code == 200:
-        with open(dst, 'wb') as f:
-            for chunk in r:
-                f.write(chunk)
-
-
 def get_files_and_dirs(path):
     """Return all files and directories at a given path"""
 

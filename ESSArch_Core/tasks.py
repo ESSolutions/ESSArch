@@ -30,6 +30,7 @@ from ESSArch_Core.WorkflowEngine.models import (
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.util import (
     creation_date,
+    find_destination,
     getSchemas,
     get_value_from_path,
     remove_prefix,
@@ -903,4 +904,54 @@ class SendEmail(DBTask):
         pass
 
     def event_outcome_success(self, sender=None, recipients=[], subject=None, body=None, attachments=[]):
+        pass
+
+
+class DownloadSchemas(DBTask):
+    def run(self, template=None, dirname=None, structure=[], root=""):
+        schemaPreserveLoc = template.get('-schemaPreservationLocation')
+
+        if schemaPreserveLoc and structure:
+            dirname, _ = find_destination(
+                schemaPreserveLoc, structure
+            )
+            dirname = os.path.join(root, dirname)
+
+        for schema in template.get('-schemasToPreserve', []):
+            dst = os.path.join(dirname, os.path.basename(schema))
+
+            t = ProcessTask.objects.create(
+                name="ESSArch_Core.tasks.DownloadFile",
+                params={'src': schema, 'dst': dst},
+                processstep=self.taskobj.processstep,
+                processstep_pos=self.taskobj.processstep_pos,
+                responsible=self.taskobj.responsible,
+                information_package=self.taskobj.information_package,
+            )
+
+            t.run_eagerly()
+
+        self.set_progress(100, total=100)
+
+    def undo(self, template=None, dirname=None, structure=[], root="", task=None):
+        pass
+
+    def event_outcome_success(self, template=None, dirname=None, structure=[], root="", task=None):
+        pass
+
+
+class DownloadFile(DBTask):
+    def run(self, src=None, dst=None):
+        r = requests.get(src, stream=True)
+        if r.status_code == 200:
+            with open(dst, 'wb') as f:
+                for chunk in r:
+                    f.write(chunk)
+
+        self.set_progress(100, total=100)
+
+    def undo(self, src=None, dst=None):
+        pass
+
+    def event_outcome_success(self, src=None, dst=None):
         pass
