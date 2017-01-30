@@ -4,7 +4,7 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Tools for Producer (ETP)
+    ESSArch Core
     Copyright (C) 2005-2017 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
