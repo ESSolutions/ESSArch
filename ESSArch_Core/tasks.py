@@ -762,8 +762,8 @@ class CopyChunk(DBTask):
 
             try:
                 response.raise_for_status()
-            except requests.exceptions.HTTPError:
-                raise ValueError
+            except requests.exceptions.HTTPError as e:
+                raise ValueError(e.args[0])
 
     def run(self, src=None, dst=None, requests_session=None, offset=0, block_size=65536, file_size=0):
         """
