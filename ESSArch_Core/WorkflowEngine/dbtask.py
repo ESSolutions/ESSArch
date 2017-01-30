@@ -29,6 +29,7 @@ from ESSArch_Core.util import (
 
 
 class DBTask(Task):
+    event_type = None
     queue = 'celery'
     hidden = False
 
