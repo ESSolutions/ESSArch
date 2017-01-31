@@ -128,9 +128,9 @@ by ETP installation.
 There are different profiles that can be installed. These profiles specify the packet structure, metadata and the input forms shall apply. You can also get specific profiles for your particular installation, please contact ES Solutions AB for more information. There are some standard profiles included in this installation package. You can choose to install one or more profiles.
 
     Please run the following command as user: arch
-    [arch@server ~]$ python $ETP/install/install_profiles_se.py
+    [arch@server ~]$ python $ETP/install/install_profiles_etp_se.py
     OR
-    [arch@server ~]$ python $ETP/install/install_profiles_eark.py
+    [arch@server ~]$ python $ETP/install/install_profiles_etp_eark.py
 
 ## Enable automatic startup at system boot
 
