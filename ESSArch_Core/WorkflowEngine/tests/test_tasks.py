@@ -154,18 +154,6 @@ class test_running_tasks(TestCase):
             self.assertIsNone(task.result)
             self.assertIsNotNone(task.traceback)
 
-    def test_running_non_eagerly(self):
-        settings.CELERY_ALWAYS_EAGER = False
-        foo = 123
-
-        task = ProcessTask(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={"foo": foo}
-        )
-
-        res = task.run().get().get(task.pk)
-        self.assertEqual(res, foo)
-
 
 class test_undoing_tasks(TestCase):
     def setUp(self):
