@@ -1009,7 +1009,7 @@ class ValidateFilesTestCase(TestCase):
         )
 
         with self.assertRaises(AssertionError):
-            task.run_eagerly()
+            task.run()
 
         step = ProcessStep.objects.get(name="Validate Files")
 
