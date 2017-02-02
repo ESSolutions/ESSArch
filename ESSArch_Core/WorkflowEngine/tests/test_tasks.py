@@ -127,7 +127,8 @@ class test_running_tasks(TestCase):
             information_package=InformationPackage.objects.create()
         )
 
-        task.run()
+        with self.assertNumQueries(4):
+            task.run()
         self.assertIsNone(task.traceback)
         self.assertEqual(foo, task.result)
 
