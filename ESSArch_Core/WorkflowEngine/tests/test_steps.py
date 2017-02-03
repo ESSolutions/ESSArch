@@ -26,6 +26,8 @@ from celery import states as celery_states
 from django.conf import settings
 from django.test import TestCase
 
+from django_redis import get_redis_connection
+
 from ESSArch_Core.ip.models import InformationPackage
 
 from ESSArch_Core.WorkflowEngine.models import (
@@ -38,10 +40,218 @@ import shutil
 
 class test_status(TestCase):
     def setUp(self):
+        settings.CELERY_ALWAYS_EAGER = True
+        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+
         self.step = ProcessStep.objects.create()
 
+    def tearDown(self):
+        get_redis_connection("default").flushall()
+
     def test_no_steps_or_tasks(self):
-        self.assertEqual(self.step.status, celery_states.SUCCESS)
+        with self.assertNumQueries(2):
+            self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_nested_steps(self):
+        depth = 5
+        parent = self.step
+
+        for i in range(depth):
+            parent = ProcessStep.objects.create(parent_step=parent)
+
+        with self.assertNumQueries(2*(depth+1)):
+            self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_cached_status(self):
+        with self.assertNumQueries(2):
+            self.step.status
+
+        with self.assertNumQueries(0):
+            self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_cached_status_nested_steps(self):
+        depth = 5
+        parent = self.step
+
+        for i in range(depth):
+            parent = ProcessStep.objects.create(parent_step=parent)
+
+        self.step.status
+
+        with self.assertNumQueries(0):
+            self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_cached_status_create_task(self):
+        self.step.status
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            processstep=self.step
+        )
+
+        with self.assertNumQueries(2):
+            self.assertEqual(self.step.status, celery_states.PENDING)
+
+    def test_cached_status_add_task(self):
+
+        t = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+        )
+
+        self.step.status
+        self.step.tasks.add(t)
+
+        with self.assertNumQueries(2):
+            self.assertEqual(self.step.status, celery_states.PENDING)
+
+    def test_cached_status_create_child_step(self):
+        self.step.status
+
+        ProcessStep.objects.create(parent_step=self.step)
+
+        with self.assertNumQueries(4):
+            self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_cached_status_add_child_step(self):
+        s = ProcessStep.objects.create()
+
+        self.step.status
+        self.step.child_steps.add(s)
+
+        with self.assertNumQueries(4):
+            self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_cached_status_run_task(self):
+        t = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            processstep=self.step
+        )
+
+        self.step.status
+
+        t.run()
+
+        with self.assertNumQueries(2):
+            self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_cached_status_run_task_in_nested_step(self):
+        s = ProcessStep.objects.create(parent_step=self.step)
+        t = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            processstep=s
+        )
+
+        self.step.status
+
+        t.run()
+
+        with self.assertNumQueries(4):
+            self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_cached_status_undo_task(self):
+        t = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={'foo': 123}, processstep=self.step
+        )
+
+        t.run()
+        self.step.status
+        t.undo()
+
+        with self.assertNumQueries(2):
+            self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_cached_status_retry_task(self):
+        t = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            processstep=self.step
+        )
+
+        t.run()
+        t.undo()
+        self.step.status
+        t.retry()
+
+        with self.assertNumQueries(2):
+            self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_cached_status_run_step(self):
+        s = ProcessStep.objects.create(parent_step=self.step)
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            processstep=s
+        )
+
+        self.step.status
+        s.run()
+
+        with self.assertNumQueries(4):
+            self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_cached_status_undo_step(self):
+        s = ProcessStep.objects.create(parent_step=self.step)
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            processstep=s
+        )
+
+        s.run()
+        self.step.status
+        s.undo()
+
+        with self.assertNumQueries(4):
+            self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_cached_status_retry_step(self):
+        s = ProcessStep.objects.create(parent_step=self.step)
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            processstep=s
+        )
+
+        s.run()
+        s.undo()
+        self.step.status
+        s.retry()
+
+        with self.assertNumQueries(4):
+            self.assertEqual(self.step.status, celery_states.SUCCESS)
+
+    def test_cached_status_resume_step(self):
+        test_dir = "test_dir"
+        fname = os.path.join(test_dir, "foo.txt")
+
+        try:
+            os.mkdir(test_dir)
+        except:
+            pass
+
+        s = ProcessStep.objects.create(parent_step=self.step)
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
+            params={"filename": fname}, processstep=s, processstep_pos=1
+        )
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": 123}, processstep=s, processstep_pos=2
+        )
+
+        with self.assertRaises(AssertionError):
+            s.run()
+
+        s.undo()
+        open(fname, 'a').close()
+        s.retry()
+        self.step.status
+        s.resume()
+
+        try:
+            shutil.rmtree(test_dir)
+        except:
+            pass
+
+        with self.assertNumQueries(4):
+            self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_pending_task(self):
         t = ProcessTask.objects.create(status=celery_states.PENDING)

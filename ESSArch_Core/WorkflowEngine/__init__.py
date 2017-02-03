@@ -22,3 +22,4 @@
     Email - essarch@essolutions.se
 """
 
+default_app_config = 'ESSArch_Core.WorkflowEngine.apps.WorkflowEngineConfig'

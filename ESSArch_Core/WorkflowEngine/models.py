@@ -29,6 +29,7 @@ import uuid
 
 from celery import chain, group, states as celery_states
 
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Sum
@@ -122,6 +123,16 @@ class ProcessStep(Process):
             retried=False
         ).order_by("processstep_pos")
 
+    def clear_cache(self):
+        """
+        Clears the cache for this step and all its ancestors
+        """
+
+        cache.delete(self.cache_status_key)
+
+        if self.parent_step:
+            self.parent_step.clear_cache()
+
     def run(self, direct=True):
         """
         Runs the process step by first running the child steps and then the
@@ -136,6 +147,8 @@ class ProcessStep(Process):
             tasks if called directly. The chain "non-executed" if direct is
             false
         """
+
+        self.clear_cache()
 
         func = group if self.parallel else chain
 
@@ -161,6 +174,8 @@ class ProcessStep(Process):
         Runs the step locally (as a "regular" function)
         """
 
+        self.clear_cache()
+
         for c in self.child_steps.all():
             c.run_eagerly()
 
@@ -180,6 +195,8 @@ class ProcessStep(Process):
             AsyncResult/EagerResult if there is atleast one task or child
             steps, otherwise None
         """
+
+        self.clear_cache()
 
         child_steps = self.child_steps.all()
         tasks = self.tasks.all()
@@ -223,6 +240,8 @@ class ProcessStep(Process):
             none
         """
 
+        self.clear_cache()
+
         child_steps = self.child_steps.all()
 
         tasks = self.tasks.filter(
@@ -260,6 +279,8 @@ class ProcessStep(Process):
             otherwise
         """
 
+        self.clear_cache()
+
         func = group if self.parallel else chain
 
         child_steps = self.child_steps.filter(tasks__status=celery_states.PENDING)
@@ -276,6 +297,10 @@ class ProcessStep(Process):
             workflow = (step_canvas | task_canvas)
 
         return workflow() if direct else workflow
+
+    @property
+    def cache_status_key(self):
+        return '%s_status' % str(self.pk)
 
     @property
     def time_started(self):
@@ -345,12 +370,18 @@ class ProcessStep(Process):
             * If all child steps and tasks have succeeded, then SUCCESS.
         """
 
+        cached = cache.get(self.cache_status_key)
+
+        if cached:
+            return cached
+
         child_steps = self.child_steps.all()
         tasks = self.tasks.filter(undo_type=False, undone=False, retried=False)
         status = celery_states.SUCCESS
 
         if not child_steps and not tasks:
-            return celery_states.SUCCESS
+            cache.set(self.cache_status_key, status)
+            return status
 
         for i in list(child_steps) + list(tasks):
             istatus = i.status
@@ -360,8 +391,10 @@ class ProcessStep(Process):
                     status != celery_states.STARTED):
                 status = istatus
             if istatus == celery_states.FAILURE:
+                cache.set(self.cache_status_key, istatus)
                 return istatus
 
+        cache.set(self.cache_status_key, status)
         return status
 
     @property
@@ -470,6 +503,12 @@ class ProcessTask(Process):
         """
         Runs the task locally (as a "regular" function)
         """
+
+        try:
+            self.processstep.clear_cache()
+        except AttributeError:
+            pass
+
         t = self._create_task(self.name)
         return t(taskobj=self, eager=True)
 
