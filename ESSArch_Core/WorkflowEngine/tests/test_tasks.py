@@ -55,7 +55,7 @@ class test_running_tasks(TestCase):
         """
 
         with self.assertRaises(ValidationError):
-            task = ProcessTask(
+            task = ProcessTask.objects.create(
                 name="nonexistent task",
                 responsible=self.user
             )
@@ -67,7 +67,7 @@ class test_running_tasks(TestCase):
         Creates a task with a name that does exist.
         """
 
-        task = ProcessTask(
+        task = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             responsible=self.user
         )
@@ -127,7 +127,8 @@ class test_running_tasks(TestCase):
             information_package=InformationPackage.objects.create()
         )
 
-        task.run()
+        with self.assertNumQueries(4):
+            task.run()
         self.assertIsNone(task.traceback)
         self.assertEqual(foo, task.result)
 
@@ -139,7 +140,7 @@ class test_running_tasks(TestCase):
 
         foo = 123
         try:
-            task = ProcessTask(
+            task = ProcessTask.objects.create(
                 name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
                 params={
                     "bar": foo
