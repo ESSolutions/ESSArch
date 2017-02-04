@@ -399,9 +399,6 @@ class ProcessTask(Process):
         celery_states.ALL_STATES, celery_states.ALL_STATES
     )
 
-    celery_id = models.UUIDField(
-        _('celery id'), max_length=255, null=True, editable=False
-    )
     name = models.CharField(max_length=255)
     status = models.CharField(
         _('state'), max_length=50, default=celery_states.PENDING,
@@ -464,7 +461,7 @@ class ProcessTask(Process):
         """
 
         t = self._create_task(self.name)
-        return t.apply_async(kwargs={'taskobj': self}, queue=t.queue)
+        return t.apply_async(kwargs={'taskobj': self}, task_id=str(self.pk), queue=t.queue)
 
     def run_eagerly(self):
         """
@@ -479,9 +476,10 @@ class ProcessTask(Process):
         """
 
         t = self._create_task(self.name)
+        undoobj = self.create_undo_obj()
         return t.apply_async(
-            kwargs={'taskobj': self.create_undo_obj()},
-            queue=t.queue
+            kwargs={'taskobj': undoobj},
+            task_id=str(undoobj.pk), queue=t.queue
         )
 
     def retry(self):
@@ -490,9 +488,10 @@ class ProcessTask(Process):
         """
 
         t = self._create_task(self.name)
+        retryobj = self.create_retry_obj()
         return t.apply_async(
-            kwargs={'taskobj': self.create_retry_obj()},
-            queue=t.queue
+            kwargs={'taskobj': retryobj},
+            task_id=str(retryobj.pk), queue=t.queue
         )
 
     def create_undo_obj(self, attempt=uuid.uuid4()):
