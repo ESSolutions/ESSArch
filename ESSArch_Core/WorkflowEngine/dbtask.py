@@ -75,10 +75,9 @@ class DBTask(Task):
                 self.taskobj.params[k] = prev_result_dict[v]
 
         self.taskobj.hidden = self.taskobj.hidden or self.hidden
-        self.taskobj.celery_id = self.request.id
         self.taskobj.status = celery_states.STARTED
         self.taskobj.time_started = timezone.now()
-        self.taskobj.save(update_fields=['hidden', 'celery_id', 'status', 'time_started'])
+        self.taskobj.save(update_fields=['hidden', 'status', 'time_started'])
 
         if self.eager:
             try:
