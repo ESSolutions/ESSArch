@@ -506,11 +506,11 @@ class test_undoing_steps(TestCase):
         self.assertTrue(t2.undone)
 
         t1_undo = ProcessTask.objects.filter(
-            name=t1.name + " undo", undo_type=True,
+            name=t1.name, undo_type=True,
             processstep=step
         )
         t2_undo = ProcessTask.objects.filter(
-            name=t2.name + " undo", undo_type=True,
+            name=t2.name, undo_type=True,
             processstep=step
         )
 
@@ -547,9 +547,9 @@ class test_undoing_steps(TestCase):
         self.assertFalse(t1.undone)
         self.assertTrue(t2.undone)
 
-        t1_undo = ProcessTask.objects.filter(name=t1.name + " undo")
+        t1_undo = ProcessTask.objects.filter(name=t1.name, undo_type=True)
         t2_undo = ProcessTask.objects.filter(
-            name=t2.name + " undo", undo_type=True,
+            name=t2.name, undo_type=True,
             processstep=step
         )
 
@@ -809,7 +809,7 @@ class test_retrying_steps(TestCase):
 
         first_task = step.tasks.filter(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            status=celery_states.SUCCESS
+            status=celery_states.SUCCESS, undo_type=False
         )
 
         self.assertEqual(first_task.count(), 2)

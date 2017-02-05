@@ -198,7 +198,7 @@ class ProcessStep(Process):
 
         undo_tasks = [t.create_undo_obj(attempt=attempt) for t in tasks.reverse()]
 
-        task_canvas = func(self._create_task(t.name[:-5]).si(
+        task_canvas = func(self._create_task(t.name).si(
             taskobj=t,
         ).set(task_id=str(t.pk)) for t in undo_tasks)
         step_canvas = func(s.undo(direct=False) for s in child_steps.reverse())
@@ -511,7 +511,7 @@ class ProcessTask(Process):
         self.save()
 
         return ProcessTask.objects.create(
-            processstep=self.processstep, name=self.name + ' undo',
+            processstep=self.processstep, name=self.name,
             params=self.params, processstep_pos=self.processstep_pos,
             undo_type=True, attempt=attempt, status="PREPARED",
             information_package=self.information_package
