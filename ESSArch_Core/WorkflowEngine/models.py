@@ -145,7 +145,7 @@ class ProcessStep(Process):
         step_canvas = func(s.run(direct=False) for s in child_steps)
         task_canvas = func(self._create_task(t.name).s(
             taskobj=t
-        ) for t in tasks)
+        ).set(task_id=str(t.pk)) for t in tasks)
 
         if not child_steps:
             workflow = task_canvas
@@ -196,9 +196,11 @@ class ProcessStep(Process):
 
         func = group if self.parallel else chain
 
-        task_canvas = func(self._create_task(t.name).si(
-            taskobj=t.create_undo_obj(attempt=attempt),
-        ) for t in tasks.reverse())
+        undo_tasks = [t.create_undo_obj(attempt=attempt) for t in tasks.reverse()]
+
+        task_canvas = func(self._create_task(t.name[:-5]).si(
+            taskobj=t,
+        ).set(task_id=str(t.pk)) for t in undo_tasks)
         step_canvas = func(s.undo(direct=False) for s in child_steps.reverse())
 
         if not child_steps:
@@ -234,9 +236,11 @@ class ProcessStep(Process):
         attempt = uuid.uuid4()
 
         step_canvas = func(s.retry(direct=False) for s in child_steps)
+
+        retry_tasks = [t.create_retry_obj(attempt=attempt) for t in tasks]
         task_canvas = func(self._create_task(t.name).s(
-            taskobj=t.create_retry_obj(attempt=attempt),
-        ) for t in tasks)
+            taskobj=t,
+        ).set(task_id=str(t.pk)) for t in retry_tasks)
 
         if not child_steps:
             workflow = task_canvas
@@ -266,7 +270,7 @@ class ProcessStep(Process):
         tasks = self.tasks.filter(undone=False, undo_type=False, status=celery_states.PENDING)
 
         step_canvas = func(s.run(direct=False) for s in child_steps)
-        task_canvas = func(self._create_task(t.name).s(taskobj=t) for t in tasks)
+        task_canvas = func(self._create_task(t.name).s(taskobj=t).set(task_id=str(t.pk)) for t in tasks)
 
         if not child_steps:
             workflow = task_canvas
@@ -507,7 +511,7 @@ class ProcessTask(Process):
         self.save()
 
         return ProcessTask.objects.create(
-            processstep=self.processstep, name="%s undo" % self.name,
+            processstep=self.processstep, name=self.name + ' undo',
             params=self.params, processstep_pos=self.processstep_pos,
             undo_type=True, attempt=attempt, status="PREPARED",
             information_package=self.information_package
