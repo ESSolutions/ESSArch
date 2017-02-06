@@ -158,7 +158,7 @@ class ProcessStep(Process):
         step_canvas = func(s.run(direct=False) for s in child_steps)
         task_canvas = func(self._create_task(t.name).s(
             taskobj=t
-        ) for t in tasks)
+        ).set(task_id=str(t.pk)) for t in tasks)
 
         if not child_steps:
             workflow = task_canvas
@@ -213,9 +213,11 @@ class ProcessStep(Process):
 
         func = group if self.parallel else chain
 
+        undo_tasks = [t.create_undo_obj(attempt=attempt) for t in tasks.reverse()]
+
         task_canvas = func(self._create_task(t.name).si(
-            taskobj=t.create_undo_obj(attempt=attempt),
-        ) for t in tasks.reverse())
+            taskobj=t,
+        ).set(task_id=str(t.pk)) for t in undo_tasks)
         step_canvas = func(s.undo(direct=False) for s in child_steps.reverse())
 
         if not child_steps:
@@ -253,9 +255,11 @@ class ProcessStep(Process):
         attempt = uuid.uuid4()
 
         step_canvas = func(s.retry(direct=False) for s in child_steps)
+
+        retry_tasks = [t.create_retry_obj(attempt=attempt) for t in tasks]
         task_canvas = func(self._create_task(t.name).s(
-            taskobj=t.create_retry_obj(attempt=attempt),
-        ) for t in tasks)
+            taskobj=t,
+        ).set(task_id=str(t.pk)) for t in retry_tasks)
 
         if not child_steps:
             workflow = task_canvas
@@ -287,7 +291,7 @@ class ProcessStep(Process):
         tasks = self.tasks.filter(undone=False, undo_type=False, status=celery_states.PENDING)
 
         step_canvas = func(s.run(direct=False) for s in child_steps)
-        task_canvas = func(self._create_task(t.name).s(taskobj=t) for t in tasks)
+        task_canvas = func(self._create_task(t.name).s(taskobj=t).set(task_id=str(t.pk)) for t in tasks)
 
         if not child_steps:
             workflow = task_canvas
@@ -432,9 +436,6 @@ class ProcessTask(Process):
         celery_states.ALL_STATES, celery_states.ALL_STATES
     )
 
-    celery_id = models.UUIDField(
-        _('celery id'), max_length=255, null=True, editable=False
-    )
     name = models.CharField(max_length=255)
     status = models.CharField(
         _('state'), max_length=50, default=celery_states.PENDING,
@@ -497,7 +498,7 @@ class ProcessTask(Process):
         """
 
         t = self._create_task(self.name)
-        return t.apply_async(kwargs={'taskobj': self}, queue=t.queue)
+        return t.apply_async(kwargs={'taskobj': self}, task_id=str(self.pk), queue=t.queue)
 
     def run_eagerly(self):
         """
@@ -518,9 +519,10 @@ class ProcessTask(Process):
         """
 
         t = self._create_task(self.name)
+        undoobj = self.create_undo_obj()
         return t.apply_async(
-            kwargs={'taskobj': self.create_undo_obj()},
-            queue=t.queue
+            kwargs={'taskobj': undoobj},
+            task_id=str(undoobj.pk), queue=t.queue
         )
 
     def retry(self):
@@ -529,9 +531,10 @@ class ProcessTask(Process):
         """
 
         t = self._create_task(self.name)
+        retryobj = self.create_retry_obj()
         return t.apply_async(
-            kwargs={'taskobj': self.create_retry_obj()},
-            queue=t.queue
+            kwargs={'taskobj': retryobj},
+            task_id=str(retryobj.pk), queue=t.queue
         )
 
     def create_undo_obj(self, attempt=uuid.uuid4()):
@@ -547,7 +550,7 @@ class ProcessTask(Process):
         self.save()
 
         return ProcessTask.objects.create(
-            processstep=self.processstep, name="%s undo" % self.name,
+            processstep=self.processstep, name=self.name,
             params=self.params, processstep_pos=self.processstep_pos,
             undo_type=True, attempt=attempt, status="PREPARED",
             information_package=self.information_package

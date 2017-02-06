@@ -55,7 +55,7 @@ class test_running_tasks(TestCase):
         """
 
         with self.assertRaises(ValidationError):
-            task = ProcessTask(
+            task = ProcessTask.objects.create(
                 name="nonexistent task",
                 responsible=self.user
             )
@@ -67,7 +67,7 @@ class test_running_tasks(TestCase):
         Creates a task with a name that does exist.
         """
 
-        task = ProcessTask(
+        task = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             responsible=self.user
         )
@@ -127,7 +127,8 @@ class test_running_tasks(TestCase):
             information_package=InformationPackage.objects.create()
         )
 
-        task.run()
+        with self.assertNumQueries(4):
+            task.run()
         self.assertIsNone(task.traceback)
         self.assertEqual(foo, task.result)
 
@@ -139,7 +140,7 @@ class test_running_tasks(TestCase):
 
         foo = 123
         try:
-            task = ProcessTask(
+            task = ProcessTask.objects.create(
                 name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
                 params={
                     "bar": foo
@@ -179,7 +180,7 @@ class test_undoing_tasks(TestCase):
 
         self.assertEqual(task.status, celery_states.SUCCESS)
 
-        undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Add undo")
+        undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Add", undo_type=True)
         self.assertIsNotNone(undo_task)
         self.assertTrue(undo_task.undo_type)
 
@@ -197,7 +198,7 @@ class test_undoing_tasks(TestCase):
         self.assertFalse(task.retried)
         self.assertEqual(task.status, celery_states.FAILURE)
 
-        undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail undo")
+        undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail", undo_type=True)
         self.assertIsNotNone(undo_task)
         self.assertTrue(undo_task.undo_type)
 
@@ -243,13 +244,13 @@ class test_retrying_tasks(TestCase):
         self.assertTrue(task.retried)
         self.assertEqual(task.status, celery_states.SUCCESS)
 
-        undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Add undo")
+        undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Add", undo_type=True)
         self.assertIsNotNone(undo_task)
         self.assertTrue(undo_task.undo_type)
 
         retry_task = ProcessTask.objects.get(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
-            undone=False
+            undo_type=False, undone=False
         )
         self.assertIsNotNone(retry_task)
         self.assertFalse(retry_task.undone)
@@ -270,7 +271,7 @@ class test_retrying_tasks(TestCase):
 
         retry_task = ProcessTask.objects.get(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
-            undone=False
+            undo_type=False, undone=False
         )
         self.assertIsNotNone(retry_task)
         self.assertFalse(retry_task.undone)
@@ -297,7 +298,7 @@ class test_retrying_tasks(TestCase):
 
         retry_task = ProcessTask.objects.get(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            undone=False
+            undo_type=False, undone=False
         )
         self.assertIsNotNone(retry_task)
         self.assertFalse(retry_task.undone)

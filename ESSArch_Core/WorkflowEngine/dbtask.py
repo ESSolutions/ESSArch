@@ -80,10 +80,9 @@ class DBTask(Task):
                 self.taskobj.params[k] = prev_result_dict[v]
 
         self.taskobj.hidden = self.taskobj.hidden or self.hidden
-        self.taskobj.celery_id = self.request.id
-        self.taskobj.status=celery_states.STARTED
+        self.taskobj.status = celery_states.STARTED
         self.taskobj.time_started = timezone.now()
-        self.taskobj.save()
+        self.taskobj.save(update_fields=['hidden', 'status', 'time_started'])
 
         if self.eager:
             try:
@@ -120,13 +119,15 @@ class DBTask(Task):
                 )
                 raise
 
+        celery_always_eager = hasattr(settings, 'CELERY_ALWAYS_EAGER') and settings.CELERY_ALWAYS_EAGER
+        celery_eager_propagates_exceptions = hasattr(settings, 'CELERY_EAGER_PROPAGATES_EXCEPTIONS') and settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS
+
         if self.taskobj.undo_type:
-            if hasattr(settings, 'CELERY_ALWAYS_EAGER') and settings.CELERY_ALWAYS_EAGER:
+            if celery_always_eager and celery_eager_propagates_exceptions:
                 try:
                     res = self.undo(**self.taskobj.params)
                     prev_result_dict[self.taskobj.id] = res
                     self.on_success(prev_result_dict, None, args, kwargs)
-                    self.after_return(celery_states.SUCCESS, res, None, args, kwargs, None)
                     return res
                 except Exception as e:
                     einfo = ExceptionInfo()
@@ -136,12 +137,11 @@ class DBTask(Task):
             else:
                 return self.undo(**self.taskobj.params)
         else:
-            if hasattr(settings, 'CELERY_ALWAYS_EAGER') and settings.CELERY_ALWAYS_EAGER:
+            if celery_always_eager and celery_eager_propagates_exceptions:
                 try:
                     res = self.run(**self.taskobj.params)
                     prev_result_dict[self.taskobj.id] = res
                     self.on_success(prev_result_dict, None, args, kwargs)
-                    self.after_return(celery_states.SUCCESS, res, None, args, kwargs, None)
                 except Exception as e:
                     einfo = ExceptionInfo()
                     self.on_failure(e, None, args, kwargs, einfo)
@@ -154,15 +154,21 @@ class DBTask(Task):
             return prev_result_dict
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
+        self.taskobj.refresh_from_db()
         if not self.eager:
             try:
+                try:
+                    self.taskobj.result = retval.get(self.taskobj.pk, None)
+                except AttributeError:
+                    self.taskobj.result = None
+
                 self.taskobj.status = status
                 self.taskobj.time_done = timezone.now()
-                self.taskobj.save(update_fields=['status', 'time_done'])
+                self.taskobj.save(update_fields=['status', 'time_done', 'result'])
             except OperationalError:
                 print "Database locked, trying again after 2 seconds"
                 time.sleep(2)
-                self.taskobj.save(update_fields=['status', 'time_done'])
+                self.taskobj.save(update_fields=['status', 'time_done', 'result'])
 
     def create_event(self, outcome, outcome_detail_note):
         log = self.taskobj.log
@@ -211,24 +217,13 @@ class DBTask(Task):
                 pass
 
     def on_success(self, retval, task_id, args, kwargs):
-        if not self.eager:
-            self.taskobj.refresh_from_db()
-            try:
-                self.taskobj.result = retval.get(self.taskobj.id, None)
-            except AttributeError:
-                self.taskobj.result = None
-
-            self.taskobj.save(update_fields=['result'])
-
-            try:
-                event = self.taskobj.event
-                event.eventOutcome = 0
-                event.eventOutcomeDetailNote = self.event_outcome_success(
+        if self.taskobj.log and not self.eager:
+            EventIP.objects.filter(eventApplication=self.taskobj).update(
+                eventOutcome=0,
+                eventOutcomeDetailNote=self.event_outcome_success(
                     **self.taskobj.params
                 )
-                event.save()
-            except EventIP.DoesNotExist:
-                pass
+            )
 
     def set_progress(self, progress, total=None):
         if not self.eager:
