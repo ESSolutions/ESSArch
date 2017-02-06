@@ -290,7 +290,7 @@ class XMLGenerator(object):
                             },
                             responsible=responsible,
                         )
-                        step.tasks.add(task)
+                        step.add_tasks(task)
 
             with allow_join_result():
                 if not hasattr(settings, 'CELERY_ALWAYS_EAGER') or not settings.CELERY_ALWAYS_EAGER:

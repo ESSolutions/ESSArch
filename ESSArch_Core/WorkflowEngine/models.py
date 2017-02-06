@@ -29,9 +29,10 @@ import uuid
 
 from celery import chain, group, states as celery_states
 
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Case, Count, Sum, When
 from django.utils.translation import ugettext as _
 
 from picklefield.fields import PickledObjectField
@@ -109,6 +110,30 @@ class ProcessStep(Process):
     hidden = models.BooleanField(default=False)
     parallel = models.BooleanField(default=False)
 
+    def add_tasks(self, *tasks):
+        self.clear_cache()
+        self.tasks.add(*tasks)
+
+    def remove_tasks(self, *tasks):
+        self.clear_cache()
+        self.tasks.remove(*tasks)
+
+    def clear_tasks(self):
+        self.clear_cache()
+        self.tasks.clear()
+
+    def add_child_steps(self, *steps):
+        self.clear_cache()
+        self.child_steps.add(*steps)
+
+    def remove_child_steps(self, *steps):
+        self.clear_cache()
+        self.child_steps.remove(*steps)
+
+    def clear_child_steps(self):
+        self.clear_cache()
+        self.child_steps.clear()
+
     def task_set(self):
         """
         Gets the unique tasks connected to the process, ignoring retries and
@@ -121,6 +146,17 @@ class ProcessStep(Process):
             undo_type=False,
             retried=False
         ).order_by("processstep_pos")
+
+    def clear_cache(self):
+        """
+        Clears the cache for this step and all its ancestors
+        """
+
+        cache.delete(self.cache_status_key)
+        cache.delete(self.cache_progress_key)
+
+        if self.parent_step:
+            self.parent_step.clear_cache()
 
     def run(self, direct=True):
         """
@@ -136,6 +172,8 @@ class ProcessStep(Process):
             tasks if called directly. The chain "non-executed" if direct is
             false
         """
+
+        self.clear_cache()
 
         func = group if self.parallel else chain
 
@@ -161,6 +199,8 @@ class ProcessStep(Process):
         Runs the step locally (as a "regular" function)
         """
 
+        self.clear_cache()
+
         for c in self.child_steps.all():
             c.run_eagerly()
 
@@ -180,6 +220,8 @@ class ProcessStep(Process):
             AsyncResult/EagerResult if there is atleast one task or child
             steps, otherwise None
         """
+
+        self.clear_cache()
 
         child_steps = self.child_steps.all()
         tasks = self.tasks.all()
@@ -225,6 +267,8 @@ class ProcessStep(Process):
             none
         """
 
+        self.clear_cache()
+
         child_steps = self.child_steps.all()
 
         tasks = self.tasks.filter(
@@ -264,6 +308,8 @@ class ProcessStep(Process):
             otherwise
         """
 
+        self.clear_cache()
+
         func = group if self.parallel else chain
 
         child_steps = self.child_steps.filter(tasks__status=celery_states.PENDING)
@@ -282,6 +328,14 @@ class ProcessStep(Process):
         return workflow() if direct else workflow
 
     @property
+    def cache_status_key(self):
+        return '%s_status' % str(self.pk)
+
+    @property
+    def cache_progress_key(self):
+        return '%s_progress' % str(self.pk)
+
+    @property
     def time_started(self):
         if self.tasks.exists():
             return self.tasks.first().time_started
@@ -291,6 +345,7 @@ class ProcessStep(Process):
         if self.tasks.exists():
             return self.tasks.first().time_done
 
+    @property
     def progress(self):
         """
         Gets the progress of the step based on its child steps and tasks
@@ -303,29 +358,37 @@ class ProcessStep(Process):
             |child_steps| + |tasks|
         """
 
+        cached = cache.get(self.cache_progress_key)
+
+        if cached:
+            return cached
+
         child_steps = self.child_steps.all()
         progress = 0
-        total = len(child_steps) + len(self.task_set())
-
-        if total == 0:
-            return 100
-
-        progress += sum([c.progress() for c in child_steps])
-
-        tasks = self.tasks.filter(
-            undone=False,
-            undo_type=False,
-            retried=False
+        task_data = self.tasks.filter(undo_type=False, retried=False).aggregate(
+            progress=Sum(Case(When(undone=True, then=0), default='progress')),
+            task_count=Count('id')
         )
 
+        total = len(child_steps) + task_data['task_count']
+
+        if total == 0:
+            cache.set(self.cache_progress_key, 100)
+            return 100
+
+        progress += sum([c.progress for c in child_steps])
+
         try:
-            progress += tasks.aggregate(Sum("progress"))["progress__sum"]
+            progress += task_data['progress']
         except:
             pass
 
         try:
-            return progress / total
+            res = progress / total
+            cache.set(self.cache_progress_key, res)
+            return res
         except:
+            cache.set(self.cache_progress_key, 0)
             return 0
 
     @property
@@ -349,12 +412,18 @@ class ProcessStep(Process):
             * If all child steps and tasks have succeeded, then SUCCESS.
         """
 
+        cached = cache.get(self.cache_status_key)
+
+        if cached:
+            return cached
+
         child_steps = self.child_steps.all()
         tasks = self.tasks.filter(undo_type=False, undone=False, retried=False)
         status = celery_states.SUCCESS
 
         if not child_steps and not tasks:
-            return celery_states.SUCCESS
+            cache.set(self.cache_status_key, status)
+            return status
 
         for i in list(child_steps) + list(tasks):
             istatus = i.status
@@ -364,8 +433,10 @@ class ProcessStep(Process):
                     status != celery_states.STARTED):
                 status = istatus
             if istatus == celery_states.FAILURE:
+                cache.set(self.cache_status_key, istatus)
                 return istatus
 
+        cache.set(self.cache_status_key, status)
         return status
 
     @property
@@ -471,6 +542,12 @@ class ProcessTask(Process):
         """
         Runs the task locally (as a "regular" function)
         """
+
+        try:
+            self.processstep.clear_cache()
+        except AttributeError:
+            pass
+
         t = self._create_task(self.name)
         return t(taskobj=self, eager=True)
 

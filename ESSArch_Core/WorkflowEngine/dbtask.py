@@ -63,6 +63,11 @@ class DBTask(Task):
         except KeyError:
             print "Task requires taskobj set to a ProcessTask"
 
+        try:
+            self.taskobj.processstep.clear_cache()
+        except AttributeError:
+            pass
+
         self.eager = kwargs.get("eager", False)
 
         try:

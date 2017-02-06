@@ -527,7 +527,7 @@ class ValidateFiles(DBTask):
                     algorithm = get_value_from_path(f, props.get("checksumtype"))
 
                     if validate_fileformat and fformat is not None:
-                        step.tasks.add(ProcessTask.objects.create(
+                        step.add_tasks(ProcessTask.objects.create(
                             name=self.fileformat_task,
                             params={
                                 "filename": os.path.join(rootdir, fpath),
@@ -539,7 +539,7 @@ class ValidateFiles(DBTask):
                         ))
 
                     if validate_integrity and checksum is not None:
-                        step.tasks.add(ProcessTask.objects.create(
+                        step.add_tasks(ProcessTask.objects.create(
                             name=self.checksum_task,
                             params={
                                 "filename": os.path.join(rootdir, fpath),
