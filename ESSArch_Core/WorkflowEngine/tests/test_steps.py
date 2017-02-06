@@ -99,7 +99,7 @@ class test_status(TestCase):
         )
 
         self.step.status
-        self.step.tasks.add(t)
+        self.step.add_tasks(t)
 
         with self.assertNumQueries(2):
             self.assertEqual(self.step.status, celery_states.PENDING)
@@ -116,7 +116,7 @@ class test_status(TestCase):
         s = ProcessStep.objects.create()
 
         self.step.status
-        self.step.child_steps.add(s)
+        self.step.add_child_steps(s)
 
         with self.assertNumQueries(4):
             self.assertEqual(self.step.status, celery_states.SUCCESS)

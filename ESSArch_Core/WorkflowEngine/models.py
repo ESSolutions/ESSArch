@@ -110,6 +110,14 @@ class ProcessStep(Process):
     hidden = models.BooleanField(default=False)
     parallel = models.BooleanField(default=False)
 
+    def add_tasks(self, *tasks):
+        self.clear_cache()
+        self.tasks.add(*tasks)
+
+    def add_child_steps(self, *steps):
+        self.clear_cache()
+        self.child_steps.add(*steps)
+
     def task_set(self):
         """
         Gets the unique tasks connected to the process, ignoring retries and
