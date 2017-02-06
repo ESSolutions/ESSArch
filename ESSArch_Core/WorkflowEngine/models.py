@@ -32,7 +32,7 @@ from celery import chain, group, states as celery_states
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Case, Count, Sum, When
 from django.utils.translation import ugettext as _
 
 from picklefield.fields import PickledObjectField
@@ -114,9 +114,25 @@ class ProcessStep(Process):
         self.clear_cache()
         self.tasks.add(*tasks)
 
+    def remove_tasks(self, *tasks):
+        self.clear_cache()
+        self.tasks.remove(*tasks)
+
+    def clear_tasks(self):
+        self.clear_cache()
+        self.tasks.clear()
+
     def add_child_steps(self, *steps):
         self.clear_cache()
         self.child_steps.add(*steps)
+
+    def remove_child_steps(self, *steps):
+        self.clear_cache()
+        self.child_steps.remove(*steps)
+
+    def clear_child_steps(self):
+        self.clear_cache()
+        self.child_steps.clear()
 
     def task_set(self):
         """
@@ -137,6 +153,7 @@ class ProcessStep(Process):
         """
 
         cache.delete(self.cache_status_key)
+        cache.delete(self.cache_progress_key)
 
         if self.parent_step:
             self.parent_step.clear_cache()
@@ -315,6 +332,10 @@ class ProcessStep(Process):
         return '%s_status' % str(self.pk)
 
     @property
+    def cache_progress_key(self):
+        return '%s_progress' % str(self.pk)
+
+    @property
     def time_started(self):
         if self.tasks.exists():
             return self.tasks.first().time_started
@@ -324,6 +345,7 @@ class ProcessStep(Process):
         if self.tasks.exists():
             return self.tasks.first().time_done
 
+    @property
     def progress(self):
         """
         Gets the progress of the step based on its child steps and tasks
@@ -336,29 +358,37 @@ class ProcessStep(Process):
             |child_steps| + |tasks|
         """
 
+        cached = cache.get(self.cache_progress_key)
+
+        if cached:
+            return cached
+
         child_steps = self.child_steps.all()
         progress = 0
-        total = len(child_steps) + len(self.task_set())
-
-        if total == 0:
-            return 100
-
-        progress += sum([c.progress() for c in child_steps])
-
-        tasks = self.tasks.filter(
-            undone=False,
-            undo_type=False,
-            retried=False
+        task_data = self.tasks.filter(undo_type=False, retried=False).aggregate(
+            progress=Sum(Case(When(undone=True, then=0), default='progress')),
+            task_count=Count('id')
         )
 
+        total = len(child_steps) + task_data['task_count']
+
+        if total == 0:
+            cache.set(self.cache_progress_key, 100)
+            return 100
+
+        progress += sum([c.progress for c in child_steps])
+
         try:
-            progress += tasks.aggregate(Sum("progress"))["progress__sum"]
+            progress += task_data['progress']
         except:
             pass
 
         try:
-            return progress / total
+            res = progress / total
+            cache.set(self.cache_progress_key, res)
+            return res
         except:
+            cache.set(self.cache_progress_key, 0)
             return 0
 
     @property
