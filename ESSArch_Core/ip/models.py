@@ -296,7 +296,7 @@ class InformationPackage(models.Model):
 
             if steps:
                 try:
-                    progress = sum([s.progress() for s in steps])
+                    progress = sum([s.progress for s in steps])
                     return progress / len(steps)
                 except:
                     return 0
