@@ -408,6 +408,25 @@ class GenerateXMLTestCase(TestCase):
         self.assertEqual(root.find('bar').text, 'bardata')
         self.assertEqual(root.find('baz').text, 'example.txt')
 
+    def test_with_multiple_files(self):
+        extra_file = os.path.join(self.datadir, 'test2.xml')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'info': self.specData,
+                'filesToCreate': {
+                    self.fname: self.spec,
+                    extra_file: self.spec
+                }
+            }
+        )
+
+        task.run()
+
+        self.assertTrue(os.path.isfile(self.fname))
+        self.assertTrue(os.path.isfile(extra_file))
+
     def test_undo(self):
         task = ProcessTask.objects.create(
             name=self.taskname,
