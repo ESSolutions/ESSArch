@@ -829,10 +829,10 @@ class CopyChunk(DBTask):
 
 
 class CopyFile(DBTask):
-    def local(self, src, dst, block_size=65536):
+    def local(self, src, dst, block_size=65536, step=None):
         step = ProcessStep.objects.create(
             name="Copy %s to %s" % (src, dst),
-            parent_step=self.taskobj.processstep
+            parent_step_id=step
         )
 
         fsize = os.stat(src).st_size
@@ -856,10 +856,10 @@ class CopyFile(DBTask):
 
         step.run_eagerly()
 
-    def remote(self, src, dst, requests_session=None, block_size=65536):
+    def remote(self, src, dst, requests_session=None, block_size=65536, step=None):
         step = ProcessStep.objects.create(
             name="Copy %s to %s" % (src, dst),
-            parent_step=self.taskobj.processstep
+            parent_step_id=step
         )
 
         file_size = os.stat(src).st_size
@@ -900,12 +900,13 @@ class CopyFile(DBTask):
             raise ValueError
 
         val = URLValidator(dst)
+        step = ProcessTask.objects.values_list('processstep', flat=True).get(pk=self.request.id)
 
         try:
             val(dst)
-            self.remote(src, dst, requests_session, block_size)
+            self.remote(src, dst, requests_session, block_size, step)
         except ValidationError:
-            self.local(src, dst, block_size)
+            self.local(src, dst, block_size, step)
 
         self.set_progress(100, total=100)
 
