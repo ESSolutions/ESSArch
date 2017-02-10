@@ -562,7 +562,7 @@ class ProcessTask(Process):
 
         t = self._create_task(self.name)
 
-        return t.apply(kwargs=self.params).get()
+        return t.apply(kwargs=self.params, task_id=str(self.pk)).get()
 
     def undo(self):
         """
