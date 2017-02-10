@@ -29,16 +29,17 @@ import uuid
 
 from celery import chain, group, states as celery_states
 
+from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Case, Count, Sum, When
+from django.utils import timezone
 from django.utils.translation import ugettext as _
 
 from picklefield.fields import PickledObjectField
 
 from ESSArch_Core.util import available_tasks, sliceUntilAttr
-
 
 class Process(models.Model):
     def _create_task(self, name):
@@ -173,7 +174,9 @@ class ProcessStep(Process):
             false
         """
 
-        self.clear_cache()
+        def create_sub_task(t):
+            created = self._create_task(t.name)
+            return created.si(**t.params).set(task_id=str(t.pk), result_params=t.result_params)
 
         func = group if self.parallel else chain
 
@@ -181,9 +184,7 @@ class ProcessStep(Process):
         tasks = self.tasks.all()
 
         step_canvas = func(s.run(direct=False) for s in child_steps)
-        task_canvas = func(self._create_task(t.name).s(
-            taskobj=t
-        ).set(task_id=str(t.pk)) for t in tasks)
+        task_canvas = func(create_sub_task(t) for t in tasks)
 
         if not child_steps:
             workflow = task_canvas
@@ -198,8 +199,6 @@ class ProcessStep(Process):
         """
         Runs the step locally (as a "regular" function)
         """
-
-        self.clear_cache()
 
         for c in self.child_steps.all():
             c.run_eagerly()
@@ -221,7 +220,10 @@ class ProcessStep(Process):
             steps, otherwise None
         """
 
-        self.clear_cache()
+        def create_sub_task(t, attempt=uuid.uuid4()):
+            t = t.create_undo_obj(attempt=attempt)
+            created = self._create_task(t.name)
+            return created.si(True, **t.params).set(task_id=str(t.pk))
 
         child_steps = self.child_steps.all()
         tasks = self.tasks.all()
@@ -238,11 +240,7 @@ class ProcessStep(Process):
 
         func = group if self.parallel else chain
 
-        undo_tasks = [t.create_undo_obj(attempt=attempt) for t in tasks.reverse()]
-
-        task_canvas = func(self._create_task(t.name).si(
-            taskobj=t,
-        ).set(task_id=str(t.pk)) for t in undo_tasks)
+        task_canvas = func(create_sub_task(t, attempt) for t in tasks.reverse())
         step_canvas = func(s.undo(direct=False) for s in child_steps.reverse())
 
         if not child_steps:
@@ -267,7 +265,10 @@ class ProcessStep(Process):
             none
         """
 
-        self.clear_cache()
+        def create_sub_task(t, attempt=uuid.uuid4()):
+            t = t.create_retry_obj(attempt=attempt)
+            created = self._create_task(t.name)
+            return created.si(False, **t.params).set(task_id=str(t.pk))
 
         child_steps = self.child_steps.all()
 
@@ -280,11 +281,7 @@ class ProcessStep(Process):
         attempt = uuid.uuid4()
 
         step_canvas = func(s.retry(direct=False) for s in child_steps)
-
-        retry_tasks = [t.create_retry_obj(attempt=attempt) for t in tasks]
-        task_canvas = func(self._create_task(t.name).s(
-            taskobj=t,
-        ).set(task_id=str(t.pk)) for t in retry_tasks)
+        task_canvas = func(create_sub_task(t, attempt) for t in tasks)
 
         if not child_steps:
             workflow = task_canvas
@@ -308,7 +305,9 @@ class ProcessStep(Process):
             otherwise
         """
 
-        self.clear_cache()
+        def create_sub_task(t):
+            created = self._create_task(t.name)
+            return created.si(**t.params).set(task_id=str(t.pk), result_params=t.result_params)
 
         func = group if self.parallel else chain
 
@@ -316,7 +315,7 @@ class ProcessStep(Process):
         tasks = self.tasks.filter(undone=False, undo_type=False, status=celery_states.PENDING)
 
         step_canvas = func(s.run(direct=False) for s in child_steps)
-        task_canvas = func(self._create_task(t.name).s(taskobj=t).set(task_id=str(t.pk)) for t in tasks)
+        task_canvas = func(create_sub_task(t) for t in tasks)
 
         if not child_steps:
             workflow = task_canvas
@@ -536,20 +535,26 @@ class ProcessTask(Process):
         """
 
         t = self._create_task(self.name)
-        return t.apply_async(kwargs={'taskobj': self}, task_id=str(self.pk), queue=t.queue)
+
+        try:
+            for k, v in self.result_params.iteritems():
+                self.params[k] = t.AsyncResult(str(v)).get()
+        except AttributeError:
+            pass
+
+
+        res = t.apply_async(kwargs=self.params, task_id=str(self.pk), queue=t.queue)
+
+        return res
 
     def run_eagerly(self):
         """
         Runs the task locally (as a "regular" function)
         """
 
-        try:
-            self.processstep.clear_cache()
-        except AttributeError:
-            pass
-
         t = self._create_task(self.name)
-        return t(taskobj=self, eager=True)
+
+        return t.apply(kwargs=self.params).get()
 
     def undo(self):
         """
@@ -557,11 +562,17 @@ class ProcessTask(Process):
         """
 
         t = self._create_task(self.name)
+
         undoobj = self.create_undo_obj()
-        return t.apply_async(
-            kwargs={'taskobj': undoobj},
-            task_id=str(undoobj.pk), queue=t.queue
-        )
+
+        try:
+            for k, v in undoobj.result_params.iteritems():
+                undoobj.params[k] = t.AsyncResult(str(v)).get()
+        except AttributeError:
+            pass
+
+        res = t.apply_async(args=(True,), kwargs=undoobj.params, task_id=str(undoobj.pk), queue=t.queue)
+        return res
 
     def retry(self):
         """
@@ -569,11 +580,17 @@ class ProcessTask(Process):
         """
 
         t = self._create_task(self.name)
+
         retryobj = self.create_retry_obj()
-        return t.apply_async(
-            kwargs={'taskobj': retryobj},
-            task_id=str(retryobj.pk), queue=t.queue
-        )
+
+        try:
+            for k, v in retryobj.result_params.iteritems():
+                retryobj.params[k] = t.AsyncResult(str(v)).get()
+        except AttributeError:
+            pass
+
+        res = t.apply_async(kwargs=retryobj.params, task_id=str(retryobj.pk), queue=t.queue)
+        return res
 
     def create_undo_obj(self, attempt=uuid.uuid4()):
         """
@@ -585,7 +602,7 @@ class ProcessTask(Process):
         """
 
         self.undone = True
-        self.save()
+        self.save(update_fields=['undone'])
 
         return ProcessTask.objects.create(
             processstep=self.processstep, name=self.name,
@@ -604,7 +621,7 @@ class ProcessTask(Process):
         """
 
         self.retried = True
-        self.save()
+        self.save(update_fields=['retried'])
 
         return ProcessTask.objects.create(
             processstep=self.processstep, name=self.name, params=self.params,

@@ -239,7 +239,7 @@ class test_status(TestCase):
         with self.assertRaises(AssertionError):
             s.run()
 
-        s.undo()
+        s.undo(only_failed=True)
         open(fname, 'a').close()
         s.retry()
         self.step.status
@@ -598,7 +598,7 @@ class test_progress(TestCase):
         with self.assertRaises(AssertionError):
             s.run()
 
-        s.undo()
+        s.undo(only_failed=True)
         open(fname, 'a').close()
         s.retry()
         self.step.progress
@@ -710,14 +710,17 @@ class test_running_steps(TestCase):
 
         step.tasks = [t1, t2, t3]
         step.save()
+        step.run().get()
 
-        res = step.run().get()
+        t1.refresh_from_db()
+        t2.refresh_from_db()
+        t3.refresh_from_db()
 
         self.assertEqual(step.status, celery_states.SUCCESS)
 
-        self.assertEqual(res.get(t1.id), t1_val)
-        self.assertEqual(res.get(t2.id), t2_val)
-        self.assertEqual(res.get(t3.id), t3_val)
+        self.assertEqual(t1.result, t1_val)
+        self.assertEqual(t2.result, t2_val)
+        self.assertEqual(t3.result, t3_val)
 
     def test_parallel_step(self):
         t1_val = 123
@@ -940,7 +943,7 @@ class test_running_steps(TestCase):
         step.tasks = [t1, t2, t3]
         step.save()
 
-        res = step.run().get()
+        step.run().get()
 
         self.assertEqual(step.status, celery_states.SUCCESS)
 
@@ -948,9 +951,9 @@ class test_running_steps(TestCase):
         t2.refresh_from_db()
         t3.refresh_from_db()
 
-        self.assertEqual(res.get(t1.id), t1_val*2)
-        self.assertEqual(res.get(t2.id), res.get(t1.id) + t2_val)
-        self.assertEqual(res.get(t3.id), res.get(t1.id) + t3_val)
+        self.assertEqual(t1.result, t1_val*2)
+        self.assertEqual(t2.result, t1.result + t2_val)
+        self.assertEqual(t3.result, t1.result + t3_val)
 
 
 class test_undoing_steps(TestCase):

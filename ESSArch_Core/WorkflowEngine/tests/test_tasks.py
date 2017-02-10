@@ -33,7 +33,12 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
+from ESSArch_Core.configuration.models import (
+    EventType
+)
+
 from ESSArch_Core.ip.models import (
+    EventIP,
     InformationPackage,
 )
 
@@ -127,10 +132,19 @@ class test_running_tasks(TestCase):
             information_package=InformationPackage.objects.create()
         )
 
-        with self.assertNumQueries(4):
+        EventType.objects.create(eventType=1)
+
+        with self.assertNumQueries(7):
             task.run()
+
+        task.refresh_from_db()
         self.assertIsNone(task.traceback)
         self.assertEqual(foo, task.result)
+
+        e = EventIP.objects.get(eventApplication=task.pk)
+        self.assertEqual(e.eventOutcome, 0)
+        self.assertEqual(e.eventOutcomeDetailNote, "Task completed successfully with foo=%s" % foo)
+        self.assertEqual(e.eventApplication, task)
 
     def test_on_failure(self):
         """
@@ -138,22 +152,31 @@ class test_running_tasks(TestCase):
         traceback is nonempty.
         """
 
-        foo = 123
-        try:
-            task = ProcessTask.objects.create(
-                name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-                params={
-                    "bar": foo
-                },
-                information_package=InformationPackage.objects.create()
-            )
-            task.run()
-        except TypeError:
-            tb = traceback.format_exc()
-            self.assertEqual(tb, task.traceback)
-            self.assertIsNone(task.result)
-            self.assertIsNotNone(task.traceback)
+        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
+        foo = 123
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={
+                "bar": foo
+            },
+            information_package=InformationPackage.objects.create()
+        )
+        EventType.objects.create(eventType=1)
+
+        with self.assertRaises(TypeError):
+            task.run()
+
+        task.refresh_from_db()
+
+        self.assertIsNone(task.result)
+        self.assertIsNotNone(task.traceback)
+        self.assertEqual(u"TypeError: run() got an unexpected keyword argument 'bar'", task.exception)
+
+        e = EventIP.objects.get(eventApplication=task.pk)
+        self.assertEqual(e.eventOutcome, 1)
+        self.assertEqual(e.eventOutcomeDetailNote, task.traceback)
+        self.assertEqual(e.eventApplication, task)
 
 class test_undoing_tasks(TestCase):
     def setUp(self):
@@ -170,9 +193,12 @@ class test_undoing_tasks(TestCase):
         )
 
         task.run()
+        task.refresh_from_db()
         self.assertEqual(task.status, celery_states.SUCCESS)
 
-        res = task.undo()
+        with self.assertNumQueries(5):
+            res = task.undo()
+        task.refresh_from_db()
         self.assertEqual(res.get(), x-y)
         self.assertTrue(task.undone)
         self.assertFalse(task.undo_type)
@@ -190,9 +216,11 @@ class test_undoing_tasks(TestCase):
         with self.assertRaises(Exception):
             task.run()
 
+        task.refresh_from_db()
         self.assertEqual(task.status, celery_states.FAILURE)
 
         task.undo()
+        task.refresh_from_db()
         self.assertTrue(task.undone)
         self.assertFalse(task.undo_type)
         self.assertFalse(task.retried)
@@ -237,7 +265,11 @@ class test_retrying_tasks(TestCase):
 
         task.run()
         task.undo()
-        task.retry()
+
+        with self.assertNumQueries(6):
+            task.retry()
+
+        task.refresh_from_db()
 
         self.assertTrue(task.undone)
         self.assertFalse(task.undo_type)
@@ -295,6 +327,7 @@ class test_retrying_tasks(TestCase):
         open(fname, 'a').close()
 
         task.retry()
+        task.refresh_from_db()
 
         retry_task = ProcessTask.objects.get(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
