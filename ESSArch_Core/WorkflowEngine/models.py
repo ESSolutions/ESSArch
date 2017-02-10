@@ -181,7 +181,7 @@ class ProcessStep(Process):
         func = group if self.parallel else chain
 
         child_steps = self.child_steps.all()
-        tasks = self.tasks.all()
+        tasks = self.tasks(manager='by_step_pos').all()
 
         step_canvas = func(s.run(direct=False) for s in child_steps)
         task_canvas = func(create_sub_task(t) for t in tasks)
@@ -203,7 +203,7 @@ class ProcessStep(Process):
         for c in self.child_steps.all():
             c.run_eagerly()
 
-        for t in self.tasks.all():
+        for t in self.tasks(manager='by_step_pos').all():
             t.run_eagerly()
 
     def undo(self, only_failed=False, direct=True):
@@ -226,7 +226,7 @@ class ProcessStep(Process):
             return created.si(True, **t.params).set(task_id=str(t.pk))
 
         child_steps = self.child_steps.all()
-        tasks = self.tasks.all()
+        tasks = self.tasks(manager='by_step_pos').all()
 
         if only_failed:
             tasks = tasks.filter(status=celery_states.FAILURE)
@@ -272,7 +272,7 @@ class ProcessStep(Process):
 
         child_steps = self.child_steps.all()
 
-        tasks = self.tasks.filter(
+        tasks = self.tasks(manager='by_step_pos').filter(
             undone=True,
             retried=False
         ).order_by('processstep_pos')
@@ -312,7 +312,7 @@ class ProcessStep(Process):
         func = group if self.parallel else chain
 
         child_steps = self.child_steps.filter(tasks__status=celery_states.PENDING)
-        tasks = self.tasks.filter(undone=False, undo_type=False, status=celery_states.PENDING)
+        tasks = self.tasks(manager='by_step_pos').filter(undone=False, undo_type=False, status=celery_states.PENDING)
 
         step_canvas = func(s.run(direct=False) for s in child_steps)
         task_canvas = func(create_sub_task(t) for t in tasks)
@@ -468,6 +468,11 @@ class ProcessStep(Process):
             )
 
 
+class OrderedProcessTaskManager(models.Manager):
+    def get_queryset(self):
+        return super(OrderedProcessTaskManager, self).get_queryset().order_by('processstep_pos')
+
+
 class ProcessTask(Process):
     TASK_STATE_CHOICES = zip(
         celery_states.ALL_STATES, celery_states.ALL_STATES
@@ -507,6 +512,9 @@ class ProcessTask(Process):
         null=True
     )
     log = PickledObjectField(null=True, default=None)
+
+    objects = models.Manager()
+    by_step_pos = OrderedProcessTaskManager()
 
     @property
     def exception(self):
@@ -631,7 +639,6 @@ class ProcessTask(Process):
 
     class Meta:
         db_table = 'ProcessTask'
-        ordering = ('processstep_pos', 'time_started')
 
         def __unicode__(self):
             return '%s - %s' % (self.name, self.id)
