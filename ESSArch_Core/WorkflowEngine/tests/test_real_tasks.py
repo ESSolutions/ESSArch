@@ -247,7 +247,7 @@ class IdentifyFileFormatTestCase(TestCase):
         )
 
         expected = "Plain Text File"
-        actual = task.run().get().get(task.pk)
+        actual = task.run().get()
 
         self.assertEqual(expected, actual)
 
@@ -265,7 +265,7 @@ class IdentifyFileFormatTestCase(TestCase):
         )
 
         expected = "Plain Text File"
-        actual = task.run().get().get(task.pk)
+        actual = task.run().get()
 
         self.assertEqual(expected, actual)
 
@@ -282,7 +282,7 @@ class IdentifyFileFormatTestCase(TestCase):
         )
 
         expected = "Plain Text File"
-        actual = task.run().get().get(task.pk)
+        actual = task.run().get()
 
         self.assertEqual(expected, actual)
 
@@ -300,7 +300,7 @@ class IdentifyFileFormatTestCase(TestCase):
         )
 
         with self.assertRaises(ValueError):
-            task.run().get().get(task.pk)
+            task.run().get()
 
     def test_non_existent_file_extension_with_filename_with_non_english_characters(self):
         fname = os.path.join(self.datadir, 'åäö.zxczxc')
@@ -316,7 +316,7 @@ class IdentifyFileFormatTestCase(TestCase):
         )
 
         with self.assertRaises(ValueError):
-            task.run().get().get(task.pk)
+            task.run().get()
 
 
 class GenerateXMLTestCase(TestCase):
