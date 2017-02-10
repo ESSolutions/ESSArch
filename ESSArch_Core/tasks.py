@@ -151,35 +151,32 @@ class ParseFile(DBTask):
         timestamp = creation_date(filepath)
         createdate = timestamp_to_datetime(timestamp)
 
-        checksum_task = ProcessTask.objects.create(
+        task = ProcessTask.objects.only(
+            'processstep', 'responsible', 'information_package'
+        ).get(pk=self.request.id)
+
+        checksum_task = ProcessTask(
             name="preingest.tasks.CalculateChecksum",
             params={
                 "filename": filepath,
                 "algorithm": algorithm
-            }
+            },
+            processstep=task.processstep,
+            responsible=task.responsible,
+            information_package=task.information_package
         )
 
-        fileformat_task = ProcessTask.objects.create(
+        fileformat_task = ProcessTask(
             name="preingest.tasks.IdentifyFileFormat",
             params={
                 "filename": filepath,
-            }
+            },
+            processstep=task.processstep,
+            responsible=task.responsible,
+            information_package=task.information_package
         )
 
-        checksum_task.log = self.taskobj.log
-        checksum_task.information_package = self.taskobj.information_package
-        checksum_task.responsible = self.taskobj.responsible
-
-        fileformat_task.log = self.taskobj.log
-        fileformat_task.information_package = self.taskobj.information_package
-        fileformat_task.responsible = self.taskobj.responsible
-
-        if self.taskobj is not None and self.taskobj.processstep is not None:
-            checksum_task.processstep = self.taskobj.processstep
-            fileformat_task.processstep = self.taskobj.processstep
-
-        checksum_task.save()
-        fileformat_task.save()
+        ProcessTask.objects.bulk_create([checksum_task, fileformat_task])
 
         checksum = checksum_task.run_eagerly()
         self.set_progress(50, total=100)
@@ -222,8 +219,10 @@ class GenerateXML(DBTask):
         to the specified files
         """
 
+        task = ProcessTask.objects.only('processstep', 'responsible').get(pk=self.request.id)
+
         generator = XMLGenerator(
-            filesToCreate, info, self.taskobj
+            filesToCreate, info, task
         )
 
         generator.generate(

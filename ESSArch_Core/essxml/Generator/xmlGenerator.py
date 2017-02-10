@@ -297,10 +297,10 @@ class XMLGenerator(object):
                     for (t_idx, fileinfo) in step.run().iter_native():
                         if fileinfo['status'] == celery_states.FAILURE:
                             raise fileinfo['result']
-                        files.append(fileinfo['result'].itervalues().next())  # get the first (and only value)
+                        files.append(fileinfo['result'])
                 else:
                     for fileinfo in step.run().get():
-                        files.append(fileinfo.itervalues().next())
+                        files.append(fileinfo)
 
         for f in self.toCreate:
             fname = f['file']
@@ -337,7 +337,7 @@ class XMLGenerator(object):
                 parsefile_task.save()
 
             with allow_join_result():
-                files.append(parsefile_task.run().get().get(parsefile_task.pk))
+                files.append(parsefile_task.run().get())
 
     def insert(self, filename, elementToAppendTo, template, info={}, index=None):
         parser = etree.XMLParser(remove_blank_text=True)
