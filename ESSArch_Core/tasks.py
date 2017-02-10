@@ -571,13 +571,18 @@ class ValidateFileFormat(DBTask):
         """
         Validates the format of the given file
         """
+
+        task = ProcessTask.objects.values(
+            'information_package_id', 'responsible_id'
+        ).get(pk=self.request.id)
+
         t = ProcessTask.objects.create(
             name="ESSArch_Core.tasks.IdentifyFileFormat",
             params={
                 "filename": filename,
             },
-            information_package=self.taskobj.information_package,
-            responsible=self.taskobj.responsible,
+            information_package=task.get('information_package_id'),
+            responsible=task.get('responsible_id'),
         )
 
         res = t.run_eagerly()

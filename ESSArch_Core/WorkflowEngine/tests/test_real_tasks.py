@@ -1127,7 +1127,7 @@ class ValidateFileFormatTestCase(TestCase):
             }
         )
 
-        fformat = t.run().get().get(t.pk)
+        fformat = t.run().get()
 
         task = ProcessTask.objects.create(
             name=self.taskname,
@@ -1149,7 +1149,7 @@ class ValidateFileFormatTestCase(TestCase):
             }
         )
 
-        fformat = t.run().get().get(t.pk)
+        fformat = t.run().get()
 
         newfile = string.replace(self.fname, '.txt', '.pdf')
         shutil.move(self.fname, newfile)
