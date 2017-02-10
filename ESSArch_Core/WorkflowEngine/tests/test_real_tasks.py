@@ -888,7 +888,7 @@ class ValidateFilesTestCase(TestCase):
             }
         )
 
-        res = task.run().get().get(task.pk)
+        res = task.run().get()
 
         self.assertEqual(len(res), 0)
 
@@ -901,7 +901,7 @@ class ValidateFilesTestCase(TestCase):
             }
         )
 
-        res = task.run().get().get(task.pk)
+        res = task.run().get()
 
         self.assertEqual(len(res), 0)
 
@@ -929,7 +929,7 @@ class ValidateFilesTestCase(TestCase):
             }
         )
 
-        res = task.run().get().get(task.pk)
+        res = task.run().get()
 
         self.assertTrue(len(res) >= num_of_files)
 
@@ -1029,6 +1029,8 @@ class ValidateFilesTestCase(TestCase):
 
         with self.assertRaises(AssertionError):
             task.run()
+
+        task.refresh_from_db()
 
         step = ProcessStep.objects.get(name="Validate Files")
 

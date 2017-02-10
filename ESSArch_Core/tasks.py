@@ -502,10 +502,14 @@ class ValidateFiles(DBTask):
     checksum_task = "ESSArch_Core.tasks.ValidateIntegrity"
 
     def run(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
+        task = ProcessTask.objects.values(
+            'processstep', 'responsible'
+        ).get(pk=self.request.id)
+
         step = ProcessStep.objects.create(
             name="Validate Files",
             parallel=True,
-            parent_step=self.taskobj.processstep
+            parent_step=task.get('processstep')
         )
 
         if any([validate_fileformat, validate_integrity]):
@@ -532,9 +536,8 @@ class ValidateFiles(DBTask):
                                 "filename": os.path.join(rootdir, fpath),
                                 "fileformat": fformat,
                             },
-                            log=self.taskobj.log,
                             information_package=ip,
-                            responsible=self.taskobj.responsible,
+                            responsible_id=task.get('responsible'),
                         ))
 
                     if validate_integrity and checksum is not None:
@@ -545,13 +548,10 @@ class ValidateFiles(DBTask):
                                 "checksum": checksum,
                                 "algorithm": algorithm,
                             },
-                            log=self.taskobj.log,
                             information_package=ip,
-                            responsible=self.taskobj.responsible,
+                            responsible_id=task.get('responsible'),
                         ))
 
-        self.taskobj.log = None
-        self.taskobj.save(update_fields=['log'])
         self.set_progress(100, total=100)
 
         with allow_join_result():
@@ -581,8 +581,8 @@ class ValidateFileFormat(DBTask):
             params={
                 "filename": filename,
             },
-            information_package=task.get('information_package_id'),
-            responsible=task.get('responsible_id'),
+            information_package_id=task.get('information_package_id'),
+            responsible_id=task.get('responsible_id'),
         )
 
         res = t.run_eagerly()
@@ -617,8 +617,8 @@ class ValidateIntegrity(DBTask):
                 "block_size": block_size,
                 "algorithm": algorithm
             },
-            information_package=task.get('information_package_id'),
-            responsible=task.get('responsible_id'),
+            information_package_id=task.get('information_package_id'),
+            responsible_id=task.get('responsible_id'),
         )
 
         digest = t.run_eagerly()
