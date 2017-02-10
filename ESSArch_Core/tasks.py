@@ -601,6 +601,10 @@ class ValidateIntegrity(DBTask):
         Validates the integrity(checksum) for the given file
         """
 
+        task = ProcessTask.objects.values(
+            'information_package_id', 'responsible_id'
+        ).get(pk=self.request.id)
+
         t = ProcessTask.objects.create(
             name="ESSArch_Core.tasks.CalculateChecksum",
             params={
@@ -608,8 +612,8 @@ class ValidateIntegrity(DBTask):
                 "block_size": block_size,
                 "algorithm": algorithm
             },
-            information_package=self.taskobj.information_package,
-            responsible=self.taskobj.responsible,
+            information_package=task.get('information_package_id'),
+            responsible=task.get('responsible_id'),
         )
 
         digest = t.run_eagerly()

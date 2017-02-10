@@ -1062,7 +1062,7 @@ class ValidateIntegrityTestCase(TestCase):
             }
         )
 
-        checksum = t.run().get().get(t.pk)
+        checksum = t.run().get()
 
         task = ProcessTask.objects.create(
             name=self.taskname,
@@ -1084,7 +1084,7 @@ class ValidateIntegrityTestCase(TestCase):
             }
         )
 
-        checksum = t.run().get().get(t.pk)
+        checksum = t.run().get()
 
         task = ProcessTask.objects.create(
             name=self.taskname,
