@@ -1473,7 +1473,8 @@ class UpdateIPStatusTestCase(TestCase):
             name=self.taskname,
             params={
                 'ip': self.ip,
-                'status': 'new'
+                'status': 'new',
+                'prev': self.ip.State
             }
         )
 
@@ -1487,7 +1488,8 @@ class UpdateIPStatusTestCase(TestCase):
             name=self.taskname,
             params={
                 'ip': self.ip,
-                'status': 'new'
+                'status': 'new',
+                'prev': self.ip.State
             }
         )
 
@@ -1512,7 +1514,8 @@ class UpdateIPPathTestCase(TestCase):
             name=self.taskname,
             params={
                 'ip': self.ip,
-                'path': 'new'
+                'path': 'new',
+                'prev': self.ip.ObjectPath
             }
         )
 
@@ -1526,7 +1529,8 @@ class UpdateIPPathTestCase(TestCase):
             name=self.taskname,
             params={
                 'ip': self.ip,
-                'path': 'new'
+                'path': 'new',
+                'prev': self.ip.ObjectPath
             }
         )
 

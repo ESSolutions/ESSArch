@@ -722,28 +722,30 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 
 
 class UpdateIPStatus(DBTask):
-    def run(self, ip=None, status=None):
+    def run(self, ip=None, status=None, prev=None):
         ip.State = status
         ip.save(update_fields=['State'])
         self.set_progress(100, total=100)
 
-    def undo(self, ip=None, status=None):
-        ip.save()
+    def undo(self, ip=None, status=None, prev=None):
+        ip.State = prev
+        ip.save(update_fields=['State'])
 
-    def event_outcome_success(self, ip=None, status=None):
+    def event_outcome_success(self, ip=None, status=None, prev=None):
         return "Updated status of %s" % (ip.pk)
 
 
 class UpdateIPPath(DBTask):
-    def run(self, ip=None, path=None):
+    def run(self, ip=None, path=None, prev=None):
         ip.ObjectPath = path
         ip.save(update_fields=['ObjectPath'])
         self.set_progress(100, total=100)
 
-    def undo(self, ip=None, path=None):
-        ip.save()
+    def undo(self, ip=None, path=None, prev=None):
+        ip.ObjectPath = prev
+        ip.save(update_fields=['ObjectPath'])
 
-    def event_outcome_success(self, ip=None, path=None):
+    def event_outcome_success(self, ip=None, path=None, prev=None):
         return "Updated path of '%s' (%s) to %s" % (ip.Label, ip.pk, path)
 
 
