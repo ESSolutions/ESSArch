@@ -201,14 +201,13 @@ class test_undoing_tasks(TestCase):
             res = task.undo()
         task.refresh_from_db()
         self.assertEqual(res.get(), x-y)
-        self.assertTrue(task.undone)
-        self.assertFalse(task.undo_type)
-        self.assertFalse(task.retried)
-
-        self.assertEqual(task.status, celery_states.SUCCESS)
 
         undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Add", undo_type=True)
-        self.assertIsNotNone(undo_task)
+
+        self.assertEqual(task.undone, undo_task)
+        self.assertFalse(task.undo_type)
+        self.assertIsNone(task.retried)
+        self.assertEqual(task.status, celery_states.SUCCESS)
         self.assertTrue(undo_task.undo_type)
 
     def test_undo_failed_task(self):
@@ -222,13 +221,13 @@ class test_undoing_tasks(TestCase):
 
         task.undo()
         task.refresh_from_db()
-        self.assertTrue(task.undone)
-        self.assertFalse(task.undo_type)
-        self.assertFalse(task.retried)
-        self.assertEqual(task.status, celery_states.FAILURE)
 
         undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail", undo_type=True)
-        self.assertIsNotNone(undo_task)
+        self.assertEqual(task.undone, undo_task)
+
+        self.assertFalse(task.undo_type)
+        self.assertIsNone(task.retried)
+        self.assertEqual(task.status, celery_states.FAILURE)
         self.assertTrue(undo_task.undo_type)
 
 
@@ -272,23 +271,22 @@ class test_retrying_tasks(TestCase):
 
         task.refresh_from_db()
 
-        self.assertTrue(task.undone)
         self.assertFalse(task.undo_type)
-        self.assertTrue(task.retried)
         self.assertEqual(task.status, celery_states.SUCCESS)
 
         undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Add", undo_type=True)
-        self.assertIsNotNone(undo_task)
+        self.assertEqual(task.undone, undo_task)
         self.assertTrue(undo_task.undo_type)
 
         retry_task = ProcessTask.objects.get(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
-            undo_type=False, undone=False
+            undo_type=False, undone__isnull=True
         )
         self.assertIsNotNone(retry_task)
-        self.assertFalse(retry_task.undone)
+        self.assertEqual(task.retried, retry_task)
+        self.assertIsNone(retry_task.undone)
         self.assertFalse(retry_task.undo_type)
-        self.assertFalse(retry_task.retried)
+        self.assertIsNone(retry_task.retried)
         self.assertEqual(retry_task.status, celery_states.SUCCESS)
 
     def test_retry_failed_task(self):
@@ -304,12 +302,13 @@ class test_retrying_tasks(TestCase):
 
         retry_task = ProcessTask.objects.get(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
-            undo_type=False, undone=False
+            undo_type=False, undone__isnull=True
         )
         self.assertIsNotNone(retry_task)
-        self.assertFalse(retry_task.undone)
+        self.assertEqual(task.retried, retry_task)
+        self.assertIsNone(retry_task.undone)
         self.assertFalse(retry_task.undo_type)
-        self.assertFalse(retry_task.retried)
+        self.assertIsNone(retry_task.retried)
         self.assertEqual(retry_task.status, celery_states.FAILURE)
 
     def test_retry_failed_fixed_task(self):
@@ -332,11 +331,12 @@ class test_retrying_tasks(TestCase):
 
         retry_task = ProcessTask.objects.get(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            undo_type=False, undone=False
+            undo_type=False, undone__isnull=True
         )
         self.assertIsNotNone(retry_task)
-        self.assertFalse(retry_task.undone)
+        self.assertEqual(task.retried, retry_task)
+        self.assertIsNone(retry_task.undone)
         self.assertFalse(retry_task.undo_type)
-        self.assertFalse(retry_task.retried)
+        self.assertIsNone(retry_task.retried)
         self.assertEqual(retry_task.status, celery_states.SUCCESS)
         self.assertEqual(task.status, celery_states.FAILURE)

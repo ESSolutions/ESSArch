@@ -368,31 +368,45 @@ class test_status(TestCase):
         self.assertEqual(self.step.status, celery_states.FAILURE)
 
     def test_succeeded_undone_task(self):
-        t1 = ProcessTask.objects.create(status=celery_states.SUCCESS, undone=True)
+        t1 = ProcessTask.objects.create(status=celery_states.SUCCESS)
         t1_undo = ProcessTask.objects.create(status=celery_states.SUCCESS, undo_type=True)
+
+        t1.undone = t1_undo
+        t1.save()
 
         self.step.tasks = [t1, t1_undo]
         self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_succeeded_retried_task(self):
-        t1 = ProcessTask.objects.create(status=celery_states.SUCCESS, undone=True)
+        t1 = ProcessTask.objects.create(status=celery_states.SUCCESS)
         t1_undo = ProcessTask.objects.create(status=celery_states.SUCCESS, undo_type=True)
         t1_retry = ProcessTask.objects.create(status=celery_states.SUCCESS)
+
+        t1.undone = t1_undo
+        t1.retried = t1_retry
+        t1.save()
 
         self.step.tasks = [t1, t1_undo, t1_retry]
         self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_failed_undone_task(self):
-        t1 = ProcessTask.objects.create(status=celery_states.FAILURE, undone=True)
+        t1 = ProcessTask.objects.create(status=celery_states.FAILURE)
         t1_undo = ProcessTask.objects.create(status=celery_states.SUCCESS, undo_type=True)
+
+        t1.undone = t1_undo
+        t1.save()
 
         self.step.tasks = [t1, t1_undo]
         self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_failed_retried_task(self):
-        t1 = ProcessTask.objects.create(status=celery_states.FAILURE, undone=True, retried=True)
+        t1 = ProcessTask.objects.create(status=celery_states.FAILURE)
         t1_undo = ProcessTask.objects.create(status=celery_states.SUCCESS, undo_type=True)
         t1_retry = ProcessTask.objects.create(status=celery_states.SUCCESS)
+
+        t1.undone = t1_undo
+        t1.retried = t1_retry
+        t1.save()
 
         self.step.tasks = [t1, t1_undo, t1_retry]
         self.assertEqual(self.step.status, celery_states.SUCCESS)
@@ -652,7 +666,10 @@ class test_progress(TestCase):
         self.assertEqual(self.step.progress, 100)
 
     def test_undone_task(self):
-        t = ProcessTask.objects.create(progress=50, undone=True)
+        t = ProcessTask.objects.create(progress=50)
+        t_undo = ProcessTask.objects.create(undo_type=True)
+        t.undone = t_undo
+        t.save()
         self.step.add_tasks(t)
         self.assertEqual(self.step.progress, 0)
 

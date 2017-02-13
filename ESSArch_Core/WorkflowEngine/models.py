@@ -145,7 +145,7 @@ class ProcessStep(Process):
         """
         return self.tasks.filter(
             undo_type=False,
-            retried=False
+            retried__isnull=True
         ).order_by("processstep_pos")
 
     def clear_cache(self):
@@ -242,7 +242,7 @@ class ProcessStep(Process):
 
         tasks = tasks.filter(
             undo_type=False,
-            undone=False
+            undone__isnull=True
         )
 
         func = group if self.parallel else chain
@@ -284,8 +284,8 @@ class ProcessStep(Process):
         child_steps = self.child_steps.all()
 
         tasks = self.tasks(manager='by_step_pos').filter(
-            undone=True,
-            retried=False
+            undone__isnull=False,
+            retried__isnull=True
         ).order_by('processstep_pos')
 
         func = group if self.parallel else chain
@@ -326,7 +326,7 @@ class ProcessStep(Process):
         func = group if self.parallel else chain
 
         child_steps = self.child_steps.filter(tasks__status=celery_states.PENDING)
-        tasks = self.tasks(manager='by_step_pos').filter(undone=False, undo_type=False, status=celery_states.PENDING)
+        tasks = self.tasks(manager='by_step_pos').filter(undone__isnull=True, undo_type=False, status=celery_states.PENDING)
 
         step_canvas = func(s.run(direct=False) for s in child_steps)
         task_canvas = func(create_sub_task(t) for t in tasks)
@@ -378,8 +378,8 @@ class ProcessStep(Process):
 
         child_steps = self.child_steps.all()
         progress = 0
-        task_data = self.tasks.filter(undo_type=False, retried=False).aggregate(
-            progress=Sum(Case(When(undone=True, then=0), default='progress')),
+        task_data = self.tasks.filter(undo_type=False, retried__isnull=True).aggregate(
+            progress=Sum(Case(When(undone__isnull=False, then=0), default='progress')),
             task_count=Count('id')
         )
 
@@ -431,7 +431,7 @@ class ProcessStep(Process):
             return cached
 
         child_steps = self.child_steps.all()
-        tasks = self.tasks.filter(undo_type=False, undone=False, retried=False)
+        tasks = self.tasks.filter(undo_type=False, undone__isnull=True, retried__isnull=True)
         status = celery_states.SUCCESS
 
         if not child_steps and not tasks:
@@ -466,7 +466,7 @@ class ProcessStep(Process):
 
         child_steps = self.child_steps.all()
         undone_child_steps = any(c.undone for c in child_steps)
-        undone_tasks = self.tasks.filter(undone=True, retried=False).exists()
+        undone_tasks = self.tasks.filter(undone__isnull=False, retried__isnull=True).exists()
 
         return undone_child_steps or undone_tasks
 
@@ -515,9 +515,9 @@ class ProcessTask(Process):
     )
     processstep_pos = models.IntegerField(_('ProcessStep position'), default=0)
     progress = models.IntegerField(default=0)
-    undone = models.BooleanField(default=False)
+    undone = models.OneToOneField('self', on_delete=models.SET_NULL, related_name='undone_task', null=True, blank=True)
     undo_type = models.BooleanField(editable=False, default=False)
-    retried = models.BooleanField(default=False)
+    retried = models.OneToOneField('self', on_delete=models.SET_NULL, related_name='retried_task', null=True, blank=True)
     information_package = models.ForeignKey(
         'ip.InformationPackage',
         on_delete=models.SET_NULL,
@@ -636,15 +636,18 @@ class ProcessTask(Process):
         also marks this task as undone
         """
 
-        self.undone = True
-        self.save(update_fields=['undone'])
 
-        return ProcessTask.objects.create(
+        undo_obj = ProcessTask.objects.create(
             processstep=self.processstep, name=self.name,
             params=self.params, processstep_pos=self.processstep_pos,
             undo_type=True, status="PREPARED",
             information_package=self.information_package
         )
+
+        self.undone = undo_obj
+        self.save(update_fields=['undone'])
+
+        return undo_obj
 
     def create_retry_obj(self):
         """
@@ -652,14 +655,17 @@ class ProcessTask(Process):
         also marks this task as retried
         """
 
-        self.retried = True
-        self.save(update_fields=['retried'])
-
-        return ProcessTask.objects.create(
+        retry_obj = ProcessTask.objects.create(
             processstep=self.processstep, name=self.name, params=self.params,
             processstep_pos=self.processstep_pos,
             status="PREPARED", information_package=self.information_package,
+            retried_task=self
         )
+
+        self.retried = retry_obj
+        self.save(update_fields=['retried'])
+
+        return retry_obj
 
     class Meta:
         db_table = 'ProcessTask'
