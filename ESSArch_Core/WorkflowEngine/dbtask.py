@@ -166,11 +166,6 @@ class DBTask(Task):
                 time_done=time_done,
             )
 
-        t = ProcessTask.objects.only('attempt', 'processstep_pos').get(pk=task_id)
-        ProcessTask.objects.filter(
-            attempt=t.attempt, processstep_pos__gt=t.processstep_pos
-        ).update(status=celery_states.FAILURE)
-
     def on_success(self, retval, task_id, args, kwargs):
         time_done = timezone.now()
         try:

@@ -220,8 +220,8 @@ class ProcessStep(Process):
             steps, otherwise None
         """
 
-        def create_sub_task(t, attempt=uuid.uuid4()):
-            t = t.create_undo_obj(attempt=attempt)
+        def create_sub_task(t):
+            t = t.create_undo_obj()
             created = self._create_task(t.name)
             return created.si(True, **t.params).set(task_id=str(t.pk))
 
@@ -236,11 +236,9 @@ class ProcessStep(Process):
             undone=False
         )
 
-        attempt = uuid.uuid4()
-
         func = group if self.parallel else chain
 
-        task_canvas = func(create_sub_task(t, attempt) for t in tasks.reverse())
+        task_canvas = func(create_sub_task(t) for t in tasks.reverse())
         step_canvas = func(s.undo(direct=False) for s in child_steps.reverse())
 
         if not child_steps:
@@ -265,8 +263,8 @@ class ProcessStep(Process):
             none
         """
 
-        def create_sub_task(t, attempt=uuid.uuid4()):
-            t = t.create_retry_obj(attempt=attempt)
+        def create_sub_task(t):
+            t = t.create_retry_obj()
             created = self._create_task(t.name)
             return created.si(False, **t.params).set(task_id=str(t.pk))
 
@@ -278,10 +276,9 @@ class ProcessStep(Process):
         ).order_by('processstep_pos')
 
         func = group if self.parallel else chain
-        attempt = uuid.uuid4()
 
         step_canvas = func(s.retry(direct=False) for s in child_steps)
-        task_canvas = func(create_sub_task(t, attempt) for t in tasks)
+        task_canvas = func(create_sub_task(t) for t in tasks)
 
         if not child_steps:
             workflow = task_canvas
@@ -500,7 +497,6 @@ class ProcessTask(Process):
         null=True, blank=True
     )
     processstep_pos = models.IntegerField(_('ProcessStep position'), default=0)
-    attempt = models.UUIDField(default=uuid.uuid4)
     progress = models.IntegerField(default=0)
     undone = models.BooleanField(default=False)
     undo_type = models.BooleanField(editable=False, default=False)
@@ -600,13 +596,10 @@ class ProcessTask(Process):
         res = t.apply_async(kwargs=retryobj.params, task_id=str(retryobj.pk), queue=t.queue)
         return res
 
-    def create_undo_obj(self, attempt=uuid.uuid4()):
+    def create_undo_obj(self):
         """
         Create a new task that will be used to undo this task,
         also marks this task as undone
-
-        Args:
-            attempt: Which attempt the new task belongs to
         """
 
         self.undone = True
@@ -615,17 +608,14 @@ class ProcessTask(Process):
         return ProcessTask.objects.create(
             processstep=self.processstep, name=self.name,
             params=self.params, processstep_pos=self.processstep_pos,
-            undo_type=True, attempt=attempt, status="PREPARED",
+            undo_type=True, status="PREPARED",
             information_package=self.information_package
         )
 
-    def create_retry_obj(self, attempt=uuid.uuid4()):
+    def create_retry_obj(self):
         """
         Create a new task that will be used to retry this task,
         also marks this task as retried
-
-        Args:
-            attempt: Which attempt the new task belongs to
         """
 
         self.retried = True
@@ -633,7 +623,7 @@ class ProcessTask(Process):
 
         return ProcessTask.objects.create(
             processstep=self.processstep, name=self.name, params=self.params,
-            processstep_pos=self.processstep_pos, attempt=attempt,
+            processstep_pos=self.processstep_pos,
             status="PREPARED", information_package=self.information_package,
         )
 
