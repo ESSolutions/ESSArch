@@ -134,7 +134,7 @@ class test_running_tasks(TestCase):
 
         EventType.objects.create(eventType=1)
 
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(6):
             task.run()
 
         task.refresh_from_db()
@@ -164,8 +164,9 @@ class test_running_tasks(TestCase):
         )
         EventType.objects.create(eventType=1)
 
-        with self.assertRaises(TypeError):
-            task.run()
+        with self.assertNumQueries(5):
+            with self.assertRaises(TypeError):
+                task.run()
 
         task.refresh_from_db()
 

@@ -176,6 +176,10 @@ class ProcessStep(Process):
 
         def create_sub_task(t):
             created = self._create_task(t.name)
+            t.params['_options'] = {
+                'responsible': t.responsible_id, 'ip': t.information_package_id,
+                'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
+            }
             return created.si(**t.params).set(task_id=str(t.pk), result_params=t.result_params)
 
         func = group if self.parallel else chain
@@ -222,6 +226,11 @@ class ProcessStep(Process):
 
         def create_sub_task(t):
             t = t.create_undo_obj()
+            t.params['_options'] = {
+                'responsible': t.responsible_id, 'ip': t.information_package_id,
+                'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
+                'undo': True,
+            }
             created = self._create_task(t.name)
             return created.si(True, **t.params).set(task_id=str(t.pk))
 
@@ -265,6 +274,10 @@ class ProcessStep(Process):
 
         def create_sub_task(t):
             t = t.create_retry_obj()
+            t.params['_options'] = {
+                'responsible': t.responsible_id, 'ip': t.information_package_id,
+                'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
+            }
             created = self._create_task(t.name)
             return created.si(False, **t.params).set(task_id=str(t.pk))
 
@@ -304,6 +317,10 @@ class ProcessStep(Process):
 
         def create_sub_task(t):
             created = self._create_task(t.name)
+            t.params['_options'] = {
+                'responsible': t.responsible_id, 'ip': t.information_package_id,
+                'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
+            }
             return created.si(**t.params).set(task_id=str(t.pk), result_params=t.result_params)
 
         func = group if self.parallel else chain
@@ -546,6 +563,10 @@ class ProcessTask(Process):
         except AttributeError:
             pass
 
+        self.params['_options'] = {
+            'responsible': self.responsible_id, 'ip': self.information_package_id,
+            'step': self.processstep_id, 'step_pos': self.processstep_pos, 'hidden': self.hidden,
+        }
 
         res = t.apply_async(kwargs=self.params, task_id=str(self.pk), queue=t.queue)
 
@@ -557,6 +578,10 @@ class ProcessTask(Process):
         """
 
         t = self._create_task(self.name)
+        self.params['_options'] = {
+            'responsible': self.responsible_id, 'ip': self.information_package_id,
+            'step': self.processstep_id, 'step_pos': self.processstep_pos, 'hidden': self.hidden,
+        }
 
         return t.apply(kwargs=self.params, task_id=str(self.pk)).get()
 
@@ -568,6 +593,11 @@ class ProcessTask(Process):
         t = self._create_task(self.name)
 
         undoobj = self.create_undo_obj()
+        self.params['_options'] = {
+            'responsible': self.responsible_id, 'ip': self.information_package_id,
+            'step': self.processstep_id, 'step_pos': self.processstep_pos, 'hidden': self.hidden,
+            'undo': True,
+        }
 
         try:
             for k, v in undoobj.result_params.iteritems():
@@ -586,6 +616,10 @@ class ProcessTask(Process):
         t = self._create_task(self.name)
 
         retryobj = self.create_retry_obj()
+        self.params['_options'] = {
+            'responsible': self.responsible_id, 'ip': self.information_package_id,
+            'step': self.processstep_id, 'step_pos': self.processstep_pos, 'hidden': self.hidden,
+        }
 
         try:
             for k, v in retryobj.result_params.iteritems():

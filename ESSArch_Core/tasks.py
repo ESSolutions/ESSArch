@@ -151,19 +151,15 @@ class ParseFile(DBTask):
         timestamp = creation_date(filepath)
         createdate = timestamp_to_datetime(timestamp)
 
-        task = ProcessTask.objects.only(
-            'processstep', 'responsible', 'information_package'
-        ).get(pk=self.request.id)
-
         checksum_task = ProcessTask(
             name="preingest.tasks.CalculateChecksum",
             params={
                 "filename": filepath,
                 "algorithm": algorithm
             },
-            processstep=task.processstep,
-            responsible=task.responsible,
-            information_package=task.information_package
+            processstep_id=self.step,
+            responsible_id=self.responsible,
+            information_package_id=self.ip
         )
 
         fileformat_task = ProcessTask(
@@ -171,9 +167,9 @@ class ParseFile(DBTask):
             params={
                 "filename": filepath,
             },
-            processstep=task.processstep,
-            responsible=task.responsible,
-            information_package=task.information_package
+            processstep_id=self.step,
+            responsible_id=self.responsible,
+            information_package_id=self.ip
         )
 
         ProcessTask.objects.bulk_create([checksum_task, fileformat_task])
@@ -219,10 +215,8 @@ class GenerateXML(DBTask):
         to the specified files
         """
 
-        task = ProcessTask.objects.only('processstep', 'responsible').get(pk=self.request.id)
-
         generator = XMLGenerator(
-            filesToCreate, info, task
+            filesToCreate, info, self
         )
 
         generator.generate(

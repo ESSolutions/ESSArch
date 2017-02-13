@@ -258,9 +258,9 @@ class XMLGenerator(object):
                 parallel=True,
             )
 
-            if self.task is not None and self.task.processstep is not None:
+            if self.task is not None and self.task.step is not None:
                 responsible = self.task.responsible
-                step.parent_step = self.task.processstep
+                step.parent_step = self.task.step
                 step.save()
 
             if os.path.isfile(folderToParse):
@@ -332,8 +332,8 @@ class XMLGenerator(object):
                 responsible=responsible,
             )
 
-            if self.task is not None and self.task.processstep is not None:
-                parsefile_task.processstep = self.task.processstep
+            if self.task is not None and self.task.step is not None:
+                parsefile_task.processstep = self.task.step
                 parsefile_task.save()
 
             with allow_join_result():

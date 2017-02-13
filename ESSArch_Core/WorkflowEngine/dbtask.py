@@ -45,7 +45,7 @@ from django.utils import timezone
 
 from ESSArch_Core.ip.models import EventIP
 
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 from ESSArch_Core.util import (
     truncate
@@ -56,25 +56,34 @@ class DBTask(Task):
     event_type = None
     queue = 'celery'
     hidden = False
+    undo_type = False
+    responsible = None
+    ip = None
+    step = None
+    step_pos = None
 
     def __call__(self, *args, **kwargs):
+        options = kwargs.pop('_options', {})
+
+        self.responsible = options.get('responsible')
+        self.ip = options.get('ip')
+        self.step = options.get('step')
+        self.step_pos = options.get('step_pos')
+        self.hidden = options.get('hidden', False) or self.hidden
+        self.undo_type = options.get('undo', False)
+
         celery_always_eager = hasattr(settings, 'CELERY_ALWAYS_EAGER') and settings.CELERY_ALWAYS_EAGER
         celery_eager_propagates_exceptions = hasattr(settings, 'CELERY_EAGER_PROPAGATES_EXCEPTIONS') and settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS
 
         task_id = self.request.id
 
         ProcessTask.objects.filter(pk=task_id).update(
-            hidden=Coalesce(F('hidden'), self.hidden),
+            hidden=self.hidden,
             status=celery_states.STARTED,
             time_started=timezone.now()
         )
 
-        try:
-            undo_type = args[0]
-        except IndexError:
-            undo_type = False
-
-        if undo_type:
+        if self.undo_type:
             if celery_always_eager and celery_eager_propagates_exceptions:
                 try:
                     res = self.undo(**kwargs)
@@ -114,10 +123,10 @@ class DBTask(Task):
         return super(DBTask, self).apply(*args, **kwargs)
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
-        t = ProcessTask.objects.only('processstep').select_related('processstep').get(pk=task_id)
         try:
-            t.processstep.clear_cache()
-        except AttributeError:
+            step = ProcessStep.objects.get(pk=self.step)
+            step.clear_cache()
+        except ProcessStep.DoesNotExist:
             pass
 
         self.create_event(task_id, status, args, kwargs, retval, einfo)
@@ -133,20 +142,19 @@ class DBTask(Task):
 
         if status == celery_states.SUCCESS:
             outcome = 0
+            kwargs.pop('_options', {})
             outcome_detail_note = self.event_outcome_success(**kwargs)
         else:
             outcome = 1
             outcome_detail_note = einfo.traceback
-
-        task = ProcessTask.objects.only('responsible_id', 'information_package_id').get(pk=task_id)
 
         EventIP.objects.create(
             eventType=event_type, eventOutcome=outcome,
             eventVersion=get_versions()['version'],
             eventOutcomeDetailNote=truncate(outcome_detail_note, 1024),
             eventApplication_id=task_id,
-            linkingAgentIdentifierValue_id=task.responsible_id,
-            linkingObjectIdentifierValue_id=task.information_package_id,
+            linkingAgentIdentifierValue_id=self.responsible,
+            linkingObjectIdentifierValue_id=self.ip
         )
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
