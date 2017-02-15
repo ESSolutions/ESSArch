@@ -119,8 +119,6 @@ class DBTask(Task):
         except ProcessStep.DoesNotExist:
             pass
 
-        self.create_event(task_id, status, args, kwargs, retval, einfo)
-
     def create_event(self, task_id, status, args, kwargs, retval, einfo):
         if not self.event_type:
             return
@@ -164,6 +162,8 @@ class DBTask(Task):
                 time_done=time_done,
             )
 
+        self.create_event(task_id, celery_states.FAILURE, args, kwargs, None, einfo)
+
     def on_success(self, retval, task_id, args, kwargs):
         time_done = timezone.now()
         try:
@@ -180,6 +180,8 @@ class DBTask(Task):
                 status=celery_states.SUCCESS,
                 time_done=time_done,
             )
+
+        self.create_event(task_id, celery_states.SUCCESS, args, kwargs, None, retval)
 
     def set_progress(self, progress, total=None):
         task_id = self.request.id
