@@ -260,7 +260,7 @@ class XMLGenerator(object):
 
             if self.task is not None and self.task.step is not None:
                 responsible = self.task.responsible
-                step.parent_step = self.task.step
+                step.parent_step_id = self.task.step
                 step.save()
 
             if os.path.isfile(folderToParse):
@@ -273,7 +273,7 @@ class XMLGenerator(object):
                         'algorithm': algorithm
                     },
                     processstep=step,
-                    responsible=responsible,
+                    responsible_id=responsible,
                 )
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in walk(folderToParse):
@@ -288,7 +288,7 @@ class XMLGenerator(object):
                                 'relpath': relpath,
                                 'algorithm': algorithm
                             },
-                            responsible=responsible,
+                            responsible_id=responsible,
                         )
                         step.add_tasks(task)
 
@@ -329,12 +329,9 @@ class XMLGenerator(object):
                     'relpath': relpath,
                     'algorithm': algorithm
                 },
-                responsible=responsible,
+                responsible_id=responsible,
+                processstep_id=self.task.step if self.task else None
             )
-
-            if self.task is not None and self.task.step is not None:
-                parsefile_task.processstep = self.task.step
-                parsefile_task.save()
 
             with allow_join_result():
                 files.append(parsefile_task.run().get())

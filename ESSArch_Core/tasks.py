@@ -47,6 +47,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
     findElementWithoutNamespace,
     XMLGenerator
 )
+from ESSArch_Core.ip.models import EventIP
 from ESSArch_Core.WorkflowEngine.models import (
     ProcessStep,
     ProcessTask,
@@ -411,7 +412,7 @@ class AppendEvents(DBTask):
         }
 
         if not events:
-            events = self.taskobj.information_package.events.all()
+            events = EventIP.objects.filter(linkingObjectIdentifierValue_id=self.ip)
 
         events = events.order_by(
             'eventDateTime'
@@ -496,14 +497,10 @@ class ValidateFiles(DBTask):
     checksum_task = "ESSArch_Core.tasks.ValidateIntegrity"
 
     def run(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
-        task = ProcessTask.objects.values(
-            'processstep', 'responsible'
-        ).get(pk=self.request.id)
-
         step = ProcessStep.objects.create(
             name="Validate Files",
             parallel=True,
-            parent_step=task.get('processstep')
+            parent_step_id=self.step
         )
 
         if any([validate_fileformat, validate_integrity]):
@@ -531,7 +528,7 @@ class ValidateFiles(DBTask):
                                 "fileformat": fformat,
                             },
                             information_package=ip,
-                            responsible_id=task.get('responsible'),
+                            responsible_id=self.responsible,
                         ))
 
                     if validate_integrity and checksum is not None:
@@ -543,7 +540,7 @@ class ValidateFiles(DBTask):
                                 "algorithm": algorithm,
                             },
                             information_package=ip,
-                            responsible_id=task.get('responsible'),
+                            responsible_id=self.responsible,
                         ))
 
         self.set_progress(100, total=100)
@@ -952,10 +949,10 @@ class DownloadSchemas(DBTask):
             t = ProcessTask.objects.create(
                 name="ESSArch_Core.tasks.DownloadFile",
                 params={'src': schema, 'dst': dst},
-                processstep=self.taskobj.processstep,
-                processstep_pos=self.taskobj.processstep_pos,
-                responsible=self.taskobj.responsible,
-                information_package=self.taskobj.information_package,
+                processstep_id=self.step,
+                processstep_pos=self.step_pos,
+                responsible_id=self.responsible,
+                information_package_id=self.ip,
             )
 
             t.run_eagerly()
