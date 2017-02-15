@@ -179,8 +179,9 @@ class ProcessStep(Process):
             t.params['_options'] = {
                 'responsible': t.responsible_id, 'ip': t.information_package_id,
                 'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
+                'result_params': t.result_params,
             }
-            return created.si(**t.params).set(task_id=str(t.pk), result_params=t.result_params)
+            return created.si(**t.params).set(task_id=str(t.pk))
 
         func = group if self.parallel else chain
 
@@ -229,7 +230,7 @@ class ProcessStep(Process):
             t.params['_options'] = {
                 'responsible': t.responsible_id, 'ip': t.information_package_id,
                 'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
-                'undo': True,
+                'undo': True, 'result_params': t.result_params,
             }
             created = self._create_task(t.name)
             return created.si(True, **t.params).set(task_id=str(t.pk))
@@ -277,6 +278,7 @@ class ProcessStep(Process):
             t.params['_options'] = {
                 'responsible': t.responsible_id, 'ip': t.information_package_id,
                 'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
+                'result_params': t.result_params,
             }
             created = self._create_task(t.name)
             return created.si(False, **t.params).set(task_id=str(t.pk))
@@ -320,8 +322,9 @@ class ProcessStep(Process):
             t.params['_options'] = {
                 'responsible': t.responsible_id, 'ip': t.information_package_id,
                 'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
+                'result_params': t.result_params
             }
-            return created.si(**t.params).set(task_id=str(t.pk), result_params=t.result_params)
+            return created.si(**t.params).set(task_id=str(t.pk))
 
         func = group if self.parallel else chain
 
@@ -557,12 +560,6 @@ class ProcessTask(Process):
 
         t = self._create_task(self.name)
 
-        try:
-            for k, v in self.result_params.iteritems():
-                self.params[k] = t.AsyncResult(str(v)).get()
-        except AttributeError:
-            pass
-
         self.params['_options'] = {
             'responsible': self.responsible_id, 'ip': self.information_package_id,
             'step': self.processstep_id, 'step_pos': self.processstep_pos, 'hidden': self.hidden,
@@ -599,12 +596,6 @@ class ProcessTask(Process):
             'undo': True,
         }
 
-        try:
-            for k, v in undoobj.result_params.iteritems():
-                undoobj.params[k] = t.AsyncResult(str(v)).get()
-        except AttributeError:
-            pass
-
         res = t.apply_async(args=(True,), kwargs=undoobj.params, task_id=str(undoobj.pk), queue=t.queue)
         return res
 
@@ -621,12 +612,6 @@ class ProcessTask(Process):
             'step': self.processstep_id, 'step_pos': self.processstep_pos, 'hidden': self.hidden,
         }
 
-        try:
-            for k, v in retryobj.result_params.iteritems():
-                retryobj.params[k] = t.AsyncResult(str(v)).get()
-        except AttributeError:
-            pass
-
         res = t.apply_async(kwargs=retryobj.params, task_id=str(retryobj.pk), queue=t.queue)
         return res
 
@@ -639,7 +624,8 @@ class ProcessTask(Process):
 
         undo_obj = ProcessTask.objects.create(
             processstep=self.processstep, name=self.name,
-            params=self.params, processstep_pos=self.processstep_pos,
+            params=self.params, result_params=self.result_params,
+            processstep_pos=self.processstep_pos,
             undo_type=True, status="PREPARED",
             information_package=self.information_package
         )
@@ -657,7 +643,7 @@ class ProcessTask(Process):
 
         retry_obj = ProcessTask.objects.create(
             processstep=self.processstep, name=self.name, params=self.params,
-            processstep_pos=self.processstep_pos,
+            result_params=self.result_params, processstep_pos=self.processstep_pos,
             status="PREPARED", information_package=self.information_package,
             retried_task=self
         )

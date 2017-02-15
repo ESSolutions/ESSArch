@@ -30,11 +30,10 @@ import time
 
 from billiard.einfo import ExceptionInfo
 
-from celery import states as celery_states, Task
+from celery import current_app, states as celery_states, Task
+from celery.result import allow_join_result
 
 from ESSArch_Core.configuration.models import EventType
-
-from django.conf import settings
 
 from django.db import (
     OperationalError,
@@ -72,8 +71,14 @@ class DBTask(Task):
         self.hidden = options.get('hidden', False) or self.hidden
         self.undo_type = options.get('undo', False)
 
-        celery_always_eager = hasattr(settings, 'CELERY_ALWAYS_EAGER') and settings.CELERY_ALWAYS_EAGER
-        celery_eager_propagates_exceptions = hasattr(settings, 'CELERY_EAGER_PROPAGATES_EXCEPTIONS') and settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS
+        result_params = options.get('result_params', {}) or {}
+
+        with allow_join_result():
+            for k, v in result_params.iteritems():
+                if self.request.is_eager:
+                    kwargs[k] = ProcessTask.objects.values_list('result', flat=True).get(pk=v)
+                else:
+                    kwargs[k] = current_app.AsyncResult(str(v)).get()
 
         task_id = self.request.id
 
@@ -84,7 +89,7 @@ class DBTask(Task):
         )
 
         if self.undo_type:
-            if celery_always_eager and celery_eager_propagates_exceptions:
+            if self.request.is_eager:
                 try:
                     res = self.undo(**kwargs)
                     return res
@@ -96,7 +101,7 @@ class DBTask(Task):
             else:
                 return self.undo(**kwargs)
         else:
-            if celery_always_eager and celery_eager_propagates_exceptions:
+            if self.request.is_eager:
                 try:
                     res = self.run(**kwargs)
                 except Exception as e:
@@ -108,19 +113,6 @@ class DBTask(Task):
                 res = self.run(**kwargs)
 
             return res
-
-    def apply(self, *args, **kwargs):
-        celery_always_eager = hasattr(settings, 'CELERY_ALWAYS_EAGER') and settings.CELERY_ALWAYS_EAGER
-
-        result_params = kwargs.get('result_params', {}) or {}
-
-        for k, v in result_params.iteritems():
-            if celery_always_eager:
-                args[1][k] = ProcessTask.objects.values_list('result', flat=True).get(pk=v)
-            else:
-                args[1][k] = self.AsyncResult(str(v)).get()
-
-        return super(DBTask, self).apply(*args, **kwargs)
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
         try:
