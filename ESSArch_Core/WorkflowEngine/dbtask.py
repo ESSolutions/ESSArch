@@ -38,8 +38,6 @@ from ESSArch_Core.configuration.models import EventType
 from django.db import (
     OperationalError,
 )
-from django.db.models import F
-from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from ESSArch_Core.ip.models import EventIP
