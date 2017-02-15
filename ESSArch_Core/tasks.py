@@ -508,6 +508,7 @@ class ValidateFiles(DBTask):
                 rootdir = ip.ObjectPath
 
             doc = etree.ElementTree(file=xmlfile)
+            tasks = []
 
             for elname, props in settings.FILE_ELEMENTS.iteritems():
                 for f in doc.xpath('.//*[local-name()="%s"]' % elname):
@@ -521,7 +522,7 @@ class ValidateFiles(DBTask):
                     algorithm = get_value_from_path(f, props.get("checksumtype"))
 
                     if validate_fileformat and fformat is not None:
-                        step.add_tasks(ProcessTask.objects.create(
+                        tasks.append(ProcessTask(
                             name=self.fileformat_task,
                             params={
                                 "filename": os.path.join(rootdir, fpath),
@@ -529,10 +530,11 @@ class ValidateFiles(DBTask):
                             },
                             information_package=ip,
                             responsible_id=self.responsible,
+                            processstep=step,
                         ))
 
                     if validate_integrity and checksum is not None:
-                        step.add_tasks(ProcessTask.objects.create(
+                        tasks.append(ProcessTask(
                             name=self.checksum_task,
                             params={
                                 "filename": os.path.join(rootdir, fpath),
@@ -541,7 +543,10 @@ class ValidateFiles(DBTask):
                             },
                             information_package=ip,
                             responsible_id=self.responsible,
+                            processstep=step,
                         ))
+
+            ProcessTask.objects.bulk_create(tasks)
 
         self.set_progress(100, total=100)
 
@@ -831,10 +836,12 @@ class CopyFile(DBTask):
         fsize = os.stat(src).st_size
         idx = 0
 
+        tasks = []
+
         open(dst, 'w').close()  # remove content of destination if it exists
 
         while idx*block_size <= fsize:
-            ProcessTask.objects.create(
+            tasks.append(ProcessTask(
                 name="ESSArch_Core.tasks.CopyChunk",
                 params={
                     'src': src,
@@ -844,8 +851,10 @@ class CopyFile(DBTask):
                 },
                 processstep=step,
                 processstep_pos=idx,
-            )
+            ))
             idx += 1
+
+        ProcessTask.objects.bulk_create(tasks)
 
         step.run_eagerly()
 
@@ -858,8 +867,10 @@ class CopyFile(DBTask):
         file_size = os.stat(src).st_size
         idx = 0
 
+        tasks = []
+
         while idx*block_size <= file_size:
-            ProcessTask.objects.create(
+            tasks.append(ProcessTask(
                 name="ESSArch_Core.tasks.CopyChunk",
                 params={
                     'src': src,
@@ -871,8 +882,10 @@ class CopyFile(DBTask):
                 },
                 processstep=step,
                 processstep_pos=idx,
-            )
+            ))
             idx += 1
+
+        ProcessTask.objects.bulk_create(tasks)
 
         step.run_eagerly()
 

@@ -258,13 +258,15 @@ class XMLGenerator(object):
                 parallel=True,
             )
 
+            tasks = []
+
             if self.task is not None and self.task.step is not None:
                 responsible = self.task.responsible
                 step.parent_step_id = self.task.step
                 step.save()
 
             if os.path.isfile(folderToParse):
-                ProcessTask.objects.create(
+                tasks.append(ProcessTask(
                     name="ESSArch_Core.tasks.ParseFile",
                     params={
                         'filepath': folderToParse,
@@ -274,13 +276,13 @@ class XMLGenerator(object):
                     },
                     processstep=step,
                     responsible_id=responsible,
-                )
+                ))
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in walk(folderToParse):
                     for fname in filenames:
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, folderToParse)
-                        task = ProcessTask.objects.create(
+                        tasks.append(ProcessTask(
                             name="ESSArch_Core.tasks.ParseFile",
                             params={
                                 'filepath': filepath,
@@ -289,8 +291,10 @@ class XMLGenerator(object):
                                 'algorithm': algorithm
                             },
                             responsible_id=responsible,
-                        )
-                        step.add_tasks(task)
+                            processstep=step,
+                        ))
+
+            ProcessTask.objects.bulk_create(tasks)
 
             with allow_join_result():
                 if not hasattr(settings, 'CELERY_ALWAYS_EAGER') or not settings.CELERY_ALWAYS_EAGER:
