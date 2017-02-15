@@ -132,9 +132,27 @@ class test_running_tasks(TestCase):
             information_package=InformationPackage.objects.create()
         )
 
+        with self.assertNumQueries(4):
+            task.run()
+
+        task.refresh_from_db()
+        self.assertIsNone(task.traceback)
+        self.assertEqual(foo, task.result)
+
+    def test_on_success_with_event(self):
         EventType.objects.create(eventType=1)
 
-        with self.assertNumQueries(6):
+        foo = 123
+
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            params={
+                "foo": foo
+            },
+            information_package=InformationPackage.objects.create()
+        )
+
+        with self.assertNumQueries(5):
             task.run()
 
         task.refresh_from_db()
@@ -162,9 +180,31 @@ class test_running_tasks(TestCase):
             },
             information_package=InformationPackage.objects.create()
         )
+
+        with self.assertNumQueries(3):
+            with self.assertRaises(TypeError):
+                task.run()
+
+        task.refresh_from_db()
+
+        self.assertIsNone(task.result)
+        self.assertIsNotNone(task.traceback)
+        self.assertEqual(u"TypeError: run() got an unexpected keyword argument 'bar'", task.exception)
+
+    def test_on_failure_with_event(self):
+        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
         EventType.objects.create(eventType=1)
 
-        with self.assertNumQueries(5):
+        foo = 123
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            params={
+                "bar": foo
+            },
+            information_package=InformationPackage.objects.create()
+        )
+
+        with self.assertNumQueries(4):
             with self.assertRaises(TypeError):
                 task.run()
 

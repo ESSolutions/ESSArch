@@ -26,7 +26,7 @@ import os
 import shutil
 
 from django.conf import settings
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from lxml import etree
 
@@ -37,7 +37,7 @@ from ESSArch_Core.configuration.models import (
 )
 
 
-class test_generateXML(TestCase):
+class test_generateXML(TransactionTestCase):
     def setUp(self):
         self.bd = os.path.dirname(os.path.realpath(__file__))
         self.xmldir = os.path.join(self.bd, "xmlfiles")
@@ -1136,7 +1136,7 @@ class test_generateXML(TestCase):
         self.assertEqual(appended.get('bar'), 'append text')
 
 
-class test_parseContent(TestCase):
+class test_parseContent(TransactionTestCase):
     def test_parse_content_only_text(self):
         content = [
             {

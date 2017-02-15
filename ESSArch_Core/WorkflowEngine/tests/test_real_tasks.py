@@ -43,7 +43,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core import mail
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from ESSArch_Core.configuration.models import (
     EventType,
@@ -68,7 +68,7 @@ def setUpModule():
     settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
 
-class CalculateChecksumTestCase(TestCase):
+class CalculateChecksumTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.CalculateChecksum"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -218,7 +218,7 @@ class CalculateChecksumTestCase(TestCase):
 
         self.assertEqual(expected, actual)
 
-class IdentifyFileFormatTestCase(TestCase):
+class IdentifyFileFormatTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.IdentifyFileFormat"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -319,7 +319,7 @@ class IdentifyFileFormatTestCase(TestCase):
             task.run().get()
 
 
-class GenerateXMLTestCase(TestCase):
+class GenerateXMLTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.GenerateXML"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -470,7 +470,7 @@ class GenerateXMLTestCase(TestCase):
         self.assertFalse(os.path.isfile(self.fname))
         self.assertFalse(os.path.isfile(extra_file))
 
-class InsertXMLTestCase(TestCase):
+class InsertXMLTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.InsertXML"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -686,7 +686,7 @@ class InsertXMLTestCase(TestCase):
         self.assertIsNone(tree.find('.//inserted'))
 
 
-class AppendEventsTestCase(TestCase):
+class AppendEventsTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.AppendEvents"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -775,7 +775,7 @@ class AppendEventsTestCase(TestCase):
         found = tree.findall('.//{*}event')
         self.assertEqual(len(found), 0)
 
-class ValidateFilesTestCase(TestCase):
+class ValidateFilesTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.ValidateFiles"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -1038,7 +1038,7 @@ class ValidateFilesTestCase(TestCase):
         self.assertEqual(step.status, celery_states.FAILURE)
 
 
-class ValidateIntegrityTestCase(TestCase):
+class ValidateIntegrityTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.ValidateIntegrity"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -1103,7 +1103,7 @@ class ValidateIntegrityTestCase(TestCase):
             task.run()
 
 
-class ValidateFileFormatTestCase(TestCase):
+class ValidateFileFormatTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.ValidateFileFormat"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -1168,7 +1168,7 @@ class ValidateFileFormatTestCase(TestCase):
             task.run()
 
 
-class ValidateXMLFileTestCase(TestCase):
+class ValidateXMLFileTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.ValidateXMLFile"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -1228,7 +1228,7 @@ class ValidateXMLFileTestCase(TestCase):
             task.run()
 
 
-class ValidateLogicalPhysicalRepresentationTestCase(TestCase):
+class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -1463,7 +1463,7 @@ class ValidateLogicalPhysicalRepresentationTestCase(TestCase):
             task.run()
 
 
-class UpdateIPStatusTestCase(TestCase):
+class UpdateIPStatusTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.UpdateIPStatus"
         self.ip = InformationPackage.objects.create(Label="testip", State='initial')
@@ -1504,7 +1504,7 @@ class UpdateIPStatusTestCase(TestCase):
         self.assertEqual(self.ip.State, 'initial')
 
 
-class UpdateIPPathTestCase(TestCase):
+class UpdateIPPathTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.UpdateIPPath"
         self.ip = InformationPackage.objects.create(Label="testip", ObjectPath='initial')
@@ -1545,7 +1545,7 @@ class UpdateIPPathTestCase(TestCase):
         self.assertEqual(self.ip.ObjectPath, 'initial')
 
 
-class DeleteFilesTestCase(TestCase):
+class DeleteFilesTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.DeleteFiles"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -1609,7 +1609,7 @@ class DeleteFilesTestCase(TestCase):
         self.assertFalse(os.path.isfile(fname))
 
 
-class CopyFileTestCase(TestCase):
+class CopyFileTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.CopyFile"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -2026,7 +2026,7 @@ class CopyFileTestCase(TestCase):
         self.assertEqual(open(dst_file).read(), content)
 
 
-class SendEmailTestCase(TestCase):
+class SendEmailTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = 'ESSArch_Core.tasks.SendEmail'
 

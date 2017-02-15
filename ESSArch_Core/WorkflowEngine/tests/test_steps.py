@@ -24,9 +24,11 @@
 
 from celery import states as celery_states
 from django.conf import settings
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 
 from django_redis import get_redis_connection
+
+from ESSArch_Core.configuration.models import EventType
 
 from ESSArch_Core.ip.models import InformationPackage
 
@@ -688,7 +690,7 @@ class test_progress(TestCase):
         self.assertEqual(self.step.progress, 50)
 
 
-class test_running_steps(TestCase):
+class test_running_steps(TransactionTestCase):
     def setUp(self):
         settings.CELERY_ALWAYS_EAGER = True
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False

@@ -35,7 +35,7 @@ from ESSArch_Core.configuration.models import (
 class EventTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = EventType
-        fields = ('url', 'id', 'eventType', 'eventDetail',)
+        fields = ('url', 'eventType', 'eventDetail',)
 
 
 class AgentSerializer(serializers.HyperlinkedModelSerializer):

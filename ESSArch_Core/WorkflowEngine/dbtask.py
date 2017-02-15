@@ -36,6 +36,7 @@ from celery.result import allow_join_result
 from ESSArch_Core.configuration.models import EventType
 
 from django.db import (
+    IntegrityError,
     OperationalError,
 )
 from django.utils import timezone
@@ -120,14 +121,6 @@ class DBTask(Task):
             pass
 
     def create_event(self, task_id, status, args, kwargs, retval, einfo):
-        if not self.event_type:
-            return
-
-        event_type = EventType.objects.filter(eventType=self.event_type).first()
-
-        if event_type is None:
-            return
-
         if status == celery_states.SUCCESS:
             outcome = 0
             kwargs.pop('_options', {})
@@ -136,8 +129,8 @@ class DBTask(Task):
             outcome = 1
             outcome_detail_note = einfo.traceback
 
-        EventIP.objects.create(
-            eventType=event_type, eventOutcome=outcome,
+        return EventIP(
+            eventType_id=self.event_type, eventOutcome=outcome,
             eventVersion=get_versions()['version'],
             eventOutcomeDetailNote=truncate(outcome_detail_note, 1024),
             eventApplication_id=task_id,
@@ -162,7 +155,12 @@ class DBTask(Task):
                 time_done=time_done,
             )
 
-        self.create_event(task_id, celery_states.FAILURE, args, kwargs, None, einfo)
+        if self.event_type:
+            event = self.create_event(task_id, celery_states.FAILURE, args, kwargs, None, einfo)
+            try:
+                event.save(force_insert=True)
+            except IntegrityError:
+                pass
 
     def on_success(self, retval, task_id, args, kwargs):
         time_done = timezone.now()
@@ -181,7 +179,12 @@ class DBTask(Task):
                 time_done=time_done,
             )
 
-        self.create_event(task_id, celery_states.SUCCESS, args, kwargs, None, retval)
+        if self.event_type:
+            event = self.create_event(task_id, celery_states.SUCCESS, args, kwargs, None, retval)
+            try:
+                event.save(force_insert=True)
+            except IntegrityError:
+                pass
 
     def set_progress(self, progress, total=None):
         task_id = self.request.id

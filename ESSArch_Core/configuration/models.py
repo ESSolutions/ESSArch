@@ -69,8 +69,7 @@ class EventType(models.Model):
     """
     EventType
     """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    eventType = models.IntegerField(default=0, unique=True)
+    eventType = models.IntegerField(primary_key=True, default=0)
     eventDetail = models.CharField(max_length=255)
 
     class Meta:
