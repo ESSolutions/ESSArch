@@ -6,6 +6,13 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def before_forwards_func(apps, schema_editor):
+    ProcessTask = apps.get_model("WorkflowEngine", "ProcessTask")
+    db_alias = schema_editor.connection.alias
+
+    ProcessTask.objects.using(db_alias).all().update(retried=None, undone=None)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -13,6 +20,17 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name='processtask',
+            name='retried',
+            field=models.BooleanField(default=False, null=True),
+        ),
+        migrations.AlterField(
+            model_name='processtask',
+            name='undone',
+            field=models.BooleanField(default=False, null=True),
+        ),
+        migrations.RunPython(before_forwards_func),
         migrations.AlterField(
             model_name='processtask',
             name='retried',
