@@ -113,7 +113,7 @@ class IdentifyFileFormat(DBTask):
         f, sigName = matches[-1]
         self.lastFmt = f.find('name').text
 
-    def run(self, filename=None):
+    def run(self, filename=None, fid=Fido()):
         """
         Identifies the format of the file using the fido library
 
@@ -124,7 +124,7 @@ class IdentifyFileFormat(DBTask):
             The format of the file
         """
 
-        self.fid = Fido()
+        self.fid = fid
         self.fid.handle_matches = self.handle_matches
         self.fid.identify_file(filename)
 
@@ -132,10 +132,10 @@ class IdentifyFileFormat(DBTask):
 
         return self.lastFmt
 
-    def undo(self, filename=None):
+    def undo(self, filename=None, fid=Fido()):
         pass
 
-    def event_outcome_success(self, filename=None, block_size=65536, algorithm='SHA-256'):
+    def event_outcome_success(self, filename=None, fid=Fido()):
         return "Identified format of %s" % filename
 
 
