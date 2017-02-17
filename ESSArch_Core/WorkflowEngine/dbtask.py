@@ -38,6 +38,7 @@ from ESSArch_Core.configuration.models import EventType
 from django.db import (
     IntegrityError,
     OperationalError,
+    transaction,
 )
 from django.utils import timezone
 
@@ -78,6 +79,7 @@ class DBTask(Task):
         if self.chunk:
             res = []
             events = []
+            transaction.set_autocommit(False)
             try:
                 for a in args:
                     a_options = a.pop('_options')
@@ -115,6 +117,9 @@ class DBTask(Task):
                     EventIP.objects.bulk_create(events)
                 except IntegrityError:
                     pass
+
+                transaction.commit()
+                transaction.set_autocommit(True)
 
                 return res
 
