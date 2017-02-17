@@ -39,7 +39,7 @@ from django.utils.translation import ugettext as _
 
 from picklefield.fields import PickledObjectField
 
-from ESSArch_Core.util import available_tasks, sliceUntilAttr
+from ESSArch_Core.util import available_tasks, chunks, flatten, sliceUntilAttr
 
 class Process(models.Model):
     def _create_task(self, name):
@@ -200,7 +200,7 @@ class ProcessStep(Process):
 
         return workflow() if direct else workflow
 
-    def chunk(self, direct=True):
+    def chunk(self, size=None, direct=True):
         def create_options(task):
             return {
                 'responsible': task.responsible_id, 'ip': task.information_package_id,
@@ -219,7 +219,16 @@ class ProcessStep(Process):
         for task in tasks:
             task.params['_options'] = create_options(task)
             params.append(task.params)
-        return t.apply_async(args=params, kwargs={'_options': {'chunk': True}}, queue=t.queue)
+
+        if size is None:
+            size = len(params)
+
+        res = []
+
+        for param_chunk in chunks(params, size):
+            res.append(t.apply_async(args=params, kwargs={'_options': {'chunk': True}}, queue=t.queue).get())
+
+        return flatten(res)
 
     def run_eagerly(self, **kwargs):
         """
