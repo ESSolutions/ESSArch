@@ -181,7 +181,7 @@ class ProcessStep(Process):
                 'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
                 'result_params': t.result_params,
             }
-            return created.si(**t.params).set(task_id=str(t.pk))
+            return created.si(**t.params).set(task_id=str(t.pk), queue=created.queue)
 
         func = group if self.parallel else chain
 
@@ -263,7 +263,7 @@ class ProcessStep(Process):
                 'undo': True, 'result_params': t.result_params,
             }
             created = self._create_task(t.name)
-            return created.si(True, **t.params).set(task_id=str(t.pk))
+            return created.si(True, **t.params).set(task_id=str(t.pk), queue=created.queue)
 
         child_steps = self.child_steps.all()
         tasks = self.tasks(manager='by_step_pos').all()
@@ -311,7 +311,7 @@ class ProcessStep(Process):
                 'result_params': t.result_params,
             }
             created = self._create_task(t.name)
-            return created.si(False, **t.params).set(task_id=str(t.pk))
+            return created.si(False, **t.params).set(task_id=str(t.pk), queue=created.queue)
 
         child_steps = self.child_steps.all()
 
@@ -354,7 +354,7 @@ class ProcessStep(Process):
                 'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
                 'result_params': t.result_params
             }
-            return created.si(**t.params).set(task_id=str(t.pk))
+            return created.si(**t.params).set(task_id=str(t.pk), queue=created.queue)
 
         func = group if self.parallel else chain
 
