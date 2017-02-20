@@ -211,8 +211,9 @@ class DBTask(Task):
         if not self.chunk and self.event_type:
             event = self.create_event(task_id, celery_states.FAILURE, args, kwargs, None, einfo)
             try:
-                event.save(force_insert=True)
-            except IntegrityError:
+                with transaction.atomic():
+                    event.save(force_insert=True)
+            except IntegrityError as e:
                 pass
 
     def on_success(self, retval, task_id, args, kwargs):
@@ -237,8 +238,9 @@ class DBTask(Task):
         if self.event_type:
             event = self.create_event(task_id, celery_states.SUCCESS, args, kwargs, None, retval)
             try:
-                event.save(force_insert=True)
-            except IntegrityError:
+                with transaction.atomic():
+                    event.save(force_insert=True)
+            except IntegrityError as e:
                 pass
 
     def set_progress(self, progress, total=None):
