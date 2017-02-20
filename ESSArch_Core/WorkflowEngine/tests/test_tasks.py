@@ -33,7 +33,12 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
+from ESSArch_Core.configuration.models import (
+    EventType
+)
+
 from ESSArch_Core.ip.models import (
+    EventIP,
     InformationPackage,
 )
 
@@ -129,8 +134,35 @@ class test_running_tasks(TestCase):
 
         with self.assertNumQueries(4):
             task.run()
+
+        task.refresh_from_db()
         self.assertIsNone(task.traceback)
         self.assertEqual(foo, task.result)
+
+    def test_on_success_with_event(self):
+        EventType.objects.create(eventType=1)
+
+        foo = 123
+
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            params={
+                "foo": foo
+            },
+            information_package=InformationPackage.objects.create()
+        )
+
+        with self.assertNumQueries(5):
+            task.run()
+
+        task.refresh_from_db()
+        self.assertIsNone(task.traceback)
+        self.assertEqual(foo, task.result)
+
+        e = EventIP.objects.get(eventApplication=task.pk)
+        self.assertEqual(e.eventOutcome, 0)
+        self.assertEqual(e.eventOutcomeDetailNote, "Task completed successfully with foo=%s" % foo)
+        self.assertEqual(e.eventApplication, task)
 
     def test_on_failure(self):
         """
@@ -138,22 +170,54 @@ class test_running_tasks(TestCase):
         traceback is nonempty.
         """
 
-        foo = 123
-        try:
-            task = ProcessTask.objects.create(
-                name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-                params={
-                    "bar": foo
-                },
-                information_package=InformationPackage.objects.create()
-            )
-            task.run()
-        except TypeError:
-            tb = traceback.format_exc()
-            self.assertEqual(tb, task.traceback)
-            self.assertIsNone(task.result)
-            self.assertIsNotNone(task.traceback)
+        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
+        foo = 123
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={
+                "bar": foo
+            },
+            information_package=InformationPackage.objects.create()
+        )
+
+        with self.assertNumQueries(3):
+            with self.assertRaises(TypeError):
+                task.run()
+
+        task.refresh_from_db()
+
+        self.assertIsNone(task.result)
+        self.assertIsNotNone(task.traceback)
+        self.assertEqual(u"TypeError: run() got an unexpected keyword argument 'bar'", task.exception)
+
+    def test_on_failure_with_event(self):
+        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+        EventType.objects.create(eventType=1)
+
+        foo = 123
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            params={
+                "bar": foo
+            },
+            information_package=InformationPackage.objects.create()
+        )
+
+        with self.assertNumQueries(4):
+            with self.assertRaises(TypeError):
+                task.run()
+
+        task.refresh_from_db()
+
+        self.assertIsNone(task.result)
+        self.assertIsNotNone(task.traceback)
+        self.assertEqual(u"TypeError: run() got an unexpected keyword argument 'bar'", task.exception)
+
+        e = EventIP.objects.get(eventApplication=task.pk)
+        self.assertEqual(e.eventOutcome, 1)
+        self.assertEqual(e.eventOutcomeDetailNote, task.traceback)
+        self.assertEqual(e.eventApplication, task)
 
 class test_undoing_tasks(TestCase):
     def setUp(self):
@@ -170,18 +234,20 @@ class test_undoing_tasks(TestCase):
         )
 
         task.run()
+        task.refresh_from_db()
         self.assertEqual(task.status, celery_states.SUCCESS)
 
-        res = task.undo()
+        with self.assertNumQueries(5):
+            res = task.undo()
+        task.refresh_from_db()
         self.assertEqual(res.get(), x-y)
-        self.assertTrue(task.undone)
-        self.assertFalse(task.undo_type)
-        self.assertFalse(task.retried)
-
-        self.assertEqual(task.status, celery_states.SUCCESS)
 
         undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Add", undo_type=True)
-        self.assertIsNotNone(undo_task)
+
+        self.assertEqual(task.undone, undo_task)
+        self.assertFalse(task.undo_type)
+        self.assertIsNone(task.retried)
+        self.assertEqual(task.status, celery_states.SUCCESS)
         self.assertTrue(undo_task.undo_type)
 
     def test_undo_failed_task(self):
@@ -190,16 +256,18 @@ class test_undoing_tasks(TestCase):
         with self.assertRaises(Exception):
             task.run()
 
+        task.refresh_from_db()
         self.assertEqual(task.status, celery_states.FAILURE)
 
         task.undo()
-        self.assertTrue(task.undone)
-        self.assertFalse(task.undo_type)
-        self.assertFalse(task.retried)
-        self.assertEqual(task.status, celery_states.FAILURE)
+        task.refresh_from_db()
 
         undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail", undo_type=True)
-        self.assertIsNotNone(undo_task)
+        self.assertEqual(task.undone, undo_task)
+
+        self.assertFalse(task.undo_type)
+        self.assertIsNone(task.retried)
+        self.assertEqual(task.status, celery_states.FAILURE)
         self.assertTrue(undo_task.undo_type)
 
 
@@ -237,25 +305,28 @@ class test_retrying_tasks(TestCase):
 
         task.run()
         task.undo()
-        task.retry()
 
-        self.assertTrue(task.undone)
+        with self.assertNumQueries(6):
+            task.retry()
+
+        task.refresh_from_db()
+
         self.assertFalse(task.undo_type)
-        self.assertTrue(task.retried)
         self.assertEqual(task.status, celery_states.SUCCESS)
 
         undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Add", undo_type=True)
-        self.assertIsNotNone(undo_task)
+        self.assertEqual(task.undone, undo_task)
         self.assertTrue(undo_task.undo_type)
 
         retry_task = ProcessTask.objects.get(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
-            undo_type=False, undone=False
+            undo_type=False, undone__isnull=True
         )
         self.assertIsNotNone(retry_task)
-        self.assertFalse(retry_task.undone)
+        self.assertEqual(task.retried, retry_task)
+        self.assertIsNone(retry_task.undone)
         self.assertFalse(retry_task.undo_type)
-        self.assertFalse(retry_task.retried)
+        self.assertIsNone(retry_task.retried)
         self.assertEqual(retry_task.status, celery_states.SUCCESS)
 
     def test_retry_failed_task(self):
@@ -271,12 +342,13 @@ class test_retrying_tasks(TestCase):
 
         retry_task = ProcessTask.objects.get(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
-            undo_type=False, undone=False
+            undo_type=False, undone__isnull=True
         )
         self.assertIsNotNone(retry_task)
-        self.assertFalse(retry_task.undone)
+        self.assertEqual(task.retried, retry_task)
+        self.assertIsNone(retry_task.undone)
         self.assertFalse(retry_task.undo_type)
-        self.assertFalse(retry_task.retried)
+        self.assertIsNone(retry_task.retried)
         self.assertEqual(retry_task.status, celery_states.FAILURE)
 
     def test_retry_failed_fixed_task(self):
@@ -295,14 +367,16 @@ class test_retrying_tasks(TestCase):
         open(fname, 'a').close()
 
         task.retry()
+        task.refresh_from_db()
 
         retry_task = ProcessTask.objects.get(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            undo_type=False, undone=False
+            undo_type=False, undone__isnull=True
         )
         self.assertIsNotNone(retry_task)
-        self.assertFalse(retry_task.undone)
+        self.assertEqual(task.retried, retry_task)
+        self.assertIsNone(retry_task.undone)
         self.assertFalse(retry_task.undo_type)
-        self.assertFalse(retry_task.retried)
+        self.assertIsNone(retry_task.retried)
         self.assertEqual(retry_task.status, celery_states.SUCCESS)
         self.assertEqual(task.status, celery_states.FAILURE)

@@ -24,9 +24,12 @@
 
 from celery import states as celery_states
 from django.conf import settings
-from django.test import TestCase
+from django.core.cache import cache
+from django.test import override_settings, TestCase, TransactionTestCase
 
 from django_redis import get_redis_connection
+
+from ESSArch_Core.configuration.models import EventType
 
 from ESSArch_Core.ip.models import InformationPackage
 
@@ -239,7 +242,7 @@ class test_status(TestCase):
         with self.assertRaises(AssertionError):
             s.run()
 
-        s.undo()
+        s.undo(only_failed=True)
         open(fname, 'a').close()
         s.retry()
         self.step.status
@@ -368,31 +371,45 @@ class test_status(TestCase):
         self.assertEqual(self.step.status, celery_states.FAILURE)
 
     def test_succeeded_undone_task(self):
-        t1 = ProcessTask.objects.create(status=celery_states.SUCCESS, undone=True)
+        t1 = ProcessTask.objects.create(status=celery_states.SUCCESS)
         t1_undo = ProcessTask.objects.create(status=celery_states.SUCCESS, undo_type=True)
+
+        t1.undone = t1_undo
+        t1.save()
 
         self.step.tasks = [t1, t1_undo]
         self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_succeeded_retried_task(self):
-        t1 = ProcessTask.objects.create(status=celery_states.SUCCESS, undone=True)
+        t1 = ProcessTask.objects.create(status=celery_states.SUCCESS)
         t1_undo = ProcessTask.objects.create(status=celery_states.SUCCESS, undo_type=True)
         t1_retry = ProcessTask.objects.create(status=celery_states.SUCCESS)
+
+        t1.undone = t1_undo
+        t1.retried = t1_retry
+        t1.save()
 
         self.step.tasks = [t1, t1_undo, t1_retry]
         self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_failed_undone_task(self):
-        t1 = ProcessTask.objects.create(status=celery_states.FAILURE, undone=True)
+        t1 = ProcessTask.objects.create(status=celery_states.FAILURE)
         t1_undo = ProcessTask.objects.create(status=celery_states.SUCCESS, undo_type=True)
+
+        t1.undone = t1_undo
+        t1.save()
 
         self.step.tasks = [t1, t1_undo]
         self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_failed_retried_task(self):
-        t1 = ProcessTask.objects.create(status=celery_states.FAILURE, undone=True, retried=True)
+        t1 = ProcessTask.objects.create(status=celery_states.FAILURE)
         t1_undo = ProcessTask.objects.create(status=celery_states.SUCCESS, undo_type=True)
         t1_retry = ProcessTask.objects.create(status=celery_states.SUCCESS)
+
+        t1.undone = t1_undo
+        t1.retried = t1_retry
+        t1.save()
 
         self.step.tasks = [t1, t1_undo, t1_retry]
         self.assertEqual(self.step.status, celery_states.SUCCESS)
@@ -598,7 +615,7 @@ class test_progress(TestCase):
         with self.assertRaises(AssertionError):
             s.run()
 
-        s.undo()
+        s.undo(only_failed=True)
         open(fname, 'a').close()
         s.retry()
         self.step.progress
@@ -652,7 +669,10 @@ class test_progress(TestCase):
         self.assertEqual(self.step.progress, 100)
 
     def test_undone_task(self):
-        t = ProcessTask.objects.create(progress=50, undone=True)
+        t = ProcessTask.objects.create(progress=50)
+        t_undo = ProcessTask.objects.create(undo_type=True)
+        t.undone = t_undo
+        t.save()
         self.step.add_tasks(t)
         self.assertEqual(self.step.progress, 0)
 
@@ -671,7 +691,7 @@ class test_progress(TestCase):
         self.assertEqual(self.step.progress, 50)
 
 
-class test_running_steps(TestCase):
+class test_running_steps(TransactionTestCase):
     def setUp(self):
         settings.CELERY_ALWAYS_EAGER = True
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
@@ -710,14 +730,17 @@ class test_running_steps(TestCase):
 
         step.tasks = [t1, t2, t3]
         step.save()
+        step.run().get()
 
-        res = step.run().get()
+        t1.refresh_from_db()
+        t2.refresh_from_db()
+        t3.refresh_from_db()
 
         self.assertEqual(step.status, celery_states.SUCCESS)
 
-        self.assertEqual(res.get(t1.id), t1_val)
-        self.assertEqual(res.get(t2.id), t2_val)
-        self.assertEqual(res.get(t3.id), t3_val)
+        self.assertEqual(t1.result, t1_val)
+        self.assertEqual(t2.result, t2_val)
+        self.assertEqual(t3.result, t3_val)
 
     def test_parallel_step(self):
         t1_val = 123
@@ -762,6 +785,114 @@ class test_running_steps(TestCase):
         self.assertEqual(t1.status, celery_states.SUCCESS)
         self.assertEqual(t2.status, celery_states.SUCCESS)
         self.assertEqual(t3.status, celery_states.SUCCESS)
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+    def test_chunked_step(self):
+        EventType.objects.create(eventType=1)
+
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        tasks = []
+        n = 10
+        for i in range(n):
+            t = ProcessTask(
+                name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+                params={'foo': 'bar'},
+                processstep=step,
+            )
+            tasks.append(t)
+
+        ProcessTask.objects.bulk_create(tasks)
+
+        with self.assertNumQueries(len(tasks) + 3):
+            res = step.chunk()
+
+        self.assertEqual(len(res), 10)
+
+        for t in tasks:
+            t.refresh_from_db()
+            self.assertEqual(t.status, celery_states.SUCCESS)
+            self.assertEqual(t.progress, 100)
+            self.assertIsNotNone(t.time_started)
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+    def test_chunked_step_with_size(self):
+        EventType.objects.create(eventType=1)
+
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        tasks = []
+        n = 10
+        size = 2
+
+        for i in range(n):
+            t = ProcessTask(
+                name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+                params={'foo': 'bar'},
+                processstep=step,
+            )
+            tasks.append(t)
+
+        ProcessTask.objects.bulk_create(tasks)
+
+        with self.assertNumQueries(len(tasks) + (n/size) + 2):
+            step.chunk(size=size)
+
+        for t in tasks:
+            t.refresh_from_db()
+            self.assertEqual(t.status, celery_states.SUCCESS)
+            self.assertEqual(t.progress, 100)
+            self.assertIsNotNone(t.time_started)
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+    def test_chunked_step_with_failure(self):
+        EventType.objects.create(eventType=1)
+
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        t1 = ProcessTask(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={'foo': 'bar'},
+            processstep=step,
+        )
+        t2 = ProcessTask(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={'bar': 'foo'},
+            processstep=step,
+        )
+        t3 = ProcessTask(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={'foo': 'bar'},
+            processstep=step,
+        )
+
+        tasks = [t1, t2, t3]
+
+        ProcessTask.objects.bulk_create(tasks)
+
+        with self.assertNumQueries(len(tasks) + 3):
+            step.chunk()
+
+        for t in tasks:
+            t.refresh_from_db()
+
+        self.assertEqual(t1.status, celery_states.SUCCESS)
+        self.assertEqual(t1.progress, 100)
+        self.assertIsNotNone(t1.time_started)
+
+        self.assertEqual(t2.status, celery_states.FAILURE)
+        self.assertEqual(t2.progress, 0)
+        self.assertIsNotNone(t2.time_started)
+
+        self.assertEqual(t3.status, celery_states.PENDING)
+        self.assertEqual(t3.progress, 0)
+        self.assertIsNone(t3.time_started)
 
     def test_child_steps(self):
         main_step = ProcessStep.objects.create()
@@ -940,7 +1071,7 @@ class test_running_steps(TestCase):
         step.tasks = [t1, t2, t3]
         step.save()
 
-        res = step.run().get()
+        step.run().get()
 
         self.assertEqual(step.status, celery_states.SUCCESS)
 
@@ -948,9 +1079,9 @@ class test_running_steps(TestCase):
         t2.refresh_from_db()
         t3.refresh_from_db()
 
-        self.assertEqual(res.get(t1.id), t1_val*2)
-        self.assertEqual(res.get(t2.id), res.get(t1.id) + t2_val)
-        self.assertEqual(res.get(t3.id), res.get(t1.id) + t3_val)
+        self.assertEqual(t1.result, t1_val*2)
+        self.assertEqual(t2.result, t1.result + t2_val)
+        self.assertEqual(t3.result, t1.result + t3_val)
 
 
 class test_undoing_steps(TestCase):

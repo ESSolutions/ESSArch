@@ -81,3 +81,17 @@ class FailIfFileNotExists(DBTask):
 
     def undo(self, filename=None):
         pass
+
+
+class WithEvent(DBTask):
+    event_type = 1
+
+    def run(self, foo=None):
+        self.set_progress(1, total=1)
+        return foo
+
+    def undo(self, foo=None):
+        pass
+
+    def event_outcome_success(self, foo=None):
+        return "Task completed successfully with foo=%s" % foo

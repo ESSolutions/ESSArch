@@ -258,13 +258,15 @@ class XMLGenerator(object):
                 parallel=True,
             )
 
-            if self.task is not None and self.task.processstep is not None:
+            tasks = []
+
+            if self.task is not None and self.task.step is not None:
                 responsible = self.task.responsible
-                step.parent_step = self.task.processstep
+                step.parent_step_id = self.task.step
                 step.save()
 
             if os.path.isfile(folderToParse):
-                ProcessTask.objects.create(
+                tasks.append(ProcessTask(
                     name="ESSArch_Core.tasks.ParseFile",
                     params={
                         'filepath': folderToParse,
@@ -273,14 +275,14 @@ class XMLGenerator(object):
                         'algorithm': algorithm
                     },
                     processstep=step,
-                    responsible=responsible,
-                )
+                    responsible_id=responsible,
+                ))
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in walk(folderToParse):
                     for fname in filenames:
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, folderToParse)
-                        task = ProcessTask.objects.create(
+                        tasks.append(ProcessTask(
                             name="ESSArch_Core.tasks.ParseFile",
                             params={
                                 'filepath': filepath,
@@ -288,19 +290,21 @@ class XMLGenerator(object):
                                 'relpath': relpath,
                                 'algorithm': algorithm
                             },
-                            responsible=responsible,
-                        )
-                        step.add_tasks(task)
+                            responsible_id=responsible,
+                            processstep=step,
+                        ))
+
+            ProcessTask.objects.bulk_create(tasks)
 
             with allow_join_result():
                 if not hasattr(settings, 'CELERY_ALWAYS_EAGER') or not settings.CELERY_ALWAYS_EAGER:
                     for (t_idx, fileinfo) in step.run().iter_native():
                         if fileinfo['status'] == celery_states.FAILURE:
                             raise fileinfo['result']
-                        files.append(fileinfo['result'].itervalues().next())  # get the first (and only value)
+                        files.append(fileinfo['result'])
                 else:
                     for fileinfo in step.run().get():
-                        files.append(fileinfo.itervalues().next())
+                        files.append(fileinfo)
 
         for f in self.toCreate:
             fname = f['file']
@@ -329,15 +333,12 @@ class XMLGenerator(object):
                     'relpath': relpath,
                     'algorithm': algorithm
                 },
-                responsible=responsible,
+                responsible_id=responsible,
+                processstep_id=self.task.step if self.task else None
             )
 
-            if self.task is not None and self.task.processstep is not None:
-                parsefile_task.processstep = self.task.processstep
-                parsefile_task.save()
-
             with allow_join_result():
-                files.append(parsefile_task.run().get().get(parsefile_task.pk))
+                files.append(parsefile_task.run().get())
 
     def insert(self, filename, elementToAppendTo, template, info={}, index=None):
         parser = etree.XMLParser(remove_blank_text=True)

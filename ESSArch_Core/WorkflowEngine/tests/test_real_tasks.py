@@ -43,7 +43,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core import mail
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from ESSArch_Core.configuration.models import (
     EventType,
@@ -68,7 +68,7 @@ def setUpModule():
     settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
 
-class CalculateChecksumTestCase(TestCase):
+class CalculateChecksumTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.CalculateChecksum"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -97,7 +97,7 @@ class CalculateChecksumTestCase(TestCase):
         )
 
         expected = "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
-        actual = task.run().get().get(task.pk)
+        actual = task.run().get()
 
         self.assertEqual(expected, actual)
 
@@ -112,7 +112,7 @@ class CalculateChecksumTestCase(TestCase):
         )
 
         expected = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-        actual = task.run().get().get(task.pk)
+        actual = task.run().get()
 
         self.assertEqual(expected, actual)
 
@@ -129,7 +129,7 @@ class CalculateChecksumTestCase(TestCase):
         )
 
         expected = "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
-        actual = task.run().get().get(task.pk)
+        actual = task.run().get()
 
         self.assertEqual(expected, actual)
 
@@ -146,7 +146,7 @@ class CalculateChecksumTestCase(TestCase):
         )
 
         expected = "acbd18db4cc2f85cedef654fccc4a4d8"
-        actual = task.run().get().get(task.pk)
+        actual = task.run().get()
 
         self.assertEqual(expected, actual)
 
@@ -163,7 +163,7 @@ class CalculateChecksumTestCase(TestCase):
         )
 
         expected = "0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"
-        actual = task.run().get().get(task.pk)
+        actual = task.run().get()
 
         self.assertEqual(expected, actual)
 
@@ -180,7 +180,7 @@ class CalculateChecksumTestCase(TestCase):
         )
 
         expected = "0808f64e60d58979fcb676c96ec938270dea42445aeefcd3a4e6f8db"
-        actual = task.run().get().get(task.pk)
+        actual = task.run().get()
 
         self.assertEqual(expected, actual)
 
@@ -197,7 +197,7 @@ class CalculateChecksumTestCase(TestCase):
         )
 
         expected = "98c11ffdfdd540676b1a137cb1a22b2a70350c9a44171d6b1180c6be5cbb2ee3f79d532c8a1dd9ef2e8e08e752a3babb"
-        actual = task.run().get().get(task.pk)
+        actual = task.run().get()
 
         self.assertEqual(expected, actual)
 
@@ -214,11 +214,11 @@ class CalculateChecksumTestCase(TestCase):
         )
 
         expected = "f7fbba6e0636f890e56fbbf3283e524c6fa3204ae298382d624741d0dc6638326e282c41be5e4254d8820772c5518a2c5a8c0c7f7eda19594a7eb539453e1ed7"
-        actual = task.run().get().get(task.pk)
+        actual = task.run().get()
 
         self.assertEqual(expected, actual)
 
-class IdentifyFileFormatTestCase(TestCase):
+class IdentifyFileFormatTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.IdentifyFileFormat"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -247,7 +247,7 @@ class IdentifyFileFormatTestCase(TestCase):
         )
 
         expected = "Plain Text File"
-        actual = task.run().get().get(task.pk)
+        actual = task.run().get()
 
         self.assertEqual(expected, actual)
 
@@ -265,7 +265,7 @@ class IdentifyFileFormatTestCase(TestCase):
         )
 
         expected = "Plain Text File"
-        actual = task.run().get().get(task.pk)
+        actual = task.run().get()
 
         self.assertEqual(expected, actual)
 
@@ -282,7 +282,7 @@ class IdentifyFileFormatTestCase(TestCase):
         )
 
         expected = "Plain Text File"
-        actual = task.run().get().get(task.pk)
+        actual = task.run().get()
 
         self.assertEqual(expected, actual)
 
@@ -300,7 +300,7 @@ class IdentifyFileFormatTestCase(TestCase):
         )
 
         with self.assertRaises(ValueError):
-            task.run().get().get(task.pk)
+            task.run().get()
 
     def test_non_existent_file_extension_with_filename_with_non_english_characters(self):
         fname = os.path.join(self.datadir, 'åäö.zxczxc')
@@ -316,10 +316,10 @@ class IdentifyFileFormatTestCase(TestCase):
         )
 
         with self.assertRaises(ValueError):
-            task.run().get().get(task.pk)
+            task.run().get()
 
 
-class GenerateXMLTestCase(TestCase):
+class GenerateXMLTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.GenerateXML"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -470,7 +470,7 @@ class GenerateXMLTestCase(TestCase):
         self.assertFalse(os.path.isfile(self.fname))
         self.assertFalse(os.path.isfile(extra_file))
 
-class InsertXMLTestCase(TestCase):
+class InsertXMLTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.InsertXML"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -686,7 +686,7 @@ class InsertXMLTestCase(TestCase):
         self.assertIsNone(tree.find('.//inserted'))
 
 
-class AppendEventsTestCase(TestCase):
+class AppendEventsTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.AppendEvents"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -775,7 +775,7 @@ class AppendEventsTestCase(TestCase):
         found = tree.findall('.//{*}event')
         self.assertEqual(len(found), 0)
 
-class ValidateFilesTestCase(TestCase):
+class ValidateFilesTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.ValidateFiles"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -888,7 +888,7 @@ class ValidateFilesTestCase(TestCase):
             }
         )
 
-        res = task.run().get().get(task.pk)
+        res = task.run().get()
 
         self.assertEqual(len(res), 0)
 
@@ -896,12 +896,12 @@ class ValidateFilesTestCase(TestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
+                'ip': self.ip.pk,
                 'xmlfile': self.fname
             }
         )
 
-        res = task.run().get().get(task.pk)
+        res = task.run().get()
 
         self.assertEqual(len(res), 0)
 
@@ -923,13 +923,13 @@ class ValidateFilesTestCase(TestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
+                'ip': self.ip.pk,
                 'xmlfile': self.fname,
                 'rootdir': self.datadir
             }
         )
 
-        res = task.run().get().get(task.pk)
+        res = task.run().get()
 
         self.assertTrue(len(res) >= num_of_files)
 
@@ -951,7 +951,7 @@ class ValidateFilesTestCase(TestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
+                'ip': self.ip.pk,
                 'xmlfile': self.fname,
                 'rootdir': self.datadir
             }
@@ -984,7 +984,7 @@ class ValidateFilesTestCase(TestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
+                'ip': self.ip.pk,
                 'xmlfile': self.fname,
                 'rootdir': self.datadir
             }
@@ -1021,7 +1021,7 @@ class ValidateFilesTestCase(TestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
+                'ip': self.ip.pk,
                 'xmlfile': self.fname,
                 'rootdir': self.datadir
             }
@@ -1030,13 +1030,15 @@ class ValidateFilesTestCase(TestCase):
         with self.assertRaises(AssertionError):
             task.run()
 
+        task.refresh_from_db()
+
         step = ProcessStep.objects.get(name="Validate Files")
 
         self.assertEqual(task.status, celery_states.FAILURE)
         self.assertEqual(step.status, celery_states.FAILURE)
 
 
-class ValidateIntegrityTestCase(TestCase):
+class ValidateIntegrityTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.ValidateIntegrity"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -1062,7 +1064,7 @@ class ValidateIntegrityTestCase(TestCase):
             }
         )
 
-        checksum = t.run().get().get(t.pk)
+        checksum = t.run().get()
 
         task = ProcessTask.objects.create(
             name=self.taskname,
@@ -1084,7 +1086,7 @@ class ValidateIntegrityTestCase(TestCase):
             }
         )
 
-        checksum = t.run().get().get(t.pk)
+        checksum = t.run().get()
 
         task = ProcessTask.objects.create(
             name=self.taskname,
@@ -1101,7 +1103,7 @@ class ValidateIntegrityTestCase(TestCase):
             task.run()
 
 
-class ValidateFileFormatTestCase(TestCase):
+class ValidateFileFormatTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.ValidateFileFormat"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -1127,7 +1129,7 @@ class ValidateFileFormatTestCase(TestCase):
             }
         )
 
-        fformat = t.run().get().get(t.pk)
+        fformat = t.run().get()
 
         task = ProcessTask.objects.create(
             name=self.taskname,
@@ -1149,7 +1151,7 @@ class ValidateFileFormatTestCase(TestCase):
             }
         )
 
-        fformat = t.run().get().get(t.pk)
+        fformat = t.run().get()
 
         newfile = string.replace(self.fname, '.txt', '.pdf')
         shutil.move(self.fname, newfile)
@@ -1166,7 +1168,7 @@ class ValidateFileFormatTestCase(TestCase):
             task.run()
 
 
-class ValidateXMLFileTestCase(TestCase):
+class ValidateXMLFileTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.ValidateXMLFile"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -1226,7 +1228,7 @@ class ValidateXMLFileTestCase(TestCase):
             task.run()
 
 
-class ValidateLogicalPhysicalRepresentationTestCase(TestCase):
+class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -1461,7 +1463,7 @@ class ValidateLogicalPhysicalRepresentationTestCase(TestCase):
             task.run()
 
 
-class UpdateIPStatusTestCase(TestCase):
+class UpdateIPStatusTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.UpdateIPStatus"
         self.ip = InformationPackage.objects.create(Label="testip", State='initial')
@@ -1470,8 +1472,9 @@ class UpdateIPStatusTestCase(TestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
-                'status': 'new'
+                'ip': self.ip.pk,
+                'status': 'new',
+                'prev': self.ip.State
             }
         )
 
@@ -1484,8 +1487,9 @@ class UpdateIPStatusTestCase(TestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
-                'status': 'new'
+                'ip': self.ip.pk,
+                'status': 'new',
+                'prev': self.ip.State
             }
         )
 
@@ -1500,7 +1504,7 @@ class UpdateIPStatusTestCase(TestCase):
         self.assertEqual(self.ip.State, 'initial')
 
 
-class UpdateIPPathTestCase(TestCase):
+class UpdateIPPathTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.UpdateIPPath"
         self.ip = InformationPackage.objects.create(Label="testip", ObjectPath='initial')
@@ -1509,8 +1513,9 @@ class UpdateIPPathTestCase(TestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
-                'path': 'new'
+                'ip': self.ip.pk,
+                'path': 'new',
+                'prev': self.ip.ObjectPath
             }
         )
 
@@ -1523,8 +1528,9 @@ class UpdateIPPathTestCase(TestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
-                'path': 'new'
+                'ip': self.ip.pk,
+                'path': 'new',
+                'prev': self.ip.ObjectPath
             }
         )
 
@@ -1539,7 +1545,7 @@ class UpdateIPPathTestCase(TestCase):
         self.assertEqual(self.ip.ObjectPath, 'initial')
 
 
-class DeleteFilesTestCase(TestCase):
+class DeleteFilesTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.DeleteFiles"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -1603,7 +1609,7 @@ class DeleteFilesTestCase(TestCase):
         self.assertFalse(os.path.isfile(fname))
 
 
-class CopyFileTestCase(TestCase):
+class CopyFileTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.CopyFile"
         self.root = os.path.dirname(os.path.realpath(__file__))
@@ -2020,7 +2026,7 @@ class CopyFileTestCase(TestCase):
         self.assertEqual(open(dst_file).read(), content)
 
 
-class SendEmailTestCase(TestCase):
+class SendEmailTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = 'ESSArch_Core.tasks.SendEmail'
 

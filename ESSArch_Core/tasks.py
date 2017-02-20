@@ -47,6 +47,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
     findElementWithoutNamespace,
     XMLGenerator
 )
+from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.WorkflowEngine.models import (
     ProcessStep,
     ProcessTask,
@@ -112,7 +113,7 @@ class IdentifyFileFormat(DBTask):
         f, sigName = matches[-1]
         self.lastFmt = f.find('name').text
 
-    def run(self, filename=None):
+    def run(self, filename=None, fid=Fido()):
         """
         Identifies the format of the file using the fido library
 
@@ -123,7 +124,7 @@ class IdentifyFileFormat(DBTask):
             The format of the file
         """
 
-        self.fid = Fido()
+        self.fid = fid
         self.fid.handle_matches = self.handle_matches
         self.fid.identify_file(filename)
 
@@ -131,10 +132,10 @@ class IdentifyFileFormat(DBTask):
 
         return self.lastFmt
 
-    def undo(self, filename=None):
+    def undo(self, filename=None, fid=Fido()):
         pass
 
-    def event_outcome_success(self, filename=None, block_size=65536, algorithm='SHA-256'):
+    def event_outcome_success(self, filename=None, fid=Fido()):
         return "Identified format of %s" % filename
 
 
@@ -151,35 +152,28 @@ class ParseFile(DBTask):
         timestamp = creation_date(filepath)
         createdate = timestamp_to_datetime(timestamp)
 
-        checksum_task = ProcessTask.objects.create(
+        checksum_task = ProcessTask(
             name="preingest.tasks.CalculateChecksum",
             params={
                 "filename": filepath,
                 "algorithm": algorithm
-            }
+            },
+            processstep_id=self.step,
+            responsible_id=self.responsible,
+            information_package_id=self.ip
         )
 
-        fileformat_task = ProcessTask.objects.create(
+        fileformat_task = ProcessTask(
             name="preingest.tasks.IdentifyFileFormat",
             params={
                 "filename": filepath,
-            }
+            },
+            processstep_id=self.step,
+            responsible_id=self.responsible,
+            information_package_id=self.ip
         )
 
-        checksum_task.log = self.taskobj.log
-        checksum_task.information_package = self.taskobj.information_package
-        checksum_task.responsible = self.taskobj.responsible
-
-        fileformat_task.log = self.taskobj.log
-        fileformat_task.information_package = self.taskobj.information_package
-        fileformat_task.responsible = self.taskobj.responsible
-
-        if self.taskobj is not None and self.taskobj.processstep is not None:
-            checksum_task.processstep = self.taskobj.processstep
-            fileformat_task.processstep = self.taskobj.processstep
-
-        checksum_task.save()
-        fileformat_task.save()
+        ProcessTask.objects.bulk_create([checksum_task, fileformat_task])
 
         checksum = checksum_task.run_eagerly()
         self.set_progress(50, total=100)
@@ -223,7 +217,7 @@ class GenerateXML(DBTask):
         """
 
         generator = XMLGenerator(
-            filesToCreate, info, self.taskobj
+            filesToCreate, info, self
         )
 
         generator.generate(
@@ -418,7 +412,7 @@ class AppendEvents(DBTask):
         }
 
         if not events:
-            events = self.taskobj.information_package.events.all()
+            events = EventIP.objects.filter(linkingObjectIdentifierValue_id=self.ip)
 
         events = events.order_by(
             'eventDateTime'
@@ -506,14 +500,15 @@ class ValidateFiles(DBTask):
         step = ProcessStep.objects.create(
             name="Validate Files",
             parallel=True,
-            parent_step=self.taskobj.processstep
+            parent_step_id=self.step
         )
 
         if any([validate_fileformat, validate_integrity]):
             if rootdir is None:
-                rootdir = ip.ObjectPath
+                rootdir = InformationPackage.objects.values_list('ObjectPath', flat=True).get(pk=ip)
 
             doc = etree.ElementTree(file=xmlfile)
+            tasks = []
 
             for elname, props in settings.FILE_ELEMENTS.iteritems():
                 for f in doc.xpath('.//*[local-name()="%s"]' % elname):
@@ -527,32 +522,32 @@ class ValidateFiles(DBTask):
                     algorithm = get_value_from_path(f, props.get("checksumtype"))
 
                     if validate_fileformat and fformat is not None:
-                        step.add_tasks(ProcessTask.objects.create(
+                        tasks.append(ProcessTask(
                             name=self.fileformat_task,
                             params={
                                 "filename": os.path.join(rootdir, fpath),
                                 "fileformat": fformat,
                             },
-                            log=self.taskobj.log,
-                            information_package=ip,
-                            responsible=self.taskobj.responsible,
+                            information_package_id=ip,
+                            responsible_id=self.responsible,
+                            processstep=step,
                         ))
 
                     if validate_integrity and checksum is not None:
-                        step.add_tasks(ProcessTask.objects.create(
+                        tasks.append(ProcessTask(
                             name=self.checksum_task,
                             params={
                                 "filename": os.path.join(rootdir, fpath),
                                 "checksum": checksum,
                                 "algorithm": algorithm,
                             },
-                            log=self.taskobj.log,
-                            information_package=ip,
-                            responsible=self.taskobj.responsible,
+                            information_package_id=ip,
+                            responsible_id=self.responsible,
+                            processstep=step,
                         ))
 
-        self.taskobj.log = None
-        self.taskobj.save(update_fields=['log'])
+            ProcessTask.objects.bulk_create(tasks)
+
         self.set_progress(100, total=100)
 
         with allow_join_result():
@@ -572,13 +567,18 @@ class ValidateFileFormat(DBTask):
         """
         Validates the format of the given file
         """
+
+        task = ProcessTask.objects.values(
+            'information_package_id', 'responsible_id'
+        ).get(pk=self.request.id)
+
         t = ProcessTask.objects.create(
             name="ESSArch_Core.tasks.IdentifyFileFormat",
             params={
                 "filename": filename,
             },
-            information_package=self.taskobj.information_package,
-            responsible=self.taskobj.responsible,
+            information_package_id=task.get('information_package_id'),
+            responsible_id=task.get('responsible_id'),
         )
 
         res = t.run_eagerly()
@@ -602,6 +602,10 @@ class ValidateIntegrity(DBTask):
         Validates the integrity(checksum) for the given file
         """
 
+        task = ProcessTask.objects.values(
+            'information_package_id', 'responsible_id'
+        ).get(pk=self.request.id)
+
         t = ProcessTask.objects.create(
             name="ESSArch_Core.tasks.CalculateChecksum",
             params={
@@ -609,8 +613,8 @@ class ValidateIntegrity(DBTask):
                 "block_size": block_size,
                 "algorithm": algorithm
             },
-            information_package=self.taskobj.information_package,
-            responsible=self.taskobj.responsible,
+            information_package_id=task.get('information_package_id'),
+            responsible_id=task.get('responsible_id'),
         )
 
         digest = t.run_eagerly()
@@ -714,29 +718,27 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 
 
 class UpdateIPStatus(DBTask):
-    def run(self, ip=None, status=None):
-        ip.State = status
-        ip.save(update_fields=['State'])
+    def run(self, ip=None, status=None, prev=None):
+        InformationPackage.objects.filter(pk=ip).update(State=status)
         self.set_progress(100, total=100)
 
-    def undo(self, ip=None, status=None):
-        ip.save()
+    def undo(self, ip=None, status=None, prev=None):
+        InformationPackage.objects.filter(pk=ip).update(State=prev)
 
-    def event_outcome_success(self, ip=None, status=None):
-        return "Updated status of %s" % (ip.pk)
+    def event_outcome_success(self, ip=None, status=None, prev=None):
+        return "Updated status of %s to %s" % (ip, status)
 
 
 class UpdateIPPath(DBTask):
-    def run(self, ip=None, path=None):
-        ip.ObjectPath = path
-        ip.save(update_fields=['ObjectPath'])
+    def run(self, ip=None, path=None, prev=None):
+        InformationPackage.objects.filter(pk=ip).update(ObjectPath=path)
         self.set_progress(100, total=100)
 
-    def undo(self, ip=None, path=None):
-        ip.save()
+    def undo(self, ip=None, path=None, prev=None):
+        InformationPackage.objects.filter(pk=ip).update(ObjectPath=prev)
 
-    def event_outcome_success(self, ip=None, path=None):
-        return "Updated path of '%s' (%s) to %s" % (ip.Label, ip.pk, path)
+    def event_outcome_success(self, ip=None, path=None, prev=None):
+        return "Updated path of %s to %s" % (ip, path)
 
 
 class DeleteFiles(DBTask):
@@ -821,19 +823,21 @@ class CopyChunk(DBTask):
 
 
 class CopyFile(DBTask):
-    def local(self, src, dst, block_size=65536):
+    def local(self, src, dst, block_size=65536, step=None):
         step = ProcessStep.objects.create(
             name="Copy %s to %s" % (src, dst),
-            parent_step=self.taskobj.processstep
+            parent_step_id=step
         )
 
         fsize = os.stat(src).st_size
         idx = 0
 
+        tasks = []
+
         open(dst, 'w').close()  # remove content of destination if it exists
 
         while idx*block_size <= fsize:
-            ProcessTask.objects.create(
+            tasks.append(ProcessTask(
                 name="ESSArch_Core.tasks.CopyChunk",
                 params={
                     'src': src,
@@ -843,22 +847,26 @@ class CopyFile(DBTask):
                 },
                 processstep=step,
                 processstep_pos=idx,
-            )
+            ))
             idx += 1
+
+        ProcessTask.objects.bulk_create(tasks)
 
         step.run_eagerly()
 
-    def remote(self, src, dst, requests_session=None, block_size=65536):
+    def remote(self, src, dst, requests_session=None, block_size=65536, step=None):
         step = ProcessStep.objects.create(
             name="Copy %s to %s" % (src, dst),
-            parent_step=self.taskobj.processstep
+            parent_step_id=step
         )
 
         file_size = os.stat(src).st_size
         idx = 0
 
+        tasks = []
+
         while idx*block_size <= file_size:
-            ProcessTask.objects.create(
+            tasks.append(ProcessTask(
                 name="ESSArch_Core.tasks.CopyChunk",
                 params={
                     'src': src,
@@ -870,8 +878,10 @@ class CopyFile(DBTask):
                 },
                 processstep=step,
                 processstep_pos=idx,
-            )
+            ))
             idx += 1
+
+        ProcessTask.objects.bulk_create(tasks)
 
         step.run_eagerly()
 
@@ -892,12 +902,13 @@ class CopyFile(DBTask):
             raise ValueError
 
         val = URLValidator(dst)
+        step = ProcessTask.objects.values_list('processstep', flat=True).get(pk=self.request.id)
 
         try:
             val(dst)
-            self.remote(src, dst, requests_session, block_size)
+            self.remote(src, dst, requests_session, block_size, step)
         except ValidationError:
-            self.local(src, dst, block_size)
+            self.local(src, dst, block_size, step)
 
         self.set_progress(100, total=100)
 
@@ -947,10 +958,10 @@ class DownloadSchemas(DBTask):
             t = ProcessTask.objects.create(
                 name="ESSArch_Core.tasks.DownloadFile",
                 params={'src': schema, 'dst': dst},
-                processstep=self.taskobj.processstep,
-                processstep_pos=self.taskobj.processstep_pos,
-                responsible=self.taskobj.responsible,
-                information_package=self.taskobj.information_package,
+                processstep_id=self.step,
+                processstep_pos=self.step_pos,
+                responsible_id=self.responsible,
+                information_package_id=self.ip,
             )
 
             t.run_eagerly()
