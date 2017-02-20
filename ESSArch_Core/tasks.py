@@ -47,7 +47,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
     findElementWithoutNamespace,
     XMLGenerator
 )
-from ESSArch_Core.ip.models import EventIP
+from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.WorkflowEngine.models import (
     ProcessStep,
     ProcessTask,
@@ -505,7 +505,7 @@ class ValidateFiles(DBTask):
 
         if any([validate_fileformat, validate_integrity]):
             if rootdir is None:
-                rootdir = ip.ObjectPath
+                rootdir = InformationPackage.objects.values_list('ObjectPath', flat=True).get(pk=ip)
 
             doc = etree.ElementTree(file=xmlfile)
             tasks = []
@@ -528,7 +528,7 @@ class ValidateFiles(DBTask):
                                 "filename": os.path.join(rootdir, fpath),
                                 "fileformat": fformat,
                             },
-                            information_package=ip,
+                            information_package_id=ip,
                             responsible_id=self.responsible,
                             processstep=step,
                         ))
@@ -541,7 +541,7 @@ class ValidateFiles(DBTask):
                                 "checksum": checksum,
                                 "algorithm": algorithm,
                             },
-                            information_package=ip,
+                            information_package_id=ip,
                             responsible_id=self.responsible,
                             processstep=step,
                         ))
@@ -719,30 +719,26 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 
 class UpdateIPStatus(DBTask):
     def run(self, ip=None, status=None, prev=None):
-        ip.State = status
-        ip.save(update_fields=['State'])
+        InformationPackage.objects.filter(pk=ip).update(State=status)
         self.set_progress(100, total=100)
 
     def undo(self, ip=None, status=None, prev=None):
-        ip.State = prev
-        ip.save(update_fields=['State'])
+        InformationPackage.objects.filter(pk=ip).update(State=prev)
 
     def event_outcome_success(self, ip=None, status=None, prev=None):
-        return "Updated status of %s" % (ip.pk)
+        return "Updated status of %s to %s" % (ip, status)
 
 
 class UpdateIPPath(DBTask):
     def run(self, ip=None, path=None, prev=None):
-        ip.ObjectPath = path
-        ip.save(update_fields=['ObjectPath'])
+        InformationPackage.objects.filter(pk=ip).update(ObjectPath=path)
         self.set_progress(100, total=100)
 
     def undo(self, ip=None, path=None, prev=None):
-        ip.ObjectPath = prev
-        ip.save(update_fields=['ObjectPath'])
+        InformationPackage.objects.filter(pk=ip).update(ObjectPath=prev)
 
     def event_outcome_success(self, ip=None, path=None, prev=None):
-        return "Updated path of '%s' (%s) to %s" % (ip.Label, ip.pk, path)
+        return "Updated path of %s to %s" % (ip, path)
 
 
 class DeleteFiles(DBTask):

@@ -896,7 +896,7 @@ class ValidateFilesTestCase(TransactionTestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
+                'ip': self.ip.pk,
                 'xmlfile': self.fname
             }
         )
@@ -923,7 +923,7 @@ class ValidateFilesTestCase(TransactionTestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
+                'ip': self.ip.pk,
                 'xmlfile': self.fname,
                 'rootdir': self.datadir
             }
@@ -951,7 +951,7 @@ class ValidateFilesTestCase(TransactionTestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
+                'ip': self.ip.pk,
                 'xmlfile': self.fname,
                 'rootdir': self.datadir
             }
@@ -984,7 +984,7 @@ class ValidateFilesTestCase(TransactionTestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
+                'ip': self.ip.pk,
                 'xmlfile': self.fname,
                 'rootdir': self.datadir
             }
@@ -1021,7 +1021,7 @@ class ValidateFilesTestCase(TransactionTestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
+                'ip': self.ip.pk,
                 'xmlfile': self.fname,
                 'rootdir': self.datadir
             }
@@ -1472,7 +1472,7 @@ class UpdateIPStatusTestCase(TransactionTestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
+                'ip': self.ip.pk,
                 'status': 'new',
                 'prev': self.ip.State
             }
@@ -1487,7 +1487,7 @@ class UpdateIPStatusTestCase(TransactionTestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
+                'ip': self.ip.pk,
                 'status': 'new',
                 'prev': self.ip.State
             }
@@ -1513,7 +1513,7 @@ class UpdateIPPathTestCase(TransactionTestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
+                'ip': self.ip.pk,
                 'path': 'new',
                 'prev': self.ip.ObjectPath
             }
@@ -1528,7 +1528,7 @@ class UpdateIPPathTestCase(TransactionTestCase):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
-                'ip': self.ip,
+                'ip': self.ip.pk,
                 'path': 'new',
                 'prev': self.ip.ObjectPath
             }
