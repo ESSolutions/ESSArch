@@ -24,7 +24,8 @@
 
 from celery import states as celery_states
 from django.conf import settings
-from django.test import TestCase, TransactionTestCase
+from django.core.cache import cache
+from django.test import override_settings, TestCase, TransactionTestCase
 
 from django_redis import get_redis_connection
 
@@ -784,6 +785,114 @@ class test_running_steps(TransactionTestCase):
         self.assertEqual(t1.status, celery_states.SUCCESS)
         self.assertEqual(t2.status, celery_states.SUCCESS)
         self.assertEqual(t3.status, celery_states.SUCCESS)
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+    def test_chunked_step(self):
+        EventType.objects.create(eventType=1)
+
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        tasks = []
+        n = 10
+        for i in range(n):
+            t = ProcessTask(
+                name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+                params={'foo': 'bar'},
+                processstep=step,
+            )
+            tasks.append(t)
+
+        ProcessTask.objects.bulk_create(tasks)
+
+        with self.assertNumQueries(len(tasks) + 3):
+            res = step.chunk()
+
+        self.assertEqual(len(res), 10)
+
+        for t in tasks:
+            t.refresh_from_db()
+            self.assertEqual(t.status, celery_states.SUCCESS)
+            self.assertEqual(t.progress, 100)
+            self.assertIsNotNone(t.time_started)
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+    def test_chunked_step_with_size(self):
+        EventType.objects.create(eventType=1)
+
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        tasks = []
+        n = 10
+        size = 2
+
+        for i in range(n):
+            t = ProcessTask(
+                name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+                params={'foo': 'bar'},
+                processstep=step,
+            )
+            tasks.append(t)
+
+        ProcessTask.objects.bulk_create(tasks)
+
+        with self.assertNumQueries(len(tasks) + (n/size) + 2):
+            step.chunk(size=size)
+
+        for t in tasks:
+            t.refresh_from_db()
+            self.assertEqual(t.status, celery_states.SUCCESS)
+            self.assertEqual(t.progress, 100)
+            self.assertIsNotNone(t.time_started)
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+    def test_chunked_step_with_failure(self):
+        EventType.objects.create(eventType=1)
+
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        t1 = ProcessTask(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={'foo': 'bar'},
+            processstep=step,
+        )
+        t2 = ProcessTask(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={'bar': 'foo'},
+            processstep=step,
+        )
+        t3 = ProcessTask(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={'foo': 'bar'},
+            processstep=step,
+        )
+
+        tasks = [t1, t2, t3]
+
+        ProcessTask.objects.bulk_create(tasks)
+
+        with self.assertNumQueries(len(tasks) + 3):
+            step.chunk()
+
+        for t in tasks:
+            t.refresh_from_db()
+
+        self.assertEqual(t1.status, celery_states.SUCCESS)
+        self.assertEqual(t1.progress, 100)
+        self.assertIsNotNone(t1.time_started)
+
+        self.assertEqual(t2.status, celery_states.FAILURE)
+        self.assertEqual(t2.progress, 0)
+        self.assertIsNotNone(t2.time_started)
+
+        self.assertEqual(t3.status, celery_states.PENDING)
+        self.assertEqual(t3.progress, 0)
+        self.assertIsNone(t3.time_started)
 
     def test_child_steps(self):
         main_step = ProcessStep.objects.create()

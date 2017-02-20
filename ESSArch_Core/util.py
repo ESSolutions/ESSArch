@@ -26,6 +26,7 @@ from __future__ import absolute_import
 
 import errno
 import hashlib
+import itertools
 import json
 import os
 import platform
@@ -368,3 +369,14 @@ def parse_content_range_header(header):
         return (start, end, total)
     else:
         raise ValidationError(detail="Invalid Content-Range header")
+
+
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+
+def flatten(l):
+    """Flattens a list of lists"""
+    return list(itertools.chain(*l))

@@ -39,7 +39,7 @@ from django.utils.translation import ugettext as _
 
 from picklefield.fields import PickledObjectField
 
-from ESSArch_Core.util import available_tasks, sliceUntilAttr
+from ESSArch_Core.util import available_tasks, chunks, flatten, sliceUntilAttr
 
 class Process(models.Model):
     def _create_task(self, name):
@@ -56,6 +56,7 @@ class Process(models.Model):
         abstract = True
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    time_created = models.DateTimeField(auto_now_add=True)
     result = PickledObjectField(null=True, default=None, editable=False)
 
     def __unicode__(self):
@@ -100,7 +101,6 @@ class ProcessStep(Process):
         null=True
     )
     parent_step_pos = models.IntegerField(_('Parent step position'), default=0)
-    time_created = models.DateTimeField(auto_now_add=True)
     information_package = models.ForeignKey(
         'ip.InformationPackage',
         on_delete=models.CASCADE,
@@ -188,7 +188,7 @@ class ProcessStep(Process):
         child_steps = self.child_steps.all()
         tasks = self.tasks(manager='by_step_pos').all()
 
-        step_canvas = func(s.run(direct=False) for s in child_steps)
+        step_canvas = func(s.run(direct=False) for s in child_steps) if child_steps else chain()
         task_canvas = func(create_sub_task(t) for t in tasks)
 
         if not child_steps:
@@ -199,6 +199,36 @@ class ProcessStep(Process):
             workflow = (step_canvas | task_canvas)
 
         return workflow() if direct else workflow
+
+    def chunk(self, size=None, direct=True):
+        def create_options(task):
+            return {
+                'responsible': task.responsible_id, 'ip': task.information_package_id,
+                'step': self.pk, 'step_pos': task.processstep_pos, 'hidden': task.hidden,
+                'task_id': task.pk
+            }
+
+        tasks = self.tasks.all().order_by('time_created').iterator()
+
+        first = tasks.next()
+        t = self._create_task(first.name)
+
+        first.params['_options'] = create_options(first)
+        params = [first.params]
+
+        for task in tasks:
+            task.params['_options'] = create_options(task)
+            params.append(task.params)
+
+        if size is None:
+            size = len(params)
+
+        res = []
+
+        for param_chunk in chunks(params, size):
+            res.append(t.apply_async(args=params, kwargs={'_options': {'chunk': True}}, queue=t.queue).get())
+
+        return flatten(res)
 
     def run_eagerly(self, **kwargs):
         """
@@ -476,6 +506,7 @@ class ProcessStep(Process):
     class Meta:
         db_table = u'ProcessStep'
         ordering = ('parent_step_pos', 'time_created')
+        get_latest_by = "time_created"
 
         def __unicode__(self):
             return '%s - %s - archiveobject:%s' % (
@@ -655,6 +686,7 @@ class ProcessTask(Process):
 
     class Meta:
         db_table = 'ProcessTask'
+        get_latest_by = "time_created"
 
         def __unicode__(self):
             return '%s - %s' % (self.name, self.id)
