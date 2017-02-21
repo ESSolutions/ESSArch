@@ -297,14 +297,8 @@ class XMLGenerator(object):
             ProcessTask.objects.bulk_create(tasks)
 
             with allow_join_result():
-                if not hasattr(settings, 'CELERY_ALWAYS_EAGER') or not settings.CELERY_ALWAYS_EAGER:
-                    for (t_idx, fileinfo) in step.run().iter_native():
-                        if fileinfo['status'] == celery_states.FAILURE:
-                            raise fileinfo['result']
-                        files.append(fileinfo['result'])
-                else:
-                    for fileinfo in step.run().get():
-                        files.append(fileinfo)
+                for fileinfo in step.chunk():
+                    files.append(fileinfo)
 
         for f in self.toCreate:
             fname = f['file']
