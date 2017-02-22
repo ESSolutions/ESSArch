@@ -1084,6 +1084,105 @@ class test_running_steps(TransactionTestCase):
         self.assertEqual(t3.result, t1.result + t3_val)
 
 
+@override_settings(CELERY_ALWAYS_EAGER=False)
+class test_running_steps_eagerly(TransactionTestCase):
+
+    def test_run(self):
+        t1_val = 123
+        t2_val = 456
+        t3_val = 789
+
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        ip = InformationPackage.objects.create()
+
+        t1 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": t1_val},
+            processstep_pos=0,
+            information_package=ip,
+        )
+
+        t2 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Second",
+            params={"foo": t2_val},
+            processstep_pos=1,
+            information_package=ip,
+        )
+
+        t3 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
+            params={"foo": t3_val},
+            processstep_pos=2,
+            information_package=ip,
+        )
+
+        step.tasks = [t1, t2, t3]
+        step.save()
+        step.run_eagerly()
+
+        t1.refresh_from_db()
+        t2.refresh_from_db()
+        t3.refresh_from_db()
+
+        self.assertEqual(step.status, celery_states.SUCCESS)
+
+        self.assertEqual(t1.result, t1_val)
+        self.assertEqual(t2.result, t2_val)
+        self.assertEqual(t3.result, t3_val)
+
+    def test_result_params(self):
+        t1_val = 1
+        t2_val = 2
+        t3_val = 3
+
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        ip = InformationPackage.objects.create()
+
+        t1 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
+            params={"x": t1_val, "y": t1_val},
+            processstep_pos=0,
+            information_package=ip,
+        )
+
+        t2 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
+            params={"x": t2_val},
+            result_params={"y": t1.id},
+            processstep_pos=1,
+            information_package=ip,
+        )
+
+        t3 = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
+            params={"x": t3_val},
+            result_params={"y": t1.id},
+            processstep_pos=2,
+            information_package=ip,
+        )
+
+        step.tasks = [t1, t2, t3]
+        step.save()
+
+        step.run_eagerly()
+
+        self.assertEqual(step.status, celery_states.SUCCESS)
+
+        t1.refresh_from_db()
+        t2.refresh_from_db()
+        t3.refresh_from_db()
+
+        self.assertEqual(t1.result, t1_val*2)
+        self.assertEqual(t2.result, t1.result + t2_val)
+        self.assertEqual(t3.result, t1.result + t3_val)
+
+
 class test_undoing_steps(TestCase):
     def setUp(self):
         settings.CELERY_ALWAYS_EAGER = True

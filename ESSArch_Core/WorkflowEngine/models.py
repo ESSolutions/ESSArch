@@ -609,6 +609,7 @@ class ProcessTask(Process):
         self.params['_options'] = {
             'responsible': self.responsible_id, 'ip': self.information_package_id,
             'step': self.processstep_id, 'step_pos': self.processstep_pos, 'hidden': self.hidden,
+            'result_params': self.result_params,
         }
 
         return t.apply(kwargs=self.params, task_id=str(self.pk)).get()
