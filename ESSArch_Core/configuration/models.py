@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 
+from django.contrib.auth.models import User
 from django.db import models
 
 import uuid
@@ -107,3 +108,27 @@ class Agent(models.Model):
     class Meta:
         ordering = ["agentType"]
         verbose_name = 'Agent'
+
+
+class DefaultColumnVisible(models.Model):
+    """Specifies if a column should be visible to a user by default"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    field = models.CharField(max_length=255)
+    visible = models.BooleanField(default=True)
+
+
+class DefaultSorting(models.Model):
+    """Specifies the default sorting field for a user"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    field = models.CharField(max_length=255)
+    descending = models.BooleanField(default=True)
+
+
+class DefaultValue(models.Model):
+    """Specifies the default values for fields for a user"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    field = models.CharField(max_length=255)
+    value = models.CharField(max_length=255, blank=True)
