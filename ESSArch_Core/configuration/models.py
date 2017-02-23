@@ -27,6 +27,8 @@ from django.db import models
 
 import uuid
 
+from ESSArch_Core.storage.models import CacheStorage, IngestStorage
+
 
 class Parameter(models.Model):
     """
@@ -116,6 +118,75 @@ class DefaultColumnVisible(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     field = models.CharField(max_length=255)
     visible = models.BooleanField(default=True)
+
+
+class ArchivePolicy(models.Model):
+    """Specifies how an IP should be archived"""
+
+    MODE_CHOICES = (
+        (0, 'master'),
+        (2, 'ais'),
+    )
+
+    WAIT_FOR_APPROVAL_CHOICES = (
+        (0, 'no'),
+        (2, 'ingestrequest'),
+    )
+
+    CHECKSUM_ALGORITHM_CHOICES = (
+        (1, 'md5'),
+        (2, 'sha-256'),
+    )
+
+    IP_TYPE_CHOICES = (
+        (1, 'tar'),
+    )
+
+    PREINGEST_METADATA_CHOICES = (
+        (0, 'disabled'),
+        (1, 'res'),
+    )
+
+    INGEST_METADATA_CHOICES = (
+        (1, 'mets'),
+        (4, 'mets (eard)'),
+    )
+
+    INFORMATION_CLASS_CHOICES = (
+        (0, '0'),
+        (1, '1'),
+        (2, '2'),
+        (3, '3'),
+        (4, '4'),
+    )
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    policy_id = models.CharField('Policy ID', max_length=32, unique=True)
+    policy_name = models.CharField('Policy Name', max_length=255)
+    policy_stat = models.BooleanField('Policy Status', default=False)
+    ais_project_name = models.CharField('AIS Policy Name', max_length=255, blank=True)
+    ais_project_id = models.CharField('AIS Policy ID', max_length=255, blank=True)
+    mode = models.IntegerField(choices=MODE_CHOICES, default=0)
+    wait_for_approval = models.IntegerField('Wait for approval', choices=WAIT_FOR_APPROVAL_CHOICES, default=2)
+    checksum_algorithm = models.IntegerField('Checksum algorithm', choices=CHECKSUM_ALGORITHM_CHOICES, default=1)
+    validate_checksum = models.BooleanField('Validate checksum', default=True)
+    validate_xml = models.BooleanField('Validate XML', default=True)
+    ip_type = models.IntegerField('IP type', choices=IP_TYPE_CHOICES, default=1)
+    cache_storage = models.ForeignKey(CacheStorage, on_delete=models.PROTECT)
+    preingest_metadata = models.IntegerField('Pre ingest metadata', choices=PREINGEST_METADATA_CHOICES, default=0)
+    ingest_metadata = models.IntegerField('Ingest metadata', choices=INGEST_METADATA_CHOICES, default=4)
+    information_class = models.IntegerField('Information class', choices=INFORMATION_CLASS_CHOICES, default=0)
+    ingest_path = models.ForeignKey(IngestStorage, on_delete=models.PROTECT)
+    ingest_delete = models.BooleanField('Delete SIP after success to create AIP', default=True)
+
+    class Meta:
+        ordering = ['policy_name']
+
+    def __unicode__(self):
+        if len(self.policy_name):
+            return self.policy_name
+        else:
+            return unicode(self.policy_id)
 
 
 class DefaultSorting(models.Model):

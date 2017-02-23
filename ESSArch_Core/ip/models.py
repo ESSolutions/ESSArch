@@ -40,6 +40,15 @@ from ESSArch_Core.util import (
 import math
 import uuid
 
+MESSAGE_DIGEST_ALGORITHM_CHOICES = (
+    ('MD5', 'MD5'),
+    ('SHA-1', 'SHA-1'),
+    ('SHA-224', 'SHA-224'),
+    ('SHA-256', 'SHA-256'),
+    ('SHA-384', 'SHA-384'),
+    ('SHA-512', 'SHA-512'),
+)
+
 
 class ArchivalInstitution(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -94,22 +103,71 @@ class InformationPackage(models.Model):
     Informaion Package
     """
 
+    PACKAGE_TYPE_CHOICES = (
+        (0, 'SIP'),
+        (1, 'AIC'),
+        (2, 'AIP'),
+        (3, 'AIU'),
+        (4, 'DIP'),
+    )
+
+    PRESERVATION_LEVEL_VALUE_CHOICES = (
+        (1, 'full'),
+    )
+
+    INFORMATION_CLASS_CHOICES = (
+        (0, '0'),
+        (1, '1'),
+        (2, '2'),
+        (3, '3'),
+        (4, '4'),
+    )
+
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
-    ObjectIdentifierValue = models.CharField(max_length=255, null=True)
-    Label = models.CharField(max_length=255)
+    ObjectIdentifierValue = models.CharField(max_length=255, unique=True)
+    Label = models.CharField(max_length=255, blank=True)
     Content = models.CharField(max_length=255)
+    CreateDate = models.DateTimeField(auto_now_add=True)
+    State = models.CharField(max_length=255)
+    ObjectPath = models.CharField(max_length=255, blank=True)
+    Startdate = models.DateTimeField(null=True)
+    Enddate = models.DateTimeField(null=True)
+
+    size = models.BigIntegerField(null=True)
+    num_items = models.IntegerField(null=True)
+    message_digest_algorithm = models.IntegerField(null=True, choices=MESSAGE_DIGEST_ALGORITHM_CHOICES)
+    message_digest = models.CharField(max_length=128, blank=True)
+    active = models.BooleanField(default=True)
+
+    linking_agent_identifier_value = models.CharField(max_length=255, blank=True)
+    create_agent_identifier_value = models.CharField(max_length=255, blank=True)
+
+    entry_date = models.DateTimeField(null=True)
+    entry_agent_identifier_value = models.CharField(max_length=255, blank=True)
+
+    package_type = models.IntegerField(null=True, choices=PACKAGE_TYPE_CHOICES)
+    preservation_level_value = models.IntegerField(choices=PRESERVATION_LEVEL_VALUE_CHOICES, default=1)
+
+    delivery_type = models.CharField(max_length=255, blank=True)
+    information_class = models.IntegerField(null=True, choices=INFORMATION_CLASS_CHOICES)
+    generation = models.IntegerField(null=True)
+
+    last_changed_local = models.DateTimeField(null=True)
+    last_changed_external = models.DateTimeField(null=True)
+
     Responsible = models.ForeignKey(
         'auth.User', on_delete=models.SET_NULL,
         related_name='information_packages', null=True
     )
-    CreateDate = models.DateTimeField(auto_now_add=True)
-    State = models.CharField(max_length=255)
-    ObjectPath = models.CharField(max_length=255)
-    Startdate = models.DateTimeField(null=True)
-    Enddate = models.DateTimeField(null=True)
-    OAIStype = models.CharField(max_length=255)
+
+    policy = models.ForeignKey('configuration.ArchivePolicy', on_delete=models.PROTECT, null=True)
+    information_packages = models.ManyToManyField(
+        'self', through='InformationPackageRel', through_fields=('aic_uuid', 'uuid'),
+        related_name='aic_set', symmetrical=False
+    )
+
     SubmissionAgreement = models.ForeignKey(
         SA,
         on_delete=models.CASCADE,
@@ -153,6 +211,10 @@ class InformationPackage(models.Model):
         if not self.ObjectIdentifierValue:
             self.ObjectIdentifierValue = str(self.pk)
             self.save()
+
+    def check_db_sync(self):
+        if self.last_changed_local is not None and self.last_changed_external is not None:
+            return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
 
     @property
     def ObjectSizeAndNum(self):
@@ -342,6 +404,35 @@ class InformationPackage(models.Model):
             field.name: field.value_to_string(self)
             for field in InformationPackage._meta.fields
         }
+
+
+class InformationPackageRel(models.Model):
+    id = models.UUIDField(primary_key=True)
+    aic_uuid = models.ForeignKey('InformationPackage', related_name='relaic_set')
+    uuid = models.ForeignKey('InformationPackage', related_name='reluuid_set')
+
+    class Meta:
+        unique_together = (('aic_uuid', 'uuid'))
+
+
+class InformationPackageMetadata(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ip = models.ForeignKey(InformationPackage, on_delete=models.PROTECT)
+    type = models.IntegerField(null=True)
+    server = models.IntegerField(null=True)
+    server_url = models.CharField(max_length=255, blank=True)
+    local_path = models.CharField(max_length=255, blank=True)
+    blob = models.TextField(blank=True)
+
+    message_digest_algorithm = models.IntegerField(null=True, choices=MESSAGE_DIGEST_ALGORITHM_CHOICES)
+    message_digest = models.CharField(max_length=128, blank=True)
+
+    last_changed_local = models.DateTimeField(null=True)
+    last_changed_external = models.DateTimeField(null=True)
+
+    def check_db_sync(self):
+        if self.last_changed_local is not None and self.last_changed_external is not None:
+            return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
 
 
 class EventIP(models.Model):
