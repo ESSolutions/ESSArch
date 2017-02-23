@@ -10,6 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('ip', '0027_auto_20170215_1516'),
+        ('configuration', '0004_auto_20170215_1516'),
     ]
 
     operations = [
