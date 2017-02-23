@@ -128,11 +128,6 @@ class ArchivePolicy(models.Model):
         (2, 'ais'),
     )
 
-    WAIT_FOR_APPROVAL_CHOICES = (
-        (0, 'no'),
-        (2, 'ingestrequest'),
-    )
-
     CHECKSUM_ALGORITHM_CHOICES = (
         (1, 'md5'),
         (2, 'sha-256'),
@@ -161,13 +156,21 @@ class ArchivePolicy(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    index = models.BooleanField(default=True)
+
+    cache_extracted_size = models.BigIntegerField('Maximum size (bytes) of extracted package before deletion from cache', null=True)
+    cache_package_size = models.BigIntegerField('Maximum size (bytes) of package before deletion from cache', null=True)
+    cache_extracted_age = models.IntegerField('Maximum age (days) of extracted package before deletion from cache', null=True)
+    cache_package_age = models.IntegerField('Maximum age (days) of package before deletion from cache', null=True)
+
     policy_id = models.CharField('Policy ID', max_length=32, unique=True)
     policy_name = models.CharField('Policy Name', max_length=255)
     policy_stat = models.BooleanField('Policy Status', default=False)
     ais_project_name = models.CharField('AIS Policy Name', max_length=255, blank=True)
     ais_project_id = models.CharField('AIS Policy ID', max_length=255, blank=True)
     mode = models.IntegerField(choices=MODE_CHOICES, default=0)
-    wait_for_approval = models.IntegerField('Wait for approval', choices=WAIT_FOR_APPROVAL_CHOICES, default=2)
+    wait_for_approval = models.BooleanField('Wait for approval', default=True)
     checksum_algorithm = models.IntegerField('Checksum algorithm', choices=CHECKSUM_ALGORITHM_CHOICES, default=1)
     validate_checksum = models.BooleanField('Validate checksum', default=True)
     validate_xml = models.BooleanField('Validate XML', default=True)
