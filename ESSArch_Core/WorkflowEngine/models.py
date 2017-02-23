@@ -56,6 +56,7 @@ class Process(models.Model):
         abstract = True
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    eager = models.BooleanField(default=True)
     time_created = models.DateTimeField(auto_now_add=True)
     result = PickledObjectField(null=True, default=None, editable=False)
 
@@ -182,6 +183,9 @@ class ProcessStep(Process):
                 'result_params': t.result_params,
             }
             return created.si(**t.params).set(task_id=str(t.pk), queue=created.queue)
+
+        if self.eager:
+            return self.run_eagerly()
 
         func = group if self.parallel else chain
 
@@ -588,6 +592,9 @@ class ProcessTask(Process):
         """
         Runs the task
         """
+
+        if self.eager:
+            return self.run_eagerly()
 
         t = self._create_task(self.name)
 
