@@ -40,22 +40,6 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='CacheStorage',
-            fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255, verbose_name='Cache Name')),
-                ('path', models.CharField(max_length=255, verbose_name='Cache Directory')),
-            ],
-        ),
-        migrations.CreateModel(
-            name='IngestStorage',
-            fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255, verbose_name='Ingest Name')),
-                ('path', models.CharField(max_length=255, verbose_name='Ingest Directory')),
-            ],
-        ),
-        migrations.CreateModel(
             name='IOQueue',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),

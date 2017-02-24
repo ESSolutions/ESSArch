@@ -9,23 +9,6 @@ from picklefield.fields import PickledObjectField
 
 from ESSArch_Core.ip.models import InformationPackage
 
-
-class CacheStorage(models.Model):
-    """Directory used for indexing and packaging files"""
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField('Cache Name', max_length=255)
-    path = models.CharField('Cache Directory', max_length=255)
-
-
-class IngestStorage(models.Model):
-    """Directory used for ingest"""
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField('Ingest Name', max_length=255)
-    path = models.CharField('Ingest Directory', max_length=255)
-
-
 IOReqType_CHOICES = (
     (10, 'Write to tape'),
     (15, 'Write to disk'),
