@@ -103,12 +103,18 @@ class InformationPackage(models.Model):
     Informaion Package
     """
 
+    SIP = 0
+    AIC = 1
+    AIP = 2
+    AIU = 3
+    DIP = 4
+
     PACKAGE_TYPE_CHOICES = (
-        (0, 'SIP'),
-        (1, 'AIC'),
-        (2, 'AIP'),
-        (3, 'AIU'),
-        (4, 'DIP'),
+        (SIP, 'SIP'),
+        (AIC, 'AIC'),
+        (AIP, 'AIP'),
+        (AIU, 'AIU'),
+        (DIP, 'DIP'),
     )
 
     PRESERVATION_LEVEL_VALUE_CHOICES = (
