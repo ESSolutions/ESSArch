@@ -64,6 +64,8 @@ class PathSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ArchivePolicySerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = ArchivePolicy
         fields = '__all__'
