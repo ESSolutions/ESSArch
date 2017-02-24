@@ -61,6 +61,9 @@ class Path(models.Model):
     entity = models.CharField(max_length=60, unique=True)
     value = models.CharField(max_length=70)
 
+    def __unicode__(self):
+        return '%s (%s)' % (self.entity, self.value)
+
     class Meta:
         ordering = ["entity"]
         verbose_name = 'Path'
