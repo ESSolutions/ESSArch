@@ -407,7 +407,7 @@ class InformationPackage(models.Model):
 
 
 class InformationPackageRel(models.Model):
-    id = models.UUIDField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     aic_uuid = models.ForeignKey('InformationPackage', related_name='relaic_set')
     uuid = models.ForeignKey('InformationPackage', related_name='reluuid_set')
 
