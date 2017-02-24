@@ -184,9 +184,6 @@ class ProcessStep(Process):
             }
             return created.si(**t.params).set(task_id=str(t.pk), queue=created.queue)
 
-        if self.eager:
-            return self.run_eagerly()
-
         func = group if self.parallel else chain
 
         child_steps = self.child_steps.all()
@@ -202,7 +199,13 @@ class ProcessStep(Process):
         else:
             workflow = (step_canvas | task_canvas)
 
-        return workflow() if direct else workflow
+        if direct:
+            if self.eager:
+                return workflow.apply()
+            else:
+                return self.apply_async()
+        else:
+            return workflow
 
     def chunk(self, size=None, direct=True):
         def create_options(task):
@@ -233,17 +236,6 @@ class ProcessStep(Process):
             res.append(t.apply_async(args=params, kwargs={'_options': {'chunk': True}}, queue=t.queue).get())
 
         return flatten(res)
-
-    def run_eagerly(self, **kwargs):
-        """
-        Runs the step locally (as a "regular" function)
-        """
-
-        for c in self.child_steps.all():
-            c.run_eagerly()
-
-        for t in self.tasks(manager='by_step_pos').all():
-            t.run_eagerly()
 
     def undo(self, only_failed=False, direct=True):
         """
@@ -292,7 +284,13 @@ class ProcessStep(Process):
         else:
             workflow = (task_canvas | step_canvas)
 
-        return workflow() if direct else workflow
+        if direct:
+            if self.eager:
+                return workflow.apply()
+            else:
+                return workflow.apply_async()
+        else:
+            return workflow
 
     def retry(self, direct=True):
         """
@@ -336,7 +334,13 @@ class ProcessStep(Process):
         else:
             workflow = (step_canvas | task_canvas)
 
-        return workflow() if direct else workflow
+        if direct:
+            if self.eager:
+                return workflow.apply()
+            else:
+                return workflow.apply_async()
+        else:
+            return workflow
 
     def resume(self, direct=True):
         """
@@ -375,7 +379,13 @@ class ProcessStep(Process):
         else:
             workflow = (step_canvas | task_canvas)
 
-        return workflow() if direct else workflow
+        if direct:
+            if self.eager:
+                return workflow.apply()
+            else:
+                return workflow.apply_async()
+        else:
+            return workflow
 
     @property
     def cache_status_key(self):
