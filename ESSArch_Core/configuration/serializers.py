@@ -26,6 +26,7 @@ from rest_framework import serializers
 
 from ESSArch_Core.configuration.models import (
     Agent,
+    ArchivePolicy,
     EventType,
     Parameter,
     Path,
@@ -59,4 +60,10 @@ class PathSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Path
+        fields = '__all__'
+
+
+class ArchivePolicySerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ArchivePolicy
         fields = '__all__'
