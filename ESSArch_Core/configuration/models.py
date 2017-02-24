@@ -181,6 +181,8 @@ class ArchivePolicy(models.Model):
     information_class = models.IntegerField('Information class', choices=INFORMATION_CLASS_CHOICES, default=0)
     ingest_path = models.ForeignKey(IngestStorage, on_delete=models.PROTECT)
     ingest_delete = models.BooleanField('Delete SIP after success to create AIP', default=True)
+    receive_extract_sip = models.BooleanField('Extract SIP on receive', default=False)
+
 
     class Meta:
         ordering = ['policy_name']
