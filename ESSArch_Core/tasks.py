@@ -175,9 +175,9 @@ class ParseFile(DBTask):
 
         ProcessTask.objects.bulk_create([checksum_task, fileformat_task])
 
-        checksum = checksum_task.run_eagerly()
+        checksum = checksum_task.run().get()
         self.set_progress(50, total=100)
-        fileformat = fileformat_task.run_eagerly()
+        fileformat = fileformat_task.run().get()
 
         fileinfo = {
             'FName': os.path.basename(relpath),
@@ -581,7 +581,7 @@ class ValidateFileFormat(DBTask):
             responsible_id=task.get('responsible_id'),
         )
 
-        res = t.run_eagerly()
+        res = t.run().get()
 
         assert res == fileformat, "fileformat for %s is not valid" % filename
         self.set_progress(100, total=100)
@@ -617,7 +617,7 @@ class ValidateIntegrity(DBTask):
             responsible_id=task.get('responsible_id'),
         )
 
-        digest = t.run_eagerly()
+        digest = t.run().get()
 
         assert digest == checksum, "checksum for %s is not valid (%s != %s)" % (filename, digest, checksum)
         self.set_progress(100, total=100)
@@ -852,7 +852,7 @@ class CopyFile(DBTask):
 
         ProcessTask.objects.bulk_create(tasks)
 
-        step.run_eagerly()
+        step.run().get()
 
     def remote(self, src, dst, requests_session=None, block_size=65536, step=None):
         step = ProcessStep.objects.create(
@@ -883,7 +883,7 @@ class CopyFile(DBTask):
 
         ProcessTask.objects.bulk_create(tasks)
 
-        step.run_eagerly()
+        step.run().get()
 
     def run(self, src=None, dst=None, requests_session=None, block_size=65536):
         """
@@ -964,7 +964,7 @@ class DownloadSchemas(DBTask):
                 information_package_id=self.ip,
             )
 
-            t.run_eagerly()
+            t.run().get()
 
         self.set_progress(100, total=100)
 
