@@ -203,7 +203,7 @@ class ProcessStep(Process):
             if self.eager:
                 return workflow.apply()
             else:
-                return self.apply_async()
+                return workflow.apply_async()
         else:
             return workflow
 
