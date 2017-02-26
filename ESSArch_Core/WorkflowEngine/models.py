@@ -603,9 +603,6 @@ class ProcessTask(Process):
         Runs the task
         """
 
-        if self.eager:
-            return self.run_eagerly()
-
         t = self._create_task(self.name)
 
         self.params['_options'] = {
@@ -613,23 +610,13 @@ class ProcessTask(Process):
             'step': self.processstep_id, 'step_pos': self.processstep_pos, 'hidden': self.hidden,
         }
 
-        res = t.apply_async(kwargs=self.params, task_id=str(self.pk), queue=t.queue)
+        if self.eager:
+            self.params['_options']['result_params'] = self.result_params
+            res = t.apply(kwargs=self.params, task_id=str(self.pk))
+        else:
+            res = t.apply_async(kwargs=self.params, task_id=str(self.pk), queue=t.queue)
 
         return res
-
-    def run_eagerly(self):
-        """
-        Runs the task locally (as a "regular" function)
-        """
-
-        t = self._create_task(self.name)
-        self.params['_options'] = {
-            'responsible': self.responsible_id, 'ip': self.information_package_id,
-            'step': self.processstep_id, 'step_pos': self.processstep_pos, 'hidden': self.hidden,
-            'result_params': self.result_params,
-        }
-
-        return t.apply(kwargs=self.params, task_id=str(self.pk)).get()
 
     def undo(self):
         """
