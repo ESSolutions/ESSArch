@@ -613,7 +613,7 @@ class test_progress(TestCase):
         )
 
         with self.assertRaises(AssertionError):
-            s.run()
+            s.run().get()
 
         s.undo(only_failed=True)
         open(fname, 'a').close()
@@ -1121,7 +1121,7 @@ class test_running_steps_eagerly(TransactionTestCase):
 
         step.tasks = [t1, t2, t3]
         step.save()
-        step.run_eagerly()
+        step.run()
 
         t1.refresh_from_db()
         t2.refresh_from_db()
@@ -1170,7 +1170,7 @@ class test_running_steps_eagerly(TransactionTestCase):
         step.tasks = [t1, t2, t3]
         step.save()
 
-        step.run_eagerly()
+        step.run()
 
         self.assertEqual(step.status, celery_states.SUCCESS)
 
@@ -1909,7 +1909,7 @@ class test_resuming_steps(TestCase):
         )
 
         with self.assertRaises(Exception):
-            main_step.run()
+            main_step.run().get()
 
         step1.undo()
         open(fname, 'a').close()
