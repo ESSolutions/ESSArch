@@ -212,11 +212,10 @@ class InformationPackage(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        super(InformationPackage, self).save(*args, **kwargs)
-
         if not self.ObjectIdentifierValue:
             self.ObjectIdentifierValue = str(self.pk)
-            self.save()
+
+        super(InformationPackage, self).save(*args, **kwargs)
 
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
