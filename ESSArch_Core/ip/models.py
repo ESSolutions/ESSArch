@@ -148,11 +148,10 @@ class InformationPackage(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        super(InformationPackage, self).save(*args, **kwargs)
-
         if not self.ObjectIdentifierValue:
             self.ObjectIdentifierValue = str(self.pk)
-            self.save()
+
+        super(InformationPackage, self).save(*args, **kwargs)
 
     @property
     def ObjectSizeAndNum(self):
