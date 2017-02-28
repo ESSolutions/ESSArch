@@ -287,7 +287,7 @@ class Profile(models.Model):
             data['_SA_NAME'] = str(sa.sa_name)
 
         if ip:
-            data['_OBJID'] = str(ip.pk)
+            data['_OBJID'] = ip.ObjectIdentifierValue
             data['_OBJLABEL'] = ip.Label
 
             if ip.ArchivistOrganization:
