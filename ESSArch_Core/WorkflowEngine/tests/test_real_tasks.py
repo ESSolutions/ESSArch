@@ -29,6 +29,7 @@ import os
 import shutil
 import string
 import traceback
+import unicodedata
 
 import httpretty
 
@@ -407,6 +408,34 @@ class GenerateXMLTestCase(TransactionTestCase):
         self.assertEqual(root.get('fooAttr'), 'foodata')
         self.assertEqual(root.find('bar').text, 'bardata')
         self.assertEqual(root.find('baz').text, 'example.txt')
+
+    def test_with_non_ascii_file(self):
+        open(os.path.join(self.datadir, u'åäö.txt'), 'a').close()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'info': self.specData,
+                'filesToCreate': {
+                    self.fname: self.spec
+                },
+                'folderToParse': self.datadir
+            }
+        )
+
+        task.run()
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+
+
+        self.assertEqual(root.get('fooAttr'), 'foodata')
+        self.assertEqual(root.find('bar').text, 'bardata')
+
+        a = root.find('baz').text
+        b = u'åäö.txt'
+
+        self.assertEqual(unicodedata.normalize('NFC', a), unicodedata.normalize('NFC', b))
 
     def test_with_multiple_files(self):
         extra_file = os.path.join(self.datadir, 'test2.xml')
