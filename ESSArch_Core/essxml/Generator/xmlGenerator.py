@@ -265,6 +265,8 @@ class XMLGenerator(object):
                 step.parent_step_id = self.task.step
                 step.save()
 
+            folderToParse = unicode(folderToParse)
+
             if os.path.isfile(folderToParse):
                 tasks.append(ProcessTask(
                     name="ESSArch_Core.tasks.ParseFile",
