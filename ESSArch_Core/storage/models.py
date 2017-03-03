@@ -116,6 +116,7 @@ class StorageMethod(models.Model):
     status = models.BooleanField('Storage method status', default=False)
     type = models.IntegerField('Type', choices=storage_type_CHOICES, default=200)
     archive_policy = models.ForeignKey('configuration.ArchivePolicy')
+    targets = models.ManyToManyField('StorageTarget', through='StorageMethodTargetRelation', related_name='methods')
 
     class Meta:
         ordering = ['name']
