@@ -128,12 +128,12 @@ class StorageMethod(models.Model):
 
 
 class StorageMethodTargetRelation(models.Model):
-    """Relation between StorageMethod and StorageTargets"""
+    """Relation between StorageMethod and StorageTarget"""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField('Name', max_length=255, blank=True)
     status = models.IntegerField('Storage target status', choices=storage_target_status_CHOICES, default=0)
-    storage_target = models.ForeignKey('StorageTargets')
+    storage_target = models.ForeignKey('StorageTarget')
     storage_method = models.ForeignKey('StorageMethod')
 
     class Meta:
@@ -147,7 +147,7 @@ class StorageMethodTargetRelation(models.Model):
         return unicode(self.id)
 
 
-class StorageTargets(models.Model):
+class StorageTarget(models.Model):
     """A series of tapes or a single disk"""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -193,7 +193,7 @@ class StorageMedium(models.Model):
     last_changed_external = models.DateTimeField(null=True)
 
     agent = models.ForeignKey('auth.User', on_delete=models.PROTECT)
-    storage_target = models.ForeignKey('StorageTargets')
+    storage_target = models.ForeignKey('StorageTarget')
 
     class Meta:
         permissions = (
@@ -265,7 +265,7 @@ class IOQueue(models.Model):
     ip = models.ForeignKey(InformationPackage, null=True)
     storage_method = models.ForeignKey('StorageMethod', blank=True, null=True)
     storage_method_target = models.ForeignKey('StorageMethodTargetRelation', blank=True, null=True)
-    storage_target = models.ForeignKey('StorageTargets', blank=True, null=True)
+    storage_target = models.ForeignKey('StorageTarget', blank=True, null=True)
     storage_medium = models.ForeignKey('StorageMedium', blank=True, null=True)
     storage_object = models.ForeignKey('StorageObject', blank=True, null=True)
     access_queue = models.ForeignKey('AccessQueue', blank=True, null=True)
