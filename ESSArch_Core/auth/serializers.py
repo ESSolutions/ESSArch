@@ -22,15 +22,17 @@
     Email - essarch@essolutions.se
 """
 
-from django.contrib.auth.models import User, Group, Permission
+from django.contrib.auth.models import User, Group, Permission, ContentType
 
 from rest_framework import serializers
 
 
 class PermissionSerializer(serializers.HyperlinkedModelSerializer):
+    content_type = serializers.PrimaryKeyRelatedField(queryset=ContentType.objects.all())
+
     class Meta:
         model = Permission
-        fields = ('url', 'id', 'name', 'codename', 'group_set')
+        fields = ('url', 'id', 'name', 'codename', 'group_set', 'content_type')
 
 
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
