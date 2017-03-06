@@ -168,7 +168,7 @@ class InformationPackage(models.Model):
         related_name='information_packages', null=True
     )
 
-    policy = models.ForeignKey('configuration.ArchivePolicy', on_delete=models.PROTECT, null=True)
+    policy = models.ForeignKey('configuration.ArchivePolicy', on_delete=models.PROTECT, related_name='information_packages', null=True)
     information_packages = models.ManyToManyField(
         'self', through='InformationPackageRel', through_fields=('aic_uuid', 'uuid'),
         related_name='aic_set', symmetrical=False
