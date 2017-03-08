@@ -36,6 +36,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseConten
 from ESSArch_Core.configuration.models import (
     Path,
 )
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 class test_generateXML(TransactionTestCase):
@@ -486,6 +487,9 @@ class test_generateXML(TransactionTestCase):
         file_elements = tree.findall('.//bar')
         self.assertEqual(len(file_elements), num_of_files)
 
+        parse_file_tasks = ProcessTask.objects.filter(name='ESSArch_Core.tasks.ParseFile')
+        self.assertEqual(parse_file_tasks.count(), num_of_files)
+
     def test_multiple_to_create_with_files(self):
         specification = {
             '-name': 'foo',
@@ -540,6 +544,9 @@ class test_generateXML(TransactionTestCase):
         bars2 = tree2.findall('.//bar')
 
         self.assertTrue(len(bars2) == len(bars1) + 1)
+
+        parse_file_tasks = ProcessTask.objects.filter(name='ESSArch_Core.tasks.ParseFile')
+        self.assertEqual(parse_file_tasks.count(), len(bars2))
 
     def test_element_with_containsFiles_without_files(self):
         specification = {

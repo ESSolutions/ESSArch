@@ -323,7 +323,7 @@ class XMLGenerator(object):
                 for fileinfo in step.chunk():
                     files.append(fileinfo)
 
-        for f in self.toCreate:
+        for idx, f in enumerate(self.toCreate):
             fname = f['file']
             rootEl = f['root']
 
@@ -342,20 +342,21 @@ class XMLGenerator(object):
             except:
                 relpath = fname
 
-            parsefile_task = ProcessTask.objects.create(
-                name="ESSArch_Core.tasks.ParseFile",
-                params={
-                    'filepath': fname,
-                    'mimetype': self.get_mimetype(mtypes, fname),
-                    'relpath': relpath,
-                    'algorithm': algorithm
-                },
-                responsible_id=responsible,
-                processstep_id=self.task.step if self.task else None
-            )
+            if idx < len(self.toCreate) - 1:
+                parsefile_task = ProcessTask.objects.create(
+                    name="ESSArch_Core.tasks.ParseFile",
+                    params={
+                        'filepath': fname,
+                        'mimetype': self.get_mimetype(mtypes, fname),
+                        'relpath': relpath,
+                        'algorithm': algorithm
+                    },
+                    responsible_id=responsible,
+                    processstep_id=self.task.step if self.task else None
+                )
 
-            with allow_join_result():
-                files.append(parsefile_task.run().get())
+                with allow_join_result():
+                    files.append(parsefile_task.run().get())
 
     def insert(self, filename, elementToAppendTo, template, info={}, index=None):
         parser = etree.XMLParser(remove_blank_text=True)
