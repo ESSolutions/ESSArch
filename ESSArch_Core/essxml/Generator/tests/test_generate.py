@@ -1255,7 +1255,7 @@ class ExternalTestCase(TransactionTestCase):
                     '-attr': [
                         {
                             '-name': 'href',
-                            '#content': [{'var': '_REP_HREF'}]
+                            '#content': [{'var': '_EXT_HREF'}]
                         },
                     ],
                 },
@@ -1264,7 +1264,7 @@ class ExternalTestCase(TransactionTestCase):
                     '-attr': [
                         {
                             '-name': 'LABEL',
-                            '#content': [{'var': '_REP'}]
+                            '#content': [{'var': '_EXT'}]
                         },
                     ],
                     '-children': [

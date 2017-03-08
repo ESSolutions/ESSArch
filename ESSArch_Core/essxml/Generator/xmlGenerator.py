@@ -157,14 +157,14 @@ class XMLElement(object):
                 self.el.set(name, content)
 
         if self.external:
-            rep_dirs = next(walk(os.path.join(folderToParse, self.external['-dir'])))[1]
-            for rep_dir in rep_dirs:
+            ext_dirs = next(walk(os.path.join(folderToParse, self.external['-dir'])))[1]
+            for ext_dir in ext_dirs:
                 ptr = XMLElement(self.external['-pointer'])
-                ptr_file_path = os.path.join(self.external['-dir'], rep_dir, self.external['-file'])
+                ptr_file_path = os.path.join(self.external['-dir'], ext_dir, self.external['-file'])
 
                 ptr_info = info
-                ptr_info['_REP'] = rep_dir
-                ptr_info['_REP_HREF'] = ptr_file_path
+                ptr_info['_EXT'] = ext_dir
+                ptr_info['_EXT_HREF'] = ptr_file_path
                 self.el.append(ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse))
 
                 external_gen = XMLGenerator(
@@ -172,7 +172,7 @@ class XMLElement(object):
                         os.path.join(folderToParse, ptr_file_path): self.external['-specification']
                     }
                 )
-                external_gen.generate(os.path.join(folderToParse, self.external['-dir'], rep_dir))
+                external_gen.generate(os.path.join(folderToParse, self.external['-dir'], ext_dir))
 
         for child in self.children:
             if child.containsFiles:
