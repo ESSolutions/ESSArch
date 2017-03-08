@@ -58,8 +58,8 @@ class Path(models.Model):
     Paths used for different operations
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    entity = models.CharField(max_length=60, unique=True)
-    value = models.CharField(max_length=70)
+    entity = models.CharField(max_length=255, unique=True)
+    value = models.CharField(max_length=255)
 
     class Meta:
         ordering = ["entity"]
