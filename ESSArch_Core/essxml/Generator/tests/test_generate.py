@@ -24,6 +24,7 @@
 
 import os
 import shutil
+from collections import OrderedDict
 
 from django.conf import settings
 from django.test import TransactionTestCase
@@ -484,6 +485,61 @@ class test_generateXML(TransactionTestCase):
 
         file_elements = tree.findall('.//bar')
         self.assertEqual(len(file_elements), num_of_files)
+
+    def test_multiple_to_create_with_files(self):
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'bar',
+                    '-containsFiles': True,
+                    '-attr': [
+                        {
+                            '-name': 'name',
+                            '#content': [
+                                {
+                                    'var': 'FName'
+                                }
+                            ]
+                        }
+                    ],
+                    '-children': [
+                        {
+                            '-name': 'baz',
+                            '-attr': [
+                                {
+                                    '-name': 'href',
+                                    '#content': [
+                                        {
+                                            'var': 'href'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+        }
+
+        extra_fname = os.path.join(self.xmldir, "extra.xml")
+
+        generator = XMLGenerator(
+            OrderedDict([
+                (self.fname, specification),
+                (extra_fname, specification)
+            ])
+        )
+
+        generator.generate(folderToParse=self.datadir)
+
+        tree1 = etree.parse(self.fname)
+        tree2 = etree.parse(extra_fname)
+
+        bars1 = tree1.findall('.//bar')
+        bars2 = tree2.findall('.//bar')
+
+        self.assertTrue(len(bars2) == len(bars1) + 1)
 
     def test_element_with_containsFiles_without_files(self):
         specification = {
