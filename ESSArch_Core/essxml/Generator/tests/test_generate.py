@@ -1136,6 +1136,118 @@ class test_generateXML(TransactionTestCase):
         self.assertEqual(appended.get('bar'), 'append text')
 
 
+class ExternalTestCase(TransactionTestCase):
+    def setUp(self):
+        self.bd = os.path.dirname(os.path.realpath(__file__))
+        self.xmldir = os.path.join(self.bd, "xmlfiles")
+        self.datadir = os.path.join(self.bd, "datafiles")
+        self.external = os.path.join(self.datadir, "external")
+        self.fname = os.path.join(self.xmldir, "test.xml")
+
+        os.mkdir(self.xmldir)
+        os.mkdir(self.datadir)
+        os.mkdir(self.external)
+
+        self.external1 = os.path.join(self.external, "external1")
+        self.external2 = os.path.join(self.external, "external2")
+        os.makedirs(self.external1)
+        os.makedirs(self.external2)
+
+        with open(os.path.join(self.external1, "file1.txt"), "w") as f:
+            f.write('a txt file')
+        with open(os.path.join(self.external2, "file1.pdf"), "w") as f:
+            f.write('a pdf file')
+
+        Path.objects.create(
+            entity="path_mimetypes_definitionfile",
+            value=os.path.join(self.bd, "mime.types")
+        )
+
+        settings.CELERY_ALWAYS_EAGER = True
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.xmldir)
+        except:
+            pass
+
+        try:
+            shutil.rmtree(self.datadir)
+        except:
+            pass
+
+        try:
+            os.remove(self.fname)
+        except:
+            pass
+
+    def test_external(self):
+        specification = {
+            '-name': 'root',
+            '-external': {
+                '-dir': 'external',
+                '-file': 'external.xml',
+                '-pointer': {
+                    '-name': 'ptr',
+                    '-attr': [
+                        {
+                            '-name': 'href',
+                            '#content': [{'var': '_REP_HREF'}]
+                        },
+                    ],
+                },
+                '-specification': {
+                    '-name': 'mets',
+                    '-attr': [
+                        {
+                            '-name': 'LABEL',
+                            '#content': [{'var': '_REP'}]
+                        },
+                    ],
+                    '-children': [
+                        {
+                            '-name': 'file',
+                            '-containsFiles': True,
+                            '-attr': [
+                                {
+                                    '-name': 'href',
+                                    '#content': [{'var': 'href'}]
+                                },
+                            ],
+                        },
+                    ]
+                }
+            },
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate(folderToParse=self.datadir)
+
+        self.assertTrue(os.path.isfile(self.fname))
+
+        tree = etree.parse(self.fname)
+
+        external1_path = os.path.join(self.external1, 'external.xml')
+        external2_path = os.path.join(self.external2, 'external.xml')
+
+        self.assertIsNone(tree.find('.//file'))
+
+        self.assertEqual(len(tree.findall(".//ptr[@href='%s']" % os.path.relpath(external1_path, self.datadir))), 1)
+        self.assertEqual(len(tree.findall(".//ptr[@href='%s']" % os.path.relpath(external2_path, self.datadir))), 1)
+
+        self.assertTrue(os.path.isfile(external1_path))
+        self.assertTrue(os.path.isfile(external2_path))
+
+        external1_tree = etree.parse(external1_path)
+        self.assertEqual(len(external1_tree.findall(".//file[@href='file1.txt']")), 1)
+
+        external2_tree = etree.parse(external2_path)
+        self.assertEqual(len(external2_tree.findall(".//file[@href='file1.pdf']")), 1)
+
+
 class test_parseContent(TransactionTestCase):
     def test_parse_content_only_text(self):
         content = [

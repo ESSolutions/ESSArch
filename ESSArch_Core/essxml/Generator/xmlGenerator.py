@@ -101,6 +101,7 @@ class XMLElement(object):
         self.attr = [XMLAttribute(a) for a in template.get('-attr', [])]
         self.content = template.get('#content', [])
         self.containsFiles = template.get('-containsFiles', False)
+        self.external = template.get('-external')
         self.fileFilters = template.get('-filters', {})
         self.allowEmpty = template.get('-allowEmpty', False)
         self.skipIfNoChildren = template.get('-skipIfNoChildren', False)
@@ -125,6 +126,9 @@ class XMLElement(object):
         if len(self.el) == 0 and self.skipIfNoChildren:
             return True
 
+        if len(self.el):
+            return False
+
         any_attribute_with_value = any(value for value in self.el.attrib.values())
         any_children_not_empty = any(not child.isEmpty(info) or (child.isEmpty(info) and child.allowEmpty) for child in self.children)
 
@@ -133,7 +137,7 @@ class XMLElement(object):
 
         return True
 
-    def createLXMLElement(self, info, nsmap={}, files=[]):
+    def createLXMLElement(self, info, nsmap={}, files=[], folderToParse=''):
         full_nsmap = nsmap.copy()
         full_nsmap.update(self.nsmap)
 
@@ -152,8 +156,25 @@ class XMLElement(object):
             elif content:
                 self.el.set(name, content)
 
-        for child in self.children:
+        if self.external:
+            rep_dirs = next(walk(os.path.join(folderToParse, self.external['-dir'])))[1]
+            for rep_dir in rep_dirs:
+                ptr = XMLElement(self.external['-pointer'])
+                ptr_file_path = os.path.join(self.external['-dir'], rep_dir, self.external['-file'])
 
+                ptr_info = info
+                ptr_info['_REP'] = rep_dir
+                ptr_info['_REP_HREF'] = ptr_file_path
+                self.el.append(ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse))
+
+                external_gen = XMLGenerator(
+                    filesToCreate={
+                        os.path.join(folderToParse, ptr_file_path): self.external['-specification']
+                    }
+                )
+                external_gen.generate(os.path.join(folderToParse, self.external['-dir'], rep_dir))
+
+        for child in self.children:
             if child.containsFiles:
                 for fileinfo in files:
                     include = True
@@ -165,9 +186,9 @@ class XMLElement(object):
                     if include:
                         full_info = info.copy()
                         full_info.update(fileinfo)
-                        self.el.append(child.createLXMLElement(full_info, full_nsmap, files=files))
+                        self.el.append(child.createLXMLElement(full_info, full_nsmap, files=files, folderToParse=folderToParse))
             else:
-                child_el = child.createLXMLElement(info, full_nsmap, files=files)
+                child_el = child.createLXMLElement(info, full_nsmap, files=files, folderToParse=folderToParse)
                 if child_el is not None:
                     self.el.append(child_el)
 
@@ -309,7 +330,7 @@ class XMLGenerator(object):
             self.info['_XML_FILENAME'] = os.path.basename(fname)
 
             tree = etree.ElementTree(
-                rootEl.createLXMLElement(self.info, files=files)
+                rootEl.createLXMLElement(self.info, files=files, folderToParse=folderToParse)
             )
             tree.write(
                 fname, pretty_print=True, xml_declaration=True,
