@@ -818,6 +818,17 @@ class test_running_steps(TransactionTestCase):
             self.assertIsNotNone(t.time_started)
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+    def test_chunked_empty_step(self):
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        with self.assertNumQueries(1):
+            res = step.chunk()
+
+        self.assertEqual(res, [])
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
     def test_chunked_step_with_size(self):
         EventType.objects.create(eventType=1)
 

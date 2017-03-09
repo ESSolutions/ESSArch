@@ -217,7 +217,11 @@ class ProcessStep(Process):
 
         tasks = self.tasks.all().order_by('time_created').iterator()
 
-        first = tasks.next()
+        try:
+            first = tasks.next()
+        except StopIteration:
+            return []
+
         t = self._create_task(first.name)
 
         first.params['_options'] = create_options(first)
