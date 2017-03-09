@@ -1310,6 +1310,9 @@ class ExternalTestCase(TransactionTestCase):
         external2_tree = etree.parse(external2_path)
         self.assertEqual(len(external2_tree.findall(".//file[@href='file1.pdf']")), 1)
 
+        parse_file_tasks = ProcessTask.objects.filter(name='ESSArch_Core.tasks.ParseFile')
+        self.assertEqual(parse_file_tasks.count(), 2)
+
 
 class test_parseContent(TransactionTestCase):
     def test_parse_content_only_text(self):

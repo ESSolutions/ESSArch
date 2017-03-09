@@ -46,6 +46,7 @@ from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.util import (
     creation_date,
     find_destination,
+    nested_lookup,
     timestamp_to_datetime,
     win_to_posix,
 )
@@ -247,6 +248,15 @@ class XMLGenerator(object):
                 'root': XMLElement(template)
             })
 
+    def find_external_dirs(self):
+        dirs = set()
+
+        for spec in self.toCreate:
+            res = nested_lookup('-external', spec['template'])
+            dirs |= set([x['-dir'] for x in res])
+
+        return dirs
+
     def get_mimetype(self, mtypes, fname):
         file_name, file_ext = os.path.splitext(fname)
 
@@ -288,6 +298,8 @@ class XMLGenerator(object):
 
             folderToParse = unicode(folderToParse)
 
+            exclude = self.find_external_dirs()
+
             if os.path.isfile(folderToParse):
                 tasks.append(ProcessTask(
                     name="ESSArch_Core.tasks.ParseFile",
@@ -302,6 +314,8 @@ class XMLGenerator(object):
                 ))
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in walk(folderToParse):
+                    dirnames[:] = [d for d in dirnames if d not in exclude]
+
                     for fname in filenames:
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, folderToParse)

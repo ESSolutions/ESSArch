@@ -380,3 +380,23 @@ def chunks(l, n):
 def flatten(l):
     """Flattens a list of lists"""
     return list(itertools.chain(*l))
+
+
+def nested_lookup(key, document):
+    """Finds all occurences of a key in nested dictionaries and lists"""
+    if isinstance(document, list):
+        for d in document:
+            for result in nested_lookup(key, d):
+                yield result
+
+    if isinstance(document, dict):
+        for k, v in document.iteritems():
+            if k == key:
+                yield v
+            elif isinstance(v, dict):
+                for result in nested_lookup(key, v):
+                    yield result
+            elif isinstance(v, list):
+                for d in v:
+                    for result in nested_lookup(key, d):
+                        yield result
