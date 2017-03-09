@@ -202,8 +202,8 @@ class StorageMedium(models.Model):
         )
 
     def __unicode__(self):
-        if len(self.storageMediumID):
-            return self.storageMediumID
+        if len(self.medium_id):
+            return self.medium_id
 
         return unicode(self.id)
 
@@ -239,7 +239,7 @@ class StorageObject(models.Model):
             medium_id = 'unknown media'
 
         try:
-            obj_identifier_value = self.archiveobject.ObjectIdentifierValue
+            obj_identifier_value = self.ip.ObjectIdentifierValue
         except ObjectDoesNotExist:
             obj_identifier_value = 'unknown object'
 
