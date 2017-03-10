@@ -208,6 +208,16 @@ class InformationPackage(models.Model):
         null=True
     )
 
+    def related_ips(self):
+        sorting = ('generation', 'package_type', 'CreateDate',)
+
+        if self.package_type == InformationPackage.AIC:
+            return self.information_packages.order_by(*sorting)
+
+        return InformationPackage.objects.filter(
+            aic__isnull=False, aic=self.aic,
+        ).exclude(pk=self.pk).order_by(*sorting)
+
     def save(self, *args, **kwargs):
         if not self.ObjectIdentifierValue:
             self.ObjectIdentifierValue = str(self.pk)
