@@ -171,7 +171,8 @@ class XMLElement(object):
                 external_gen = XMLGenerator(
                     filesToCreate={
                         os.path.join(folderToParse, ptr_file_path): self.external['-specification']
-                    }
+                    },
+                    info=info
                 )
                 external_gen.generate(os.path.join(folderToParse, self.external['-dir'], ext_dir))
 
