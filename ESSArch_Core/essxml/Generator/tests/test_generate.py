@@ -1216,11 +1216,6 @@ class ExternalTestCase(TransactionTestCase):
         os.makedirs(self.external1)
         os.makedirs(self.external2)
 
-        with open(os.path.join(self.external1, "file1.txt"), "w") as f:
-            f.write('a txt file')
-        with open(os.path.join(self.external2, "file1.pdf"), "w") as f:
-            f.write('a pdf file')
-
         Path.objects.create(
             entity="path_mimetypes_definitionfile",
             value=os.path.join(self.bd, "mime.types")
@@ -1245,6 +1240,53 @@ class ExternalTestCase(TransactionTestCase):
             pass
 
     def test_external(self):
+        specification = {
+            '-name': 'root',
+            '-external': {
+                '-dir': 'external',
+                '-file': 'external.xml',
+                '-pointer': {
+                    '-name': 'ptr',
+                    '#content': [{'var': '_EXT_HREF'}]
+                },
+                '-specification': {
+                    '-name': 'extroot',
+                    '-children': [
+                        {
+                            '-name': 'foo',
+                            '#content': [{'var': '_EXT'}]
+                        }
+                    ]
+                }
+            },
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate(folderToParse=self.datadir)
+
+        self.assertTrue(os.path.isfile(self.fname))
+
+        external1_path = os.path.join(self.external1, 'external.xml')
+        external2_path = os.path.join(self.external2, 'external.xml')
+
+        tree = etree.parse(self.fname)
+
+        self.assertEqual(len(tree.xpath(".//ptr[text()='%s']" % os.path.relpath(external1_path, self.datadir))), 1)
+        self.assertEqual(len(tree.xpath(".//ptr[text()='%s']" % os.path.relpath(external2_path, self.datadir))), 1)
+
+        self.assertTrue(os.path.isfile(external1_path))
+        self.assertTrue(os.path.isfile(external2_path))
+
+        external1_tree = etree.parse(external1_path)
+        self.assertEqual(len(external1_tree.xpath(".//foo[text()='external1']")), 1)
+
+        external2_tree = etree.parse(external2_path)
+        self.assertEqual(len(external2_tree.xpath(".//foo[text()='external2']")), 1)
+
+    def test_external_with_files(self):
         specification = {
             '-name': 'root',
             '-external': {
@@ -1283,6 +1325,11 @@ class ExternalTestCase(TransactionTestCase):
             },
         }
 
+        with open(os.path.join(self.external1, "file1.txt"), "w") as f:
+            f.write('a txt file')
+        with open(os.path.join(self.external2, "file1.pdf"), "w") as f:
+            f.write('a pdf file')
+
         generator = XMLGenerator(
             {self.fname: specification}
         )
@@ -1312,6 +1359,51 @@ class ExternalTestCase(TransactionTestCase):
 
         parse_file_tasks = ProcessTask.objects.filter(name='ESSArch_Core.tasks.ParseFile')
         self.assertEqual(parse_file_tasks.count(), 2)
+
+    def test_external_info(self):
+        specification = {
+            '-name': 'root',
+            '-external': {
+                '-dir': 'external',
+                '-file': 'external.xml',
+                '-pointer': {
+                    '-name': 'ptr',
+                    '-attr': [
+                        {
+                            '-name': 'href',
+                            '#content': [{'var': '_EXT_HREF'}]
+                        },
+                    ],
+                },
+                '-specification': {
+                    '-name': 'extroot',
+                    '-children': [
+                        {
+                            '-name': 'foo',
+                            '#content': [{'var': 'foo'}]
+                        }
+                    ]
+                }
+            },
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification},
+            {'foo': 'bar'}
+        )
+
+        generator.generate(folderToParse=self.datadir)
+
+        self.assertTrue(os.path.isfile(self.fname))
+
+        external1_path = os.path.join(self.external1, 'external.xml')
+        external2_path = os.path.join(self.external2, 'external.xml')
+
+        external1_tree = etree.parse(external1_path)
+        self.assertEqual(len(external1_tree.xpath('.//foo[text()="bar"]')), 1)
+
+        external2_tree = etree.parse(external2_path)
+        self.assertEqual(len(external2_tree.xpath(".//foo[text()='bar']")), 1)
 
 
 class test_parseContent(TransactionTestCase):
