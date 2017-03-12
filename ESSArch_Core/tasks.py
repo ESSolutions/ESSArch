@@ -47,6 +47,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
     findElementWithoutNamespace,
     XMLGenerator
 )
+from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.WorkflowEngine.models import (
     ProcessStep,
@@ -510,7 +511,7 @@ class ValidateFiles(DBTask):
             doc = etree.ElementTree(file=xmlfile)
             tasks = []
 
-            for elname, props in settings.FILE_ELEMENTS.iteritems():
+            for elname, props in FILE_ELEMENTS.iteritems():
                 for f in doc.xpath('.//*[local-name()="%s"]' % elname):
                     fpath = get_value_from_path(f, props["path"])
 
@@ -668,27 +669,15 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 
     queue = 'validation'
 
-    def run(self, dirname=None, files=[], files_reldir=None, xmlfile=None):
+    def run(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=""):
         if dirname:
             xmlrelpath = os.path.relpath(xmlfile, dirname)
             xmlrelpath = remove_prefix(xmlrelpath, "./")
         else:
             xmlrelpath = xmlfile
 
-        doc = etree.ElementTree(file=xmlfile)
-
-        root = doc.getroot()
-
-        logical_files = set()
+        logical_files = find_files(xmlfile, rootdir)
         physical_files = set()
-
-        for elname, props in settings.FILE_ELEMENTS.iteritems():
-            for f in doc.xpath('.//*[local-name()="%s"]' % elname):
-                filename = get_value_from_path(f, props["path"])
-
-                if filename:
-                    filename = remove_prefix(filename, props.get("pathprefix", ""))
-                    logical_files.add(filename)
 
         if dirname:
             for root, dirs, filenames in os.walk(dirname):
@@ -710,10 +699,10 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
         self.set_progress(100, total=100)
         return "Success"
 
-    def undo(self, dirname=None, files=[], files_reldir=None, xmlfile=None):
+    def undo(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=''):
         pass
 
-    def event_outcome_success(self, dirname=None, files=[], files_reldir=None, xmlfile=None):
+    def event_outcome_success(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=''):
         return "Validated logical and physical structure of %s and %s" % (xmlfile, dirname)
 
 

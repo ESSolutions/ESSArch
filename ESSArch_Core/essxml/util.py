@@ -28,10 +28,40 @@ import os
 
 from lxml import etree
 
-from ESSArch_Core.util import get_value_from_path
+from ESSArch_Core.util import get_value_from_path, remove_prefix
 
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
+
+# File elements in different metadata standards
+FILE_ELEMENTS = {
+    "file": {
+        "path": "FLocat@href",
+        "pathprefix": "file:///",
+        "checksum": "@CHECKSUM",
+        "checksumtype": "@CHECKSUMTYPE",
+    },
+    "mdRef": {
+        "path": "@href",
+        "pathprefix": "file:///",
+        "checksum": "@CHECKSUM",
+        "checksumtype": "@CHECKSUMTYPE",
+    },
+    "object": {
+        "path": "storage/contentLocation/contentLocationValue",
+        "pathprefix": "file:///",
+        "checksum": "objectCharacteristics/fixity/messageDigest",
+        "checksumtype": "objectCharacteristics/fixity/messageDigestAlgorithm",
+        "format": "objectCharacteristics/format/formatDesignation/formatName",
+    },
+}
+
+PTR_ELEMENTS = {
+    "mptr": {
+        "path": "@href",
+        "pathprefix": "file:///",
+    }
+}
 
 
 def get_agent(el, ROLE=None, OTHERROLE=None, TYPE=None, OTHERTYPE=None):
@@ -154,3 +184,28 @@ def parse_submit_description(xmlfile, srcdir=''):
         pass
 
     return ip
+
+
+def find_files(xmlfile, rootdir='', prefix=''):
+    doc = etree.ElementTree(file=xmlfile)
+    files = set()
+
+    for elname, props in FILE_ELEMENTS.iteritems():
+        for f in doc.xpath('.//*[local-name()="%s"]' % elname):
+            filename = get_value_from_path(f, props["path"])
+
+            if filename:
+                filename = remove_prefix(filename, props.get("pathprefix", ""))
+                files.add(os.path.join(prefix, filename.lstrip('/ ')))
+
+    for elname, props in PTR_ELEMENTS.iteritems():
+        for ptr in doc.xpath('.//*[local-name()="%s"]' % elname):
+            pointer = get_value_from_path(ptr, props["path"])
+
+            if pointer:
+                pointer = remove_prefix(pointer, props.get("pathprefix", ""))
+                pointer_prefix = os.path.split(pointer)[0]
+                files.add(pointer)
+                files |= find_files(os.path.join(rootdir, pointer), rootdir, pointer_prefix)
+
+    return files
