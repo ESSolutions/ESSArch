@@ -1405,6 +1405,107 @@ class ExternalTestCase(TransactionTestCase):
         external2_tree = etree.parse(external2_path)
         self.assertEqual(len(external2_tree.xpath(".//foo[text()='bar']")), 1)
 
+    def test_external_nsmap(self):
+        nsmap = {
+            'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+        }
+
+        specification = {
+            '-name': 'root',
+            '-nsmap': nsmap,
+            '-namespace': 'xsi',
+            '-external': {
+                '-dir': 'external',
+                '-file': 'external.xml',
+                '-pointer': {
+                    '-name': 'ptr',
+                    '-attr': [
+                        {
+                            '-name': 'href',
+                            '#content': [{'var': '_EXT_HREF'}]
+                        },
+                    ],
+                },
+                '-specification': {
+                    '-name': 'extroot',
+                    '-children': [
+                        {
+                            '-name': 'foo',
+                            '-namespace': 'xsi',
+                            '#content': [{'text': 'bar'}]
+                        }
+                    ]
+                }
+            },
+        }
+        generator = XMLGenerator(
+            {self.fname: specification},
+            {'foo': 'bar'}
+        )
+        generator.generate(folderToParse=self.datadir)
+
+        external1_path = os.path.join(self.external1, 'external.xml')
+        external2_path = os.path.join(self.external2, 'external.xml')
+
+        external1_tree = etree.parse(external1_path)
+        self.assertIsNotNone(external1_tree.find('.//xsi:foo', namespaces=nsmap))
+
+        external2_tree = etree.parse(external2_path)
+        self.assertIsNotNone(external2_tree.find('.//xsi:foo', namespaces=nsmap))
+
+    def test_external_nsmap_collision(self):
+        nsmap = {
+            'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+        }
+
+        nsmap_ext = {
+            'xsi': 'external_xsi',
+        }
+
+        specification = {
+            '-name': 'root',
+            '-nsmap': nsmap,
+            '-namespace': 'xsi',
+            '-external': {
+                '-dir': 'external',
+                '-file': 'external.xml',
+                '-pointer': {
+                    '-name': 'ptr',
+                    '-attr': [
+                        {
+                            '-name': 'href',
+                            '#content': [{'var': '_EXT_HREF'}]
+                        },
+                    ],
+                },
+                '-specification': {
+                    '-name': 'extroot',
+                    '-nsmap': nsmap_ext,
+                    '-children': [
+                        {
+                            '-name': 'foo',
+                            '-namespace': 'xsi',
+                            '#content': [{'text': 'bar'}]
+                        }
+                    ]
+                }
+            },
+        }
+        generator = XMLGenerator(
+            {self.fname: specification},
+            {'foo': 'bar'}
+        )
+        generator.generate(folderToParse=self.datadir)
+
+        external1_path = os.path.join(self.external1, 'external.xml')
+        external2_path = os.path.join(self.external2, 'external.xml')
+
+        external1_tree = etree.parse(external1_path)
+        self.assertIsNotNone(external1_tree.find('.//xsi:foo', namespaces=nsmap_ext))
+
+        external2_tree = etree.parse(external2_path)
+        self.assertIsNotNone(external2_tree.find('.//xsi:foo', namespaces=nsmap_ext))
+
 
 class test_parseContent(TransactionTestCase):
     def test_parse_content_only_text(self):
