@@ -32,6 +32,8 @@ from celery.result import allow_join_result
 
 from lxml import etree
 
+from natsort import natsorted
+
 from django.conf import settings
 from django.utils import timezone
 
@@ -159,7 +161,7 @@ class XMLElement(object):
 
         if self.external:
             ext_dirs = next(walk(os.path.join(folderToParse, self.external['-dir'])))[1]
-            for ext_dir in ext_dirs:
+            for ext_dir in natsorted(ext_dirs):
                 ptr = XMLElement(self.external['-pointer'])
                 ptr_file_path = os.path.join(self.external['-dir'], ext_dir, self.external['-file'])
 
