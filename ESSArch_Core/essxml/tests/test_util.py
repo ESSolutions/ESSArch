@@ -59,10 +59,10 @@ class FindFilesTestCase(TestCase):
         with open(xmlfile, 'w') as xml:
             xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
             <root xmlns:xlink="http://www.w3.org/1999/xlink">
-                <mptr xlink:href="%s"/>
-                <mptr xlink:href="%s"/>
+                <mptr xlink:href="ext1.xml"/>
+                <mptr xlink:href="ext2.xml"/>
             </root>
-            ''' % (ext1, ext2))
+            ''')
 
         with open(ext1, 'w') as xml:
             xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
@@ -80,6 +80,7 @@ class FindFilesTestCase(TestCase):
             </root>
             ''')
 
-        expected = ['1.txt', '1.pdf', '2.txt', '2.pdf']
-        self.assertItemsEqual(find_files(xmlfile), expected)
-
+        expected = ['ext1.xml', 'ext2.xml', '1.txt', '1.pdf', '2.txt', '2.pdf']
+        found = find_files(xmlfile, rootdir=self.datadir)
+        self.assertEqual(len(found), len(expected))
+        self.assertItemsEqual(found, expected)
