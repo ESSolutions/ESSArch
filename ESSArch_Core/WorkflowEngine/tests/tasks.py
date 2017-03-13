@@ -24,6 +24,7 @@
 
 from __future__ import absolute_import
 
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 
 import os
@@ -68,6 +69,14 @@ class Add(DBTask):
 class Fail(DBTask):
     def run(self):
         raise Exception
+
+    def undo(self):
+        pass
+
+
+class FailDoesNotExist(DBTask):
+    def run(self):
+        raise InformationPackage.DoesNotExist
 
     def undo(self):
         pass

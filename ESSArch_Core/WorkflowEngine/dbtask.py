@@ -194,9 +194,13 @@ class DBTask(Task):
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         time_done = timezone.now()
+        tb = einfo.traceback
+        exception = "%s: %s" % (einfo.type.__name__, einfo.exception)
+
         try:
             ProcessTask.objects.filter(pk=task_id).update(
-                einfo=einfo,
+                traceback=tb,
+                exception=exception,
                 status=celery_states.FAILURE,
                 time_done=time_done,
             )
@@ -204,7 +208,8 @@ class DBTask(Task):
             print "Database locked, trying again after 2 seconds"
             time.sleep(2)
             ProcessTask.objects.filter(pk=task_id).update(
-                einfo=einfo,
+                traceback=tb,
+                exception=exception,
                 status=celery_states.FAILURE,
                 time_done=time_done,
             )
