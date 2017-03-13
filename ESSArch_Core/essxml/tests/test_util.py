@@ -51,6 +51,75 @@ class FindFilesTestCase(TestCase):
         except:
             pass
 
+    def test_empty(self):
+        xmlfile = os.path.join(self.datadir, "test.xml")
+
+        with open(xmlfile, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root xmlns:xlink="http://www.w3.org/1999/xlink"></root>
+            ''')
+
+        expected = []
+        found = find_files(xmlfile, rootdir=self.datadir)
+        self.assertEqual(len(found), len(expected))
+
+    def test_files_file_element(self):
+        xmlfile = os.path.join(self.datadir, "test.xml")
+
+        with open(xmlfile, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root xmlns:xlink="http://www.w3.org/1999/xlink">
+                <file><FLocat href="file:///1.txt"/></file>
+                <file><FLocat href="2.txt"/></file>
+            </root>
+            ''')
+
+        expected = ['1.txt', '2.txt']
+        found = find_files(xmlfile, rootdir=self.datadir)
+        self.assertEqual(len(found), len(expected))
+
+    def test_files_mdRef_element(self):
+        xmlfile = os.path.join(self.datadir, "test.xml")
+
+        with open(xmlfile, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root xmlns:xlink="http://www.w3.org/1999/xlink">
+                <mdRef href="file:///1.txt"/>
+                <mdRef href="2.txt"/>
+            </root>
+            ''')
+
+        expected = ['1.txt', '2.txt']
+        found = find_files(xmlfile, rootdir=self.datadir)
+        self.assertEqual(len(found), len(expected))
+
+    def test_files_object_element(self):
+        xmlfile = os.path.join(self.datadir, "test.xml")
+
+        with open(xmlfile, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root xmlns:xlink="http://www.w3.org/1999/xlink">
+                <object>
+                    <storage>
+                        <contentLocation>
+                            <contentLocationValue>file:///1.txt</contentLocationValue>
+                        </contentLocation>
+                    </storage>
+                </object>
+                <object>
+                    <storage>
+                        <contentLocation>
+                            <contentLocationValue>file:///2.txt</contentLocationValue>
+                        </contentLocation>
+                    </storage>
+                </object>
+            </root>
+            ''')
+
+        expected = ['1.txt', '2.txt']
+        found = find_files(xmlfile, rootdir=self.datadir)
+        self.assertEqual(len(found), len(expected))
+
     def test_pointer(self):
         xmlfile = os.path.join(self.datadir, "test.xml")
         ext1 = os.path.join(self.datadir, "ext1.xml")
