@@ -53,8 +53,8 @@ class GroupDetailSerializer(GroupSerializer):
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     permissions = serializers.ReadOnlyField(source='get_all_permissions')
-    user_permissions = PermissionSerializer(many=True)
-    groups = GroupSerializer(many=True)
+    user_permissions = PermissionSerializer(many=True, read_only=True)
+    groups = GroupSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
