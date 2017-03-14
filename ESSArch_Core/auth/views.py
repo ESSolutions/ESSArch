@@ -32,6 +32,7 @@ from ESSArch_Core.auth.serializers import (
 from django.contrib.auth.models import User, Group, Permission
 from rest_framework import viewsets
 from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.permissions import IsAuthenticated
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -57,6 +58,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 class MeView(RetrieveUpdateAPIView):
     serializer_class = UserSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_object(self):
         return self.request.user
