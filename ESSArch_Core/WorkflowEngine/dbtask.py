@@ -98,6 +98,10 @@ class DBTask(Task):
                             time_started=time_started,
                             progress=self.progress
                         )
+                        einfo = ExceptionInfo()
+                        if self.event_type:
+                            event = self.create_event(self.task_id, celery_states.FAILURE, args, a, None, einfo)
+                            events.append(event)
                         raise
                     else:
                         self.on_success(retval, self.task_id, None, kwargs)
