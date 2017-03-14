@@ -25,7 +25,7 @@
 from rest_framework import permissions
 
 
-class IsResponsibleOrReadOnly(permissions.BasePermission):
+class IsResponsibleOrReadOnly(permissions.IsAuthenticated):
     message = "You are not responsible for this IP"
 
     def is_responsible(self, request, obj):
@@ -78,7 +78,7 @@ class CanSubmitSIP(IsResponsibleOrReadOnly):
         return responsible or has_perm
 
 
-class CanTransferSIP(permissions.BasePermission):
+class CanTransferSIP(permissions.IsAuthenticated):
     message = "You are not allowed to transfer this SIP"
 
     def has_object_permission(self, request, view, obj):
