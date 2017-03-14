@@ -111,7 +111,7 @@ class DBTask(Task):
                             hidden=hidden,
                             time_started=time_started,
                             time_done=timezone.now(),
-                            progress=self.progress
+                            progress=100
                         )
                         res.append(retval)
                         if self.event_type:
@@ -235,6 +235,7 @@ class DBTask(Task):
                 result=retval,
                 status=celery_states.SUCCESS,
                 time_done=time_done,
+                progress=100
             )
         except OperationalError:
             print "Database locked, trying again after 2 seconds"

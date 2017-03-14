@@ -94,7 +94,6 @@ class CalculateChecksum(DBTask):
                 else:
                     break
 
-        self.set_progress(100, total=100)
         return hash_val.hexdigest()
 
     def undo(self, filename=None, block_size=65536, algorithm='SHA-256'):
@@ -128,8 +127,6 @@ class IdentifyFileFormat(DBTask):
         self.fid = fid
         self.fid.handle_matches = self.handle_matches
         self.fid.identify_file(filename)
-
-        self.set_progress(100, total=100)
 
         return self.lastFmt
 
@@ -199,8 +196,6 @@ class ParseFile(DBTask):
             'FIDType': 'UUID',
         }
 
-        self.set_progress(100, total=100)
-
         return fileinfo
 
     def undo(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256'):
@@ -225,8 +220,6 @@ class GenerateXML(DBTask):
             folderToParse=folderToParse, algorithm=algorithm,
         )
 
-        self.set_progress(100, total=100)
-
     def undo(self, info={}, filesToCreate={}, folderToParse=None, algorithm='SHA-256'):
         for f, template in filesToCreate.iteritems():
             os.remove(f)
@@ -244,8 +237,6 @@ class InsertXML(DBTask):
         generator = XMLGenerator()
 
         generator.insert(filename, elementToAppendTo, spec, info=info, index=index)
-
-        self.set_progress(100, total=100)
 
     def undo(self, filename=None, elementToAppendTo=None, spec={}, info={}, index=None):
         tree = etree.parse(filename)
@@ -436,8 +427,6 @@ class AppendEvents(DBTask):
 
             generator.insert(filename, "premis", template, data)
 
-        self.set_progress(100, total=100)
-
     def undo(self, filename="", events={}):
         tree = etree.parse(filename)
         parent = findElementWithoutNamespace(tree, 'premis')
@@ -481,8 +470,6 @@ class CopySchemas(DBTask):
 
         src, dst = self.createSrcAndDst(schema, root, structure)
         urllib.urlretrieve(src, dst)
-
-        self.set_progress(100, total=100)
 
     def undo(self, schema={}, root=None, structure=None):
         pass
@@ -549,8 +536,6 @@ class ValidateFiles(DBTask):
 
             ProcessTask.objects.bulk_create(tasks)
 
-        self.set_progress(100, total=100)
-
         with allow_join_result():
             return step.run().get()
 
@@ -585,7 +570,6 @@ class ValidateFileFormat(DBTask):
         res = t.run().get()
 
         assert res == fileformat, "fileformat for %s is not valid" % filename
-        self.set_progress(100, total=100)
         return "Success"
 
     def undo(self, filename=None, fileformat=None):
@@ -621,7 +605,6 @@ class ValidateIntegrity(DBTask):
         digest = t.run().get()
 
         assert digest == checksum, "checksum for %s is not valid (%s != %s)" % (filename, digest, checksum)
-        self.set_progress(100, total=100)
         return "Success"
 
     def undo(self, filename=None, checksum=None,  block_size=65536, algorithm='SHA-256'):
@@ -647,7 +630,6 @@ class ValidateXMLFile(DBTask):
             xmlschema = getSchemas(doc=doc)
 
         xmlschema.assertValid(doc)
-        self.set_progress(100, total=100)
         return "Success"
 
     def undo(self, xml_filename=None, schema_filename=None):
@@ -696,7 +678,6 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
             physical_files.add(f)
 
         assert logical_files == physical_files, "the logical representation differs from the physical"
-        self.set_progress(100, total=100)
         return "Success"
 
     def undo(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=''):
@@ -709,8 +690,6 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 class UpdateIPStatus(DBTask):
     def run(self, ip=None, status=None, prev=None):
         InformationPackage.objects.filter(pk=ip).update(State=status)
-        self.set_progress(100, total=100)
-
     def undo(self, ip=None, status=None, prev=None):
         InformationPackage.objects.filter(pk=ip).update(State=prev)
 
@@ -721,8 +700,6 @@ class UpdateIPStatus(DBTask):
 class UpdateIPPath(DBTask):
     def run(self, ip=None, path=None, prev=None):
         InformationPackage.objects.filter(pk=ip).update(ObjectPath=path)
-        self.set_progress(100, total=100)
-
     def undo(self, ip=None, path=None, prev=None):
         InformationPackage.objects.filter(pk=ip).update(ObjectPath=prev)
 
@@ -740,8 +717,6 @@ class DeleteFiles(DBTask):
                     os.remove(path)
                 except:
                     raise
-
-        self.set_progress(100, total=100)
 
     def undo(self, path=None):
         pass
@@ -801,8 +776,6 @@ class CopyChunk(DBTask):
             self.remote(src, dst, requests_session, block_size, offset, file_size)
         except ValidationError:
             self.local(src, dst, block_size, offset)
-
-        self.set_progress(100, total=100)
 
     def undo(self, src=None, dst=None, requests_session=None, offset=0, block_size=65536, file_size=0):
         pass
@@ -899,8 +872,6 @@ class CopyFile(DBTask):
         except ValidationError:
             self.local(src, dst, block_size, step)
 
-        self.set_progress(100, total=100)
-
     def undo(self, src=None, dst=None, requests_session=None, block_size=65536):
         pass
 
@@ -921,8 +892,6 @@ class SendEmail(DBTask):
             email.attach_file(a)
 
         email.send()
-
-        self.set_progress(100, total=100)
 
     def undo(self, sender=None, recipients=[], subject=None, body=None, attachments=[]):
         pass
@@ -955,8 +924,6 @@ class DownloadSchemas(DBTask):
 
             t.run().get()
 
-        self.set_progress(100, total=100)
-
     def undo(self, template=None, dirname=None, structure=[], root="", task=None):
         pass
 
@@ -971,8 +938,6 @@ class DownloadFile(DBTask):
             with open(dst, 'wb') as f:
                 for chunk in r:
                     f.write(chunk)
-
-        self.set_progress(100, total=100)
 
     def undo(self, src=None, dst=None):
         pass

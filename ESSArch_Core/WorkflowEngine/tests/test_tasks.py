@@ -132,7 +132,7 @@ class test_running_tasks(TestCase):
             information_package=InformationPackage.objects.create()
         )
 
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(3):
             task.run()
 
         task.refresh_from_db()
@@ -152,7 +152,7 @@ class test_running_tasks(TestCase):
             information_package=InformationPackage.objects.create()
         )
 
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(6):
             task.run()
 
         task.refresh_from_db()
@@ -318,7 +318,7 @@ class test_retrying_tasks(TestCase):
         task.run()
         task.undo()
 
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(5):
             task.retry()
 
         task.refresh_from_db()
