@@ -1719,6 +1719,26 @@ class UpdateIPSizeAndCountTestCase(TransactionTestCase):
         self.assertEqual(self.ip.object_size, 6)
         self.assertEqual(self.ip.object_num_items, 2)
 
+    def test_object_path_set_to_file_and_run(self):
+        with open(os.path.join(self.datadir, 'foo.txt'), 'w') as f:
+            f.write('foo')
+
+        self.ip.ObjectPath = os.path.join(self.datadir, 'foo.txt')
+        self.ip.save()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 3)
+        self.assertEqual(self.ip.object_num_items, 1)
+
 
 class DeleteFilesTestCase(TransactionTestCase):
     def setUp(self):

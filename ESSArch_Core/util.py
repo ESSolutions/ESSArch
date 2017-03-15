@@ -255,6 +255,10 @@ def get_files_and_dirs(path):
 
 def get_tree_size_and_count(path='.'):
     """Return total size and count of files in given path and subdirs."""
+
+    if os.path.isfile(path):
+        return os.path.getsize(path), 1
+
     total_size = 0
     count = 0
 
