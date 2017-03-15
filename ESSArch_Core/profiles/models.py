@@ -264,7 +264,7 @@ class Profile(models.Model):
     cm_change_authority = models.CharField(max_length=255)
     cm_change_description = models.CharField(max_length=255)
     cm_sections_affected = models.CharField(max_length=255)
-    schemas = jsonfield.JSONField(null=True)
+    schemas = jsonfield.JSONField(default={})
     representation_info = models.CharField(max_length=255)
     preservation_descriptive_info = models.CharField(max_length=255)
     supplemental = models.CharField(max_length=255)
@@ -274,10 +274,10 @@ class Profile(models.Model):
     submission_method = models.CharField(max_length=255)
     submission_schedule = models.CharField(max_length=255)
     submission_data_inventory = models.CharField(max_length=255)
-    structure = jsonfield.JSONField(null=True)
-    template = jsonfield.JSONField(null=True)
-    specification = jsonfield.JSONField(null=True)
-    specification_data = jsonfield.JSONField(null=True)
+    structure = jsonfield.JSONField(default={})
+    template = jsonfield.JSONField(default={})
+    specification = jsonfield.JSONField(default={})
+    specification_data = jsonfield.JSONField(default={})
 
     def fill_specification_data(self, sa=None, ip=None):
         data = self.specification_data
