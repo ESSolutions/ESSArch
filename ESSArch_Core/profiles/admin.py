@@ -43,9 +43,9 @@ Submission Agreement
 """
 
 
-class SubmissionAgreementAdmin( admin.ModelAdmin ):
-    list_display = ( 'sa_name', 'sa_type', 'sa_status', 'sa_label' )
-    search_fields = ( 'sa_name', )
+class SubmissionAgreementAdmin(admin.ModelAdmin):
+    list_display = ('sa_name', 'sa_type', 'sa_status', 'sa_label')
+    search_fields = ('sa_name', )
     readonly_fields = ('id',)
     list_filter = ('sa_name', 'sa_type')
     #fields = ('entity', 'value')
@@ -149,9 +149,9 @@ Profile
 """
 
 
-class ProfileAdmin( admin.ModelAdmin ):
-    list_display = ( 'name', 'type', 'status', 'label' )
-    search_fields = ( 'name', )
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('name', 'type', 'status', 'label')
+    search_fields = ('name', )
     readonly_fields = ('id',)
     list_filter = ('name', 'label')
     #fields = ('entity', 'value')
