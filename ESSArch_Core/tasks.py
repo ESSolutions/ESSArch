@@ -709,6 +709,8 @@ class UpdateIPPath(DBTask):
 
 
 class UpdateIPSizeAndCount(DBTask):
+    queue = 'file_operation'
+
     def run(self, ip=None):
         path = InformationPackage.objects.values_list('ObjectPath', flat=True).get(pk=ip)
         size, count = get_tree_size_and_count(path)
