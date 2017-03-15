@@ -8,6 +8,7 @@ from django.db import models
 from picklefield.fields import PickledObjectField
 
 from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 IOReqType_CHOICES = (
     (10, 'Write to tape'),
@@ -256,12 +257,12 @@ class IOQueue(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     req_type = models.IntegerField(choices=IOReqType_CHOICES)
     req_purpose = models.CharField(max_length=255, blank=True)
-    user = models.CharField(max_length=45)
+    user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='io_queues')
     object_path = models.CharField(max_length=256, blank=True)
     write_size = models.BigIntegerField(null=True, blank=True)
     result = PickledObjectField(blank=True)
     status = models.IntegerField(blank=True, default=0, choices=req_status_CHOICES)
-    task_id = models.CharField(max_length=36, blank=True)
+    task_id = models.ForeignKey(ProcessTask, on_delete=models.PROTECT, null=True, related_name='io_queues')
     posted = models.DateTimeField(auto_now_add=True)
     ip = models.ForeignKey(InformationPackage, null=True)
     storage_method = models.ForeignKey('StorageMethod', blank=True, null=True)
@@ -271,7 +272,7 @@ class IOQueue(models.Model):
     storage_object = models.ForeignKey('StorageObject', blank=True, null=True)
     access_queue = models.ForeignKey('AccessQueue', blank=True, null=True)
     remote_status = models.IntegerField(blank=True, default=0, choices=remote_status_CHOICES)
-    transfer_task_id = models.CharField(max_length=36, blank=True)
+    transfer_task_id = models.ForeignKey(ProcessTask, on_delete=models.PROTECT, null=True, related_name='io_queues_transfer')
 
     class Meta:
         permissions = (
