@@ -180,6 +180,10 @@ class ProfileAdmin(admin.ModelAdmin):
                    'fields': (
                               'structure',
                               )}),
+                ('form template', {
+                    'classes': ('collapse', 'wide',),
+                    'fields': ('template',)
+                }),
                 ('specification structure and data', {
                    'classes': ('collapse', 'wide'),
                    'fields': (
