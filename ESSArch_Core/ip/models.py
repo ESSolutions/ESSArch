@@ -107,6 +107,8 @@ class InformationPackage(models.Model):
     CreateDate = models.DateTimeField(auto_now_add=True)
     State = models.CharField(max_length=255)
     ObjectPath = models.CharField(max_length=255)
+    object_size = models.BigIntegerField(default=0)
+    object_num_items = models.IntegerField(default=0)
     Startdate = models.DateTimeField(null=True)
     Enddate = models.DateTimeField(null=True)
     OAIStype = models.CharField(max_length=255)
@@ -152,10 +154,6 @@ class InformationPackage(models.Model):
             self.ObjectIdentifierValue = str(self.pk)
 
         super(InformationPackage, self).save(*args, **kwargs)
-
-    @property
-    def ObjectSizeAndNum(self):
-        return get_tree_size_and_count(self.ObjectPath)
 
     def get_profile_rel(self, profile_type):
         return self.profileip_set.filter(

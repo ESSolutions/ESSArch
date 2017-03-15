@@ -41,6 +41,7 @@ from django.conf import settings
 
 from ESSArch_Core.util import (
     alg_from_str,
+    get_tree_size_and_count,
 )
 
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
@@ -705,6 +706,24 @@ class UpdateIPPath(DBTask):
 
     def event_outcome_success(self, ip=None, path=None, prev=None):
         return "Updated path of %s to %s" % (ip, path)
+
+
+class UpdateIPSizeAndCount(DBTask):
+    def run(self, ip=None):
+        path = InformationPackage.objects.values_list('ObjectPath', flat=True).get(pk=ip)
+        size, count = get_tree_size_and_count(path)
+
+        InformationPackage.objects.filter(pk=ip).update(
+            object_size=size, object_num_items=count
+        )
+
+        return size, count
+
+    def undo(self, ip=None):
+        pass
+
+    def event_outcome_success(self, ip=None):
+        return "Updated size and count of %s" % ip
 
 
 class DeleteFiles(DBTask):

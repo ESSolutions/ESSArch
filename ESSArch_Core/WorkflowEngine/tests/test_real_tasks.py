@@ -1574,6 +1574,152 @@ class UpdateIPPathTestCase(TransactionTestCase):
         self.assertEqual(self.ip.ObjectPath, 'initial')
 
 
+class UpdateIPSizeAndCountTestCase(TransactionTestCase):
+    def setUp(self):
+        self.taskname = "ESSArch_Core.tasks.UpdateIPSizeAndCount"
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.ip = InformationPackage.objects.create(ObjectPath=self.datadir)
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def test_init(self):
+        self.assertEqual(self.ip.object_size, 0)
+        self.assertEqual(self.ip.object_num_items, 0)
+
+    def test_run_empty(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 0)
+        self.assertEqual(self.ip.object_num_items, 0)
+
+    def test_add_empty_file_and_run(self):
+        open(os.path.join(self.datadir, 'foo.txt'), 'a').close()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 0)
+        self.assertEqual(self.ip.object_num_items, 1)
+
+    def test_add_file_with_content_and_run(self):
+        with open(os.path.join(self.datadir, 'foo.txt'), 'w') as f:
+            f.write('foo')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 3)
+        self.assertEqual(self.ip.object_num_items, 1)
+
+    def test_add_empty_dir_and_run(self):
+        os.mkdir(os.path.join(self.datadir, 'foo'))
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 0)
+        self.assertEqual(self.ip.object_num_items, 0)
+
+    def test_add_dir_with_file_with_content_and_run(self):
+        os.mkdir(os.path.join(self.datadir, 'foo'))
+        with open(os.path.join(self.datadir, 'foo', 'foo.txt'), 'w') as f:
+            f.write('foo')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 3)
+        self.assertEqual(self.ip.object_num_items, 1)
+
+    def test_add_multiple_dirs_with_files_and_run(self):
+        os.mkdir(os.path.join(self.datadir, 'foo'))
+        os.mkdir(os.path.join(self.datadir, 'bar'))
+        with open(os.path.join(self.datadir, 'foo', 'foo.txt'), 'w') as f:
+            f.write('foo')
+
+        with open(os.path.join(self.datadir, 'bar', 'bar.txt'), 'w') as f:
+            f.write('bar')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 6)
+        self.assertEqual(self.ip.object_num_items, 2)
+
+    def test_add_multiple_dirs_with_files_with_same_name_and_run(self):
+        os.mkdir(os.path.join(self.datadir, 'foo'))
+        os.mkdir(os.path.join(self.datadir, 'bar'))
+        with open(os.path.join(self.datadir, 'foo', 'foo.txt'), 'w') as f:
+            f.write('foo')
+
+        with open(os.path.join(self.datadir, 'bar', 'foo.txt'), 'w') as f:
+            f.write('foo')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 6)
+        self.assertEqual(self.ip.object_num_items, 2)
+
+
 class DeleteFilesTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.DeleteFiles"
