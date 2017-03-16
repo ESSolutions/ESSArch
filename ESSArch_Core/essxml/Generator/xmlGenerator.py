@@ -140,7 +140,7 @@ class XMLElement(object):
 
         return True
 
-    def createLXMLElement(self, info, nsmap={}, files=[], folderToParse=''):
+    def createLXMLElement(self, info, nsmap={}, files=[], folderToParse='', task=None):
         full_nsmap = nsmap.copy()
         full_nsmap.update(self.nsmap)
 
@@ -168,7 +168,7 @@ class XMLElement(object):
                 ptr_info = info
                 ptr_info['_EXT'] = ext_dir
                 ptr_info['_EXT_HREF'] = ptr_file_path
-                self.el.append(ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse))
+                self.el.append(ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse, task=task))
 
                 external_spec = self.external['-specification']
 
@@ -180,7 +180,8 @@ class XMLElement(object):
                     filesToCreate={
                         os.path.join(folderToParse, ptr_file_path): external_spec
                     },
-                    info=info
+                    info=info,
+                    task=task
                 )
                 external_gen.generate(os.path.join(folderToParse, self.external['-dir'], ext_dir))
 
@@ -196,9 +197,9 @@ class XMLElement(object):
                     if include:
                         full_info = info.copy()
                         full_info.update(fileinfo)
-                        self.el.append(child.createLXMLElement(full_info, full_nsmap, files=files, folderToParse=folderToParse))
+                        self.el.append(child.createLXMLElement(full_info, full_nsmap, files=files, folderToParse=folderToParse, task=task))
             else:
-                child_el = child.createLXMLElement(info, full_nsmap, files=files, folderToParse=folderToParse)
+                child_el = child.createLXMLElement(info, full_nsmap, files=files, folderToParse=folderToParse, task=task)
                 if child_el is not None:
                     self.el.append(child_el)
 
@@ -294,7 +295,7 @@ class XMLGenerator(object):
 
         if folderToParse:
             step = ProcessStep.objects.create(
-                name="File Operations",
+                name="File operations for %s" % (os.path.basename(folderToParse)),
                 parallel=True,
             )
 
@@ -353,7 +354,7 @@ class XMLGenerator(object):
             self.info['_XML_FILENAME'] = os.path.basename(fname)
 
             tree = etree.ElementTree(
-                rootEl.createLXMLElement(self.info, files=files, folderToParse=folderToParse)
+                rootEl.createLXMLElement(self.info, files=files, folderToParse=folderToParse, task=self.task)
             )
             tree.write(
                 fname, pretty_print=True, xml_declaration=True,
@@ -389,7 +390,7 @@ class XMLGenerator(object):
         appendedRootEl = XMLElement(template, nsmap=root_nsmap)
 
         try:
-            el = appendedRootEl.createLXMLElement(info)
+            el = appendedRootEl.createLXMLElement(info, task=self.task)
             if index is not None:
                 elementToAppendTo.insert(index, el)
             else:

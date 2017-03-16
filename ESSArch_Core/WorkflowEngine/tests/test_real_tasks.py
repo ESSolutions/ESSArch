@@ -456,6 +456,96 @@ class GenerateXMLTestCase(TransactionTestCase):
         self.assertTrue(os.path.isfile(self.fname))
         self.assertTrue(os.path.isfile(extra_file))
 
+    def test_with_external(self):
+        self.spec = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'file',
+                    '-containsFiles': True,
+                    '-attr': [
+                        {
+                            '-name': 'href',
+                            '#content': [{'var': 'href'}]
+                        },
+                    ],
+                },
+            ],
+            '-external': {
+                '-dir': 'external',
+                '-file': 'external.xml',
+                '-pointer': {
+                    '-name': 'ptr',
+                    '-attr': [
+                        {
+                            '-name': 'href',
+                            '#content': [{'var': '_EXT_HREF'}]
+                        },
+                    ],
+                },
+                '-specification': {
+                    '-name': 'mets',
+                    '-attr': [
+                        {
+                            '-name': 'LABEL',
+                            '#content': [{'var': '_EXT'}]
+                        },
+                    ],
+                    '-children': [
+                        {
+                            '-name': 'file',
+                            '-containsFiles': True,
+                            '-attr': [
+                                {
+                                    '-name': 'href',
+                                    '#content': [{'var': 'href'}]
+                                },
+                            ],
+                        },
+                    ]
+                }
+            },
+        }
+
+        os.mkdir(os.path.join(self.datadir, 'external'))
+        os.mkdir(os.path.join(self.datadir, 'external', 'ext1'))
+        os.mkdir(os.path.join(self.datadir, 'external', 'ext2'))
+
+        open(os.path.join(self.datadir, 'file0.txt'), 'a').close()
+
+        open(os.path.join(self.datadir, 'external', 'ext1', 'file1.txt'), 'a').close()
+        open(os.path.join(self.datadir, 'external', 'ext2', 'file1.pdf'), 'a').close()
+
+        step = ProcessStep.objects.create(name="root step")
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filesToCreate': {
+                    self.fname: self.spec,
+                },
+                'folderToParse': self.datadir
+            },
+            processstep=step,
+        )
+
+        task.run()
+
+        all_parse_file_tasks = ProcessTask.objects.filter(
+            name="ESSArch_Core.tasks.ParseFile"
+        )
+        parse_file_tasks_with_step = ProcessTask.objects.filter(
+            name="ESSArch_Core.tasks.ParseFile",
+            processstep__parent_step=step
+        )
+
+        for i in parse_file_tasks_with_step:
+            print '\n'
+            print i.params['relpath']
+            print i.processstep.name
+            print i.processstep.parent_step.name
+
+        self.assertEqual(parse_file_tasks_with_step.count(), all_parse_file_tasks.count())
+
     def test_undo(self):
         task = ProcessTask.objects.create(
             name=self.taskname,
