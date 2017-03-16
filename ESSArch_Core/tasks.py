@@ -657,12 +657,12 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
         if dirname:
             for root, dirs, filenames in os.walk(dirname):
                 for f in filenames:
-                    if f != xmlrelpath:
-                        reldir = os.path.relpath(root, dirname)
-                        relfile = os.path.join(reldir, f)
-                        relfile = win_to_posix(relfile)
-                        relfile = remove_prefix(relfile, "./")
+                    reldir = os.path.relpath(root, dirname)
+                    relfile = os.path.join(reldir, f)
+                    relfile = win_to_posix(relfile)
+                    relfile = remove_prefix(relfile, "./")
 
+                    if relfile != xmlrelpath:
                         physical_files.add(relfile)
 
         for f in files:
