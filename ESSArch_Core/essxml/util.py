@@ -28,7 +28,7 @@ import os
 
 from lxml import etree
 
-from ESSArch_Core.util import get_value_from_path, remove_prefix
+from ESSArch_Core.util import getSchemas, get_value_from_path, remove_prefix
 
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
@@ -185,6 +185,16 @@ def parse_submit_description(xmlfile, srcdir=''):
 
     return ip
 
+def find_pointers(xmlfile):
+    doc = etree.ElementTree(file=xmlfile)
+
+    for elname, props in PTR_ELEMENTS.iteritems():
+        for ptr in doc.xpath('.//*[local-name()="%s"]' % elname):
+            pointer = get_value_from_path(ptr, props["path"])
+
+            if pointer:
+                yield remove_prefix(pointer, props.get("pathprefix", ""))
+
 
 def find_files(xmlfile, rootdir='', prefix=''):
     doc = etree.ElementTree(file=xmlfile)
@@ -198,14 +208,29 @@ def find_files(xmlfile, rootdir='', prefix=''):
                 filename = remove_prefix(filename, props.get("pathprefix", ""))
                 files.add(os.path.join(prefix, filename.lstrip('/ ')))
 
-    for elname, props in PTR_ELEMENTS.iteritems():
-        for ptr in doc.xpath('.//*[local-name()="%s"]' % elname):
-            pointer = get_value_from_path(ptr, props["path"])
-
-            if pointer:
-                pointer = remove_prefix(pointer, props.get("pathprefix", ""))
-                pointer_prefix = os.path.split(pointer)[0]
-                files.add(pointer)
-                files |= find_files(os.path.join(rootdir, pointer), rootdir, pointer_prefix)
+    for pointer in find_pointers(xmlfile):
+        pointer_prefix = os.path.split(pointer)[0]
+        files.add(pointer)
+        files |= find_files(os.path.join(rootdir, pointer), rootdir, pointer_prefix)
 
     return files
+
+
+def validate_against_schema(xmlfile, schema=None, rootdir=None):
+    doc = etree.ElementTree(file=xmlfile)
+
+    if schema:
+        xmlschema = etree.XMLSchema(etree.parse(schema))
+    else:
+        xmlschema = getSchemas(doc=doc)
+
+    xmlschema.assertValid(doc)
+
+    if rootdir is None:
+        rootdir = os.path.split(xmlfile)[0]
+
+    for ptr in find_pointers(xmlfile):
+        if not validate_against_schema(os.path.join(rootdir, ptr), schema):
+            return False
+
+    return xmlschema.validate(doc)

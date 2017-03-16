@@ -1214,6 +1214,23 @@ class ValidateXMLFileTestCase(TransactionTestCase):
         schema_root = etree.fromstring("""
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
                 <xsd:element name="foo" type="xsd:integer"/>
+
+                <xsd:attribute name="href" type="xsd:string"/>
+
+                <xsd:element name="mptr">
+                    <xsd:complexType>
+                        <xsd:attribute ref="href" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
+
+                <xsd:element name="root">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element minOccurs="0" ref="foo"/>
+                            <xsd:element minOccurs="0" maxOccurs="unbounded" ref="mptr"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
             </xsd:schema>
         """)
 
@@ -1255,6 +1272,175 @@ class ValidateXMLFileTestCase(TransactionTestCase):
 
         with self.assertRaisesRegexp(etree.DocumentInvalid, 'not a valid value of the atomic type'):
             task.run()
+
+    def test_correct_with_correct_external(self):
+        ext1 = os.path.join(self.datadir, 'ext1.xml')
+        ext2 = os.path.join(self.datadir, 'ext2.xml')
+
+        with open(self.fname, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root>
+                <foo>3</foo>
+                <mptr href="ext1.xml"/>
+                <mptr href="ext2.xml"/>
+            </root>
+            ''')
+
+        with open(ext1, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>5</foo>
+            ''')
+
+        with open(ext2, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>10</foo>
+            ''')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'xml_filename': self.fname,
+                'schema_filename': self.schema
+            }
+        )
+
+        task.run()
+
+    def test_correct_with_incorrect_external(self):
+        ext1 = os.path.join(self.datadir, 'ext1.xml')
+        ext2 = os.path.join(self.datadir, 'ext2.xml')
+
+        with open(self.fname, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root>
+                <foo>3</foo>
+                <mptr href="ext1.xml"/>
+                <mptr href="ext2.xml"/>
+            </root>
+            ''')
+
+        with open(ext1, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>'5'</foo>
+            ''')
+
+        with open(ext2, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>10</foo>
+            ''')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'xml_filename': self.fname,
+                'schema_filename': self.schema
+            }
+        )
+
+        with self.assertRaisesRegexp(etree.DocumentInvalid, 'not a valid value of the atomic type'):
+            task.run()
+
+    def test_incorrect_with_correct_external(self):
+        ext1 = os.path.join(self.datadir, 'ext1.xml')
+        ext2 = os.path.join(self.datadir, 'ext2.xml')
+
+        with open(self.fname, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root>
+                <foo>'3'</foo>
+                <mptr href="ext1.xml"/>
+                <mptr href="ext2.xml"/>
+            </root>
+            ''')
+
+        with open(ext1, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>5</foo>
+            ''')
+
+        with open(ext2, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>10</foo>
+            ''')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'xml_filename': self.fname,
+                'schema_filename': self.schema
+            }
+        )
+
+        with self.assertRaisesRegexp(etree.DocumentInvalid, 'not a valid value of the atomic type'):
+            task.run()
+
+    def test_incorrect_with_incorrect_external(self):
+        ext1 = os.path.join(self.datadir, 'ext1.xml')
+        ext2 = os.path.join(self.datadir, 'ext2.xml')
+
+        with open(self.fname, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root>
+                <foo>'3'</foo>
+                <mptr href="ext1.xml"/>
+                <mptr href="ext2.xml"/>
+            </root>
+            ''')
+
+        with open(ext1, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>'5'</foo>
+            ''')
+
+        with open(ext2, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>10</foo>
+            ''')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'xml_filename': self.fname,
+                'schema_filename': self.schema
+            }
+        )
+
+        with self.assertRaisesRegexp(etree.DocumentInvalid, 'not a valid value of the atomic type'):
+            task.run()
+
+    def test_external_with_specified_rootdir(self):
+        ext1 = os.path.join(self.datadir, 'ext1.xml')
+        ext2 = os.path.join(self.datadir, 'ext2.xml')
+
+        with open(self.fname, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root>
+                <foo>3</foo>
+                <mptr href="ext1.xml"/>
+                <mptr href="ext2.xml"/>
+            </root>
+            ''')
+
+        with open(ext1, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>5</foo>
+            ''')
+
+        with open(ext2, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>10</foo>
+            ''')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'xml_filename': self.fname,
+                'schema_filename': self.schema,
+                'rootdir': self.datadir,
+            }
+        )
+
+        task.run()
 
 
 class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):

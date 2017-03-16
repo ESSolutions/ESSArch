@@ -48,7 +48,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
     findElementWithoutNamespace,
     XMLGenerator
 )
-from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files
+from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, validate_against_schema
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.WorkflowEngine.models import (
     ProcessStep,
@@ -58,7 +58,6 @@ from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.util import (
     creation_date,
     find_destination,
-    getSchemas,
     get_value_from_path,
     remove_prefix,
     timestamp_to_datetime,
@@ -618,25 +617,18 @@ class ValidateIntegrity(DBTask):
 class ValidateXMLFile(DBTask):
     queue = 'validation'
 
-    def run(self, xml_filename=None, schema_filename=None):
+    def run(self, xml_filename=None, schema_filename=None, rootdir=None):
         """
         Validates (using LXML) an XML file using a specified schema file
         """
 
-        doc = etree.ElementTree(file=xml_filename)
-
-        if schema_filename:
-            xmlschema = etree.XMLSchema(etree.parse(schema_filename))
-        else:
-            xmlschema = getSchemas(doc=doc)
-
-        xmlschema.assertValid(doc)
+        assert validate_against_schema(xmlfile=xml_filename, schema=schema_filename, rootdir=rootdir)
         return "Success"
 
-    def undo(self, xml_filename=None, schema_filename=None):
+    def undo(self, xml_filename=None, schema_filename=None, rootdir=None):
         pass
 
-    def event_outcome_success(self, xml_filename=None, schema_filename=None):
+    def event_outcome_success(self, xml_filename=None, schema_filename=None, rootdir=None):
         return "Validated %s against schema" % xml_filename
 
 
