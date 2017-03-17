@@ -144,7 +144,7 @@ class ParseFile(DBTask):
     queue = 'file_operation'
     hidden = True
 
-    def run(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256'):
+    def run(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256', rootdir=''):
         if not relpath:
             relpath = filepath
 
@@ -182,6 +182,7 @@ class ParseFile(DBTask):
 
         fileinfo = {
             'FName': os.path.basename(relpath),
+            'FDir': rootdir,
             'FChecksum': checksum,
             'FID': str(uuid.uuid4()),
             'daotype': "borndigital",
@@ -203,10 +204,10 @@ class ParseFile(DBTask):
 
         return fileinfo
 
-    def undo(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256'):
+    def undo(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256', rootdir=''):
         return ''
 
-    def event_outcome_success(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256'):
+    def event_outcome_success(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256', rootdir=''):
         return "Parsed file %s" % filepath
 
 
