@@ -176,15 +176,6 @@ class XMLElement(object):
                 external_nsmap.update(external_spec.get('-nsmap', {}))
                 external_spec['-nsmap'] = external_nsmap
 
-                external_gen = XMLGenerator(
-                    filesToCreate={
-                        os.path.join(folderToParse, ptr_file_path): external_spec
-                    },
-                    info=info,
-                    task=task
-                )
-                external_gen.generate(os.path.join(folderToParse, self.external['-dir'], ext_dir))
-
         for child in self.children:
             if child.containsFiles:
                 for fileinfo in files:
@@ -259,11 +250,16 @@ class XMLGenerator(object):
             })
 
     def find_external_dirs(self):
-        dirs = set()
+        dirs = []
+        found_paths = []
 
         for spec in self.toCreate:
             res = nested_lookup('-external', spec['template'])
-            dirs |= set([x['-dir'] for x in res])
+            for x in res:
+                path = os.path.join(x['-dir'], x['-file'])
+                if path not in found_paths:
+                    found_paths.append(path)
+                    dirs.append((x['-file'], x['-dir'], x['-specification']))
 
         return dirs
 
@@ -308,7 +304,34 @@ class XMLGenerator(object):
 
             folderToParse = unicode(folderToParse)
 
-            exclude = self.find_external_dirs()
+            external = self.find_external_dirs()
+
+            for ext_file, ext_dir, ext_spec in external:
+                ext_sub_dirs = next(walk(os.path.join(folderToParse, ext_dir)))[1]
+                for sub_dir in ext_sub_dirs:
+                    ptr_file_path = os.path.join(ext_dir, sub_dir, ext_file)
+
+                    external_gen = XMLGenerator(
+                        filesToCreate={
+                            os.path.join(folderToParse, ptr_file_path): ext_spec
+                        },
+                        info=self.info,
+                        task=self.task,
+                    )
+                    external_gen.generate(os.path.join(folderToParse, ext_dir, sub_dir))
+
+                    tasks.append(ProcessTask(
+                        name="ESSArch_Core.tasks.ParseFile",
+                        params={
+                            'filepath': os.path.join(folderToParse, ptr_file_path),
+                            'mimetype': self.get_mimetype(mtypes, ptr_file_path),
+                            'relpath': ptr_file_path,
+                            'algorithm': algorithm,
+                            'rootdir': sub_dir
+                        },
+                        responsible_id=responsible,
+                        processstep=step,
+                    ))
 
             if os.path.isfile(folderToParse):
                 tasks.append(ProcessTask(
@@ -324,7 +347,7 @@ class XMLGenerator(object):
                 ))
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in walk(folderToParse):
-                    dirnames[:] = [d for d in dirnames if d not in exclude]
+                    dirnames[:] = [d for d in dirnames if d not in [e[1] for e in external]]
 
                     for fname in filenames:
                         filepath = os.path.join(root, fname)
