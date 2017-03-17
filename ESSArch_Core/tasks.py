@@ -111,7 +111,10 @@ class IdentifyFileFormat(DBTask):
             raise ValueError("No matches for %s" % fullname)
 
         f, sigName = matches[-1]
-        self.lastFmt = f.find('name').text
+
+        self.format_name = f.find('name').text
+        self.format_version = f.find('version').text
+        self.format_registry_key = f.find('puid').text
 
     def run(self, filename=None, fid=Fido()):
         """
@@ -121,14 +124,14 @@ class IdentifyFileFormat(DBTask):
             filename: The filename to identify
 
         Returns:
-            The format of the file
+            A tuple with the format name, version and registry key
         """
 
         self.fid = fid
         self.fid.handle_matches = self.handle_matches
         self.fid.identify_file(filename)
 
-        return self.lastFmt
+        return (self.format_name, self.format_version, self.format_registry_key)
 
     def undo(self, filename=None, fid=Fido()):
         pass
@@ -175,7 +178,7 @@ class ParseFile(DBTask):
 
         checksum = checksum_task.run().get()
         self.set_progress(50, total=100)
-        fileformat = fileformat_task.run().get()
+        (format_name, format_version, format_registry_key) = fileformat_task.run().get()
 
         fileinfo = {
             'FName': os.path.basename(relpath),
@@ -185,7 +188,9 @@ class ParseFile(DBTask):
             'href': relpath,
             'FMimetype': mimetype,
             'FCreated': createdate.isoformat(),
-            'FFormatName': fileformat,
+            'FFormatName': format_name,
+            'FFormatVersion': format_version,
+            'FFormatRegistryKey': format_registry_key,
             'FSize': str(os.path.getsize(filepath)),
             'FUse': 'Datafile',
             'FChecksumType': algorithm,
