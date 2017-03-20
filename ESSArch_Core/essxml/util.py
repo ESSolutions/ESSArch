@@ -186,15 +186,46 @@ def parse_submit_description(xmlfile, srcdir=''):
 
     return ip
 
+
+class XMLFileElement():
+    def __init__(self, el, props):
+        '''
+        args:
+            el: lxml.etree._Element
+            props: 'dict with properties from FILE_ELEMENTS'
+        '''
+
+        self.path = get_value_from_path(el, props.get('path', ''))
+        self.path_prefix = props.get('pathprefix', '')
+        self.path = remove_prefix(self.path, self.path_prefix)
+        self.path = self.path.lstrip('/ ')
+
+        self.checksum = get_value_from_path(el, props.get('checksum', ''))
+        self.checksum_type = get_value_from_path(el, props.get('checksumtype', ''))
+
+        self.format = get_value_from_path(el, props.get('format', ''))
+
+    def __eq__(self, other):
+        '''
+        Two objects are equal if their paths are equal. If other is a
+        string, we assume its a path and compares it as is
+        '''
+
+        if isinstance(other, basestring):
+            return self.path == other
+
+        return self.path == other.path
+
+    def __hash__(self):
+        return hash(self.path)
+
+
 def find_pointers(xmlfile):
     doc = etree.ElementTree(file=xmlfile)
 
     for elname, props in PTR_ELEMENTS.iteritems():
         for ptr in doc.xpath('.//*[local-name()="%s"]' % elname):
-            pointer = get_value_from_path(ptr, props["path"])
-
-            if pointer:
-                yield remove_prefix(pointer, props.get("pathprefix", ""))
+            yield XMLFileElement(ptr, props)
 
 
 def find_files(xmlfile, rootdir='', prefix=''):
@@ -202,17 +233,15 @@ def find_files(xmlfile, rootdir='', prefix=''):
     files = set()
 
     for elname, props in FILE_ELEMENTS.iteritems():
-        for f in doc.xpath('.//*[local-name()="%s"]' % elname):
-            filename = get_value_from_path(f, props["path"])
-
-            if filename:
-                filename = remove_prefix(filename, props.get("pathprefix", ""))
-                files.add(os.path.join(prefix, filename.lstrip('/ ')))
+        for el in doc.xpath('.//*[local-name()="%s"]' % elname):
+            file_el = XMLFileElement(el, props)
+            file_el.path = os.path.join(prefix, file_el.path)
+            files.add(file_el)
 
     for pointer in find_pointers(xmlfile):
-        pointer_prefix = os.path.split(pointer)[0]
+        pointer_prefix = os.path.split(pointer.path)[0]
         files.add(pointer)
-        files |= find_files(os.path.join(rootdir, pointer), rootdir, pointer_prefix)
+        files |= find_files(os.path.join(rootdir, pointer.path), rootdir, pointer_prefix)
 
     return files
 
@@ -231,7 +260,7 @@ def validate_against_schema(xmlfile, schema=None, rootdir=None):
         rootdir = os.path.split(xmlfile)[0]
 
     for ptr in find_pointers(xmlfile):
-        if not validate_against_schema(os.path.join(rootdir, ptr), schema):
+        if not validate_against_schema(os.path.join(rootdir, ptr.path), schema):
             return False
 
     return xmlschema.validate(doc)

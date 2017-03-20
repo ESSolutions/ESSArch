@@ -247,7 +247,7 @@ class IdentifyFileFormatTestCase(TransactionTestCase):
             }
         )
 
-        expected = "Plain Text File"
+        expected = ("Plain Text File", None, "x-fmt/111")
         actual = task.run().get()
 
         self.assertEqual(expected, actual)
@@ -265,7 +265,7 @@ class IdentifyFileFormatTestCase(TransactionTestCase):
             }
         )
 
-        expected = "Plain Text File"
+        expected = ("Plain Text File", None, "x-fmt/111")
         actual = task.run().get()
 
         self.assertEqual(expected, actual)
@@ -282,7 +282,7 @@ class IdentifyFileFormatTestCase(TransactionTestCase):
             }
         )
 
-        expected = "Plain Text File"
+        expected = ("Plain Text File", None, "x-fmt/111")
         actual = task.run().get()
 
         self.assertEqual(expected, actual)
@@ -1052,6 +1052,64 @@ class ValidateFilesTestCase(TransactionTestCase):
 
         self.assertTrue(len(res) >= num_of_files)
 
+    def test_external_xml_files(self):
+        num_of_files = 2
+
+        os.mkdir(os.path.join(self.datadir, 'ext'))
+        os.mkdir(os.path.join(self.datadir, 'ext', 'ext1'))
+        os.mkdir(os.path.join(self.datadir, 'ext', 'ext2'))
+
+        for i in range(num_of_files):
+            with open(os.path.join(self.datadir, 'ext', 'ext1', '%s.txt' % i), 'w') as f:
+                f.write('%s' % i)
+
+            with open(os.path.join(self.datadir, 'ext', 'ext2', '%s.rtf' % i), 'w') as f:
+                f.write('%s' % i)
+
+        ext1 = os.path.join(self.datadir, "ext", "ext1", "ext1.xml")
+        ext2 = os.path.join(self.datadir, "ext", "ext2", "ext2.xml")
+
+        with open(self.fname, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root xmlns:xlink="http://www.w3.org/1999/xlink">
+                <mptr xlink:href="ext/ext1/ext1.xml"/>
+                <mptr xlink:href="ext/ext2/ext2.xml"/>
+            </root>
+            ''')
+
+        with open(ext1, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root xmlns:xlink="http://www.w3.org/1999/xlink">
+                <file CHECKSUM="cfcd208495d565ef66e7dff9f98764da" CHECKSUMTYPE="MD5" FILEFORMATNAME="Plain Text File"><FLocat href="0.txt"/></file>
+                <file CHECKSUM="c4ca4238a0b923820dcc509a6f75849b" CHECKSUMTYPE="MD5" FILEFORMATNAME="Plain Text File"><FLocat href="1.txt"/></file>
+            </root>
+            ''')
+
+        with open(ext2, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root xmlns:xlink="http://www.w3.org/1999/xlink">
+                <file CHECKSUM="cfcd208495d565ef66e7dff9f98764da" CHECKSUMTYPE="MD5" FILEFORMATNAME="Rich Text Format"><FLocat href="0.rtf"/></file>
+                <file CHECKSUM="c4ca4238a0b923820dcc509a6f75849b" CHECKSUMTYPE="MD5" FILEFORMATNAME="Rich Text Format"><FLocat href="1.rtf"/></file>
+            </root>
+            ''')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+                'xmlfile': self.fname,
+                'rootdir': self.datadir
+            }
+        )
+
+        task.run().get()
+
+        with open(os.path.join(self.datadir, 'ext', 'ext1', '%s.txt' % i), 'a') as f:
+            f.write('added')
+
+        with self.assertRaises(AssertionError):
+            task.run().get()
+
     def test_change_checksum(self):
         num_of_files = 3
 
@@ -1119,7 +1177,7 @@ class ValidateFilesTestCase(TransactionTestCase):
 
         find_and_replace_in_file(self.fname, '.txt', '.pdf')
 
-        with self.assertRaisesRegexp(AssertionError, 'fileformat'):
+        with self.assertRaisesRegexp(AssertionError, 'format name'):
             task.run()
 
     def test_fail_and_stop_step_when_inner_task_fails(self):
@@ -1254,7 +1312,7 @@ class ValidateFileFormatTestCase(TransactionTestCase):
             name=self.taskname,
             params={
                 'filename': self.fname,
-                'fileformat': fformat,
+                'format_name': fformat[0],
             }
         )
 
@@ -1279,7 +1337,7 @@ class ValidateFileFormatTestCase(TransactionTestCase):
             name=self.taskname,
             params={
                 'filename': newfile,
-                'fileformat': fformat,
+                'format_name': fformat[0],
             }
         )
 

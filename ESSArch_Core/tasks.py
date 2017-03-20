@@ -112,9 +112,20 @@ class IdentifyFileFormat(DBTask):
 
         f, sigName = matches[-1]
 
-        self.format_name = f.find('name').text
-        self.format_version = f.find('version').text
-        self.format_registry_key = f.find('puid').text
+        try:
+            self.format_name = f.find('name').text
+        except AttributeError:
+            self.format_name = None
+
+        try:
+            self.format_version = f.find('version').text
+        except AttributeError:
+            self.format_version = None
+
+        try:
+            self.format_registry_key = f.find('puid').text
+        except AttributeError:
+            self.format_registry_key = None
 
     def run(self, filename=None, fid=Fido()):
         """
@@ -501,44 +512,33 @@ class ValidateFiles(DBTask):
             if rootdir is None:
                 rootdir = InformationPackage.objects.values_list('ObjectPath', flat=True).get(pk=ip)
 
-            doc = etree.ElementTree(file=xmlfile)
             tasks = []
 
-            for elname, props in FILE_ELEMENTS.iteritems():
-                for f in doc.xpath('.//*[local-name()="%s"]' % elname):
-                    fpath = get_value_from_path(f, props["path"])
+            for f in find_files(xmlfile, rootdir):
+                if validate_fileformat and f.format is not None:
+                    tasks.append(ProcessTask(
+                        name=self.fileformat_task,
+                        params={
+                            "filename": os.path.join(rootdir, f.path),
+                            "format_name": f.format,
+                        },
+                        information_package_id=ip,
+                        responsible_id=self.responsible,
+                        processstep=step,
+                    ))
 
-                    if fpath:
-                        fpath = remove_prefix(fpath, props.get("pathprefix", ""))
-
-                    fformat = get_value_from_path(f, props.get("format"))
-                    checksum = get_value_from_path(f, props.get("checksum"))
-                    algorithm = get_value_from_path(f, props.get("checksumtype"))
-
-                    if validate_fileformat and fformat is not None:
-                        tasks.append(ProcessTask(
-                            name=self.fileformat_task,
-                            params={
-                                "filename": os.path.join(rootdir, fpath),
-                                "fileformat": fformat,
-                            },
-                            information_package_id=ip,
-                            responsible_id=self.responsible,
-                            processstep=step,
-                        ))
-
-                    if validate_integrity and checksum is not None:
-                        tasks.append(ProcessTask(
-                            name=self.checksum_task,
-                            params={
-                                "filename": os.path.join(rootdir, fpath),
-                                "checksum": checksum,
-                                "algorithm": algorithm,
-                            },
-                            information_package_id=ip,
-                            responsible_id=self.responsible,
-                            processstep=step,
-                        ))
+                if validate_integrity and f.checksum is not None and f.checksum_type is not None:
+                    tasks.append(ProcessTask(
+                        name=self.checksum_task,
+                        params={
+                            "filename": os.path.join(rootdir, f.path),
+                            "checksum": f.checksum,
+                            "algorithm": f.checksum_type,
+                        },
+                        information_package_id=ip,
+                        responsible_id=self.responsible,
+                        processstep=step,
+                    ))
 
             ProcessTask.objects.bulk_create(tasks)
 
@@ -555,7 +555,7 @@ class ValidateFiles(DBTask):
 class ValidateFileFormat(DBTask):
     queue = 'validation'
 
-    def run(self, filename=None, fileformat=None):
+    def run(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
         """
         Validates the format of the given file
         """
@@ -573,16 +573,26 @@ class ValidateFileFormat(DBTask):
             responsible_id=task.get('responsible_id'),
         )
 
-        res = t.run().get()
+        actual_format_name, actual_format_version, actual_format_registry_key = t.run().get()
 
-        assert res == fileformat, "fileformat for %s is not valid" % filename
+        if format_name:
+            assert actual_format_name == format_name, "format name for %s is not valid, (%s != %s)" % (filename, format_name, actual_format_name)
+
+        if format_version:
+            assert actual_format_version == format_version, "format version for %s is not valid" % filename
+
+        if format_registry_key:
+            assert actual_format_registry_key == format_registry_key, "format registry key for %s is not valid" % filename
+
         return "Success"
 
-    def undo(self, filename=None, fileformat=None):
+    def undo(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
         pass
 
-    def event_outcome_success(self, filename=None, fileformat=None):
-        return "Validated format of %s to be %s" % (filename, fileformat)
+    def event_outcome_success(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
+        return "Validated format of %s to be: format name: %s, format version: %s, format registry key: %s" % (
+            filename, format_name, format_version, format_registry_key
+        )
 
 
 class ValidateIntegrity(DBTask):
