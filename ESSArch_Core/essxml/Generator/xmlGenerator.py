@@ -311,11 +311,15 @@ class XMLGenerator(object):
                 for sub_dir in ext_sub_dirs:
                     ptr_file_path = os.path.join(ext_dir, sub_dir, ext_file)
 
+                    ext_info = self.info
+                    ext_info['_EXT'] = sub_dir
+                    ext_info['_EXT_HREF'] = ptr_file_path
+
                     external_gen = XMLGenerator(
                         filesToCreate={
                             os.path.join(folderToParse, ptr_file_path): ext_spec
                         },
-                        info=self.info,
+                        info=ext_info,
                         task=self.task,
                     )
                     external_gen.generate(os.path.join(folderToParse, ext_dir, sub_dir))
