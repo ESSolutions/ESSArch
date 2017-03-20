@@ -538,12 +538,6 @@ class GenerateXMLTestCase(TransactionTestCase):
             processstep__parent_step=step
         )
 
-        for i in parse_file_tasks_with_step:
-            print '\n'
-            print i.params['relpath']
-            print i.processstep.name
-            print i.processstep.parent_step.name
-
         self.assertEqual(parse_file_tasks_with_step.count(), all_parse_file_tasks.count())
 
     def test_undo(self):
