@@ -251,6 +251,11 @@ class XMLGenerator(object):
             res = nested_lookup('-external', spec['template'])
             for x in res:
                 path = os.path.join(x['-dir'], x['-file'])
+
+                external_nsmap = spec['template'].get('-nsmap', {}).copy()
+                external_nsmap.update(x['-specification'].get('-nsmap', {}))
+                x['-specification']['-nsmap'] = external_nsmap
+
                 if path not in found_paths:
                     found_paths.append(path)
                     dirs.append((x['-file'], x['-dir'], x['-specification']))
