@@ -170,12 +170,6 @@ class XMLElement(object):
                 ptr_info['_EXT_HREF'] = ptr_file_path
                 self.el.append(ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse, task=task))
 
-                external_spec = self.external['-specification']
-
-                external_nsmap = full_nsmap.copy()
-                external_nsmap.update(external_spec.get('-nsmap', {}))
-                external_spec['-nsmap'] = external_nsmap
-
         for child in self.children:
             if child.containsFiles:
                 for fileinfo in files:
