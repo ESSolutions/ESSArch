@@ -40,6 +40,7 @@ FILE_ELEMENTS = {
         "pathprefix": "file:///",
         "checksum": "@CHECKSUM",
         "checksumtype": "@CHECKSUMTYPE",
+        "format": "@FILEFORMATNAME",
     },
     "mdRef": {
         "path": "@href",
