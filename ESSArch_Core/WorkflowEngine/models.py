@@ -217,7 +217,11 @@ class ProcessStep(Process):
 
         tasks = self.tasks.all().order_by('time_created').iterator()
 
-        first = tasks.next()
+        try:
+            first = tasks.next()
+        except StopIteration:
+            return []
+
         t = self._create_task(first.name)
 
         first.params['_options'] = create_options(first)
@@ -552,9 +556,8 @@ class ProcessTask(Process):
     result_params = PickledObjectField(null=True)
     time_started = models.DateTimeField(_('started at'), null=True, blank=True)
     time_done = models.DateTimeField(_('done at'), null=True, blank=True)
-    einfo = PickledObjectField(
-        _('einfo'), blank=True, null=True, editable=False
-    )
+    traceback = models.TextField(blank=True)
+    exception = models.TextField(blank=True)
     hidden = models.BooleanField(editable=False, default=False, db_index=True)
     meta = PickledObjectField(null=True, default=None, editable=False)
     processstep = models.ForeignKey(
@@ -576,16 +579,6 @@ class ProcessTask(Process):
 
     objects = models.Manager()
     by_step_pos = OrderedProcessTaskManager()
-
-    @property
-    def exception(self):
-        if self.einfo:
-            return "%s: %s" % (self.einfo.type.__name__, self.einfo.exception)
-
-    @property
-    def traceback(self):
-        if self.einfo:
-            return self.einfo.traceback
 
     def clean(self):
         """

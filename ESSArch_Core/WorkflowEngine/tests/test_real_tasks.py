@@ -247,7 +247,7 @@ class IdentifyFileFormatTestCase(TransactionTestCase):
             }
         )
 
-        expected = "Plain Text File"
+        expected = ("Plain Text File", None, "x-fmt/111")
         actual = task.run().get()
 
         self.assertEqual(expected, actual)
@@ -265,7 +265,7 @@ class IdentifyFileFormatTestCase(TransactionTestCase):
             }
         )
 
-        expected = "Plain Text File"
+        expected = ("Plain Text File", None, "x-fmt/111")
         actual = task.run().get()
 
         self.assertEqual(expected, actual)
@@ -282,7 +282,7 @@ class IdentifyFileFormatTestCase(TransactionTestCase):
             }
         )
 
-        expected = "Plain Text File"
+        expected = ("Plain Text File", None, "x-fmt/111")
         actual = task.run().get()
 
         self.assertEqual(expected, actual)
@@ -455,6 +455,90 @@ class GenerateXMLTestCase(TransactionTestCase):
 
         self.assertTrue(os.path.isfile(self.fname))
         self.assertTrue(os.path.isfile(extra_file))
+
+    def test_with_external(self):
+        self.spec = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'file',
+                    '-containsFiles': True,
+                    '-attr': [
+                        {
+                            '-name': 'href',
+                            '#content': [{'var': 'href'}]
+                        },
+                    ],
+                },
+            ],
+            '-external': {
+                '-dir': 'external',
+                '-file': 'external.xml',
+                '-pointer': {
+                    '-name': 'ptr',
+                    '-attr': [
+                        {
+                            '-name': 'href',
+                            '#content': [{'var': '_EXT_HREF'}]
+                        },
+                    ],
+                },
+                '-specification': {
+                    '-name': 'mets',
+                    '-attr': [
+                        {
+                            '-name': 'LABEL',
+                            '#content': [{'var': '_EXT'}]
+                        },
+                    ],
+                    '-children': [
+                        {
+                            '-name': 'file',
+                            '-containsFiles': True,
+                            '-attr': [
+                                {
+                                    '-name': 'href',
+                                    '#content': [{'var': 'href'}]
+                                },
+                            ],
+                        },
+                    ]
+                }
+            },
+        }
+
+        os.mkdir(os.path.join(self.datadir, 'external'))
+        os.mkdir(os.path.join(self.datadir, 'external', 'ext1'))
+        os.mkdir(os.path.join(self.datadir, 'external', 'ext2'))
+
+        open(os.path.join(self.datadir, 'file0.txt'), 'a').close()
+
+        open(os.path.join(self.datadir, 'external', 'ext1', 'file1.txt'), 'a').close()
+        open(os.path.join(self.datadir, 'external', 'ext2', 'file1.pdf'), 'a').close()
+
+        step = ProcessStep.objects.create(name="root step")
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filesToCreate': {
+                    self.fname: self.spec,
+                },
+                'folderToParse': self.datadir
+            },
+            processstep=step,
+        )
+
+        task.run()
+
+        all_parse_file_tasks = ProcessTask.objects.filter(
+            name="ESSArch_Core.tasks.ParseFile"
+        )
+        parse_file_tasks_with_step = ProcessTask.objects.filter(
+            name="ESSArch_Core.tasks.ParseFile",
+            processstep__parent_step=step
+        )
+
+        self.assertEqual(parse_file_tasks_with_step.count(), all_parse_file_tasks.count())
 
     def test_undo(self):
         task = ProcessTask.objects.create(
@@ -962,6 +1046,64 @@ class ValidateFilesTestCase(TransactionTestCase):
 
         self.assertTrue(len(res) >= num_of_files)
 
+    def test_external_xml_files(self):
+        num_of_files = 2
+
+        os.mkdir(os.path.join(self.datadir, 'ext'))
+        os.mkdir(os.path.join(self.datadir, 'ext', 'ext1'))
+        os.mkdir(os.path.join(self.datadir, 'ext', 'ext2'))
+
+        for i in range(num_of_files):
+            with open(os.path.join(self.datadir, 'ext', 'ext1', '%s.txt' % i), 'w') as f:
+                f.write('%s' % i)
+
+            with open(os.path.join(self.datadir, 'ext', 'ext2', '%s.rtf' % i), 'w') as f:
+                f.write('%s' % i)
+
+        ext1 = os.path.join(self.datadir, "ext", "ext1", "ext1.xml")
+        ext2 = os.path.join(self.datadir, "ext", "ext2", "ext2.xml")
+
+        with open(self.fname, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root xmlns:xlink="http://www.w3.org/1999/xlink">
+                <mptr xlink:href="ext/ext1/ext1.xml"/>
+                <mptr xlink:href="ext/ext2/ext2.xml"/>
+            </root>
+            ''')
+
+        with open(ext1, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root xmlns:xlink="http://www.w3.org/1999/xlink">
+                <file CHECKSUM="cfcd208495d565ef66e7dff9f98764da" CHECKSUMTYPE="MD5" FILEFORMATNAME="Plain Text File"><FLocat href="0.txt"/></file>
+                <file CHECKSUM="c4ca4238a0b923820dcc509a6f75849b" CHECKSUMTYPE="MD5" FILEFORMATNAME="Plain Text File"><FLocat href="1.txt"/></file>
+            </root>
+            ''')
+
+        with open(ext2, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root xmlns:xlink="http://www.w3.org/1999/xlink">
+                <file CHECKSUM="cfcd208495d565ef66e7dff9f98764da" CHECKSUMTYPE="MD5" FILEFORMATNAME="Rich Text Format"><FLocat href="0.rtf"/></file>
+                <file CHECKSUM="c4ca4238a0b923820dcc509a6f75849b" CHECKSUMTYPE="MD5" FILEFORMATNAME="Rich Text Format"><FLocat href="1.rtf"/></file>
+            </root>
+            ''')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+                'xmlfile': self.fname,
+                'rootdir': self.datadir
+            }
+        )
+
+        task.run().get()
+
+        with open(os.path.join(self.datadir, 'ext', 'ext1', '%s.txt' % i), 'a') as f:
+            f.write('added')
+
+        with self.assertRaises(AssertionError):
+            task.run().get()
+
     def test_change_checksum(self):
         num_of_files = 3
 
@@ -1029,7 +1171,7 @@ class ValidateFilesTestCase(TransactionTestCase):
 
         find_and_replace_in_file(self.fname, '.txt', '.pdf')
 
-        with self.assertRaisesRegexp(AssertionError, 'fileformat'):
+        with self.assertRaisesRegexp(AssertionError, 'format name'):
             task.run()
 
     def test_fail_and_stop_step_when_inner_task_fails(self):
@@ -1164,7 +1306,7 @@ class ValidateFileFormatTestCase(TransactionTestCase):
             name=self.taskname,
             params={
                 'filename': self.fname,
-                'fileformat': fformat,
+                'format_name': fformat[0],
             }
         )
 
@@ -1189,7 +1331,7 @@ class ValidateFileFormatTestCase(TransactionTestCase):
             name=self.taskname,
             params={
                 'filename': newfile,
-                'fileformat': fformat,
+                'format_name': fformat[0],
             }
         )
 
@@ -1214,6 +1356,23 @@ class ValidateXMLFileTestCase(TransactionTestCase):
         schema_root = etree.fromstring("""
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
                 <xsd:element name="foo" type="xsd:integer"/>
+
+                <xsd:attribute name="href" type="xsd:string"/>
+
+                <xsd:element name="mptr">
+                    <xsd:complexType>
+                        <xsd:attribute ref="href" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
+
+                <xsd:element name="root">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element minOccurs="0" ref="foo"/>
+                            <xsd:element minOccurs="0" maxOccurs="unbounded" ref="mptr"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
             </xsd:schema>
         """)
 
@@ -1255,6 +1414,175 @@ class ValidateXMLFileTestCase(TransactionTestCase):
 
         with self.assertRaisesRegexp(etree.DocumentInvalid, 'not a valid value of the atomic type'):
             task.run()
+
+    def test_correct_with_correct_external(self):
+        ext1 = os.path.join(self.datadir, 'ext1.xml')
+        ext2 = os.path.join(self.datadir, 'ext2.xml')
+
+        with open(self.fname, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root>
+                <foo>3</foo>
+                <mptr href="ext1.xml"/>
+                <mptr href="ext2.xml"/>
+            </root>
+            ''')
+
+        with open(ext1, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>5</foo>
+            ''')
+
+        with open(ext2, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>10</foo>
+            ''')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'xml_filename': self.fname,
+                'schema_filename': self.schema
+            }
+        )
+
+        task.run()
+
+    def test_correct_with_incorrect_external(self):
+        ext1 = os.path.join(self.datadir, 'ext1.xml')
+        ext2 = os.path.join(self.datadir, 'ext2.xml')
+
+        with open(self.fname, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root>
+                <foo>3</foo>
+                <mptr href="ext1.xml"/>
+                <mptr href="ext2.xml"/>
+            </root>
+            ''')
+
+        with open(ext1, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>'5'</foo>
+            ''')
+
+        with open(ext2, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>10</foo>
+            ''')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'xml_filename': self.fname,
+                'schema_filename': self.schema
+            }
+        )
+
+        with self.assertRaisesRegexp(etree.DocumentInvalid, 'not a valid value of the atomic type'):
+            task.run()
+
+    def test_incorrect_with_correct_external(self):
+        ext1 = os.path.join(self.datadir, 'ext1.xml')
+        ext2 = os.path.join(self.datadir, 'ext2.xml')
+
+        with open(self.fname, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root>
+                <foo>'3'</foo>
+                <mptr href="ext1.xml"/>
+                <mptr href="ext2.xml"/>
+            </root>
+            ''')
+
+        with open(ext1, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>5</foo>
+            ''')
+
+        with open(ext2, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>10</foo>
+            ''')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'xml_filename': self.fname,
+                'schema_filename': self.schema
+            }
+        )
+
+        with self.assertRaisesRegexp(etree.DocumentInvalid, 'not a valid value of the atomic type'):
+            task.run()
+
+    def test_incorrect_with_incorrect_external(self):
+        ext1 = os.path.join(self.datadir, 'ext1.xml')
+        ext2 = os.path.join(self.datadir, 'ext2.xml')
+
+        with open(self.fname, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root>
+                <foo>'3'</foo>
+                <mptr href="ext1.xml"/>
+                <mptr href="ext2.xml"/>
+            </root>
+            ''')
+
+        with open(ext1, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>'5'</foo>
+            ''')
+
+        with open(ext2, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>10</foo>
+            ''')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'xml_filename': self.fname,
+                'schema_filename': self.schema
+            }
+        )
+
+        with self.assertRaisesRegexp(etree.DocumentInvalid, 'not a valid value of the atomic type'):
+            task.run()
+
+    def test_external_with_specified_rootdir(self):
+        ext1 = os.path.join(self.datadir, 'ext1.xml')
+        ext2 = os.path.join(self.datadir, 'ext2.xml')
+
+        with open(self.fname, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root>
+                <foo>3</foo>
+                <mptr href="ext1.xml"/>
+                <mptr href="ext2.xml"/>
+            </root>
+            ''')
+
+        with open(ext1, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>5</foo>
+            ''')
+
+        with open(ext2, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <foo>10</foo>
+            ''')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'xml_filename': self.fname,
+                'schema_filename': self.schema,
+                'rootdir': self.datadir,
+            }
+        )
+
+        task.run()
 
 
 class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
@@ -1572,6 +1900,172 @@ class UpdateIPPathTestCase(TransactionTestCase):
 
         self.ip.refresh_from_db()
         self.assertEqual(self.ip.ObjectPath, 'initial')
+
+
+class UpdateIPSizeAndCountTestCase(TransactionTestCase):
+    def setUp(self):
+        self.taskname = "ESSArch_Core.tasks.UpdateIPSizeAndCount"
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.ip = InformationPackage.objects.create(ObjectPath=self.datadir)
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def test_init(self):
+        self.assertEqual(self.ip.object_size, 0)
+        self.assertEqual(self.ip.object_num_items, 0)
+
+    def test_run_empty(self):
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 0)
+        self.assertEqual(self.ip.object_num_items, 0)
+
+    def test_add_empty_file_and_run(self):
+        open(os.path.join(self.datadir, 'foo.txt'), 'a').close()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 0)
+        self.assertEqual(self.ip.object_num_items, 1)
+
+    def test_add_file_with_content_and_run(self):
+        with open(os.path.join(self.datadir, 'foo.txt'), 'w') as f:
+            f.write('foo')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 3)
+        self.assertEqual(self.ip.object_num_items, 1)
+
+    def test_add_empty_dir_and_run(self):
+        os.mkdir(os.path.join(self.datadir, 'foo'))
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 0)
+        self.assertEqual(self.ip.object_num_items, 0)
+
+    def test_add_dir_with_file_with_content_and_run(self):
+        os.mkdir(os.path.join(self.datadir, 'foo'))
+        with open(os.path.join(self.datadir, 'foo', 'foo.txt'), 'w') as f:
+            f.write('foo')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 3)
+        self.assertEqual(self.ip.object_num_items, 1)
+
+    def test_add_multiple_dirs_with_files_and_run(self):
+        os.mkdir(os.path.join(self.datadir, 'foo'))
+        os.mkdir(os.path.join(self.datadir, 'bar'))
+        with open(os.path.join(self.datadir, 'foo', 'foo.txt'), 'w') as f:
+            f.write('foo')
+
+        with open(os.path.join(self.datadir, 'bar', 'bar.txt'), 'w') as f:
+            f.write('bar')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 6)
+        self.assertEqual(self.ip.object_num_items, 2)
+
+    def test_add_multiple_dirs_with_files_with_same_name_and_run(self):
+        os.mkdir(os.path.join(self.datadir, 'foo'))
+        os.mkdir(os.path.join(self.datadir, 'bar'))
+        with open(os.path.join(self.datadir, 'foo', 'foo.txt'), 'w') as f:
+            f.write('foo')
+
+        with open(os.path.join(self.datadir, 'bar', 'foo.txt'), 'w') as f:
+            f.write('foo')
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 6)
+        self.assertEqual(self.ip.object_num_items, 2)
+
+    def test_object_path_set_to_file_and_run(self):
+        with open(os.path.join(self.datadir, 'foo.txt'), 'w') as f:
+            f.write('foo')
+
+        self.ip.ObjectPath = os.path.join(self.datadir, 'foo.txt')
+        self.ip.save()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'ip': self.ip.pk,
+            }
+        )
+
+        task.run()
+
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.object_size, 3)
+        self.assertEqual(self.ip.object_num_items, 1)
 
 
 class DeleteFilesTestCase(TransactionTestCase):

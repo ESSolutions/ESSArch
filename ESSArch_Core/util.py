@@ -253,25 +253,22 @@ def get_files_and_dirs(path):
     return []
 
 
-def get_tree_size_and_count(path):
+def get_tree_size_and_count(path='.'):
     """Return total size and count of files in given path and subdirs."""
-    size = 0
+
+    if os.path.isfile(path):
+        return os.path.getsize(path), 1
+
+    total_size = 0
     count = 0
 
-    if os.path.isdir(path):
-        for entry in scandir(path):
-            if entry.is_dir(follow_symlinks=False):
-                new_size, new_count = get_tree_size_and_count(entry.path)
-                size += new_size
-                count += new_count
-            else:
-                size += entry.stat(follow_symlinks=False).st_size
-                count += 1
-    elif os.path.isfile(path):
-        size = os.stat(path).st_size
-        count = 1
+    for dirpath, dirnames, filenames in os.walk(path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            total_size += os.path.getsize(fp)
+            count += 1
 
-    return size, count
+    return total_size, count
 
 
 def win_to_posix(path):
@@ -380,3 +377,23 @@ def chunks(l, n):
 def flatten(l):
     """Flattens a list of lists"""
     return list(itertools.chain(*l))
+
+
+def nested_lookup(key, document):
+    """Finds all occurences of a key in nested dictionaries and lists"""
+    if isinstance(document, list):
+        for d in document:
+            for result in nested_lookup(key, d):
+                yield result
+
+    if isinstance(document, dict):
+        for k, v in document.iteritems():
+            if k == key:
+                yield v
+            elif isinstance(v, dict):
+                for result in nested_lookup(key, v):
+                    yield result
+            elif isinstance(v, list):
+                for d in v:
+                    for result in nested_lookup(key, d):
+                        yield result

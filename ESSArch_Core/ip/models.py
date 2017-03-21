@@ -137,12 +137,14 @@ class InformationPackage(models.Model):
     Content = models.CharField(max_length=255)
     CreateDate = models.DateTimeField(auto_now_add=True)
     State = models.CharField(max_length=255)
+
     ObjectPath = models.CharField(max_length=255, blank=True)
+    object_size = models.BigIntegerField(default=0)
+    object_num_items = models.IntegerField(default=0)
+
     Startdate = models.DateTimeField(null=True)
     Enddate = models.DateTimeField(null=True)
 
-    size = models.BigIntegerField(null=True)
-    num_items = models.IntegerField(null=True)
     message_digest_algorithm = models.IntegerField(null=True, choices=MESSAGE_DIGEST_ALGORITHM_CHOICES)
     message_digest = models.CharField(max_length=128, blank=True)
     active = models.BooleanField(default=True)
@@ -227,10 +229,6 @@ class InformationPackage(models.Model):
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
             return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
-
-    @property
-    def ObjectSizeAndNum(self):
-        return get_tree_size_and_count(self.ObjectPath)
 
     def get_profile_rel(self, profile_type):
         return self.profileip_set.filter(

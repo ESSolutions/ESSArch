@@ -98,6 +98,10 @@ class DBTask(Task):
                             time_started=time_started,
                             progress=self.progress
                         )
+                        einfo = ExceptionInfo()
+                        if self.event_type:
+                            event = self.create_event(self.task_id, celery_states.FAILURE, args, a, None, einfo)
+                            events.append(event)
                         raise
                     else:
                         self.on_success(retval, self.task_id, None, kwargs)
@@ -107,7 +111,7 @@ class DBTask(Task):
                             hidden=hidden,
                             time_started=time_started,
                             time_done=timezone.now(),
-                            progress=self.progress
+                            progress=100
                         )
                         res.append(retval)
                         if self.event_type:
@@ -194,9 +198,13 @@ class DBTask(Task):
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         time_done = timezone.now()
+        tb = einfo.traceback
+        exception = "%s: %s" % (einfo.type.__name__, einfo.exception)
+
         try:
             ProcessTask.objects.filter(pk=task_id).update(
-                einfo=einfo,
+                traceback=tb,
+                exception=exception,
                 status=celery_states.FAILURE,
                 time_done=time_done,
             )
@@ -204,7 +212,8 @@ class DBTask(Task):
             print "Database locked, trying again after 2 seconds"
             time.sleep(2)
             ProcessTask.objects.filter(pk=task_id).update(
-                einfo=einfo,
+                traceback=tb,
+                exception=exception,
                 status=celery_states.FAILURE,
                 time_done=time_done,
             )
@@ -226,6 +235,7 @@ class DBTask(Task):
                 result=retval,
                 status=celery_states.SUCCESS,
                 time_done=time_done,
+                progress=100
             )
         except OperationalError:
             print "Database locked, trying again after 2 seconds"

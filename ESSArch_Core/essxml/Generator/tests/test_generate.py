@@ -24,6 +24,7 @@
 
 import os
 import shutil
+from collections import OrderedDict
 
 from django.conf import settings
 from django.test import TransactionTestCase
@@ -35,6 +36,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseConten
 from ESSArch_Core.configuration.models import (
     Path,
 )
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 class test_generateXML(TransactionTestCase):
@@ -484,6 +486,67 @@ class test_generateXML(TransactionTestCase):
 
         file_elements = tree.findall('.//bar')
         self.assertEqual(len(file_elements), num_of_files)
+
+        parse_file_tasks = ProcessTask.objects.filter(name='ESSArch_Core.tasks.ParseFile')
+        self.assertEqual(parse_file_tasks.count(), num_of_files)
+
+    def test_multiple_to_create_with_files(self):
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'bar',
+                    '-containsFiles': True,
+                    '-attr': [
+                        {
+                            '-name': 'name',
+                            '#content': [
+                                {
+                                    'var': 'FName'
+                                }
+                            ]
+                        }
+                    ],
+                    '-children': [
+                        {
+                            '-name': 'baz',
+                            '-attr': [
+                                {
+                                    '-name': 'href',
+                                    '#content': [
+                                        {
+                                            'var': 'href'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+        }
+
+        extra_fname = os.path.join(self.xmldir, "extra.xml")
+
+        generator = XMLGenerator(
+            OrderedDict([
+                (self.fname, specification),
+                (extra_fname, specification)
+            ])
+        )
+
+        generator.generate(folderToParse=self.datadir)
+
+        tree1 = etree.parse(self.fname)
+        tree2 = etree.parse(extra_fname)
+
+        bars1 = tree1.findall('.//bar')
+        bars2 = tree2.findall('.//bar')
+
+        self.assertTrue(len(bars2) == len(bars1) + 1)
+
+        parse_file_tasks = ProcessTask.objects.filter(name='ESSArch_Core.tasks.ParseFile')
+        self.assertEqual(parse_file_tasks.count(), len(bars2))
 
     def test_element_with_containsFiles_without_files(self):
         specification = {
@@ -1134,6 +1197,314 @@ class test_generateXML(TransactionTestCase):
 
         self.assertIsNotNone(appended)
         self.assertEqual(appended.get('bar'), 'append text')
+
+
+class ExternalTestCase(TransactionTestCase):
+    def setUp(self):
+        self.bd = os.path.dirname(os.path.realpath(__file__))
+        self.xmldir = os.path.join(self.bd, "xmlfiles")
+        self.datadir = os.path.join(self.bd, "datafiles")
+        self.external = os.path.join(self.datadir, "external")
+        self.fname = os.path.join(self.xmldir, "test.xml")
+
+        os.mkdir(self.xmldir)
+        os.mkdir(self.datadir)
+        os.mkdir(self.external)
+
+        self.external1 = os.path.join(self.external, "external1")
+        self.external2 = os.path.join(self.external, "external2")
+        os.makedirs(self.external1)
+        os.makedirs(self.external2)
+
+        Path.objects.create(
+            entity="path_mimetypes_definitionfile",
+            value=os.path.join(self.bd, "mime.types")
+        )
+
+        settings.CELERY_ALWAYS_EAGER = True
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.xmldir)
+        except:
+            pass
+
+        try:
+            shutil.rmtree(self.datadir)
+        except:
+            pass
+
+        try:
+            os.remove(self.fname)
+        except:
+            pass
+
+    def test_external(self):
+        specification = {
+            '-name': 'root',
+            '-external': {
+                '-dir': 'external',
+                '-file': 'external.xml',
+                '-pointer': {
+                    '-name': 'ptr',
+                    '#content': [{'var': '_EXT_HREF'}]
+                },
+                '-specification': {
+                    '-name': 'extroot',
+                    '-children': [
+                        {
+                            '-name': 'foo',
+                            '#content': [{'var': '_EXT'}]
+                        }
+                    ]
+                }
+            },
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate(folderToParse=self.datadir)
+
+        self.assertTrue(os.path.isfile(self.fname))
+
+        external1_path = os.path.join(self.external1, 'external.xml')
+        external2_path = os.path.join(self.external2, 'external.xml')
+
+        tree = etree.parse(self.fname)
+
+        self.assertEqual(len(tree.xpath(".//ptr[text()='%s']" % os.path.relpath(external1_path, self.datadir))), 1)
+        self.assertEqual(len(tree.xpath(".//ptr[text()='%s']" % os.path.relpath(external2_path, self.datadir))), 1)
+
+        self.assertTrue(os.path.isfile(external1_path))
+        self.assertTrue(os.path.isfile(external2_path))
+
+        external1_tree = etree.parse(external1_path)
+        self.assertEqual(len(external1_tree.xpath(".//foo[text()='external1']")), 1)
+
+        external2_tree = etree.parse(external2_path)
+        self.assertEqual(len(external2_tree.xpath(".//foo[text()='external2']")), 1)
+
+    def test_external_with_files(self):
+        specification = {
+            '-name': 'root',
+            '-external': {
+                '-dir': 'external',
+                '-file': 'external.xml',
+                '-pointer': {
+                    '-name': 'ptr',
+                    '-attr': [
+                        {
+                            '-name': 'href',
+                            '#content': [{'var': '_EXT_HREF'}]
+                        },
+                    ],
+                },
+                '-specification': {
+                    '-name': 'mets',
+                    '-attr': [
+                        {
+                            '-name': 'LABEL',
+                            '#content': [{'var': '_EXT'}]
+                        },
+                    ],
+                    '-children': [
+                        {
+                            '-name': 'file',
+                            '-containsFiles': True,
+                            '-attr': [
+                                {
+                                    '-name': 'href',
+                                    '#content': [{'var': 'href'}]
+                                },
+                            ],
+                        },
+                    ]
+                }
+            },
+        }
+
+        with open(os.path.join(self.external1, "file1.txt"), "w") as f:
+            f.write('a txt file')
+        with open(os.path.join(self.external2, "file1.pdf"), "w") as f:
+            f.write('a pdf file')
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate(folderToParse=self.datadir)
+
+        self.assertTrue(os.path.isfile(self.fname))
+
+        tree = etree.parse(self.fname)
+
+        external1_path = os.path.join(self.external1, 'external.xml')
+        external2_path = os.path.join(self.external2, 'external.xml')
+
+        self.assertIsNone(tree.find('.//file'))
+
+        self.assertEqual(len(tree.findall(".//ptr[@href='%s']" % os.path.relpath(external1_path, self.datadir))), 1)
+        self.assertEqual(len(tree.findall(".//ptr[@href='%s']" % os.path.relpath(external2_path, self.datadir))), 1)
+
+        self.assertTrue(os.path.isfile(external1_path))
+        self.assertTrue(os.path.isfile(external2_path))
+
+        external1_tree = etree.parse(external1_path)
+        self.assertEqual(len(external1_tree.findall(".//file[@href='file1.txt']")), 1)
+
+        external2_tree = etree.parse(external2_path)
+        self.assertEqual(len(external2_tree.findall(".//file[@href='file1.pdf']")), 1)
+
+        parse_file_tasks = ProcessTask.objects.filter(name='ESSArch_Core.tasks.ParseFile')
+        self.assertEqual(parse_file_tasks.count(), 4)
+
+    def test_external_info(self):
+        specification = {
+            '-name': 'root',
+            '-external': {
+                '-dir': 'external',
+                '-file': 'external.xml',
+                '-pointer': {
+                    '-name': 'ptr',
+                    '-attr': [
+                        {
+                            '-name': 'href',
+                            '#content': [{'var': '_EXT_HREF'}]
+                        },
+                    ],
+                },
+                '-specification': {
+                    '-name': 'extroot',
+                    '-children': [
+                        {
+                            '-name': 'foo',
+                            '#content': [{'var': 'foo'}]
+                        }
+                    ]
+                }
+            },
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification},
+            {'foo': 'bar'}
+        )
+
+        generator.generate(folderToParse=self.datadir)
+
+        self.assertTrue(os.path.isfile(self.fname))
+
+        external1_path = os.path.join(self.external1, 'external.xml')
+        external2_path = os.path.join(self.external2, 'external.xml')
+
+        external1_tree = etree.parse(external1_path)
+        self.assertEqual(len(external1_tree.xpath('.//foo[text()="bar"]')), 1)
+
+        external2_tree = etree.parse(external2_path)
+        self.assertEqual(len(external2_tree.xpath(".//foo[text()='bar']")), 1)
+
+    def test_external_nsmap(self):
+        nsmap = {
+            'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+        }
+
+        specification = {
+            '-name': 'root',
+            '-nsmap': nsmap,
+            '-namespace': 'xsi',
+            '-external': {
+                '-dir': 'external',
+                '-file': 'external.xml',
+                '-pointer': {
+                    '-name': 'ptr',
+                    '-attr': [
+                        {
+                            '-name': 'href',
+                            '#content': [{'var': '_EXT_HREF'}]
+                        },
+                    ],
+                },
+                '-specification': {
+                    '-name': 'extroot',
+                    '-children': [
+                        {
+                            '-name': 'foo',
+                            '-namespace': 'xsi',
+                            '#content': [{'text': 'bar'}]
+                        }
+                    ]
+                }
+            },
+        }
+        generator = XMLGenerator(
+            {self.fname: specification},
+            {'foo': 'bar'}
+        )
+        generator.generate(folderToParse=self.datadir)
+
+        external1_path = os.path.join(self.external1, 'external.xml')
+        external2_path = os.path.join(self.external2, 'external.xml')
+
+        external1_tree = etree.parse(external1_path)
+        self.assertIsNotNone(external1_tree.find('.//xsi:foo', namespaces=nsmap))
+
+        external2_tree = etree.parse(external2_path)
+        self.assertIsNotNone(external2_tree.find('.//xsi:foo', namespaces=nsmap))
+
+    def test_external_nsmap_collision(self):
+        nsmap = {
+            'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+        }
+
+        nsmap_ext = {
+            'xsi': 'external_xsi',
+        }
+
+        specification = {
+            '-name': 'root',
+            '-nsmap': nsmap,
+            '-namespace': 'xsi',
+            '-external': {
+                '-dir': 'external',
+                '-file': 'external.xml',
+                '-pointer': {
+                    '-name': 'ptr',
+                    '-attr': [
+                        {
+                            '-name': 'href',
+                            '#content': [{'var': '_EXT_HREF'}]
+                        },
+                    ],
+                },
+                '-specification': {
+                    '-name': 'extroot',
+                    '-nsmap': nsmap_ext,
+                    '-children': [
+                        {
+                            '-name': 'foo',
+                            '-namespace': 'xsi',
+                            '#content': [{'text': 'bar'}]
+                        }
+                    ]
+                }
+            },
+        }
+        generator = XMLGenerator(
+            {self.fname: specification},
+            {'foo': 'bar'}
+        )
+        generator.generate(folderToParse=self.datadir)
+
+        external1_path = os.path.join(self.external1, 'external.xml')
+        external2_path = os.path.join(self.external2, 'external.xml')
+
+        external1_tree = etree.parse(external1_path)
+        self.assertIsNotNone(external1_tree.find('.//xsi:foo', namespaces=nsmap_ext))
+
+        external2_tree = etree.parse(external2_path)
+        self.assertIsNotNone(external2_tree.find('.//xsi:foo', namespaces=nsmap_ext))
 
 
 class test_parseContent(TransactionTestCase):

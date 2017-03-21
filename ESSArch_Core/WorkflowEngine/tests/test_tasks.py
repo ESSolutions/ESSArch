@@ -132,11 +132,11 @@ class test_running_tasks(TestCase):
             information_package=InformationPackage.objects.create()
         )
 
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(3):
             task.run()
 
         task.refresh_from_db()
-        self.assertIsNone(task.traceback)
+        self.assertFalse(task.traceback)
         self.assertEqual(foo, task.result)
 
     def test_on_success_with_event(self):
@@ -152,11 +152,11 @@ class test_running_tasks(TestCase):
             information_package=InformationPackage.objects.create()
         )
 
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(6):
             task.run()
 
         task.refresh_from_db()
-        self.assertIsNone(task.traceback)
+        self.assertFalse(task.traceback)
         self.assertEqual(foo, task.result)
 
         e = EventIP.objects.get(eventApplication=task.pk)
@@ -190,6 +190,18 @@ class test_running_tasks(TestCase):
         self.assertIsNone(task.result)
         self.assertIsNotNone(task.traceback)
         self.assertEqual(u"TypeError: run() got an unexpected keyword argument 'bar'", task.exception)
+
+    def test_on_failure_does_not_exist(self):
+        """
+        Runs a task that fails becuase an object does not exist
+        """
+
+        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+
+        task = ProcessTask.objects.create(name="ESSArch_Core.WorkflowEngine.tests.tasks.FailDoesNotExist")
+
+        with self.assertRaises(InformationPackage.DoesNotExist):
+            task.run()
 
     def test_on_failure_with_event(self):
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
@@ -306,7 +318,7 @@ class test_retrying_tasks(TestCase):
         task.run()
         task.undo()
 
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(5):
             task.retry()
 
         task.refresh_from_db()

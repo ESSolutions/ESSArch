@@ -24,6 +24,7 @@
 
 from __future__ import absolute_import
 
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 
 import os
@@ -31,7 +32,6 @@ import os
 
 class First(DBTask):
     def run(self, foo=None):
-        self.set_progress(1, total=1)
         return foo
 
     def undo(self, foo=None):
@@ -49,7 +49,6 @@ class Second(DBTask):
 
 class Third(DBTask):
     def run(self, foo=None):
-        self.set_progress(1, total=1)
         return foo
 
     def undo(self, foo=None):
@@ -58,7 +57,6 @@ class Third(DBTask):
 
 class Add(DBTask):
     def run(self, x=None, y=None):
-        self.set_progress(1, total=1)
         return x+y
 
     def undo(self, x=None, y=None):
@@ -73,10 +71,17 @@ class Fail(DBTask):
         pass
 
 
+class FailDoesNotExist(DBTask):
+    def run(self):
+        raise InformationPackage.DoesNotExist
+
+    def undo(self):
+        pass
+
+
 class FailIfFileNotExists(DBTask):
     def run(self, filename=None):
         assert os.path.isfile(filename)
-        self.set_progress(1, total=1)
         return filename
 
     def undo(self, filename=None):
@@ -87,7 +92,6 @@ class WithEvent(DBTask):
     event_type = 1
 
     def run(self, foo=None):
-        self.set_progress(1, total=1)
         return foo
 
     def undo(self, foo=None):

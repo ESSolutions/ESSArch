@@ -1,5 +1,4 @@
 {
-    "-max": 1,
     "-namespace": "premis",
     "-nsmap": {
         "premis": "http://www.loc.gov/premis/v3",
@@ -26,7 +25,6 @@
         }
     ],
     "-name": "premis",
-    "-min": 0,
     "-children": [
         {
             "-name": "object",
@@ -118,15 +116,13 @@
                     ]
                 }
             ],
-            "-max": 1,
             "-attr": [
                 {
                   "-name": "xsi:type",
                   "-req": "1",
                   "#content": [{"text":"premis:file"}]
                 }
-            ],
-            "-min": 0
+            ]
         }
     ],
     "-schemasToPreserve": [

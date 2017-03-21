@@ -28,10 +28,41 @@ import os
 
 from lxml import etree
 
-from ESSArch_Core.util import get_value_from_path
+from ESSArch_Core.util import getSchemas, get_value_from_path, remove_prefix
 
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
+
+# File elements in different metadata standards
+FILE_ELEMENTS = {
+    "file": {
+        "path": "FLocat@href",
+        "pathprefix": "file:///",
+        "checksum": "@CHECKSUM",
+        "checksumtype": "@CHECKSUMTYPE",
+        "format": "@FILEFORMATNAME",
+    },
+    "mdRef": {
+        "path": "@href",
+        "pathprefix": "file:///",
+        "checksum": "@CHECKSUM",
+        "checksumtype": "@CHECKSUMTYPE",
+    },
+    "object": {
+        "path": "storage/contentLocation/contentLocationValue",
+        "pathprefix": "file:///",
+        "checksum": "objectCharacteristics/fixity/messageDigest",
+        "checksumtype": "objectCharacteristics/fixity/messageDigestAlgorithm",
+        "format": "objectCharacteristics/format/formatDesignation/formatName",
+    },
+}
+
+PTR_ELEMENTS = {
+    "mptr": {
+        "path": "@href",
+        "pathprefix": "file:///",
+    }
+}
 
 
 def get_agent(el, ROLE=None, OTHERROLE=None, TYPE=None, OTHERTYPE=None):
@@ -154,3 +185,82 @@ def parse_submit_description(xmlfile, srcdir=''):
         pass
 
     return ip
+
+
+class XMLFileElement():
+    def __init__(self, el, props):
+        '''
+        args:
+            el: lxml.etree._Element
+            props: 'dict with properties from FILE_ELEMENTS'
+        '''
+
+        self.path = get_value_from_path(el, props.get('path', ''))
+        self.path_prefix = props.get('pathprefix', '')
+        self.path = remove_prefix(self.path, self.path_prefix)
+        self.path = self.path.lstrip('/ ')
+
+        self.checksum = get_value_from_path(el, props.get('checksum', ''))
+        self.checksum_type = get_value_from_path(el, props.get('checksumtype', ''))
+
+        self.format = get_value_from_path(el, props.get('format', ''))
+
+    def __eq__(self, other):
+        '''
+        Two objects are equal if their paths are equal. If other is a
+        string, we assume its a path and compares it as is
+        '''
+
+        if isinstance(other, basestring):
+            return self.path == other
+
+        return self.path == other.path
+
+    def __hash__(self):
+        return hash(self.path)
+
+
+def find_pointers(xmlfile):
+    doc = etree.ElementTree(file=xmlfile)
+
+    for elname, props in PTR_ELEMENTS.iteritems():
+        for ptr in doc.xpath('.//*[local-name()="%s"]' % elname):
+            yield XMLFileElement(ptr, props)
+
+
+def find_files(xmlfile, rootdir='', prefix=''):
+    doc = etree.ElementTree(file=xmlfile)
+    files = set()
+
+    for elname, props in FILE_ELEMENTS.iteritems():
+        for el in doc.xpath('.//*[local-name()="%s"]' % elname):
+            file_el = XMLFileElement(el, props)
+            file_el.path = os.path.join(prefix, file_el.path)
+            files.add(file_el)
+
+    for pointer in find_pointers(xmlfile):
+        pointer_prefix = os.path.split(pointer.path)[0]
+        files.add(pointer)
+        files |= find_files(os.path.join(rootdir, pointer.path), rootdir, pointer_prefix)
+
+    return files
+
+
+def validate_against_schema(xmlfile, schema=None, rootdir=None):
+    doc = etree.ElementTree(file=xmlfile)
+
+    if schema:
+        xmlschema = etree.XMLSchema(etree.parse(schema))
+    else:
+        xmlschema = getSchemas(doc=doc)
+
+    xmlschema.assertValid(doc)
+
+    if rootdir is None:
+        rootdir = os.path.split(xmlfile)[0]
+
+    for ptr in find_pointers(xmlfile):
+        if not validate_against_schema(os.path.join(rootdir, ptr.path), schema):
+            return False
+
+    return xmlschema.validate(doc)

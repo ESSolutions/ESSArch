@@ -126,8 +126,13 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='informationpackage',
-            name='num_items',
-            field=models.IntegerField(null=True),
+            name='object_num_items',
+            field=models.IntegerField(default=0),
+        ),
+        migrations.AddField(
+            model_name='informationpackage',
+            name='object_size',
+            field=models.BigIntegerField(default=0),
         ),
         migrations.AddField(
             model_name='informationpackage',
@@ -144,11 +149,6 @@ class Migration(migrations.Migration):
             model_name='informationpackage',
             name='preservation_level_value',
             field=models.IntegerField(choices=[(1, b'full')], default=1),
-        ),
-        migrations.AddField(
-            model_name='informationpackage',
-            name='size',
-            field=models.BigIntegerField(null=True),
         ),
         migrations.AlterField(
             model_name='informationpackage',

@@ -41,12 +41,14 @@ from django.conf import settings
 
 from ESSArch_Core.util import (
     alg_from_str,
+    get_tree_size_and_count,
 )
 
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     findElementWithoutNamespace,
     XMLGenerator
 )
+from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, validate_against_schema
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.WorkflowEngine.models import (
     ProcessStep,
@@ -56,7 +58,6 @@ from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.util import (
     creation_date,
     find_destination,
-    getSchemas,
     get_value_from_path,
     remove_prefix,
     timestamp_to_datetime,
@@ -93,7 +94,6 @@ class CalculateChecksum(DBTask):
                 else:
                     break
 
-        self.set_progress(100, total=100)
         return hash_val.hexdigest()
 
     def undo(self, filename=None, block_size=65536, algorithm='SHA-256'):
@@ -111,7 +111,21 @@ class IdentifyFileFormat(DBTask):
             raise ValueError("No matches for %s" % fullname)
 
         f, sigName = matches[-1]
-        self.lastFmt = f.find('name').text
+
+        try:
+            self.format_name = f.find('name').text
+        except AttributeError:
+            self.format_name = None
+
+        try:
+            self.format_version = f.find('version').text
+        except AttributeError:
+            self.format_version = None
+
+        try:
+            self.format_registry_key = f.find('puid').text
+        except AttributeError:
+            self.format_registry_key = None
 
     def run(self, filename=None, fid=Fido()):
         """
@@ -121,16 +135,14 @@ class IdentifyFileFormat(DBTask):
             filename: The filename to identify
 
         Returns:
-            The format of the file
+            A tuple with the format name, version and registry key
         """
 
         self.fid = fid
         self.fid.handle_matches = self.handle_matches
         self.fid.identify_file(filename)
 
-        self.set_progress(100, total=100)
-
-        return self.lastFmt
+        return (self.format_name, self.format_version, self.format_registry_key)
 
     def undo(self, filename=None, fid=Fido()):
         pass
@@ -143,7 +155,7 @@ class ParseFile(DBTask):
     queue = 'file_operation'
     hidden = True
 
-    def run(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256'):
+    def run(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256', rootdir=''):
         if not relpath:
             relpath = filepath
 
@@ -177,17 +189,20 @@ class ParseFile(DBTask):
 
         checksum = checksum_task.run().get()
         self.set_progress(50, total=100)
-        fileformat = fileformat_task.run().get()
+        (format_name, format_version, format_registry_key) = fileformat_task.run().get()
 
         fileinfo = {
             'FName': os.path.basename(relpath),
+            'FDir': rootdir,
             'FChecksum': checksum,
             'FID': str(uuid.uuid4()),
             'daotype': "borndigital",
             'href': relpath,
             'FMimetype': mimetype,
             'FCreated': createdate.isoformat(),
-            'FFormatName': fileformat,
+            'FFormatName': format_name,
+            'FFormatVersion': format_version,
+            'FFormatRegistryKey': format_registry_key,
             'FSize': str(os.path.getsize(filepath)),
             'FUse': 'Datafile',
             'FChecksumType': algorithm,
@@ -198,14 +213,12 @@ class ParseFile(DBTask):
             'FIDType': 'UUID',
         }
 
-        self.set_progress(100, total=100)
-
         return fileinfo
 
-    def undo(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256'):
+    def undo(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256', rootdir=''):
         return ''
 
-    def event_outcome_success(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256'):
+    def event_outcome_success(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256', rootdir=''):
         return "Parsed file %s" % filepath
 
 
@@ -224,8 +237,6 @@ class GenerateXML(DBTask):
             folderToParse=folderToParse, algorithm=algorithm,
         )
 
-        self.set_progress(100, total=100)
-
     def undo(self, info={}, filesToCreate={}, folderToParse=None, algorithm='SHA-256'):
         for f, template in filesToCreate.iteritems():
             os.remove(f)
@@ -243,8 +254,6 @@ class InsertXML(DBTask):
         generator = XMLGenerator()
 
         generator.insert(filename, elementToAppendTo, spec, info=info, index=index)
-
-        self.set_progress(100, total=100)
 
     def undo(self, filename=None, elementToAppendTo=None, spec={}, info={}, index=None):
         tree = etree.parse(filename)
@@ -435,8 +444,6 @@ class AppendEvents(DBTask):
 
             generator.insert(filename, "premis", template, data)
 
-        self.set_progress(100, total=100)
-
     def undo(self, filename="", events={}):
         tree = etree.parse(filename)
         parent = findElementWithoutNamespace(tree, 'premis')
@@ -481,8 +488,6 @@ class CopySchemas(DBTask):
         src, dst = self.createSrcAndDst(schema, root, structure)
         urllib.urlretrieve(src, dst)
 
-        self.set_progress(100, total=100)
-
     def undo(self, schema={}, root=None, structure=None):
         pass
 
@@ -507,48 +512,35 @@ class ValidateFiles(DBTask):
             if rootdir is None:
                 rootdir = InformationPackage.objects.values_list('ObjectPath', flat=True).get(pk=ip)
 
-            doc = etree.ElementTree(file=xmlfile)
             tasks = []
 
-            for elname, props in settings.FILE_ELEMENTS.iteritems():
-                for f in doc.xpath('.//*[local-name()="%s"]' % elname):
-                    fpath = get_value_from_path(f, props["path"])
+            for f in find_files(xmlfile, rootdir):
+                if validate_fileformat and f.format is not None:
+                    tasks.append(ProcessTask(
+                        name=self.fileformat_task,
+                        params={
+                            "filename": os.path.join(rootdir, f.path),
+                            "format_name": f.format,
+                        },
+                        information_package_id=ip,
+                        responsible_id=self.responsible,
+                        processstep=step,
+                    ))
 
-                    if fpath:
-                        fpath = remove_prefix(fpath, props.get("pathprefix", ""))
-
-                    fformat = get_value_from_path(f, props.get("format"))
-                    checksum = get_value_from_path(f, props.get("checksum"))
-                    algorithm = get_value_from_path(f, props.get("checksumtype"))
-
-                    if validate_fileformat and fformat is not None:
-                        tasks.append(ProcessTask(
-                            name=self.fileformat_task,
-                            params={
-                                "filename": os.path.join(rootdir, fpath),
-                                "fileformat": fformat,
-                            },
-                            information_package_id=ip,
-                            responsible_id=self.responsible,
-                            processstep=step,
-                        ))
-
-                    if validate_integrity and checksum is not None:
-                        tasks.append(ProcessTask(
-                            name=self.checksum_task,
-                            params={
-                                "filename": os.path.join(rootdir, fpath),
-                                "checksum": checksum,
-                                "algorithm": algorithm,
-                            },
-                            information_package_id=ip,
-                            responsible_id=self.responsible,
-                            processstep=step,
-                        ))
+                if validate_integrity and f.checksum is not None and f.checksum_type is not None:
+                    tasks.append(ProcessTask(
+                        name=self.checksum_task,
+                        params={
+                            "filename": os.path.join(rootdir, f.path),
+                            "checksum": f.checksum,
+                            "algorithm": f.checksum_type,
+                        },
+                        information_package_id=ip,
+                        responsible_id=self.responsible,
+                        processstep=step,
+                    ))
 
             ProcessTask.objects.bulk_create(tasks)
-
-        self.set_progress(100, total=100)
 
         with allow_join_result():
             return step.run().get()
@@ -563,7 +555,7 @@ class ValidateFiles(DBTask):
 class ValidateFileFormat(DBTask):
     queue = 'validation'
 
-    def run(self, filename=None, fileformat=None):
+    def run(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
         """
         Validates the format of the given file
         """
@@ -581,17 +573,26 @@ class ValidateFileFormat(DBTask):
             responsible_id=task.get('responsible_id'),
         )
 
-        res = t.run().get()
+        actual_format_name, actual_format_version, actual_format_registry_key = t.run().get()
 
-        assert res == fileformat, "fileformat for %s is not valid" % filename
-        self.set_progress(100, total=100)
+        if format_name:
+            assert actual_format_name == format_name, "format name for %s is not valid, (%s != %s)" % (filename, format_name, actual_format_name)
+
+        if format_version:
+            assert actual_format_version == format_version, "format version for %s is not valid" % filename
+
+        if format_registry_key:
+            assert actual_format_registry_key == format_registry_key, "format registry key for %s is not valid" % filename
+
         return "Success"
 
-    def undo(self, filename=None, fileformat=None):
+    def undo(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
         pass
 
-    def event_outcome_success(self, filename=None, fileformat=None):
-        return "Validated format of %s to be %s" % (filename, fileformat)
+    def event_outcome_success(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
+        return "Validated format of %s to be: format name: %s, format version: %s, format registry key: %s" % (
+            filename, format_name, format_version, format_registry_key
+        )
 
 
 class ValidateIntegrity(DBTask):
@@ -620,7 +621,6 @@ class ValidateIntegrity(DBTask):
         digest = t.run().get()
 
         assert digest == checksum, "checksum for %s is not valid (%s != %s)" % (filename, digest, checksum)
-        self.set_progress(100, total=100)
         return "Success"
 
     def undo(self, filename=None, checksum=None,  block_size=65536, algorithm='SHA-256'):
@@ -633,26 +633,18 @@ class ValidateIntegrity(DBTask):
 class ValidateXMLFile(DBTask):
     queue = 'validation'
 
-    def run(self, xml_filename=None, schema_filename=None):
+    def run(self, xml_filename=None, schema_filename=None, rootdir=None):
         """
         Validates (using LXML) an XML file using a specified schema file
         """
 
-        doc = etree.ElementTree(file=xml_filename)
-
-        if schema_filename:
-            xmlschema = etree.XMLSchema(etree.parse(schema_filename))
-        else:
-            xmlschema = getSchemas(doc=doc)
-
-        xmlschema.assertValid(doc)
-        self.set_progress(100, total=100)
+        assert validate_against_schema(xmlfile=xml_filename, schema=schema_filename, rootdir=rootdir)
         return "Success"
 
-    def undo(self, xml_filename=None, schema_filename=None):
+    def undo(self, xml_filename=None, schema_filename=None, rootdir=None):
         pass
 
-    def event_outcome_success(self, xml_filename=None, schema_filename=None):
+    def event_outcome_success(self, xml_filename=None, schema_filename=None, rootdir=None):
         return "Validated %s against schema" % xml_filename
 
 
@@ -668,37 +660,25 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 
     queue = 'validation'
 
-    def run(self, dirname=None, files=[], files_reldir=None, xmlfile=None):
+    def run(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=""):
         if dirname:
             xmlrelpath = os.path.relpath(xmlfile, dirname)
             xmlrelpath = remove_prefix(xmlrelpath, "./")
         else:
             xmlrelpath = xmlfile
 
-        doc = etree.ElementTree(file=xmlfile)
-
-        root = doc.getroot()
-
-        logical_files = set()
+        logical_files = find_files(xmlfile, rootdir)
         physical_files = set()
-
-        for elname, props in settings.FILE_ELEMENTS.iteritems():
-            for f in doc.xpath('.//*[local-name()="%s"]' % elname):
-                filename = get_value_from_path(f, props["path"])
-
-                if filename:
-                    filename = remove_prefix(filename, props.get("pathprefix", ""))
-                    logical_files.add(filename)
 
         if dirname:
             for root, dirs, filenames in os.walk(dirname):
                 for f in filenames:
-                    if f != xmlrelpath:
-                        reldir = os.path.relpath(root, dirname)
-                        relfile = os.path.join(reldir, f)
-                        relfile = win_to_posix(relfile)
-                        relfile = remove_prefix(relfile, "./")
+                    reldir = os.path.relpath(root, dirname)
+                    relfile = os.path.join(reldir, f)
+                    relfile = win_to_posix(relfile)
+                    relfile = remove_prefix(relfile, "./")
 
+                    if relfile != xmlrelpath:
                         physical_files.add(relfile)
 
         for f in files:
@@ -707,21 +687,18 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
             physical_files.add(f)
 
         assert logical_files == physical_files, "the logical representation differs from the physical"
-        self.set_progress(100, total=100)
         return "Success"
 
-    def undo(self, dirname=None, files=[], files_reldir=None, xmlfile=None):
+    def undo(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=''):
         pass
 
-    def event_outcome_success(self, dirname=None, files=[], files_reldir=None, xmlfile=None):
+    def event_outcome_success(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=''):
         return "Validated logical and physical structure of %s and %s" % (xmlfile, dirname)
 
 
 class UpdateIPStatus(DBTask):
     def run(self, ip=None, status=None, prev=None):
         InformationPackage.objects.filter(pk=ip).update(State=status)
-        self.set_progress(100, total=100)
-
     def undo(self, ip=None, status=None, prev=None):
         InformationPackage.objects.filter(pk=ip).update(State=prev)
 
@@ -732,13 +709,31 @@ class UpdateIPStatus(DBTask):
 class UpdateIPPath(DBTask):
     def run(self, ip=None, path=None, prev=None):
         InformationPackage.objects.filter(pk=ip).update(ObjectPath=path)
-        self.set_progress(100, total=100)
-
     def undo(self, ip=None, path=None, prev=None):
         InformationPackage.objects.filter(pk=ip).update(ObjectPath=prev)
 
     def event_outcome_success(self, ip=None, path=None, prev=None):
         return "Updated path of %s to %s" % (ip, path)
+
+
+class UpdateIPSizeAndCount(DBTask):
+    queue = 'file_operation'
+
+    def run(self, ip=None):
+        path = InformationPackage.objects.values_list('ObjectPath', flat=True).get(pk=ip)
+        size, count = get_tree_size_and_count(path)
+
+        InformationPackage.objects.filter(pk=ip).update(
+            object_size=size, object_num_items=count
+        )
+
+        return size, count
+
+    def undo(self, ip=None):
+        pass
+
+    def event_outcome_success(self, ip=None):
+        return "Updated size and count of %s" % ip
 
 
 class DeleteFiles(DBTask):
@@ -751,8 +746,6 @@ class DeleteFiles(DBTask):
                     os.remove(path)
                 except:
                     raise
-
-        self.set_progress(100, total=100)
 
     def undo(self, path=None):
         pass
@@ -812,8 +805,6 @@ class CopyChunk(DBTask):
             self.remote(src, dst, requests_session, block_size, offset, file_size)
         except ValidationError:
             self.local(src, dst, block_size, offset)
-
-        self.set_progress(100, total=100)
 
     def undo(self, src=None, dst=None, requests_session=None, offset=0, block_size=65536, file_size=0):
         pass
@@ -910,8 +901,6 @@ class CopyFile(DBTask):
         except ValidationError:
             self.local(src, dst, block_size, step)
 
-        self.set_progress(100, total=100)
-
     def undo(self, src=None, dst=None, requests_session=None, block_size=65536):
         pass
 
@@ -932,8 +921,6 @@ class SendEmail(DBTask):
             email.attach_file(a)
 
         email.send()
-
-        self.set_progress(100, total=100)
 
     def undo(self, sender=None, recipients=[], subject=None, body=None, attachments=[]):
         pass
@@ -966,8 +953,6 @@ class DownloadSchemas(DBTask):
 
             t.run().get()
 
-        self.set_progress(100, total=100)
-
     def undo(self, template=None, dirname=None, structure=[], root="", task=None):
         pass
 
@@ -978,12 +963,11 @@ class DownloadSchemas(DBTask):
 class DownloadFile(DBTask):
     def run(self, src=None, dst=None):
         r = requests.get(src, stream=True)
+        r.raise_for_status()
         if r.status_code == 200:
             with open(dst, 'wb') as f:
                 for chunk in r:
                     f.write(chunk)
-
-        self.set_progress(100, total=100)
 
     def undo(self, src=None, dst=None):
         pass

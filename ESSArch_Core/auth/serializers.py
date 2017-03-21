@@ -26,6 +26,8 @@ from django.contrib.auth.models import User, Group, Permission, ContentType
 
 from rest_framework import serializers
 
+from ESSArch_Core.auth.models import UserProfile
+
 
 class PermissionSerializer(serializers.HyperlinkedModelSerializer):
     content_type = serializers.PrimaryKeyRelatedField(queryset=ContentType.objects.all())
@@ -53,8 +55,31 @@ class GroupDetailSerializer(GroupSerializer):
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     permissions = serializers.ReadOnlyField(source='get_all_permissions')
-    user_permissions = PermissionSerializer(many=True)
-    groups = GroupSerializer(many=True)
+    user_permissions = PermissionSerializer(many=True, read_only=True)
+    groups = GroupSerializer(many=True, read_only=True)
+
+    ip_list_columns = serializers.ListField(source='user_profile.ip_list_columns')
+    ip_list_view_type = serializers.ChoiceField(
+        choices=UserProfile.IP_LIST_VIEW_CHOICES, default=UserProfile.AIC, source='user_profile.ip_list_view_type'
+    )
+
+    def update(self, instance, validated_data):
+        profile_data = validated_data.pop('user_profile')
+
+        user_profile = instance.user_profile
+
+        user_profile.ip_list_columns = profile_data.get(
+            'ip_list_columns',
+            user_profile.ip_list_columns
+        )
+        user_profile.ip_list_view_type = profile_data.get(
+            'ip_list_view_type',
+            user_profile.ip_list_view_type
+         )
+
+        user_profile.save()
+
+        return super(UserSerializer, self).update(instance, validated_data)
 
     class Meta:
         model = User
@@ -62,6 +87,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             'url', 'id', 'username', 'first_name', 'last_name', 'email',
             'groups', 'is_staff', 'is_active', 'is_superuser', 'last_login',
             'date_joined', 'permissions', 'user_permissions',
+            'ip_list_columns', 'ip_list_view_type',
         )
         read_only_fields = (
             'last_login', 'date_joined',

@@ -31,7 +31,7 @@ from django_redis import get_redis_connection
 
 from ESSArch_Core.configuration.models import EventType
 
-from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.ip.models import EventIP, InformationPackage
 
 from ESSArch_Core.WorkflowEngine.models import (
     ProcessStep, ProcessTask,
@@ -818,6 +818,17 @@ class test_running_steps(TransactionTestCase):
             self.assertIsNotNone(t.time_started)
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+    def test_chunked_empty_step(self):
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        with self.assertNumQueries(1):
+            res = step.chunk()
+
+        self.assertEqual(res, [])
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
     def test_chunked_step_with_size(self):
         EventType.objects.create(eventType=1)
 
@@ -893,6 +904,43 @@ class test_running_steps(TransactionTestCase):
         self.assertEqual(t3.status, celery_states.PENDING)
         self.assertEqual(t3.progress, 0)
         self.assertIsNone(t3.time_started)
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+    def test_chunked_step_with_events(self):
+        EventType.objects.create(eventType=1)
+
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        t1 = ProcessTask(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            params={'foo': 'bar'},
+            processstep=step,
+        )
+        t2 = ProcessTask(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            params={'bar': 'foo'},
+            processstep=step,
+        )
+        t3 = ProcessTask(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            params={'foo': 'bar'},
+            processstep=step,
+        )
+
+        tasks = [t1, t2, t3]
+
+        ProcessTask.objects.bulk_create(tasks)
+
+        with self.assertNumQueries(len(tasks) + 4):
+            step.chunk()
+
+        for t in tasks:
+            t.refresh_from_db()
+
+        self.assertEqual(EventIP.objects.filter(eventOutcome=1).count(), 1)
+        self.assertEqual(EventIP.objects.filter(eventOutcome=0).count(), 1)
 
     def test_child_steps(self):
         main_step = ProcessStep.objects.create()

@@ -32,6 +32,8 @@ from celery.result import allow_join_result
 
 from lxml import etree
 
+from natsort import natsorted
+
 from django.conf import settings
 from django.utils import timezone
 
@@ -46,6 +48,7 @@ from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.util import (
     creation_date,
     find_destination,
+    nested_lookup,
     timestamp_to_datetime,
     win_to_posix,
 )
@@ -101,6 +104,7 @@ class XMLElement(object):
         self.attr = [XMLAttribute(a) for a in template.get('-attr', [])]
         self.content = template.get('#content', [])
         self.containsFiles = template.get('-containsFiles', False)
+        self.external = template.get('-external')
         self.fileFilters = template.get('-filters', {})
         self.allowEmpty = template.get('-allowEmpty', False)
         self.skipIfNoChildren = template.get('-skipIfNoChildren', False)
@@ -125,6 +129,9 @@ class XMLElement(object):
         if len(self.el) == 0 and self.skipIfNoChildren:
             return True
 
+        if len(self.el):
+            return False
+
         any_attribute_with_value = any(value for value in self.el.attrib.values())
         any_children_not_empty = any(not child.isEmpty(info) or (child.isEmpty(info) and child.allowEmpty) for child in self.children)
 
@@ -133,7 +140,7 @@ class XMLElement(object):
 
         return True
 
-    def createLXMLElement(self, info, nsmap={}, files=[]):
+    def createLXMLElement(self, info, nsmap={}, files=[], folderToParse='', task=None):
         full_nsmap = nsmap.copy()
         full_nsmap.update(self.nsmap)
 
@@ -152,8 +159,18 @@ class XMLElement(object):
             elif content:
                 self.el.set(name, content)
 
-        for child in self.children:
+        if self.external:
+            ext_dirs = next(walk(os.path.join(folderToParse, self.external['-dir'])))[1]
+            for ext_dir in natsorted(ext_dirs):
+                ptr = XMLElement(self.external['-pointer'])
+                ptr_file_path = os.path.join(self.external['-dir'], ext_dir, self.external['-file'])
 
+                ptr_info = info
+                ptr_info['_EXT'] = ext_dir
+                ptr_info['_EXT_HREF'] = ptr_file_path
+                self.el.append(ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse, task=task))
+
+        for child in self.children:
             if child.containsFiles:
                 for fileinfo in files:
                     include = True
@@ -165,9 +182,9 @@ class XMLElement(object):
                     if include:
                         full_info = info.copy()
                         full_info.update(fileinfo)
-                        self.el.append(child.createLXMLElement(full_info, full_nsmap, files=files))
+                        self.el.append(child.createLXMLElement(full_info, full_nsmap, files=files, folderToParse=folderToParse, task=task))
             else:
-                child_el = child.createLXMLElement(info, full_nsmap, files=files)
+                child_el = child.createLXMLElement(info, full_nsmap, files=files, folderToParse=folderToParse, task=task)
                 if child_el is not None:
                     self.el.append(child_el)
 
@@ -226,6 +243,25 @@ class XMLGenerator(object):
                 'root': XMLElement(template)
             })
 
+    def find_external_dirs(self):
+        dirs = []
+        found_paths = []
+
+        for spec in self.toCreate:
+            res = nested_lookup('-external', spec['template'])
+            for x in res:
+                path = os.path.join(x['-dir'], x['-file'])
+
+                external_nsmap = spec['template'].get('-nsmap', {}).copy()
+                external_nsmap.update(x['-specification'].get('-nsmap', {}))
+                x['-specification']['-nsmap'] = external_nsmap
+
+                if path not in found_paths:
+                    found_paths.append(path)
+                    dirs.append((x['-file'], x['-dir'], x['-specification']))
+
+        return dirs
+
     def get_mimetype(self, mtypes, fname):
         file_name, file_ext = os.path.splitext(fname)
 
@@ -254,7 +290,7 @@ class XMLGenerator(object):
 
         if folderToParse:
             step = ProcessStep.objects.create(
-                name="File Operations",
+                name="File operations for %s" % (os.path.basename(folderToParse)),
                 parallel=True,
             )
 
@@ -266,6 +302,39 @@ class XMLGenerator(object):
                 step.save()
 
             folderToParse = unicode(folderToParse)
+
+            external = self.find_external_dirs()
+
+            for ext_file, ext_dir, ext_spec in external:
+                ext_sub_dirs = next(walk(os.path.join(folderToParse, ext_dir)))[1]
+                for sub_dir in ext_sub_dirs:
+                    ptr_file_path = os.path.join(ext_dir, sub_dir, ext_file)
+
+                    ext_info = self.info
+                    ext_info['_EXT'] = sub_dir
+                    ext_info['_EXT_HREF'] = ptr_file_path
+
+                    external_gen = XMLGenerator(
+                        filesToCreate={
+                            os.path.join(folderToParse, ptr_file_path): ext_spec
+                        },
+                        info=ext_info,
+                        task=self.task,
+                    )
+                    external_gen.generate(os.path.join(folderToParse, ext_dir, sub_dir))
+
+                    tasks.append(ProcessTask(
+                        name="ESSArch_Core.tasks.ParseFile",
+                        params={
+                            'filepath': os.path.join(folderToParse, ptr_file_path),
+                            'mimetype': self.get_mimetype(mtypes, ptr_file_path),
+                            'relpath': ptr_file_path,
+                            'algorithm': algorithm,
+                            'rootdir': sub_dir
+                        },
+                        responsible_id=responsible,
+                        processstep=step,
+                    ))
 
             if os.path.isfile(folderToParse):
                 tasks.append(ProcessTask(
@@ -281,6 +350,8 @@ class XMLGenerator(object):
                 ))
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in walk(folderToParse):
+                    dirnames[:] = [d for d in dirnames if d not in [e[1] for e in external]]
+
                     for fname in filenames:
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, folderToParse)
@@ -302,14 +373,14 @@ class XMLGenerator(object):
                 for fileinfo in step.chunk():
                     files.append(fileinfo)
 
-        for f in self.toCreate:
+        for idx, f in enumerate(self.toCreate):
             fname = f['file']
             rootEl = f['root']
 
             self.info['_XML_FILENAME'] = os.path.basename(fname)
 
             tree = etree.ElementTree(
-                rootEl.createLXMLElement(self.info, files=files)
+                rootEl.createLXMLElement(self.info, files=files, folderToParse=folderToParse, task=self.task)
             )
             tree.write(
                 fname, pretty_print=True, xml_declaration=True,
@@ -321,20 +392,21 @@ class XMLGenerator(object):
             except:
                 relpath = fname
 
-            parsefile_task = ProcessTask.objects.create(
-                name="ESSArch_Core.tasks.ParseFile",
-                params={
-                    'filepath': fname,
-                    'mimetype': self.get_mimetype(mtypes, fname),
-                    'relpath': relpath,
-                    'algorithm': algorithm
-                },
-                responsible_id=responsible,
-                processstep_id=self.task.step if self.task else None
-            )
+            if idx < len(self.toCreate) - 1:
+                parsefile_task = ProcessTask.objects.create(
+                    name="ESSArch_Core.tasks.ParseFile",
+                    params={
+                        'filepath': fname,
+                        'mimetype': self.get_mimetype(mtypes, fname),
+                        'relpath': relpath,
+                        'algorithm': algorithm
+                    },
+                    responsible_id=responsible,
+                    processstep_id=self.task.step if self.task else None
+                )
 
-            with allow_join_result():
-                files.append(parsefile_task.run().get())
+                with allow_join_result():
+                    files.append(parsefile_task.run().get())
 
     def insert(self, filename, elementToAppendTo, template, info={}, index=None):
         parser = etree.XMLParser(remove_blank_text=True)
@@ -344,7 +416,7 @@ class XMLGenerator(object):
         appendedRootEl = XMLElement(template, nsmap=root_nsmap)
 
         try:
-            el = appendedRootEl.createLXMLElement(info)
+            el = appendedRootEl.createLXMLElement(info, task=self.task)
             if index is not None:
                 elementToAppendTo.insert(index, el)
             else:
