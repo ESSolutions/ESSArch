@@ -892,6 +892,9 @@ class CopyFile(DBTask):
         if dst is None:
             raise ValueError
 
+        if os.path.isdir(dst):
+            dst = os.path.join(dst, os.path.basename(src))
+
         val = URLValidator(dst)
         step = ProcessTask.objects.values_list('processstep', flat=True).get(pk=self.request.id)
 
