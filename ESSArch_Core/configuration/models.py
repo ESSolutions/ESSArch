@@ -191,8 +191,10 @@ class ArchivePolicy(models.Model):
     def __unicode__(self):
         if len(self.policy_name):
             return self.policy_name
-        else:
+        elif len(self.policy_id):
             return unicode(self.policy_id)
+        else:
+            return str(self.pk)
 
 
 class DefaultSorting(models.Model):
