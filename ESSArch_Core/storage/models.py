@@ -123,6 +123,13 @@ class StorageMethod(models.Model):
     archive_policy = models.ForeignKey('configuration.ArchivePolicy')
     targets = models.ManyToManyField('StorageTarget', through='StorageMethodTargetRelation', related_name='methods')
 
+    @property
+    def active_targets(self):
+        return StorageTarget.objects.filter(
+            storagemethodtargetrelation__storage_method=self,
+            storagemethodtargetrelation__status=1
+        )
+
     class Meta:
         ordering = ['name']
 
