@@ -10,6 +10,10 @@ from picklefield.fields import PickledObjectField
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
+DISK = 200
+TAPE = 300
+CAS = 400
+
 IOReqType_CHOICES = (
     (10, 'Write to tape'),
     (15, 'Write to disk'),
@@ -52,9 +56,9 @@ medium_type_CHOICES = (
 )
 
 storage_type_CHOICES = (
-    (200, 'DISK'),
-    (300, 'TAPE'),
-    (400, 'CAS'),
+    (DISK, 'DISK'),
+    (TAPE, 'TAPE'),
+    (CAS, 'CAS'),
 )
 
 medium_format_CHOICES = (
