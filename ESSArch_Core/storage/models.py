@@ -187,8 +187,8 @@ class StorageMedium(models.Model):
     location_status = models.IntegerField(choices=medium_location_status_CHOICES)
     block_size = models.IntegerField(choices=medium_block_size_CHOICES)
     format = models.IntegerField(choices=medium_format_CHOICES)
-    used_capacity = models.BigIntegerField()
-    number_of_mounts = models.IntegerField()
+    used_capacity = models.BigIntegerField(default=0)
+    number_of_mounts = models.IntegerField(default=0)
 
     create_date = models.DateTimeField(auto_now_add=True)
     last_changed_local = models.DateTimeField(null=True)
