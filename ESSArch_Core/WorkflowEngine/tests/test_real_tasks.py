@@ -28,8 +28,11 @@ import filecmp
 import os
 import shutil
 import string
+import subprocess
+import tarfile
 import traceback
 import unicodedata
+import unittest
 
 import httpretty
 
@@ -44,7 +47,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core import mail
-from django.test import TransactionTestCase
+from django.test import TransactionTestCase, override_settings
 
 from ESSArch_Core.configuration.models import (
     EventType,
@@ -54,6 +57,21 @@ from ESSArch_Core.configuration.models import (
 from ESSArch_Core.ip.models import (
     EventIP,
     InformationPackage,
+)
+
+from ESSArch_Core.storage.exceptions import (
+    MTFailedOperationException,
+    RobotMountException,
+    RobotUnmountException
+)
+
+from ESSArch_Core.storage.tape import (
+    get_tape_file_number,
+    mount_tape,
+    rewind_tape,
+    set_tape_file_number,
+    unmount_tape,
+    write_to_tape,
 )
 
 from ESSArch_Core.util import find_and_replace_in_file, parse_content_range_header
@@ -2611,3 +2629,347 @@ class SendEmailTestCase(TransactionTestCase):
         self.assertEqual(mail.outbox[0].subject, self.subject)
         self.assertEqual(len(mail.outbox[0].attachments), 1)
         self.assertEqual(mail.outbox[0].attachments[0][0], os.path.basename(attachments[0]))
+
+
+def mt_missing():
+    try:
+        subprocess.call(["mt"])
+    except OSError as e:
+        return e.errno == os.errno.ENOENT
+
+    return False
+
+
+@unittest.skipIf(mt_missing(), 'mt command not available')
+@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+class TapeTestCase(TransactionTestCase):
+    robot = '/dev/sg6'
+    device = '/dev/st0'
+    device_norewind = '/dev/nst0'
+
+    def setUp(self):
+        try:
+            mount_tape(self.robot, 1, 0)
+        except RobotMountException:
+            pass
+
+        rewind_tape(self.device)
+        tarfile.open(self.device, 'w|').close()
+        unmount_tape(self.robot, 1, 0)
+
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, 'datadir')
+
+        try:
+            os.mkdir(self.datadir)
+        except:
+            pass
+
+    def tearDown(self):
+        try:
+            mount_tape(self.robot, 1, 0)
+        except RobotMountException:
+            pass
+
+        rewind_tape(self.device)
+        tarfile.open(self.device, 'w|').close()
+        unmount_tape(self.robot, 1, 0)
+
+        try:
+            shutil.rmtree(self.datadir)
+        except:
+            pass
+
+    def test_mount(self):
+        task = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.MountTape',
+            params={
+                'robot': self.robot,
+                'slot': 1,
+                'drive': 0,
+            },
+        )
+
+        task.run().get()
+
+    def test_mount_from_non_existent_slot(self):
+        task = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.MountTape',
+            params={
+                'robot': self.robot,
+                'slot': 999,
+                'drive': 0,
+            },
+        )
+
+        with self.assertRaisesRegexp(RobotMountException, 'storage-element-number'):
+            task.run().get()
+
+    def test_mount_into_non_existent_drive(self):
+        task = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.MountTape',
+            params={
+                'robot': self.robot,
+                'slot': 1,
+                'drive': 999,
+            },
+        )
+
+        with self.assertRaisesRegexp(RobotMountException, 'drive-number'):
+            task.run().get()
+
+    def test_unmount(self):
+        mount_tape(self.robot, 1, 0)
+
+        task = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.UnmountTape',
+            params={
+                'robot': self.robot,
+                'slot': 1,
+                'drive': 0,
+            },
+        )
+
+        task.run().get()
+
+    def test_unmount_from_non_existent_slot(self):
+        task = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.UnmountTape',
+            params={
+                'robot': self.robot,
+                'slot': 100,
+                'drive': 0,
+            },
+        )
+
+        with self.assertRaisesRegexp(RobotUnmountException, 'storage-element-number'):
+            task.run().get()
+
+    def test_unmount_into_non_existent_drive(self):
+        task = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.UnmountTape',
+            params={
+                'robot': self.robot,
+                'slot': 1,
+                'drive': 100,
+            },
+        )
+
+        with self.assertRaisesRegexp(RobotUnmountException, 'drive-number'):
+            task.run().get()
+
+    def test_rewind_tape(self):
+        mount_tape(self.robot, 1, 0)
+        rewind_tape(self.device)
+
+        self.assertEqual(get_tape_file_number(self.device), 0)
+
+        fpath = os.path.join(self.datadir, 'foo.txt')
+        content = 'bar'
+
+        with open(fpath, 'w') as f:
+            f.write(content)
+
+        write_to_tape(self.device_norewind, fpath)
+
+        rewind_tape(self.device)
+        self.assertEqual(get_tape_file_number(self.device_norewind), 0)
+
+    def test_check_drive_online(self):
+        task = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.IsTapeDriveOnline',
+            params={
+                'drive': self.device,
+            },
+        )
+
+        self.assertFalse(task.run().get())
+
+        mount_tape(self.robot, 1, 0)
+
+        task = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.IsTapeDriveOnline',
+            params={
+                'drive': self.device,
+            },
+        )
+
+        self.assertTrue(task.run().get())
+
+    def test_write(self):
+        fpath = os.path.join(self.datadir, 'foo.txt')
+        content = 'bar'
+
+        with open(fpath, 'w') as f:
+            f.write(content)
+
+        mount_tape(self.robot, 1, 0)
+
+        task = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.WriteToTape',
+            params={
+                'drive': self.device,
+                'path': fpath,
+            },
+        )
+
+        task.run().get()
+        os.remove(fpath)
+
+        with tarfile.open(self.device, 'r|') as tar:
+            tar.extractall(self.datadir)
+
+        self.assertEqual(open(fpath).read(), content)
+
+    def test_read(self):
+        mount_tape(self.robot, 1, 0)
+
+        fpath = os.path.join(self.datadir, 'foo.txt')
+        content = 'bar'
+
+        with open(fpath, 'w') as f:
+            f.write(content)
+
+        write_to_tape(self.device, fpath)
+
+        os.remove(fpath)
+
+        task = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.ReadTape',
+            params={
+                'drive': self.device,
+                'path': self.datadir
+            },
+        )
+
+        task.run().get()
+
+        self.assertEqual(open(fpath).read(), content)
+
+    def test_get_file_number(self):
+        fpath = os.path.join(self.datadir, 'foo.txt')
+        content = 'bar'
+
+        with open(fpath, 'w') as f:
+            f.write(content)
+
+        mount_tape(self.robot, 1, 0)
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.GetTapeFileNumber',
+            params={
+                'drive': self.device_norewind,
+            },
+        )
+
+        self.assertEqual(t.run().get(), 0)
+
+        write_to_tape(self.device_norewind, fpath)
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.GetTapeFileNumber',
+            params={
+                'drive': self.device_norewind,
+            },
+        )
+
+        self.assertEqual(t.run().get(), 1)
+
+        write_to_tape(self.device_norewind, fpath)
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.GetTapeFileNumber',
+            params={
+                'drive': self.device_norewind,
+            },
+        )
+
+        self.assertEqual(t.run().get(), 2)
+
+        rewind_tape(self.device_norewind)
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.GetTapeFileNumber',
+            params={
+                'drive': self.device_norewind,
+            },
+        )
+        self.assertEqual(t.run().get(), 0)
+
+    def test_set_file_number(self):
+        fpath = os.path.join(self.datadir, 'foo.txt')
+        content = 'bar'
+
+        with open(fpath, 'w') as f:
+            f.write(content)
+
+        mount_tape(self.robot, 1, 0)
+
+        write_to_tape(self.device_norewind, fpath)
+        set_tape_file_number(self.device_norewind, 1)
+        write_to_tape(self.device_norewind, fpath)
+        set_tape_file_number(self.device_norewind, 2)
+        write_to_tape(self.device_norewind, fpath)
+
+        rewind_tape(self.device)
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.SetTapeFileNumber',
+            params={
+                'drive': self.device_norewind,
+                'num': 0
+            },
+        )
+
+        t.run().get()
+
+        self.assertEqual(get_tape_file_number(self.device_norewind), 0)
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.SetTapeFileNumber',
+            params={
+                'drive': self.device_norewind,
+                'num': 1
+            },
+        )
+
+        t.run().get()
+        self.assertEqual(get_tape_file_number(self.device_norewind), 1)
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.SetTapeFileNumber',
+            params={
+                'drive': self.device_norewind,
+                'num': 2
+            },
+        )
+
+        t.run().get()
+        self.assertEqual(get_tape_file_number(self.device_norewind), 2)
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.SetTapeFileNumber',
+            params={
+                'drive': self.device_norewind,
+                'num': -1
+            },
+        )
+
+        with self.assertRaises(MTFailedOperationException):
+            t.run().get()
+
+        self.assertEqual(get_tape_file_number(self.device_norewind), 0)
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.SetTapeFileNumber',
+            params={
+                'drive': self.device_norewind,
+                'num': 10
+            },
+        )
+
+        with self.assertRaises(MTFailedOperationException):
+            t.run().get()
+
+        self.assertEqual(get_tape_file_number(self.device_norewind), 3)

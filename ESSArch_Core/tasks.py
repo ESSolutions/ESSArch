@@ -50,6 +50,16 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
 )
 from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, validate_against_schema
 from ESSArch_Core.ip.models import EventIP, InformationPackage
+from ESSArch_Core.storage.tape import (
+    get_tape_file_number,
+    is_tape_drive_online,
+    mount_tape,
+    read_tape,
+    rewind_tape,
+    set_tape_file_number,
+    unmount_tape,
+    write_to_tape,
+)
 from ESSArch_Core.WorkflowEngine.models import (
     ProcessStep,
     ProcessTask,
@@ -976,4 +986,139 @@ class DownloadFile(DBTask):
         pass
 
     def event_outcome_success(self, src=None, dst=None):
+        pass
+
+
+class MountTape(DBTask):
+    def run(self, robot=None, slot=None, drive=None):
+        """
+        Mounts tape from slot into drive
+
+        Args:
+            robot: The device used to mount the tape
+            slot: Which slot to load from
+            drive: Which drive to load to
+        """
+
+        return mount_tape(robot, slot, drive)
+
+    def undo(self, robot=None, slot=None, drive=None):
+        pass
+
+    def event_outcome_success(self, robot=None, slot=None, drive=None):
+        pass
+
+
+class UnmountTape(DBTask):
+    def run(self, robot=None, slot=None, drive=None):
+        """
+        Unmounts tape from drive into slot
+
+        Args:
+            robot: The device used to unmount the tape
+            slot: Which slot to unload to
+            drive: Which drive to load from
+        """
+
+        return unmount_tape(robot, slot, drive)
+
+    def undo(self, robot=None, slot=None, drive=None):
+        pass
+
+    def event_outcome_success(self, robot=None, slot=None, drive=None):
+        pass
+
+
+class RewindTape(DBTask):
+    def run(self, drive=None):
+        """
+        Rewinds the tape in the given drive
+        """
+        return rewind_tape(drive)
+
+    def undo(self, drive=None):
+        pass
+
+    def event_outcome_success(self, drive=None):
+        pass
+
+
+class IsTapeDriveOnline(DBTask):
+    def run(self, drive=None):
+        """
+        Checks if the given tape drive is online
+
+        Args:
+            drive: Which drive to check
+
+        Returns:
+            True if the drive is online, false otherwise
+        """
+
+        return is_tape_drive_online(drive)
+
+    def undo(self, drive=None):
+        pass
+
+    def event_outcome_success(self, drive=None):
+        pass
+
+
+class ReadTape(DBTask):
+    def run(self, drive=None, path='.', block_size=65536):
+        """
+        Reads the tape in the given drive
+        """
+
+        return read_tape(drive, path=path, block_size=block_size)
+
+    def undo(self, drive=None, path='.', block_size=65536):
+        pass
+
+    def event_outcome_success(self, drive=None, path='.', block_size=65536):
+        pass
+
+
+class WriteToTape(DBTask):
+    def run(self, drive=None, path='.', block_size=65536):
+        """
+        Writes content to a tape drive
+        """
+
+        return write_to_tape(drive, path, block_size)
+
+    def undo(self, drive=None, path='.', block_size=65536):
+        pass
+
+    def event_outcome_success(self, drive=None, path='.', block_size=65536):
+        pass
+
+
+class GetTapeFileNumber(DBTask):
+    def run(self, drive=None):
+        """
+        Gets the current file number (position) of the tape in the given drive
+        """
+
+        return get_tape_file_number(drive)
+
+    def undo(self, drive=None):
+        pass
+
+    def event_outcome_success(self, drive=None):
+        pass
+
+
+class SetTapeFileNumber(DBTask):
+    def run(self, drive=None, num=0):
+        """
+        Sets the current file number (position) of the tape in the given drive
+        """
+
+        return set_tape_file_number(drive, num)
+
+    def undo(self, drive=None, num=0):
+        pass
+
+    def event_outcome_success(self, drive=None, num=0):
         pass
