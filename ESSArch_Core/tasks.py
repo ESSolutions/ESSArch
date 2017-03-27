@@ -841,7 +841,7 @@ class CopyFile(DBTask):
             ))
             idx += 1
 
-        ProcessTask.objects.bulk_create(tasks)
+        ProcessTask.objects.bulk_create(tasks, 1000)
 
         step.run().get()
 
