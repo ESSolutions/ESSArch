@@ -51,6 +51,8 @@ from ESSArch_Core.configuration.models import (
     Path
 )
 
+from ESSArch_Core.exceptions import FileFormatNotAllowed
+
 from ESSArch_Core.ip.models import (
     EventIP,
     InformationPackage,
@@ -455,6 +457,44 @@ class GenerateXMLTestCase(TransactionTestCase):
 
         self.assertTrue(os.path.isfile(self.fname))
         self.assertTrue(os.path.isfile(extra_file))
+
+    def test_with_disallowed_file(self):
+        open(os.path.join(self.datadir, 'example.docx'), 'a').close()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'info': self.specData,
+                'filesToCreate': {
+                    self.fname: self.spec
+                },
+                'folderToParse': self.datadir
+            }
+        )
+
+        with self.assertRaises(FileFormatNotAllowed):
+            task.run().get()
+
+        self.assertFalse(os.path.exists(self.fname))
+
+    def test_undo_with_disallowed_file(self):
+        open(os.path.join(self.datadir, 'example.docx'), 'a').close()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'info': self.specData,
+                'filesToCreate': {
+                    self.fname: self.spec
+                },
+                'folderToParse': self.datadir
+            }
+        )
+
+        with self.assertRaises(FileFormatNotAllowed):
+            task.run().get()
+
+        task.undo().get()
 
     def test_with_external(self):
         self.spec = {

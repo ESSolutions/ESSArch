@@ -241,7 +241,11 @@ class GenerateXML(DBTask):
 
     def undo(self, info={}, filesToCreate={}, folderToParse=None, algorithm='SHA-256'):
         for f, template in filesToCreate.iteritems():
-            os.remove(f)
+            try:
+                os.remove(f)
+            except OSError as e:
+                if e.errno != errno.ENOENT:
+                    raise
 
     def event_outcome_success(self, info={}, filesToCreate={}, folderToParse=None, algorithm='SHA-256'):
         return "Generated %s" % ", ".join(filesToCreate.keys())
