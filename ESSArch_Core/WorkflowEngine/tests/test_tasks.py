@@ -28,10 +28,9 @@ import traceback
 
 from celery import states as celery_states
 
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from ESSArch_Core.configuration.models import (
     EventType
@@ -47,11 +46,9 @@ from ESSArch_Core.WorkflowEngine.models import (
 )
 
 
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class test_running_tasks(TestCase):
     def setUp(self):
-        settings.CELERY_ALWAYS_EAGER = True
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
-
         self.user = User.objects.create(username="user1")
 
     def test_create_nonexistent_task(self):
@@ -84,8 +81,6 @@ class test_running_tasks(TestCase):
         Runs a task with nonexistent parameters.
         """
 
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
-
         with self.assertRaises(TypeError):
             task = ProcessTask.objects.create(
                 name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
@@ -101,8 +96,6 @@ class test_running_tasks(TestCase):
         """
         Runs a task with too many parameters.
         """
-
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
         with self.assertRaises(TypeError):
             task = ProcessTask.objects.create(
@@ -170,8 +163,6 @@ class test_running_tasks(TestCase):
         traceback is nonempty.
         """
 
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
-
         foo = 123
         task = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
@@ -196,15 +187,12 @@ class test_running_tasks(TestCase):
         Runs a task that fails becuase an object does not exist
         """
 
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
-
         task = ProcessTask.objects.create(name="ESSArch_Core.WorkflowEngine.tests.tasks.FailDoesNotExist")
 
         with self.assertRaises(InformationPackage.DoesNotExist):
             task.run()
 
     def test_on_failure_with_event(self):
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
         EventType.objects.create(eventType=1)
 
         foo = 123
@@ -231,11 +219,9 @@ class test_running_tasks(TestCase):
         self.assertEqual(e.eventOutcomeDetailNote, task.traceback)
         self.assertEqual(e.eventApplication, task)
 
-class test_undoing_tasks(TestCase):
-    def setUp(self):
-        settings.CELERY_ALWAYS_EAGER = True
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+class test_undoing_tasks(TestCase):
     def test_undo_successful_task(self):
         x = 2
         y = 1
@@ -283,28 +269,24 @@ class test_undoing_tasks(TestCase):
         self.assertTrue(undo_task.undo_type)
 
 
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class test_retrying_tasks(TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        settings.CELERY_ALWAYS_EAGER = True
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
-
-        cls.root = os.path.dirname(os.path.realpath(__file__))
-        cls.datadir = os.path.join(cls.root, "datadir")
+    def setUp(self):
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
 
         try:
-            os.mkdir(cls.datadir)
+            os.mkdir(self.datadir)
         except OSError as e:
             if e.errno == 17:  # file exists
-                shutil.rmtree(cls.datadir)
-                os.mkdir(cls.datadir)
+                shutil.rmtree(self.datadir)
+                os.mkdir(self.datadir)
             else:
                 raise
 
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.datadir)
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
 
     def test_retry_successful_task(self):
         x = 2
