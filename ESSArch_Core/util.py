@@ -397,3 +397,14 @@ def nested_lookup(key, document):
                 for d in v:
                     for result in nested_lookup(key, d):
                         yield result
+
+
+def convert_file(path, new_format):
+    cmd = 'unoconv.py -f %s -eSelectPdfVersion=1 "%s"' % (new_format, path)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    out, err = p.communicate()
+
+    if p.returncode:
+        raise ValueError('%s, return code: %s' % (err, p.returncode))
+
+    return out

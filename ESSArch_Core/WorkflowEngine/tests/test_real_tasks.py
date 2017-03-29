@@ -2611,3 +2611,55 @@ class SendEmailTestCase(TransactionTestCase):
         self.assertEqual(mail.outbox[0].subject, self.subject)
         self.assertEqual(len(mail.outbox[0].attachments), 1)
         self.assertEqual(mail.outbox[0].attachments[0][0], os.path.basename(attachments[0]))
+
+
+class ConvertFileTestCase(TransactionTestCase):
+    def setUp(self):
+        self.taskname = 'ESSArch_Core.tasks.ConvertFile'
+
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.datadir)
+        except:
+            pass
+
+    def test_doc_to_pdf(self):
+        fpath = os.path.join(self.datadir, "file1.docx")
+        open(fpath, 'a').close()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filepath': fpath,
+                'new_format': 'pdf'
+            }
+        )
+
+        task.run().get()
+
+        self.assertTrue(os.path.isfile(os.path.join(self.datadir, 'file1.pdf')))
+
+    def test_docx_to_pdf(self):
+        fpath = os.path.join(self.datadir, "file1.docx")
+        open(fpath, 'a').close()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filepath': fpath,
+                'new_format': 'pdf'
+            }
+        )
+
+        task.run().get()
+
+        self.assertTrue(os.path.isfile(os.path.join(self.datadir, 'file1.pdf')))

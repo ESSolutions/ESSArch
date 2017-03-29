@@ -41,6 +41,7 @@ from django.conf import settings
 
 from ESSArch_Core.util import (
     alg_from_str,
+    convert_file,
     get_tree_size_and_count,
 )
 
@@ -976,4 +977,21 @@ class DownloadFile(DBTask):
         pass
 
     def event_outcome_success(self, src=None, dst=None):
+        pass
+
+
+class ConvertFile(DBTask):
+    def run(self, filepath, new_format, delete_original=True):
+        try:
+            convert_file(filepath, new_format)
+        except:
+            raise
+        else:
+            if delete_original:
+                os.remove(filepath)
+
+    def undo(self, filepath, new_format):
+        pass
+
+    def event_outcome_success(self, filepath, new_format):
         pass
