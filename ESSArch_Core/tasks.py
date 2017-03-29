@@ -67,6 +67,7 @@ from ESSArch_Core.util import (
 
 from fido.fido import Fido
 from lxml import etree
+from scandir import walk
 
 
 class CalculateChecksum(DBTask):
@@ -672,7 +673,7 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
         physical_files = set()
 
         if dirname:
-            for root, dirs, filenames in os.walk(dirname):
+            for root, dirs, filenames in walk(dirname):
                 for f in filenames:
                     reldir = os.path.relpath(root, dirname)
                     relfile = os.path.join(reldir, f)
