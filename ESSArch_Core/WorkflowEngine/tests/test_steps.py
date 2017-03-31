@@ -696,6 +696,10 @@ class test_running_steps(TransactionTestCase):
         settings.CELERY_ALWAYS_EAGER = True
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
 
+    def test_empty_step(self):
+        step = ProcessStep.objects.create()
+        self.assertEqual(len(step.run().get()), 0)
+
     def test_serialized_step(self):
         t1_val = 123
         t2_val = 456
@@ -1135,6 +1139,10 @@ class test_running_steps(TransactionTestCase):
 @override_settings(CELERY_ALWAYS_EAGER=False)
 class test_running_steps_eagerly(TransactionTestCase):
 
+    def test_empty_step(self):
+        step = ProcessStep.objects.create()
+        self.assertEqual(len(step.run().get()), 0)
+
     def test_run(self):
         t1_val = 123
         t2_val = 456
@@ -1235,6 +1243,10 @@ class test_undoing_steps(TestCase):
     def setUp(self):
         settings.CELERY_ALWAYS_EAGER = True
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
+
+    def test_empty_step(self):
+        step = ProcessStep.objects.create()
+        self.assertEqual(len(step.undo().get()), 0)
 
     def test_undo_serialized_step(self):
         step = ProcessStep.objects.create(
@@ -1465,6 +1477,10 @@ class test_retrying_steps(TestCase):
             shutil.rmtree(self.test_dir)
         except:
             pass
+
+    def test_empty_step(self):
+        step = ProcessStep.objects.create()
+        self.assertEqual(len(step.retry().get()), 0)
 
     def test_retry_failed_serialized_step(self):
         t1_val = 123
@@ -1844,6 +1860,10 @@ class test_resuming_steps(TestCase):
             shutil.rmtree(self.test_dir)
         except:
             pass
+
+    def test_empty_step(self):
+        step = ProcessStep.objects.create()
+        self.assertEqual(len(step.resume().get()), 0)
 
     def test_resuming_task_after_retried_task(self):
         fname = os.path.join(self.test_dir, "foo.txt")

@@ -28,6 +28,7 @@ import importlib
 import uuid
 
 from celery import chain, group, states as celery_states
+from celery.result import EagerResult
 
 from django.conf import settings
 from django.core.cache import cache
@@ -189,6 +190,9 @@ class ProcessStep(Process):
         child_steps = self.child_steps.all()
         tasks = self.tasks(manager='by_step_pos').all()
 
+        if not tasks.exists() and not child_steps.exists():
+            return EagerResult(self.pk, [], celery_states.SUCCESS)
+
         step_canvas = func(s.run(direct=False) for s in child_steps) if child_steps else chain()
         task_canvas = func(create_sub_task(t) for t in tasks)
 
@@ -276,6 +280,9 @@ class ProcessStep(Process):
             undone__isnull=True
         )
 
+        if not tasks.exists() and not child_steps.exists():
+            return EagerResult(self.pk, [], celery_states.SUCCESS)
+
         func = group if self.parallel else chain
 
         task_canvas = func(create_sub_task(t) for t in tasks.reverse())
@@ -326,6 +333,9 @@ class ProcessStep(Process):
             retried__isnull=True
         ).order_by('processstep_pos')
 
+        if not tasks.exists() and not child_steps.exists():
+            return EagerResult(self.pk, [], celery_states.SUCCESS)
+
         func = group if self.parallel else chain
 
         step_canvas = func(s.retry(direct=False) for s in child_steps)
@@ -372,6 +382,9 @@ class ProcessStep(Process):
 
         child_steps = self.child_steps.filter(tasks__status=celery_states.PENDING)
         tasks = self.tasks(manager='by_step_pos').filter(undone__isnull=True, undo_type=False, status=celery_states.PENDING)
+
+        if not tasks.exists() and not child_steps.exists():
+            return EagerResult(self.pk, [], celery_states.SUCCESS)
 
         step_canvas = func(s.run(direct=False) for s in child_steps)
         task_canvas = func(create_sub_task(t) for t in tasks)
