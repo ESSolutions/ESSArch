@@ -43,6 +43,10 @@ from ESSArch_Core.configuration.models import (
     Path,
 )
 
+from ESSArch_Core.exceptions import (
+    FileFormatNotAllowed
+)
+
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 from ESSArch_Core.util import (
@@ -271,7 +275,7 @@ class XMLGenerator(object):
         try:
             return mtypes[file_ext]
         except KeyError:
-            raise KeyError("Invalid file type: %s" % file_ext)
+            raise FileFormatNotAllowed("File format '%s' is not allowed" % file_ext)
 
     def generate(self, folderToParse=None, algorithm='SHA-256'):
         files = []

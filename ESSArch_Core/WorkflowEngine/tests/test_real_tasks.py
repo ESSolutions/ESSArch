@@ -54,6 +54,8 @@ from ESSArch_Core.configuration.models import (
     Path
 )
 
+from ESSArch_Core.exceptions import FileFormatNotAllowed
+
 from ESSArch_Core.ip.models import (
     EventIP,
     InformationPackage,
@@ -473,6 +475,44 @@ class GenerateXMLTestCase(TransactionTestCase):
 
         self.assertTrue(os.path.isfile(self.fname))
         self.assertTrue(os.path.isfile(extra_file))
+
+    def test_with_disallowed_file(self):
+        open(os.path.join(self.datadir, 'example.docx'), 'a').close()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'info': self.specData,
+                'filesToCreate': {
+                    self.fname: self.spec
+                },
+                'folderToParse': self.datadir
+            }
+        )
+
+        with self.assertRaises(FileFormatNotAllowed):
+            task.run().get()
+
+        self.assertFalse(os.path.exists(self.fname))
+
+    def test_undo_with_disallowed_file(self):
+        open(os.path.join(self.datadir, 'example.docx'), 'a').close()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'info': self.specData,
+                'filesToCreate': {
+                    self.fname: self.spec
+                },
+                'folderToParse': self.datadir
+            }
+        )
+
+        with self.assertRaises(FileFormatNotAllowed):
+            task.run().get()
+
+        task.undo().get()
 
     def test_with_external(self):
         self.spec = {
@@ -2629,6 +2669,58 @@ class SendEmailTestCase(TransactionTestCase):
         self.assertEqual(mail.outbox[0].subject, self.subject)
         self.assertEqual(len(mail.outbox[0].attachments), 1)
         self.assertEqual(mail.outbox[0].attachments[0][0], os.path.basename(attachments[0]))
+
+
+class ConvertFileTestCase(TransactionTestCase):
+    def setUp(self):
+        self.taskname = 'ESSArch_Core.tasks.ConvertFile'
+
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.datadir)
+        except:
+            pass
+
+    def test_doc_to_pdf(self):
+        fpath = os.path.join(self.datadir, "file1.docx")
+        open(fpath, 'a').close()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filepath': fpath,
+                'new_format': 'pdf'
+            }
+        )
+
+        task.run().get()
+
+        self.assertTrue(os.path.isfile(os.path.join(self.datadir, 'file1.pdf')))
+
+    def test_docx_to_pdf(self):
+        fpath = os.path.join(self.datadir, "file1.docx")
+        open(fpath, 'a').close()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'filepath': fpath,
+                'new_format': 'pdf'
+            }
+        )
+
+        task.run().get()
+
+        self.assertTrue(os.path.isfile(os.path.join(self.datadir, 'file1.pdf')))
 
 
 def mt_missing():

@@ -9,7 +9,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ip', '0029_auto_20170223_1116'),
+        ('ip', '0030_auto_20170328_1545'),
     ]
 
     operations = [

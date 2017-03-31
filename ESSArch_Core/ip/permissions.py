@@ -48,6 +48,16 @@ class CanDeleteIP(IsResponsibleOrReadOnly):
         return responsible or has_perm
 
 
+class CanUpload(IsResponsibleOrReadOnly):
+    message = "You are not allowed to set this IP as uploaded"
+
+    def has_object_permission(self, request, view, obj):
+        responsible = self.is_responsible(request, obj)
+        has_perm = request.user.has_perm('ip.can_upload')
+
+        return responsible or has_perm
+
+
 class CanSetUploaded(IsResponsibleOrReadOnly):
     message = "You are not allowed to set this IP as uploaded"
 

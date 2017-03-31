@@ -41,6 +41,7 @@ from django.conf import settings
 
 from ESSArch_Core.util import (
     alg_from_str,
+    convert_file,
     get_tree_size_and_count,
 )
 
@@ -76,6 +77,7 @@ from ESSArch_Core.util import (
 
 from fido.fido import Fido
 from lxml import etree
+from scandir import walk
 
 
 class CalculateChecksum(DBTask):
@@ -249,7 +251,11 @@ class GenerateXML(DBTask):
 
     def undo(self, info={}, filesToCreate={}, folderToParse=None, algorithm='SHA-256'):
         for f, template in filesToCreate.iteritems():
-            os.remove(f)
+            try:
+                os.remove(f)
+            except OSError as e:
+                if e.errno != errno.ENOENT:
+                    raise
 
     def event_outcome_success(self, info={}, filesToCreate={}, folderToParse=None, algorithm='SHA-256'):
         return "Generated %s" % ", ".join(filesToCreate.keys())
@@ -681,7 +687,7 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
         physical_files = set()
 
         if dirname:
-            for root, dirs, filenames in os.walk(dirname):
+            for root, dirs, filenames in walk(dirname):
                 for f in filenames:
                     reldir = os.path.relpath(root, dirname)
                     relfile = os.path.join(reldir, f)
@@ -1121,4 +1127,19 @@ class SetTapeFileNumber(DBTask):
         pass
 
     def event_outcome_success(self, drive=None, num=0):
+
+class ConvertFile(DBTask):
+    def run(self, filepath, new_format, delete_original=True):
+        try:
+            convert_file(filepath, new_format)
+        except:
+            raise
+        else:
+            if delete_original:
+                os.remove(filepath)
+
+    def undo(self, filepath, new_format):
+        pass
+
+    def event_outcome_success(self, filepath, new_format):
         pass

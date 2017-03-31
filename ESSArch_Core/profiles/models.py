@@ -388,7 +388,7 @@ class Profile(models.Model):
         """
         Copies the profile and updates the name and specification_data of the
         copy. Switches the relation from the ip with the old profile to the new
-        profile
+        profile if the IP does not already has a locked profile
 
         Args:
             ip: The information package that the profile is
@@ -406,7 +406,13 @@ class Profile(models.Model):
         copy.structure = structure
         copy.save()
 
-        ip.change_profile(copy)
+        locked_profile_exists = ProfileIP.objects.filter(
+            ip=ip, profile__profile_type=self.profile_type, LockedBy__isnull=False
+        ).exists()
+
+        if not locked_profile_exists:
+            ip.change_profile(copy)
+
         return copy
 
     def get_value_array(self):
