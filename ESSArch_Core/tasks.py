@@ -1127,6 +1127,7 @@ class SetTapeFileNumber(DBTask):
         pass
 
     def event_outcome_success(self, drive=None, num=0):
+        pass
 
 class ConvertFile(DBTask):
     def run(self, filepath, new_format, delete_original=True):
