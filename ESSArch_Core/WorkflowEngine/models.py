@@ -686,5 +686,10 @@ class ProcessTask(Process):
         db_table = 'ProcessTask'
         get_latest_by = "time_created"
 
+        permissions = (
+            ('can_undo', 'Can undo tasks'),
+            ('can_retry', 'Can retry tasks'),
+        )
+
         def __unicode__(self):
             return '%s - %s' % (self.name, self.id)
