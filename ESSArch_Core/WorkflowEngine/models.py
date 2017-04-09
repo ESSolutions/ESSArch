@@ -191,7 +191,10 @@ class ProcessStep(Process):
         tasks = self.tasks(manager='by_step_pos').all()
 
         if not tasks.exists() and not child_steps.exists():
-            return EagerResult(self.pk, [], celery_states.SUCCESS)
+            if direct:
+                return EagerResult(self.pk, [], celery_states.SUCCESS)
+
+            return group()
 
         step_canvas = func(s.run(direct=False) for s in child_steps) if child_steps else chain()
         task_canvas = func(create_sub_task(t) for t in tasks)
@@ -281,7 +284,10 @@ class ProcessStep(Process):
         )
 
         if not tasks.exists() and not child_steps.exists():
-            return EagerResult(self.pk, [], celery_states.SUCCESS)
+            if direct:
+                return EagerResult(self.pk, [], celery_states.SUCCESS)
+
+            return group()
 
         func = group if self.parallel else chain
 
@@ -334,7 +340,10 @@ class ProcessStep(Process):
         ).order_by('processstep_pos')
 
         if not tasks.exists() and not child_steps.exists():
-            return EagerResult(self.pk, [], celery_states.SUCCESS)
+            if direct:
+                return EagerResult(self.pk, [], celery_states.SUCCESS)
+
+            return group()
 
         func = group if self.parallel else chain
 

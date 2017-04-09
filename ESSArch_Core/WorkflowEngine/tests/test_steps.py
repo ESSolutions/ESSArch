@@ -700,6 +700,12 @@ class test_running_steps(TransactionTestCase):
         step = ProcessStep.objects.create()
         self.assertEqual(len(step.run().get()), 0)
 
+    def test_empty_nested_child_step(self):
+        main_step = ProcessStep.objects.create()
+        ProcessStep.objects.create(parent_step=main_step)
+
+        self.assertEqual(len(main_step.run().get()), 0)
+
     def test_serialized_step(self):
         t1_val = 123
         t2_val = 456
@@ -1143,6 +1149,12 @@ class test_running_steps_eagerly(TransactionTestCase):
         step = ProcessStep.objects.create()
         self.assertEqual(len(step.run().get()), 0)
 
+    def test_empty_nested_child_step(self):
+        main_step = ProcessStep.objects.create()
+        ProcessStep.objects.create(parent_step=main_step)
+
+        self.assertEqual(len(main_step.run().get()), 0)
+
     def test_run(self):
         t1_val = 123
         t2_val = 456
@@ -1247,6 +1259,12 @@ class test_undoing_steps(TestCase):
     def test_empty_step(self):
         step = ProcessStep.objects.create()
         self.assertEqual(len(step.undo().get()), 0)
+
+    def test_empty_nested_child_step(self):
+        main_step = ProcessStep.objects.create()
+        ProcessStep.objects.create(parent_step=main_step)
+
+        self.assertEqual(len(main_step.undo().get()), 0)
 
     def test_undo_serialized_step(self):
         step = ProcessStep.objects.create(
@@ -1481,6 +1499,12 @@ class test_retrying_steps(TestCase):
     def test_empty_step(self):
         step = ProcessStep.objects.create()
         self.assertEqual(len(step.retry().get()), 0)
+
+    def test_empty_nested_child_step(self):
+        main_step = ProcessStep.objects.create()
+        ProcessStep.objects.create(parent_step=main_step)
+
+        self.assertEqual(len(main_step.retry().get()), 0)
 
     def test_retry_failed_serialized_step(self):
         t1_val = 123
@@ -1864,6 +1888,12 @@ class test_resuming_steps(TestCase):
     def test_empty_step(self):
         step = ProcessStep.objects.create()
         self.assertEqual(len(step.resume().get()), 0)
+
+    def test_empty_nested_child_step(self):
+        main_step = ProcessStep.objects.create()
+        ProcessStep.objects.create(parent_step=main_step)
+
+        self.assertEqual(len(main_step.resume().get()), 0)
 
     def test_resuming_task_after_retried_task(self):
         fname = os.path.join(self.test_dir, "foo.txt")
