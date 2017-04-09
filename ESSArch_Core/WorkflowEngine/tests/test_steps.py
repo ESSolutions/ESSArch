@@ -1477,6 +1477,42 @@ class test_undoing_steps(TestCase):
         self.assertEqual(step2.status, celery_states.SUCCESS)
         self.assertEqual(step3.status, celery_states.SUCCESS)
 
+    def test_undo_only_failed_with_child_steps(self):
+        main_step = ProcessStep.objects.create()
+        step1 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=1
+        )
+        step2 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=2
+        )
+        step3 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=3
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": 123}, processstep=step1
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
+            processstep=step2
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
+            params={"foo": 789}, processstep=step3
+        )
+
+        with self.assertRaises(Exception):
+            main_step.run()
+
+        main_step.undo(only_failed=True)
+
+        self.assertEqual(step1.status, celery_states.SUCCESS)
+        self.assertEqual(step2.status, celery_states.SUCCESS)
+        self.assertEqual(step3.status, celery_states.PENDING)
+
 
 class test_retrying_steps(TestCase):
     def setUp(self):

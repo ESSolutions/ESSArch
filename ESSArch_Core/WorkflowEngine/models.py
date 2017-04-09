@@ -292,7 +292,7 @@ class ProcessStep(Process):
         func = group if self.parallel else chain
 
         task_canvas = func(create_sub_task(t) for t in tasks.reverse())
-        step_canvas = func(s.undo(direct=False) for s in child_steps.reverse())
+        step_canvas = func(s.undo(only_failed=only_failed, direct=False) for s in child_steps.reverse())
 
         if not child_steps:
             workflow = task_canvas
