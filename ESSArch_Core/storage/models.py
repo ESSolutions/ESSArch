@@ -320,9 +320,7 @@ class IOQueue(models.Model):
     task_id = models.ForeignKey(ProcessTask, on_delete=models.PROTECT, null=True, related_name='io_queues')
     posted = models.DateTimeField(auto_now_add=True)
     ip = models.ForeignKey(InformationPackage, null=True)
-    storage_method = models.ForeignKey('StorageMethod', blank=True, null=True)
-    storage_method_target = models.ForeignKey('StorageMethodTargetRelation', blank=True, null=True)
-    storage_target = models.ForeignKey('StorageTarget', blank=True, null=True)
+    storage_method_target = models.ForeignKey('StorageMethodTargetRelation')
     storage_medium = models.ForeignKey('StorageMedium', blank=True, null=True)
     storage_object = models.ForeignKey('StorageObject', blank=True, null=True)
     access_queue = models.ForeignKey('AccessQueue', blank=True, null=True)
@@ -330,6 +328,7 @@ class IOQueue(models.Model):
     transfer_task_id = models.ForeignKey(ProcessTask, on_delete=models.PROTECT, null=True, related_name='io_queues_transfer')
 
     class Meta:
+        get_latest_by = 'posted'
         permissions = (
             ("list_IOQueue", "Can list IOQueue"),
         )
