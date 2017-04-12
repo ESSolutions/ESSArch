@@ -41,6 +41,12 @@ remote_status_CHOICES = (
     (100, 'FAIL'),
 )
 
+robot_req_type_CHOICES = (
+    (10, 'mount'),
+    (20, 'unmount'),
+    (30, 'unmount (force)'),
+)
+
 medium_type_CHOICES = (
     (200, 'DISK'),
     (301, 'IBM-LTO1'),
@@ -262,6 +268,44 @@ class StorageObject(models.Model):
             return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
 
         return False
+
+
+class TapeDrive(models.Model):
+    id = models.IntegerField(primary_key=True)
+    device = models.CharField(max_length=255, unique=True)
+    io_queue_entry = models.OneToOneField('IOQueue', models.PROTECT, related_name='tape_drive', null=True)
+    num_of_mounts = models.IntegerField(default=0)
+    idle_time = models.IntegerField(null=True)
+    robot = models.ForeignKey('Robot', models.PROTECT, related_name='tape_drives')
+
+
+class TapeSlot(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    slot_id = models.IntegerField()
+    medium_id = models.CharField("The id for the medium, e.g. barcode", max_length=255, unique=True)
+    robot = models.ForeignKey('Robot', models.PROTECT, related_name='tape_slots')
+
+    class Meta:
+        unique_together = ('slot_id', 'robot')
+
+
+class Robot(models.Model):
+    device = models.CharField(primary_key=True, max_length=255)
+    online = models.BooleanField(default=False)
+
+
+class RobotQueue(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='robot_queue_entries')
+    posted = models.DateTimeField(auto_now_add=True)
+    robot = models.OneToOneField('Robot', related_name='robot_queue', null=True)
+    io_queue_entry = models.ForeignKey('IOQueue', models.PROTECT, null=True)
+    storage_medium = models.ForeignKey('StorageMedium', models.PROTECT)
+    req_type = models.IntegerField(choices=robot_req_type_CHOICES)
+    status = models.IntegerField(default=0, choices=req_status_CHOICES)
+
+    class Meta:
+        get_latest_by = 'posted'
 
 
 class IOQueue(models.Model):
