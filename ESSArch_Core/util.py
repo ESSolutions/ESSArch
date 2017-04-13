@@ -126,11 +126,14 @@ def available_tasks():
     modules = ["preingest.tasks", "ESSArch_Core.WorkflowEngine.tests.tasks"]
     tasks = []
     for m in modules:
-        module_tasks = pyclbr.readmodule(m)
-        tasks = tasks + zip(
-            [m+"."+t for t in module_tasks],
-            module_tasks
-        )
+        try:
+            module_tasks = pyclbr.readmodule(m)
+            tasks = tasks + zip(
+                [m+"."+t for t in module_tasks],
+                module_tasks
+            )
+        except ImportError:
+            continue
     return tasks
 
 
