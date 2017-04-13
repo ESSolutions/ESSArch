@@ -218,7 +218,7 @@ class ProcessStep(Process):
         def create_options(task):
             return {
                 'responsible': task.responsible_id, 'ip': task.information_package_id,
-                'step': self.pk, 'step_pos': task.processstep_pos, 'hidden': task.hidden,
+                'step_pos': task.processstep_pos, 'hidden': task.hidden,
                 'task_id': task.pk
             }
 

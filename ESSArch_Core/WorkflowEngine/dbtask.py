@@ -87,7 +87,6 @@ class DBTask(Task):
                     a_options = a.pop('_options')
                     self.eager = True
                     self.task_id = a_options['task_id']
-                    self.step = a_options.get('step')
 
                     self.progress = 0
                     hidden = a_options.get('hidden', False) or self.hidden
