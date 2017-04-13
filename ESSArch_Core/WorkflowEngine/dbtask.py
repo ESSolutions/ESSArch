@@ -36,6 +36,7 @@ from celery.result import allow_join_result
 from ESSArch_Core.configuration.models import EventType
 
 from django.db import (
+    connection,
     IntegrityError,
     OperationalError,
     transaction,
@@ -79,13 +80,13 @@ class DBTask(Task):
         if self.chunk:
             res = []
             events = []
-            transaction.set_autocommit(False)
+            if not connection.features.autocommits_when_autocommit_is_off:
+                transaction.set_autocommit(False)
             try:
                 for a in args:
                     a_options = a.pop('_options')
                     self.eager = True
                     self.task_id = a_options['task_id']
-                    self.step = a_options.get('step')
 
                     self.progress = 0
                     hidden = a_options.get('hidden', False) or self.hidden
@@ -117,16 +118,19 @@ class DBTask(Task):
                         if self.event_type:
                             event = self.create_event(self.task_id, celery_states.SUCCESS, args, a, retval, None)
                             events.append(event)
+            except:
+                raise
+            else:
+                return res
             finally:
                 try:
                     EventIP.objects.bulk_create(events)
                 except IntegrityError:
                     pass
 
-                transaction.commit()
-                transaction.set_autocommit(True)
-
-                return res
+                if not connection.features.autocommits_when_autocommit_is_off:
+                    transaction.commit()
+                    transaction.set_autocommit(True)
 
         with allow_join_result():
             for k, v in self.result_params.iteritems():

@@ -696,6 +696,16 @@ class test_running_steps(TransactionTestCase):
         settings.CELERY_ALWAYS_EAGER = True
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
 
+    def test_empty_step(self):
+        step = ProcessStep.objects.create()
+        self.assertEqual(len(step.run().get()), 0)
+
+    def test_empty_nested_child_step(self):
+        main_step = ProcessStep.objects.create()
+        ProcessStep.objects.create(parent_step=main_step)
+
+        self.assertEqual(len(main_step.run().get()), 0)
+
     def test_serialized_step(self):
         t1_val = 123
         t2_val = 456
@@ -843,18 +853,19 @@ class test_running_steps(TransactionTestCase):
         for i in range(n):
             t = ProcessTask(
                 name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
-                params={'foo': 'bar'},
+                params={'foo': i},
                 processstep=step,
             )
             tasks.append(t)
 
         ProcessTask.objects.bulk_create(tasks)
 
-        with self.assertNumQueries(len(tasks) + (n/size) + 2):
+        with self.assertNumQueries(len(tasks) + (n/size)*2 + 1):
             step.chunk(size=size)
 
-        for t in tasks:
+        for idx, t in enumerate(tasks):
             t.refresh_from_db()
+            self.assertEqual(t.result, idx)
             self.assertEqual(t.status, celery_states.SUCCESS)
             self.assertEqual(t.progress, 100)
             self.assertIsNotNone(t.time_started)
@@ -887,7 +898,7 @@ class test_running_steps(TransactionTestCase):
 
         ProcessTask.objects.bulk_create(tasks)
 
-        with self.assertNumQueries(len(tasks) + 3):
+        with self.assertNumQueries(len(tasks) + 2), self.assertRaises(TypeError):
             step.chunk()
 
         for t in tasks:
@@ -920,6 +931,43 @@ class test_running_steps(TransactionTestCase):
         )
         t2 = ProcessTask(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            params={'foo': 'bar'},
+            processstep=step,
+        )
+        t3 = ProcessTask(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            params={'foo': 'bar'},
+            processstep=step,
+        )
+
+        tasks = [t1, t2, t3]
+
+        ProcessTask.objects.bulk_create(tasks)
+
+        with self.assertNumQueries(len(tasks) + 3):
+            step.chunk()
+
+        for t in tasks:
+            t.refresh_from_db()
+
+        self.assertEqual(EventIP.objects.filter(eventOutcome=0).count(), 3)
+        self.assertFalse(EventIP.objects.filter(eventOutcome=1).exists())
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+    def test_chunked_step_with_failure_and_events(self):
+        EventType.objects.create(eventType=1)
+
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        t1 = ProcessTask(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            params={'foo': 'bar'},
+            processstep=step,
+        )
+        t2 = ProcessTask(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
             params={'bar': 'foo'},
             processstep=step,
         )
@@ -933,7 +981,7 @@ class test_running_steps(TransactionTestCase):
 
         ProcessTask.objects.bulk_create(tasks)
 
-        with self.assertNumQueries(len(tasks) + 4):
+        with self.assertNumQueries(len(tasks) + 3), self.assertRaises(TypeError):
             step.chunk()
 
         for t in tasks:
@@ -1135,6 +1183,16 @@ class test_running_steps(TransactionTestCase):
 @override_settings(CELERY_ALWAYS_EAGER=False)
 class test_running_steps_eagerly(TransactionTestCase):
 
+    def test_empty_step(self):
+        step = ProcessStep.objects.create()
+        self.assertEqual(len(step.run().get()), 0)
+
+    def test_empty_nested_child_step(self):
+        main_step = ProcessStep.objects.create()
+        ProcessStep.objects.create(parent_step=main_step)
+
+        self.assertEqual(len(main_step.run().get()), 0)
+
     def test_run(self):
         t1_val = 123
         t2_val = 456
@@ -1235,6 +1293,16 @@ class test_undoing_steps(TestCase):
     def setUp(self):
         settings.CELERY_ALWAYS_EAGER = True
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
+
+    def test_empty_step(self):
+        step = ProcessStep.objects.create()
+        self.assertEqual(len(step.undo().get()), 0)
+
+    def test_empty_nested_child_step(self):
+        main_step = ProcessStep.objects.create()
+        ProcessStep.objects.create(parent_step=main_step)
+
+        self.assertEqual(len(main_step.undo().get()), 0)
 
     def test_undo_serialized_step(self):
         step = ProcessStep.objects.create(
@@ -1447,6 +1515,42 @@ class test_undoing_steps(TestCase):
         self.assertEqual(step2.status, celery_states.SUCCESS)
         self.assertEqual(step3.status, celery_states.SUCCESS)
 
+    def test_undo_only_failed_with_child_steps(self):
+        main_step = ProcessStep.objects.create()
+        step1 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=1
+        )
+        step2 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=2
+        )
+        step3 = ProcessStep.objects.create(
+            parent_step=main_step, parent_step_pos=3
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
+            params={"foo": 123}, processstep=step1
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
+            processstep=step2
+        )
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
+            params={"foo": 789}, processstep=step3
+        )
+
+        with self.assertRaises(Exception):
+            main_step.run()
+
+        main_step.undo(only_failed=True)
+
+        self.assertEqual(step1.status, celery_states.SUCCESS)
+        self.assertEqual(step2.status, celery_states.SUCCESS)
+        self.assertEqual(step3.status, celery_states.PENDING)
+
 
 class test_retrying_steps(TestCase):
     def setUp(self):
@@ -1465,6 +1569,16 @@ class test_retrying_steps(TestCase):
             shutil.rmtree(self.test_dir)
         except:
             pass
+
+    def test_empty_step(self):
+        step = ProcessStep.objects.create()
+        self.assertEqual(len(step.retry().get()), 0)
+
+    def test_empty_nested_child_step(self):
+        main_step = ProcessStep.objects.create()
+        ProcessStep.objects.create(parent_step=main_step)
+
+        self.assertEqual(len(main_step.retry().get()), 0)
 
     def test_retry_failed_serialized_step(self):
         t1_val = 123
@@ -1844,6 +1958,16 @@ class test_resuming_steps(TestCase):
             shutil.rmtree(self.test_dir)
         except:
             pass
+
+    def test_empty_step(self):
+        step = ProcessStep.objects.create()
+        self.assertEqual(len(step.resume().get()), 0)
+
+    def test_empty_nested_child_step(self):
+        main_step = ProcessStep.objects.create()
+        ProcessStep.objects.create(parent_step=main_step)
+
+        self.assertEqual(len(main_step.resume().get()), 0)
 
     def test_resuming_task_after_retried_task(self):
         fname = os.path.join(self.test_dir, "foo.txt")
