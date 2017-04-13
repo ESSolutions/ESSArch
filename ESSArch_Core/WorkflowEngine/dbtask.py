@@ -119,6 +119,10 @@ class DBTask(Task):
                         if self.event_type:
                             event = self.create_event(self.task_id, celery_states.SUCCESS, args, a, retval, None)
                             events.append(event)
+            except:
+                raise
+            else:
+                return res
             finally:
                 try:
                     EventIP.objects.bulk_create(events)
@@ -128,8 +132,6 @@ class DBTask(Task):
                 if not connection.features.autocommits_when_autocommit_is_off:
                     transaction.commit()
                     transaction.set_autocommit(True)
-
-                return res
 
         with allow_join_result():
             for k, v in self.result_params.iteritems():
