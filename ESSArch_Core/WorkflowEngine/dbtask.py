@@ -36,6 +36,7 @@ from celery.result import allow_join_result
 from ESSArch_Core.configuration.models import EventType
 
 from django.db import (
+    connection,
     IntegrityError,
     OperationalError,
     transaction,
@@ -79,7 +80,8 @@ class DBTask(Task):
         if self.chunk:
             res = []
             events = []
-            transaction.set_autocommit(False)
+            if not connection.features.autocommits_when_autocommit_is_off:
+                transaction.set_autocommit(False)
             try:
                 for a in args:
                     a_options = a.pop('_options')
@@ -123,8 +125,9 @@ class DBTask(Task):
                 except IntegrityError:
                     pass
 
-                transaction.commit()
-                transaction.set_autocommit(True)
+                if not connection.features.autocommits_when_autocommit_is_off:
+                    transaction.commit()
+                    transaction.set_autocommit(True)
 
                 return res
 
