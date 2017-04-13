@@ -897,7 +897,7 @@ class test_running_steps(TransactionTestCase):
 
         ProcessTask.objects.bulk_create(tasks)
 
-        with self.assertNumQueries(len(tasks) + 3):
+        with self.assertNumQueries(len(tasks) + 2), self.assertRaises(TypeError):
             step.chunk()
 
         for t in tasks:
@@ -930,6 +930,43 @@ class test_running_steps(TransactionTestCase):
         )
         t2 = ProcessTask(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            params={'foo': 'bar'},
+            processstep=step,
+        )
+        t3 = ProcessTask(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            params={'foo': 'bar'},
+            processstep=step,
+        )
+
+        tasks = [t1, t2, t3]
+
+        ProcessTask.objects.bulk_create(tasks)
+
+        with self.assertNumQueries(len(tasks) + 3):
+            step.chunk()
+
+        for t in tasks:
+            t.refresh_from_db()
+
+        self.assertEqual(EventIP.objects.filter(eventOutcome=0).count(), 3)
+        self.assertFalse(EventIP.objects.filter(eventOutcome=1).exists())
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+    def test_chunked_step_with_failure_and_events(self):
+        EventType.objects.create(eventType=1)
+
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        t1 = ProcessTask(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            params={'foo': 'bar'},
+            processstep=step,
+        )
+        t2 = ProcessTask(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
             params={'bar': 'foo'},
             processstep=step,
         )
@@ -943,7 +980,7 @@ class test_running_steps(TransactionTestCase):
 
         ProcessTask.objects.bulk_create(tasks)
 
-        with self.assertNumQueries(len(tasks) + 4):
+        with self.assertNumQueries(len(tasks) + 3), self.assertRaises(TypeError):
             step.chunk()
 
         for t in tasks:
