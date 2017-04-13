@@ -244,7 +244,7 @@ class ProcessStep(Process):
         res = []
 
         for param_chunk in chunks(params, size):
-            res.append(t.apply_async(args=params, kwargs={'_options': {'chunk': True}}, queue=t.queue).get())
+            res.append(t.apply_async(args=param_chunk, kwargs={'_options': {'chunk': True, 'step': self.pk}}, queue=t.queue).get())
 
         return flatten(res)
 

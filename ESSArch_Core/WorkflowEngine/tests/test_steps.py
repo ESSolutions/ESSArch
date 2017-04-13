@@ -853,18 +853,19 @@ class test_running_steps(TransactionTestCase):
         for i in range(n):
             t = ProcessTask(
                 name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
-                params={'foo': 'bar'},
+                params={'foo': i},
                 processstep=step,
             )
             tasks.append(t)
 
         ProcessTask.objects.bulk_create(tasks)
 
-        with self.assertNumQueries(len(tasks) + (n/size) + 2):
+        with self.assertNumQueries(len(tasks) + (n/size)*2 + 1):
             step.chunk(size=size)
 
-        for t in tasks:
+        for idx, t in enumerate(tasks):
             t.refresh_from_db()
+            self.assertEqual(t.result, idx)
             self.assertEqual(t.status, celery_states.SUCCESS)
             self.assertEqual(t.progress, 100)
             self.assertIsNotNone(t.time_started)
