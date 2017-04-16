@@ -125,7 +125,6 @@ def set_tape_file_number(drive, num=0):
         return rewind_tape(drive)
 
     current_num = get_tape_file_number(drive)
-    new_num = current_num
 
     if num < current_num:
         op = 'bsfm'
@@ -136,8 +135,7 @@ def set_tape_file_number(drive, num=0):
         if new_num > 0:
             op = 'fsf'
         elif new_num == 0:
-            new_num = 1
-            op = 'bsfm'
+            return
 
     cmd = 'mt -f %s %s %d' % (drive, op, new_num)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
