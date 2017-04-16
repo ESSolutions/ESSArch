@@ -187,7 +187,7 @@ class ParseFile(DBTask):
         createdate = timestamp_to_datetime(timestamp)
 
         checksum_task = ProcessTask(
-            name="preingest.tasks.CalculateChecksum",
+            name="ESSArch_Core.tasks.CalculateChecksum",
             params={
                 "filename": filepath,
                 "algorithm": algorithm
@@ -198,7 +198,7 @@ class ParseFile(DBTask):
         )
 
         fileformat_task = ProcessTask(
-            name="preingest.tasks.IdentifyFileFormat",
+            name="ESSArch_Core.tasks.IdentifyFileFormat",
             params={
                 "filename": filepath,
             },
