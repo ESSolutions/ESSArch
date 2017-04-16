@@ -1,13 +1,19 @@
+import errno
 import os
 import tarfile
+import time
 
 from subprocess import Popen, PIPE
+
+from django.utils.timezone import localtime
+from lxml import etree
 
 from ESSArch_Core.storage.exceptions import (
     MTInvalidOperationOrDeviceNameException,
     MTFailedOperationException,
     RobotException,
     RobotMountException,
+    RobotMountTimeoutException,
     RobotUnmountException
 )
 
@@ -93,18 +99,68 @@ def is_tape_drive_online(drive):
     return 'ONLINE' in out
 
 
-def read_tape(drive, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
-    with tarfile.open(drive, 'r|', bufsize=block_size) as tar:
+def wait_to_come_online(drive, timeout=120):
+    while timeout >= 0:
+        if is_tape_drive_online(drive):
+            return
+
+        time.sleep(1)
+        timeout -= 1
+
+    raise RobotMountTimeoutException()
+
+
+def tape_empty(drive):
+    try:
+        with open(drive, 'rb') as f:
+            f.read(20000)
+    except IOError, e:
+        if e.errno == errno.EIO:
+            rewind_tape(drive)
+            return True
+        raise
+    else:
+        rewind_tape(drive)
+        return False
+
+
+def create_tape_label(medium, xmlpath):
+    root = etree.Element('label')
+
+    label_tape = etree.SubElement(root, 'tape')
+    label_tape.set('id', medium.medium_id)
+
+    local_create_date = localtime(medium.create_date)
+    label_tape.set('date', local_create_date.replace(microsecond=0).isoformat())
+
+    label_format = etree.SubElement(root, 'format')
+    label_format.set('format', str(medium.format))
+    label_format.set('blocksize', str(medium.block_size))
+    label_format.set('drivemanufacture', str(medium.storage_target.type))
+
+    tree = etree.ElementTree(root)
+    tree.write(xmlpath, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+
+
+def verify_tape_label(medium, xmlstring):
+    tree = etree.parse(xmlstring)
+    root = tree.getroot()
+
+    return root.find('label/tape')['id'] == str(medium.medium_id)
+
+
+def read_tape(device, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
+    with tarfile.open(device, 'r|', bufsize=block_size) as tar:
         tar.extractall(path)
 
 
-def write_to_tape(drive, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
+def write_to_tape(device, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
     """
     Writes content to a tape drive
     """
 
     basepath = os.path.basename(os.path.normpath(path))
-    with tarfile.open(drive, 'w|', bufsize=block_size) as tar:
+    with tarfile.open(device, 'w|', bufsize=block_size) as tar:
         tar.add(path, basepath)
 
 

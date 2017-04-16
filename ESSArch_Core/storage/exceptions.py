@@ -6,6 +6,10 @@ class RobotMountException(RobotException):
     pass
 
 
+class RobotMountTimeoutException(RobotMountException):
+    pass
+
+
 class RobotUnmountException(RobotException):
     pass
 
