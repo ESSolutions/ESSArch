@@ -52,6 +52,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
 from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, validate_against_schema
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.storage.tape import (
+    DEFAULT_TAPE_BLOCK_SIZE,
     get_tape_file_number,
     is_tape_drive_online,
     mount_tape,
@@ -1071,32 +1072,32 @@ class IsTapeDriveOnline(DBTask):
 
 
 class ReadTape(DBTask):
-    def run(self, drive=None, path='.', block_size=65536):
+    def run(self, drive=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
         """
         Reads the tape in the given drive
         """
 
         return read_tape(drive, path=path, block_size=block_size)
 
-    def undo(self, drive=None, path='.', block_size=65536):
+    def undo(self, drive=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
         pass
 
-    def event_outcome_success(self, drive=None, path='.', block_size=65536):
+    def event_outcome_success(self, drive=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
         pass
 
 
 class WriteToTape(DBTask):
-    def run(self, drive=None, path='.', block_size=65536):
+    def run(self, drive=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
         """
         Writes content to a tape drive
         """
 
         return write_to_tape(drive, path, block_size)
 
-    def undo(self, drive=None, path='.', block_size=65536):
+    def undo(self, drive=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
         pass
 
-    def event_outcome_success(self, drive=None, path='.', block_size=65536):
+    def event_outcome_success(self, drive=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
         pass
 
 

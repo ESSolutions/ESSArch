@@ -11,6 +11,8 @@ from ESSArch_Core.storage.exceptions import (
     RobotUnmountException
 )
 
+DEFAULT_TAPE_BLOCK_SIZE = 20*512
+
 
 def mount_tape(robot, slot, drive):
     """
@@ -91,12 +93,12 @@ def is_tape_drive_online(drive):
     return 'ONLINE' in out
 
 
-def read_tape(drive, path='.', block_size=65536):
+def read_tape(drive, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
     with tarfile.open(drive, 'r|', bufsize=block_size) as tar:
         tar.extractall(path)
 
 
-def write_to_tape(drive, path, block_size=65536):
+def write_to_tape(drive, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
     """
     Writes content to a tape drive
     """
