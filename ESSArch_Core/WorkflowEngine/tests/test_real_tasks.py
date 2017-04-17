@@ -2965,11 +2965,12 @@ class MountTapeTestCase(TransactionTestCase):
         self.assertFalse(self.medium.tape_drive == self.tape_drive)
 
     @mock.patch('ESSArch_Core.tasks.write_to_tape')
+    @mock.patch('ESSArch_Core.tasks.rewind_tape')
     @mock.patch('ESSArch_Core.tasks.create_tape_label')
     @mock.patch('ESSArch_Core.tasks.tape_empty')
     @mock.patch('ESSArch_Core.storage.tape.is_tape_drive_online')
     @mock.patch('ESSArch_Core.tasks.mount_tape')
-    def test_mount_empty_tape(self, mock_mount, mock_check_online, mock_tape_empty, mock_create_label, mock_write_tape):
+    def test_mount_empty_tape(self, mock_mount, mock_check_online, mock_tape_empty, mock_create_label, mock_rewind, mock_write_tape):
         mock_tape_empty.return_value = True
 
         task = ProcessTask.objects.create(
@@ -2983,6 +2984,7 @@ class MountTapeTestCase(TransactionTestCase):
         task.run().get()
 
         mock_create_label.called_once()
+        mock_rewind.assert_called_once_with(self.tape_drive.device)
         mock_write_tape.called_once_with(self.tape_drive.device, mock.ANY)
 
         self.medium.refresh_from_db()
