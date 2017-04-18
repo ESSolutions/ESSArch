@@ -402,6 +402,13 @@ class InformationPackage(models.Model):
             ('change_sa', 'Can change SA connected to IP'),
             ('lock_sa', 'Can lock SA to IP'),
             ('unlock_profile', 'Can unlock profile connected to IP'),
+            ('receive', 'Can receive IP'),
+            ('preserve', 'Can preserve IP'),
+            ('view', 'Can view extracted IP'),
+            ('view_tar', 'Can view packaged IP'),
+            ('edit_as_new', 'Can edit IP "as new"'),
+            ('diff-check', 'Can diff-check IP'),
+            ('query', 'Can query IP'),
         )
 
     def __unicode__(self):
