@@ -280,6 +280,8 @@ class TapeDrive(models.Model):
     idle_time = models.IntegerField(null=True)
     robot = models.ForeignKey('Robot', models.PROTECT, related_name='tape_drives')
 
+    def __unicode__(self):
+        return self.device
 
 class TapeSlot(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -289,6 +291,9 @@ class TapeSlot(models.Model):
 
     class Meta:
         unique_together = ('slot_id', 'robot')
+
+    def __unicode__(self):
+        return unicode(self.slot_id)
 
 
 class Robot(models.Model):
