@@ -19,8 +19,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Robot',
             fields=[
-                ('device', models.CharField(max_length=255, primary_key=True, serialize=False)),
+                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ('device', models.CharField(max_length=255, unique=True)),
                 ('online', models.BooleanField(default=False)),
+                ('label', models.CharField(blank=True, max_length=255, verbose_name='Describing label for the robot')),
             ],
         ),
         migrations.CreateModel(
