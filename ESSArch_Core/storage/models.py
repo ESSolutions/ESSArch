@@ -292,8 +292,13 @@ class TapeSlot(models.Model):
 
 
 class Robot(models.Model):
-    device = models.CharField(primary_key=True, max_length=255)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    label = models.CharField("Describing label for the robot", max_length=255, blank=True)
+    device = models.CharField(max_length=255, unique=True)
     online = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return self.label
 
 
 class RobotQueue(models.Model):
