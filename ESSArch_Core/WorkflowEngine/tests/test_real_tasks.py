@@ -2795,7 +2795,7 @@ class MountTapeTestCase(TransactionTestCase):
 
         mock_tarfile.open.assert_not_called()
 
-        mock_mount.assert_called_once_with(self.robot.pk, self.tape_slot.pk, self.tape_drive.pk)
+        mock_mount.assert_called_once_with(self.robot.device, self.tape_slot.pk, self.tape_drive.pk)
         mock_online.assert_called_once_with(self.tape_drive.device)
 
         mock_create_label.assert_not_called()
@@ -2838,7 +2838,7 @@ class MountTapeTestCase(TransactionTestCase):
 
         task.run().get()
 
-        mock_mount.assert_called_once_with(self.robot.pk, self.tape_slot.pk, self.tape_drive.pk)
+        mock_mount.assert_called_once_with(self.robot.device, self.tape_slot.pk, self.tape_drive.pk)
         mock_online.assert_called_once_with(self.tape_drive.device)
         mock_verify_label.assert_called_once_with(self.medium, 'xmldata')
 
@@ -2915,7 +2915,7 @@ class MountTapeTestCase(TransactionTestCase):
 
         task.run().get()
 
-        mock_mount.assert_called_once_with(self.robot.pk, self.tape_slot.pk, self.tape_drive.pk)
+        mock_mount.assert_called_once_with(self.robot.device, self.tape_slot.pk, self.tape_drive.pk)
         mock_online.assert_called_once_with(self.tape_drive.device)
         mock_rewind.assert_called_once_with(self.tape_drive.device)
         mock_create_label.assert_called_once()
@@ -2954,7 +2954,7 @@ class MountTapeTestCase(TransactionTestCase):
         with self.assertRaisesRegexp(ValueError, 'unknown information'):
             task.run().get()
 
-        mock_mount.assert_called_once_with(self.robot.pk, self.tape_slot.pk, self.tape_drive.pk)
+        mock_mount.assert_called_once_with(self.robot.device, self.tape_slot.pk, self.tape_drive.pk)
         mock_online.assert_called_once_with(self.tape_drive.device)
 
         self.medium.refresh_from_db()
