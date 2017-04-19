@@ -335,7 +335,7 @@ class InformationPackage(models.Model):
         return state
 
     def status(self):
-        if self.State in ["Prepared", "Uploaded", "Created", "Submitted", "Received", "Transferred"]:
+        if self.State in ["Prepared", "Uploaded", "Created", "Submitted", "Received", "Transferred", 'Archived']:
             return 100
 
         if self.State == "Preparing":
