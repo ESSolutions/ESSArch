@@ -138,7 +138,17 @@ def parse_submit_description(xmlfile, srcdir=''):
         ip['object_path'] = os.path.join(srcdir, objpath)
         ip['object_size'] = os.stat(ip['object_path']).st_size
 
+    ip['information_class'] = get_value_from_path(root, '@INFORMATIONCLASS')
+
     ip['altrecordids'] = get_altrecordids(root)
+
+    if ip['information_class'] is None:
+        ip['information_class'] = ip['altrecordids'].get('INFORMATIONCLASS')
+
+    try:
+        ip['information_class'] = [int(s) for s in ip['information_class'].split() if s.isdigit()][0]
+    except (KeyError, AttributeError):
+        ip['information_class'] = 0
 
     try:
         ip['archivist_organization'] = get_agent(root, ROLE='ARCHIVIST', TYPE='ORGANIZATION')['name']

@@ -353,3 +353,65 @@ class ParseSubmitDescriptionTestCase(TestCase):
         self.assertEqual(ip['create_date'], '456')
         self.assertEqual(ip['object_path'], 'foo')
         self.assertEqual(ip['object_size'], 24)
+
+    def test_information_class_in_root(self):
+        self.xmlfile.write('''
+            <root INFORMATIONCLASS="123">
+                <metsHdr CREATEDATE="456"></metsHdr>
+            </root>
+        ''')
+        self.xmlfile.close()
+
+        ip = parse_submit_description(self.xmlfile.name)
+
+        self.assertEqual(ip['information_class'], 123)
+
+    def test_information_class_in_altrecordid(self):
+        self.xmlfile.write('''
+            <root>
+                <metsHdr CREATEDATE="456"></metsHdr>
+                <altRecordID TYPE="INFORMATIONCLASS">123</altRecordID>
+            </root>
+        ''')
+        self.xmlfile.close()
+
+        ip = parse_submit_description(self.xmlfile.name)
+
+        self.assertEqual(ip['information_class'], 123)
+
+    def test_information_class_in_root_and_altrecordid(self):
+        self.xmlfile.write('''
+            <root INFORMATIONCLASS="123">
+                <metsHdr CREATEDATE="456"></metsHdr>
+                <altRecordID TYPE="INFORMATIONCLASS">456</altRecordID>
+            </root>
+        ''')
+        self.xmlfile.close()
+
+        ip = parse_submit_description(self.xmlfile.name)
+
+        self.assertEqual(ip['information_class'], 123)
+
+    def test_information_class_with_letters(self):
+        self.xmlfile.write('''
+            <root INFORMATIONCLASS="class 123">
+                <metsHdr CREATEDATE="456"></metsHdr>
+            </root>
+        ''')
+        self.xmlfile.close()
+
+        ip = parse_submit_description(self.xmlfile.name)
+
+        self.assertEqual(ip['information_class'], 123)
+
+    def test_information_class_with_multiple_numbers(self):
+        self.xmlfile.write('''
+            <root INFORMATIONCLASS="123 456">
+                <metsHdr CREATEDATE="456"></metsHdr>
+            </root>
+        ''')
+        self.xmlfile.close()
+
+        ip = parse_submit_description(self.xmlfile.name)
+
+        self.assertEqual(ip['information_class'], 123)
