@@ -102,7 +102,11 @@ def get_objectpath(el):
     try:
         e = el.xpath('.//*[local-name()="%s"]' % "FLocat")[0]
         if e is not None:
-            return get_value_from_path(e, "@href").split('file:///')[1]
+            val = get_value_from_path(e, "@href")
+            try:
+                return val.split('file:///')[1]
+            except IndexError:
+                return val
     except IndexError:
         return None
 
