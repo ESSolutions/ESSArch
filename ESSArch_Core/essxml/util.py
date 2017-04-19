@@ -102,7 +102,11 @@ def get_objectpath(el):
     try:
         e = el.xpath('.//*[local-name()="%s"]' % "FLocat")[0]
         if e is not None:
-            return get_value_from_path(e, "@href").split('file:///')[1]
+            val = get_value_from_path(e, "@href")
+            try:
+                return val.split('file:///')[1]
+            except IndexError:
+                return val
     except IndexError:
         return None
 
@@ -126,8 +130,8 @@ def parse_submit_description(xmlfile, srcdir=''):
         ip['object_path'] = os.path.join(srcdir, objpath)
         ip['object_size'] = os.stat(ip['object_path']).st_size
 
-    ip['start_date'] = get_altrecordid(root, TYPE='STARTDATE'),
-    ip['end_date'] = get_altrecordid(root, TYPE='ENDDATE'),
+    ip['start_date'] = get_altrecordid(root, TYPE='STARTDATE')
+    ip['end_date'] = get_altrecordid(root, TYPE='ENDDATE')
 
     try:
         ip['archivist_organization'] = get_agent(root, ROLE='ARCHIVIST', TYPE='ORGANIZATION')['name']
