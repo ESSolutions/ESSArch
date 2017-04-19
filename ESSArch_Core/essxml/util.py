@@ -91,6 +91,14 @@ def get_agent(el, ROLE=None, OTHERROLE=None, TYPE=None, OTHERTYPE=None):
     }
 
 
+def get_altrecordids(el):
+    dct = {}
+    for i in el.xpath(".//*[local-name()='altRecordID']"):
+        dct[i.get('TYPE')] = i.text
+
+    return dct
+
+
 def get_altrecordid(el, TYPE):
     try:
         return el.xpath(".//*[local-name()='altRecordID'][@TYPE='%s']" % TYPE)[0].text
@@ -130,8 +138,7 @@ def parse_submit_description(xmlfile, srcdir=''):
         ip['object_path'] = os.path.join(srcdir, objpath)
         ip['object_size'] = os.stat(ip['object_path']).st_size
 
-    ip['start_date'] = get_altrecordid(root, TYPE='STARTDATE')
-    ip['end_date'] = get_altrecordid(root, TYPE='ENDDATE')
+    ip['altrecordids'] = get_altrecordids(root)
 
     try:
         ip['archivist_organization'] = get_agent(root, ROLE='ARCHIVIST', TYPE='ORGANIZATION')['name']
