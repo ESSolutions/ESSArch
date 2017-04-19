@@ -42,6 +42,7 @@ from ESSArch_Core.essxml.util import (
     find_files,
     get_agent,
     get_altrecordid,
+    get_altrecordids,
     get_objectpath,
     parse_submit_description,
 )
@@ -189,6 +190,34 @@ class GetAltrecordidTestCase(TestCase):
         ''')
 
         self.assertIsNone(get_altrecordid(el, 'bar'))
+
+
+class GetAltrecordidsTestCase(TestCase):
+    def test_none(self):
+        el = etree.fromstring('''
+            <root></root>
+        ''')
+
+        self.assertEqual(get_altrecordids(el), {})
+
+    def test_single(self):
+        el = etree.fromstring('''
+            <root>
+                <altRecordID TYPE="foo">bar</altRecordID>
+            </root>
+        ''')
+
+        self.assertEqual(get_altrecordids(el), {'foo': 'bar'})
+
+    def test_multiple(self):
+        el = etree.fromstring('''
+            <root>
+                <altRecordID TYPE="foo">bar</altRecordID>
+                <altRecordID TYPE="bar">foo</altRecordID>
+            </root>
+        ''')
+
+        self.assertEqual(get_altrecordids(el), {'foo': 'bar', 'bar': 'foo'})
 
 
 class GetAgentTestCase(TestCase):
