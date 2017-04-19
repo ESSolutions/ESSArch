@@ -126,8 +126,8 @@ def parse_submit_description(xmlfile, srcdir=''):
         ip['object_path'] = os.path.join(srcdir, objpath)
         ip['object_size'] = os.stat(ip['object_path']).st_size
 
-    ip['start_date'] = get_altrecordid(root, TYPE='STARTDATE'),
-    ip['end_date'] = get_altrecordid(root, TYPE='ENDDATE'),
+    ip['start_date'] = get_altrecordid(root, TYPE='STARTDATE')
+    ip['end_date'] = get_altrecordid(root, TYPE='ENDDATE')
 
     try:
         ip['archivist_organization'] = get_agent(root, ROLE='ARCHIVIST', TYPE='ORGANIZATION')['name']
