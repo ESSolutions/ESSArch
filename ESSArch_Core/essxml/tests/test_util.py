@@ -24,18 +24,27 @@
 
 import os
 import shutil
+import tempfile
 from collections import OrderedDict
 
 from django.test import TestCase
 
 from lxml import etree
 
+import mock
+
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseContent
 
 from ESSArch_Core.configuration.models import (
     Path,
 )
-from ESSArch_Core.essxml.util import find_files
+from ESSArch_Core.essxml.util import (
+    find_files,
+    get_agent,
+    get_altrecordid,
+    get_objectpath,
+    parse_submit_description,
+)
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
@@ -153,3 +162,165 @@ class FindFilesTestCase(TestCase):
         found = find_files(xmlfile, rootdir=self.datadir)
         self.assertEqual(len(found), len(expected))
         self.assertItemsEqual(found, expected)
+
+
+class GetAltrecordidTestCase(TestCase):
+    def test_existing(self):
+        el = etree.fromstring('''
+            <root>
+                <altRecordID TYPE="foo">bar</altRecordID>
+            </root>
+        ''')
+
+        self.assertEqual(get_altrecordid(el, 'foo'), 'bar')
+
+    def test_non_existing_type(self):
+        el = etree.fromstring('''
+            <root>
+                <altRecordID TYPE="foo">bar</altRecordID>
+            </root>
+        ''')
+
+        self.assertIsNone(get_altrecordid(el, 'bar'))
+
+    def test_non_existing_element(self):
+        el = etree.fromstring('''
+            <root></root>
+        ''')
+
+        self.assertIsNone(get_altrecordid(el, 'bar'))
+
+
+class GetAgentTestCase(TestCase):
+    def test_existing_role(self):
+        el = etree.fromstring('''
+            <root>
+                <agent ROLE="foo">
+                    <name>foo_name</name>
+                    <note>foo_note</note>
+                </agent>
+            </root>
+        ''')
+
+        self.assertEqual(get_agent(el, ROLE='foo'), {'name': 'foo_name', 'notes': ['foo_note']})
+
+    def test_existing_otherrole(self):
+        el = etree.fromstring('''
+            <root>
+                <agent OTHERROLE="foo">
+                    <name>foo_name</name>
+                    <note>foo_note</note>
+                </agent>
+            </root>
+        ''')
+
+        self.assertEqual(get_agent(el, OTHERROLE='foo'), {'name': 'foo_name', 'notes': ['foo_note']})
+
+    def test_existing_type(self):
+        el = etree.fromstring('''
+            <root>
+                <agent TYPE="foo">
+                    <name>foo_name</name>
+                    <note>foo_note</note>
+                </agent>
+            </root>
+        ''')
+
+        self.assertEqual(get_agent(el, TYPE='foo'), {'name': 'foo_name', 'notes': ['foo_note']})
+
+    def test_existing_othertype(self):
+        el = etree.fromstring('''
+            <root>
+                <agent OTHERTYPE="foo">
+                    <name>foo_name</name>
+                    <note>foo_note</note>
+                </agent>
+            </root>
+        ''')
+
+        self.assertEqual(get_agent(el, OTHERTYPE='foo'), {'name': 'foo_name', 'notes': ['foo_note']})
+
+    def test_multiple_agents(self):
+        el = etree.fromstring('''
+            <root>
+                <agent ROLE="foo">
+                    <name>foo_name</name>
+                    <note>foo_note</note>
+                </agent>
+                <agent ROLE="bar">
+                    <name>bar_name</name>
+                    <note>bar_note</note>
+                </agent>
+            </root>
+        ''')
+
+        self.assertEqual(get_agent(el, ROLE='foo'), {'name': 'foo_name', 'notes': ['foo_note']})
+        self.assertEqual(get_agent(el, ROLE='bar'), {'name': 'bar_name', 'notes': ['bar_note']})
+
+    def test_non_existing_element(self):
+        el = etree.fromstring('''
+            <root></root>
+        ''')
+
+        self.assertIsNone(get_agent(el))
+
+
+class GetObjectPathTestCase(TestCase):
+    def test_no_prefix(self):
+        el = etree.fromstring('''
+            <root>
+                <FLocat href="foo"></FLocat>
+            </root>
+        ''')
+
+        self.assertEqual(get_objectpath(el), 'foo')
+
+    def test_prefix(self):
+        el = etree.fromstring('''
+            <root>
+                <FLocat href="file:///foo"></FLocat>
+            </root>
+        ''')
+
+        self.assertEqual(get_objectpath(el), 'foo')
+
+
+class ParseSubmitDescriptionTestCase(TestCase):
+    def setUp(self):
+        self.xmlfile = tempfile.NamedTemporaryFile(delete=False)
+
+    def tearDown(self):
+        os.remove(self.xmlfile.name)
+
+    def test_objid_and_create_date(self):
+        self.xmlfile.write('''
+            <root OBJID="123">
+                <metsHdr CREATEDATE="456"></metsHdr>
+            </root>
+        ''')
+        self.xmlfile.close()
+
+        ip = parse_submit_description(self.xmlfile.name)
+
+        self.assertEqual(ip['id'], '123')
+        self.assertEqual(ip['create_date'], '456')
+
+    @mock.patch('ESSArch_Core.essxml.util.os.stat')
+    @mock.patch('ESSArch_Core.essxml.util.get_objectpath')
+    def test_objpath(self, mock_objectpath, mock_os_stat):
+        mock_objectpath.return_value = 'foo'
+        mock_os_stat.return_value = mock.Mock(**{'st_size': 24})
+
+        self.xmlfile.write('''
+            <root OBJID="123">
+                <metsHdr CREATEDATE="456"></metsHdr>
+            </root>
+        ''')
+        self.xmlfile.close()
+
+        ip = parse_submit_description(self.xmlfile.name)
+
+        self.assertEqual(ip['id'], '123')
+        self.assertEqual(ip['create_date'], '456')
+        self.assertEqual(ip['object_path'], 'foo')
+        self.assertEqual(ip['object_size'], 24)
