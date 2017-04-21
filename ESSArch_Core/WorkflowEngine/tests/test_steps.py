@@ -25,6 +25,7 @@
 from celery import states as celery_states
 from django.conf import settings
 from django.core.cache import cache
+from django.db import connection
 from django.test import override_settings, TestCase, TransactionTestCase
 
 from django_redis import get_redis_connection
@@ -696,6 +697,9 @@ class test_running_steps(TransactionTestCase):
         settings.CELERY_ALWAYS_EAGER = True
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
 
+        self.transaction_support = not connection.features.autocommits_when_autocommit_is_off
+
+
     def test_empty_step(self):
         step = ProcessStep.objects.create()
         self.assertEqual(len(step.run().get()), 0)
@@ -816,7 +820,8 @@ class test_running_steps(TransactionTestCase):
 
         ProcessTask.objects.bulk_create(tasks)
 
-        with self.assertNumQueries(len(tasks) + 3):
+        expected = (len(tasks) + 3) if self.transaction_support else (2*len(tasks) + 4)
+        with self.assertNumQueries(expected):
             res = step.chunk()
 
         self.assertEqual(len(res), 10)
@@ -860,7 +865,8 @@ class test_running_steps(TransactionTestCase):
 
         ProcessTask.objects.bulk_create(tasks)
 
-        with self.assertNumQueries(len(tasks) + (n/size)*2 + 1):
+        expected = (len(tasks) + (n/size)*2 + 1) if self.transaction_support else (2*len(tasks) + (n/size)*3 + 1)
+        with self.assertNumQueries(expected):
             step.chunk(size=size)
 
         for idx, t in enumerate(tasks):
@@ -898,7 +904,8 @@ class test_running_steps(TransactionTestCase):
 
         ProcessTask.objects.bulk_create(tasks)
 
-        with self.assertNumQueries(len(tasks) + 2), self.assertRaises(TypeError):
+        expected = (len(tasks) + 2) if self.transaction_support else (2*len(tasks) + 2)
+        with self.assertNumQueries(expected), self.assertRaises(TypeError):
             step.chunk()
 
         for t in tasks:
@@ -944,7 +951,8 @@ class test_running_steps(TransactionTestCase):
 
         ProcessTask.objects.bulk_create(tasks)
 
-        with self.assertNumQueries(len(tasks) + 3):
+        expected = (len(tasks) + 3) if self.transaction_support else (2*len(tasks) + 4)
+        with self.assertNumQueries(expected):
             step.chunk()
 
         for t in tasks:
@@ -981,7 +989,8 @@ class test_running_steps(TransactionTestCase):
 
         ProcessTask.objects.bulk_create(tasks)
 
-        with self.assertNumQueries(len(tasks) + 3), self.assertRaises(TypeError):
+        expected = (len(tasks) + 3) if self.transaction_support else (2*len(tasks) + 4)
+        with self.assertNumQueries(expected), self.assertRaises(TypeError):
             step.chunk()
 
         for t in tasks:

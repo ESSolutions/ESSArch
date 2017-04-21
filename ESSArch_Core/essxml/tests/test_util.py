@@ -44,6 +44,7 @@ from ESSArch_Core.essxml.util import (
     get_altrecordid,
     get_altrecordids,
     get_objectpath,
+    parse_reference_code,
     parse_submit_description,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
@@ -173,7 +174,17 @@ class GetAltrecordidTestCase(TestCase):
             </root>
         ''')
 
-        self.assertEqual(get_altrecordid(el, 'foo'), 'bar')
+        self.assertEqual(get_altrecordid(el, 'foo'), ['bar'])
+
+    def test_multiple_results(self):
+        el = etree.fromstring('''
+            <root>
+                <altRecordID TYPE="foo">first</altRecordID>
+                <altRecordID TYPE="foo">second</altRecordID>
+            </root>
+        ''')
+
+        self.assertEqual(get_altrecordid(el, 'foo'), ['first', 'second'])
 
     def test_non_existing_type(self):
         el = etree.fromstring('''
@@ -182,14 +193,14 @@ class GetAltrecordidTestCase(TestCase):
             </root>
         ''')
 
-        self.assertIsNone(get_altrecordid(el, 'bar'))
+        self.assertEqual(get_altrecordid(el, 'bar'), [])
 
     def test_non_existing_element(self):
         el = etree.fromstring('''
             <root></root>
         ''')
 
-        self.assertIsNone(get_altrecordid(el, 'bar'))
+        self.assertEqual(get_altrecordid(el, 'bar'), [])
 
 
 class GetAltrecordidsTestCase(TestCase):
@@ -207,7 +218,7 @@ class GetAltrecordidsTestCase(TestCase):
             </root>
         ''')
 
-        self.assertEqual(get_altrecordids(el), {'foo': 'bar'})
+        self.assertEqual(get_altrecordids(el), {'foo': ['bar']})
 
     def test_multiple(self):
         el = etree.fromstring('''
@@ -217,7 +228,17 @@ class GetAltrecordidsTestCase(TestCase):
             </root>
         ''')
 
-        self.assertEqual(get_altrecordids(el), {'foo': 'bar', 'bar': 'foo'})
+        self.assertEqual(get_altrecordids(el), {'foo': ['bar'], 'bar': ['foo']})
+
+    def test_multiple_same_type(self):
+        el = etree.fromstring('''
+            <root>
+                <altRecordID TYPE="foo">first</altRecordID>
+                <altRecordID TYPE="foo">second</altRecordID>
+            </root>
+        ''')
+
+        self.assertEqual(get_altrecordids(el), {'foo': ['first', 'second']})
 
 
 class GetAgentTestCase(TestCase):
@@ -312,6 +333,28 @@ class GetObjectPathTestCase(TestCase):
         ''')
 
         self.assertEqual(get_objectpath(el), 'foo')
+
+
+class ParseReferenceCodeTestCase(TestCase):
+    def test_single_node(self):
+        tree = parse_reference_code('foo')
+        self.assertEqual(tree, ['foo'])
+
+    def test_single_node_leading_slash(self):
+        tree = parse_reference_code('/foo')
+        self.assertEqual(tree, ['foo'])
+
+    def test_single_node_trailing_slash(self):
+        tree = parse_reference_code('foo/')
+        self.assertEqual(tree, ['foo'])
+
+    def test_multiple_nodes(self):
+        tree = parse_reference_code('foo/bar/baz')
+        self.assertEqual(tree, ['foo', 'bar', 'baz'])
+
+    def test_multiple_nodes_same_name(self):
+        tree = parse_reference_code('foo/bar/foo')
+        self.assertEqual(tree, ['foo', 'bar', 'foo'])
 
 
 class ParseSubmitDescriptionTestCase(TestCase):

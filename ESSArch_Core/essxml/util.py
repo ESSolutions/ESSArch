@@ -94,16 +94,16 @@ def get_agent(el, ROLE=None, OTHERROLE=None, TYPE=None, OTHERTYPE=None):
 def get_altrecordids(el):
     dct = {}
     for i in el.xpath(".//*[local-name()='altRecordID']"):
-        dct[i.get('TYPE')] = i.text
+        try:
+            dct[i.get('TYPE')].append(i.text)
+        except KeyError:
+            dct[i.get('TYPE')] = [i.text]
 
     return dct
 
 
 def get_altrecordid(el, TYPE):
-    try:
-        return el.xpath(".//*[local-name()='altRecordID'][@TYPE='%s']" % TYPE)[0].text
-    except IndexError:
-        return None
+    return [e.text for e in el.xpath(".//*[local-name()='altRecordID'][@TYPE='%s']" % TYPE)]
 
 
 def get_objectpath(el):
@@ -117,6 +117,10 @@ def get_objectpath(el):
                 return val
     except IndexError:
         return None
+
+
+def parse_reference_code(code):
+    return code.strip('/ ').split('/')
 
 
 def parse_submit_description(xmlfile, srcdir=''):
@@ -142,8 +146,14 @@ def parse_submit_description(xmlfile, srcdir=''):
 
     ip['altrecordids'] = get_altrecordids(root)
 
+    codes = ip['altrecordids'].get('REFERENCECODE', [])
+    ip['reference_codes'] = [parse_reference_code(code) for code in codes]
+
     if ip['information_class'] is None:
-        ip['information_class'] = ip['altrecordids'].get('INFORMATIONCLASS')
+        try:
+            ip['information_class'] = ip['altrecordids'].get('INFORMATIONCLASS')[0]
+        except TypeError:
+            ip['information_class'] = None
 
     try:
         ip['information_class'] = [int(s) for s in ip['information_class'].split() if s.isdigit()][0]
