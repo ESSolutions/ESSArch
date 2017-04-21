@@ -44,6 +44,7 @@ from ESSArch_Core.essxml.util import (
     get_altrecordid,
     get_altrecordids,
     get_objectpath,
+    parse_reference_code,
     parse_submit_description,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
@@ -332,6 +333,28 @@ class GetObjectPathTestCase(TestCase):
         ''')
 
         self.assertEqual(get_objectpath(el), 'foo')
+
+
+class ParseReferenceCodeTestCase(TestCase):
+    def test_single_node(self):
+        tree = parse_reference_code('foo')
+        self.assertEqual(tree, ['foo'])
+
+    def test_single_node_leading_slash(self):
+        tree = parse_reference_code('/foo')
+        self.assertEqual(tree, ['foo'])
+
+    def test_single_node_trailing_slash(self):
+        tree = parse_reference_code('foo/')
+        self.assertEqual(tree, ['foo'])
+
+    def test_multiple_nodes(self):
+        tree = parse_reference_code('foo/bar/baz')
+        self.assertEqual(tree, ['foo', 'bar', 'baz'])
+
+    def test_multiple_nodes_same_name(self):
+        tree = parse_reference_code('foo/bar/foo')
+        self.assertEqual(tree, ['foo', 'bar', 'foo'])
 
 
 class ParseSubmitDescriptionTestCase(TestCase):

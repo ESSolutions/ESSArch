@@ -119,6 +119,10 @@ def get_objectpath(el):
         return None
 
 
+def parse_reference_code(code):
+    return code.strip('/ ').split('/')
+
+
 def parse_submit_description(xmlfile, srcdir=''):
     ip = {}
     doc = etree.parse(xmlfile)
@@ -141,6 +145,9 @@ def parse_submit_description(xmlfile, srcdir=''):
     ip['information_class'] = get_value_from_path(root, '@INFORMATIONCLASS')
 
     ip['altrecordids'] = get_altrecordids(root)
+
+    codes = ip['altrecordids'].get('REFERENCECODE', [])
+    ip['reference_codes'] = [parse_reference_code(code) for code in codes]
 
     if ip['information_class'] is None:
         try:
