@@ -173,7 +173,17 @@ class GetAltrecordidTestCase(TestCase):
             </root>
         ''')
 
-        self.assertEqual(get_altrecordid(el, 'foo'), 'bar')
+        self.assertEqual(get_altrecordid(el, 'foo'), ['bar'])
+
+    def test_multiple_results(self):
+        el = etree.fromstring('''
+            <root>
+                <altRecordID TYPE="foo">first</altRecordID>
+                <altRecordID TYPE="foo">second</altRecordID>
+            </root>
+        ''')
+
+        self.assertEqual(get_altrecordid(el, 'foo'), ['first', 'second'])
 
     def test_non_existing_type(self):
         el = etree.fromstring('''
@@ -182,14 +192,14 @@ class GetAltrecordidTestCase(TestCase):
             </root>
         ''')
 
-        self.assertIsNone(get_altrecordid(el, 'bar'))
+        self.assertEqual(get_altrecordid(el, 'bar'), [])
 
     def test_non_existing_element(self):
         el = etree.fromstring('''
             <root></root>
         ''')
 
-        self.assertIsNone(get_altrecordid(el, 'bar'))
+        self.assertEqual(get_altrecordid(el, 'bar'), [])
 
 
 class GetAltrecordidsTestCase(TestCase):
@@ -207,7 +217,7 @@ class GetAltrecordidsTestCase(TestCase):
             </root>
         ''')
 
-        self.assertEqual(get_altrecordids(el), {'foo': 'bar'})
+        self.assertEqual(get_altrecordids(el), {'foo': ['bar']})
 
     def test_multiple(self):
         el = etree.fromstring('''
@@ -217,7 +227,17 @@ class GetAltrecordidsTestCase(TestCase):
             </root>
         ''')
 
-        self.assertEqual(get_altrecordids(el), {'foo': 'bar', 'bar': 'foo'})
+        self.assertEqual(get_altrecordids(el), {'foo': ['bar'], 'bar': ['foo']})
+
+    def test_multiple_same_type(self):
+        el = etree.fromstring('''
+            <root>
+                <altRecordID TYPE="foo">first</altRecordID>
+                <altRecordID TYPE="foo">second</altRecordID>
+            </root>
+        ''')
+
+        self.assertEqual(get_altrecordids(el), {'foo': ['first', 'second']})
 
 
 class GetAgentTestCase(TestCase):
