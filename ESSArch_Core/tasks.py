@@ -915,6 +915,14 @@ class CopyFile(DBTask):
 
         tasks = []
 
+        directory = os.path.dirname(dst)
+
+        try:
+            os.makedirs(directory)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+
         open(dst, 'w').close()  # remove content of destination if it exists
 
         while idx*block_size <= fsize:
