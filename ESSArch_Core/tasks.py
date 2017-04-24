@@ -28,6 +28,7 @@ import shutil
 import tarfile
 import urllib
 import uuid
+import zipfile
 
 import requests
 
@@ -520,6 +521,69 @@ class CopySchemas(DBTask):
     def event_outcome_success(self, schema={}, root=None, structure=None):
         src, dst = self.createSrcAndDst(schema, root, structure)
         return "Copied schemas from %s to %s" % src, dst
+
+
+class CreateTAR(DBTask):
+    """
+    Creates a TAR file from the specified directory
+
+    Args:
+        dirname: The directory to create a TAR from
+        tarname: The name of the tar file
+    """
+
+    def run(self, dirname=None, tarname=None):
+        base_dir = os.path.basename(os.path.normpath(dirname))
+        with tarfile.TarFile(tarname, 'w') as new_tar:
+            new_tar.add(dirname, base_dir)
+
+        self.set_progress(100, total=100)
+        return tarname
+
+    def undo(self, dirname=None, tarname=None):
+        parent_dir = os.path.dirname((os.path.normpath(dirname)))
+
+        with tarfile.open(tarname, 'r') as tar:
+            tar.extractall(parent_dir)
+
+        os.remove(tarname)
+
+    def event_outcome_success(self, dirname=None, tarname=None):
+        return "Created %s from %s" % (tarname, dirname)
+
+
+class CreateZIP(DBTask):
+    """
+    Creates a ZIP file from the specified directory
+
+    Args:
+        dirname: The directory to create a ZIP from
+        zipname: The name of the zip file
+    """
+
+    def run(self, dirname=None, zipname=None):
+        with zipfile.ZipFile(zipname, 'w') as new_zip:
+            for root, dirs, files in os.walk(dirname):
+                for d in dirs:
+                    filepath = os.path.join(root, d)
+                    arcname = filepath[len(dirname) + 1:]
+                    new_zip.write(filepath, arcname)
+                for f in files:
+                    filepath = os.path.join(root, f)
+                    arcname = filepath[len(dirname) + 1:]
+                    new_zip.write(filepath, arcname)
+
+        self.set_progress(100, total=100)
+        return zipname
+
+    def undo(self, dirname=None, zipname=None):
+        with zipfile.ZipFile(zipname, 'r') as z:
+            z.extractall(dirname)
+
+        os.remove(zipname)
+
+    def event_outcome_success(self, dirname=None, zipname=None):
+        return "Created %s from %s" % (zipname, dirname)
 
 
 class ValidateFiles(DBTask):

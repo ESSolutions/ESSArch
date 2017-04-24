@@ -965,6 +965,117 @@ class AppendEventsTestCase(TransactionTestCase):
         found = tree.findall('.//{*}event')
         self.assertEqual(len(found), 0)
 
+
+class CreateTARTestCase(TransactionTestCase):
+    def setUp(self):
+        self.datadir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.datadir)
+        except:
+            pass
+
+    def test_run(self):
+        filename = os.path.join(self.datadir, "file.txt")
+        open(filename, "a").close()
+
+        tarname = self.datadir + ".tar"
+
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.tasks.CreateTAR",
+            params={
+                "dirname": self.datadir,
+                "tarname": tarname
+            },
+        )
+        task.run()
+
+        self.assertTrue(os.path.isdir(self.datadir))
+        self.assertTrue(os.path.isfile(filename))
+        self.assertTrue(os.path.isfile(tarname))
+
+    def test_undo(self):
+        filename = os.path.join(self.datadir, "file.txt")
+        open(filename, "a").close()
+
+        tarname = self.datadir + ".tar"
+
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.tasks.CreateTAR",
+            params={
+                "dirname": self.datadir,
+                "tarname": tarname
+            },
+        )
+        task.run()
+
+        self.assertTrue(os.path.isdir(self.datadir))
+        self.assertTrue(os.path.isfile(filename))
+        self.assertTrue(os.path.isfile(tarname))
+
+        shutil.rmtree(self.datadir)
+        task.undo()
+
+        self.assertTrue(os.path.isdir(self.datadir))
+        self.assertTrue(os.path.isfile(filename))
+        self.assertFalse(os.path.isfile(tarname))
+
+class CreateZIPTestCase(TransactionTestCase):
+    def setUp(self):
+        self.datadir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.datadir)
+        except:
+            pass
+
+    def test_run(self):
+        filename = os.path.join(self.datadir, "file.txt")
+        open(filename, "a").close()
+
+        zipname = self.datadir + ".zip"
+
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.tasks.CreateZIP",
+            params={
+                "dirname": self.datadir,
+                "zipname": zipname
+            },
+        )
+        task.run()
+
+        self.assertTrue(os.path.isdir(self.datadir))
+        self.assertTrue(os.path.isfile(filename))
+        self.assertTrue(os.path.isfile(zipname))
+
+    def test_undo(self):
+        filename = os.path.join(self.datadir, "file.txt")
+        open(filename, "a").close()
+
+        zipname = self.datadir + ".zip"
+
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.tasks.CreateZIP",
+            params={
+                "dirname": self.datadir,
+                "zipname": zipname
+            },
+        )
+        task.run()
+
+        self.assertTrue(os.path.isdir(self.datadir))
+        self.assertTrue(os.path.isfile(filename))
+        self.assertTrue(os.path.isfile(zipname))
+
+        shutil.rmtree(self.datadir)
+        task.undo()
+
+        self.assertTrue(os.path.isdir(self.datadir))
+        self.assertTrue(os.path.isfile(filename))
+        self.assertFalse(os.path.isfile(zipname))
+
 class ValidateFilesTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.ValidateFiles"
