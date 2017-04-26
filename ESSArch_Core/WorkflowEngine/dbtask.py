@@ -105,7 +105,7 @@ class DBTask(Task):
                             events.append(event)
                         raise
                     else:
-                        self.on_success(retval, self.task_id, None, kwargs)
+                        self.success(retval, self.task_id, None, kwargs)
                         ProcessTask.objects.filter(pk=self.task_id).update(
                             result=retval,
                             status=celery_states.SUCCESS,
@@ -150,28 +150,30 @@ class DBTask(Task):
     def _run(self, *args, **kwargs):
 
         if self.undo_type:
-            if self.eager:
-                try:
-                    res = self.undo(**kwargs)
-                    return res
-                except Exception as e:
-                    einfo = ExceptionInfo()
-                    self.on_failure(e, self.task_id, args, kwargs, einfo)
+            try:
+                res = self.undo(**kwargs)
+            except Exception as e:
+                einfo = ExceptionInfo()
+                self.failure(e, self.task_id, args, kwargs, einfo)
+
+                if self.eager:
                     self.after_return(celery_states.FAILURE, e, self.task_id, args, kwargs, einfo)
-                    raise
+                raise
             else:
-                return self.undo(**kwargs)
+                self.success(res, self.task_id, args, kwargs)
+
+            return res
         else:
-            if self.eager:
-                try:
-                    res = self.run(**kwargs)
-                except Exception as e:
-                    einfo = ExceptionInfo()
-                    self.on_failure(e, self.task_id, args, kwargs, einfo)
-                    self.after_return(celery_states.FAILURE, e, self.task_id, args, kwargs, einfo)
-                    raise
-            else:
+            try:
                 res = self.run(**kwargs)
+            except Exception as e:
+                einfo = ExceptionInfo()
+                self.failure(e, self.task_id, args, kwargs, einfo)
+                if self.eager:
+                    self.after_return(celery_states.FAILURE, e, self.task_id, args, kwargs, einfo)
+                raise
+            else:
+                self.success(res, self.task_id, args, kwargs)
 
             return res
 
@@ -200,7 +202,14 @@ class DBTask(Task):
             linkingObjectIdentifierValue_id=self.ip
         )
 
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
+    def failure(self, exc, task_id, args, kwargs, einfo):
+        '''
+        We use our own version of on_failure so that we can call it at the end
+        of the current task but before the next task has started. This is
+        needed to give objects created here (e.g. events) the correct
+        timestamps
+        '''
+
         time_done = timezone.now()
         tb = einfo.traceback
         exception = "%s: %s" % (einfo.type.__name__, einfo.exception)
@@ -230,7 +239,14 @@ class DBTask(Task):
             except IntegrityError as e:
                 pass
 
-    def on_success(self, retval, task_id, args, kwargs):
+    def success(self, retval, task_id, args, kwargs):
+        '''
+        We use our own version of on_success so that we can call it at the end
+        of the current task but before the next task has started. This is
+        needed to give objects created here (e.g. events) the correct
+        timestamps
+        '''
+
         if self.chunk:
             return
         time_done = timezone.now()

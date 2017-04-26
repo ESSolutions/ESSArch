@@ -265,6 +265,39 @@ class test_generateXML(TransactionTestCase):
         tree = etree.parse(self.fname)
         self.assertEqual("<foo>bar</foo>", etree.tostring(tree.getroot()))
 
+    def test_generate_required_element_with_content(self):
+        specification = {
+            '-name': "foo",
+            '-req': True,
+            "#content": [
+                {"text": "bar"}
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        self.assertEqual("<foo>bar</foo>", etree.tostring(tree.getroot()))
+
+    def test_generate_empty_required_element(self):
+        specification = {
+            '-name': "foo",
+            '-req': True,
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        with self.assertRaises(ValueError):
+            generator.generate()
+
+        self.assertFalse(os.path.exists(self.fname))
+
     def test_generate_empty_element_with_single_attribute(self):
         specification = {
             '-name': "foo",
@@ -323,6 +356,51 @@ class test_generateXML(TransactionTestCase):
             '<foo attr1="bar" attr2="baz"/>',
             etree.tostring(tree.getroot())
         )
+
+    def test_generate_required_attribute_with_content(self):
+        specification = {
+            '-name': "foo",
+            "-attr": [
+                {
+                    "-name": "bar",
+                    "-req": True,
+                    "#content": [
+                        {
+                            "text": "baz"
+                        }
+                    ]
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        self.assertEqual('<foo bar="baz"/>', etree.tostring(tree.getroot()))
+
+    def test_generate_empty_required_attribute(self):
+        specification = {
+            '-name': "foo",
+            "-attr": [
+                {
+                    "-name": "bar",
+                    "-req": True,
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        with self.assertRaises(ValueError):
+            generator.generate()
+
+        self.assertFalse(os.path.exists(self.fname))
 
     def test_generate_element_with_content_and_attribute(self):
         specification = {

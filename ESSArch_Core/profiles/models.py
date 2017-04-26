@@ -147,43 +147,43 @@ class SubmissionAgreement(models.Model):
         editable=False
     )
 
-    sa_name = models.CharField(max_length=255)
-    sa_type = models.CharField(max_length=255)
-    sa_status = models.CharField(max_length=255)
-    sa_label = models.CharField(max_length=255)
-    sa_cm_version = models.CharField(max_length=255)
-    sa_cm_release_date = models.CharField(max_length=255)
-    sa_cm_change_authority = models.CharField(max_length=255)
-    sa_cm_change_description = models.CharField(max_length=255)
-    sa_cm_sections_affected = models.CharField(max_length=255)
-    sa_producer_organization = models.CharField(max_length=255)
-    sa_producer_main_name = models.CharField(max_length=255)
-    sa_producer_main_address = models.CharField(max_length=255)
-    sa_producer_main_phone = models.CharField(max_length=255)
-    sa_producer_main_email = models.CharField(max_length=255)
-    sa_producer_main_additional = models.CharField(max_length=255)
-    sa_producer_individual_name = models.CharField(max_length=255)
-    sa_producer_individual_role = models.CharField(max_length=255)
-    sa_producer_individual_phone = models.CharField(max_length=255)
-    sa_producer_individual_email = models.CharField(max_length=255)
-    sa_producer_individual_additional = models.CharField(max_length=255)
-    sa_archivist_organization = models.CharField(max_length=255)
-    sa_archivist_main_name = models.CharField(max_length=255)
-    sa_archivist_main_address = models.CharField(max_length=255)
-    sa_archivist_main_phone = models.CharField(max_length=255)
-    sa_archivist_main_email = models.CharField(max_length=255)
-    sa_archivist_main_additional = models.CharField(max_length=255)
-    sa_archivist_individual_name = models.CharField(max_length=255)
-    sa_archivist_individual_role = models.CharField(max_length=255)
-    sa_archivist_individual_phone = models.CharField(max_length=255)
-    sa_archivist_individual_email = models.CharField(max_length=255)
-    sa_archivist_individual_additional = models.CharField(max_length=255)
-    sa_designated_community_description = models.CharField(max_length=255)
-    sa_designated_community_individual_name = models.CharField(max_length=255)
-    sa_designated_community_individual_role = models.CharField(max_length=255)
-    sa_designated_community_individual_phone = models.CharField(max_length=255)
-    sa_designated_community_individual_email = models.CharField(max_length=255)
-    sa_designated_community_individual_additional = models.CharField(
+    name = models.CharField(max_length=255)
+    type = models.CharField(max_length=255)
+    status = models.CharField(max_length=255)
+    label = models.CharField(max_length=255)
+    cm_version = models.CharField(max_length=255)
+    cm_release_date = models.CharField(max_length=255)
+    cm_change_authority = models.CharField(max_length=255)
+    cm_change_description = models.CharField(max_length=255)
+    cm_sections_affected = models.CharField(max_length=255)
+    producer_organization = models.CharField(max_length=255)
+    producer_main_name = models.CharField(max_length=255)
+    producer_main_address = models.CharField(max_length=255)
+    producer_main_phone = models.CharField(max_length=255)
+    producer_main_email = models.CharField(max_length=255)
+    producer_main_additional = models.CharField(max_length=255)
+    producer_individual_name = models.CharField(max_length=255)
+    producer_individual_role = models.CharField(max_length=255)
+    producer_individual_phone = models.CharField(max_length=255)
+    producer_individual_email = models.CharField(max_length=255)
+    producer_individual_additional = models.CharField(max_length=255)
+    archivist_organization = models.CharField(max_length=255)
+    archivist_main_name = models.CharField(max_length=255)
+    archivist_main_address = models.CharField(max_length=255)
+    archivist_main_phone = models.CharField(max_length=255)
+    archivist_main_email = models.CharField(max_length=255)
+    archivist_main_additional = models.CharField(max_length=255)
+    archivist_individual_name = models.CharField(max_length=255)
+    archivist_individual_role = models.CharField(max_length=255)
+    archivist_individual_phone = models.CharField(max_length=255)
+    archivist_individual_email = models.CharField(max_length=255)
+    archivist_individual_additional = models.CharField(max_length=255)
+    designated_community_description = models.CharField(max_length=255)
+    designated_community_individual_name = models.CharField(max_length=255)
+    designated_community_individual_role = models.CharField(max_length=255)
+    designated_community_individual_phone = models.CharField(max_length=255)
+    designated_community_individual_email = models.CharField(max_length=255)
+    designated_community_individual_additional = models.CharField(
         max_length=255
     )
 
@@ -202,12 +202,12 @@ class SubmissionAgreement(models.Model):
     include_profile_event = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ["sa_name"]
+        ordering = ["name"]
         verbose_name = 'Submission Agreement'
 
     def __unicode__(self):
         # create a unicode representation of this object
-        return '%s - %s' % (self.sa_name, self.id)
+        return '%s - %s' % (self.name, self.id)
 
     def get_profile_rel(self, profile_type):
         return self.profilesa_set.filter(
@@ -284,7 +284,7 @@ class Profile(models.Model):
 
         if sa:
             data['_SA_ID'] = str(sa.pk)
-            data['_SA_NAME'] = str(sa.sa_name)
+            data['_SA_NAME'] = str(sa.name)
 
         if ip:
             data['_OBJID'] = ip.ObjectIdentifierValue

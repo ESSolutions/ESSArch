@@ -105,6 +105,7 @@ class XMLElement(object):
         self.nsmap = template.get('-nsmap', {})
         self.nsmap.update(nsmap)
         self.namespace = template.get('-namespace')
+        self.required = template.get('-req', False)
         self.attr = [XMLAttribute(a) for a in template.get('-attr', [])]
         self.content = template.get('#content', [])
         self.containsFiles = template.get('-containsFiles', False)
@@ -191,6 +192,9 @@ class XMLElement(object):
                 child_el = child.createLXMLElement(info, full_nsmap, files=files, folderToParse=folderToParse, task=task)
                 if child_el is not None:
                     self.el.append(child_el)
+
+        if self.isEmpty(info) and self.required:
+            raise ValueError("Missing value for required element '%s'" % (self.name))
 
         if self.isEmpty(info) and not self.allowEmpty:
             return None

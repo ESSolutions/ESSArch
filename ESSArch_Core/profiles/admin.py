@@ -40,54 +40,54 @@ class profiles_Inline(admin.TabularInline):
 
 
 class SubmissionAgreementAdmin(admin.ModelAdmin):
-    list_display = ('sa_name', 'sa_type', 'sa_status', 'sa_label')
-    search_fields = ('sa_name', )
+    list_display = ('name', 'type', 'status', 'label')
+    search_fields = ('name', )
     readonly_fields = ('id',)
-    list_filter = ('sa_name', 'sa_type')
+    list_filter = ('name', 'type')
     inlines = (profiles_Inline,)
     fieldsets = (
         (None, {
             'classes': ('wide'),
-            'fields': ('id', 'sa_name', 'sa_type', 'sa_status', 'sa_label',)
+            'fields': ('id', 'name', 'type', 'status', 'label',)
         }),
         ('Change management', {
             'classes': ('collapse', 'wide'),
             'fields': (
-                'sa_cm_version', 'sa_cm_release_date', 'sa_cm_change_authority',
-                'sa_cm_change_description', 'sa_cm_sections_affected'
+                'cm_version', 'cm_release_date', 'cm_change_authority',
+                'cm_change_description', 'cm_sections_affected'
             )
         }),
         ('Informaton about Producer organization', {
             'classes': ('collapse', 'wide'),
             'fields': (
-                'sa_producer_organization', 'sa_producer_main_name',
-                'sa_producer_main_address', 'sa_producer_main_phone',
-                'sa_producer_main_email', 'sa_producer_main_additional',
-                'sa_producer_individual_name', 'sa_producer_individual_role',
-                'sa_producer_individual_phone', 'sa_producer_individual_email',
-                'sa_producer_individual_additional',
+                'producer_organization', 'producer_main_name',
+                'producer_main_address', 'producer_main_phone',
+                'producer_main_email', 'producer_main_additional',
+                'producer_individual_name', 'producer_individual_role',
+                'producer_individual_phone', 'producer_individual_email',
+                'producer_individual_additional',
             )
         }),
         ('Information about Archival organization', {
             'classes': ('collapse', 'wide'),
             'fields': (
-                'sa_archivist_organization', 'sa_archivist_main_name',
-                'sa_archivist_main_address', 'sa_archivist_main_phone',
-                'sa_archivist_main_email', 'sa_archivist_main_additional',
-                'sa_archivist_individual_name', 'sa_archivist_individual_role',
-                'sa_archivist_individual_phone', 'sa_archivist_individual_email',
-                'sa_archivist_individual_additional',
+                'archivist_organization', 'archivist_main_name',
+                'archivist_main_address', 'archivist_main_phone',
+                'archivist_main_email', 'archivist_main_additional',
+                'archivist_individual_name', 'archivist_individual_role',
+                'archivist_individual_phone', 'archivist_individual_email',
+                'archivist_individual_additional',
             )
         }),
         ('Information about designated community', {
             'classes': ('collapse', 'wide'),
             'fields': (
-                'sa_designated_community_description',
-                'sa_designated_community_individual_name',
-                'sa_designated_community_individual_role',
-                'sa_designated_community_individual_phone',
-                'sa_designated_community_individual_email',
-                'sa_designated_community_individual_additional',
+                'designated_community_description',
+                'designated_community_individual_name',
+                'designated_community_individual_role',
+                'designated_community_individual_phone',
+                'designated_community_individual_email',
+                'designated_community_individual_additional',
             )
         }),
     )
