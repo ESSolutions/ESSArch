@@ -32,6 +32,10 @@ class Migration(migrations.Migration):
             model_name='eventtype',
             name='id',
         ),
+
+        # This operation will fail on SQL Server and requires
+        # manual removal of the incoming foreign key.
+        # See  https://github.com/michiya/django-pyodbc-azure/issues/92
         migrations.AlterField(
             model_name='eventtype',
             name='eventType',
