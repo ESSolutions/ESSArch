@@ -201,7 +201,7 @@ class SubmissionAgreement(models.Model):
     include_profile_preservation_metadata = models.BooleanField(default=False)
     include_profile_event = models.BooleanField(default=False)
 
-    template = jsonfield.JSONField(default={})
+    template = jsonfield.JSONField(default=[])
 
     class Meta:
         ordering = ["name"]
