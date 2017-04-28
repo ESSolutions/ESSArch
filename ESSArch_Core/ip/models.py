@@ -180,6 +180,9 @@ class InformationPackage(models.Model):
         ptype = new_profile.profile_type
         try:
             pip = ProfileIP.objects.get(ip=self, profile__profile_type=ptype)
+            if pip.LockedBy is not None:
+                raise ValueError('Cannot change locked profile')
+
             pip.profile = new_profile
             pip.save()
         except ProfileIP.DoesNotExist:
