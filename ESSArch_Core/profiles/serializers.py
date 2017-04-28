@@ -137,6 +137,8 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
                 'include_profile_aip', 'include_profile_dip',
                 'include_profile_workflow',
                 'include_profile_preservation_metadata',
+
+                'template',
         )
 
 
