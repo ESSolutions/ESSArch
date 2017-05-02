@@ -329,7 +329,7 @@ class IOQueue(models.Model):
     write_size = models.BigIntegerField(null=True, blank=True)
     result = PickledObjectField(blank=True)
     status = models.IntegerField(blank=True, default=0, choices=req_status_CHOICES)
-    task_id = models.ForeignKey(ProcessTask, on_delete=models.PROTECT, null=True, related_name='io_queues')
+    task = models.ForeignKey(ProcessTask, on_delete=models.PROTECT, null=True, related_name='io_queues')
     posted = models.DateTimeField(auto_now_add=True)
     ip = models.ForeignKey(InformationPackage, null=True)
     storage_method_target = models.ForeignKey('StorageMethodTargetRelation')
@@ -337,7 +337,7 @@ class IOQueue(models.Model):
     storage_object = models.ForeignKey('StorageObject', blank=True, null=True)
     access_queue = models.ForeignKey('AccessQueue', blank=True, null=True)
     remote_status = models.IntegerField(blank=True, default=0, choices=remote_status_CHOICES)
-    transfer_task_id = models.ForeignKey(ProcessTask, on_delete=models.PROTECT, null=True, related_name='io_queues_transfer')
+    transfer_task = models.ForeignKey(ProcessTask, on_delete=models.PROTECT, null=True, related_name='io_queues_transfer')
 
     class Meta:
         get_latest_by = 'posted'
