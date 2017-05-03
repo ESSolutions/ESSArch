@@ -493,3 +493,18 @@ class EventIP(models.Model):
             field.name: field.value_to_string(self)
             for field in EventIP._meta.fields
         }
+
+
+class Workarea(models.Model):
+    INGEST = 0
+    ACCESS = 1
+    TYPE_CHOICES = (
+        (INGEST, 'Ingest'),
+        (ACCESS, 'Access'),
+    )
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    ip = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, related_name='workareas')
+    read_only = models.BooleanField(default=True)
+    type = models.IntegerField(choices=TYPE_CHOICES, default=0)
