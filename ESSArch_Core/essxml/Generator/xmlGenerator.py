@@ -112,6 +112,7 @@ class XMLElement(object):
         self.external = template.get('-external')
         self.fileFilters = template.get('-filters', {})
         self.allowEmpty = template.get('-allowEmpty', False)
+        self.hideEmptyContent = template.get('-hideEmptyContent', False)
         self.skipIfNoChildren = template.get('-skipIfNoChildren', False)
         self.children = []
         self.el = None
@@ -123,10 +124,9 @@ class XMLElement(object):
     def parse(self, info):
         return parseContent(self.content, info)
 
-    def isEmpty(self, info={}):
-        """
-        Simple helper function to check if the tag sould have any contents
-        """
+    def contentIsEmpty(self, info={}):
+        if self.containsFiles:
+            return False
 
         if self.el is None:
             return True
@@ -137,10 +137,24 @@ class XMLElement(object):
         if len(self.el):
             return False
 
-        any_attribute_with_value = any(value for value in self.el.attrib.values())
         any_children_not_empty = any(not child.isEmpty(info) or (child.isEmpty(info) and child.allowEmpty) for child in self.children)
 
-        if parseContent(self.content, info) or any_children_not_empty or self.containsFiles or any_attribute_with_value:
+        if parseContent(self.content, info) or any_children_not_empty:
+            return False
+
+        return True
+
+    def isEmpty(self, info={}):
+        """
+        Simple helper function to check if the tag sould have any contents
+        """
+
+        if not self.contentIsEmpty(info):
+            return False
+
+        any_attribute_with_value = any(value for value in self.el.attrib.values())
+
+        if any_attribute_with_value:
             return False
 
         return True
@@ -197,6 +211,9 @@ class XMLElement(object):
             raise ValueError("Missing value for required element '%s'" % (self.name))
 
         if self.isEmpty(info) and not self.allowEmpty:
+            return None
+
+        if self.contentIsEmpty(info) and self.hideEmptyContent:
             return None
 
         return self.el
