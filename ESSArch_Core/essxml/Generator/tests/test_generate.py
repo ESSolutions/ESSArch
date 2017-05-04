@@ -1372,6 +1372,35 @@ class test_generateXML(TransactionTestCase):
         self.assertIsNotNone(appended)
         self.assertEqual(appended.get('bar'), 'append text')
 
+    def test_insert_empty_element(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//appended'))
+
+        append_specification = {
+            '-name': 'appended',
+        }
+
+        with self.assertRaisesRegexp(TypeError, "Can't insert"):
+            generator.insert(
+                self.fname, 'foo', append_specification, {},
+            )
+
 
 class ExternalTestCase(TransactionTestCase):
     def setUp(self):

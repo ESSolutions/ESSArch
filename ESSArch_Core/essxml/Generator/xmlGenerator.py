@@ -448,7 +448,7 @@ class XMLGenerator(object):
                 elementToAppendTo.append(el)
         except TypeError:
             if el is None:
-                raise "Can't insert null element into %s" % appendedRootEl
+                raise TypeError("Can't insert null element into %s" % appendedRootEl)
 
 
         tree.write(
