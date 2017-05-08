@@ -411,3 +411,18 @@ def convert_file(path, new_format):
         raise ValueError('%s, return code: %s' % (err, p.returncode))
 
     return out
+
+def in_directory(path, directory):
+    '''
+    Checks if path is in directory
+
+    See http://stackoverflow.com/questions/3812849/
+    '''
+
+    if path.rstrip('/ ') == directory.rstrip('/ '):
+        return True
+
+    directory = os.path.join(os.path.realpath(directory), '')
+    path = os.path.realpath(path)
+
+    return os.path.commonprefix([path, directory]) == directory
