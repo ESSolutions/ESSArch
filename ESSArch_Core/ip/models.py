@@ -508,3 +508,10 @@ class Workarea(models.Model):
     ip = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, related_name='workareas')
     read_only = models.BooleanField(default=True)
     type = models.IntegerField(choices=TYPE_CHOICES, default=0)
+
+
+class Order(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    label = models.CharField(max_length=255)
+    responsible = models.ForeignKey('auth.User', on_delete=models.PROTECT)
+    information_packages = models.ManyToManyField('ip.InformationPackage', related_name='orders')
