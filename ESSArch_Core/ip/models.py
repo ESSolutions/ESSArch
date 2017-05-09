@@ -514,4 +514,4 @@ class Order(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     label = models.CharField(max_length=255)
     responsible = models.ForeignKey('auth.User', on_delete=models.PROTECT)
-    information_packages = models.ManyToManyField('ip.InformationPackage', related_name='orders')
+    information_packages = models.ManyToManyField('ip.InformationPackage', related_name='orders', blank=True)
