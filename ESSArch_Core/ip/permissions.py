@@ -25,6 +25,12 @@
 from rest_framework import permissions
 
 
+class IsOrderResponsibleOrAdmin(permissions.IsAuthenticated):
+    message = "You are not responsible for this order"
+
+    def has_object_permission(self, request, view, obj):
+        return request.user.is_superuser or obj.responsible == request.user
+
 class IsResponsibleOrReadOnly(permissions.IsAuthenticated):
     message = "You are not responsible for this IP"
 
