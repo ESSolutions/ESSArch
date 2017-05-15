@@ -179,6 +179,7 @@ class ProcessStep(Process):
         def create_sub_task(t):
             created = self._create_task(t.name)
             t.params['_options'] = {
+                'args': t.args,
                 'responsible': t.responsible_id, 'ip': t.information_package_id,
                 'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
                 'result_params': t.result_params,
@@ -217,6 +218,7 @@ class ProcessStep(Process):
     def chunk(self, size=None, direct=True):
         def create_options(task):
             return {
+                'args': task.args,
                 'responsible': task.responsible_id, 'ip': task.information_package_id,
                 'step_pos': task.processstep_pos, 'hidden': task.hidden,
                 'task_id': task.pk
@@ -265,6 +267,7 @@ class ProcessStep(Process):
         def create_sub_task(t):
             t = t.create_undo_obj()
             t.params['_options'] = {
+                'args': t.args,
                 'responsible': t.responsible_id, 'ip': t.information_package_id,
                 'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
                 'undo': True, 'result_params': t.result_params,
@@ -325,6 +328,7 @@ class ProcessStep(Process):
         def create_sub_task(t):
             t = t.create_retry_obj()
             t.params['_options'] = {
+                'args': t.args,
                 'responsible': t.responsible_id, 'ip': t.information_package_id,
                 'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
                 'result_params': t.result_params,
@@ -381,6 +385,7 @@ class ProcessStep(Process):
         def create_sub_task(t):
             created = self._create_task(t.name)
             t.params['_options'] = {
+                'args': t.args,
                 'responsible': t.responsible_id, 'ip': t.information_package_id,
                 'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
                 'result_params': t.result_params
@@ -574,6 +579,7 @@ class ProcessTask(Process):
     responsible = models.ForeignKey(
         'auth.User', on_delete=models.SET_NULL, related_name='tasks', null=True
     )
+    args = PickledObjectField(null=True, default=[])
     params = PickledObjectField(null=True, default={})
     result_params = PickledObjectField(null=True)
     time_started = models.DateTimeField(_('started at'), null=True, blank=True)
@@ -621,8 +627,9 @@ class ProcessTask(Process):
         t = self._create_task(self.name)
 
         self.params['_options'] = {
-            'responsible': self.responsible_id, 'ip': self.information_package_id,
-            'step': self.processstep_id, 'step_pos': self.processstep_pos, 'hidden': self.hidden,
+            'args': self.args, 'responsible': self.responsible_id, 'ip':
+            self.information_package_id, 'step': self.processstep_id,
+            'step_pos': self.processstep_pos, 'hidden': self.hidden,
         }
 
         if self.eager:
@@ -642,12 +649,13 @@ class ProcessTask(Process):
 
         undoobj = self.create_undo_obj()
         self.params['_options'] = {
-            'responsible': self.responsible_id, 'ip': self.information_package_id,
-            'step': self.processstep_id, 'step_pos': self.processstep_pos, 'hidden': self.hidden,
-            'undo': True,
+            'args': self.args, 'responsible': self.responsible_id, 'ip':
+            self.information_package_id, 'step': self.processstep_id,
+            'step_pos': self.processstep_pos, 'hidden': self.hidden, 'undo':
+            True,
         }
 
-        res = t.apply_async(args=(True,), kwargs=undoobj.params, task_id=str(undoobj.pk), queue=t.queue)
+        res = t.apply_async(kwargs=undoobj.params, task_id=str(undoobj.pk), queue=t.queue)
         return res
 
     def retry(self):
@@ -659,8 +667,9 @@ class ProcessTask(Process):
 
         retryobj = self.create_retry_obj()
         self.params['_options'] = {
-            'responsible': self.responsible_id, 'ip': self.information_package_id,
-            'step': self.processstep_id, 'step_pos': self.processstep_pos, 'hidden': self.hidden,
+            'args': self.args, 'responsible': self.responsible_id, 'ip':
+            self.information_package_id, 'step': self.processstep_id,
+            'step_pos': self.processstep_pos, 'hidden': self.hidden,
         }
 
         res = t.apply_async(kwargs=retryobj.params, task_id=str(retryobj.pk), queue=t.queue)
@@ -674,7 +683,7 @@ class ProcessTask(Process):
 
 
         undo_obj = ProcessTask.objects.create(
-            processstep=self.processstep, name=self.name,
+            processstep=self.processstep, name=self.name, args=self.args,
             params=self.params, result_params=self.result_params,
             processstep_pos=self.processstep_pos,
             undo_type=True, status="PREPARED",
@@ -693,8 +702,8 @@ class ProcessTask(Process):
         """
 
         retry_obj = ProcessTask.objects.create(
-            processstep=self.processstep, name=self.name, params=self.params,
-            result_params=self.result_params, processstep_pos=self.processstep_pos,
+            processstep=self.processstep, name=self.name, args=self.args,
+            params=self.params, result_params=self.result_params, processstep_pos=self.processstep_pos,
             status="PREPARED", information_package=self.information_package,
             retried_task=self
         )

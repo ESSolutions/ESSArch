@@ -710,6 +710,25 @@ class test_running_steps(TransactionTestCase):
 
         self.assertEqual(len(main_step.run().get()), 0)
 
+    def test_task_with_args_in_step(self):
+        x = 5
+        y = 10
+
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
+            args=[x, y],
+            processstep=step
+        )
+
+        step.run().get()
+        task.refresh_from_db()
+
+        self.assertEqual(task.result, x+y)
+
     def test_serialized_step(self):
         t1_val = 123
         t2_val = 456
@@ -831,6 +850,29 @@ class test_running_steps(TransactionTestCase):
             self.assertEqual(t.status, celery_states.SUCCESS)
             self.assertEqual(t.progress, 100)
             self.assertIsNotNone(t.time_started)
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+    def test_task_with_args_in_chunked_step(self):
+        step = ProcessStep.objects.create(
+            name="Test",
+        )
+
+        tasks = []
+        n = 10
+        for i in range(n):
+            t = ProcessTask(
+                name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
+                args=[i, i+1],
+                processstep=step,
+            )
+            tasks.append(t)
+
+        ProcessTask.objects.bulk_create(tasks)
+        step.chunk()
+
+        for i, t in enumerate(tasks):
+            t.refresh_from_db()
+            self.assertEqual(t.result, i + i+1)
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
     def test_chunked_empty_step(self):

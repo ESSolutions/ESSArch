@@ -53,6 +53,7 @@ from ESSArch_Core.util import (
 
 
 class DBTask(Task):
+    args = []
     event_type = None
     queue = 'celery'
     hidden = False
@@ -67,6 +68,7 @@ class DBTask(Task):
         options = kwargs.pop('_options', {})
         self.chunk = options.get('chunk', False)
 
+        self.args = options.get('args', [])
         self.responsible = options.get('responsible')
         self.ip = options.get('ip')
         self.step = options.get('step')
@@ -87,6 +89,7 @@ class DBTask(Task):
                     a_options = a.pop('_options')
                     self.eager = True
                     self.task_id = a_options['task_id']
+                    self.args = a_options['args']
 
                     self.progress = 0
                     hidden = a_options.get('hidden', False) or self.hidden
@@ -151,7 +154,7 @@ class DBTask(Task):
 
         if self.undo_type:
             try:
-                res = self.undo(**kwargs)
+                res = self.undo(*self.args, **kwargs)
             except Exception as e:
                 einfo = ExceptionInfo()
                 self.failure(e, self.task_id, args, kwargs, einfo)
@@ -165,7 +168,7 @@ class DBTask(Task):
             return res
         else:
             try:
-                res = self.run(**kwargs)
+                res = self.run(*self.args, **kwargs)
             except Exception as e:
                 einfo = ExceptionInfo()
                 self.failure(e, self.task_id, args, kwargs, einfo)

@@ -76,6 +76,29 @@ class test_running_tasks(TestCase):
 
         task.full_clean()
 
+    def test_run_with_args(self):
+        x = 5
+        y = 10
+
+        res = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
+            args=[x, y],
+            information_package=InformationPackage.objects.create()
+        ).run().get()
+
+        self.assertEqual(res, x+y)
+
+    def test_run_with_too_many_args(self):
+        x = 5
+        y = 10
+
+        with self.assertRaisesRegexp(TypeError, 'takes exactly 3 arguments'):
+            ProcessTask.objects.create(
+                name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
+                args=[x, y, 15],
+                information_package=InformationPackage.objects.create()
+            ).run()
+
     def test_run_with_wrong_params(self):
         """
         Runs a task with nonexistent parameters.
@@ -268,6 +291,21 @@ class test_undoing_tasks(TestCase):
         self.assertEqual(task.status, celery_states.FAILURE)
         self.assertTrue(undo_task.undo_type)
 
+    def test_undo_with_args(self):
+        x = 2
+        y = 1
+
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
+            args=[x, y],
+        )
+
+        task.run()
+        res = task.undo()
+        task.refresh_from_db()
+
+        self.assertEqual(res.get(), x-y)
+
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class test_retrying_tasks(TestCase):
@@ -374,3 +412,18 @@ class test_retrying_tasks(TestCase):
         self.assertIsNone(retry_task.retried)
         self.assertEqual(retry_task.status, celery_states.SUCCESS)
         self.assertEqual(task.status, celery_states.FAILURE)
+
+    def test_retry_with_args(self):
+        x = 2
+        y = 1
+
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
+            args=[x, y]
+        )
+
+        task.run()
+        task.undo()
+        res = task.retry().get()
+
+        self.assertEqual(res, x+y)
