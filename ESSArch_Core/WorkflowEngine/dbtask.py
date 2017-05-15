@@ -95,7 +95,7 @@ class DBTask(Task):
                     hidden = a_options.get('hidden', False) or self.hidden
                     time_started=timezone.now()
                     try:
-                        retval = self._run(**a)
+                        retval = self._run(*self.args, **a)
                     except:
                         ProcessTask.objects.filter(pk=self.task_id).update(
                             hidden=hidden,
@@ -151,10 +151,9 @@ class DBTask(Task):
         return self._run(*args, **kwargs)
 
     def _run(self, *args, **kwargs):
-
         if self.undo_type:
             try:
-                res = self.undo(*self.args, **kwargs)
+                res = self.undo(*args, **kwargs)
             except Exception as e:
                 einfo = ExceptionInfo()
                 self.failure(e, self.task_id, args, kwargs, einfo)
@@ -168,7 +167,7 @@ class DBTask(Task):
             return res
         else:
             try:
-                res = self.run(*self.args, **kwargs)
+                res = self.run(*args, **kwargs)
             except Exception as e:
                 einfo = ExceptionInfo()
                 self.failure(e, self.task_id, args, kwargs, einfo)

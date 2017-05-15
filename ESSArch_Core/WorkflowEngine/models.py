@@ -184,7 +184,7 @@ class ProcessStep(Process):
                 'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
                 'result_params': t.result_params,
             }
-            return created.si(**t.params).set(task_id=str(t.pk), queue=created.queue)
+            return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
 
         func = group if self.parallel else chain
 
@@ -273,7 +273,7 @@ class ProcessStep(Process):
                 'undo': True, 'result_params': t.result_params,
             }
             created = self._create_task(t.name)
-            return created.si(True, **t.params).set(task_id=str(t.pk), queue=created.queue)
+            return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
 
         child_steps = self.child_steps.all()
         tasks = self.tasks(manager='by_step_pos').all()
@@ -334,7 +334,7 @@ class ProcessStep(Process):
                 'result_params': t.result_params,
             }
             created = self._create_task(t.name)
-            return created.si(False, **t.params).set(task_id=str(t.pk), queue=created.queue)
+            return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
 
         child_steps = self.child_steps.all()
 
@@ -390,7 +390,7 @@ class ProcessStep(Process):
                 'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
                 'result_params': t.result_params
             }
-            return created.si(**t.params).set(task_id=str(t.pk), queue=created.queue)
+            return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
 
         func = group if self.parallel else chain
 
@@ -634,9 +634,9 @@ class ProcessTask(Process):
 
         if self.eager:
             self.params['_options']['result_params'] = self.result_params
-            res = t.apply(kwargs=self.params, task_id=str(self.pk))
+            res = t.apply(args=self.args, kwargs=self.params, task_id=str(self.pk))
         else:
-            res = t.apply_async(kwargs=self.params, task_id=str(self.pk), queue=t.queue)
+            res = t.apply_async(args=self.args, kwargs=self.params, task_id=str(self.pk), queue=t.queue)
 
         return res
 
@@ -655,7 +655,7 @@ class ProcessTask(Process):
             True,
         }
 
-        res = t.apply_async(kwargs=undoobj.params, task_id=str(undoobj.pk), queue=t.queue)
+        res = t.apply_async(args=self.args, kwargs=undoobj.params, task_id=str(undoobj.pk), queue=t.queue)
         return res
 
     def retry(self):
@@ -672,7 +672,7 @@ class ProcessTask(Process):
             'step_pos': self.processstep_pos, 'hidden': self.hidden,
         }
 
-        res = t.apply_async(kwargs=retryobj.params, task_id=str(retryobj.pk), queue=t.queue)
+        res = t.apply_async(args=self.args, kwargs=retryobj.params, task_id=str(retryobj.pk), queue=t.queue)
         return res
 
     def create_undo_obj(self):
