@@ -248,6 +248,102 @@ class test_generateXML(TransactionTestCase):
         tree = etree.parse(self.fname)
         self.assertEqual(etree.tostring(tree.getroot()), "<foo/>")
 
+    def test_generate_empty_element_with_hideEmptyContent(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': "bar",
+                    "#content": [{"text": "baz"}]
+                },
+                {
+                    '-name': "foo",
+                    '-hideEmptyContent': True,
+                    "-attr": [
+                        {
+                            "-name": "bar",
+                            "#content": [{"text": "baz"}]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}, {}
+        )
+
+        generator.generate()
+
+        self.assertTrue(os.path.exists(self.fname))
+
+        tree = etree.parse(self.fname)
+        self.assertEqual(etree.tostring(tree.getroot()), '<root>\n  <bar>baz</bar>\n</root>')
+
+    def test_generate_empty_element_without_hideEmptyContent(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': "bar",
+                    "#content": [{"text": "baz"}]
+                },
+                {
+                    '-name': "foo",
+                    "-attr": [
+                        {
+                            "-name": "bar",
+                            "#content": [{"text": "baz"}]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}, {}
+        )
+
+        generator.generate()
+
+        self.assertTrue(os.path.exists(self.fname))
+
+        tree = etree.parse(self.fname)
+        self.assertEqual(etree.tostring(tree.getroot()), '<root>\n  <bar>baz</bar>\n  <foo bar="baz"/>\n</root>')
+
+    def test_generate_element_with_content_and_hideEmptyContent(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': "bar",
+                    "#content": [{"text": "baz"}]
+                },
+                {
+                    '-name': "foo",
+                    '-hideEmptyContent': True,
+                    "#content": [{"text": "baz"}],
+                    "-attr": [
+                        {
+                            "-name": "bar",
+                            "#content": [{"text": "baz"}]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}, {}
+        )
+
+        generator.generate()
+
+        self.assertTrue(os.path.exists(self.fname))
+
+        tree = etree.parse(self.fname)
+        self.assertEqual(etree.tostring(tree.getroot()), '<root>\n  <bar>baz</bar>\n  <foo bar="baz">baz</foo>\n</root>')
+
     def test_generate_element_with_content(self):
         specification = {
             '-name': "foo",
@@ -1275,6 +1371,35 @@ class test_generateXML(TransactionTestCase):
 
         self.assertIsNotNone(appended)
         self.assertEqual(appended.get('bar'), 'append text')
+
+    def test_insert_empty_element(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//appended'))
+
+        append_specification = {
+            '-name': 'appended',
+        }
+
+        with self.assertRaisesRegexp(TypeError, "Can't insert"):
+            generator.insert(
+                self.fname, 'foo', append_specification, {},
+            )
 
 
 class ExternalTestCase(TransactionTestCase):
