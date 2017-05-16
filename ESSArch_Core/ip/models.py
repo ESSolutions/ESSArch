@@ -162,6 +162,9 @@ class InformationPackage(models.Model):
     information_class = models.IntegerField(null=True, choices=INFORMATION_CLASS_CHOICES)
     generation = models.IntegerField(null=True)
 
+    cached = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
+
     last_changed_local = models.DateTimeField(null=True)
     last_changed_external = models.DateTimeField(null=True)
 
