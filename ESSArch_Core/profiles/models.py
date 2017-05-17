@@ -238,6 +238,8 @@ class SubmissionAgreement(models.Model):
             The copy
         """
 
+        old = self.pk
+
         copy = self
         copy.id = None
         copy.name = new_name
@@ -246,6 +248,9 @@ class SubmissionAgreement(models.Model):
             setattr(copy, k, v)
 
         copy.save()
+
+        for profile_sa in ProfileSA.objects.filter(submission_agreement_id=old).iterator():
+            ProfileSA.objects.create(submission_agreement=copy, profile=profile_sa.profile)
 
         if not ip.SubmissionAgreementLocked:
             ip.SubmissionAgreement = copy
