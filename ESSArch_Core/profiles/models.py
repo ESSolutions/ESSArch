@@ -44,6 +44,8 @@
     Email - essarch@essolutions.se
 """
 
+from copy import copy
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -238,25 +240,23 @@ class SubmissionAgreement(models.Model):
             The copy
         """
 
-        old = self.pk
-
-        copy = self
-        copy.id = None
-        copy.name = new_name
+        clone = copy(self)
+        clone.pk = None
+        clone.name = new_name
 
         for k, v in new_data.iteritems():
-            setattr(copy, k, v)
+            setattr(clone, k, v)
 
-        copy.save()
+        clone.save()
 
-        for profile_sa in ProfileSA.objects.filter(submission_agreement_id=old).iterator():
-            ProfileSA.objects.create(submission_agreement=copy, profile=profile_sa.profile)
+        for profile_sa in ProfileSA.objects.filter(submission_agreement_id=self).iterator():
+            ProfileSA.objects.create(submission_agreement=clone, profile=profile_sa.profile)
 
         if not ip.SubmissionAgreementLocked:
-            ip.SubmissionAgreement = copy
+            ip.SubmissionAgreement = clone
             ip.save(update_fields=['SubmissionAgreement'])
 
-        return copy
+        return clone
 
 
 profile_types = [
