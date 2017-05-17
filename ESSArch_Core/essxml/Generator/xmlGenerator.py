@@ -137,9 +137,7 @@ class XMLElement(object):
         if len(self.el):
             return False
 
-        any_children_not_empty = any(not child.isEmpty(info) or (child.isEmpty(info) and child.allowEmpty) for child in self.children)
-
-        if parseContent(self.content, info) or any_children_not_empty:
+        if parseContent(self.content, info):
             return False
 
         return True
