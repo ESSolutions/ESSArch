@@ -423,6 +423,6 @@ def in_directory(path, directory):
         return True
 
     directory = os.path.join(os.path.realpath(directory), '')
-    path = os.path.realpath(path)
+    path = os.path.join(os.path.realpath(path), '')
 
     return os.path.commonprefix([path, directory]) == directory
