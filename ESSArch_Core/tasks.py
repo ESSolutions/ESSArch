@@ -512,15 +512,16 @@ class CreateTAR(DBTask):
         tarname: The name of the tar file
     """
 
-    def run(self, dirname=None, tarname=None):
+    def run(self, dirname=None, tarname=None, compress=False):
+        compression = ':gz' if compress else ''
         base_dir = os.path.basename(os.path.normpath(dirname))
-        with tarfile.TarFile(tarname, 'w') as new_tar:
+        with tarfile.open(tarname, 'w%s' % compression) as new_tar:
             new_tar.add(dirname, base_dir)
 
         self.set_progress(100, total=100)
         return tarname
 
-    def undo(self, dirname=None, tarname=None):
+    def undo(self, dirname=None, tarname=None, compress=False):
         parent_dir = os.path.dirname((os.path.normpath(dirname)))
 
         with tarfile.open(tarname, 'r') as tar:
@@ -528,7 +529,7 @@ class CreateTAR(DBTask):
 
         os.remove(tarname)
 
-    def event_outcome_success(self, dirname=None, tarname=None):
+    def event_outcome_success(self, dirname=None, tarname=None, compress=False):
         return "Created %s from %s" % (tarname, dirname)
 
 
@@ -541,8 +542,9 @@ class CreateZIP(DBTask):
         zipname: The name of the zip file
     """
 
-    def run(self, dirname=None, zipname=None):
-        with zipfile.ZipFile(zipname, 'w') as new_zip:
+    def run(self, dirname=None, zipname=None, compress=False):
+        compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
+        with zipfile.ZipFile(zipname, 'w', compression) as new_zip:
             for root, dirs, files in os.walk(dirname):
                 for d in dirs:
                     filepath = os.path.join(root, d)
@@ -556,13 +558,13 @@ class CreateZIP(DBTask):
         self.set_progress(100, total=100)
         return zipname
 
-    def undo(self, dirname=None, zipname=None):
+    def undo(self, dirname=None, zipname=None, compress=False):
         with zipfile.ZipFile(zipname, 'r') as z:
             z.extractall(dirname)
 
         os.remove(zipname)
 
-    def event_outcome_success(self, dirname=None, zipname=None):
+    def event_outcome_success(self, dirname=None, zipname=None, compress=False):
         return "Created %s from %s" % (zipname, dirname)
 
 
