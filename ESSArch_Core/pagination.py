@@ -46,3 +46,12 @@ class LinkHeaderPagination(pagination.PageNumberPagination):
         headers = {'Link': link, 'Count': self.page.paginator.count} if link else {}
 
         return Response(data, headers=headers)
+
+class NoPagination(pagination.BasePagination):
+    display_page_controls = False
+
+    def paginate_queryset(self, queryset, request, view=None):
+        return None
+
+    def get_paginated_response(self, data):
+        return Response(data)
