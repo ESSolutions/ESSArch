@@ -36,7 +36,6 @@ from requests_toolbelt import MultipartEncoder
 
 from celery.result import allow_join_result
 
-from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.conf import settings
@@ -848,12 +847,8 @@ class CopyChunk(DBTask):
                 'Content-Range': HTTP_CONTENT_RANGE
             }
 
-            response = requests.post(dst, data=data, headers=headers)
-
-            try:
-                response.raise_for_status()
-            except requests.exceptions.HTTPError as e:
-                raise ValueError(e.args[0])
+            response = requests_session.post(dst, data=data, headers=headers)
+            response.raise_for_status()
 
     def run(self, src=None, dst=None, requests_session=None, offset=0, block_size=65536, file_size=0):
         """
@@ -869,12 +864,9 @@ class CopyChunk(DBTask):
             None
         """
 
-        val = URLValidator(dst)
-
-        try:
-            val(dst)
+        if requests_session is not None:
             self.remote(src, dst, requests_session, block_size, offset, file_size)
-        except ValidationError:
+        else:
             self.local(src, dst, block_size, offset)
 
     def undo(self, src=None, dst=None, requests_session=None, offset=0, block_size=65536, file_size=0):
@@ -974,13 +966,11 @@ class CopyFile(DBTask):
         if os.path.isdir(dst):
             dst = os.path.join(dst, os.path.basename(src))
 
-        val = URLValidator(dst)
         step = ProcessTask.objects.values_list('processstep', flat=True).get(pk=self.request.id)
 
-        try:
-            val(dst)
+        if requests_session is not None:
             self.remote(src, dst, requests_session, block_size, step)
-        except ValidationError:
+        else:
             self.local(src, dst, block_size, step)
 
     def undo(self, src=None, dst=None, requests_session=None, block_size=65536):
