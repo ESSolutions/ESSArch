@@ -32,6 +32,7 @@ import string
 import tempfile
 import traceback
 import unicodedata
+import uuid
 
 import requests
 
@@ -2431,9 +2432,9 @@ class CopyFileTestCase(TransactionTestCase):
         ).run().get()
 
         calls = [
-            mock.call(src, dst, 0, file_size=3, block_size=1, requests_session=mock.ANY),
-            mock.call(src, dst, 1, file_size=3, block_size=1, requests_session=mock.ANY),
-            mock.call(src, dst, 2, file_size=3, block_size=1, requests_session=mock.ANY),
+            mock.call(src, dst, 0, mock.ANY, file_size=3, block_size=1, requests_session=mock.ANY),
+            mock.call(src, dst, 1, mock.ANY, file_size=3, block_size=1, requests_session=mock.ANY),
+            mock.call(src, dst, 2, mock.ANY, file_size=3, block_size=1, requests_session=mock.ANY),
         ]
         mock_copy_chunk.assert_has_calls(calls)
 
@@ -2462,19 +2463,21 @@ class CopyChunkTestCase(TransactionTestCase):
         with open(src, 'w') as f:
             f.write('foo')
 
+        upload_id = uuid.uuid4().hex
+
         ProcessTask.objects.create(
             name=self.taskname,
-            args=[src, dst],
+            args=[src, dst, 1, upload_id],
             params={
                 'requests_session': session,
                 'block_size': 1,
-                'offset': 1,
                 'file_size': 3,
             }
         ).run().get()
 
         mock_post.assert_called_once_with(
             dst, files={'file': ('src.txt', 'o')},
+            data={'upload_id': upload_id},
             headers={'Content-Range': 'bytes 1-1/3'},
         )
 
@@ -2494,20 +2497,22 @@ class CopyChunkTestCase(TransactionTestCase):
         with open(src, 'w') as f:
             f.write('foo')
 
+        upload_id = uuid.uuid4().hex
+
         with self.assertRaises(requests.exceptions.HTTPError):
             ProcessTask.objects.create(
                 name=self.taskname,
-                args=[src, dst],
+                args=[src, dst, 1, upload_id],
                 params={
                     'requests_session': session,
                     'block_size': 1,
-                    'offset': 1,
                     'file_size': 3,
                 }
             ).run().get()
 
         mock_post.assert_called_once_with(
             dst, files={'file': ('src.txt', 'o')},
+            data={'upload_id': upload_id},
             headers={'Content-Range': 'bytes 1-1/3'},
         )
 

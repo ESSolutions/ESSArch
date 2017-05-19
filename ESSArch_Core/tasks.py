@@ -834,7 +834,7 @@ class CopyChunk(DBTask):
 
             dstf.write(srcf.read(block_size))
 
-    def remote(self, src, dst, offset, file_size, requests_session, block_size=65536):
+    def remote(self, src, dst, offset, upload_id, file_size, requests_session, block_size=65536):
         filename = os.path.basename(src)
 
         with open(src, 'rb') as srcf:
@@ -844,11 +844,12 @@ class CopyChunk(DBTask):
         HTTP_CONTENT_RANGE = 'bytes %s-%s/%s' % (offset, offset+block_size-1, file_size)
         headers = {'Content-Range': HTTP_CONTENT_RANGE}
 
+        data = {'upload_id': upload_id}
         files = {'file': (filename, chunk)}
-        response = requests_session.post(dst, files=files, headers=headers)
+        response = requests_session.post(dst, data=data, files=files, headers=headers)
         response.raise_for_status()
 
-    def run(self, src, dst, offset, file_size=None, requests_session=None, block_size=65536):
+    def run(self, src, dst, offset, upload_id, file_size=None, requests_session=None, block_size=65536):
         """
         Copies the given chunk to the given destination
 
@@ -866,14 +867,14 @@ class CopyChunk(DBTask):
             if file_size is None:
                 raise ValueError('file_size required on remote transfers')
 
-            self.remote(src, dst, offset, file_size, requests_session, block_size)
+            self.remote(src, dst, offset, upload_id, file_size, requests_session, block_size)
         else:
             self.local(src, dst, offset, block_size)
 
-    def undo(self, src, dst, offset, file_size=None, requests_session=None, block_size=65536):
+    def undo(self, src, dst, offset, upload_id, file_size=None, requests_session=None, block_size=65536):
         pass
 
-    def event_outcome_success(self, src, dst, offset, file_size=None, requests_session=None, block_size=65536):
+    def event_outcome_success(self, src, dst, offset, upload_id, file_size=None, requests_session=None, block_size=65536):
         return "Copied chunk at offset %s and size %s from %s to %s" % (offset, block_size, src, dst)
 
 
@@ -902,7 +903,7 @@ class CopyFile(DBTask):
         while idx*block_size <= fsize:
             tasks.append(ProcessTask(
                 name="ESSArch_Core.tasks.CopyChunk",
-                args=[src, dst, idx*block_size],
+                args=[src, dst, idx*block_size, self.task_id],
                 params={'block_size': block_size},
                 processstep=step,
                 processstep_pos=idx,
@@ -924,10 +925,10 @@ class CopyFile(DBTask):
 
         tasks = []
 
-        while idx*block_size < file_size:
+        while idx*block_size <= file_size:
             tasks.append(ProcessTask(
                 name="ESSArch_Core.tasks.CopyChunk",
-                args=[src, dst, idx*block_size],
+                args=[src, dst, idx*block_size, self.task_id],
                 params={
                     'requests_session': requests_session,
                     'file_size': file_size,
