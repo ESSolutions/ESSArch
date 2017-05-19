@@ -2423,30 +2423,20 @@ class CopyFileTestCase(TransactionTestCase):
 
         ProcessTask.objects.create(
             name=self.taskname,
+            args=[src, dst],
             params={
-                'src': src,
-                'dst': dst,
                 'requests_session': session,
                 'block_size': 1
             }
         ).run().get()
 
         calls = [
-            mock.call(
-                offset=0, block_size=1, src=src, dst=dst,
-                requests_session=mock.ANY, file_size=3,
-            ),
-            mock.call(
-                offset=1, block_size=1, src=src, dst=dst,
-                requests_session=mock.ANY, file_size=3,
-            ),
-            mock.call(
-                offset=2, block_size=1, src=src, dst=dst,
-                requests_session=mock.ANY, file_size=3,
-            ),
+            mock.call(src, dst, 0, file_size=3, block_size=1, requests_session=mock.ANY),
+            mock.call(src, dst, 1, file_size=3, block_size=1, requests_session=mock.ANY),
+            mock.call(src, dst, 2, file_size=3, block_size=1, requests_session=mock.ANY),
+            mock.call(src, dst, 3, file_size=3, block_size=1, requests_session=mock.ANY),
         ]
-        mock_copy_chunk.has_calls(calls)
-
+        mock_copy_chunk.assert_has_calls(calls)
 
 class CopyChunkTestCase(TransactionTestCase):
     def setUp(self):
@@ -2475,18 +2465,18 @@ class CopyChunkTestCase(TransactionTestCase):
 
         ProcessTask.objects.create(
             name=self.taskname,
+            args=[src, dst],
             params={
-                'src': src,
-                'dst': dst,
                 'requests_session': session,
                 'block_size': 1,
-                'offset': 1
+                'offset': 1,
+                'file_size': 3,
             }
         ).run().get()
 
         mock_post.assert_called_once_with(
             dst, files={'file': ('src.txt', 'o')},
-            headers={'Content-Range': 'bytes 1-1/0'}
+            headers={'Content-Range': 'bytes 1-1/3'},
         )
 
     @mock.patch('ESSArch_Core.tasks.requests.Session.post')
@@ -2508,21 +2498,19 @@ class CopyChunkTestCase(TransactionTestCase):
         with self.assertRaises(requests.exceptions.HTTPError):
             ProcessTask.objects.create(
                 name=self.taskname,
+                args=[src, dst],
                 params={
-                    'src': src,
-                    'dst': dst,
                     'requests_session': session,
                     'block_size': 1,
-                    'offset': 1
+                    'offset': 1,
+                    'file_size': 3,
                 }
             ).run().get()
 
         mock_post.assert_called_once_with(
             dst, files={'file': ('src.txt', 'o')},
-            headers={'Content-Range': 'bytes 1-1/0'}
+            headers={'Content-Range': 'bytes 1-1/3'},
         )
-
-
 
 class SendEmailTestCase(TransactionTestCase):
     def setUp(self):

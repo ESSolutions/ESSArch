@@ -827,14 +827,14 @@ class DeleteFiles(DBTask):
 
 
 class CopyChunk(DBTask):
-    def local(self, src, dst, block_size=65536, offset=0):
+    def local(self, src, dst, offset, block_size=65536):
         with open(src, 'r') as srcf, open(dst, 'a') as dstf:
             srcf.seek(offset)
             dstf.seek(offset)
 
             dstf.write(srcf.read(block_size))
 
-    def remote(self, src, dst, requests_session, block_size=65536, offset=0, file_size=0):
+    def remote(self, src, dst, offset, file_size, requests_session, block_size=65536):
         filename = os.path.basename(src)
 
         with open(src, 'rb') as srcf:
@@ -848,7 +848,7 @@ class CopyChunk(DBTask):
         response = requests_session.post(dst, files=files, headers=headers)
         response.raise_for_status()
 
-    def run(self, src=None, dst=None, requests_session=None, offset=0, block_size=65536, file_size=0):
+    def run(self, src, dst, offset, file_size=None, requests_session=None, block_size=65536):
         """
         Copies the given chunk to the given destination
 
@@ -863,14 +863,17 @@ class CopyChunk(DBTask):
         """
 
         if requests_session is not None:
-            self.remote(src, dst, requests_session, block_size, offset, file_size)
-        else:
-            self.local(src, dst, block_size, offset)
+            if file_size is None:
+                raise ValueError('file_size required on remote transfers')
 
-    def undo(self, src=None, dst=None, requests_session=None, offset=0, block_size=65536, file_size=0):
+            self.remote(src, dst, offset, file_size, requests_session, block_size)
+        else:
+            self.local(src, dst, offset, block_size)
+
+    def undo(self, src, dst, offset, file_size=None, requests_session=None, block_size=65536):
         pass
 
-    def event_outcome_success(self, src=None, dst=None, requests_session=None, offset=0, block_size=65536, file_size=0):
+    def event_outcome_success(self, src, dst, offset, file_size=None, requests_session=None, block_size=65536):
         return "Copied chunk at offset %s and size %s from %s to %s" % (offset, block_size, src, dst)
 
 
@@ -899,12 +902,8 @@ class CopyFile(DBTask):
         while idx*block_size <= fsize:
             tasks.append(ProcessTask(
                 name="ESSArch_Core.tasks.CopyChunk",
-                params={
-                    'src': src,
-                    'dst': dst,
-                    'offset': idx*block_size,
-                    'block_size': block_size
-                },
+                args=[src, dst, idx*block_size],
+                params={'block_size': block_size},
                 processstep=step,
                 processstep_pos=idx,
             ))
@@ -928,13 +927,11 @@ class CopyFile(DBTask):
         while idx*block_size <= file_size:
             tasks.append(ProcessTask(
                 name="ESSArch_Core.tasks.CopyChunk",
+                args=[src, dst, idx*block_size],
                 params={
-                    'src': src,
-                    'dst': dst,
                     'requests_session': requests_session,
-                    'offset': idx*block_size,
+                    'file_size': file_size,
                     'block_size': block_size,
-                    'file_size': file_size
                 },
                 processstep=step,
                 processstep_pos=idx,
@@ -945,7 +942,7 @@ class CopyFile(DBTask):
 
         step.run().get()
 
-    def run(self, src=None, dst=None, requests_session=None, block_size=65536):
+    def run(self, src, dst, requests_session=None, block_size=65536):
         """
         Copies the given file to the given destination
 
@@ -971,10 +968,10 @@ class CopyFile(DBTask):
         else:
             self.local(src, dst, block_size, step)
 
-    def undo(self, src=None, dst=None, requests_session=None, block_size=65536):
+    def undo(self, src, dst, requests_session=None, block_size=65536):
         pass
 
-    def event_outcome_success(self, src=None, dst=None, requests_session=None, block_size=65536):
+    def event_outcome_success(self, src, dst, requests_session=None, block_size=65536):
         return "Copied %s to %s" % (src, dst)
 
 
