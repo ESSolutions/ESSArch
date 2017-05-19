@@ -924,7 +924,7 @@ class CopyFile(DBTask):
 
         tasks = []
 
-        while idx*block_size <= file_size:
+        while idx*block_size < file_size:
             tasks.append(ProcessTask(
                 name="ESSArch_Core.tasks.CopyChunk",
                 args=[src, dst, idx*block_size],

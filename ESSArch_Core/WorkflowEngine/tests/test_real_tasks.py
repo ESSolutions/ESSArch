@@ -2434,7 +2434,6 @@ class CopyFileTestCase(TransactionTestCase):
             mock.call(src, dst, 0, file_size=3, block_size=1, requests_session=mock.ANY),
             mock.call(src, dst, 1, file_size=3, block_size=1, requests_session=mock.ANY),
             mock.call(src, dst, 2, file_size=3, block_size=1, requests_session=mock.ANY),
-            mock.call(src, dst, 3, file_size=3, block_size=1, requests_session=mock.ANY),
         ]
         mock_copy_chunk.assert_has_calls(calls)
 
