@@ -835,22 +835,18 @@ class CopyChunk(DBTask):
             dstf.write(srcf.read(block_size))
 
     def remote(self, src, dst, requests_session, block_size=65536, offset=0, file_size=0):
+        filename = os.path.basename(src)
+
         with open(src, 'rb') as srcf:
             srcf.seek(offset)
-
-            filename = os.path.basename(src)
             chunk = srcf.read(block_size)
 
-            HTTP_CONTENT_RANGE = 'bytes %s-%s/%s' % (offset, offset+block_size-1, file_size)
+        HTTP_CONTENT_RANGE = 'bytes %s-%s/%s' % (offset, offset+block_size-1, file_size)
+        headers = {'Content-Range': HTTP_CONTENT_RANGE}
 
-            data = MultipartEncoder(fields=(('chunk', chunk), ('filename', filename)))
-            headers = {
-                'Content-Type': data.content_type,
-                'Content-Range': HTTP_CONTENT_RANGE
-            }
-
-            response = requests_session.post(dst, data=data, headers=headers)
-            response.raise_for_status()
+        files = {'file': (filename, chunk)}
+        response = requests_session.post(dst, files=files, headers=headers)
+        response.raise_for_status()
 
     def run(self, src=None, dst=None, requests_session=None, offset=0, block_size=65536, file_size=0):
         """

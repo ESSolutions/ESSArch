@@ -25,6 +25,7 @@
 """
 
 import filecmp
+import mock
 import os
 import shutil
 import string
@@ -32,10 +33,7 @@ import tempfile
 import traceback
 import unicodedata
 
-import httpretty
-
 import requests
-from requests_toolbelt.multipart import decoder
 
 from celery import states as celery_states
 
@@ -2413,208 +2411,17 @@ class CopyFileTestCase(TransactionTestCase):
         self.assertTrue(filecmp.cmp(self.src, dst))
         self.assertEqual(open(dst).read(), content)
 
-    @httpretty.activate
-    def test_remote(self):
+    @mock.patch('ESSArch_Core.tasks.CopyChunk.run', side_effect=lambda *args, **kwargs: None)
+    def test_remote(self, mock_copy_chunk):
         fname = "src.txt"
         src = os.path.join(self.datadir, fname)
         dst = "http://remote.destination/upload"
-        dst_dir = os.path.join(self.datadir, "dstdir")
-        dst_file = os.path.join(dst_dir, fname)
         session = requests.Session()
-        content = 'foo'
-
-        os.mkdir(dst_dir)
-
-        with open(self.src, 'w') as f:
-            f.write(content)
-
-        def request_callback(request, uri, headers):
-            request.content = request.body
-            multipart_data = decoder.MultipartDecoder.from_response(request)
-            parts = multipart_data.parts
-
-            chunk = parts[0].text
-            filename = os.path.join(dst_dir, parts[1].text)
-
-            content_range = request.headers.getheader('Content-Range')
-            (start, end, total) = parse_content_range_header(content_range)
-
-            if start == 0:
-                with open(filename, 'w') as dstf:
-                    dstf.write(chunk)
-            else:
-                with open(filename, 'a') as dstf:
-                    dstf.seek(start)
-                    dstf.write(chunk)
-
-            return (200, headers, "The {} response from {}".format(request.method, uri))
-
-        httpretty.register_uri(httpretty.POST, dst, body=request_callback)
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'src': self.src,
-                'dst': dst,
-                'requests_session': session,
-            }
-        )
-
-        task.run()
-
-        self.assertTrue(os.path.isfile(self.src))
-        self.assertTrue(os.path.isfile(dst_file))
-        self.assertTrue(filecmp.cmp(src, dst_file))
-        self.assertEqual(open(dst_file).read(), content)
-
-    @httpretty.activate
-    def test_remote_non_ascii_file_name(self):
-        fname = u"abc.txt"
-        src = os.path.join(self.datadir, fname)
-        dst = "http://remote.destination/upload"
-        dst_dir = os.path.join(self.datadir, "dstdir")
-        dst_file = os.path.join(dst_dir, fname)
-        session = requests.Session()
-        content = 'foo'
-
-        os.mkdir(dst_dir)
 
         with open(src, 'w') as f:
-            f.write(content)
+            f.write('foo')
 
-        def request_callback(request, uri, headers):
-            request.content = request.body
-            multipart_data = decoder.MultipartDecoder.from_response(request)
-            parts = multipart_data.parts
-
-            chunk = parts[0].text
-            filename = os.path.join(dst_dir, parts[1].text)
-
-            content_range = request.headers.getheader('Content-Range')
-            (start, end, total) = parse_content_range_header(content_range)
-
-            if start == 0:
-                with open(filename, 'w') as dstf:
-                    dstf.write(chunk)
-            else:
-                with open(filename, 'a') as dstf:
-                    dstf.seek(start)
-                    dstf.write(chunk)
-
-            return (200, headers, "The {} response from {}".format(request.method, uri))
-
-        httpretty.register_uri(httpretty.POST, dst, body=request_callback)
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'src': src,
-                'dst': dst,
-                'requests_session': session,
-            }
-        )
-
-        task.run()
-
-        self.assertTrue(os.path.isfile(src))
-        self.assertTrue(os.path.isfile(dst_file))
-        self.assertTrue(filecmp.cmp(src, dst_file))
-        self.assertEqual(open(dst_file).read(), content)
-
-    @httpretty.activate
-    def test_remote_small_block_size(self):
-        fname = "src.txt"
-        src = os.path.join(self.datadir, fname)
-        dst = "http://remote.destination/upload"
-        dst_dir = os.path.join(self.datadir, "dstdir")
-        dst_file = os.path.join(dst_dir, fname)
-        session = requests.Session()
-        content = 'foo'
-
-        os.mkdir(dst_dir)
-
-        with open(self.src, 'w') as f:
-            f.write(content)
-
-        def request_callback(request, uri, headers):
-            request.content = request.body
-            multipart_data = decoder.MultipartDecoder.from_response(request)
-            parts = multipart_data.parts
-
-            chunk = parts[0].text
-            filename = os.path.join(dst_dir, parts[1].text)
-
-            content_range = request.headers.getheader('Content-Range')
-            (start, end, total) = parse_content_range_header(content_range)
-
-            if start == 0:
-                with open(filename, 'w') as dstf:
-                    dstf.write(chunk)
-            else:
-                with open(filename, 'a') as dstf:
-                    dstf.seek(start)
-                    dstf.write(chunk)
-
-            return (200, headers, "The {} response from {}".format(request.method, uri))
-
-        httpretty.register_uri(httpretty.POST, dst, body=request_callback)
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'src': self.src,
-                'dst': dst,
-                'requests_session': session,
-                'block_size': 1
-            }
-        )
-
-        task.run()
-
-        self.assertTrue(os.path.isfile(self.src))
-        self.assertTrue(os.path.isfile(dst_file))
-        self.assertTrue(filecmp.cmp(src, dst_file))
-        self.assertEqual(open(dst_file).read(), content)
-
-    @httpretty.activate
-    def test_failing_remote(self):
-        fname = "src.txt"
-        src = os.path.join(self.datadir, fname)
-        dst = "http://remote.destination/upload"
-        dst_dir = os.path.join(self.datadir, "dstdir")
-        dst_file = os.path.join(dst_dir, fname)
-        session = requests.Session()
-        content = 'foo'
-
-        os.mkdir(dst_dir)
-
-        with open(src, 'w') as f:
-            f.write(content)
-
-        def incorrect_request_callback(request, uri, headers):
-            request.content = request.body
-            multipart_data = decoder.MultipartDecoder.from_response(request)
-            parts = multipart_data.parts
-
-            chunk = parts[0].text
-            filename = os.path.join(dst_dir, parts[1].text)
-
-            content_range = request.headers.getheader('Content-Range')
-            (start, end, total) = parse_content_range_header(content_range)
-
-            if start == 0:
-                with open(filename, 'w') as dstf:
-                    dstf.write(chunk)
-            else:
-                with open(filename, 'a') as dstf:
-                    dstf.seek(start)
-                    return (400, headers, "The {} response from {}".format(request.method, uri))
-
-            return (200, headers, "The {} response from {}".format(request.method, uri))
-
-        httpretty.register_uri(httpretty.POST, dst, body=incorrect_request_callback)
-
-        task = ProcessTask.objects.create(
+        ProcessTask.objects.create(
             name=self.taskname,
             params={
                 'src': src,
@@ -2622,83 +2429,99 @@ class CopyFileTestCase(TransactionTestCase):
                 'requests_session': session,
                 'block_size': 1
             }
-        )
+        ).run().get()
 
-        with self.assertRaises(ValueError):
-            task.run()
+        calls = [
+            mock.call(
+                offset=0, block_size=1, src=src, dst=dst,
+                requests_session=mock.ANY, file_size=3,
+            ),
+            mock.call(
+                offset=1, block_size=1, src=src, dst=dst,
+                requests_session=mock.ANY, file_size=3,
+            ),
+            mock.call(
+                offset=2, block_size=1, src=src, dst=dst,
+                requests_session=mock.ANY, file_size=3,
+            ),
+        ]
+        mock_copy_chunk.has_calls(calls)
 
-        self.assertTrue(os.path.isfile(src))
-        self.assertFalse(filecmp.cmp(src, dst_file))
-        self.assertNotEqual(open(dst_file).read(), content)
 
-    @httpretty.activate
-    def test_retry_remote(self):
+class CopyChunkTestCase(TransactionTestCase):
+    def setUp(self):
+        self.taskname = "ESSArch_Core.tasks.CopyChunk"
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    @mock.patch('ESSArch_Core.tasks.requests.Session.post')
+    def test_remote(self, mock_post):
         fname = "src.txt"
         src = os.path.join(self.datadir, fname)
         dst = "http://remote.destination/upload"
-        dst_dir = os.path.join(self.datadir, "dstdir")
-        dst_file = os.path.join(dst_dir, fname)
         session = requests.Session()
-        content = 'foo'
-
-        os.mkdir(dst_dir)
 
         with open(src, 'w') as f:
-            f.write(content)
+            f.write('foo')
 
-        global fail
-        fail = True
-
-        def incorrect_request_callback(request, uri, headers):
-            request.content = request.body
-            multipart_data = decoder.MultipartDecoder.from_response(request)
-            parts = multipart_data.parts
-
-            chunk = parts[0].text
-            filename = os.path.join(dst_dir, parts[1].text)
-
-            content_range = request.headers.getheader('Content-Range')
-            (start, end, total) = parse_content_range_header(content_range)
-
-            if start == 0:
-                with open(filename, 'w') as dstf:
-                    dstf.write(chunk)
-            else:
-                with open(filename, 'a') as dstf:
-                    dstf.seek(start)
-                    global fail
-                    if fail:
-                        fail = False
-                        return (400, headers, "The {} response from {}".format(request.method, uri))
-
-                    dstf.write(chunk)
-
-            return (200, headers, "The {} response from {}".format(request.method, uri))
-
-        httpretty.register_uri(httpretty.POST, dst, body=incorrect_request_callback)
-
-        task = ProcessTask.objects.create(
+        ProcessTask.objects.create(
             name=self.taskname,
             params={
                 'src': src,
                 'dst': dst,
                 'requests_session': session,
-                'block_size': 1
+                'block_size': 1,
+                'offset': 1
             }
+        ).run().get()
+
+        mock_post.assert_called_once_with(
+            dst, files={'file': ('src.txt', 'o')},
+            headers={'Content-Range': 'bytes 1-1/0'}
         )
 
-        with self.assertRaises(ValueError):
-            task.run()
+    @mock.patch('ESSArch_Core.tasks.requests.Session.post')
+    def test_remote_server_error(self, mock_post):
+        attrs = {'raise_for_status.side_effect': requests.exceptions.HTTPError}
+        mock_response = mock.Mock()
+        mock_response.configure_mock(**attrs)
 
-        step = ProcessStep.objects.get(name__startswith="Copy")
+        mock_post.return_value = mock_response
 
-        step.undo(only_failed=True)
-        step.retry()
-        step.resume()
+        fname = "src.txt"
+        src = os.path.join(self.datadir, fname)
+        dst = "http://remote.destination/upload"
+        session = requests.Session()
 
-        self.assertTrue(os.path.isfile(src))
-        self.assertTrue(filecmp.cmp(src, dst_file))
-        self.assertEqual(open(dst_file).read(), content)
+        with open(src, 'w') as f:
+            f.write('foo')
+
+        with self.assertRaises(requests.exceptions.HTTPError):
+            ProcessTask.objects.create(
+                name=self.taskname,
+                params={
+                    'src': src,
+                    'dst': dst,
+                    'requests_session': session,
+                    'block_size': 1,
+                    'offset': 1
+                }
+            ).run().get()
+
+        mock_post.assert_called_once_with(
+            dst, files={'file': ('src.txt', 'o')},
+            headers={'Content-Range': 'bytes 1-1/0'}
+        )
+
 
 
 class SendEmailTestCase(TransactionTestCase):
