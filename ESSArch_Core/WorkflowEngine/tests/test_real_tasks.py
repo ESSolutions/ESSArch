@@ -2412,8 +2412,9 @@ class CopyFileTestCase(TransactionTestCase):
         self.assertTrue(filecmp.cmp(self.src, dst))
         self.assertEqual(open(dst).read(), content)
 
+    @mock.patch('ESSArch_Core.tasks.requests.Session.post')
     @mock.patch('ESSArch_Core.tasks.CopyChunk.run', side_effect=lambda *args, **kwargs: None)
-    def test_remote(self, mock_copy_chunk):
+    def test_remote(self, mock_copy_chunk, mock_post):
         fname = "src.txt"
         src = os.path.join(self.datadir, fname)
         dst = "http://remote.destination/upload"
@@ -2422,14 +2423,15 @@ class CopyFileTestCase(TransactionTestCase):
         with open(src, 'w') as f:
             f.write('foo')
 
-        ProcessTask.objects.create(
+        task = ProcessTask.objects.create(
             name=self.taskname,
             args=[src, dst],
             params={
                 'requests_session': session,
                 'block_size': 1
             }
-        ).run().get()
+        )
+        task.run().get()
 
         calls = [
             mock.call(src, dst, 0, mock.ANY, file_size=3, block_size=1, requests_session=mock.ANY),
@@ -2437,6 +2439,12 @@ class CopyFileTestCase(TransactionTestCase):
             mock.call(src, dst, 2, mock.ANY, file_size=3, block_size=1, requests_session=mock.ANY),
         ]
         mock_copy_chunk.assert_has_calls(calls)
+
+        mock_post.assert_called_once_with(
+            dst + '_complete/',
+            data=mock.ANY, headers={'Content-Type': mock.ANY},
+        )
+
 
 class CopyChunkTestCase(TransactionTestCase):
     def setUp(self):

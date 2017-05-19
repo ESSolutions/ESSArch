@@ -943,6 +943,30 @@ class CopyFile(DBTask):
 
         step.run().get()
 
+        md5 = ProcessTask.objects.create(
+            name="ESSArch_Core.tasks.CalculateChecksum",
+            params={
+                "filename": src,
+                "block_size": block_size,
+                "algorithm": 'MD5'
+            },
+            information_package_id=self.ip,
+            responsible_id=self.responsible,
+        ).run().get()
+
+        completion_url = dst.rstrip('/') + '_complete/'
+
+        m = MultipartEncoder(
+            fields={
+                'upload_id': self.task_id,
+                'md5': md5,
+            }
+        )
+        headers = {'Content-Type': m.content_type}
+
+        response = requests_session.post(completion_url, data=m, headers=headers)
+        response.raise_for_status()
+
     def run(self, src, dst, requests_session=None, block_size=65536):
         """
         Copies the given file to the given destination
