@@ -958,6 +958,7 @@ class CopyFile(DBTask):
 
         m = MultipartEncoder(
             fields={
+                'path': os.path.basename(src),
                 'upload_id': self.task_id,
                 'md5': md5,
             }
