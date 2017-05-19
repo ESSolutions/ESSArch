@@ -548,11 +548,11 @@ class CreateZIP(DBTask):
             for root, dirs, files in os.walk(dirname):
                 for d in dirs:
                     filepath = os.path.join(root, d)
-                    arcname = filepath[len(dirname) + 1:]
+                    arcname = os.path.relpath(filepath, dirname)
                     new_zip.write(filepath, arcname)
                 for f in files:
                     filepath = os.path.join(root, f)
-                    arcname = filepath[len(dirname) + 1:]
+                    arcname = os.path.relpath(filepath, dirname)
                     new_zip.write(filepath, arcname)
 
         self.set_progress(100, total=100)
