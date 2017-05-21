@@ -834,7 +834,7 @@ class CopyChunk(DBTask):
 
             dstf.write(srcf.read(block_size))
 
-    def remote(self, src, dst, offset, upload_id, file_size, requests_session, block_size=65536):
+    def remote(self, src, dst, offset, file_size, requests_session, upload_id=None, block_size=65536):
         filename = os.path.basename(src)
 
         with open(src, 'rb') as srcf:
@@ -851,11 +851,13 @@ class CopyChunk(DBTask):
         headers = {'Content-Range': HTTP_CONTENT_RANGE}
 
         data = {'upload_id': upload_id}
-        files = {'file': (filename, chunk)}
+        files = {'the_file': (filename, chunk)}
         response = requests_session.post(dst, data=data, files=files, headers=headers)
         response.raise_for_status()
 
-    def run(self, src, dst, offset, upload_id, file_size=None, requests_session=None, block_size=65536):
+        return response.json()['upload_id']
+
+    def run(self, src, dst, offset, upload_id=None, file_size=None, requests_session=None, block_size=65536):
         """
         Copies the given chunk to the given destination
 
@@ -873,11 +875,11 @@ class CopyChunk(DBTask):
             if file_size is None:
                 raise ValueError('file_size required on remote transfers')
 
-            self.remote(src, dst, offset, upload_id, file_size, requests_session, block_size)
+            return self.remote(src, dst, offset, file_size, requests_session, upload_id, block_size)
         else:
             self.local(src, dst, offset, block_size)
 
-    def undo(self, src, dst, offset, upload_id, file_size=None, requests_session=None, block_size=65536):
+    def undo(self, src, dst, offset, upload_id=None, file_size=None, requests_session=None, block_size=65536):
         pass
 
     def event_outcome_success(self, src, dst, offset, upload_id, file_size=None, requests_session=None, block_size=65536):
@@ -931,23 +933,38 @@ class CopyFile(DBTask):
 
         tasks = []
 
+        t = ProcessTask.objects.create(
+            name="ESSArch_Core.tasks.CopyChunk",
+            args=[src, dst, idx*block_size],
+            params={
+                'requests_session': requests_session,
+                'file_size': file_size,
+                'block_size': block_size,
+            },
+            processstep=step,
+            processstep_pos=idx,
+        )
+        upload_id = t.run().get()
+        idx += 1
+
         while idx*block_size <= file_size:
             tasks.append(ProcessTask(
                 name="ESSArch_Core.tasks.CopyChunk",
-                args=[src, dst, idx*block_size, self.task_id],
+                args=[src, dst, idx*block_size],
                 params={
                     'requests_session': requests_session,
                     'file_size': file_size,
                     'block_size': block_size,
+                    'upload_id': upload_id,
                 },
                 processstep=step,
                 processstep_pos=idx,
             ))
             idx += 1
 
-        ProcessTask.objects.bulk_create(tasks)
+        ProcessTask.objects.bulk_create(tasks, 1000)
 
-        step.run().get()
+        step.resume().get()
 
         md5 = ProcessTask.objects.create(
             name="ESSArch_Core.tasks.CalculateChecksum",
@@ -965,7 +982,7 @@ class CopyFile(DBTask):
         m = MultipartEncoder(
             fields={
                 'path': os.path.basename(src),
-                'upload_id': self.task_id,
+                'upload_id': upload_id,
                 'md5': md5,
             }
         )
