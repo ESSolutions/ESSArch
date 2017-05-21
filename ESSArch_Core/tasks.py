@@ -841,7 +841,13 @@ class CopyChunk(DBTask):
             srcf.seek(offset)
             chunk = srcf.read(block_size)
 
-        HTTP_CONTENT_RANGE = 'bytes %s-%s/%s' % (offset, offset+block_size-1, file_size)
+        start = offset
+        end = offset + block_size - 1
+
+        if end > file_size:
+            end = file_size - 1
+
+        HTTP_CONTENT_RANGE = 'bytes %s-%s/%s' % (start, end, file_size)
         headers = {'Content-Range': HTTP_CONTENT_RANGE}
 
         data = {'upload_id': upload_id}
