@@ -229,14 +229,12 @@ class SubmissionAgreement(models.Model):
 
         return None
 
-    def copy_and_switch(self, ip, new_data, new_name):
+    def copy(self, new_data, new_name):
         """
         Copies the SA and updates the name and data of the
-        copy. Switches the relation from the ip with the old SA to the new
-        SA if the IP does not already have a locked SA
+        copy.
 
         Args:
-            ip: The information package that the SA is switched in
             new_data: The data to be used in the copy
             new_name: The name of the copy
         Returns:
@@ -254,10 +252,6 @@ class SubmissionAgreement(models.Model):
 
         for profile_sa in ProfileSA.objects.filter(submission_agreement_id=self).iterator():
             ProfileSA.objects.create(submission_agreement=clone, profile=profile_sa.profile)
-
-        if not ip.SubmissionAgreementLocked:
-            ip.SubmissionAgreement = clone
-            ip.save(update_fields=['SubmissionAgreement'])
 
         return clone
 
