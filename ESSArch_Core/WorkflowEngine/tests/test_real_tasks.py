@@ -2468,6 +2468,12 @@ class CopyChunkTestCase(TransactionTestCase):
         dst = "http://remote.destination/upload"
         session = requests.Session()
 
+        attrs = {'json.return_value': {'upload_id': uuid.uuid4().hex}}
+        mock_response = mock.Mock()
+        mock_response.configure_mock(**attrs)
+
+        mock_post.return_value = mock_response
+
         with open(src, 'w') as f:
             f.write('foo')
 
@@ -2484,7 +2490,7 @@ class CopyChunkTestCase(TransactionTestCase):
         ).run().get()
 
         mock_post.assert_called_once_with(
-            dst, files={'file': ('src.txt', 'o')},
+            dst, files={'the_file': ('src.txt', 'o')},
             data={'upload_id': upload_id},
             headers={'Content-Range': 'bytes 1-1/3'},
         )
@@ -2519,7 +2525,7 @@ class CopyChunkTestCase(TransactionTestCase):
             ).run().get()
 
         mock_post.assert_called_once_with(
-            dst, files={'file': ('src.txt', 'o')},
+            dst, files={'the_file': ('src.txt', 'o')},
             data={'upload_id': upload_id},
             headers={'Content-Range': 'bytes 1-1/3'},
         )
