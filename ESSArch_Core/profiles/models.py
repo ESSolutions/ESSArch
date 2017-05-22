@@ -208,6 +208,9 @@ class SubmissionAgreement(models.Model):
     class Meta:
         ordering = ["name"]
         verbose_name = 'Submission Agreement'
+        permissions = (
+            ('create_new_sa_generation', 'Can create new generations of SA'),
+        )
 
     def __unicode__(self):
         # create a unicode representation of this object
