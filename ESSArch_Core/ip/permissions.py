@@ -25,17 +25,22 @@
 from rest_framework import permissions
 
 
-class IsResponsibleOrReadOnly(permissions.IsAuthenticated):
+class IsResponsible(permissions.IsAuthenticated):
     message = "You are not responsible for this IP"
 
     def is_responsible(self, request, obj):
         return obj.Responsible == request.user
 
     def has_object_permission(self, request, view, obj):
+        return self.is_responsible(request, obj)
+
+
+class IsResponsibleOrReadOnly(IsResponsible):
+    def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        return self.is_responsible(request, obj)
+        return super(IsResponsibleOrReadOnly, self).has_object_permission(request, view, obj)
 
 
 class CanDeleteIP(IsResponsibleOrReadOnly):
