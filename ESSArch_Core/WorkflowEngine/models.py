@@ -655,7 +655,12 @@ class ProcessTask(Process):
             True,
         }
 
-        res = t.apply_async(args=self.args, kwargs=undoobj.params, task_id=str(undoobj.pk), queue=t.queue)
+        if self.eager:
+            undoobj.params['_options']['result_params'] = undoobj.result_params
+            res = t.apply(args=undoobj.args, kwargs=undoobj.params, task_id=str(undoobj.pk))
+        else:
+            res = t.apply_async(args=undoobj.args, kwargs=undoobj.params, task_id=str(undoobj.pk), queue=t.queue)
+
         return res
 
     def retry(self):
@@ -672,7 +677,12 @@ class ProcessTask(Process):
             'step_pos': self.processstep_pos, 'hidden': self.hidden,
         }
 
-        res = t.apply_async(args=self.args, kwargs=retryobj.params, task_id=str(retryobj.pk), queue=t.queue)
+        if self.eager:
+            retryobj.params['_options']['result_params'] = retryobj.result_params
+            res = t.apply(args=retryobj.args, kwargs=retryobj.params, task_id=str(retryobj.pk))
+        else:
+            res = t.apply_async(args=retryobj.args, kwargs=retryobj.params, task_id=str(retryobj.pk), queue=t.queue)
+
         return res
 
     def create_undo_obj(self):
