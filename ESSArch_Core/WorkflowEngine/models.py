@@ -627,7 +627,7 @@ class ProcessTask(Process):
         t = self._create_task(self.name)
 
         self.params['_options'] = {
-            'args': self.args, 'responsible': self.responsible_id, 'ip':
+            'responsible': self.responsible_id, 'ip':
             self.information_package_id, 'step': self.processstep_id,
             'step_pos': self.processstep_pos, 'hidden': self.hidden,
         }
@@ -649,7 +649,7 @@ class ProcessTask(Process):
 
         undoobj = self.create_undo_obj()
         self.params['_options'] = {
-            'args': self.args, 'responsible': self.responsible_id, 'ip':
+            'responsible': self.responsible_id, 'ip':
             self.information_package_id, 'step': self.processstep_id,
             'step_pos': self.processstep_pos, 'hidden': self.hidden, 'undo':
             True,
@@ -672,7 +672,7 @@ class ProcessTask(Process):
 
         retryobj = self.create_retry_obj()
         self.params['_options'] = {
-            'args': self.args, 'responsible': self.responsible_id, 'ip':
+            'responsible': self.responsible_id, 'ip':
             self.information_package_id, 'step': self.processstep_id,
             'step_pos': self.processstep_pos, 'hidden': self.hidden,
         }
