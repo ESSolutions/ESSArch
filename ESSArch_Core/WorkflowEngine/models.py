@@ -655,7 +655,7 @@ class ProcessTask(Process):
             True,
         }
 
-        if self.eager:
+        if undoobj.eager:
             undoobj.params['_options']['result_params'] = undoobj.result_params
             res = t.apply(args=undoobj.args, kwargs=undoobj.params, task_id=str(undoobj.pk))
         else:
@@ -677,7 +677,7 @@ class ProcessTask(Process):
             'step_pos': self.processstep_pos, 'hidden': self.hidden,
         }
 
-        if self.eager:
+        if retryobj.eager:
             retryobj.params['_options']['result_params'] = retryobj.result_params
             res = t.apply(args=retryobj.args, kwargs=retryobj.params, task_id=str(retryobj.pk))
         else:
@@ -697,7 +697,8 @@ class ProcessTask(Process):
             params=self.params, result_params=self.result_params,
             processstep_pos=self.processstep_pos,
             undo_type=True, status="PREPARED",
-            information_package=self.information_package
+            information_package=self.information_package,
+            eager=self.eager,
         )
 
         self.undone = undo_obj
@@ -715,6 +716,7 @@ class ProcessTask(Process):
             processstep=self.processstep, name=self.name, args=self.args,
             params=self.params, result_params=self.result_params, processstep_pos=self.processstep_pos,
             status="PREPARED", information_package=self.information_package,
+            eager=self.eager
         )
 
         self.retried = retry_obj
