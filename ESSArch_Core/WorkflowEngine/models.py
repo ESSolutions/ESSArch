@@ -715,7 +715,6 @@ class ProcessTask(Process):
             processstep=self.processstep, name=self.name, args=self.args,
             params=self.params, result_params=self.result_params, processstep_pos=self.processstep_pos,
             status="PREPARED", information_package=self.information_package,
-            retried_task=self
         )
 
         self.retried = retry_obj
