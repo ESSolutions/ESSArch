@@ -1097,7 +1097,7 @@ class DownloadSchemas(DBTask):
 
 class DownloadFile(DBTask):
     def run(self, src=None, dst=None):
-        r = requests.get(src, stream=True)
+        r = requests.get(src, stream=True, verify=False)
         r.raise_for_status()
         if r.status_code == 200:
             with open(dst, 'wb') as f:

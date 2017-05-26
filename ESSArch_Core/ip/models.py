@@ -408,6 +408,7 @@ class InformationPackage(models.Model):
             ('change_sa', 'Can change SA connected to IP'),
             ('lock_sa', 'Can lock SA to IP'),
             ('unlock_profile', 'Can unlock profile connected to IP'),
+            ('can_receive_remote_files', 'Can receive remote files'),
             ('receive', 'Can receive IP'),
             ('preserve', 'Can preserve IP'),
             ('view', 'Can view extracted IP'),

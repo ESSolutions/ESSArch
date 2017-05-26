@@ -627,7 +627,7 @@ class ProcessTask(Process):
         t = self._create_task(self.name)
 
         self.params['_options'] = {
-            'args': self.args, 'responsible': self.responsible_id, 'ip':
+            'responsible': self.responsible_id, 'ip':
             self.information_package_id, 'step': self.processstep_id,
             'step_pos': self.processstep_pos, 'hidden': self.hidden,
         }
@@ -649,13 +649,18 @@ class ProcessTask(Process):
 
         undoobj = self.create_undo_obj()
         self.params['_options'] = {
-            'args': self.args, 'responsible': self.responsible_id, 'ip':
+            'responsible': self.responsible_id, 'ip':
             self.information_package_id, 'step': self.processstep_id,
             'step_pos': self.processstep_pos, 'hidden': self.hidden, 'undo':
             True,
         }
 
-        res = t.apply_async(args=self.args, kwargs=undoobj.params, task_id=str(undoobj.pk), queue=t.queue)
+        if undoobj.eager:
+            undoobj.params['_options']['result_params'] = undoobj.result_params
+            res = t.apply(args=undoobj.args, kwargs=undoobj.params, task_id=str(undoobj.pk))
+        else:
+            res = t.apply_async(args=undoobj.args, kwargs=undoobj.params, task_id=str(undoobj.pk), queue=t.queue)
+
         return res
 
     def retry(self):
@@ -667,12 +672,17 @@ class ProcessTask(Process):
 
         retryobj = self.create_retry_obj()
         self.params['_options'] = {
-            'args': self.args, 'responsible': self.responsible_id, 'ip':
+            'responsible': self.responsible_id, 'ip':
             self.information_package_id, 'step': self.processstep_id,
             'step_pos': self.processstep_pos, 'hidden': self.hidden,
         }
 
-        res = t.apply_async(args=self.args, kwargs=retryobj.params, task_id=str(retryobj.pk), queue=t.queue)
+        if retryobj.eager:
+            retryobj.params['_options']['result_params'] = retryobj.result_params
+            res = t.apply(args=retryobj.args, kwargs=retryobj.params, task_id=str(retryobj.pk))
+        else:
+            res = t.apply_async(args=retryobj.args, kwargs=retryobj.params, task_id=str(retryobj.pk), queue=t.queue)
+
         return res
 
     def create_undo_obj(self):
@@ -687,7 +697,8 @@ class ProcessTask(Process):
             params=self.params, result_params=self.result_params,
             processstep_pos=self.processstep_pos,
             undo_type=True, status="PREPARED",
-            information_package=self.information_package
+            information_package=self.information_package,
+            eager=self.eager,
         )
 
         self.undone = undo_obj
@@ -705,7 +716,7 @@ class ProcessTask(Process):
             processstep=self.processstep, name=self.name, args=self.args,
             params=self.params, result_params=self.result_params, processstep_pos=self.processstep_pos,
             status="PREPARED", information_package=self.information_package,
-            retried_task=self
+            eager=self.eager
         )
 
         self.retried = retry_obj
