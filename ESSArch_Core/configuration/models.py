@@ -61,6 +61,9 @@ class Path(models.Model):
     entity = models.CharField(max_length=255, unique=True)
     value = models.CharField(max_length=255)
 
+    def __unicode__(self):
+        return '%s (%s)' % (self.entity, self.value)
+
     class Meta:
         ordering = ["entity"]
         verbose_name = 'Path'
@@ -116,6 +119,82 @@ class DefaultColumnVisible(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     field = models.CharField(max_length=255)
     visible = models.BooleanField(default=True)
+
+
+class ArchivePolicy(models.Model):
+    """Specifies how an IP should be archived"""
+
+    MODE_CHOICES = (
+        (0, 'master'),
+        (2, 'ais'),
+    )
+
+    CHECKSUM_ALGORITHM_CHOICES = (
+        (1, 'md5'),
+        (2, 'sha-256'),
+    )
+
+    IP_TYPE_CHOICES = (
+        (1, 'tar'),
+    )
+
+    PREINGEST_METADATA_CHOICES = (
+        (0, 'disabled'),
+        (1, 'res'),
+    )
+
+    INGEST_METADATA_CHOICES = (
+        (1, 'mets'),
+        (4, 'mets (eard)'),
+    )
+
+    INFORMATION_CLASS_CHOICES = (
+        (0, '0'),
+        (1, '1'),
+        (2, '2'),
+        (3, '3'),
+        (4, '4'),
+    )
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    index = models.BooleanField(default=True)
+
+    cache_extracted_size = models.BigIntegerField('Maximum size (bytes) of extracted package before deletion from cache', null=True)
+    cache_package_size = models.BigIntegerField('Maximum size (bytes) of package before deletion from cache', null=True)
+    cache_extracted_age = models.IntegerField('Maximum age (days) of extracted package before deletion from cache', null=True)
+    cache_package_age = models.IntegerField('Maximum age (days) of package before deletion from cache', null=True)
+
+    policy_id = models.CharField('Policy ID', max_length=32, unique=True)
+    policy_name = models.CharField('Policy Name', max_length=255)
+    policy_stat = models.BooleanField('Policy Status', default=False)
+    ais_project_name = models.CharField('AIS Policy Name', max_length=255, blank=True)
+    ais_project_id = models.CharField('AIS Policy ID', max_length=255, blank=True)
+    mode = models.IntegerField(choices=MODE_CHOICES, default=0)
+    wait_for_approval = models.BooleanField('Wait for approval', default=True)
+    checksum_algorithm = models.IntegerField('Checksum algorithm', choices=CHECKSUM_ALGORITHM_CHOICES, default=1)
+    validate_checksum = models.BooleanField('Validate checksum', default=True)
+    validate_xml = models.BooleanField('Validate XML', default=True)
+    ip_type = models.IntegerField('IP type', choices=IP_TYPE_CHOICES, default=1)
+    cache_storage = models.ForeignKey(Path, on_delete=models.PROTECT, related_name='cache_policy')
+    preingest_metadata = models.IntegerField('Pre ingest metadata', choices=PREINGEST_METADATA_CHOICES, default=0)
+    ingest_metadata = models.IntegerField('Ingest metadata', choices=INGEST_METADATA_CHOICES, default=4)
+    information_class = models.IntegerField('Information class', choices=INFORMATION_CLASS_CHOICES, default=0)
+    ingest_path = models.ForeignKey(Path, on_delete=models.PROTECT, related_name='ingest_policy')
+    ingest_delete = models.BooleanField('Delete SIP after success to create AIP', default=True)
+    receive_extract_sip = models.BooleanField('Extract SIP on receive', default=False)
+
+
+    class Meta:
+        ordering = ['policy_name']
+
+    def __unicode__(self):
+        if len(self.policy_name):
+            return self.policy_name
+        elif len(self.policy_id):
+            return unicode(self.policy_id)
+        else:
+            return str(self.pk)
 
 
 class DefaultSorting(models.Model):

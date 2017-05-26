@@ -29,6 +29,8 @@ import mock
 import os
 import shutil
 import string
+import subprocess
+import tarfile
 import tempfile
 import traceback
 import unicodedata
@@ -44,9 +46,10 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core import mail
-from django.test import TransactionTestCase
+from django.test import TransactionTestCase, override_settings
 
 from ESSArch_Core.configuration.models import (
+    ArchivePolicy,
     EventType,
     Path
 )
@@ -56,6 +59,36 @@ from ESSArch_Core.exceptions import FileFormatNotAllowed
 from ESSArch_Core.ip.models import (
     EventIP,
     InformationPackage,
+)
+
+from ESSArch_Core.storage.exceptions import (
+    MTFailedOperationException,
+    RobotMountException,
+    RobotUnmountException
+)
+
+from ESSArch_Core.storage.models import (
+    TAPE,
+
+    Robot,
+
+    StorageMedium,
+    StorageMethod,
+    StorageMethodTargetRelation,
+    StorageTarget,
+    TapeDrive,
+    TapeSlot,
+)
+
+from ESSArch_Core.storage.tape import (
+    DEFAULT_TAPE_BLOCK_SIZE,
+
+    get_tape_file_number,
+    mount_tape,
+    rewind_tape,
+    set_tape_file_number,
+    unmount_tape,
+    write_to_tape,
 )
 
 from ESSArch_Core.util import find_and_replace_in_file, parse_content_range_header
@@ -2645,3 +2678,605 @@ class ConvertFileTestCase(TransactionTestCase):
         task.run().get()
 
         self.assertTrue(os.path.isfile(os.path.join(self.datadir, 'file1.pdf')))
+
+
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+class MountTapeTestCase(TransactionTestCase):
+    def setUp(self):
+        self.taskname = 'ESSArch_Core.tasks.MountTape'
+
+        self.datadir = tempfile.mkdtemp()
+        self.label_dir = Path.objects.create(entity='label', value=os.path.join(self.datadir, 'label'))
+        self.tape_drive_device = tempfile.NamedTemporaryFile(dir=self.datadir, delete=False)
+
+        user = User.objects.create()
+
+        self.robot = Robot.objects.create(device='/dev/sg6')
+        self.tape_drive = TapeDrive.objects.create(pk=0, device=self.tape_drive_device.name, robot=self.robot)
+        self.tape_slot = TapeSlot.objects.create(slot_id=0, robot=self.robot)
+
+        self.target = StorageTarget.objects.create()
+        self.medium = StorageMedium.objects.create(
+            storage_target=self.target, status=20, location_status=20,
+            block_size=self.target.default_block_size,
+            format=self.target.default_format, agent=user,
+            tape_slot=self.tape_slot
+        )
+
+        try:
+            os.mkdir(self.label_dir.value)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    @mock.patch('ESSArch_Core.tasks.create_tape_label')
+    @mock.patch('ESSArch_Core.tasks.verify_tape_label')
+    @mock.patch('ESSArch_Core.tasks.tarfile')
+    @mock.patch('ESSArch_Core.storage.tape.is_tape_drive_online')
+    @mock.patch('ESSArch_Core.tasks.mount_tape')
+    def test_mount_tape_without_label_file(self, mock_mount, mock_online, mock_tarfile, mock_verify_label, mock_create_label):
+        self.medium.format = 100
+        self.medium.save(update_fields=['format'])
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+                'drive': self.tape_drive.pk,
+            },
+        )
+
+        task.run().get()
+
+        mock_tarfile.open.assert_not_called()
+
+        mock_mount.assert_called_once_with(self.robot.device, self.tape_slot.pk, self.tape_drive.pk)
+        mock_online.assert_called_once_with(self.tape_drive.device)
+
+        mock_create_label.assert_not_called()
+        mock_verify_label.assert_not_called()
+
+        self.medium.refresh_from_db()
+        self.tape_drive.refresh_from_db()
+
+        self.assertEqual(self.medium.num_of_mounts, 1)
+        self.assertEqual(self.tape_drive.num_of_mounts, 1)
+        self.assertTrue(self.medium.tape_drive == self.tape_drive)
+
+    @mock.patch('ESSArch_Core.tasks.verify_tape_label')
+    @mock.patch('ESSArch_Core.tasks.tarfile')
+    @mock.patch('ESSArch_Core.tasks.tape_empty')
+    @mock.patch('ESSArch_Core.storage.tape.is_tape_drive_online')
+    @mock.patch('ESSArch_Core.tasks.mount_tape')
+    def test_mount_tape_with_valid_label_file(self, mock_mount, mock_online, mock_empty, mock_tarfile, mock_verify_label):
+        mock_empty.return_value = False
+        mock_verify_label.return_value = True
+
+        mocked_tarmember = mock.Mock()
+        mocked_tarmember.configure_mock(name='file_label.xml')
+
+        mocked_tar = mock.Mock()
+        mocked_tar.configure_mock(**{
+            'getmembers.return_value': [mocked_tarmember],
+            'extractfile.return_value.read.return_value': 'xmldata',
+        })
+
+        mock_tarfile.open.return_value = mocked_tar
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+                'drive': self.tape_drive.pk,
+            },
+        )
+
+        task.run().get()
+
+        mock_mount.assert_called_once_with(self.robot.device, self.tape_slot.pk, self.tape_drive.pk)
+        mock_online.assert_called_once_with(self.tape_drive.device)
+        mock_verify_label.assert_called_once_with(self.medium, 'xmldata')
+
+        self.medium.refresh_from_db()
+        self.tape_drive.refresh_from_db()
+
+        self.assertEqual(self.medium.num_of_mounts, 1)
+        self.assertEqual(self.tape_drive.num_of_mounts, 1)
+        self.assertTrue(self.medium.tape_drive == self.tape_drive)
+
+    @mock.patch('ESSArch_Core.tasks.verify_tape_label')
+    @mock.patch('ESSArch_Core.tasks.tarfile')
+    @mock.patch('ESSArch_Core.tasks.tape_empty')
+    @mock.patch('ESSArch_Core.storage.tape.is_tape_drive_online')
+    @mock.patch('ESSArch_Core.tasks.mount_tape')
+    def test_mount_tape_with_invalid_label_file(self, mock_mount, mock_online, mock_empty, mock_tarfile, mock_verify_label):
+        mock_empty.return_value = False
+        mock_verify_label.return_value = False
+
+        mocked_tarmember = mock.Mock()
+        mocked_tarmember.configure_mock(name='file_label.xml')
+
+        mocked_tar = mock.Mock()
+        mocked_tar.configure_mock(**{
+            'getmembers.return_value': [mocked_tarmember],
+            'extractfile.return_value.read.return_value': 'xmldata',
+        })
+
+        mock_tarfile.open.return_value = mocked_tar
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+                'drive': self.tape_drive.pk,
+            },
+        )
+
+        with self.assertRaisesRegexp(ValueError, 'labelfile with wrong'):
+            task.run().get()
+
+        self.medium.refresh_from_db()
+        self.tape_drive.refresh_from_db()
+
+        self.assertEqual(self.medium.num_of_mounts, 0)
+        self.assertEqual(self.tape_drive.num_of_mounts, 0)
+        self.assertFalse(self.medium.tape_drive == self.tape_drive)
+
+    @mock.patch('ESSArch_Core.tasks.write_to_tape')
+    @mock.patch('ESSArch_Core.tasks.create_tape_label')
+    @mock.patch('ESSArch_Core.tasks.rewind_tape')
+    @mock.patch('ESSArch_Core.tasks.tarfile')
+    @mock.patch('ESSArch_Core.tasks.tape_empty')
+    @mock.patch('ESSArch_Core.storage.tape.is_tape_drive_online')
+    @mock.patch('ESSArch_Core.tasks.mount_tape')
+    def test_mount_tape_with_reuse_file(self, mock_mount, mock_online, mock_empty, mock_tarfile, mock_rewind, mock_create_label, mock_write_tape):
+        mock_empty.return_value = False
+
+        mocked_tarmember = mock.Mock()
+        mocked_tarmember.configure_mock(name='reuse')
+
+        mocked_tar = mock.Mock()
+        mocked_tar.configure_mock(**{'getmembers.return_value': [mocked_tarmember]})
+
+        mock_tarfile.open.return_value = mocked_tar
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+                'drive': self.tape_drive.pk,
+            },
+        )
+
+        task.run().get()
+
+        mock_mount.assert_called_once_with(self.robot.device, self.tape_slot.pk, self.tape_drive.pk)
+        mock_online.assert_called_once_with(self.tape_drive.device)
+        mock_rewind.assert_called_once_with(self.tape_drive.device)
+        mock_create_label.assert_called_once()
+        mock_write_tape.called_once_with(self.tape_drive.device, mock.ANY)
+
+        self.medium.refresh_from_db()
+        self.tape_drive.refresh_from_db()
+
+        self.assertEqual(self.medium.num_of_mounts, 1)
+        self.assertEqual(self.tape_drive.num_of_mounts, 1)
+        self.assertTrue(self.medium.tape_drive == self.tape_drive)
+
+    @mock.patch('ESSArch_Core.tasks.tarfile')
+    @mock.patch('ESSArch_Core.tasks.tape_empty')
+    @mock.patch('ESSArch_Core.storage.tape.is_tape_drive_online')
+    @mock.patch('ESSArch_Core.tasks.mount_tape')
+    def test_mount_tape_with_unknown_information(self, mock_mount, mock_online, mock_empty, mock_tarfile):
+        mock_empty.return_value = False
+
+        mocked_tarmember = mock.Mock()
+        mocked_tarmember.configure_mock(name='foo')
+
+        mocked_tar = mock.Mock()
+        mocked_tar.configure_mock(**{'getmembers.return_value': [mocked_tarmember]})
+
+        mock_tarfile.open.return_value = mocked_tar
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+                'drive': self.tape_drive.pk,
+            },
+        )
+
+        with self.assertRaisesRegexp(ValueError, 'unknown information'):
+            task.run().get()
+
+        mock_mount.assert_called_once_with(self.robot.device, self.tape_slot.pk, self.tape_drive.pk)
+        mock_online.assert_called_once_with(self.tape_drive.device)
+
+        self.medium.refresh_from_db()
+        self.tape_drive.refresh_from_db()
+
+        self.assertEqual(self.medium.num_of_mounts, 0)
+        self.assertEqual(self.tape_drive.num_of_mounts, 0)
+        self.assertFalse(self.medium.tape_drive == self.tape_drive)
+
+    @mock.patch('ESSArch_Core.tasks.write_to_tape')
+    @mock.patch('ESSArch_Core.tasks.rewind_tape')
+    @mock.patch('ESSArch_Core.tasks.create_tape_label')
+    @mock.patch('ESSArch_Core.tasks.tape_empty')
+    @mock.patch('ESSArch_Core.storage.tape.is_tape_drive_online')
+    @mock.patch('ESSArch_Core.tasks.mount_tape')
+    def test_mount_empty_tape(self, mock_mount, mock_check_online, mock_tape_empty, mock_create_label, mock_rewind, mock_write_tape):
+        mock_tape_empty.return_value = True
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+                'drive': self.tape_drive.pk,
+            },
+        )
+
+        task.run().get()
+
+        mock_create_label.called_once()
+        mock_rewind.assert_called_once_with(self.tape_drive.device)
+        mock_write_tape.called_once_with(self.tape_drive.device, mock.ANY)
+
+        self.medium.refresh_from_db()
+        self.tape_drive.refresh_from_db()
+
+        self.assertEqual(self.medium.num_of_mounts, 1)
+        self.assertEqual(self.tape_drive.num_of_mounts, 1)
+        self.assertTrue(self.medium.tape_drive == self.tape_drive)
+
+
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+class UnmountTapeTestCase(TransactionTestCase):
+    def setUp(self):
+        self.taskname = 'ESSArch_Core.tasks.UnmountTape'
+
+        user = User.objects.create()
+
+        self.robot = Robot.objects.create(device='/dev/sg6')
+        self.tape_drive = TapeDrive.objects.create(pk=0, device='/dev/nst0', robot=self.robot)
+        self.tape_slot = TapeSlot.objects.create(slot_id=0, robot=self.robot)
+
+        self.target = StorageTarget.objects.create()
+        self.medium = StorageMedium.objects.create(
+            storage_target=self.target, status=20, location_status=20,
+            block_size=self.target.default_block_size,
+            format=self.target.default_format, agent=user,
+            tape_slot=self.tape_slot
+        )
+
+    @mock.patch('ESSArch_Core.tasks.unmount_tape')
+    def test_unmount_drive_without_tape(self, mock_unmount):
+        mock_unmount.return_value = None
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'drive': self.tape_drive.pk,
+            },
+        )
+
+        with self.assertRaises(ValueError):
+            task.run().get()
+
+        mock_unmount.assert_not_called()
+
+    @mock.patch('ESSArch_Core.tasks.unmount_tape')
+    def test_unmount_drive_with_tape(self, mock_unmount):
+        mock_unmount.return_value = None
+
+        self.medium.tape_drive = self.tape_drive
+        self.medium.save(update_fields=['tape_drive'])
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'drive': self.tape_drive.pk,
+            },
+        )
+
+        task.run().get()
+
+        mock_unmount.assert_called_once_with(self.robot.device, self.tape_slot.slot_id, self.tape_drive.pk)
+
+        self.medium.refresh_from_db()
+
+        self.assertIsNone(self.medium.tape_drive)
+
+
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+class RewindTapeTestCase(TransactionTestCase):
+    def setUp(self):
+        self.taskname = 'ESSArch_Core.tasks.RewindTape'
+
+        user = User.objects.create()
+
+        self.robot = Robot.objects.create(device='/dev/sg6')
+        self.tape_drive = TapeDrive.objects.create(pk=0, device='/dev/nst0', robot=self.robot)
+        self.tape_slot = TapeSlot.objects.create(slot_id=0, robot=self.robot)
+
+        self.target = StorageTarget.objects.create()
+        self.medium = StorageMedium.objects.create(
+            storage_target=self.target, status=20, location_status=20,
+            block_size=self.target.default_block_size,
+            format=self.target.default_format, agent=user,
+            tape_slot=self.tape_slot
+        )
+
+    @mock.patch('ESSArch_Core.tasks.rewind_tape')
+    def test_rewind_unmounted_tape(self, mock_rewind):
+        mock_rewind.return_value = None
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+            },
+        )
+
+        with self.assertRaises(ValueError):
+            task.run().get()
+
+        mock_rewind.assert_not_called()
+
+    @mock.patch('ESSArch_Core.tasks.rewind_tape')
+    def test_rewind_mounted_tape(self, mock_rewind):
+        mock_rewind.return_value = None
+
+        self.medium.tape_drive = self.tape_drive
+        self.medium.save(update_fields=['tape_drive'])
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+            },
+        )
+
+        task.run().get()
+
+        mock_rewind.assert_called_once_with(self.tape_drive.device)
+
+
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+class WriteToTapeTestCase(TransactionTestCase):
+    def setUp(self):
+        self.taskname = 'ESSArch_Core.tasks.WriteToTape'
+
+        user = User.objects.create()
+
+        self.robot = Robot.objects.create(device='/dev/sg6')
+        self.tape_drive = TapeDrive.objects.create(pk=0, device='/dev/nst0', robot=self.robot)
+        self.tape_slot = TapeSlot.objects.create(slot_id=0, robot=self.robot)
+
+        self.target = StorageTarget.objects.create()
+        self.medium = StorageMedium.objects.create(
+            storage_target=self.target, status=20, location_status=20,
+            block_size=self.target.default_block_size,
+            format=self.target.default_format, agent=user,
+            tape_slot=self.tape_slot
+        )
+
+        self.temp = tempfile.NamedTemporaryFile()
+
+    @mock.patch('ESSArch_Core.tasks.write_to_tape')
+    def test_write_unmounted_tape(self, mock_write):
+        mock_write.return_value = None
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+                'path': self.temp.name,
+            },
+        )
+
+        with self.assertRaises(ValueError):
+            task.run().get()
+
+        mock_write.assert_not_called()
+
+    @mock.patch('ESSArch_Core.tasks.write_to_tape')
+    def test_write_mounted_tape(self, mock_write):
+        mock_write.return_value = None
+
+        self.medium.tape_drive = self.tape_drive
+        self.medium.save(update_fields=['tape_drive'])
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+                'path': self.temp.name,
+            },
+        )
+
+        task.run().get()
+
+        mock_write.assert_called_once_with(self.tape_drive.device, path=self.temp.name, block_size=DEFAULT_TAPE_BLOCK_SIZE)
+
+
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+class ReadTapeTestCase(TransactionTestCase):
+    def setUp(self):
+        self.taskname = 'ESSArch_Core.tasks.ReadTape'
+
+        user = User.objects.create()
+
+        self.robot = Robot.objects.create(device='/dev/sg6')
+        self.tape_drive = TapeDrive.objects.create(pk=0, device='/dev/nst0', robot=self.robot)
+        self.tape_slot = TapeSlot.objects.create(slot_id=0, robot=self.robot)
+
+        self.target = StorageTarget.objects.create()
+        self.medium = StorageMedium.objects.create(
+            storage_target=self.target, status=20, location_status=20,
+            block_size=self.target.default_block_size,
+            format=self.target.default_format, agent=user,
+            tape_slot=self.tape_slot
+        )
+
+        self.temp = tempfile.NamedTemporaryFile()
+
+    @mock.patch('ESSArch_Core.tasks.read_tape')
+    def test_read_unmounted_tape(self, mock_read):
+        mock_read.return_value = None
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+                'path': self.temp.name,
+            },
+        )
+
+        with self.assertRaises(ValueError):
+            task.run().get()
+
+        mock_read.assert_not_called()
+
+    @mock.patch('ESSArch_Core.tasks.read_tape')
+    def test_read_mounted_tape(self, mock_read):
+        mock_read.return_value = None
+
+        self.medium.tape_drive = self.tape_drive
+        self.medium.save(update_fields=['tape_drive'])
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+                'path': self.temp.name,
+            },
+        )
+
+        task.run().get()
+
+        mock_read.assert_called_once_with(self.tape_drive.device, path=self.temp.name, block_size=DEFAULT_TAPE_BLOCK_SIZE)
+
+
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+class GetTapeFileNumberTestCase(TransactionTestCase):
+    def setUp(self):
+        self.taskname = 'ESSArch_Core.tasks.GetTapeFileNumber'
+
+        user = User.objects.create()
+
+        self.robot = Robot.objects.create(device='/dev/sg6')
+        self.tape_drive = TapeDrive.objects.create(pk=0, device='/dev/nst0', robot=self.robot)
+        self.tape_slot = TapeSlot.objects.create(slot_id=0, robot=self.robot)
+
+        self.target = StorageTarget.objects.create()
+        self.medium = StorageMedium.objects.create(
+            storage_target=self.target, status=20, location_status=20,
+            block_size=self.target.default_block_size,
+            format=self.target.default_format, agent=user,
+            tape_slot=self.tape_slot
+        )
+
+    @mock.patch('ESSArch_Core.tasks.get_tape_file_number')
+    def test_get_file_number_unmounted_tape(self, mock_get_file_number):
+        num = 5
+        mock_get_file_number.return_value = 5
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+            },
+        )
+
+        with self.assertRaises(ValueError):
+            task.run().get()
+
+        mock_get_file_number.assert_not_called()
+
+    @mock.patch('ESSArch_Core.tasks.get_tape_file_number')
+    def test_get_file_number_mounted_tape(self, mock_get_file_number):
+        num = 5
+        mock_get_file_number.return_value = num
+
+        self.medium.tape_drive = self.tape_drive
+        self.medium.save(update_fields=['tape_drive'])
+
+        temp = tempfile.NamedTemporaryFile()
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+            },
+        )
+
+        task.run().get()
+
+        task.refresh_from_db()
+
+        mock_get_file_number.assert_called_once_with(self.tape_drive.device)
+        self.assertEqual(task.result, num)
+
+
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+class SetTapeFileNumberTestCase(TransactionTestCase):
+    def setUp(self):
+        self.taskname = 'ESSArch_Core.tasks.SetTapeFileNumber'
+
+        user = User.objects.create()
+
+        self.robot = Robot.objects.create(device='/dev/sg6')
+        self.tape_drive = TapeDrive.objects.create(pk=0, device='/dev/nst0', robot=self.robot)
+        self.tape_slot = TapeSlot.objects.create(slot_id=0, robot=self.robot)
+
+        self.target = StorageTarget.objects.create()
+        self.medium = StorageMedium.objects.create(
+            storage_target=self.target, status=20, location_status=20,
+            block_size=self.target.default_block_size,
+            format=self.target.default_format, agent=user,
+            tape_slot=self.tape_slot
+        )
+
+    @mock.patch('ESSArch_Core.tasks.set_tape_file_number')
+    def test_set_file_number_unmounted_tape(self, mock_set_file_number):
+        mock_set_file_number.return_value = None
+
+        num = 5
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+                'num': num,
+            },
+        )
+
+        with self.assertRaises(ValueError):
+            task.run().get()
+
+        mock_set_file_number.assert_not_called()
+
+    @mock.patch('ESSArch_Core.tasks.set_tape_file_number')
+    def test_set_file_number_mounted_tape(self, mock_set_file_number):
+        mock_set_file_number.return_value = None
+
+        self.medium.tape_drive = self.tape_drive
+        self.medium.save(update_fields=['tape_drive'])
+
+        num = 5
+
+        task = ProcessTask.objects.create(
+            name=self.taskname,
+            params={
+                'medium': self.medium.pk,
+                'num': num,
+            },
+        )
+
+        task.run().get()
+
+        mock_set_file_number.assert_called_once_with(self.tape_drive.device, num)

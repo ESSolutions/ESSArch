@@ -29,6 +29,7 @@ from django.utils import timezone
 
 from ESSArch_Core.configuration.models import (
     Agent,
+    ArchivePolicy,
     EventType,
     Parameter,
     Path,
@@ -36,6 +37,7 @@ from ESSArch_Core.configuration.models import (
 
 from ESSArch_Core.configuration.serializers import (
     AgentSerializer,
+    ArchivePolicySerializer,
     EventTypeSerializer,
     ParameterSerializer,
     PathSerializer,
@@ -128,3 +130,11 @@ class PathViewSet(viewsets.ModelViewSet):
     """
     queryset = Path.objects.all()
     serializer_class = PathSerializer
+
+
+class ArchivePolicyViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows archive policies to be viewed or edited.
+    """
+    queryset = ArchivePolicy.objects.all()
+    serializer_class = ArchivePolicySerializer

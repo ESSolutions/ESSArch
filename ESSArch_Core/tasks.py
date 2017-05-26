@@ -39,6 +39,7 @@ from celery.result import allow_join_result
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.conf import settings
+from django.db.models import F
 
 from ESSArch_Core.util import (
     alg_from_str,
@@ -46,12 +47,30 @@ from ESSArch_Core.util import (
     get_tree_size_and_count,
 )
 
+from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     findElementWithoutNamespace,
     XMLGenerator
 )
 from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, validate_against_schema
 from ESSArch_Core.ip.models import EventIP, InformationPackage
+from ESSArch_Core.storage.models import StorageMedium, TapeDrive
+from ESSArch_Core.storage.tape import (
+    DEFAULT_TAPE_BLOCK_SIZE,
+
+    create_tape_label,
+    get_tape_file_number,
+    is_tape_drive_online,
+    mount_tape,
+    read_tape,
+    rewind_tape,
+    set_tape_file_number,
+    tape_empty,
+    unmount_tape,
+    verify_tape_label,
+    wait_to_come_online,
+    write_to_tape,
+)
 from ESSArch_Core.WorkflowEngine.models import (
     ProcessStep,
     ProcessTask,
@@ -1091,6 +1110,218 @@ class DownloadFile(DBTask):
     def event_outcome_success(self, src=None, dst=None):
         pass
 
+
+class MountTape(DBTask):
+    def run(self, medium=None, drive=None, timeout=120):
+        """
+        Mounts tape into drive
+
+        Args:
+            medium: Which medium to mount
+            drive: Which drive to load to
+        """
+
+        medium = StorageMedium.objects.get(pk=medium)
+        slot = medium.tape_slot.pk
+        tape_drive = TapeDrive.objects.get(pk=drive)
+
+        mount_tape(tape_drive.robot.device, slot, drive)
+
+        wait_to_come_online(tape_drive.device, timeout)
+
+        if medium.format not in [100, 101]:
+            label_root = Path.objects.get(entity='label').value
+            xmlpath = os.path.join(label_root, '%s_label.xml' % medium.medium_id)
+
+            if tape_empty(tape_drive.device):
+                create_tape_label(medium, xmlpath)
+                rewind_tape(tape_drive.device)
+                write_to_tape(tape_drive.device, xmlpath)
+            else:
+                tar = tarfile.open(tape_drive.device, 'r|')
+                first_member = tar.getmembers()[0]
+
+                if first_member.name.endswith('_label.xml'):
+                    xmlstring = tar.extractfile(first_member).read()
+                    tar.close()
+                    if not verify_tape_label(medium, xmlstring):
+                        raise ValueError('Tape contains labelfile with wrong tapeid')
+                elif first_member.name == 'reuse':
+                    tar.close()
+
+                    create_tape_label(medium, xmlpath)
+                    rewind_tape(tape_drive.device)
+                    write_to_tape(tape_drive.device, xmlpath)
+                else:
+                    raise ValueError('Tape contains unknown information')
+
+        TapeDrive.objects.filter(pk=drive).update(
+            num_of_mounts=F('num_of_mounts')+1,
+        )
+        StorageMedium.objects.filter(pk=medium.pk).update(
+            num_of_mounts=F('num_of_mounts')+1,
+            tape_drive_id=drive
+        )
+
+    def undo(self, robot=None, slot=None, drive=None):
+        pass
+
+    def event_outcome_success(self, robot=None, slot=None, drive=None):
+        pass
+
+
+class UnmountTape(DBTask):
+    def run(self, drive=None):
+        """
+        Unmounts tape from drive into slot
+
+        Args:
+            drive: Which drive to unmount from
+        """
+
+        tape_drive = TapeDrive.objects.get(pk=drive)
+
+        if not hasattr(tape_drive, 'storage_medium'):
+            raise ValueError("No tape in tape drive to unmount")
+
+        slot = tape_drive.storage_medium.tape_slot
+        robot = tape_drive.robot
+
+        res = unmount_tape(robot.device, slot.slot_id, tape_drive.pk)
+
+        StorageMedium.objects.filter(pk=tape_drive.storage_medium.pk).update(
+            tape_drive=None
+        )
+
+        return res
+
+
+    def undo(self, robot=None, slot=None, drive=None):
+        pass
+
+    def event_outcome_success(self, robot=None, slot=None, drive=None):
+        pass
+
+
+class RewindTape(DBTask):
+    def run(self, medium=None):
+        """
+        Rewinds the given tape
+        """
+
+        try:
+            drive = TapeDrive.objects.get(storage_medium__pk=medium)
+        except TapeDrive.DoesNotExist:
+            raise ValueError("Tape not mounted")
+
+        return rewind_tape(drive.device)
+
+    def undo(self, medium=None):
+        pass
+
+    def event_outcome_success(self, medium=None):
+        pass
+
+
+class IsTapeDriveOnline(DBTask):
+    def run(self, drive=None):
+        """
+        Checks if the given tape drive is online
+
+        Args:
+            drive: Which drive to check
+
+        Returns:
+            True if the drive is online, false otherwise
+        """
+
+        return is_tape_drive_online(drive)
+
+    def undo(self, drive=None):
+        pass
+
+    def event_outcome_success(self, drive=None):
+        pass
+
+
+class ReadTape(DBTask):
+    def run(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
+        """
+        Reads the tape in the given drive
+        """
+
+        try:
+            drive = TapeDrive.objects.get(storage_medium__pk=medium)
+        except TapeDrive.DoesNotExist:
+            raise ValueError("Tape not mounted")
+
+        return read_tape(drive.device, path=path, block_size=block_size)
+
+    def undo(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
+        pass
+
+    def event_outcome_success(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
+        pass
+
+
+class WriteToTape(DBTask):
+    def run(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
+        """
+        Writes content to a tape drive
+        """
+
+        try:
+            drive = TapeDrive.objects.get(storage_medium__pk=medium)
+        except TapeDrive.DoesNotExist:
+            raise ValueError("Tape not mounted")
+
+        return write_to_tape(drive.device, path=path, block_size=block_size)
+
+    def undo(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
+        pass
+
+    def event_outcome_success(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
+        pass
+
+
+class GetTapeFileNumber(DBTask):
+    def run(self, medium=None):
+        """
+        Gets the current file number (position) of the given tape
+        """
+
+        try:
+            drive = TapeDrive.objects.get(storage_medium__pk=medium)
+        except TapeDrive.DoesNotExist:
+            raise ValueError("Tape not mounted")
+
+        return get_tape_file_number(drive.device)
+
+    def undo(self, medium=None):
+        pass
+
+    def event_outcome_success(self, medium=None):
+        pass
+
+
+class SetTapeFileNumber(DBTask):
+    def run(self, medium=None, num=0):
+        """
+        Sets the current file number (position) of the given tape
+        """
+
+        try:
+            drive = TapeDrive.objects.get(storage_medium__pk=medium)
+        except TapeDrive.DoesNotExist:
+            raise ValueError("Tape not mounted")
+
+        return set_tape_file_number(drive.device, num)
+
+    def undo(self, medium=None, num=0):
+        pass
+
+    def event_outcome_success(self, medium=None, num=0):
+        pass
 
 class ConvertFile(DBTask):
     def run(self, filepath, new_format, delete_original=True):
