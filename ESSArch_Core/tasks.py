@@ -36,7 +36,6 @@ from requests_toolbelt import MultipartEncoder
 
 from celery.result import allow_join_result
 
-from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.conf import settings
@@ -532,15 +531,16 @@ class CreateTAR(DBTask):
         tarname: The name of the tar file
     """
 
-    def run(self, dirname=None, tarname=None):
+    def run(self, dirname=None, tarname=None, compress=False):
+        compression = ':gz' if compress else ''
         base_dir = os.path.basename(os.path.normpath(dirname))
-        with tarfile.TarFile(tarname, 'w') as new_tar:
+        with tarfile.open(tarname, 'w%s' % compression) as new_tar:
             new_tar.add(dirname, base_dir)
 
         self.set_progress(100, total=100)
         return tarname
 
-    def undo(self, dirname=None, tarname=None):
+    def undo(self, dirname=None, tarname=None, compress=False):
         parent_dir = os.path.dirname((os.path.normpath(dirname)))
 
         with tarfile.open(tarname, 'r') as tar:
@@ -548,7 +548,7 @@ class CreateTAR(DBTask):
 
         os.remove(tarname)
 
-    def event_outcome_success(self, dirname=None, tarname=None):
+    def event_outcome_success(self, dirname=None, tarname=None, compress=False):
         return "Created %s from %s" % (tarname, dirname)
 
 
@@ -561,28 +561,29 @@ class CreateZIP(DBTask):
         zipname: The name of the zip file
     """
 
-    def run(self, dirname=None, zipname=None):
-        with zipfile.ZipFile(zipname, 'w') as new_zip:
+    def run(self, dirname=None, zipname=None, compress=False):
+        compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
+        with zipfile.ZipFile(zipname, 'w', compression) as new_zip:
             for root, dirs, files in os.walk(dirname):
                 for d in dirs:
                     filepath = os.path.join(root, d)
-                    arcname = filepath[len(dirname) + 1:]
+                    arcname = os.path.relpath(filepath, dirname)
                     new_zip.write(filepath, arcname)
                 for f in files:
                     filepath = os.path.join(root, f)
-                    arcname = filepath[len(dirname) + 1:]
+                    arcname = os.path.relpath(filepath, dirname)
                     new_zip.write(filepath, arcname)
 
         self.set_progress(100, total=100)
         return zipname
 
-    def undo(self, dirname=None, zipname=None):
+    def undo(self, dirname=None, zipname=None, compress=False):
         with zipfile.ZipFile(zipname, 'r') as z:
             z.extractall(dirname)
 
         os.remove(zipname)
 
-    def event_outcome_success(self, dirname=None, zipname=None):
+    def event_outcome_success(self, dirname=None, zipname=None, compress=False):
         return "Created %s from %s" % (zipname, dirname)
 
 
@@ -845,36 +846,37 @@ class DeleteFiles(DBTask):
 
 
 class CopyChunk(DBTask):
-    def local(self, src, dst, block_size=65536, offset=0):
+    def local(self, src, dst, offset, block_size=65536):
         with open(src, 'r') as srcf, open(dst, 'a') as dstf:
             srcf.seek(offset)
             dstf.seek(offset)
 
             dstf.write(srcf.read(block_size))
 
-    def remote(self, src, dst, requests_session, block_size=65536, offset=0, file_size=0):
+    def remote(self, src, dst, offset, file_size, requests_session, upload_id=None, block_size=65536):
+        filename = os.path.basename(src)
+
         with open(src, 'rb') as srcf:
             srcf.seek(offset)
-
-            filename = os.path.basename(src)
             chunk = srcf.read(block_size)
 
-            HTTP_CONTENT_RANGE = 'bytes %s-%s/%s' % (offset, offset+block_size-1, file_size)
+        start = offset
+        end = offset + block_size - 1
 
-            data = MultipartEncoder(fields=(('chunk', chunk), ('filename', filename)))
-            headers = {
-                'Content-Type': data.content_type,
-                'Content-Range': HTTP_CONTENT_RANGE
-            }
+        if end > file_size:
+            end = file_size - 1
 
-            response = requests.post(dst, data=data, headers=headers)
+        HTTP_CONTENT_RANGE = 'bytes %s-%s/%s' % (start, end, file_size)
+        headers = {'Content-Range': HTTP_CONTENT_RANGE}
 
-            try:
-                response.raise_for_status()
-            except requests.exceptions.HTTPError as e:
-                raise ValueError(e.args[0])
+        data = {'upload_id': upload_id}
+        files = {'the_file': (filename, chunk)}
+        response = requests_session.post(dst, data=data, files=files, headers=headers)
+        response.raise_for_status()
 
-    def run(self, src=None, dst=None, requests_session=None, offset=0, block_size=65536, file_size=0):
+        return response.json()['upload_id']
+
+    def run(self, src, dst, offset, upload_id=None, file_size=None, requests_session=None, block_size=65536):
         """
         Copies the given chunk to the given destination
 
@@ -888,18 +890,18 @@ class CopyChunk(DBTask):
             None
         """
 
-        val = URLValidator(dst)
+        if requests_session is not None:
+            if file_size is None:
+                raise ValueError('file_size required on remote transfers')
 
-        try:
-            val(dst)
-            self.remote(src, dst, requests_session, block_size, offset, file_size)
-        except ValidationError:
-            self.local(src, dst, block_size, offset)
+            return self.remote(src, dst, offset, file_size, requests_session, upload_id, block_size)
+        else:
+            self.local(src, dst, offset, block_size)
 
-    def undo(self, src=None, dst=None, requests_session=None, offset=0, block_size=65536, file_size=0):
+    def undo(self, src, dst, offset, upload_id=None, file_size=None, requests_session=None, block_size=65536):
         pass
 
-    def event_outcome_success(self, src=None, dst=None, requests_session=None, offset=0, block_size=65536, file_size=0):
+    def event_outcome_success(self, src, dst, offset, upload_id, file_size=None, requests_session=None, block_size=65536):
         return "Copied chunk at offset %s and size %s from %s to %s" % (offset, block_size, src, dst)
 
 
@@ -928,12 +930,8 @@ class CopyFile(DBTask):
         while idx*block_size <= fsize:
             tasks.append(ProcessTask(
                 name="ESSArch_Core.tasks.CopyChunk",
-                params={
-                    'src': src,
-                    'dst': dst,
-                    'offset': idx*block_size,
-                    'block_size': block_size
-                },
+                args=[src, dst, idx*block_size, self.task_id],
+                params={'block_size': block_size},
                 processstep=step,
                 processstep_pos=idx,
             ))
@@ -954,27 +952,65 @@ class CopyFile(DBTask):
 
         tasks = []
 
+        t = ProcessTask.objects.create(
+            name="ESSArch_Core.tasks.CopyChunk",
+            args=[src, dst, idx*block_size],
+            params={
+                'requests_session': requests_session,
+                'file_size': file_size,
+                'block_size': block_size,
+            },
+            processstep=step,
+            processstep_pos=idx,
+        )
+        upload_id = t.run().get()
+        idx += 1
+
         while idx*block_size <= file_size:
             tasks.append(ProcessTask(
                 name="ESSArch_Core.tasks.CopyChunk",
+                args=[src, dst, idx*block_size],
                 params={
-                    'src': src,
-                    'dst': dst,
                     'requests_session': requests_session,
-                    'offset': idx*block_size,
+                    'file_size': file_size,
                     'block_size': block_size,
-                    'file_size': file_size
+                    'upload_id': upload_id,
                 },
                 processstep=step,
                 processstep_pos=idx,
             ))
             idx += 1
 
-        ProcessTask.objects.bulk_create(tasks)
+        ProcessTask.objects.bulk_create(tasks, 1000)
 
-        step.run().get()
+        step.resume().get()
 
-    def run(self, src=None, dst=None, requests_session=None, block_size=65536):
+        md5 = ProcessTask.objects.create(
+            name="ESSArch_Core.tasks.CalculateChecksum",
+            params={
+                "filename": src,
+                "block_size": block_size,
+                "algorithm": 'MD5'
+            },
+            information_package_id=self.ip,
+            responsible_id=self.responsible,
+        ).run().get()
+
+        completion_url = dst.rstrip('/') + '_complete/'
+
+        m = MultipartEncoder(
+            fields={
+                'path': os.path.basename(src),
+                'upload_id': upload_id,
+                'md5': md5,
+            }
+        )
+        headers = {'Content-Type': m.content_type}
+
+        response = requests_session.post(completion_url, data=m, headers=headers)
+        response.raise_for_status()
+
+    def run(self, src, dst, requests_session=None, block_size=65536):
         """
         Copies the given file to the given destination
 
@@ -993,19 +1029,17 @@ class CopyFile(DBTask):
         if os.path.isdir(dst):
             dst = os.path.join(dst, os.path.basename(src))
 
-        val = URLValidator(dst)
         step = ProcessTask.objects.values_list('processstep', flat=True).get(pk=self.request.id)
 
-        try:
-            val(dst)
+        if requests_session is not None:
             self.remote(src, dst, requests_session, block_size, step)
-        except ValidationError:
+        else:
             self.local(src, dst, block_size, step)
 
-    def undo(self, src=None, dst=None, requests_session=None, block_size=65536):
+    def undo(self, src, dst, requests_session=None, block_size=65536):
         pass
 
-    def event_outcome_success(self, src=None, dst=None, requests_session=None, block_size=65536):
+    def event_outcome_success(self, src, dst, requests_session=None, block_size=65536):
         return "Copied %s to %s" % (src, dst)
 
 

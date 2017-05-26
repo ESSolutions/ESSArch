@@ -44,6 +44,8 @@
     Email - essarch@essolutions.se
 """
 
+from copy import copy
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -206,6 +208,9 @@ class SubmissionAgreement(models.Model):
     class Meta:
         ordering = ["name"]
         verbose_name = 'Submission Agreement'
+        permissions = (
+            ('create_new_sa_generation', 'Can create new generations of SA'),
+        )
 
     def __unicode__(self):
         # create a unicode representation of this object
@@ -224,34 +229,31 @@ class SubmissionAgreement(models.Model):
 
         return None
 
-    def copy_and_switch(self, ip, new_data, new_name):
+    def copy(self, new_data, new_name):
         """
         Copies the SA and updates the name and data of the
-        copy. Switches the relation from the ip with the old SA to the new
-        SA if the IP does not already have a locked SA
+        copy.
 
         Args:
-            ip: The information package that the SA is switched in
             new_data: The data to be used in the copy
             new_name: The name of the copy
         Returns:
             The copy
         """
 
-        copy = self
-        copy.id = None
-        copy.name = new_name
+        clone = copy(self)
+        clone.pk = None
+        clone.name = new_name
 
         for k, v in new_data.iteritems():
-            setattr(copy, k, v)
+            setattr(clone, k, v)
 
-        copy.save()
+        clone.save()
 
-        if not ip.SubmissionAgreementLocked:
-            ip.SubmissionAgreement = copy
-            ip.save(update_fields=['SubmissionAgreement'])
+        for profile_sa in ProfileSA.objects.filter(submission_agreement_id=self).iterator():
+            ProfileSA.objects.create(submission_agreement=clone, profile=profile_sa.profile)
 
-        return copy
+        return clone
 
 
 profile_types = [

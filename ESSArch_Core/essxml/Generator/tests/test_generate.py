@@ -344,6 +344,150 @@ class test_generateXML(TransactionTestCase):
         tree = etree.parse(self.fname)
         self.assertEqual(etree.tostring(tree.getroot()), '<root>\n  <bar>baz</bar>\n  <foo bar="baz">baz</foo>\n</root>')
 
+    def test_generate_element_with_empty_child_and_hideEmptyContent(self):
+        specification = {
+            '-name': 'root',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-hideEmptyContent': True,
+                    '-children': [
+                        {
+                            '-name': "bar",
+                        },
+                    ]
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}, {}
+        )
+
+        generator.generate()
+
+        self.assertTrue(os.path.exists(self.fname))
+
+        tree = etree.parse(self.fname)
+        self.assertEqual(etree.tostring(tree.getroot()), '<root/>')
+
+    def test_generate_element_with_empty_child_with_containsFiles_and_hideEmptyContent(self):
+        specification = {
+            '-name': 'root',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-hideEmptyContent': True,
+                    '-children': [
+                        {
+                            '-name': "bar",
+                            '-containsFiles': True,
+                        },
+                    ]
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}, {}
+        )
+
+        generator.generate()
+
+        self.assertTrue(os.path.exists(self.fname))
+
+        tree = etree.parse(self.fname)
+        self.assertEqual(etree.tostring(tree.getroot()), '<root/>')
+
+    def test_generate_element_with_empty_child_with_containsFiles_and_hideEmptyContent_and_attributes(self):
+        specification = {
+            '-name': 'root',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-hideEmptyContent': True,
+                    "-attr": [
+                        {
+                            "-name": "ID",
+                            "#content": [{"text": "ID"}]
+                        }
+                    ],
+                    '-children': [
+                        {
+                            '-name': "bar",
+                            '-hideEmptyContent': True,
+                            "-attr": [
+                                {
+                                    "-name": "ID",
+                                    "#content": [{"text": "ID"}]
+                                }
+                            ],
+                        },
+                    ]
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}, {}
+        )
+
+        generator.generate()
+
+        self.assertTrue(os.path.exists(self.fname))
+
+        tree = etree.parse(self.fname)
+        self.assertEqual(etree.tostring(tree.getroot()), '<root/>')
+
+    def test_generate_element_with_empty_child_with_containsFiles_and_files_and_hideEmptyContent(self):
+        specification = {
+            '-name': 'root',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-hideEmptyContent': True,
+                    '-children': [
+                        {
+                            '-name': "bar",
+                            '-containsFiles': True,
+                            '-attr': [
+                                {
+                                    '-name': 'name',
+                                    '#content': [{'var': 'FName'}]
+                                }
+                            ]
+                        },
+                    ]
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}, {}
+        )
+
+        generator.generate(folderToParse=self.datadir)
+
+        self.assertTrue(os.path.exists(self.fname))
+
+        tree = etree.parse(self.fname)
+
+        num_of_files = 0
+
+        for root, dirs, files in os.walk(self.datadir):
+            for f in files:
+                file_element = tree.find(".//bar[@name='%s']" % f)
+                self.assertIsNotNone(file_element)
+
+                num_of_files += 1
+
+        file_elements = tree.findall('.//bar')
+        self.assertEqual(len(file_elements), num_of_files)
+
     def test_generate_element_with_content(self):
         specification = {
             '-name': "foo",
