@@ -29,23 +29,6 @@ from rest_framework import serializers
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.util import available_tasks
 
-import jsonpickle
-import json
-
-
-class PickledObjectFieldSerializer(serializers.Field):
-    def to_representation(self, obj):
-        return json.loads(jsonpickle.encode(obj))
-
-    def to_internal_value(self, data):
-        return jsonpickle.decode(json.dumps(data))
-
-
-class RecursiveField(serializers.Serializer):
-    def to_representation(self, value):
-        serializer = self.parent.parent.__class__(value, context=self.context)
-        return serializer.data
-
 
 class ProcessStepChildrenSerializer(serializers.Serializer):
     url = serializers.SerializerMethodField()
