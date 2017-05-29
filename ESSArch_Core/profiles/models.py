@@ -447,6 +447,7 @@ class Profile(models.Model):
         copy.name = new_name
         copy.specification_data = specification_data
         copy.structure = structure
+        copy.clean()
         copy.save()
 
         return copy
