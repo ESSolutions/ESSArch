@@ -48,11 +48,13 @@ from copy import copy
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
+from django.core.validators import validate_email, URLValidator
 from django.db import models
 
 import jsonfield
 import uuid
+
+from ESSArch_Core.util import validate_remote_url
 
 Profile_Status_CHOICES = (
     (0, 'Disabled'),
@@ -400,11 +402,21 @@ class Profile(models.Model):
     def clean(self):
         for field in self.template:
             key = field.get('key')
-            if field.get('templateOptions', {}).get('required') and not self.get_value_for_key(key):
+            templateOptions = field.get('templateOptions', {})
+
+            if templateOptions.get('required') and not self.get_value_for_key(key):
                 raise ValidationError("Required field (%s) can't be empty" % (field.get('key')))
 
-            if field.get('templateOptions', {}).get('type') == 'email' and self.get_value_for_key(key):
+            if templateOptions.get('type') == 'email' and self.get_value_for_key(key):
                 validate_email(self.get_value_for_key(key))
+
+            elif templateOptions.get('type') == 'url' and 'remote' in templateOptions.keys() and self.get_value_for_key(key):
+                validate_remote_url(self.get_value_for_key(key))
+
+            elif templateOptions.get('type') == 'url' and self.get_value_for_key(key):
+                validate_url = URLValidator()
+                validate_url(self.get_value_for_key(key))
+
 
     def get_value_for_key(self, key):
         return self.specification_data.get(key)

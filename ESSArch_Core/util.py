@@ -36,6 +36,7 @@ import shutil
 
 from rest_framework.exceptions import ValidationError
 from django.utils.timezone import get_current_timezone
+from django.core.validators import RegexValidator
 
 from datetime import datetime
 
@@ -426,3 +427,9 @@ def in_directory(path, directory):
     path = os.path.join(os.path.realpath(path), '')
 
     return os.path.commonprefix([path, directory]) == directory
+
+
+def validate_remote_url(url):
+    regex = '^[a-z][a-z\d.+-]*:\/*(?:[^:@]+(?::[^@]+)?@)?(?:[^\s:/?#,]+|\[[a-f\d:]+])(?::\d+)?(?:\/[^?#]*)?(?:\?[^#]*)?(?:#.*)?,[^,]+,[^,]+$'
+    validate = RegexValidator(regex, 'Enter a valid URL with credentials.')
+    validate(url)
