@@ -832,6 +832,7 @@ class test_running_steps(TransactionTestCase):
         for i in range(n):
             t = ProcessTask(
                 name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+                args=['foo'],
                 params={'foo': 'bar'},
                 processstep=step,
             )
@@ -900,6 +901,7 @@ class test_running_steps(TransactionTestCase):
         for i in range(n):
             t = ProcessTask(
                 name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+                args=['foo'],
                 params={'foo': i},
                 processstep=step,
             )
@@ -975,16 +977,19 @@ class test_running_steps(TransactionTestCase):
 
         t1 = ProcessTask(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            args=['foo'],
             params={'foo': 'bar'},
             processstep=step,
         )
         t2 = ProcessTask(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            args=['foo'],
             params={'foo': 'bar'},
             processstep=step,
         )
         t3 = ProcessTask(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            args=['foo'],
             params={'foo': 'bar'},
             processstep=step,
         )
@@ -1013,16 +1018,19 @@ class test_running_steps(TransactionTestCase):
 
         t1 = ProcessTask(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            args=['foo'],
             params={'foo': 'bar'},
             processstep=step,
         )
         t2 = ProcessTask(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            args=['foo'],
             params={'bar': 'foo'},
             processstep=step,
         )
         t3 = ProcessTask(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            args=['foo'],
             params={'foo': 'bar'},
             processstep=step,
         )

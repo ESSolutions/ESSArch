@@ -158,10 +158,12 @@ class test_running_tasks(TestCase):
     def test_on_success_with_event(self):
         EventType.objects.create(eventType=1)
 
+        bar = 321
         foo = 123
 
         task = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            args=[bar],
             params={
                 "foo": foo
             },
@@ -177,7 +179,7 @@ class test_running_tasks(TestCase):
 
         e = EventIP.objects.get(eventApplication=task.pk)
         self.assertEqual(e.eventOutcome, 0)
-        self.assertEqual(e.eventOutcomeDetailNote, "Task completed successfully with foo=%s" % foo)
+        self.assertEqual(e.eventOutcomeDetailNote, "Task completed successfully with bar=%s and foo=%s" % (bar, foo))
         self.assertEqual(e.eventApplication, task)
 
     def test_on_failure(self):
@@ -221,8 +223,9 @@ class test_running_tasks(TestCase):
         foo = 123
         task = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
+            args=['bar'],
             params={
-                "bar": foo
+                "invalid": foo
             },
             information_package=InformationPackage.objects.create()
         )
@@ -235,7 +238,7 @@ class test_running_tasks(TestCase):
 
         self.assertIsNone(task.result)
         self.assertIsNotNone(task.traceback)
-        self.assertEqual(u"TypeError: run() got an unexpected keyword argument 'bar'", task.exception)
+        self.assertEqual(u"TypeError: run() got an unexpected keyword argument 'invalid'", task.exception)
 
         e = EventIP.objects.get(eventApplication=task.pk)
         self.assertEqual(e.eventOutcome, 1)

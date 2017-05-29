@@ -119,7 +119,7 @@ class DBTask(Task):
                         )
                         res.append(retval)
                         if self.event_type:
-                            event = self.create_event(self.task_id, celery_states.SUCCESS, args, a, retval, None)
+                            event = self.create_event(self.task_id, celery_states.SUCCESS, self.args, a, retval, None)
                             events.append(event)
             except:
                 raise
@@ -190,7 +190,7 @@ class DBTask(Task):
         if status == celery_states.SUCCESS:
             outcome = 0
             kwargs.pop('_options', {})
-            outcome_detail_note = self.event_outcome_success(**kwargs)
+            outcome_detail_note = self.event_outcome_success(*args, **kwargs)
         else:
             outcome = 1
             outcome_detail_note = einfo.traceback
