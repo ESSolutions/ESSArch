@@ -844,7 +844,7 @@ class test_running_steps(TransactionTestCase):
         with self.assertNumQueries(expected):
             res = step.chunk()
 
-        self.assertEqual(len(res), 10)
+        self.assertEqual(len(res), n)
 
         for t in tasks:
             t.refresh_from_db()
