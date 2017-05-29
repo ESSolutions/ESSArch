@@ -29,8 +29,7 @@ from ESSArch_Core.profiles.models import Profile, ProfileSA, SubmissionAgreement
 
 
 class SubmissionAgreementTestCase(TestCase):
-    def test_copy_and_switch(self):
-        ip = InformationPackage.objects.create()
+    def test_copy(self):
         sa = SubmissionAgreement.objects.create()
         profile = Profile.objects.create()
         ProfileSA.objects.create(submission_agreement=sa, profile=profile)
@@ -38,7 +37,7 @@ class SubmissionAgreementTestCase(TestCase):
         name = 'new'
         data = {'archivist_organization': 'new ao'}
 
-        new = sa.copy_and_switch(ip, data, name)
+        new = sa.copy(data, name)
 
         self.assertNotEqual(new.pk, sa.pk)
         self.assertEqual(new.name, name)
