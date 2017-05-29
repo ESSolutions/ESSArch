@@ -417,19 +417,17 @@ class Profile(models.Model):
         # create a unicode representation of this object
         return '%s (%s) - %s' % (self.name, self.profile_type, self.id)
 
-    def copy_and_switch(self, ip, specification_data, new_name, structure={}):
+    def copy(self, specification_data, new_name, structure={}):
         """
         Copies the profile and updates the name and specification_data of the
-        copy. Switches the relation from the ip with the old profile to the new
-        profile if the IP does not already has a locked profile
+        copy.
 
         Args:
-            ip: The information package that the profile is
-                                  switched in
             specification_data: The data to be used in the copy
             new_name: The name of the new profile
+            structure: The structure of the new profile
         Returns:
-            None
+            The new profile
         """
 
         copy = Profile.objects.get(pk=self.pk)
@@ -438,13 +436,6 @@ class Profile(models.Model):
         copy.specification_data = specification_data
         copy.structure = structure
         copy.save()
-
-        locked_profile_exists = ProfileIP.objects.filter(
-            ip=ip, profile__profile_type=self.profile_type, LockedBy__isnull=False
-        ).exists()
-
-        if not locked_profile_exists:
-            ip.change_profile(copy)
 
         return copy
 
