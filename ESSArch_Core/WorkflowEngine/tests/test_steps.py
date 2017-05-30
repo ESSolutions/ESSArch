@@ -1226,7 +1226,10 @@ class test_running_steps(TransactionTestCase):
         step.tasks = [t1, t2, t3]
         step.save()
 
-        step.run().get()
+        expected = 14 if self.transaction_support else 20
+
+        with self.assertNumQueries(expected):
+            step.run().get()
 
         self.assertEqual(step.status, celery_states.SUCCESS)
 
