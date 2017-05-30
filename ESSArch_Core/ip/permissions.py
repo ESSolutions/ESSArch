@@ -36,7 +36,7 @@ class IsResponsible(permissions.IsAuthenticated):
     message = "You are not responsible for this IP"
 
     def is_responsible(self, request, obj):
-        return obj.Responsible == request.user
+        return obj.responsible == request.user
 
     def has_object_permission(self, request, view, obj):
         return self.is_responsible(request, obj)

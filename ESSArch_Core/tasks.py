@@ -465,7 +465,7 @@ class AppendEvents(DBTask):
                 "linkingAgentIdentifierType": "SE/RA",
                 "linkingAgentIdentifierValue": event.linkingAgentIdentifierValue.username,
                 "linkingObjectIdentifierType": "SE/RA",
-                "linkingObjectIdentifierValue": str(event.linkingObjectIdentifierValue.ObjectIdentifierValue),
+                "linkingObjectIdentifierValue": str(event.linkingObjectIdentifierValue.object_identifier_value),
             }
 
             generator.insert(filename, "premis", template, data)
@@ -601,7 +601,7 @@ class ValidateFiles(DBTask):
 
         if any([validate_fileformat, validate_integrity]):
             if rootdir is None:
-                rootdir = InformationPackage.objects.values_list('ObjectPath', flat=True).get(pk=ip)
+                rootdir = InformationPackage.objects.values_list('object_path', flat=True).get(pk=ip)
 
             tasks = []
 
@@ -789,9 +789,9 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 
 class UpdateIPStatus(DBTask):
     def run(self, ip=None, status=None, prev=None):
-        InformationPackage.objects.filter(pk=ip).update(State=status)
+        InformationPackage.objects.filter(pk=ip).update(state=status)
     def undo(self, ip=None, status=None, prev=None):
-        InformationPackage.objects.filter(pk=ip).update(State=prev)
+        InformationPackage.objects.filter(pk=ip).update(state=prev)
 
     def event_outcome_success(self, ip=None, status=None, prev=None):
         return "Updated status of %s to %s" % (ip, status)
@@ -799,9 +799,9 @@ class UpdateIPStatus(DBTask):
 
 class UpdateIPPath(DBTask):
     def run(self, ip=None, path=None, prev=None):
-        InformationPackage.objects.filter(pk=ip).update(ObjectPath=path)
+        InformationPackage.objects.filter(pk=ip).update(object_path=path)
     def undo(self, ip=None, path=None, prev=None):
-        InformationPackage.objects.filter(pk=ip).update(ObjectPath=prev)
+        InformationPackage.objects.filter(pk=ip).update(object_path=prev)
 
     def event_outcome_success(self, ip=None, path=None, prev=None):
         return "Updated path of %s to %s" % (ip, path)
@@ -811,7 +811,7 @@ class UpdateIPSizeAndCount(DBTask):
     queue = 'file_operation'
 
     def run(self, ip=None):
-        path = InformationPackage.objects.values_list('ObjectPath', flat=True).get(pk=ip)
+        path = InformationPackage.objects.values_list('object_path', flat=True).get(pk=ip)
         size, count = get_tree_size_and_count(path)
 
         InformationPackage.objects.filter(pk=ip).update(

@@ -158,7 +158,7 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
             ).first()
 
             if not sa and ip:
-                sa = ip.SubmissionAgreement
+                sa = ip.submission_agreement
 
             data = obj.fill_specification_data(sa, ip)
 

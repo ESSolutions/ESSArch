@@ -259,7 +259,7 @@ class StorageObject(models.Model):
             medium_id = 'unknown media'
 
         try:
-            obj_identifier_value = self.ip.ObjectIdentifierValue
+            obj_identifier_value = self.ip.object_identifier_value
         except ObjectDoesNotExist:
             obj_identifier_value = 'unknown object'
 

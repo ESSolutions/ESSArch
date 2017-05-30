@@ -132,18 +132,18 @@ class InformationPackage(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
-    ObjectIdentifierValue = models.CharField(max_length=255, unique=True)
-    Label = models.CharField(max_length=255, blank=True)
-    Content = models.CharField(max_length=255)
-    CreateDate = models.DateTimeField(auto_now_add=True)
-    State = models.CharField(max_length=255)
+    object_identifier_value = models.CharField(max_length=255, unique=True)
+    label = models.CharField(max_length=255, blank=True)
+    content = models.CharField(max_length=255)
+    create_date = models.DateTimeField(auto_now_add=True)
+    state = models.CharField(max_length=255)
 
-    ObjectPath = models.CharField(max_length=255, blank=True)
+    object_path = models.CharField(max_length=255, blank=True)
     object_size = models.BigIntegerField(default=0)
     object_num_items = models.IntegerField(default=0)
 
-    Startdate = models.DateTimeField(null=True)
-    Enddate = models.DateTimeField(null=True)
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
 
     message_digest_algorithm = models.IntegerField(null=True, choices=MESSAGE_DIGEST_ALGORITHM_CHOICES)
     message_digest = models.CharField(max_length=128, blank=True)
@@ -168,7 +168,7 @@ class InformationPackage(models.Model):
     last_changed_local = models.DateTimeField(null=True)
     last_changed_external = models.DateTimeField(null=True)
 
-    Responsible = models.ForeignKey(
+    responsible = models.ForeignKey(
         'auth.User', on_delete=models.SET_NULL,
         related_name='information_packages', null=True
     )
@@ -176,36 +176,36 @@ class InformationPackage(models.Model):
     policy = models.ForeignKey('configuration.ArchivePolicy', on_delete=models.PROTECT, related_name='information_packages', null=True)
     aic = models.ForeignKey('self', on_delete=models.PROTECT, related_name='information_packages', null=True)
 
-    SubmissionAgreement = models.ForeignKey(
+    submission_agreement = models.ForeignKey(
         SA,
         on_delete=models.CASCADE,
         related_name='information_packages',
         default=None,
         null=True,
     )
-    SubmissionAgreementLocked = models.BooleanField(default=False)
-    ArchivalInstitution = models.ForeignKey(
+    submission_agreement_locked = models.BooleanField(default=False)
+    archival_institution = models.ForeignKey(
         ArchivalInstitution,
         on_delete=models.CASCADE,
         related_name='information_packages',
         default=None,
         null=True
     )
-    ArchivistOrganization = models.ForeignKey(
+    archivist_organization = models.ForeignKey(
         ArchivistOrganization,
         on_delete=models.CASCADE,
         related_name='information_packages',
         default=None,
         null=True
     )
-    ArchivalType = models.ForeignKey(
+    archival_type = models.ForeignKey(
         ArchivalType,
         on_delete=models.CASCADE,
         related_name='information_packages',
         default=None,
         null=True
     )
-    ArchivalLocation = models.ForeignKey(
+    archival_location = models.ForeignKey(
         ArchivalLocation,
         on_delete=models.CASCADE,
         related_name='information_packages',
@@ -214,7 +214,7 @@ class InformationPackage(models.Model):
     )
 
     def related_ips(self):
-        sorting = ('generation', 'package_type', 'CreateDate',)
+        sorting = ('generation', 'package_type', 'create_date',)
 
         if self.package_type == InformationPackage.AIC:
             return self.information_packages.order_by(*sorting)
@@ -224,8 +224,8 @@ class InformationPackage(models.Model):
         ).exclude(pk=self.pk).order_by(*sorting)
 
     def save(self, *args, **kwargs):
-        if not self.ObjectIdentifierValue:
-            self.ObjectIdentifierValue = str(self.pk)
+        if not self.object_identifier_value:
+            self.object_identifier_value = str(self.pk)
 
         super(InformationPackage, self).save(*args, **kwargs)
 
@@ -271,8 +271,8 @@ class InformationPackage(models.Model):
             ip=self, profile__profile_type=ptype
         ).update(LockedBy=None)
 
-        self.State = 'Preparing'
-        self.save(update_fields=['State'])
+        self.state = 'Preparing'
+        self.save(update_fields=['state'])
 
     def get_container_format(self):
         try:
@@ -341,18 +341,18 @@ class InformationPackage(models.Model):
         return state
 
     def status(self):
-        if self.State in ["Prepared", "Uploaded", "Created", "Submitted", "Received", "Transferred", 'Archived']:
+        if self.state in ["Prepared", "Uploaded", "Created", "Submitted", "Received", "Transferred", 'Archived']:
             return 100
 
-        if self.State == "Preparing":
-            if not self.SubmissionAgreementLocked:
+        if self.state == "Preparing":
+            if not self.submission_agreement_locked:
                 return 33
 
             progress = 66
 
             try:
                 sa_profiles = ProfileSA.objects.filter(
-                    submission_agreement=self.SubmissionAgreement
+                    submission_agreement=self.submission_agreement
                 )
 
                 ip_profiles_locked = ProfileIP.objects.filter(
@@ -369,7 +369,7 @@ class InformationPackage(models.Model):
 
             return progress
 
-        if self.State in ["Uploading", "Creating", "Submitting", "Receiving", "Transferring"]:
+        if self.state in ["Uploading", "Creating", "Submitting", "Receiving", "Transferring"]:
             steps = self.steps.all()
 
             if steps:
@@ -420,7 +420,7 @@ class InformationPackage(models.Model):
 
     def __unicode__(self):
         # create a unicode representation of this object
-        return '%s - %s' % (self.Label, self.pk)
+        return '%s - %s' % (self.label, self.pk)
 
     def get_value_array(self):
         # make an associative array of all fields  mapping the field

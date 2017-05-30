@@ -71,31 +71,31 @@ class IPAdmin(admin.ModelAdmin):
     """
     Informaion Package
     """
-    list_display = ('ArchivistOrganization', 'Label', 'CreateDate', 'id', 'ObjectPath', 'State')
-    search_fields = ('ArchivistOrganization',)
+    list_display = ('archivist_organization', 'label', 'create_date', 'id', 'object_path', 'state')
+    search_fields = ('archivist_organization',)
     readonly_fields = ('id',)
-    list_filter = ('ArchivistOrganization', 'Label')
+    list_filter = ('archivist_organization', 'label')
     #fields = ('entity', 'value')
     fieldsets = (
                 (None, {
                    'classes': ('wide'),
                    'fields': (
                               'id',
-                              'Label',
-                              'Content',
-                              'Responsible',
-                              'CreateDate',
-                              'State',
-                              'Status',
-                              'ObjectPath',
-                              'Startdate',
-                              'Enddate',
-                              'OAIStype',
-                              'SubmissionAgreement',
-                              'ArchivalInstitution',
-                              'ArchivistOrganization',
-                              'ArchivalType',
-                              'ArchivalLocation',
+                              'label',
+                              'content',
+                              'responsible',
+                              'create_date',
+                              'state',
+                              'status',
+                              'object_path',
+                              'start_date',
+                              'end_date',
+                              'package_type',
+                              'submission_agreement',
+                              'archival_institution',
+                              'archivist_organization',
+                              'archival_type',
+                              'archival_location',
                              )}),
                )
 

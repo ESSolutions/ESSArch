@@ -878,7 +878,7 @@ class AppendEventsTestCase(TransactionTestCase):
         self.root = os.path.dirname(os.path.realpath(__file__))
         self.datadir = os.path.join(self.root, "datadir")
         self.fname = os.path.join(self.datadir, 'test1.xml')
-        self.ip = InformationPackage.objects.create(Label="testip")
+        self.ip = InformationPackage.objects.create(label="testip")
         self.user = User.objects.create(username="testuser")
 
         try:
@@ -1078,7 +1078,7 @@ class ValidateFilesTestCase(TransactionTestCase):
         self.root = os.path.dirname(os.path.realpath(__file__))
         self.datadir = os.path.join(self.root, "datadir")
         self.fname = os.path.join(self.datadir, 'test1.xml')
-        self.ip = InformationPackage.objects.create(Label="testip")
+        self.ip = InformationPackage.objects.create(label="testip")
         self.user = User.objects.create(username="testuser")
 
         Path.objects.create(
@@ -1775,7 +1775,7 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
         self.root = os.path.dirname(os.path.realpath(__file__))
         self.datadir = os.path.join(self.root, "datadir")
         self.fname = os.path.join(self.datadir, 'test1.xml')
-        self.ip = InformationPackage.objects.create(Label="testip")
+        self.ip = InformationPackage.objects.create(label="testip")
         self.user = User.objects.create(username="testuser")
 
         Path.objects.create(
@@ -2007,7 +2007,7 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
 class UpdateIPStatusTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.UpdateIPStatus"
-        self.ip = InformationPackage.objects.create(Label="testip", State='initial')
+        self.ip = InformationPackage.objects.create(label="testip", state='initial')
 
     def test_update(self):
         task = ProcessTask.objects.create(
@@ -2015,14 +2015,14 @@ class UpdateIPStatusTestCase(TransactionTestCase):
             params={
                 'ip': self.ip.pk,
                 'status': 'new',
-                'prev': self.ip.State
+                'prev': self.ip.state
             }
         )
 
         task.run()
 
         self.ip.refresh_from_db()
-        self.assertEqual(self.ip.State, 'new')
+        self.assertEqual(self.ip.state, 'new')
 
     def test_undo(self):
         task = ProcessTask.objects.create(
@@ -2030,25 +2030,25 @@ class UpdateIPStatusTestCase(TransactionTestCase):
             params={
                 'ip': self.ip.pk,
                 'status': 'new',
-                'prev': self.ip.State
+                'prev': self.ip.state
             }
         )
 
         task.run()
 
         self.ip.refresh_from_db()
-        self.assertEqual(self.ip.State, 'new')
+        self.assertEqual(self.ip.state, 'new')
 
         task.undo()
 
         self.ip.refresh_from_db()
-        self.assertEqual(self.ip.State, 'initial')
+        self.assertEqual(self.ip.state, 'initial')
 
 
 class UpdateIPPathTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.UpdateIPPath"
-        self.ip = InformationPackage.objects.create(Label="testip", ObjectPath='initial')
+        self.ip = InformationPackage.objects.create(label="testip", object_path='initial')
 
     def test_update(self):
         task = ProcessTask.objects.create(
@@ -2056,14 +2056,14 @@ class UpdateIPPathTestCase(TransactionTestCase):
             params={
                 'ip': self.ip.pk,
                 'path': 'new',
-                'prev': self.ip.ObjectPath
+                'prev': self.ip.object_path
             }
         )
 
         task.run()
 
         self.ip.refresh_from_db()
-        self.assertEqual(self.ip.ObjectPath, 'new')
+        self.assertEqual(self.ip.object_path, 'new')
 
     def test_undo(self):
         task = ProcessTask.objects.create(
@@ -2071,19 +2071,19 @@ class UpdateIPPathTestCase(TransactionTestCase):
             params={
                 'ip': self.ip.pk,
                 'path': 'new',
-                'prev': self.ip.ObjectPath
+                'prev': self.ip.object_path
             }
         )
 
         task.run()
 
         self.ip.refresh_from_db()
-        self.assertEqual(self.ip.ObjectPath, 'new')
+        self.assertEqual(self.ip.object_path, 'new')
 
         task.undo()
 
         self.ip.refresh_from_db()
-        self.assertEqual(self.ip.ObjectPath, 'initial')
+        self.assertEqual(self.ip.object_path, 'initial')
 
 
 class UpdateIPSizeAndCountTestCase(TransactionTestCase):
@@ -2091,7 +2091,7 @@ class UpdateIPSizeAndCountTestCase(TransactionTestCase):
         self.taskname = "ESSArch_Core.tasks.UpdateIPSizeAndCount"
         self.root = os.path.dirname(os.path.realpath(__file__))
         self.datadir = os.path.join(self.root, "datadir")
-        self.ip = InformationPackage.objects.create(ObjectPath=self.datadir)
+        self.ip = InformationPackage.objects.create(object_path=self.datadir)
 
         try:
             os.mkdir(self.datadir)
@@ -2235,7 +2235,7 @@ class UpdateIPSizeAndCountTestCase(TransactionTestCase):
         with open(os.path.join(self.datadir, 'foo.txt'), 'w') as f:
             f.write('foo')
 
-        self.ip.ObjectPath = os.path.join(self.datadir, 'foo.txt')
+        self.ip.object_path = os.path.join(self.datadir, 'foo.txt')
         self.ip.save()
 
         task = ProcessTask.objects.create(
