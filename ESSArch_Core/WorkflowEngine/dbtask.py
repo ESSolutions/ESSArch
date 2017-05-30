@@ -135,12 +135,8 @@ class DBTask(Task):
                     transaction.commit()
                     transaction.set_autocommit(True)
 
-        with allow_join_result():
-            for k, v in self.result_params.iteritems():
-                if self.eager:
-                    kwargs[k] = ProcessTask.objects.values_list('result', flat=True).get(pk=v)
-                else:
-                    kwargs[k] = current_app.AsyncResult(str(v)).get()
+        for k, v in self.result_params.iteritems():
+            kwargs[k] = ProcessTask.objects.values_list('result', flat=True).get(pk=v)
 
         ProcessTask.objects.filter(pk=self.task_id).update(
             hidden=self.hidden,
