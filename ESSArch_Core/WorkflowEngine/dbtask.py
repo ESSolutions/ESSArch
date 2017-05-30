@@ -31,7 +31,7 @@ import time
 from billiard.einfo import ExceptionInfo
 
 from celery import current_app, states as celery_states, Task
-from celery.result import allow_join_result
+from celery.result import AsyncResult
 
 from ESSArch_Core.configuration.models import EventType
 
@@ -136,7 +136,10 @@ class DBTask(Task):
                     transaction.set_autocommit(True)
 
         for k, v in self.result_params.iteritems():
-            kwargs[k] = ProcessTask.objects.values_list('result', flat=True).get(pk=v)
+            if not self.eager and AsyncResult(str(v)).successful():
+                kwargs[k] = AsyncResult(str(v)).result
+            else:
+                kwargs[k] = ProcessTask.objects.values_list('result', flat=True).get(pk=v)
 
         ProcessTask.objects.filter(pk=self.task_id).update(
             hidden=self.hidden,
