@@ -579,9 +579,9 @@ class ProcessTask(Process):
     responsible = models.ForeignKey(
         'auth.User', on_delete=models.SET_NULL, related_name='tasks', null=True
     )
-    args = PickledObjectField(null=True, default=[])
-    params = PickledObjectField(null=True, default={})
-    result_params = PickledObjectField(null=True)
+    args = PickledObjectField(default=[])
+    params = PickledObjectField(default={})
+    result_params = PickledObjectField(default={})
     time_started = models.DateTimeField(_('started at'), null=True, blank=True)
     time_done = models.DateTimeField(_('done at'), null=True, blank=True)
     traceback = models.TextField(blank=True)
