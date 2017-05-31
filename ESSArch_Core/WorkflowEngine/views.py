@@ -73,8 +73,10 @@ class ProcessViewSet(GenericAPIView, viewsets.ViewSet):
         tasks = step.tasks.all().select_related('responsible')
 
         if hidden is True:
+            child_steps = child_steps.filter(hidden=True)
             tasks = tasks.filter(hidden=True)
         elif hidden is False:
+            child_steps = child_steps.filter(hidden=False)
             tasks = tasks.filter(hidden=False)
 
 
