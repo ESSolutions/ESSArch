@@ -29,7 +29,10 @@ import pytz
 from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework.decorators import detail_route
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
+
+from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.WorkflowEngine.filters import ProcessStepFilter, ProcessTaskFilter
 from ESSArch_Core.WorkflowEngine.models import (
@@ -53,6 +56,44 @@ from ESSArch_Core.WorkflowEngine.serializers import (
 from rest_framework import viewsets
 
 
+class ProcessViewSet(GenericAPIView, viewsets.ViewSet):
+    queryset = ProcessStep.objects.none()
+
+    def list(self, request, parent_lookup_processstep):
+        hidden = request.query_params.get('hidden')
+
+        if hidden in ['True', 'true', True]:
+            hidden = True
+
+        elif hidden in ['False', 'false', False]:
+            hidden = False
+
+        step = ProcessStep.objects.get(pk=parent_lookup_processstep)
+        child_steps = step.child_steps.all()
+        tasks = step.tasks.all().select_related('responsible')
+
+        if hidden is True:
+            tasks = tasks.filter(hidden=True)
+        elif hidden is False:
+            tasks = tasks.filter(hidden=False)
+
+
+        queryset = sorted(
+            itertools.chain(child_steps, tasks),
+            key=lambda instance: instance.time_started or
+            datetime.datetime(datetime.MAXYEAR, 1, 1, 1, 1, 1, 1, pytz.UTC)
+        )
+
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializers = ProcessStepChildrenSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializers.data)
+
+        serializers = ProcessStepChildrenSerializer(queryset, many=True, context={'request': request})
+        return Response(serializers.data)
+
+
 class ProcessStepViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows steps to be viewed or edited.
@@ -68,24 +109,6 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
 
         return ProcessStepDetailSerializer
 
-    @detail_route(methods=['get'], url_path='children')
-    def children(self, request, pk=None):
-        step = self.get_object()
-        child_steps = step.child_steps.all()
-        tasks = step.tasks.filter(hidden=False).select_related('responsible')
-        queryset = sorted(
-            itertools.chain(child_steps, tasks),
-            key=lambda instance: instance.time_started or
-            datetime.datetime(datetime.MAXYEAR, 1, 1, 1, 1, 1, 1, pytz.UTC)
-        )
-        page = self.paginate_queryset(queryset)
-
-        if page is not None:
-            serializers = ProcessStepChildrenSerializer(page, many=True, context={'request': request})
-            return self.get_paginated_response(serializers.data)
-        serializers = ProcessStepChildrenSerializer(queryset, many=True, context={'request': request})
-        return Response(serializers.data)
-
     @detail_route(methods=['get'], url_path='child-steps')
     def child_steps(self, request, pk=None):
         step = self.get_object()
@@ -95,17 +118,6 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
             serializers = ProcessStepSerializer(page, many=True, context={'request': request})
             return self.get_paginated_response(serializers.data)
         serializers = ProcessStepSerializer(child_steps, many=True, context={'request': request})
-        return Response(serializers.data)
-
-    @detail_route(methods=['get'])
-    def tasks(self, request, pk=None):
-        step = self.get_object()
-        tasks = step.tasks.filter(hidden=False).select_related('responsible')
-        page = self.paginate_queryset(tasks)
-        if page is not None:
-            serializers = ProcessTaskSerializer(page, many=True, context={'request': request})
-            return self.get_paginated_response(serializers.data)
-        serializers = ProcessTaskSerializer(tasks, many=True, context={'request': request})
         return Response(serializers.data)
 
     @detail_route(methods=['post'])
@@ -134,7 +146,7 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
         return Response({'status': 'resuming step'})
 
 
-class ProcessTaskViewSet(viewsets.ModelViewSet):
+class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint that allows tasks to be viewed or edited.
     """
