@@ -27,6 +27,7 @@ from celery import states as celery_states
 from rest_framework import serializers
 
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
+from ESSArch_Core.WorkflowEngine.util import get_result
 from ESSArch_Core.util import available_tasks
 
 
@@ -97,7 +98,14 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
         return obj.args
 
     def get_params(self, obj):
-        return dict((unicode(k), unicode(v)) for k, v in obj.params.iteritems())
+        params = obj.params
+        for param, task in obj.result_params.iteritems():
+            try:
+                params[param] = get_result(task)
+            except ProcessTask.DoesNotExist:
+                params[param] = 'waiting on result from %s ...' % task
+
+        return dict((unicode(k), unicode(v)) for k, v in params.iteritems())
 
     def get_result(self, obj):
         return str(obj.result)
