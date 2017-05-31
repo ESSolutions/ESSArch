@@ -24,12 +24,13 @@
 
 from django_filters import rest_framework as filters
 
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
 class ProcessTaskFilter(filters.FilterSet):
     undo_type = filters.BooleanFilter(name='undo_type', method='filter_undo_type')
     retry_type = filters.BooleanFilter(name='retry_type', method='filter_retry_type')
+    hidden = filters.BooleanFilter(name='hidden')
 
     def filter_undo_type(self, queryset, name, value):
         value = not value
@@ -42,5 +43,15 @@ class ProcessTaskFilter(filters.FilterSet):
     class Meta:
         model = ProcessTask
         fields = [
-            'undo_type', 'retry_type',
+            'undo_type', 'retry_type', 'hidden',
+        ]
+
+
+class ProcessStepFilter(filters.FilterSet):
+    hidden = filters.BooleanFilter(name='hidden')
+
+    class Meta:
+        model = ProcessStep
+        fields = [
+            'hidden',
         ]

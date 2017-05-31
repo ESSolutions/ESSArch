@@ -31,7 +31,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 
-from ESSArch_Core.WorkflowEngine.filters import ProcessTaskFilter
+from ESSArch_Core.WorkflowEngine.filters import ProcessStepFilter, ProcessTaskFilter
 from ESSArch_Core.WorkflowEngine.models import (
     ProcessStep,
     ProcessTask,
@@ -59,6 +59,8 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
     """
     queryset = ProcessStep.objects.all()
     serializer_class = ProcessStepSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = ProcessStepFilter
 
     def get_serializer_class(self):
         if self.action == 'list':
