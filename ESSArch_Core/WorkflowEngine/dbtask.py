@@ -31,7 +31,6 @@ import time
 from billiard.einfo import ExceptionInfo
 
 from celery import current_app, states as celery_states, Task
-from celery.result import AsyncResult
 
 from ESSArch_Core.configuration.models import EventType
 
@@ -46,6 +45,7 @@ from django.utils import timezone
 from ESSArch_Core.ip.models import EventIP
 
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
+from ESSArch_Core.WorkflowEngine.util import get_result
 
 from ESSArch_Core.util import (
     truncate
@@ -136,10 +136,7 @@ class DBTask(Task):
                     transaction.set_autocommit(True)
 
         for k, v in self.result_params.iteritems():
-            if not self.eager and AsyncResult(str(v)).successful():
-                kwargs[k] = AsyncResult(str(v)).result
-            else:
-                kwargs[k] = ProcessTask.objects.values_list('result', flat=True).get(pk=v)
+            kwargs[k] = get_result(v, self.eager)
 
         ProcessTask.objects.filter(pk=self.task_id).update(
             hidden=self.hidden,
