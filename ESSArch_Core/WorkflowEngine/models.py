@@ -512,20 +512,29 @@ class ProcessStep(Process):
         tasks = self.tasks.filter(undo_type=False, undone__isnull=True, retried__isnull=True)
         status = celery_states.SUCCESS
 
-        if not child_steps and not tasks:
+        if not child_steps.exists() and not tasks.exists():
             cache.set(self.cache_status_key, status)
             return status
 
-        for i in list(child_steps) + list(tasks):
-            istatus = i.status
-            if istatus == celery_states.STARTED:
-                status = istatus
-            if (istatus == celery_states.PENDING and
+        if tasks.filter(status=celery_states.FAILURE).exists():
+            cache.set(self.cache_status_key, celery_states.FAILURE)
+            return celery_states.FAILURE
+
+        if tasks.filter(status=celery_states.PENDING).exists():
+            status = celery_states.PENDING
+
+        if tasks.filter(status=celery_states.STARTED).exists():
+            status = celery_states.STARTED
+
+        for cs in child_steps:
+            if cs.status == celery_states.STARTED:
+                status = cs.status
+            if (cs.status == celery_states.PENDING and
                     status != celery_states.STARTED):
-                status = istatus
-            if istatus == celery_states.FAILURE:
-                cache.set(self.cache_status_key, istatus)
-                return istatus
+                status = cs.status
+            if cs.status == celery_states.FAILURE:
+                cache.set(self.cache_status_key, cs.status)
+                return cs.status
 
         cache.set(self.cache_status_key, status)
         return status
@@ -542,11 +551,14 @@ class ProcessStep(Process):
             true, false otherwise
         """
 
-        child_steps = self.child_steps.all()
-        undone_child_steps = any(c.undone for c in child_steps)
-        undone_tasks = self.tasks.filter(undone__isnull=False, retried__isnull=True).exists()
+        for c in self.child_steps.iterator():
+            if c.undone:
+                return True
 
-        return undone_child_steps or undone_tasks
+        if self.tasks.filter(undone__isnull=False, retried__isnull=True).exists():
+            return True
+
+        return False
 
     class Meta:
         db_table = u'ProcessStep'
