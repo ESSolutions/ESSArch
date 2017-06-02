@@ -312,6 +312,7 @@ class XMLGenerator(object):
         responsible = None
 
         if folderToParse:
+            folderToParse = folderToParse.rstrip('/')
             step = ProcessStep.objects.create(
                 name="File operations for %s" % (os.path.basename(folderToParse)),
                 parallel=True,
