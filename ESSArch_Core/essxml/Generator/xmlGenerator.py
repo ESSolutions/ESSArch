@@ -391,7 +391,7 @@ class XMLGenerator(object):
                             processstep=step,
                         ))
 
-            ProcessTask.objects.bulk_create(tasks)
+            ProcessTask.objects.bulk_create(tasks, 1000)
 
             with allow_join_result():
                 for fileinfo in step.chunk():
