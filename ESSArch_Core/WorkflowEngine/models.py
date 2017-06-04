@@ -419,6 +419,10 @@ class ProcessStep(Process):
             return workflow
 
     @property
+    def cache_lock_key(self):
+        return '%s_lock' % str(self.pk)
+
+    @property
     def cache_status_key(self):
         return '%s_status' % str(self.pk)
 
@@ -449,38 +453,39 @@ class ProcessStep(Process):
             |child_steps| + |tasks|
         """
 
-        cached = cache.get(self.cache_progress_key)
+        with cache.lock(self.cache_lock_key):
+            cached = cache.get(self.cache_progress_key)
 
-        if cached:
-            return cached
+            if cached:
+                return cached
 
-        child_steps = self.child_steps.all()
-        progress = 0
-        task_data = self.tasks.filter(undo_type=False, retried__isnull=True).aggregate(
-            progress=Sum(Case(When(undone__isnull=False, then=0), default='progress')),
-            task_count=Count('id')
-        )
+            child_steps = self.child_steps.all()
+            progress = 0
+            task_data = self.tasks.filter(undo_type=False, retried__isnull=True).aggregate(
+                progress=Sum(Case(When(undone__isnull=False, then=0), default='progress')),
+                task_count=Count('id')
+            )
 
-        total = len(child_steps) + task_data['task_count']
+            total = len(child_steps) + task_data['task_count']
 
-        if total == 0:
-            cache.set(self.cache_progress_key, 100)
-            return 100
+            if total == 0:
+                cache.set(self.cache_progress_key, 100)
+                return 100
 
-        progress += sum([c.progress for c in child_steps])
+            progress += sum([c.progress for c in child_steps])
 
-        try:
-            progress += task_data['progress']
-        except:
-            pass
+            try:
+                progress += task_data['progress']
+            except:
+                pass
 
-        try:
-            res = progress / total
-            cache.set(self.cache_progress_key, res)
-            return res
-        except:
-            cache.set(self.cache_progress_key, 0)
-            return 0
+            try:
+                res = progress / total
+                cache.set(self.cache_progress_key, res)
+                return res
+            except:
+                cache.set(self.cache_progress_key, 0)
+                return 0
 
     @property
     def status(self):
@@ -503,41 +508,42 @@ class ProcessStep(Process):
             * If all child steps and tasks have succeeded, then SUCCESS.
         """
 
-        cached = cache.get(self.cache_status_key)
+        with cache.lock(self.cache_lock_key):
+            cached = cache.get(self.cache_status_key)
 
-        if cached:
-            return cached
+            if cached:
+                return cached
 
-        child_steps = self.child_steps.all()
-        tasks = self.tasks.filter(undo_type=False, undone__isnull=True, retried__isnull=True)
-        status = celery_states.SUCCESS
+            child_steps = self.child_steps.all()
+            tasks = self.tasks.filter(undo_type=False, undone__isnull=True, retried__isnull=True)
+            status = celery_states.SUCCESS
 
-        if not child_steps.exists() and not tasks.exists():
+            if not child_steps.exists() and not tasks.exists():
+                cache.set(self.cache_status_key, status)
+                return status
+
+            if tasks.filter(status=celery_states.FAILURE).exists():
+                cache.set(self.cache_status_key, celery_states.FAILURE)
+                return celery_states.FAILURE
+
+            if tasks.filter(status=celery_states.PENDING).exists():
+                status = celery_states.PENDING
+
+            if tasks.filter(status=celery_states.STARTED).exists():
+                status = celery_states.STARTED
+
+            for cs in child_steps:
+                if cs.status == celery_states.STARTED:
+                    status = cs.status
+                if (cs.status == celery_states.PENDING and
+                        status != celery_states.STARTED):
+                    status = cs.status
+                if cs.status == celery_states.FAILURE:
+                    cache.set(self.cache_status_key, cs.status)
+                    return cs.status
+
             cache.set(self.cache_status_key, status)
             return status
-
-        if tasks.filter(status=celery_states.FAILURE).exists():
-            cache.set(self.cache_status_key, celery_states.FAILURE)
-            return celery_states.FAILURE
-
-        if tasks.filter(status=celery_states.PENDING).exists():
-            status = celery_states.PENDING
-
-        if tasks.filter(status=celery_states.STARTED).exists():
-            status = celery_states.STARTED
-
-        for cs in child_steps:
-            if cs.status == celery_states.STARTED:
-                status = cs.status
-            if (cs.status == celery_states.PENDING and
-                    status != celery_states.STARTED):
-                status = cs.status
-            if cs.status == celery_states.FAILURE:
-                cache.set(self.cache_status_key, cs.status)
-                return cs.status
-
-        cache.set(self.cache_status_key, status)
-        return status
 
     @property
     def undone(self):

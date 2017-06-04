@@ -34,6 +34,8 @@ from celery import current_app, states as celery_states, Task
 
 from ESSArch_Core.configuration.models import EventType
 
+from django.core.cache import cache
+
 from django.db import (
     connection,
     IntegrityError,
@@ -178,9 +180,11 @@ class DBTask(Task):
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
         try:
             step = ProcessStep.objects.get(pk=self.step)
-            step.clear_cache()
         except ProcessStep.DoesNotExist:
-            pass
+            return
+
+        with cache.lock(step.cache_lock_key):
+            step.clear_cache()
 
     def create_event(self, task_id, status, args, kwargs, retval, einfo):
         if status == celery_states.SUCCESS:
