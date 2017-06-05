@@ -34,10 +34,10 @@ folder: ec
 
 ## Start services
 
-    * esshttpd
-    * celeryd
-    * celerybeat
-    * celerydeta
-    * celerydetp
-    * rabbitmq-server
-    * redis
+* esshttpd
+* celeryd
+* celerybeat
+* celerydeta
+* celerydetp
+* rabbitmq-server
+* redis
