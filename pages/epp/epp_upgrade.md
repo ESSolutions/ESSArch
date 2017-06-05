@@ -27,8 +27,6 @@ folder: epp
     [arch@server ~]$ tar xvf ESSArch_EPP_installer-x.x.x.tar.gz
     [arch@server ~]$ cd ESSArch_EPP_installer-x.x.x
     [arch@server ~]$ ./install
-    [arch@server ~]$ export EPP=/ESSArch/pd/python/lib/python2.7/site-packages/ESSArch_EPP
-    [arch@server ~]$ export PYTHONPATH=$EPP:$EPP/workers:$EC_PYTHONPATH
 
 
 ### Collect static files to be served by apache httpd

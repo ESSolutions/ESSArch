@@ -27,8 +27,6 @@ folder: eta
     [arch@server ~]$ tar xvf ESSArch_TA_installer-x.x.x.tar.gz
     [arch@server ~]$ cd ESSArch_TA_installer-x.x.x
     [arch@server ~]$ ./install
-    [arch@server ~]$ export ETA=/ESSArch/pd/python/lib/python2.7/site-packages/ESSArch_TA
-    [arch@server ~]$ export PYTHONPATH=$ETA:$EC_PYTHONPATH
 
 ### Collect static files to be served by apache httpd
 

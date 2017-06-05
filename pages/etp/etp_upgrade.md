@@ -27,8 +27,6 @@ folder: etp
     [arch@server ~]$ tar xvf ESSArch_TP_installer-x.x.x.tar.gz
     [arch@server ~]$ cd ESSArch_TP_installer-x.x.x
     [arch@server ~]$ ./install
-    [arch@server ~]$ export ETP=/ESSArch/pd/python/lib/python2.7/site-packages/ESSArch_TP
-    [arch@server ~]$ export PYTHONPATH=$ETP:$EC_PYTHONPATH
 
 ### Collect static files to be served by apache httpd
 
