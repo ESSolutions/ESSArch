@@ -62,6 +62,7 @@ are installed on your platform
 | libffi-devel | 3.0.5-3.2 |   | libffi-devel.x86\_64 0:3.0.5-3.2.el6 |
 | sqlite-devel | 3.6 |   | 3.6.20-1.el6.x86\_64 |
 | rabbitmq-server | 3.3.1 |   | rabbitmq-server-3.3.5-28.el7.noarch |
+| redis | 2.8.0 |   | redis-2.8.19-2.el7.x86\_64 |
 
 \*\* CentOS 6 require extra package: [epel-release](https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm)
 
