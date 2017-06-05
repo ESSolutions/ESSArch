@@ -36,8 +36,8 @@ entries:
     output: web, pdf
     folderitems:
 
-    - title: 1.0 Release notes
-      url: /eta_release_notes_1_0_0.html
+    - title: 1.1.0 Release Notes
+      external_url: https://github.com/ESSolutions/ESSArch_Tools_Archive/blob/master/CHANGELOG.md#1.1.0
       output: web, pdf
 
   - title: Installation
