@@ -56,6 +56,10 @@ entries:
       url: /ec_install.html
       output: web, pdf
 
+    - title: Upgrade ESSArch Core
+      url: /ec_upgrade.html
+      output: web, pdf
+
     - title: Safety backup procedures
       url: /ec_safety_backup_procedures.html
       output: web, pdf

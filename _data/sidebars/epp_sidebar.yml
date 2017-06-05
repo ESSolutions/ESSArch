@@ -56,6 +56,10 @@ entries:
       url: /epp_install.html
       output: web, pdf
 
+    - title: Upgrade ESSArch Preservation Platform
+      url: /epp_upgrade.html
+      output: web, pdf
+
     - title: Running ESSArch Preservation Platform
       url: /epp_running.html
       output: web, pdf

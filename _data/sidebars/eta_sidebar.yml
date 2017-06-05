@@ -56,6 +56,10 @@ entries:
       url: /eta_install.html
       output: web, pdf
 
+    - title: Upgrade ESSArch Tools Archive
+      url: /eta_upgrade.html
+      output: web, pdf
+
     - title: Running ESSArch Tools Archive
       url: /eta_running.html
       output: web, pdf
