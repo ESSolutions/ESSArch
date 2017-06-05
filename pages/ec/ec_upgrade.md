@@ -25,10 +25,11 @@ folder: ec
     # mv config install install*.log pd old/
 
 ## Install, as arch, new ESSArch_Core
+    # su - arch
+    [arch@server ~]$ tar xvf ESSArch_Core_installer-x.x.x.tar.gz
+    [arch@server ~]$ cd ESSArch_Core_installer-x.x.x
+    [arch@server ~]$ ./install
 
-    # tar xvf ESSArch_Core_installer-x.x.x.tar.gz
-    # cd ESSArch_Core_installer-x.x.x
-    # ./install
 
 ## Compare and restore configuration files at `/ESSArch/config` from `old` directory
     # diff -qr /ESSArch/config old
