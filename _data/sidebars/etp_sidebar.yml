@@ -37,7 +37,7 @@ entries:
     folderitems:
 
     - title: 1.1.0 Release Notes
-      external_url: https://github.com/ESSolutions/ESSArch_Tools_Producer/blob/master/CHANGELOG.md#1.1.0
+      external_url: https://github.com/ESSolutions/ESSArch_Tools_Producer/blob/master/ESSArch_TP/CHANGELOG.md#110
       output: web, pdf
 
   - title: Installation
