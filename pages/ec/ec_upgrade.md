@@ -24,7 +24,7 @@ folder: ec
     # mkdir old
     # mv config install install*.log pd old/
 
-## Install, as arch, new ESSArch_Core
+## Install new ESSArch_Core
     # su - arch
     [arch@server ~]$ tar xvf ESSArch_Core_installer-x.x.x.tar.gz
     [arch@server ~]$ cd ESSArch_Core_installer-x.x.x
