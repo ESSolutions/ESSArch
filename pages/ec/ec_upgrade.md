@@ -7,6 +7,7 @@ folder: ec
 ---
 
 ## Stop services
+* essarch
 * esshttpd
 * celeryd
 * celerybeat
@@ -34,6 +35,7 @@ folder: ec
 
 ## Start services
 
+* essarch
 * esshttpd
 * celeryd
 * celerybeat

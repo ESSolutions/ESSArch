@@ -7,6 +7,7 @@ folder: epp
 ---
 
 ## Stop services
+* essarch
 * esshttpd
 * celeryd
 * celerybeat
@@ -48,6 +49,7 @@ folder: epp
 
 ## Start services
 
+* essarch
 * esshttpd
 * celeryd
 * celerybeat
