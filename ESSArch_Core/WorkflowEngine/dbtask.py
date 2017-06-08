@@ -183,7 +183,7 @@ class DBTask(Task):
         except ProcessStep.DoesNotExist:
             return
 
-        with cache.lock(step.cache_lock_key):
+        with cache.lock(step.cache_lock_key, timeout=60):
             step.clear_cache()
 
     def create_event(self, task_id, status, args, kwargs, retval, einfo):

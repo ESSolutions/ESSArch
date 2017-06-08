@@ -453,7 +453,7 @@ class ProcessStep(Process):
             |child_steps| + |tasks|
         """
 
-        with cache.lock(self.cache_lock_key):
+        with cache.lock(self.cache_lock_key, timeout=60):
             cached = cache.get(self.cache_progress_key)
 
             if cached:
@@ -508,7 +508,7 @@ class ProcessStep(Process):
             * If all child steps and tasks have succeeded, then SUCCESS.
         """
 
-        with cache.lock(self.cache_lock_key):
+        with cache.lock(self.cache_lock_key, timeout=60):
             cached = cache.get(self.cache_status_key)
 
             if cached:
