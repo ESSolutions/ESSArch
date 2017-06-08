@@ -564,7 +564,7 @@ class CreateZIP(DBTask):
     def run(self, dirname=None, zipname=None, compress=False):
         compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
         with zipfile.ZipFile(zipname, 'w', compression) as new_zip:
-            for root, dirs, files in os.walk(dirname):
+            for root, dirs, files in walk(dirname):
                 for d in dirs:
                     filepath = os.path.join(root, d)
                     arcname = os.path.relpath(filepath, dirname)

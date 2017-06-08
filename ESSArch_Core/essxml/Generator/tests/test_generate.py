@@ -31,6 +31,8 @@ from django.test import TransactionTestCase
 
 from lxml import etree
 
+from scandir import walk
+
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseContent
 
 from ESSArch_Core.configuration.models import (
@@ -478,7 +480,7 @@ class test_generateXML(TransactionTestCase):
 
         num_of_files = 0
 
-        for root, dirs, files in os.walk(self.datadir):
+        for root, dirs, files in walk(self.datadir):
             for f in files:
                 file_element = tree.find(".//bar[@name='%s']" % f)
                 self.assertIsNotNone(file_element)
@@ -787,7 +789,7 @@ class test_generateXML(TransactionTestCase):
 
         num_of_files = 0
 
-        for root, dirs, files in os.walk(self.datadir):
+        for root, dirs, files in walk(self.datadir):
             for f in files:
                 file_element = tree.find(".//bar[@name='%s']" % f)
                 self.assertIsNotNone(file_element)
@@ -949,7 +951,7 @@ class test_generateXML(TransactionTestCase):
 
         num_of_files = 0
 
-        for root, dirs, files in os.walk(self.datadir):
+        for root, dirs, files in walk(self.datadir):
             for f in files:
                 file_element = tree.find(".//{%s}bar[@name='%s']" % (nsmap['premis'], f))
                 self.assertIsNotNone(file_element)
@@ -1014,7 +1016,7 @@ class test_generateXML(TransactionTestCase):
 
         num_of_files = 0
 
-        for root, dirs, files in os.walk(self.datadir):
+        for root, dirs, files in walk(self.datadir):
             for f in files:
                 filepath = os.path.join(root, f)
                 relpath = os.path.relpath(filepath, self.datadir)

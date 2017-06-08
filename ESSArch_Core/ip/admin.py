@@ -28,6 +28,8 @@
 from django.contrib import admin
 import os
 
+from scandir import walk
+
 # own models ets
 from .models import InformationPackage
 
@@ -41,7 +43,7 @@ def deleteIP(modeladmin, request, queryset):
         # delete files and directorys
         for obj in queryset:
             #ip_creator = "%s" % obj.creator
-            for root, dirs, files in os.walk(obj.directory, topdown=False):
+            for root, dirs, files in walk(obj.directory, topdown=False):
                 for name in files:
                     #f = os.path.join(root, name)
                     #modeladmin.message_user(request, "filename '%s'" % (f))
