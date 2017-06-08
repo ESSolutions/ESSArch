@@ -42,7 +42,7 @@ from datetime import datetime
 
 from lxml import etree
 
-from scandir import scandir
+from scandir import scandir, walk
 
 from subprocess import Popen, PIPE
 
@@ -266,7 +266,7 @@ def get_tree_size_and_count(path='.'):
     total_size = 0
     count = 0
 
-    for dirpath, dirnames, filenames in os.walk(path):
+    for dirpath, dirnames, filenames in walk(path):
         for f in filenames:
             fp = os.path.join(dirpath, f)
             total_size += os.path.getsize(fp)
