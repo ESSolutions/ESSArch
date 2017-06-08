@@ -162,7 +162,9 @@ def parse_submit_description(xmlfile, srcdir=''):
         ip['information_class'] = 0
 
     try:
-        ip['archivist_organization'] = get_agent(root, ROLE='ARCHIVIST', TYPE='ORGANIZATION')['name']
+        ip['archivist_organization'] = {
+            'name': get_agent(root, ROLE='ARCHIVIST', TYPE='ORGANIZATION')['name']
+        }
     except TypeError:
         pass
 
