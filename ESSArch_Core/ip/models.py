@@ -411,9 +411,9 @@ class InformationPackage(models.Model):
             ('can_receive_remote_files', 'Can receive remote files'),
             ('receive', 'Can receive IP'),
             ('preserve', 'Can preserve IP'),
-            ('view', 'Can view extracted IP'),
-            ('view_tar', 'Can view packaged IP'),
-            ('edit_as_new', 'Can edit IP "as new"'),
+            ('get_from_storage', 'Can get extracted IP from storage'),
+            ('get_tar_from_storage', 'Can get packaged IP from storage'),
+            ('get_from_storage_as_new', 'Can get IP "as new" from storage'),
             ('diff-check', 'Can diff-check IP'),
             ('query', 'Can query IP'),
         )
