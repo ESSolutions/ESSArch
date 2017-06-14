@@ -294,6 +294,9 @@ class XMLGenerator(object):
         try:
             return mtypes[file_ext]
         except KeyError:
+            if self.info.get('allow_unknown_file_types', False):
+                return 'application/octet-stream'
+
             raise FileFormatNotAllowed("File format '%s' is not allowed" % file_ext)
 
     def generate(self, folderToParse=None, algorithm='SHA-256'):
