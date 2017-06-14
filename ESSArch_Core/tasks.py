@@ -774,6 +774,10 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 
         for f in files:
             if files_reldir:
+                if f == files_reldir:
+                    physical_files.add(os.path.basename(f))
+                    continue
+
                 f = os.path.relpath(f, files_reldir)
             physical_files.add(f)
 
