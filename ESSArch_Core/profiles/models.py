@@ -133,6 +133,12 @@ class ProfileIP(models.Model):
 
     def lock(self, user):
         self.LockedBy = user
+
+        for field in self.profile.template:
+            if field['key'] not in self.profile.specification_data.keys():
+                self.profile.specification_data[field['key']] = field['defaultValue']
+
+        self.profile.save(update_fields=['specification_data'])
         self.save()
 
     def __unicode__(self):
