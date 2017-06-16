@@ -1,7 +1,14 @@
 # [1.1.0](https://github.com/ESSolutions/ESSArch_Core/releases/tag/1.1.0)
 
+## Important notes
+
+### [Redis](https://redis.io)  is now a OS package prerequisite
+
+* Redis is used for caching different parts of the system for improved performance and is now required for ESSArch to work properly.
+* See [ESSArch Core installation documentation](https://essolutions.github.io/ESSArch_Core/ec_prerequisites.html#redis-new-in-110) for more information
 
 ## Workflow Engine
+
 ### Features and improvements
 
 * Removed `celery_id` field from `ProcessTask`. Instead we set
