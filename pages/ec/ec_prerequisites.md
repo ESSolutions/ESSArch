@@ -83,6 +83,22 @@ are installed on your platform
     rpm -i --nodeps erlang-epmd-18.3-12.1.x86_64.rpm
     rpm -i erlang-18.3-12.1.x86_64.rpm
 
+## Installing packages
+
+### [Redis](https://redis.io) (new in 1.1.0)
+
+#### CentOS
+
+    Install
+    # yum install redis
+
+    Start service
+    # systemctl start redis.service
+
+    Start service at system boot
+    # systemctl enable redis.service
+
+
 **TIP:** If you extract the contents of the installation package for
 [ESSArch Core](https://github.com/ESSolutions/ESSArch_Core/releases/latest){:target="_blank"} and look in the directory folder "extra", there is help script to
 install required OS package.
