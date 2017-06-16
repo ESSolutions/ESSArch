@@ -85,7 +85,7 @@ are installed on your platform
 
 ## Installing packages
 
-### [Redis](https://redis.io) (new in 1.1.0)
+### [Redis](https://redis.io){:target="_blank"} (new in 1.1.0)
 
 #### CentOS
 
