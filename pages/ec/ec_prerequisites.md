@@ -10,11 +10,11 @@ folder: ec
 
 ## Supported OS platforms
 
-| **OS** | **Version** | **Note**  |
-| --- | --- | --- |
-| CentOS / Redhat | 6 (x86\_64) |   |
-| CentOS / Redhat | 7 (x86\_64) |   |
-| SUSE Linux Enterprise Server | 11 (x86\_64) |   |
+| **OS**                       | **Version**  |
+|------------------------------|--------------|
+| CentOS / Redhat              | 6 (x86\_64)  |
+| CentOS / Redhat              | 7 (x86\_64)  |
+| SUSE Linux Enterprise Server | 11 (x86\_64) |
 
 (Other Linux and Microsoft operating systems have been tested but are not yet
 fully supported, please send us a request with your needs)
