@@ -105,7 +105,7 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
             except ProcessTask.DoesNotExist:
                 params[param] = 'waiting on result from %s ...' % task
 
-        return dict((unicode(k), unicode(v)) for k, v in params.iteritems())
+        return dict((k.encode('utf-8'), v) for k, v in params.iteritems())
 
     def get_result(self, obj):
         return str(obj.result)
