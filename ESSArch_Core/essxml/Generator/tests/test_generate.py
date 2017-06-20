@@ -540,6 +540,44 @@ class test_generateXML(TransactionTestCase):
 
         self.assertFalse(os.path.exists(self.fname))
 
+    def test_generate_nested_empty_required_element(self):
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'bar',
+                    '#content': [{'text': 'baz'}],
+                },
+                {
+                    '-name': 'bar',
+                    '-children': [
+                        {
+                            '-name': 'baz',
+                            '#content': [{'text': 'first'}],
+                        },
+                        {
+                            '-name': 'baz',
+                            '#content': [{'text': 'second'}],
+                        },
+                        {
+                            '-name': 'baz',
+                            '-req': True,
+                        }
+                    ]
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        with self.assertRaises(ValueError) as e:
+            generator.generate()
+
+        self.assertEqual(e.exception.message, "Missing value for required element '/foo[0]/bar[1]/baz[2]'")
+        self.assertFalse(os.path.exists(self.fname))
+
     def test_generate_empty_element_with_single_attribute(self):
         specification = {
             '-name': "foo",
@@ -642,6 +680,49 @@ class test_generateXML(TransactionTestCase):
         with self.assertRaises(ValueError):
             generator.generate()
 
+        self.assertFalse(os.path.exists(self.fname))
+
+    def test_generate_nested_empty_required_attribute(self):
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'bar',
+                    '#content': [{'text': 'baz'}],
+                },
+                {
+                    '-name': 'bar',
+                    '-children': [
+                        {
+                            '-name': 'baz',
+                            '#content': [{'text': 'first'}],
+                        },
+                        {
+                            '-name': 'baz',
+                            '#content': [{'text': 'second'}],
+                        },
+                        {
+                            '-name': 'baz',
+                            "-attr": [
+                                {
+                                    "-name": "test",
+                                    "-req": True,
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        with self.assertRaises(ValueError) as e:
+            generator.generate()
+
+        self.assertEqual(e.exception.message, "Missing value for required attribute 'test' on element '/foo[0]/bar[1]/baz[2]'")
         self.assertFalse(os.path.exists(self.fname))
 
     def test_generate_element_with_content_and_attribute(self):

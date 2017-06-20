@@ -157,7 +157,17 @@ class XMLElement(object):
 
         return True
 
-    def createLXMLElement(self, info, nsmap={}, files=[], folderToParse='', task=None):
+    def get_path(self, path=[]):
+        path = '%s[%s]' % (self.name, self.parent_pos)
+
+        if self.parent:
+            path = self.parent.get_path(path) + '/' + path
+        else:
+            path = '/' + path
+
+        return path
+
+    def createLXMLElement(self, info, nsmap={}, files=[], folderToParse='', task=None, parent=None):
         full_nsmap = nsmap.copy()
         full_nsmap.update(self.nsmap)
 
@@ -168,11 +178,19 @@ class XMLElement(object):
 
         self.el.text = self.parse(info)
 
+        self.parent = parent
+
+        if parent is not None:
+            siblings_same_name = len(parent.el.findall(self.name))
+            self.parent_pos = siblings_same_name
+        else:
+            self.parent_pos = 0
+
         for attr in self.attr:
             name, content, required = attr.parse(info, nsmap=full_nsmap)
 
             if required and not content:
-                raise ValueError("Missing value for required attribute '%s' on element '%s'" % (name, self.name))
+                raise ValueError("Missing value for required attribute '%s' on element '%s'" % (name, self.get_path()))
             elif content:
                 self.el.set(name, content)
 
@@ -185,7 +203,7 @@ class XMLElement(object):
                 ptr_info = info
                 ptr_info['_EXT'] = ext_dir
                 ptr_info['_EXT_HREF'] = ptr_file_path
-                self.el.append(ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse, task=task))
+                self.el.append(ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse, task=task, parent=self))
 
         for child in self.children:
             if child.containsFiles:
@@ -199,14 +217,14 @@ class XMLElement(object):
                     if include:
                         full_info = info.copy()
                         full_info.update(fileinfo)
-                        self.el.append(child.createLXMLElement(full_info, full_nsmap, files=files, folderToParse=folderToParse, task=task))
+                        self.el.append(child.createLXMLElement(full_info, full_nsmap, files=files, folderToParse=folderToParse, task=task, parent=self))
             else:
-                child_el = child.createLXMLElement(info, full_nsmap, files=files, folderToParse=folderToParse, task=task)
+                child_el = child.createLXMLElement(info, full_nsmap, files=files, folderToParse=folderToParse, task=task, parent=self)
                 if child_el is not None:
                     self.el.append(child_el)
 
         if self.isEmpty(info) and self.required:
-            raise ValueError("Missing value for required element '%s'" % (self.name))
+            raise ValueError("Missing value for required element '%s'" % (self.get_path()))
 
         if self.isEmpty(info) and not self.allowEmpty:
             return None
