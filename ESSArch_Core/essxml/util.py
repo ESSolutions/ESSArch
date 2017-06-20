@@ -37,20 +37,20 @@ XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
 FILE_ELEMENTS = {
     "file": {
         "path": "FLocat@href",
-        "pathprefix": "file:///",
+        "pathprefix": ["file:///", "file:"],
         "checksum": "@CHECKSUM",
         "checksumtype": "@CHECKSUMTYPE",
         "format": "@FILEFORMATNAME",
     },
     "mdRef": {
         "path": "@href",
-        "pathprefix": "file:///",
+        "pathprefix": ["file:///", "file:"],
         "checksum": "@CHECKSUM",
         "checksumtype": "@CHECKSUMTYPE",
     },
     "object": {
         "path": "storage/contentLocation/contentLocationValue",
-        "pathprefix": "file:///",
+        "pathprefix": ["file:///", "file:"],
         "checksum": "objectCharacteristics/fixity/messageDigest",
         "checksumtype": "objectCharacteristics/fixity/messageDigestAlgorithm",
         "format": "objectCharacteristics/format/formatDesignation/formatName",
@@ -60,7 +60,7 @@ FILE_ELEMENTS = {
 PTR_ELEMENTS = {
     "mptr": {
         "path": "@href",
-        "pathprefix": "file:///",
+        "pathprefix": ["file:///", "file:"]
     }
 }
 
@@ -230,8 +230,14 @@ class XMLFileElement():
         '''
 
         self.path = get_value_from_path(el, props.get('path', ''))
-        self.path_prefix = props.get('pathprefix', '')
-        self.path = remove_prefix(self.path, self.path_prefix)
+        self.path_prefix = props.get('pathprefix', [])
+        for prefix in sorted(self.path_prefix, key=len, reverse=True):
+            no_prefix = remove_prefix(self.path, prefix)
+
+            if no_prefix != self.path:
+                self.path = no_prefix
+                break
+
         self.path = self.path.lstrip('/ ')
 
         self.checksum = get_value_from_path(el, props.get('checksum', ''))

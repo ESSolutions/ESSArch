@@ -81,13 +81,14 @@ class FindFilesTestCase(TestCase):
             xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
             <root xmlns:xlink="http://www.w3.org/1999/xlink">
                 <file><FLocat href="file:///1.txt"/></file>
-                <file><FLocat href="2.txt"/></file>
+                <file><FLocat href="file:2.txt"/></file>
+                <file><FLocat href="3.txt"/></file>
             </root>
             ''')
 
-        expected = ['1.txt', '2.txt']
+        expected = ['1.txt', '2.txt', '3.txt']
         found = find_files(xmlfile, rootdir=self.datadir)
-        self.assertEqual(len(found), len(expected))
+        self.assertItemsEqual([x.path for x in found], expected)
 
     def test_files_mdRef_element(self):
         xmlfile = os.path.join(self.datadir, "test.xml")
