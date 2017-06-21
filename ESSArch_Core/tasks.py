@@ -1126,7 +1126,7 @@ class MountTape(DBTask):
         """
 
         medium = StorageMedium.objects.get(pk=medium)
-        slot = medium.tape_slot.pk
+        slot = medium.tape_slot.slot_id
         tape_drive = TapeDrive.objects.get(pk=drive)
 
         mount_tape(tape_drive.robot.device, slot, drive)
