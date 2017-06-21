@@ -40,6 +40,7 @@ from ESSArch_Core.WorkflowEngine.models import (
 
 import os
 import shutil
+import tempfile
 
 
 class test_status(TestCase):
@@ -49,8 +50,11 @@ class test_status(TestCase):
 
         self.step = ProcessStep.objects.create()
 
+        self.test_dir = tempfile.mkdtemp()
+
     def tearDown(self):
         get_redis_connection("default").flushall()
+        shutil.rmtree(self.test_dir)
 
     def test_no_steps_or_tasks(self):
         with self.assertNumQueries(2):
@@ -222,13 +226,7 @@ class test_status(TestCase):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_resume_step(self):
-        test_dir = "test_dir"
-        fname = os.path.join(test_dir, "foo.txt")
-
-        try:
-            os.mkdir(test_dir)
-        except:
-            pass
+        fname = os.path.join(self.test_dir, "foo.txt")
 
         s = ProcessStep.objects.create(parent_step=self.step)
         ProcessTask.objects.create(
@@ -248,11 +246,6 @@ class test_status(TestCase):
         s.retry()
         self.step.status
         s.resume()
-
-        try:
-            shutil.rmtree(test_dir)
-        except:
-            pass
 
         with self.assertNumQueries(11):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
@@ -423,8 +416,11 @@ class test_progress(TestCase):
 
         self.step = ProcessStep.objects.create()
 
+        self.test_dir = tempfile.mkdtemp()
+
     def tearDown(self):
         get_redis_connection("default").flushall()
+        shutil.rmtree(self.test_dir)
 
     def test_no_steps_or_tasks(self):
         with self.assertNumQueries(2):
@@ -595,13 +591,7 @@ class test_progress(TestCase):
             self.assertEqual(self.step.progress, 100)
 
     def test_cached_progress_resume_step(self):
-        test_dir = "test_dir"
-        fname = os.path.join(test_dir, "foo.txt")
-
-        try:
-            os.mkdir(test_dir)
-        except:
-            pass
+        fname = os.path.join(self.test_dir, "foo.txt")
 
         s = ProcessStep.objects.create(parent_step=self.step)
         ProcessTask.objects.create(
@@ -621,11 +611,6 @@ class test_progress(TestCase):
         s.retry()
         self.step.progress
         s.resume()
-
-        try:
-            shutil.rmtree(test_dir)
-        except:
-            pass
 
         with self.assertNumQueries(4):
             self.assertEqual(self.step.progress, 100)
