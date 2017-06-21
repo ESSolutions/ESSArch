@@ -532,7 +532,7 @@ class ProcessStep(Process):
             if tasks.filter(status=celery_states.STARTED).exists():
                 status = celery_states.STARTED
 
-            for cs in child_steps:
+            for cs in child_steps.only('parent_step').iterator():
                 if cs.status == celery_states.STARTED:
                     status = cs.status
                 if (cs.status == celery_states.PENDING and
