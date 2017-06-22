@@ -419,7 +419,7 @@ class InformationPackage(models.Model):
             if path.startswith(os.path.basename(container)):
                 fullpath = os.path.join(os.path.dirname(container), path)
 
-                if tarfile.is_tarfile(container) and os.path.getsize(container) <= MAX_FILE_SIZE:
+                if tarfile.is_tarfile(container):
                     with tarfile.open(container) as tar:
                         if fullpath == container:
                             entries = []
@@ -452,7 +452,7 @@ class InformationPackage(models.Model):
                             except KeyError:
                                 raise exceptions.NotFound
 
-                elif zipfile.is_zipfile(container) and os.path.getsize(container) <= MAX_FILE_SIZE:
+                elif zipfile.is_zipfile(container):
                     with zipfile.ZipFile(container) as zipf:
                         if fullpath == container:
                             entries = []
