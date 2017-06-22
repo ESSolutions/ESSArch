@@ -410,6 +410,8 @@ class InformationPackage(models.Model):
         mimetypes.init(files=[mimetypes_file])
         mtypes = mimetypes.types_map
 
+        MAX_FILE_SIZE = 100000000 # 100 MB
+
         if os.path.isfile(self.object_path):
             container = self.object_path
             xml = os.path.splitext(self.object_path)[0] + '.xml'
@@ -417,7 +419,7 @@ class InformationPackage(models.Model):
             if path.startswith(os.path.basename(container)):
                 fullpath = os.path.join(os.path.dirname(container), path)
 
-                if tarfile.is_tarfile(container):
+                if tarfile.is_tarfile(container) and os.path.getsize(container) <= MAX_FILE_SIZE:
                     with tarfile.open(container) as tar:
                         if fullpath == container:
                             entries = []
@@ -442,11 +444,15 @@ class InformationPackage(models.Model):
 
                                 f = tar.extractfile(member)
                                 content_type = mtypes.get(os.path.splitext(subpath)[1])
-                                return HttpResponse(f.read(), content_type=content_type)
+                                response = HttpResponse(f.read(), content_type=content_type)
+                                response['Content-Disposition'] = 'inline; filename="%s"' % os.path.basename(f.name)
+                                if content_type is None:
+                                    response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(f.name)
+                                return response
                             except KeyError:
                                 raise exceptions.NotFound
 
-                elif zipfile.is_zipfile(container):
+                elif zipfile.is_zipfile(container) and os.path.getsize(container) <= MAX_FILE_SIZE:
                     with zipfile.ZipFile(container) as zipf:
                         if fullpath == container:
                             entries = []
@@ -466,17 +472,29 @@ class InformationPackage(models.Model):
                             try:
                                 f = zipf.open(subpath)
                                 content_type = mtypes.get(os.path.splitext(subpath)[1])
-                                return HttpResponse(f.read(), content_type=content_type)
+                                response = HttpResponse(f.read(), content_type=content_type)
+                                response['Content-Disposition'] = 'inline; filename="%s"' % os.path.basename(f.name)
+                                if content_type is None:
+                                    response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(f.name)
+                                return response
                             except KeyError:
                                 raise exceptions.NotFound
 
 
                 content_type = mtypes.get(os.path.splitext(fullpath)[1])
-                return HttpResponse(open(fullpath).read(), content_type=content_type)
+                response = HttpResponse(open(fullpath).read(), content_type=content_type)
+                response['Content-Disposition'] = 'inline; filename="%s"' % os.path.basename(fullpath)
+                if content_type is None:
+                    response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(fullpath)
+                return response
             elif os.path.isfile(xml) and path == os.path.basename(xml):
                 fullpath = os.path.join(os.path.dirname(container), path)
                 content_type = mtypes.get(os.path.splitext(fullpath)[1])
-                return HttpResponse(open(fullpath).read(), content_type=content_type)
+                response = HttpResponse(open(fullpath).read(), content_type=content_type)
+                response['Content-Disposition'] = 'inline; filename="%s"' % os.path.basename(fullpath)
+                if content_type is None:
+                    response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(fullpath)
+                return response
             elif path == '':
                 entries = []
 
@@ -510,7 +528,11 @@ class InformationPackage(models.Model):
 
         if os.path.isfile(fullpath):
             content_type = mtypes.get(os.path.splitext(fullpath)[1])
-            return HttpResponse(open(fullpath).read(), content_type=content_type)
+            response = HttpResponse(open(fullpath).read(), content_type=content_type)
+            response['Content-Disposition'] = 'inline; filename="%s"' % os.path.basename(fullpath)
+            if content_type is None:
+                response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(fullpath)
+            return response
 
         for entry in get_files_and_dirs(fullpath):
             entry_type = "dir" if entry.is_dir() else "file"
