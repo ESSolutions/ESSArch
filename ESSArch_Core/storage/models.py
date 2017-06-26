@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 import uuid
 
+from datetime import timedelta
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
@@ -277,7 +279,7 @@ class TapeDrive(models.Model):
     device = models.CharField(max_length=255, unique=True)
     io_queue_entry = models.OneToOneField('IOQueue', models.PROTECT, related_name='tape_drive', null=True)
     num_of_mounts = models.IntegerField(default=0)
-    idle_time = models.IntegerField(null=True)
+    idle_time = models.DurationField(default=timedelta(hours=1))
     robot = models.ForeignKey('Robot', models.PROTECT, related_name='tape_drives')
 
     def __unicode__(self):
