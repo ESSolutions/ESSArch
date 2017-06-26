@@ -112,14 +112,19 @@ def wait_to_come_online(drive, timeout=120):
 
 def tape_empty(drive):
     try:
-        with open(drive, 'rb') as f:
-            f.read(20000)
-    except IOError, e:
+        tar = tarfile.open(drive, 'r|')
+    except (IOError, OSError) as e:
         if e.errno == errno.EIO:
             rewind_tape(drive)
             return True
         raise
+    except tarfile.ReadError as e:
+        if e.message == 'empty file':
+            rewind_tape(drive)
+            return True
+        raise
     else:
+        tar.close()
         rewind_tape(drive)
         return False
 
