@@ -1129,6 +1129,9 @@ class MountTape(DBTask):
         slot = medium.tape_slot.slot_id
         tape_drive = TapeDrive.objects.get(pk=drive)
 
+        tape_drive.locked = True
+        tape_drive.save(update_fields=['locked'])
+
         mount_tape(tape_drive.robot.device, slot, drive)
 
         wait_to_come_online(tape_drive.device, timeout)
@@ -1161,6 +1164,7 @@ class MountTape(DBTask):
 
         TapeDrive.objects.filter(pk=drive).update(
             num_of_mounts=F('num_of_mounts')+1,
+            locked=False,
         )
         StorageMedium.objects.filter(pk=medium.pk).update(
             num_of_mounts=F('num_of_mounts')+1,
@@ -1191,11 +1195,17 @@ class UnmountTape(DBTask):
         slot = tape_drive.storage_medium.tape_slot
         robot = tape_drive.robot
 
+        tape_drive.locked = True
+        tape_drive.save(update_fields=['locked'])
+
         res = unmount_tape(robot.device, slot.slot_id, tape_drive.pk)
 
         StorageMedium.objects.filter(pk=tape_drive.storage_medium.pk).update(
             tape_drive=None
         )
+
+        tape_drive.locked = False
+        tape_drive.save(update_fields=['locked'])
 
         return res
 

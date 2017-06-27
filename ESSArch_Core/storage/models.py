@@ -281,6 +281,7 @@ class TapeDrive(models.Model):
     num_of_mounts = models.IntegerField(default=0)
     idle_time = models.DurationField(default=timedelta(hours=1))
     robot = models.ForeignKey('Robot', models.PROTECT, related_name='tape_drives')
+    locked = models.BooleanField(default=False)
 
     def __unicode__(self):
         return self.device
