@@ -64,6 +64,7 @@ from ESSArch_Core.storage.tape import (
     mount_tape,
     read_tape,
     rewind_tape,
+    robot_inventory,
     set_tape_file_number,
     tape_empty,
     unmount_tape,
@@ -1336,6 +1337,28 @@ class SetTapeFileNumber(DBTask):
 
     def event_outcome_success(self, medium=None, num=0):
         pass
+
+
+class RobotInventory(DBTask):
+    def run(self, robot):
+        """
+        Updates the slots and drives in the robot
+
+        Args:
+            robot: Which robot to get the data from
+
+        Returns:
+            None
+        """
+
+        robot_inventory(robot)
+
+    def undo(self, robot):
+        pass
+
+    def event_outcome_success(self, robot):
+        pass
+
 
 class ConvertFile(DBTask):
     def run(self, filepath, new_format, delete_original=True):

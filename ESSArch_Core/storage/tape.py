@@ -1,5 +1,6 @@
 import errno
 import os
+import re
 import tarfile
 import time
 
@@ -16,6 +17,8 @@ from ESSArch_Core.storage.exceptions import (
     RobotMountTimeoutException,
     RobotUnmountException
 )
+
+from ESSArch_Core.storage.models import Robot, StorageMedium, TapeDrive, TapeSlot
 
 DEFAULT_TAPE_BLOCK_SIZE = 20*512
 
@@ -211,3 +214,59 @@ def set_tape_file_number(drive, num=0):
         raise MTFailedOperationException(err)
 
     return out
+
+
+def robot_inventory(robot):
+    """
+    Updates the slots and drives in the robot
+
+    Args:
+        robot: Which robot to get the data from
+
+    Returns:
+        None
+    """
+
+    cmd = 'mtx -f %s status' % robot
+    logger.info(cmd)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    out, err = p.communicate()
+
+    if p.returncode:
+        raise RobotException('%s, return code: %s' % (err, p.returncode))
+
+    robot = Robot.objects.get(device=robot)
+
+    re_word = re.compile(r'\W+')
+    for row in out.split('\n')[::-1]:  # Reverse to get (and create) slots first
+        if re.match('Data Transfer Element', row):  # Find robot drives
+            dt_el = re_word.split(row)
+
+            drive_id = dt_el[3]
+            status = dt_el[4]
+
+            drive = TapeDrive.objects.get(pk=drive_id, robot=robot)
+
+            if status == 'Full':
+                slot_id = dt_el[7]
+                volume_id = dt_el[10][:6]
+                print slot_id
+                print volume_id
+                StorageMedium.objects.filter(tape_slot__slot_id=slot_id, medium_id=volume_id).update(tape_drive=drive)
+            else:
+                StorageMedium.objects.filter(tape_drive__id=drive_id).update(tape_drive=None)
+
+        if re.match('\ *Storage Element', row):  # Find robot slots
+            if not re.search('EXPORT', row):
+                s_el = re_word.split(row)
+
+                slot_id = s_el[3]
+                status = s_el[4]
+
+                if status == 'Full':
+                    volume_id = s_el[6][:6]
+
+                    slot, _ = TapeSlot.objects.get_or_create(robot=robot, slot_id=slot_id, medium_id=volume_id)
+                    StorageMedium.objects.filter(medium_id=volume_id).update(tape_slot=slot)
+                else:
+                    TapeSlot.objects.get_or_create(robot=robot, slot_id=slot_id)
