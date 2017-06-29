@@ -244,16 +244,17 @@ def robot_inventory(robot):
             drive_id = dt_el[3]
             status = dt_el[4]
 
-            drive = TapeDrive.objects.get(pk=drive_id, robot=robot)
+            try:
+                drive = TapeDrive.objects.get(pk=drive_id, robot=robot)
 
-            if status == 'Full':
-                slot_id = dt_el[7]
-                volume_id = dt_el[10][:6]
-                print slot_id
-                print volume_id
-                StorageMedium.objects.filter(tape_slot__slot_id=slot_id, medium_id=volume_id).update(tape_drive=drive)
-            else:
-                StorageMedium.objects.filter(tape_drive__id=drive_id).update(tape_drive=None)
+                if status == 'Full':
+                    slot_id = dt_el[7]
+                    volume_id = dt_el[10][:6]
+                    StorageMedium.objects.filter(tape_slot__slot_id=slot_id, medium_id=volume_id).update(tape_drive=drive)
+                else:
+                    StorageMedium.objects.filter(tape_drive__id=drive_id).update(tape_drive=None)
+            except TapeDrive.DoesNotExist:
+                pass
 
         if re.match('\ *Storage Element', row):  # Find robot slots
             if not re.search('EXPORT', row):
@@ -265,7 +266,7 @@ def robot_inventory(robot):
                 if status == 'Full':
                     volume_id = s_el[6][:6]
 
-                    slot, _ = TapeSlot.objects.get_or_create(robot=robot, slot_id=slot_id, medium_id=volume_id)
+                    slot, _ = TapeSlot.objects.update_or_create(robot=robot, slot_id=slot_id, defaults={'medium_id': volume_id})
                     StorageMedium.objects.filter(medium_id=volume_id).update(tape_slot=slot)
                 else:
                     TapeSlot.objects.get_or_create(robot=robot, slot_id=slot_id)
