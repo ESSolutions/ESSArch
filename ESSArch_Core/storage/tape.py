@@ -228,7 +228,6 @@ def robot_inventory(robot):
     """
 
     cmd = 'mtx -f %s status' % robot
-    logger.info(cmd)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
 
