@@ -28,8 +28,10 @@ from rest_framework import serializers
 
 from ESSArch_Core.auth.models import UserProfile
 
+from ESSArch_Core.serializers import DynamicHyperlinkedModelSerializer
 
-class PermissionSerializer(serializers.HyperlinkedModelSerializer):
+
+class PermissionSerializer(DynamicHyperlinkedModelSerializer):
     content_type = serializers.PrimaryKeyRelatedField(queryset=ContentType.objects.all())
 
     class Meta:
@@ -37,7 +39,7 @@ class PermissionSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'id', 'name', 'codename', 'group_set', 'content_type')
 
 
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
+class GroupSerializer(DynamicHyperlinkedModelSerializer):
     permissions = PermissionSerializer(many=True)
 
     class Meta:
@@ -53,7 +55,7 @@ class GroupDetailSerializer(GroupSerializer):
         )
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializer(DynamicHyperlinkedModelSerializer):
     permissions = serializers.ReadOnlyField(source='get_all_permissions')
     user_permissions = PermissionSerializer(many=True, read_only=True)
     groups = GroupSerializer(many=True, read_only=True)
