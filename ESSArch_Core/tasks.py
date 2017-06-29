@@ -40,6 +40,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.conf import settings
 from django.db.models import F
+from django.utils import timezone
 
 from ESSArch_Core.util import (
     alg_from_str,
@@ -1165,6 +1166,7 @@ class MountTape(DBTask):
 
         TapeDrive.objects.filter(pk=drive).update(
             num_of_mounts=F('num_of_mounts')+1,
+            last_change=timezone.now(),
             locked=False,
         )
         StorageMedium.objects.filter(pk=medium.pk).update(
@@ -1205,8 +1207,9 @@ class UnmountTape(DBTask):
             tape_drive=None
         )
 
+        tape_drive.last_change = timezone.now()
         tape_drive.locked = False
-        tape_drive.save(update_fields=['locked'])
+        tape_drive.save(update_fields=['last_change', 'locked'])
 
         return res
 
@@ -1270,7 +1273,12 @@ class ReadTape(DBTask):
         except TapeDrive.DoesNotExist:
             raise ValueError("Tape not mounted")
 
-        return read_tape(drive.device, path=path, block_size=block_size)
+        res = read_tape(drive.device, path=path, block_size=block_size)
+
+        drive.last_change = timezone.now()
+        drive.save(update_fields=['last_change'])
+
+        return res
 
     def undo(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
         pass
@@ -1290,7 +1298,12 @@ class WriteToTape(DBTask):
         except TapeDrive.DoesNotExist:
             raise ValueError("Tape not mounted")
 
-        return write_to_tape(drive.device, path=path, block_size=block_size)
+        res = write_to_tape(drive.device, path=path, block_size=block_size)
+
+        drive.last_change = timezone.now()
+        drive.save(update_fields=['last_change'])
+
+        return res
 
     def undo(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
         pass

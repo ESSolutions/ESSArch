@@ -280,6 +280,7 @@ class TapeDrive(models.Model):
     io_queue_entry = models.OneToOneField('IOQueue', models.PROTECT, related_name='tape_drive', null=True)
     num_of_mounts = models.IntegerField(default=0)
     idle_time = models.DurationField(default=timedelta(hours=1))
+    last_change = models.DateTimeField(auto_now_add=True)
     robot = models.ForeignKey('Robot', models.PROTECT, related_name='tape_drives')
     locked = models.BooleanField(default=False)
 
