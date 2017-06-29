@@ -22,10 +22,12 @@
     Email - essarch@essolutions.se
 """
 
+from drf_dynamic_fields import DynamicFieldsMixin
+
 from rest_framework import serializers
 
 
-class DynamicHyperlinkedModelSerializer(serializers.HyperlinkedModelSerializer):
+class DynamicHyperlinkedModelSerializer(DynamicFieldsMixin, serializers.HyperlinkedModelSerializer):
     """
     A ModelSerializer that takes an additional `fields` argument that
     controls which fields should be displayed.
