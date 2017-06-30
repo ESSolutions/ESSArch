@@ -151,10 +151,17 @@ def create_tape_label(medium, xmlpath):
 
 
 def verify_tape_label(medium, xmlstring):
-    tree = etree.parse(xmlstring)
-    root = tree.getroot()
+    try:
+        root = etree.fromstring(xmlstring)
+    except etree.XMLSyntaxError:
+        return False
 
-    return root.find('label/tape')['id'] == str(medium.medium_id)
+    tape = root.find('tape')
+
+    if tape is None:
+        return False
+
+    return tape.get('id') == str(medium.medium_id)
 
 
 def read_tape(device, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
