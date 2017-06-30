@@ -1134,45 +1134,51 @@ class MountTape(DBTask):
         tape_drive.locked = True
         tape_drive.save(update_fields=['locked'])
 
-        mount_tape(tape_drive.robot.device, slot, drive)
-
-        wait_to_come_online(tape_drive.device, timeout)
-
-        if medium.format not in [100, 101]:
-            label_root = Path.objects.get(entity='label').value
-            xmlpath = os.path.join(label_root, '%s_label.xml' % medium.medium_id)
-
-            if tape_empty(tape_drive.device):
-                create_tape_label(medium, xmlpath)
-                rewind_tape(tape_drive.device)
-                write_to_tape(tape_drive.device, xmlpath)
-            else:
-                tar = tarfile.open(tape_drive.device, 'r|')
-                first_member = tar.getmembers()[0]
-
-                if first_member.name.endswith('_label.xml'):
-                    xmlstring = tar.extractfile(first_member).read()
-                    tar.close()
-                    if not verify_tape_label(medium, xmlstring):
-                        raise ValueError('Tape contains labelfile with wrong tapeid')
-                elif first_member.name == 'reuse':
-                    tar.close()
-
-                    create_tape_label(medium, xmlpath)
-                    rewind_tape(tape_drive.device)
-                    write_to_tape(tape_drive.device, xmlpath)
-                else:
-                    raise ValueError('Tape contains unknown information')
+        try:
+            mount_tape(tape_drive.robot.device, slot, drive)
+            wait_to_come_online(tape_drive.device, timeout)
+        except:
+            TapeDrive.objects.filter(pk=drive).update(locked=False)
+            raise
 
         TapeDrive.objects.filter(pk=drive).update(
             num_of_mounts=F('num_of_mounts')+1,
             last_change=timezone.now(),
-            locked=False,
         )
         StorageMedium.objects.filter(pk=medium.pk).update(
             num_of_mounts=F('num_of_mounts')+1,
             tape_drive_id=drive
         )
+
+        try:
+            if medium.format not in [100, 101]:
+                label_root = Path.objects.get(entity='label').value
+                xmlpath = os.path.join(label_root, '%s_label.xml' % medium.medium_id)
+
+                if tape_empty(tape_drive.device):
+                    create_tape_label(medium, xmlpath)
+                    rewind_tape(tape_drive.device)
+                    write_to_tape(tape_drive.device, xmlpath)
+                else:
+                    rewind_tape(tape_drive.device)
+                    tar = tarfile.open(tape_drive.device, 'r|')
+                    first_member = tar.getmembers()[0]
+
+                    if first_member.name.endswith('_label.xml'):
+                        xmlstring = tar.extractfile(first_member).read()
+                        tar.close()
+                        if not verify_tape_label(medium, xmlstring):
+                            raise ValueError('Tape contains labelfile with wrong tapeid')
+                    elif first_member.name == 'reuse':
+                        tar.close()
+
+                        create_tape_label(medium, xmlpath)
+                        rewind_tape(tape_drive.device)
+                        write_to_tape(tape_drive.device, xmlpath)
+                    else:
+                        raise ValueError('Tape contains unknown information')
+        finally:
+            TapeDrive.objects.filter(pk=drive).update(locked=False)
 
     def undo(self, robot=None, slot=None, drive=None):
         pass
