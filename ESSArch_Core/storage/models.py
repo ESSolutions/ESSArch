@@ -317,6 +317,7 @@ class RobotQueue(models.Model):
     robot = models.OneToOneField('Robot', related_name='robot_queue', null=True)
     io_queue_entry = models.ForeignKey('IOQueue', models.PROTECT, null=True)
     storage_medium = models.ForeignKey('StorageMedium', models.PROTECT)
+    tape_drive = models.ForeignKey('TapeDrive', models.CASCADE, null=True)
     req_type = models.IntegerField(choices=robot_req_type_CHOICES)
     status = models.IntegerField(default=0, choices=req_status_CHOICES)
 
