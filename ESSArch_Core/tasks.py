@@ -1160,23 +1160,25 @@ class MountTape(DBTask):
                     rewind_tape(tape_drive.device)
                     write_to_tape(tape_drive.device, xmlpath)
                 else:
-                    rewind_tape(tape_drive.device)
                     tar = tarfile.open(tape_drive.device, 'r|')
                     first_member = tar.getmembers()[0]
+                    tar.close()
+                    rewind_tape(tape_drive.device)
 
                     if first_member.name.endswith('_label.xml'):
+                        tar = tarfile.open(tape_drive.device, 'r|')
                         xmlstring = tar.extractfile(first_member).read()
                         tar.close()
                         if not verify_tape_label(medium, xmlstring):
-                            raise ValueError('Tape contains labelfile with wrong tapeid')
+                            raise ValueError('Tape contains invalid label file')
                     elif first_member.name == 'reuse':
-                        tar.close()
-
                         create_tape_label(medium, xmlpath)
                         rewind_tape(tape_drive.device)
                         write_to_tape(tape_drive.device, xmlpath)
                     else:
                         raise ValueError('Tape contains unknown information')
+
+                    rewind_tape(tape_drive.device)
         finally:
             TapeDrive.objects.filter(pk=drive).update(locked=False)
 
