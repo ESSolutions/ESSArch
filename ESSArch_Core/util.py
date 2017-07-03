@@ -290,7 +290,7 @@ def alg_from_str(algname):
     }
 
     try:
-        return valid[algname]
+        return valid[algname.upper()]
     except:
         raise KeyError("Algorithm %s does not exist" % algname)
 
