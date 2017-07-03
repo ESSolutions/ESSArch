@@ -387,17 +387,16 @@ class InformationPackage(models.Model):
 
             return progress
 
-        if self.state in ["Uploading", "Creating", "Submitting", "Receiving", "Transferring"]:
-            steps = self.steps.all()
+        steps = self.steps.all()
 
-            if steps:
-                try:
-                    progress = sum([s.progress for s in steps])
-                    return progress / len(steps)
-                except:
-                    return 0
+        if steps:
+            try:
+                progress = sum([s.progress for s in steps])
+                return progress / len(steps)
+            except:
+                return 0
 
-            return 0
+        return 0
 
     def files(self, path=''):
         mimetypes.suffix_map = {}
