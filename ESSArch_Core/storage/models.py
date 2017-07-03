@@ -1,14 +1,17 @@
 from __future__ import unicode_literals
 
+import os
 import uuid
 
 from datetime import timedelta
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+from django.db.models.functions import Cast
 
 from picklefield.fields import PickledObjectField
 
+from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
@@ -218,6 +221,30 @@ class StorageMedium(models.Model):
     tape_slot = models.OneToOneField('TapeSlot', models.PROTECT, related_name='storage_medium', null=True)
     tape_drive = models.OneToOneField('TapeDrive', models.PROTECT, related_name='storage_medium', null=True)
 
+    def mark_as_full(self):
+        objs = self.storage.annotate(
+            content_location_value_int=Cast('content_location_value', models.IntegerField())
+        ).order_by('content_location_value_int')
+
+        if objs.count() > 3:
+            objs = [objs.first(), objs[objs.count()/2], objs.last()]
+
+        verifydir = Path.objects.get(entity='verify').value
+        tmppath = os.path.join(verifydir, self.storage_target.target)
+        if not os.path.exists(tmppath):
+            os.mkdir(tmppath)
+
+        try:
+            for obj in objs:
+                obj.verify()
+        except AssertionError:
+            self.status = 100
+            raise
+        else:
+            self.status = 30
+        finally:
+            self.save(update_fields=['status'])
+
     class Meta:
         permissions = (
             ("list_storageMedium", "Can list storageMedium"),
@@ -253,6 +280,40 @@ class StorageObject(models.Model):
         permissions = (
             ("list_storage", "Can list storage"),
         )
+
+    def verify(self):
+        if self.content_location_type == TAPE:
+            verifydir = Path.objects.get(entity='verify').value
+            tmppath = os.path.join(verifydir, self.storage_medium.storage_target.target)
+
+            if not os.path.exists(tmppath):
+                os.mkdir(tmppath)
+
+            ProcessTask.objects.create(
+                name='ESSArch_Core.tasks.SetTapeFileNumber',
+                params={
+                    'medium': self.storage_medium_id,
+                    'num': int(self.content_location_value)
+                }
+            ).run().get()
+
+            ProcessTask.objects.create(
+                name='ESSArch_Core.tasks.ReadTape',
+                params={
+                    'medium': self.storage_medium_id,
+                    'path': tmppath
+                }
+            ).run().get()
+
+            checksum = ProcessTask.objects.create(
+                name='ESSArch_Core.tasks.CalculateChecksum',
+                params={
+                    'filename': os.path.join(tmppath, self.ip.object_identifier_value + '.tar'),
+                    'algorithm': self.ip.get_message_digest_algorithm_display()
+                }
+            ).run().get()
+
+            assert checksum == self.ip.message_digest, '%s is invalid' % self.ip.object_identifier_value
 
     def __unicode__(self):
         try:
