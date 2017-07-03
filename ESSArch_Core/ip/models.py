@@ -41,7 +41,7 @@ from django.http.response import HttpResponse
 from rest_framework import exceptions, filters, permissions, status
 from rest_framework.response import Response
 
-from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.configuration.models import ArchivePolicy, Path
 
 from ESSArch_Core.profiles.models import (
     SubmissionAgreement as SA,
@@ -59,12 +59,12 @@ import math
 import uuid
 
 MESSAGE_DIGEST_ALGORITHM_CHOICES = (
-    ('MD5', 'MD5'),
-    ('SHA-1', 'SHA-1'),
-    ('SHA-224', 'SHA-224'),
-    ('SHA-256', 'SHA-256'),
-    ('SHA-384', 'SHA-384'),
-    ('SHA-512', 'SHA-512'),
+    (ArchivePolicy.MD5, 'MD5'),
+    (ArchivePolicy.SHA1, 'SHA-1'),
+    (ArchivePolicy.SHA224, 'SHA-224'),
+    (ArchivePolicy.SHA256, 'SHA-256'),
+    (ArchivePolicy.SHA384, 'SHA-384'),
+    (ArchivePolicy.SHA512, 'SHA-512'),
 )
 
 

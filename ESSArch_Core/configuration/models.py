@@ -129,9 +129,16 @@ class ArchivePolicy(models.Model):
         (2, 'ais'),
     )
 
+    MD5 = 0
+    SHA1 = 1
+    SHA224 = 2
+    SHA256 = 3
+    SHA384 = 4
+    SHA512 = 5
+
     CHECKSUM_ALGORITHM_CHOICES = (
-        (1, 'md5'),
-        (2, 'sha-256'),
+        (MD5, 'md5'),
+        (SHA256, 'sha-256'),
     )
 
     IP_TYPE_CHOICES = (
