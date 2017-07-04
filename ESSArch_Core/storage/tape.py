@@ -142,8 +142,8 @@ def create_tape_label(medium, xmlpath):
     label_tape.set('date', local_create_date.replace(microsecond=0).isoformat())
 
     label_format = etree.SubElement(root, 'format')
-    label_format.set('format', str(medium.format))
-    label_format.set('blocksize', str(medium.block_size))
+    label_format.set('format', str(medium.storage_target.default_format))
+    label_format.set('blocksize', str(medium.storage_target.default_block_size))
     label_format.set('drivemanufacture', str(medium.storage_target.type))
 
     tree = etree.ElementTree(root)
