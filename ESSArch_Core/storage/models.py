@@ -301,7 +301,8 @@ class StorageObject(models.Model):
                 name='ESSArch_Core.tasks.ReadTape',
                 params={
                     'medium': self.storage_medium_id,
-                    'path': tmppath
+                    'path': tmppath,
+                    'block_size': self.storage_medium.block_size * 512,
                 }
             ).run().get()
 
