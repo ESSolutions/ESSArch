@@ -55,7 +55,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
 )
 from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, validate_against_schema
 from ESSArch_Core.ip.models import EventIP, InformationPackage
-from ESSArch_Core.storage.models import StorageMedium, TapeDrive
+from ESSArch_Core.storage.models import StorageMedium, TapeDrive, TapeSlot
 from ESSArch_Core.storage.tape import (
     DEFAULT_TAPE_BLOCK_SIZE,
 
@@ -1135,10 +1135,12 @@ class MountTape(DBTask):
         tape_drive.save(update_fields=['locked'])
 
         try:
-            mount_tape(tape_drive.robot.device, slot, drive)
+            mount_tape(tape_drive.robot.device, slot, tape_drive.drive_id)
             wait_to_come_online(tape_drive.device, timeout)
         except:
-            TapeDrive.objects.filter(pk=drive).update(locked=False)
+            StorageMedium.objects.filter(pk=medium.pk).update(status=100)
+            TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
+            TapeSlot.objects.filter(slot_id=slot).update(status=100)
             raise
 
         TapeDrive.objects.filter(pk=drive).update(
@@ -1209,7 +1211,13 @@ class UnmountTape(DBTask):
         tape_drive.locked = True
         tape_drive.save(update_fields=['locked'])
 
-        res = unmount_tape(robot.device, slot.slot_id, tape_drive.pk)
+        try:
+            res = unmount_tape(robot.device, slot.slot_id, tape_drive.drive_id)
+        except:
+            StorageMedium.objects.filter(pk=tape_drive.storage_medium.pk).update(status=100)
+            TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
+            TapeSlot.objects.filter(pk=slot.pk).update(status=100)
+            raise
 
         StorageMedium.objects.filter(pk=tape_drive.storage_medium.pk).update(
             tape_drive=None
