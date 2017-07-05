@@ -9,6 +9,8 @@ from subprocess import Popen, PIPE
 from django.utils.timezone import localtime
 from lxml import etree
 
+from retrying import retry
+
 from ESSArch_Core.storage.exceptions import (
     MTInvalidOperationOrDeviceNameException,
     MTFailedOperationException,
@@ -23,6 +25,8 @@ from ESSArch_Core.storage.models import Robot, StorageMedium, TapeDrive, TapeSlo
 DEFAULT_TAPE_BLOCK_SIZE = 20*512
 
 
+
+@retry(stop_max_attempt_number=5, wait_fixed=60000)
 def mount_tape(robot, slot, drive):
     """
     Mounts tape from slot into drive
@@ -43,6 +47,7 @@ def mount_tape(robot, slot, drive):
     return out
 
 
+@retry(stop_max_attempt_number=5, wait_fixed=60000)
 def unmount_tape(robot, slot, drive):
     """
     Unmounts tape from drive into slot
