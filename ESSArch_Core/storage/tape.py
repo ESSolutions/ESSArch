@@ -260,14 +260,14 @@ def robot_inventory(robot):
             status = dt_el[4]
 
             try:
-                drive = TapeDrive.objects.get(pk=drive_id, robot=robot)
+                drive = TapeDrive.objects.get(drive_id=drive_id, robot=robot)
 
                 if status == 'Full':
                     slot_id = dt_el[7]
                     volume_id = dt_el[10][:6]
-                    StorageMedium.objects.filter(tape_slot__slot_id=slot_id, medium_id=volume_id).update(tape_drive=drive)
+                    StorageMedium.objects.filter(tape_slot__robot=robot, tape_slot__slot_id=slot_id, medium_id=volume_id).update(tape_drive=drive)
                 else:
-                    StorageMedium.objects.filter(tape_drive__id=drive_id).update(tape_drive=None)
+                    StorageMedium.objects.filter(tape_drive=drive).update(tape_drive=None)
             except TapeDrive.DoesNotExist:
                 pass
 
