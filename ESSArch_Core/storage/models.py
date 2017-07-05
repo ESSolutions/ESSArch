@@ -337,6 +337,12 @@ class StorageObject(models.Model):
 
 
 class TapeDrive(models.Model):
+    STATUS_CHOICES = (
+        (0, 'Inactive'),
+        (20, 'Write'),
+        (100, 'FAIL'),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     drive_id = models.IntegerField()
     device = models.CharField(max_length=255, unique=True)
@@ -346,15 +352,23 @@ class TapeDrive(models.Model):
     last_change = models.DateTimeField(auto_now_add=True)
     robot = models.ForeignKey('Robot', models.PROTECT, related_name='tape_drives')
     locked = models.BooleanField(default=False)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=20)
 
     def __unicode__(self):
         return self.device
 
 class TapeSlot(models.Model):
+    STATUS_CHOICES = (
+        (0, 'Inactive'),
+        (20, 'Write'),
+        (100, 'FAIL'),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     slot_id = models.IntegerField()
     medium_id = models.CharField("The id for the medium, e.g. barcode", max_length=255, unique=True, blank=True, null=True)
     robot = models.ForeignKey('Robot', models.PROTECT, related_name='tape_slots')
+    status = models.IntegerField(choices=STATUS_CHOICES, default=20)
 
     class Meta:
         unique_together = ('slot_id', 'robot')
