@@ -34,8 +34,9 @@ class DynamicHyperlinkedModelSerializer(DynamicFieldsMixin, serializers.Hyperlin
     """
 
     def __init__(self, *args, **kwargs):
-        # Don't pass the 'fields' arg up to the superclass
+        # Don't pass the 'fields' and 'omit' args up to the superclass
         fields = kwargs.pop('fields', None)
+        omit = kwargs.pop('omit', None)
 
         # Instantiate the superclass normally
         super(DynamicHyperlinkedModelSerializer, self).__init__(*args, **kwargs)
@@ -45,4 +46,11 @@ class DynamicHyperlinkedModelSerializer(DynamicFieldsMixin, serializers.Hyperlin
             allowed = set(fields)
             existing = set(self.fields.keys())
             for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+        if omit is not None:
+            # Drop any fields that are specified in the `omit` argument.
+            disallowed = set(omit)
+            existing = set(self.fields.keys())
+            for field_name in existing & disallowed:
                 self.fields.pop(field_name)
