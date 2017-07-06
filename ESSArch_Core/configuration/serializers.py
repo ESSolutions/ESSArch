@@ -67,6 +67,8 @@ class PathSerializer(DynamicHyperlinkedModelSerializer):
 
 class ArchivePolicySerializer(DynamicHyperlinkedModelSerializer):
     id = serializers.UUIDField(read_only=True)
+    cache_storage = PathSerializer(read_only=True)
+    ingest_path = PathSerializer(read_only=True)
 
     class Meta:
         model = ArchivePolicy
