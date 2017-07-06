@@ -32,14 +32,16 @@ from ESSArch_Core.configuration.models import (
     Path,
 )
 
+from ESSArch_Core.serializers import DynamicHyperlinkedModelSerializer
 
-class EventTypeSerializer(serializers.HyperlinkedModelSerializer):
+
+class EventTypeSerializer(DynamicHyperlinkedModelSerializer):
     class Meta:
         model = EventType
         fields = ('url', 'eventType', 'eventDetail',)
 
 
-class AgentSerializer(serializers.HyperlinkedModelSerializer):
+class AgentSerializer(DynamicHyperlinkedModelSerializer):
     id = serializers.UUIDField(read_only=True)
 
     class Meta:
@@ -47,7 +49,7 @@ class AgentSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class ParameterSerializer(serializers.HyperlinkedModelSerializer):
+class ParameterSerializer(DynamicHyperlinkedModelSerializer):
     id = serializers.UUIDField(read_only=True)
 
     class Meta:
@@ -55,7 +57,7 @@ class ParameterSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class PathSerializer(serializers.HyperlinkedModelSerializer):
+class PathSerializer(DynamicHyperlinkedModelSerializer):
     id = serializers.UUIDField(read_only=True)
 
     class Meta:
@@ -63,7 +65,7 @@ class PathSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class ArchivePolicySerializer(serializers.HyperlinkedModelSerializer):
+class ArchivePolicySerializer(DynamicHyperlinkedModelSerializer):
     id = serializers.UUIDField(read_only=True)
 
     class Meta:
