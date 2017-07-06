@@ -40,7 +40,7 @@ class EventTypeSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class AgentSerializer(serializers.HyperlinkedModelSerializer):
-    id = serializers.ReadOnlyField()
+    id = serializers.UUIDField(read_only=True)
 
     class Meta:
         model = Agent
@@ -48,7 +48,7 @@ class AgentSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ParameterSerializer(serializers.HyperlinkedModelSerializer):
-    id = serializers.ReadOnlyField()
+    id = serializers.UUIDField(read_only=True)
 
     class Meta:
         model = Parameter
@@ -56,7 +56,7 @@ class ParameterSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class PathSerializer(serializers.HyperlinkedModelSerializer):
-    id = serializers.ReadOnlyField()
+    id = serializers.UUIDField(read_only=True)
 
     class Meta:
         model = Path
@@ -64,7 +64,7 @@ class PathSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ArchivePolicySerializer(serializers.HyperlinkedModelSerializer):
-    id = serializers.ReadOnlyField()
+    id = serializers.UUIDField(read_only=True)
 
     class Meta:
         model = ArchivePolicy
