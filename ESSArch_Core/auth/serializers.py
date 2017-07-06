@@ -92,5 +92,5 @@ class UserSerializer(DynamicHyperlinkedModelSerializer):
             'ip_list_columns', 'ip_list_view_type',
         )
         read_only_fields = (
-            'last_login', 'date_joined',
+            'last_login', 'date_joined', 'is_staff', 'is_active', 'is_superuser',
         )

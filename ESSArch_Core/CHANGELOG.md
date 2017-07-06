@@ -75,6 +75,7 @@
 * An element can now be flagged as required with the `-req` flag
 * An element can now be flagged with `-hideEmptyContent` which will hide the
   element if it doesn't have any content
+* If `allow_unknown_file_types` is `True` then mimetypes of unknown file types will be set to `application/octet-stream`
 
 ### Bug Fixes
 * XML Generator can now parse files with names containing non-ascii characters
@@ -88,6 +89,7 @@
 * URL fields in profiles are now validated on clean
 * Profiles are no validated when creating new generations
 * All fields in the `InformationPackage`-model are now in snake\_case
+* Locking a profile with fields in template missing in `specification_data` will now copy the default value of those fields into `specification_data`
 
 ## Requirement changes
 ### Updates
