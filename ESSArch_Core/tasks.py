@@ -26,6 +26,7 @@ import errno
 import os
 import shutil
 import tarfile
+import tempfile
 import urllib
 import uuid
 import zipfile
@@ -1152,15 +1153,16 @@ class MountTape(DBTask):
             tape_drive_id=drive
         )
 
-        try:
-            if medium.format not in [100, 101]:
-                label_root = Path.objects.get(entity='label').value
-                xmlpath = os.path.join(label_root, '%s_label.xml' % medium.medium_id)
+        xmlfile = tempfile.NamedTemporaryFile(delete=False)
 
+        try:
+            arcname = '%s_label.xml' % medium.medium_id
+
+            if medium.format not in [100, 101]:
                 if tape_empty(tape_drive.device):
-                    create_tape_label(medium, xmlpath)
+                    create_tape_label(medium, xmlfile.name)
                     rewind_tape(tape_drive.device)
-                    write_to_tape(tape_drive.device, xmlpath)
+                    write_to_tape(tape_drive.device, xmlfile.name, arcname=arcname)
                 else:
                     tar = tarfile.open(tape_drive.device, 'r|')
                     first_member = tar.getmembers()[0]
@@ -1174,14 +1176,15 @@ class MountTape(DBTask):
                         if not verify_tape_label(medium, xmlstring):
                             raise ValueError('Tape contains invalid label file')
                     elif first_member.name == 'reuse':
-                        create_tape_label(medium, xmlpath)
+                        create_tape_label(medium, xmlfile.name)
                         rewind_tape(tape_drive.device)
-                        write_to_tape(tape_drive.device, xmlpath)
+                        write_to_tape(tape_drive.device, xmlfile.name, arcname=arcname)
                     else:
                         raise ValueError('Tape contains unknown information')
 
                     rewind_tape(tape_drive.device)
         finally:
+            xmlfile.close()
             TapeDrive.objects.filter(pk=drive).update(locked=False)
 
     def undo(self, robot=None, slot=None, drive=None):

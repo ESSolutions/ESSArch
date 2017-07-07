@@ -177,14 +177,16 @@ def read_tape(device, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
         tar.extractall(path)
 
 
-def write_to_tape(device, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
+def write_to_tape(device, path, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=None):
     """
     Writes content to a tape drive
     """
 
-    basepath = os.path.basename(os.path.normpath(path))
+    if arcname is None:
+        arcname = os.path.basename(os.path.normpath(path))
+
     with tarfile.open(device, 'w|', bufsize=block_size) as tar:
-        tar.add(path, basepath)
+        tar.add(path, arcname)
 
 
 def get_tape_file_number(drive):
