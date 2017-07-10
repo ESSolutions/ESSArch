@@ -38,9 +38,23 @@ folder: epp
     [arch@server ~]$ python $EPP/manage.py migrate
 
 ### Add default configuration data to database
+Use only this default configuration for test purpose, do not install this default configuration in production.
+
+
 *Note: Before running the script, compare it with the data currently in the database and see if running it is necessary*
 
     [arch@server ~]$ python $EPP/extra/install_config.py
+
+#### For production/custom installation
+If you have made a custom configuration you should compare your configuration
+with the new default configuration and see if there is anything new
+
+    [arch@server ~]$ diff $EPP/extra/install_config.py /home/arch/install_config_custom.py
+
+If there is anything new in the default you should copy this to your custom installation file and install it
+
+    [arch@server ~]$ cp $EPP/extra/install_config.py /home/arch/install_config_custom.py
+    [arch@server ~]$ python /home/arch/install_config_custom.py
 
 ## Compare and restore configuration files at `/ESSArch/config` from `old` directory
     # diff -qr /ESSArch/config old
