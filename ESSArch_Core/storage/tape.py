@@ -63,7 +63,7 @@ def unmount_tape(robot, slot, drive):
     out, err = p.communicate()
 
     if p.returncode:
-        if re.match('Data Transfer Element [1-9]* is Empty', err):
+        if re.match('Data Transfer Element \d+ is Empty', err):
             return err
 
         raise RobotUnmountException('%s, return code: %s' % (err, p.returncode))
