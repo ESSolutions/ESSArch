@@ -43,6 +43,8 @@ from django.conf import settings
 from django.db.models import F
 from django.utils import timezone
 
+from retrying import retry
+
 from ESSArch_Core.util import (
     alg_from_str,
     convert_file,
@@ -56,6 +58,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
 )
 from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, validate_against_schema
 from ESSArch_Core.ip.models import EventIP, InformationPackage
+from ESSArch_Core.storage.exceptions import TapeDriveLockedError
 from ESSArch_Core.storage.models import StorageMedium, TapeDrive, TapeSlot
 from ESSArch_Core.storage.tape import (
     DEFAULT_TAPE_BLOCK_SIZE,
@@ -1119,6 +1122,7 @@ class DownloadFile(DBTask):
 
 
 class MountTape(DBTask):
+    @retry(stop_max_attempt_number=5, wait_fixed=60000)
     def run(self, medium=None, drive=None, timeout=120):
         """
         Mounts tape into drive
@@ -1131,6 +1135,9 @@ class MountTape(DBTask):
         medium = StorageMedium.objects.get(pk=medium)
         slot = medium.tape_slot.slot_id
         tape_drive = TapeDrive.objects.get(pk=drive)
+
+        if tape_drive.locked:
+            raise TapeDriveLockedError()
 
         tape_drive.locked = True
         tape_drive.save(update_fields=['locked'])
@@ -1195,6 +1202,7 @@ class MountTape(DBTask):
 
 
 class UnmountTape(DBTask):
+    @retry(stop_max_attempt_number=5, wait_fixed=60000)
     def run(self, drive=None):
         """
         Unmounts tape from drive into slot
@@ -1210,6 +1218,9 @@ class UnmountTape(DBTask):
 
         slot = tape_drive.storage_medium.tape_slot
         robot = tape_drive.robot
+
+        if tape_drive.locked:
+            raise TapeDriveLockedError()
 
         tape_drive.locked = True
         tape_drive.save(update_fields=['locked'])
