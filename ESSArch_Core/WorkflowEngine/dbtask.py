@@ -30,7 +30,7 @@ import time
 
 from billiard.einfo import ExceptionInfo
 
-from celery import current_app, states as celery_states, Task
+from celery import current_app, exceptions, states as celery_states, Task
 
 from ESSArch_Core.configuration.models import EventType
 
@@ -65,6 +65,7 @@ class DBTask(Task):
     step = None
     step_pos = None
     chunk = False
+    track = True
 
     def __call__(self, *args, **kwargs):
         options = kwargs.pop('_options', {})
@@ -140,11 +141,12 @@ class DBTask(Task):
         for k, v in self.result_params.iteritems():
             kwargs[k] = get_result(v, self.eager)
 
-        ProcessTask.objects.filter(pk=self.task_id).update(
-            hidden=self.hidden,
-            status=celery_states.STARTED,
-            time_started=timezone.now()
-        )
+        if self.track:
+            ProcessTask.objects.filter(pk=self.task_id).update(
+                hidden=self.hidden,
+                status=celery_states.STARTED,
+                time_started=timezone.now()
+            )
 
         return self._run(*args, **kwargs)
 
@@ -152,6 +154,8 @@ class DBTask(Task):
         if self.undo_type:
             try:
                 res = self.undo(*args, **kwargs)
+            except exceptions.Ignore:
+                raise
             except Exception as e:
                 einfo = ExceptionInfo()
                 self.failure(e, self.task_id, args, kwargs, einfo)
@@ -166,6 +170,8 @@ class DBTask(Task):
         else:
             try:
                 res = self.run(*args, **kwargs)
+            except exceptions.Ignore:
+                raise
             except Exception as e:
                 einfo = ExceptionInfo()
                 self.failure(e, self.task_id, args, kwargs, einfo)
@@ -212,6 +218,9 @@ class DBTask(Task):
         timestamps
         '''
 
+        if not self.track:
+            return
+
         time_done = timezone.now()
         tb = einfo.traceback
         exception = "%s: %s" % (einfo.type.__name__, einfo.exception)
@@ -249,7 +258,7 @@ class DBTask(Task):
         timestamps
         '''
 
-        if self.chunk:
+        if not self.track or self.chunk:
             return
         time_done = timezone.now()
         try:
@@ -277,6 +286,9 @@ class DBTask(Task):
                 pass
 
     def set_progress(self, progress, total=None):
+        if not track:
+            return
+
         if not self.eager:
             self.update_state(state=celery_states.PENDING,
                               meta={'current': progress, 'total': total})
