@@ -44,9 +44,6 @@ def mount_tape(robot, slot, drive):
     out, err = p.communicate()
 
     if p.returncode:
-        raise RobotMountException('%s, return code: %s' % (err, p.returncode))
-
-    if p.returncode:
         if re.match('Drive \d+ Full \(Storage Element \d+ loaded\)', err):
             raise TapeMountedError(err)
 
