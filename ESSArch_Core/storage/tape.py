@@ -17,7 +17,9 @@ from ESSArch_Core.storage.exceptions import (
     RobotException,
     RobotMountException,
     RobotMountTimeoutException,
-    RobotUnmountException
+    RobotUnmountException,
+    TapeMountedError,
+    TapeUnmountedError,
 )
 
 from ESSArch_Core.storage.models import Robot, StorageMedium, TapeDrive, TapeSlot
@@ -44,6 +46,12 @@ def mount_tape(robot, slot, drive):
     if p.returncode:
         raise RobotMountException('%s, return code: %s' % (err, p.returncode))
 
+    if p.returncode:
+        if re.match('Drive \d+ Full \(Storage Element \d+ loaded\)', err):
+            raise TapeMountedError(err)
+
+        raise RobotMountException('%s, return code: %s' % (err, p.returncode))
+
     return out
 
 
@@ -64,7 +72,7 @@ def unmount_tape(robot, slot, drive):
 
     if p.returncode:
         if re.match('Data Transfer Element \d+ is Empty', err):
-            return err
+            raise TapeUnmountedError(err)
 
         raise RobotUnmountException('%s, return code: %s' % (err, p.returncode))
 
