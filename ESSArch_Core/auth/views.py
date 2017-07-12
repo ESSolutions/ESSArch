@@ -27,6 +27,7 @@ from ESSArch_Core.auth.serializers import (
     GroupDetailSerializer,
     PermissionSerializer,
     UserSerializer,
+    UserLoggedInSerializer,
 )
 
 from django.contrib.auth.models import User, Group, Permission
@@ -35,7 +36,7 @@ from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -43,7 +44,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
 
-class GroupViewSet(viewsets.ModelViewSet):
+class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
     """
@@ -57,14 +58,14 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 
 class MeView(RetrieveUpdateAPIView):
-    serializer_class = UserSerializer
+    serializer_class = UserLoggedInSerializer
     permission_classes = (IsAuthenticated,)
 
     def get_object(self):
         return self.request.user
 
 
-class PermissionViewSet(viewsets.ModelViewSet):
+class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows permissions to be viewed or edited.
     """
