@@ -27,6 +27,7 @@ from ESSArch_Core.auth.serializers import (
     GroupDetailSerializer,
     PermissionSerializer,
     UserSerializer,
+    UserLoggedInSerializer,
 )
 
 from django.contrib.auth.models import User, Group, Permission
@@ -57,7 +58,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 
 class MeView(RetrieveUpdateAPIView):
-    serializer_class = UserSerializer
+    serializer_class = UserLoggedInSerializer
     permission_classes = (IsAuthenticated,)
 
     def get_object(self):
