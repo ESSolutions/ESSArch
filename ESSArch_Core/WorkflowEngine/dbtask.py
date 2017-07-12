@@ -286,7 +286,7 @@ class DBTask(Task):
                 pass
 
     def set_progress(self, progress, total=None):
-        if not track:
+        if not self.track:
             return
 
         if not self.eager:
