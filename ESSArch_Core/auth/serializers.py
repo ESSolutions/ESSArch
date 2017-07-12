@@ -23,6 +23,7 @@
 """
 
 from django.contrib.auth.models import User, Group, Permission, ContentType
+from django.urls import reverse
 
 from rest_framework import serializers
 
@@ -55,7 +56,21 @@ class GroupDetailSerializer(GroupSerializer):
         )
 
 
-class UserSerializer(DynamicHyperlinkedModelSerializer):
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'url', 'id', 'username', 'first_name', 'last_name', 'email',
+            'last_login', 'date_joined',
+        )
+        read_only_fields = (
+            'id', 'username', 'first_name', 'last_name', 'email', 'last_login',
+            'date_joined', 'groups', 'is_staff', 'is_active', 'is_superuser',
+        )
+
+
+class UserLoggedInSerializer(UserSerializer):
+    url = serializers.SerializerMethodField()
     permissions = serializers.ReadOnlyField(source='get_all_permissions')
     user_permissions = PermissionSerializer(many=True, read_only=True)
     groups = GroupSerializer(many=True, read_only=True)
@@ -64,6 +79,9 @@ class UserSerializer(DynamicHyperlinkedModelSerializer):
     ip_list_view_type = serializers.ChoiceField(
         choices=UserProfile.IP_LIST_VIEW_CHOICES, default=UserProfile.AIC, source='user_profile.ip_list_view_type'
     )
+
+    def get_url(self, obj):
+        return self.context['request'].build_absolute_uri(reverse('me'))
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('user_profile')
@@ -81,7 +99,7 @@ class UserSerializer(DynamicHyperlinkedModelSerializer):
 
         user_profile.save()
 
-        return super(UserSerializer, self).update(instance, validated_data)
+        return instance
 
     class Meta:
         model = User
@@ -92,5 +110,6 @@ class UserSerializer(DynamicHyperlinkedModelSerializer):
             'ip_list_columns', 'ip_list_view_type',
         )
         read_only_fields = (
-            'last_login', 'date_joined', 'is_staff', 'is_active', 'is_superuser',
+            'id', 'username', 'last_login', 'date_joined', 'groups',
+            'is_staff', 'is_active', 'is_superuser',
         )
