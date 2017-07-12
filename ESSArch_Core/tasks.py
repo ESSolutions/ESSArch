@@ -863,6 +863,7 @@ class CopyChunk(DBTask):
 
             dstf.write(srcf.read(block_size))
 
+    @retry(stop_max_attempt_number=5, wait_fixed=60000)
     def remote(self, src, dst, offset, file_size, requests_session, upload_id=None, block_size=65536):
         filename = os.path.basename(src)
 
@@ -1017,8 +1018,12 @@ class CopyFile(DBTask):
         )
         headers = {'Content-Type': m.content_type}
 
-        response = requests_session.post(completion_url, data=m, headers=headers)
-        response.raise_for_status()
+        @retry(stop_max_attempt_number=5, wait_fixed=60000)
+        def send_completion_request():
+            response = requests_session.post(completion_url, data=m, headers=headers)
+            response.raise_for_status()
+
+        send_completion_request()
 
     def run(self, src, dst, requests_session=None, block_size=65536):
         """
