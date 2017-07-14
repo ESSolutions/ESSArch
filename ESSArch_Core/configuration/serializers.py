@@ -63,6 +63,11 @@ class PathSerializer(DynamicHyperlinkedModelSerializer):
     class Meta:
         model = Path
         fields = '__all__'
+        extra_kwargs = {
+            'entity': {
+                'validators': [],
+            },
+        }
 
 
 class ArchivePolicySerializer(DynamicHyperlinkedModelSerializer):
