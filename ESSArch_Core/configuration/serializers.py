@@ -77,7 +77,7 @@ class ArchivePolicySerializer(DynamicHyperlinkedModelSerializer):
     class Meta:
         model = ArchivePolicy
         fields = (
-            "id", "index", "cache_extracted_size",
+            "url", "id", "index", "cache_extracted_size",
             "cache_package_size", "cache_extracted_age",
             "cache_package_age", "policy_id", "policy_name",
             "policy_stat", "ais_project_name", "ais_project_id",
