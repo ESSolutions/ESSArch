@@ -31,6 +31,7 @@ IOReqType_CHOICES = (
 )
 
 req_status_CHOICES = (
+    (-1, 'Inactive'),
     (0, 'Pending'),
     (2, 'Initiate'),
     (5, 'Progress'),
