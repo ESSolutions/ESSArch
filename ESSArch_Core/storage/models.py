@@ -4,12 +4,16 @@ import os
 import uuid
 
 from datetime import timedelta
+from urlparse import urljoin
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.functions import Cast
 
 from picklefield.fields import PickledObjectField
+
+from retrying import retry
+import requests
 
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.ip.models import InformationPackage
@@ -427,6 +431,34 @@ class IOQueue(models.Model):
         permissions = (
             ("list_IOQueue", "Can list IOQueue"),
         )
+
+    @property
+    def remote_io(self):
+        master_server = self.storage_method_target.storage_target.master_server
+        return len(master_server.split(',')) == 3
+
+    @retry(stop_max_attempt_number=5, wait_fixed=60000)
+    def sync_with_master(self, data):
+        master_server = self.storage_method_target.storage_target.master_server
+        host, user, passw = master_server.split(',')
+        dst = urljoin(host, 'api/io-queue/%s/' % self.pk)
+
+        session = requests.Session()
+        session.verify = False
+        session.auth = (user, passw)
+
+        try:
+            data['storage_object']['storage_medium'].pop('tape_slot')
+        except KeyError:
+            pass
+
+        try:
+            data['storage_object']['storage_medium'].pop('tape_drive')
+        except KeyError:
+            pass
+
+        response = session.patch(dst, json=data)
+        response.raise_for_status()
 
 
 class AccessQueue(models.Model):
