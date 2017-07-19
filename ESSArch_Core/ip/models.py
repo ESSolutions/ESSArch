@@ -630,8 +630,11 @@ class EventIP(models.Model):
     """
 
     OUTCOME_CHOICES = (
-        (0, 'Success'),
-        (1, 'Fail')
+        (10, 'debug'),
+        (20, 'info'),
+        (30, 'warning'),
+        (40, 'error'),
+        (50, 'critical'),
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -640,10 +643,11 @@ class EventIP(models.Model):
         on_delete=models.CASCADE
     )
     eventDateTime = models.DateTimeField(auto_now_add=True)
-    eventApplication = models.OneToOneField(
+    task = models.ForeignKey(
         'WorkflowEngine.ProcessTask', on_delete=models.CASCADE, null=True,
-        related_name='event',
+        related_name='events',
     ) # The task that generated the event
+    application = models.CharField(max_length=255)
     eventVersion = models.CharField(max_length=255) # The version number of the application (from versioneer)
     eventOutcome = models.IntegerField(choices=OUTCOME_CHOICES, null=True, default=None) # Success (0) or Fail (1)
     eventOutcomeDetailNote = models.CharField(max_length=1024) # Result or traceback from IP

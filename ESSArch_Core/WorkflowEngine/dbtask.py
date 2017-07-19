@@ -24,8 +24,7 @@
 
 from __future__ import absolute_import, division
 
-from _version import get_versions
-
+import logging
 import time
 
 from billiard.einfo import ExceptionInfo
@@ -53,6 +52,7 @@ from ESSArch_Core.util import (
     truncate
 )
 
+logger = logging.getLogger('essarch')
 
 class DBTask(Task):
     args = []
@@ -107,8 +107,7 @@ class DBTask(Task):
                         )
                         einfo = ExceptionInfo()
                         if self.event_type:
-                            event = self.create_event(self.task_id, celery_states.FAILURE, args, a, None, einfo)
-                            events.append(event)
+                            self.create_event(self.task_id, celery_states.FAILURE, args, a, None, einfo)
                         raise
                     else:
                         self.success(retval, self.task_id, None, kwargs)
@@ -122,18 +121,12 @@ class DBTask(Task):
                         )
                         res.append(retval)
                         if self.event_type:
-                            event = self.create_event(self.task_id, celery_states.SUCCESS, self.args, a, retval, None)
-                            events.append(event)
+                            self.create_event(self.task_id, celery_states.SUCCESS, self.args, a, retval, None)
             except:
                 raise
             else:
                 return res
             finally:
-                try:
-                    EventIP.objects.bulk_create(events)
-                except IntegrityError:
-                    pass
-
                 if not connection.features.autocommits_when_autocommit_is_off:
                     transaction.commit()
                     transaction.set_autocommit(True)
@@ -194,21 +187,18 @@ class DBTask(Task):
 
     def create_event(self, task_id, status, args, kwargs, retval, einfo):
         if status == celery_states.SUCCESS:
-            outcome = 0
+            level = logging.INFO
             kwargs.pop('_options', {})
             outcome_detail_note = self.event_outcome_success(*args, **kwargs)
         else:
-            outcome = 1
+            level = logging.ERROR
             outcome_detail_note = einfo.traceback
 
-        return EventIP(
-            eventType_id=self.event_type, eventOutcome=outcome,
-            eventVersion=get_versions()['version'],
-            eventOutcomeDetailNote=truncate(outcome_detail_note, 1024),
-            eventApplication_id=task_id,
-            linkingAgentIdentifierValue_id=self.responsible,
-            linkingObjectIdentifierValue_id=self.ip
-        )
+        outcome_detail_note = truncate(outcome_detail_note, 1024)
+
+        extra = {'type': self.event_type, 'ip': self.ip, 'user': self.responsible, 'task': self.task_id}
+        logger.log(level, outcome_detail_note, extra=extra)
+
 
     def failure(self, exc, task_id, args, kwargs, einfo):
         '''
@@ -243,12 +233,7 @@ class DBTask(Task):
             )
 
         if not self.chunk and self.event_type:
-            event = self.create_event(task_id, celery_states.FAILURE, args, kwargs, None, einfo)
-            try:
-                with transaction.atomic():
-                    event.save(force_insert=True)
-            except IntegrityError as e:
-                pass
+            self.create_event(task_id, celery_states.FAILURE, args, kwargs, None, einfo)
 
     def success(self, retval, task_id, args, kwargs):
         '''
@@ -278,12 +263,7 @@ class DBTask(Task):
             )
 
         if self.event_type:
-            event = self.create_event(task_id, celery_states.SUCCESS, args, kwargs, None, retval)
-            try:
-                with transaction.atomic():
-                    event.save(force_insert=True)
-            except IntegrityError as e:
-                pass
+            self.create_event(task_id, celery_states.SUCCESS, args, kwargs, None, retval)
 
     def set_progress(self, progress, total=None):
         if not self.track:
