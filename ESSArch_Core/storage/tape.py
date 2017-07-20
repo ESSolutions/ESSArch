@@ -223,7 +223,9 @@ def set_tape_file_number(drive, num=0):
         if new_num > 0:
             op = 'fsf'
         elif new_num == 0:
-            return
+            # We are already on the correct file, ensure we are at the beginning
+            op = 'bsfm'
+            new_num = 1
 
     cmd = 'mt -f %s %s %d' % (drive, op, new_num)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
