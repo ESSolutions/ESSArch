@@ -462,35 +462,21 @@ class IOQueue(models.Model):
 
 
 class AccessQueue(models.Model):
-    ACCESS_REQ_TYPE_CHOICES = (
-        (3, 'Generate DIP (package)'),
-        (4, 'Generate DIP (package extracted)'),
-        (1, 'Generate DIP (package & package extracted)'),
-        (2, 'Verify StorageMedium'),
-        (5, 'Get AIP to ControlArea'),
-    )
-
-    REQ_STATUS_CHOICES = (
-        (0, 'Pending'),
-        (2, 'Initiate'),
-        (5, 'Progress'),
-        (20, 'Success'),
-        (100, 'FAIL'),
-    )
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    req_uuid = models.CharField(max_length=36)
-    req_type = models.IntegerField(null=True, choices=ACCESS_REQ_TYPE_CHOICES)
-    req_purpose = models.CharField(max_length=255)
-    user = models.CharField(max_length=45)
-    password = models.CharField(max_length=45, blank=True)
+    package = models.BooleanField(default=True)
+    extracted = models.BooleanField(default=False)
+    new = models.BooleanField(default=False)
     object_identifier_value = models.CharField(max_length=255, blank=True)
-    storage_medium_id = models.CharField(max_length=45, blank=True)
-    status = models.IntegerField(null=True, blank=True, default=0, choices=REQ_STATUS_CHOICES)
+    req_purpose = models.CharField(max_length=255)
+    user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='access_queues')
+    ip = models.ForeignKey(InformationPackage, null=False, related_name='access_queues')
+    new_ip = models.ForeignKey(InformationPackage, null=True, related_name='access_queues_new_ip')
+    status = models.IntegerField(null=True, blank=True, default=0, choices=req_status_CHOICES)
     path = models.CharField(max_length=255)
     posted = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        get_latest_by = 'posted'
         permissions = (
             ("list_accessqueue", "Can list access queue"),
         )
