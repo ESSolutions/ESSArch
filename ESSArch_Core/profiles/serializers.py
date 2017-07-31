@@ -50,6 +50,7 @@ class ProfileSASerializer(serializers.HyperlinkedModelSerializer):
 class ProfileIPSerializer(serializers.HyperlinkedModelSerializer):
     profile_type = serializers.SlugRelatedField(slug_field='profile_type', source='profile', read_only=True)
     profile_name = serializers.SlugRelatedField(slug_field='name', source='profile', read_only=True)
+    profile = serializers.PrimaryKeyRelatedField(queryset=Profile.objects.all())
 
     class Meta:
         model = ProfileIP
