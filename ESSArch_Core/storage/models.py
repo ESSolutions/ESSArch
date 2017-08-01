@@ -275,7 +275,7 @@ class StorageObject(models.Model):
     content_location_type = models.IntegerField(choices=storage_type_CHOICES)
     content_location_value = models.CharField(max_length=255, blank=True)
 
-    last_changed_local = models.DateTimeField(null=True)
+    last_changed_local = models.DateTimeField(null=True, auto_now_add=True)
     last_changed_external = models.DateTimeField(null=True)
 
     ip = models.ForeignKey(InformationPackage, related_name='storage')
