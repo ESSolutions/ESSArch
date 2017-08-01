@@ -273,7 +273,7 @@ class StorageObject(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     content_location_type = models.IntegerField(choices=storage_type_CHOICES)
-    content_location_value = models.CharField(max_length=255)
+    content_location_value = models.CharField(max_length=255, blank=True)
 
     last_changed_local = models.DateTimeField(null=True)
     last_changed_external = models.DateTimeField(null=True)
