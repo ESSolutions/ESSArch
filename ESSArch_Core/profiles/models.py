@@ -158,6 +158,7 @@ class SubmissionAgreement(models.Model):
     )
 
     name = models.CharField(max_length=255)
+    published = models.BooleanField(default=False)
     type = models.CharField(max_length=255)
     status = models.CharField(max_length=255)
     label = models.CharField(max_length=255)

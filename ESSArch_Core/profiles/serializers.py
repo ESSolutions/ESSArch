@@ -62,6 +62,7 @@ class ProfileIPSerializer(serializers.HyperlinkedModelSerializer):
 
 class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
+    published = serializers.BooleanField(read_only=True)
 
     profile_transfer_project = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='transfer_project'))
     profile_content_type = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='content_type'))
@@ -80,7 +81,7 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = SubmissionAgreement
         fields = (
-                'url', 'id', 'name', 'type', 'status', 'label',
+                'url', 'id', 'name', 'published', 'type', 'status', 'label',
 
                 'cm_version',
                 'cm_release_date',
