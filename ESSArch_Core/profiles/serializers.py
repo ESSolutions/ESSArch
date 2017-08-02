@@ -63,19 +63,19 @@ class ProfileIPSerializer(serializers.HyperlinkedModelSerializer):
 class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
 
-    profile_transfer_project = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='transfer_project'))
-    profile_content_type = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='content_type'))
-    profile_data_selection = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='data_selection'))
-    profile_authority_information = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='authority_information'))
-    profile_archival_description = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='archival_description'))
-    profile_import = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='import'))
-    profile_submit_description = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='submit_description'))
-    profile_sip = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='sip'))
-    profile_aip = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='aip'))
-    profile_dip = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='dip'))
-    profile_workflow = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='workflow'))
-    profile_preservation_metadata = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='preservation_metadata'))
-    profile_event = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='event'))
+    profile_transfer_project = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='transfer_project'))
+    profile_content_type = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='content_type'))
+    profile_data_selection = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='data_selection'))
+    profile_authority_information = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='authority_information'))
+    profile_archival_description = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='archival_description'))
+    profile_import = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='import'))
+    profile_submit_description = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='submit_description'))
+    profile_sip = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='sip'))
+    profile_aip = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aip'))
+    profile_dip = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='dip'))
+    profile_workflow = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='workflow'))
+    profile_preservation_metadata = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='preservation_metadata'))
+    profile_event = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='event'))
 
     class Meta:
         model = SubmissionAgreement
