@@ -63,29 +63,19 @@ class ProfileIPSerializer(serializers.HyperlinkedModelSerializer):
 class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
 
-    profiles = ProfileSASerializer(many=True)
-
-    def to_representation(self, obj):
-        data = super(SubmissionAgreementSerializer, self).to_representation(obj)
-        profiles = data['profiles']
-        data['profiles'] = {}
-
-        types = [
-            'transfer_project', 'content_type', 'data_selection',
-            'authority_information', 'archival_description',
-            'import', 'submit_description', 'sip', 'aip',
-            'dip', 'workflow', 'preservation_metadata',
-        ]
-
-        for ptype in types:
-            data['profile_%s' % ptype] = None
-
-        for p in profiles:
-            data['profile_%s' % p['profile_type']] = p
-
-        data.pop('profiles', None)
-
-        return data
+    profile_transfer_project = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='transfer_project'))
+    profile_content_type = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='content_type'))
+    profile_data_selection = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='data_selection'))
+    profile_authority_information = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='authority_information'))
+    profile_archival_description = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='archival_description'))
+    profile_import = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='import'))
+    profile_submit_description = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='submit_description'))
+    profile_sip = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='sip'))
+    profile_aip = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='aip'))
+    profile_dip = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='dip'))
+    profile_workflow = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='workflow'))
+    profile_preservation_metadata = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='preservation_metadata'))
+    profile_event = serializers.PrimaryKeyRelatedField(allow_null=True, queryset=Profile.objects.filter(profile_type='event'))
 
     class Meta:
         model = SubmissionAgreement
@@ -129,7 +119,7 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
                 'designated_community_individual_email',
                 'designated_community_individual_additional',
 
-                'information_packages', 'profiles',
+                'information_packages',
                 'include_profile_transfer_project',
                 'include_profile_content_type',
                 'include_profile_data_selection',
@@ -139,6 +129,20 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
                 'include_profile_aip', 'include_profile_dip',
                 'include_profile_workflow',
                 'include_profile_preservation_metadata',
+
+                'profile_transfer_project',
+                'profile_content_type',
+                'profile_data_selection',
+                'profile_authority_information',
+                'profile_archival_description',
+                'profile_import',
+                'profile_submit_description',
+                'profile_sip',
+                'profile_aip',
+                'profile_dip',
+                'profile_workflow',
+                'profile_preservation_metadata',
+                'profile_event',
 
                 'template',
         )
