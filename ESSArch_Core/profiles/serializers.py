@@ -148,6 +148,8 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
                 'template',
         )
 
+        read_only_fields = ('information_packages',)
+
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
