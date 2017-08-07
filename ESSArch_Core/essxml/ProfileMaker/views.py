@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 
+from collections import OrderedDict
 
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
