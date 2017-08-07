@@ -438,6 +438,9 @@ def generateJsonRes(schemadoc, rootElement, namespace):
                     existingElements['root'] = copy.deepcopy(allElements[rootElement])
                     return existingElements, allElements
 
+    # root element not found
+    raise ValueError({'rootElement': 'Root must be in %s' % [c.get('name') for c in schemadoc.iterfind(schema + 'element')]})
+
 # a,b,c=generateExtensionRef("/Users/Axenu/Developer/ESSArch_Tools_Producer/ESSArch_TP2/esscore/template/templateGenerator/xlink.xsd", 'ead')
 # print c
 # for key in c:
