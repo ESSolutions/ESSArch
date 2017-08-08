@@ -106,16 +106,17 @@ def getTrail(elementTree, element, trail=[]):
         return trail
 
 
-def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, namespace=''):
+def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, namespace='', nsmap={}):
     element = elements[currentUuid]
     el = OrderedDict()
     forms = []
     data = {}
+    nsmap.update(element.get('nsmap', {}))
     el['-name'] = element['name']
     el['-min'] = element['min']
     el['-max'] = element['max']
     el['-containsFiles'] = element.get('containsFiles')
-    el['-nsmap'] = element.get('nsmap', {})
+    el['-nsmap'] = nsmap
     el['-namespace'] = element.get('namespace')
     attributes = element['form'] + element['userForm']
     attributeList = []

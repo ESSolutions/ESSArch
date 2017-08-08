@@ -36,6 +36,7 @@ class extensionPackage(models.Model):
     prefix = models.CharField(max_length=20)
     schemaURL = models.URLField()
     targetNamespace = models.CharField(max_length=255)
+    nsmap = jsonfield.JSONField(default={})
 
 
 class templatePackage(models.Model):
@@ -50,6 +51,7 @@ class templatePackage(models.Model):
     prefix = models.CharField(max_length=20)
     schemaURL = models.URLField()
     targetNamespace = models.CharField(max_length=255)
+    nsmap = jsonfield.JSONField(default={})
     # generated = models.BooleanField(default=False)
     #creator         = models.CharField( max_length = 255 )
 #     archivist_organization  = models.CharField( max_length = 255 )
