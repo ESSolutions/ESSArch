@@ -168,6 +168,11 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, n
             forms.append(field)
             data[field['key']] = ''
 
+            try:
+                att['-namespace'], att['-name'] = att['-name'].split(':')
+            except ValueError:
+                pass
+
             attributeList.append(att)
     el['-attr'] = attributeList
 
