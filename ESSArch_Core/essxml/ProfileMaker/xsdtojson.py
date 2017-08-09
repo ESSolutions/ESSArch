@@ -74,7 +74,7 @@ def getSuffix(tag):
     tag = tag.split(':')[-1]
 
 
-def analyze2(element, tree, usedTypes=[], minC=0, maxC=1, choise=-1):
+def analyze2(element, tree, usedTypes=[], minC=1, maxC=1, choise=-1):
     global choiseCount
     global elCount
     global complexTypes
