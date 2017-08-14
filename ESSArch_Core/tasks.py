@@ -855,6 +855,17 @@ class DeleteFiles(DBTask):
         return "Deleted %s" % path
 
 
+class CopyDir(DBTask):
+    def run(self, src, dst):
+        shutil.copytree(src, dst)
+
+    def undo(self, src, dst):
+        pass
+
+    def event_outcome_success(self, src, dst):
+        return "Copied %s to %s" % (src, dst)
+
+
 class CopyChunk(DBTask):
     def local(self, src, dst, offset, block_size=65536):
         with open(src, 'r') as srcf, open(dst, 'a') as dstf:
