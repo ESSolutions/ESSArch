@@ -152,7 +152,6 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
-    id = serializers.ReadOnlyField()
     specification_data = serializers.SerializerMethodField()
 
     def get_specification_data(self, obj):
@@ -185,3 +184,26 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
             'submission_data_inventory', 'structure', 'template',
             'specification_data',
         )
+        extra_kwargs = {
+            'cm_change_description': {
+                'required': False,
+                'allow_blank': True,
+            },
+            'cm_change_authority': {
+                'required': False,
+                'allow_blank': True,
+            },
+            'cm_version': {
+                'required': False,
+                'allow_blank': True,
+            },
+            'cm_sections_affected': {
+                'required': False,
+                'allow_blank': True,
+            },
+            'cm_release_date': {
+                'required': False,
+                'allow_blank': True,
+            },
+        }
+
