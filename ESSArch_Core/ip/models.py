@@ -693,6 +693,12 @@ class Workarea(models.Model):
     read_only = models.BooleanField(default=True)
     type = models.IntegerField(choices=TYPE_CHOICES, default=0)
 
+    @property
+    def path(self):
+        area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
+        return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value)
+
+
 
 class Order(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
