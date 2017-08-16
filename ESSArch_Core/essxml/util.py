@@ -129,10 +129,13 @@ def parse_submit_description(xmlfile, srcdir=''):
     root = doc.getroot()
 
     try:
+        # try getting objid with prefix
         ip['id'] = root.attrib['OBJID'].split(':')[1]
     except IndexError:
+        # no prefix, try getting objid without prefix
         ip['id'] = root.attrib['OBJID']
     except KeyError:
+        # no objid available, use the name of the xml file
         ip['id'] = os.path.splitext(os.path.basename(xmlfile))[0]
 
     ip['object_identifier_value'] = ip['id']

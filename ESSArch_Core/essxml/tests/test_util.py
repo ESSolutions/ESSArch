@@ -378,6 +378,30 @@ class ParseSubmitDescriptionTestCase(TestCase):
         self.assertEqual(ip['id'], '123')
         self.assertEqual(ip['create_date'], '456')
 
+    def test_objid_with_prefix(self):
+        self.xmlfile.write('''
+            <root OBJID="ID:123">
+                <metsHdr CREATEDATE="456"></metsHdr>
+            </root>
+        ''')
+        self.xmlfile.close()
+
+        ip = parse_submit_description(self.xmlfile.name)
+
+        self.assertEqual(ip['id'], '123')
+
+    def test_no_objid(self):
+        self.xmlfile.write('''
+            <root>
+                <metsHdr CREATEDATE="456"></metsHdr>
+            </root>
+        ''')
+        self.xmlfile.close()
+
+        ip = parse_submit_description(self.xmlfile.name)
+
+        self.assertEqual(ip['id'], os.path.splitext(os.path.basename(self.xmlfile.name))[0])
+
     @mock.patch('ESSArch_Core.essxml.util.os.stat')
     @mock.patch('ESSArch_Core.essxml.util.get_objectpath')
     def test_objpath(self, mock_objectpath, mock_os_stat):
