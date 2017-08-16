@@ -33,9 +33,39 @@ folder: epp
 
     [arch@server ~]$ python $EPP/manage.py collectstatic
 
-### Upgrade database schema (ensure that the storage engine is correct)
+### Upgrade database schema
 
     [arch@server ~]$ python $EPP/manage.py migrate
+
+{% include important.html content="
+When upgrading **you must** ensure that the storage engine is correct for the
+database. In MySQL the storage engine for previously created tables can be
+found by the following command:
+" %}
+
+    SELECT table_schema, table_name, engine FROM INFORMATION_SCHEMA.TABLES where table_schema = ”essarch”;
+
+{% include important.html content="
+
+If you are not using the default storage engine (MyISAM on MySQL) then it must
+be specified in your configuration file:
+
+" %}
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'essarch',
+            'USER': 'arkiv',
+            'PASSWORD': 'password',
+            'HOST': '',
+            'PORT': '',
+            'OPTIONS': {
+               #"init_command": "SET storage_engine=MyISAM",  # MySQL (<= 5.5.2)
+               "init_command": "SET default_storage_engine=MyISAM",  # MySQL (>= 5.5.3)
+            }
+        }
+    }
 
 ### Add default configuration data to database
 Use only this default configuration for test purpose, do not install this default configuration in production.

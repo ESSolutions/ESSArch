@@ -32,9 +32,39 @@ folder: eta
 
     [arch@server ~]$ python $ETA/manage.py collectstatic
 
-### Upgrade database schema (ensure that the storage engine is correct)
+### Upgrade database schema
 
     [arch@server ~]$ python $ETA/manage.py migrate
+
+{% include important.html content="
+When upgrading **you must** ensure that the storage engine is correct for the
+database. In MySQL the storage engine for previously created tables can be
+found by the following command:
+" %}
+
+    SELECT table_schema, table_name, engine FROM INFORMATION_SCHEMA.TABLES where table_schema = ”eta”;
+
+{% include important.html content="
+
+If you are not using the default storage engine (InnoDB on MySQL) then it must
+be specified in your configuration file:
+
+" %}
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'eta',
+            'USER': 'arkiv',
+            'PASSWORD': 'password',
+            'HOST': '',
+            'PORT': '',
+            'OPTIONS': {
+               #"init_command": "SET storage_engine=MyISAM",  # MySQL (<= 5.5.2)
+               "init_command": "SET default_storage_engine=MyISAM",  # MySQL (>= 5.5.3)
+            }
+        }
+    }
 
 ### Add default configuration data to database
 
