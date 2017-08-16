@@ -134,7 +134,7 @@ def parse_submit_description(xmlfile, srcdir=''):
         ip['id'] = root.get('OBJID')
 
     ip['object_identifier_value'] = ip['id']
-    ip['label'] = root.get('LABEL')
+    ip['label'] = root.get('LABEL', '')
     ip['create_date'] = root.find("{*}metsHdr").get('CREATEDATE')
 
     objpath = get_objectpath(root)
