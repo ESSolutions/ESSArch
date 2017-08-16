@@ -129,9 +129,9 @@ def parse_submit_description(xmlfile, srcdir=''):
     root = doc.getroot()
 
     try:
-        ip['id'] = root['OBJID'].split(':')[1]
+        ip['id'] = root.attrib['OBJID'].split(':')[1]
     except IndexError:
-        ip['id'] = root['OBJID']
+        ip['id'] = root.attrib['OBJID']
     except KeyError:
         ip['id'] = os.path.splitext(os.path.basename(xmlfile))[0]
 
