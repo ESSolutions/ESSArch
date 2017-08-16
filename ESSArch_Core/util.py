@@ -37,6 +37,7 @@ import shutil
 from rest_framework.exceptions import ValidationError
 from django.utils.timezone import get_current_timezone
 from django.core.validators import RegexValidator
+from django.http.response import HttpResponse
 
 from datetime import datetime
 
@@ -433,3 +434,11 @@ def validate_remote_url(url):
     regex = '^[a-z][a-z\d.+-]*:\/*(?:[^:@]+(?::[^@]+)?@)?(?:[^\s:/?#,]+|\[[a-f\d:]+])(?::\d+)?(?:\/[^?#]*)?(?:\?[^#]*)?(?:#.*)?,[^,]+,[^,]+$'
     validate = RegexValidator(regex, 'Enter a valid URL with credentials.')
     validate(url)
+
+
+def generate_file_response(file_obj, content_type):
+    response = HttpResponse(file_obj.read(), content_type=content_type)
+    response['Content-Disposition'] = 'inline; filename="%s"' % os.path.basename(file_obj.name)
+    if content_type is None:
+        response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(file_obj.name)
+    return response

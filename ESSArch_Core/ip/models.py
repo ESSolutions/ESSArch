@@ -36,7 +36,6 @@ from operator import itemgetter
 from celery import states as celery_states
 
 from django.db import models
-from django.http.response import HttpResponse
 
 from rest_framework import exceptions, filters, permissions, status
 from rest_framework.response import Response
@@ -49,6 +48,7 @@ from ESSArch_Core.profiles.models import (
 )
 
 from ESSArch_Core.util import (
+    generate_file_response,
     get_files_and_dirs,
     get_tree_size_and_count,
     in_directory,
@@ -410,13 +410,6 @@ class InformationPackage(models.Model):
         mtypes = mimetypes.types_map
 
         MAX_FILE_SIZE = 100000000 # 100 MB
-
-        def generate_file_response(file_obj, content_type):
-            response = HttpResponse(file_obj.read(), content_type=content_type)
-            response['Content-Disposition'] = 'inline; filename="%s"' % os.path.basename(file_obj.name)
-            if content_type is None:
-                response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(file_obj.name)
-            return response
 
         if os.path.isfile(self.object_path):
             container = self.object_path
