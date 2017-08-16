@@ -436,9 +436,9 @@ def validate_remote_url(url):
     validate(url)
 
 
-def generate_file_response(file_obj, content_type):
+def generate_file_response(file_obj, content_type, force_download=False):
     response = HttpResponse(file_obj.read(), content_type=content_type)
     response['Content-Disposition'] = 'inline; filename="%s"' % os.path.basename(file_obj.name)
-    if content_type is None:
+    if force_download or content_type is None:
         response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(file_obj.name)
     return response

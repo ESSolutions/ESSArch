@@ -398,7 +398,7 @@ class InformationPackage(models.Model):
 
         return 0
 
-    def files(self, path=''):
+    def files(self, path='', force_download=False):
         mimetypes.suffix_map = {}
         mimetypes.encodings_map = {}
         mimetypes.types_map = {}
@@ -443,7 +443,7 @@ class InformationPackage(models.Model):
 
                                 f = tar.extractfile(member)
                                 content_type = mtypes.get(os.path.splitext(subpath)[1])
-                                return generate_file_response(f, content_type)
+                                return generate_file_response(f, content_type, force_download)
                             except KeyError:
                                 raise exceptions.NotFound
 
@@ -467,17 +467,17 @@ class InformationPackage(models.Model):
                             try:
                                 f = zipf.open(subpath)
                                 content_type = mtypes.get(os.path.splitext(subpath)[1])
-                                return generate_file_response(f, content_type)
+                                return generate_file_response(f, content_type, force_download)
                             except KeyError:
                                 raise exceptions.NotFound
 
 
                 content_type = mtypes.get(os.path.splitext(fullpath)[1])
-                return generate_file_response(open(fullpath), content_type)
+                return generate_file_response(open(fullpath), content_type, force_download)
             elif os.path.isfile(xml) and path == os.path.basename(xml):
                 fullpath = os.path.join(os.path.dirname(container), path)
                 content_type = mtypes.get(os.path.splitext(fullpath)[1])
-                return generate_file_response(open(fullpath), content_type)
+                return generate_file_response(open(fullpath), content_type, force_download)
             elif path == '':
                 entries = []
 
@@ -511,7 +511,7 @@ class InformationPackage(models.Model):
 
         if os.path.isfile(fullpath):
             content_type = mtypes.get(os.path.splitext(fullpath)[1])
-            return generate_file_response(open(fullpath), content_type)
+            return generate_file_response(open(fullpath), content_type, force_download)
 
         for entry in get_files_and_dirs(fullpath):
             entry_type = "dir" if entry.is_dir() else "file"
