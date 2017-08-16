@@ -411,6 +411,13 @@ class InformationPackage(models.Model):
 
         MAX_FILE_SIZE = 100000000 # 100 MB
 
+        def generate_file_response(file_obj, content_type):
+            response = HttpResponse(file_obj.read(), content_type=content_type)
+            response['Content-Disposition'] = 'inline; filename="%s"' % os.path.basename(file_obj.name)
+            if content_type is None:
+                response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(file_obj.name)
+            return response
+
         if os.path.isfile(self.object_path):
             container = self.object_path
             xml = os.path.splitext(self.object_path)[0] + '.xml'
@@ -443,11 +450,7 @@ class InformationPackage(models.Model):
 
                                 f = tar.extractfile(member)
                                 content_type = mtypes.get(os.path.splitext(subpath)[1])
-                                response = HttpResponse(f.read(), content_type=content_type)
-                                response['Content-Disposition'] = 'inline; filename="%s"' % os.path.basename(f.name)
-                                if content_type is None:
-                                    response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(f.name)
-                                return response
+                                return generate_file_response(f, content_type)
                             except KeyError:
                                 raise exceptions.NotFound
 
@@ -471,29 +474,17 @@ class InformationPackage(models.Model):
                             try:
                                 f = zipf.open(subpath)
                                 content_type = mtypes.get(os.path.splitext(subpath)[1])
-                                response = HttpResponse(f.read(), content_type=content_type)
-                                response['Content-Disposition'] = 'inline; filename="%s"' % os.path.basename(f.name)
-                                if content_type is None:
-                                    response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(f.name)
-                                return response
+                                return generate_file_response(f, content_type)
                             except KeyError:
                                 raise exceptions.NotFound
 
 
                 content_type = mtypes.get(os.path.splitext(fullpath)[1])
-                response = HttpResponse(open(fullpath).read(), content_type=content_type)
-                response['Content-Disposition'] = 'inline; filename="%s"' % os.path.basename(fullpath)
-                if content_type is None:
-                    response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(fullpath)
-                return response
+                return generate_file_response(open(fullpath), content_type)
             elif os.path.isfile(xml) and path == os.path.basename(xml):
                 fullpath = os.path.join(os.path.dirname(container), path)
                 content_type = mtypes.get(os.path.splitext(fullpath)[1])
-                response = HttpResponse(open(fullpath).read(), content_type=content_type)
-                response['Content-Disposition'] = 'inline; filename="%s"' % os.path.basename(fullpath)
-                if content_type is None:
-                    response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(fullpath)
-                return response
+                return generate_file_response(open(fullpath), content_type)
             elif path == '':
                 entries = []
 
@@ -527,11 +518,7 @@ class InformationPackage(models.Model):
 
         if os.path.isfile(fullpath):
             content_type = mtypes.get(os.path.splitext(fullpath)[1])
-            response = HttpResponse(open(fullpath).read(), content_type=content_type)
-            response['Content-Disposition'] = 'inline; filename="%s"' % os.path.basename(fullpath)
-            if content_type is None:
-                response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(fullpath)
-            return response
+            return generate_file_response(open(fullpath), content_type)
 
         for entry in get_files_and_dirs(fullpath):
             entry_type = "dir" if entry.is_dir() else "file"
