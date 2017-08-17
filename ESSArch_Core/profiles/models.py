@@ -159,6 +159,9 @@ class ProfileIPData(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['version']
+
 
 class SubmissionAgreement(models.Model):
     id = models.UUIDField(
