@@ -74,7 +74,9 @@ class ProfileIPSerializer(serializers.HyperlinkedModelSerializer):
         fields = (
             'url', 'id', 'profile', 'ip', 'profile_name', 'profile_type', 'included', 'LockedBy', 'Unlockable', 'data', 'data_versions',
         )
-
+        read_only_fields = (
+            'LockedBy',
+        )
 
 class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
