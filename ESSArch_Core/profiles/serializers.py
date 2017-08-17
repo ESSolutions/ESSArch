@@ -32,7 +32,8 @@ from ESSArch_Core.profiles.models import (
     SubmissionAgreement,
     Profile,
     ProfileSA,
-    ProfileIP
+    ProfileIP,
+    ProfileIPData,
 )
 
 
@@ -48,15 +49,30 @@ class ProfileSASerializer(serializers.HyperlinkedModelSerializer):
         )
 
 
+class ProfileIPDataSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ProfileIPData
+        fields = (
+            'url', 'id', 'relation', 'data', 'version', 'user', 'created',
+        )
+        extra_kwargs = {
+            'user': {
+                'read_only': True,
+                'default': serializers.CurrentUserDefault(),
+            }
+        }
+
+
 class ProfileIPSerializer(serializers.HyperlinkedModelSerializer):
     profile_type = serializers.SlugRelatedField(slug_field='profile_type', source='profile', read_only=True)
     profile_name = serializers.SlugRelatedField(slug_field='name', source='profile', read_only=True)
     profile = serializers.PrimaryKeyRelatedField(queryset=Profile.objects.all())
+    data = ProfileIPDataSerializer()
 
     class Meta:
         model = ProfileIP
         fields = (
-            'url', 'id', 'profile', 'ip', 'profile_name', 'profile_type', 'included', 'LockedBy', 'Unlockable',
+            'url', 'id', 'profile', 'ip', 'profile_name', 'profile_type', 'included', 'LockedBy', 'Unlockable', 'data', 'data_versions',
         )
 
 
