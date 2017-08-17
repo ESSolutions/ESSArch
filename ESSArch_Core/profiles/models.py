@@ -125,6 +125,7 @@ class ProfileIP(models.Model):
     ip = models.ForeignKey(
         'ip.InformationPackage', on_delete=models.CASCADE
     )
+    data = models.ForeignKey('ProfileIPData', on_delete=models.SET_NULL, null=True)
     included = models.BooleanField(default=False)
     LockedBy = models.ForeignKey(
         settings.AUTH_USER_MODEL, models.SET_NULL, null=True, blank=True
@@ -148,6 +149,15 @@ class ProfileIP(models.Model):
         unique_together = (
             ("profile", "ip"),
         )
+
+
+class ProfileIPData(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    relation = models.ForeignKey('ProfileIP', on_delete=models.CASCADE)
+    data = jsonfield.JSONField(default={})
+    version = models.IntegerField(default=0)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
 
 
 class SubmissionAgreement(models.Model):
