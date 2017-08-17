@@ -46,7 +46,7 @@
 
 from copy import copy
 
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email, URLValidator
 from django.db import models
@@ -102,7 +102,7 @@ class ProfileSA(models.Model):
         'SubmissionAgreement', on_delete=models.CASCADE
     )
     LockedBy = models.ForeignKey(
-        User, models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, models.SET_NULL, null=True, blank=True,
     )
     Unlockable = models.BooleanField(default=False)
 
@@ -127,7 +127,7 @@ class ProfileIP(models.Model):
     )
     included = models.BooleanField(default=False)
     LockedBy = models.ForeignKey(
-        User, models.SET_NULL, null=True, blank=True
+        settings.AUTH_USER_MODEL, models.SET_NULL, null=True, blank=True
     )
     Unlockable = models.BooleanField(default=False)
 
