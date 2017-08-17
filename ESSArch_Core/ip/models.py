@@ -678,6 +678,11 @@ class Workarea(models.Model):
         area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
         return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value)
 
+    class Meta:
+        permissions = (
+            ('move_from_ingest_workarea', 'Can move IP from ingest workarea'),
+            ('move_from_access_workarea', 'Can move IP from access workarea'),
+        )
 
 
 class Order(models.Model):
