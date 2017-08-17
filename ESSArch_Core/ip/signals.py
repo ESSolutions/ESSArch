@@ -13,8 +13,3 @@ def workarea_post_delete(sender, instance, using, **kwargs):
     except OSError as e:
         if e.errno != errno.ENOENT:
             raise
-
-    try:
-        instance.processstep.clear_cache()
-    except AttributeError:
-        pass
