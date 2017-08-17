@@ -153,7 +153,7 @@ class ProfileIP(models.Model):
 
 class ProfileIPData(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    relation = models.ForeignKey('ProfileIP', on_delete=models.CASCADE)
+    relation = models.ForeignKey('ProfileIP', on_delete=models.CASCADE, related_name='data_versions')
     data = jsonfield.JSONField(default={})
     version = models.IntegerField(default=0)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
