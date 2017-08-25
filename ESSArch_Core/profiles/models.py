@@ -161,6 +161,9 @@ class ProfileIPData(models.Model):
 
     class Meta:
         ordering = ['version']
+        permissions = (
+            ('profile_management', 'Can manage profiles'),
+        )
 
 
 class SubmissionAgreement(models.Model):

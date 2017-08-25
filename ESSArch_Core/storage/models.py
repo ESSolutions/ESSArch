@@ -284,6 +284,9 @@ class StorageObject(models.Model):
     class Meta:
         permissions = (
             ("list_storage", "Can list storage"),
+            ("storage_migration", "Storage migration"),
+            ("storage_maintenance", "Storage maintenance"),
+            ("storage_management", "Storage management"),
         )
 
     def verify(self):

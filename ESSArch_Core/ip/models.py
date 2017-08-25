@@ -690,3 +690,8 @@ class Order(models.Model):
     label = models.CharField(max_length=255)
     responsible = models.ForeignKey('auth.User', on_delete=models.PROTECT)
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='orders', blank=True)
+
+    class Meta:
+        permissions = (
+            ('prepare_order', 'Can prepare order'),
+        )
