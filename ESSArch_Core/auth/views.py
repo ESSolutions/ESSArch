@@ -84,8 +84,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, reverse
 from django.utils.translation import ugettext_lazy as _
 
-from djangosaml2.views import logout as saml2_logout
-
 from rest_framework import exceptions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -103,6 +101,9 @@ from rest_auth.app_settings import (
 from rest_auth.models import TokenModel
 
 from rest_auth.utils import jwt_encode
+
+if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+    from djangosaml2.views import logout as saml2_logout
 
 class LoginView(GenericAPIView):
 
