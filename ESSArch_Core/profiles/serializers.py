@@ -49,7 +49,7 @@ class ProfileSASerializer(serializers.HyperlinkedModelSerializer):
         )
 
 
-class ProfileIPDataSerializer(serializers.HyperlinkedModelSerializer):
+class ProfileIPDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfileIPData
         fields = (
@@ -63,10 +63,9 @@ class ProfileIPDataSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
-class ProfileIPSerializer(serializers.HyperlinkedModelSerializer):
+class ProfileIPSerializer(serializers.ModelSerializer):
     profile_type = serializers.SlugRelatedField(slug_field='profile_type', source='profile', read_only=True)
     profile_name = serializers.SlugRelatedField(slug_field='name', source='profile', read_only=True)
-    profile = serializers.PrimaryKeyRelatedField(queryset=Profile.objects.all())
     data = ProfileIPDataSerializer()
 
     class Meta:
