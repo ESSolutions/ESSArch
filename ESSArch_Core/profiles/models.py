@@ -54,6 +54,7 @@ from django.db import models
 import jsonfield
 import uuid
 
+from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
 from ESSArch_Core.util import validate_remote_url
 
 Profile_Status_CHOICES = (
@@ -131,6 +132,11 @@ class ProfileIP(models.Model):
         settings.AUTH_USER_MODEL, models.SET_NULL, null=True, blank=True
     )
     Unlockable = models.BooleanField(default=False)
+
+    def clean(self):
+        data = getattr(self.data, 'data', {})
+        data = fill_specification_data(data.copy(), ip=self.ip, sa=self.ip.submission_agreement)
+        self.profile.clean(data=data)
 
     def lock(self, user):
         self.LockedBy = user
@@ -295,22 +301,6 @@ class SubmissionAgreement(models.Model):
         return clone
 
 
-profile_types = [
-    "Transfer Project",
-    "Content Type",
-    "Data Selection",
-    "Authority Information",
-    "Archival Description",
-    "Import",
-    "Submit Description",
-    "SIP",
-    "AIP",
-    "DIP",
-    "Workflow",
-    "Preservation Metadata",
-    "Event",
-]
-
 PROFILE_TYPE_CHOICES = zip(
     [p.replace(' ', '_').lower() for p in profile_types],
     profile_types
@@ -436,23 +426,23 @@ class Profile(models.Model):
 
         return data
 
-    def clean(self):
+    def clean(self, data={}):
         for field in self.template:
             key = field.get('key')
             templateOptions = field.get('templateOptions', {})
 
-            if templateOptions.get('required') and not self.get_value_for_key(key):
-                raise ValidationError("Required field (%s) can't be empty" % (field.get('key')))
+            if templateOptions.get('required') and not data.get(key) and 'defaultValue' not in templateOptions:
+                raise ValidationError('Required field "%s" can\'t be empty' % (field.get('key')))
 
-            if templateOptions.get('type') == 'email' and self.get_value_for_key(key):
-                validate_email(self.get_value_for_key(key))
+            if templateOptions.get('type') == 'email' and data.get(key):
+                validate_email(data.get(key))
 
-            elif templateOptions.get('type') == 'url' and 'remote' in templateOptions.keys() and self.get_value_for_key(key):
-                validate_remote_url(self.get_value_for_key(key))
+            elif templateOptions.get('type') == 'url' and 'remote' in templateOptions.keys() and data.get(key):
+                validate_remote_url(data.get(key))
 
-            elif templateOptions.get('type') == 'url' and self.get_value_for_key(key):
+            elif templateOptions.get('type') == 'url' and data.get(key):
                 validate_url = URLValidator()
-                validate_url(self.get_value_for_key(key))
+                validate_url(data.get(key))
 
 
     def get_value_for_key(self, key):
