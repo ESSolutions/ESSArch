@@ -567,6 +567,9 @@ class InformationPackage(models.Model):
             ('get_from_storage', 'Can get extracted IP from storage'),
             ('get_tar_from_storage', 'Can get packaged IP from storage'),
             ('get_from_storage_as_new', 'Can get IP "as new" from storage'),
+            ('add_to_ingest_workarea', 'Can add IP to ingest workarea'),
+            ('add_to_ingest_workarea_as_tar', 'Can add IP as tar to ingest workarea'),
+            ('add_to_ingest_workarea_as_new', 'Can add IP as new generation to ingest workarea'),
             ('diff-check', 'Can diff-check IP'),
             ('query', 'Can query IP'),
         )
@@ -682,6 +685,8 @@ class Workarea(models.Model):
         permissions = (
             ('move_from_ingest_workarea', 'Can move IP from ingest workarea'),
             ('move_from_access_workarea', 'Can move IP from access workarea'),
+            ('preserve_from_ingest_workarea', 'Can preserve IP from ingest workarea'),
+            ('preserve_from_access_workarea', 'Can preserve IP from access workarea'),
         )
 
 
