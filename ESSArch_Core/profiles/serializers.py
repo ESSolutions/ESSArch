@@ -66,7 +66,7 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
 class ProfileIPSerializer(serializers.ModelSerializer):
     profile_type = serializers.SlugRelatedField(slug_field='profile_type', source='profile', read_only=True)
     profile_name = serializers.SlugRelatedField(slug_field='name', source='profile', read_only=True)
-    data = ProfileIPDataSerializer()
+    data = ProfileIPDataSerializer(read_only=True)
 
     class Meta:
         model = ProfileIP
@@ -76,6 +76,11 @@ class ProfileIPSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'LockedBy',
         )
+
+
+class ProfileIPWriteSerializer(ProfileIPSerializer):
+    data = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=ProfileIPData.objects.all())
+
 
 class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
