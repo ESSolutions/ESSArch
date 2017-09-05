@@ -268,3 +268,10 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
             },
         }
 
+class ProfileDetailSerializer(ProfileSerializer):
+    class Meta:
+        model = ProfileSerializer.Meta.model
+        fields = ProfileSerializer.Meta.fields + (
+            'specification',
+        )
+        extra_kwargs = ProfileSerializer.Meta.extra_kwargs
