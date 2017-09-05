@@ -230,5 +230,41 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
                 'required': False,
                 'allow_blank': True,
             },
+            'representation_info': {
+                'required': False,
+                'allow_blank': True,
+            },
+            'preservation_descriptive_info': {
+                'required': False,
+                'allow_blank': True,
+            },
+            'supplemental': {
+                'required': False,
+                'allow_blank': True,
+            },
+            'access_constraints': {
+                'required': False,
+                'allow_blank': True,
+            },
+            'datamodel_reference': {
+                'required': False,
+                'allow_blank': True,
+            },
+            'additional': {
+                'required': False,
+                'allow_blank': True,
+            },
+            'submission_method': {
+                'required': False,
+                'allow_blank': True,
+            },
+            'submission_schedule': {
+                'required': False,
+                'allow_blank': True,
+            },
+            'submission_data_inventory': {
+                'required': False,
+                'allow_blank': True,
+            },
         }
 
