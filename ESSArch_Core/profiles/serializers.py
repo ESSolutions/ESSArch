@@ -207,6 +207,9 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
             'specification_data',
         )
         extra_kwargs = {
+            'id': {
+                'read_only': False
+            },
             'cm_change_description': {
                 'required': False,
                 'allow_blank': True,
