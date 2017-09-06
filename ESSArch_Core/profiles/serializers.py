@@ -83,7 +83,6 @@ class ProfileIPWriteSerializer(ProfileIPSerializer):
 
 
 class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
-    id = serializers.ReadOnlyField()
     published = serializers.BooleanField(read_only=True)
 
     profile_transfer_project = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='transfer_project'))
@@ -171,6 +170,12 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
         )
 
         read_only_fields = ('information_packages',)
+
+        extra_kwargs = {
+            'id': {
+                'read_only': False
+            },
+        }
 
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
