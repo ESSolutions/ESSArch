@@ -54,6 +54,7 @@ from django.db import models
 import jsonfield
 import uuid
 
+from ESSArch_Core.profiles.validators import validate_template
 from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
 from ESSArch_Core.util import validate_remote_url
 
@@ -136,6 +137,7 @@ class ProfileIP(models.Model):
     def clean(self):
         data = getattr(self.data, 'data', {})
         data = fill_specification_data(data.copy(), ip=self.ip, sa=self.ip.submission_agreement)
+        validate_template(self.profile.template, data)
         self.profile.clean(data=data)
 
     def lock(self, user):
@@ -427,22 +429,7 @@ class Profile(models.Model):
         return data
 
     def clean(self, data={}):
-        for field in self.template:
-            key = field.get('key')
-            templateOptions = field.get('templateOptions', {})
-
-            if templateOptions.get('required') and not data.get(key) and 'defaultValue' not in templateOptions:
-                raise ValidationError('Required field "%s" can\'t be empty' % (field.get('key')))
-
-            if templateOptions.get('type') == 'email' and data.get(key):
-                validate_email(data.get(key))
-
-            elif templateOptions.get('type') == 'url' and 'remote' in templateOptions.keys() and data.get(key):
-                validate_remote_url(data.get(key))
-
-            elif templateOptions.get('type') == 'url' and data.get(key):
-                validate_url = URLValidator()
-                validate_url(data.get(key))
+        validate_template(self.template, data)
 
 
     def get_value_for_key(self, key):

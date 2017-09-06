@@ -22,8 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-from django.core.validators import validate_email, URLValidator
-
 from rest_framework import serializers
 
 from ESSArch_Core.ip.models import (
@@ -38,7 +36,7 @@ from ESSArch_Core.profiles.models import (
     ProfileIPData,
 )
 
-from ESSArch_Core.util import validate_remote_url
+from ESSArch_Core.profiles.validators import validate_template
 
 
 class ProfileSASerializer(serializers.HyperlinkedModelSerializer):
@@ -61,25 +59,7 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
         if relation.data is not None and instance_data == relation.data.data:
             raise serializers.ValidationError('No changes made')
 
-        for field in relation.profile.template:
-            key = field.get('key')
-            to = field.get('templateOptions', {})
-
-            if to.get('required') and len(instance_data.get(key, '')) == 0:
-                if 'defaultValue' not in field:
-                    raise serializers.ValidationError('Required field "%s" can\'t be empty' % key)
-                else:
-                    instance_data[key] = field['defaultValue']
-
-            if to.get('type') == 'email' and instance_data.get(key):
-                validate_email(instance_data.get(key))
-
-            elif to.get('type') == 'url' and 'remote' in to.keys() and instance_data.get(key):
-                validate_remote_url(instance_data.get(key))
-
-            elif to.get('type') == 'url' and instance_data.get(key):
-                validate_url = URLValidator()
-                validate_url(instance_data.get(key))
+        validate_template(relation.profile.template, instance_data)
 
         return data
 
