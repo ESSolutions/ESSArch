@@ -58,6 +58,9 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
         relation = data['relation']
         instance_data = data.get('data', {})
 
+        if instance_data == relation.data.data:
+            raise serializers.ValidationError('No changes made')
+
         for field in relation.profile.template:
             key = field.get('key')
             to = field.get('templateOptions', {})
