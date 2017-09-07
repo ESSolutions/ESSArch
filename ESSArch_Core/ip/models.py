@@ -252,37 +252,28 @@ class InformationPackage(models.Model):
             return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
 
     def get_profile_rel(self, profile_type):
-        return self.profileip_set.filter(
+        return self.profileip_set.get(
             profile__profile_type=profile_type
-        ).first()
+        )
 
     def profile_locked(self, profile_type):
-        rel = self.get_profile_rel(profile_type)
-
-        if rel:
+        try:
+            rel = self.get_profile_rel(profile_type)
             return rel.LockedBy is not None
-
-        return False
+        except ProfileIP.DoesNotExist:
+            return False
 
     def get_profile(self, profile_type):
-        rel = self.get_profile_rel(profile_type)
+        if self.submission_agreement is None:
+            return None
 
-        if rel:
-            return rel.profile
-
-        return None
-
-    def change_profile(self, new_profile):
-        ptype = new_profile.profile_type
         try:
-            pip = ProfileIP.objects.get(ip=self, profile__profile_type=ptype)
-            if pip.LockedBy is not None:
-                raise ValueError('Cannot change locked profile')
+            return getattr(self.submission_agreement, 'profile_%s' % profile_type)
+        except AttributeError:
+            raise AttributeError('No such profile type')
 
-            pip.profile = new_profile
-            pip.save()
-        except ProfileIP.DoesNotExist:
-            ProfileIP.objects.create(ip=self, profile=new_profile)
+    def get_profile_data(self, profile_type):
+        return self.get_profile_rel(profile_type).data.data
 
     def unlock_profile(self, ptype):
         ProfileIP.objects.filter(
@@ -294,7 +285,7 @@ class InformationPackage(models.Model):
 
     def get_container_format(self):
         try:
-            return self.get_profile('transfer_project').specification_data.get(
+            return self.get_profile_data('transfer_project').get(
                 'container_format', 'tar'
             )
         except:
@@ -302,17 +293,17 @@ class InformationPackage(models.Model):
 
     def get_checksum_algorithm(self):
         try:
-            name = self.get_profile('transfer_project').specification_data.get(
-                'checksum_algorithm', 'sha256'
+            name = self.get_profile_data('transfer_project').get(
+                'checksum_algorithm', 'SHA-256'
             )
         except:
-            name = 'sha256'
+            name = 'SHA-256'
 
         return name
 
     def get_email_recipient(self):
         try:
-            return self.get_profile('transfer_project').specification_data.get(
+            return self.get_profile_data('transfer_project').get(
                 'preservation_organization_receiver_email'
             )
         except:
