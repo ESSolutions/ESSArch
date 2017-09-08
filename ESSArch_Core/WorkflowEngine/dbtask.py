@@ -55,6 +55,7 @@ from ESSArch_Core.util import (
 logger = logging.getLogger('essarch')
 
 class DBTask(Task):
+    abstract = True
     args = []
     event_type = None
     queue = 'celery'
