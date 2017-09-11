@@ -1206,6 +1206,11 @@ class MountTape(DBTask):
                         raise ValueError('Tape contains unknown information')
 
                     rewind_tape(tape_drive.device)
+        except:
+            StorageMedium.objects.filter(pk=medium.pk).update(status=100)
+            TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
+            TapeSlot.objects.filter(slot_id=slot).update(status=100)
+            raise
         finally:
             xmlfile.close()
             TapeDrive.objects.filter(pk=drive).update(locked=False)
