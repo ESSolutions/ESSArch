@@ -22,14 +22,19 @@
     Email - essarch@essolutions.se
 """
 
-from django.contrib.auth.models import User, Group, Permission, ContentType
+from django.conf import settings
+from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.models import Group, Permission, ContentType
 from django.urls import reverse
+from django.utils.translation import ugettext_lazy as _
 
-from rest_framework import serializers
+from rest_framework import exceptions, serializers
 
 from ESSArch_Core.auth.models import UserProfile
-
 from ESSArch_Core.serializers import DynamicHyperlinkedModelSerializer
+
+
+User = get_user_model()
 
 
 class PermissionSerializer(DynamicHyperlinkedModelSerializer):
@@ -113,3 +118,81 @@ class UserLoggedInSerializer(UserSerializer):
             'id', 'username', 'last_login', 'date_joined', 'groups',
             'is_staff', 'is_active', 'is_superuser',
         )
+
+
+# Import from rest_auth.app_settings must be after UserLoggedInSerializer
+from rest_auth.app_settings import LoginSerializer as rest_auth_LoginSerializer
+
+
+class LoginSerializer(rest_auth_LoginSerializer):
+    def _validate_email(self, email, password):
+        user = None
+
+        if email and password:
+            user = authenticate(email=email, password=password, request=self.request)
+        else:
+            msg = _('Must include "email" and "password".')
+            raise exceptions.ValidationError(msg)
+
+        return user
+
+    def _validate_username(self, username, password):
+        user = None
+
+        if username and password:
+            user = authenticate(username=username, password=password, request=self.request)
+        else:
+            msg = _('Must include "username" and "password".')
+            raise exceptions.ValidationError(msg)
+
+        return user
+
+    def _validate_username_email(self, username, email, password):
+        user = None
+
+        if email and password:
+            user = authenticate(email=email, password=password, request=self.request)
+        elif username and password:
+            user = authenticate(username=username, password=password, request=self.request)
+        else:
+            msg = _('Must include either "username" or "email" and "password".')
+            raise exceptions.ValidationError(msg)
+
+        return user
+
+    def validate(self, attrs):
+        self.request = self.context.get('request')
+        username = attrs.get('username')
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        user = None
+
+        if email:
+            try:
+                username = User.objects.get(email__iexact=email).get_username()
+            except User.DoesNotExist:
+                pass
+
+        if username:
+            user = self._validate_username_email(username, '', password)
+
+        # Did we get back an active user?
+        if user:
+            if not user.is_active:
+                msg = _('User account is disabled.')
+                raise exceptions.ValidationError(msg)
+        else:
+            msg = _('Unable to log in with provided credentials.')
+            raise exceptions.ValidationError(msg)
+
+        # If required, is the email verified?
+        if 'rest_auth.registration' in settings.INSTALLED_APPS:
+            from allauth.account import app_settings
+            if app_settings.EMAIL_VERIFICATION == app_settings.EmailVerificationMethod.MANDATORY:
+                email_address = user.emailaddress_set.get(email=user.email)
+                if not email_address.verified:
+                    raise serializers.ValidationError(_('E-mail is not verified.'))
+
+        attrs['user'] = user
+        return attrs
