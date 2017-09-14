@@ -30,7 +30,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from rest_framework import exceptions, serializers
 
-from ESSArch_Core.auth.models import UserProfile
+from ESSArch_Core.auth.models import Notification, UserProfile
 from ESSArch_Core.serializers import DynamicHyperlinkedModelSerializer
 
 
@@ -118,6 +118,27 @@ class UserLoggedInSerializer(UserSerializer):
             'id', 'username', 'last_login', 'date_joined', 'groups',
             'is_staff', 'is_active', 'is_superuser',
         )
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = Notification
+        fields = (
+            'id', 'user', 'level', 'message', 'time_created',
+        )
+
+
+class NotificationReadSerializer(NotificationSerializer):
+    level = serializers.SerializerMethodField()
+
+    def get_level(self, obj):
+        return obj.get_level_display()
+
+    class Meta:
+        model = NotificationSerializer.Meta.model
+        fields = NotificationSerializer.Meta.fields
 
 
 # Import from rest_auth.app_settings must be after UserLoggedInSerializer
