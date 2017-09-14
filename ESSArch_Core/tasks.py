@@ -23,6 +23,7 @@
 """
 
 import errno
+import logging
 import os
 import shutil
 import tarfile
@@ -51,6 +52,7 @@ from ESSArch_Core.util import (
     get_tree_size_and_count,
 )
 
+from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     findElementWithoutNamespace,
@@ -616,6 +618,8 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 class UpdateIPStatus(DBTask):
     def run(self, ip=None, status=None, prev=None):
         InformationPackage.objects.filter(pk=ip).update(state=status)
+        Notification.objects.create(message='IP "%s" is now "%s"' % (ip, status), level=logging.INFO, user_id=self.responsible)
+
     def undo(self, ip=None, status=None, prev=None):
         InformationPackage.objects.filter(pk=ip).update(state=prev)
 
