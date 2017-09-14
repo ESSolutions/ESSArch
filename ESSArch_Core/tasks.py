@@ -440,9 +440,6 @@ class CreateZIP(DBTask):
 
 
 class ValidateFiles(DBTask):
-    fileformat_task = "ESSArch_Core.tasks.ValidateFileFormat"
-    checksum_task = "ESSArch_Core.tasks.ValidateIntegrity"
-
     def run(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
         if any([validate_fileformat, validate_integrity]):
             if rootdir is None:
