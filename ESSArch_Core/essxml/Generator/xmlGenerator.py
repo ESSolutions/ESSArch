@@ -47,6 +47,9 @@ from ESSArch_Core.exceptions import (
     FileFormatNotAllowed
 )
 
+from ESSArch_Core.essxml.util import parse_file
+from ESSArch_Core.fixity.format import FormatIdentifier
+
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 from ESSArch_Core.util import (
@@ -318,6 +321,7 @@ class XMLGenerator(object):
             raise FileFormatNotAllowed("File format '%s' is not allowed" % file_ext)
 
     def generate(self, folderToParse=None, algorithm='SHA-256'):
+        fid = FormatIdentifier()
         files = []
 
         mimetypes.suffix_map = {}
@@ -334,18 +338,6 @@ class XMLGenerator(object):
 
         if folderToParse:
             folderToParse = folderToParse.rstrip('/')
-            step = ProcessStep.objects.create(
-                name="File operations for %s" % (os.path.basename(folderToParse)),
-                parallel=True,
-            )
-
-            tasks = []
-
-            if self.task is not None and self.task.step is not None:
-                responsible = self.task.responsible
-                step.parent_step_id = self.task.step
-                step.save()
-
             folderToParse = unicode(folderToParse)
 
             external = self.find_external_dirs()
@@ -368,31 +360,20 @@ class XMLGenerator(object):
                     )
                     external_gen.generate(os.path.join(folderToParse, ext_dir, sub_dir))
 
-                    tasks.append(ProcessTask(
-                        name="ESSArch_Core.tasks.ParseFile",
-                        params={
-                            'filepath': os.path.join(folderToParse, ptr_file_path),
-                            'mimetype': self.get_mimetype(mtypes, ptr_file_path),
-                            'relpath': ptr_file_path,
-                            'algorithm': algorithm,
-                            'rootdir': sub_dir
-                        },
-                        responsible_id=responsible,
-                        processstep=step,
-                    ))
+                    filepath = os.path.join(folderToParse, ptr_file_path)
+                    mimetype = self.get_mimetype(mtypes, ptr_file_path)
+
+                    fileinfo = parse_file(filepath, mimetype, fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir)
+                    files.append(fileinfo)
 
             if os.path.isfile(folderToParse):
-                tasks.append(ProcessTask(
-                    name="ESSArch_Core.tasks.ParseFile",
-                    params={
-                        'filepath': folderToParse,
-                        'mimetype': self.get_mimetype(mtypes, folderToParse),
-                        'relpath': os.path.basename(folderToParse),
-                        'algorithm': algorithm
-                    },
-                    processstep=step,
-                    responsible_id=responsible,
-                ))
+                filepath = folderToParse
+                mimetype = self.get_mimetype(mtypes, filepath)
+                relpath = os.path.basename(folderToParse)
+
+                fileinfo = parse_file(filepath, mimetype, fid, relpath, algorithm=algorithm)
+                files.append(fileinfo)
+
             elif os.path.isdir(folderToParse):
                 for root, dirnames, filenames in walk(folderToParse):
                     dirnames[:] = [d for d in dirnames if d not in [e[1] for e in external]]
@@ -400,23 +381,10 @@ class XMLGenerator(object):
                     for fname in filenames:
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, folderToParse)
-                        tasks.append(ProcessTask(
-                            name="ESSArch_Core.tasks.ParseFile",
-                            params={
-                                'filepath': filepath,
-                                'mimetype': self.get_mimetype(mtypes, filepath),
-                                'relpath': relpath,
-                                'algorithm': algorithm
-                            },
-                            responsible_id=responsible,
-                            processstep=step,
-                        ))
+                        mimetype = self.get_mimetype(mtypes, filepath)
 
-            ProcessTask.objects.bulk_create(tasks, 1000)
-
-            with allow_join_result():
-                for fileinfo in step.chunk():
-                    files.append(fileinfo)
+                        fileinfo = parse_file(filepath, mimetype, fid, relpath, algorithm=algorithm)
+                        files.append(fileinfo)
 
         for idx, f in enumerate(self.toCreate):
             fname = f['file']
@@ -438,20 +406,9 @@ class XMLGenerator(object):
                 relpath = fname
 
             if idx < len(self.toCreate) - 1:
-                parsefile_task = ProcessTask.objects.create(
-                    name="ESSArch_Core.tasks.ParseFile",
-                    params={
-                        'filepath': fname,
-                        'mimetype': self.get_mimetype(mtypes, fname),
-                        'relpath': relpath,
-                        'algorithm': algorithm
-                    },
-                    responsible_id=responsible,
-                    processstep_id=self.task.step if self.task else None
-                )
-
-                with allow_join_result():
-                    files.append(parsefile_task.run().get())
+                mimetype = self.get_mimetype(mtypes, filepath)
+                fileinfo = parse_file(fname, mimetype, fid, relpath, algorithm=algorithm)
+                files.append(fileinfo)
 
     def insert(self, filename, elementToAppendTo, template, info={}, index=None):
         parser = etree.XMLParser(remove_blank_text=True)

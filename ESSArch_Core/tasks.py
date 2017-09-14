@@ -56,6 +56,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
     findElementWithoutNamespace,
     XMLGenerator
 )
+from ESSArch_Core.fixity import format, validation
 from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, validate_against_schema
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.storage.exceptions import TapeDriveLockedError
@@ -91,163 +92,8 @@ from ESSArch_Core.util import (
     win_to_posix,
 )
 
-from fido.fido import Fido
 from lxml import etree
 from scandir import walk
-
-
-class CalculateChecksum(DBTask):
-    queue = 'file_operation'
-
-    def run(self, filename=None, block_size=65536, algorithm='SHA-256'):
-        """
-        Calculates the checksum for the given file, one chunk at a time
-
-        Args:
-            filename: The filename to calculate checksum for
-            block_size: The size of the chunk to calculate
-            algorithm: The algorithm to use
-
-        Returns:
-            The hexadecimal digest of the checksum
-        """
-
-        hash_val = alg_from_str(algorithm)()
-
-        with open(filename, 'r') as f:
-            while True:
-                data = f.read(block_size)
-                if data:
-                    hash_val.update(data)
-                else:
-                    break
-
-        return hash_val.hexdigest()
-
-    def undo(self, filename=None, block_size=65536, algorithm='SHA-256'):
-        pass
-
-    def event_outcome_success(self, filename=None, block_size=65536, algorithm='SHA-256'):
-        return "Created checksum for %s with %s" % (filename, algorithm)
-
-
-class IdentifyFileFormat(DBTask):
-    queue = 'file_operation'
-
-    def handle_matches(self, fullname, matches, delta_t, matchtype=''):
-        if len(matches) == 0:
-            raise ValueError("No matches for %s" % fullname)
-
-        f, sigName = matches[-1]
-
-        try:
-            self.format_name = f.find('name').text
-        except AttributeError:
-            self.format_name = None
-
-        try:
-            self.format_version = f.find('version').text
-        except AttributeError:
-            self.format_version = None
-
-        try:
-            self.format_registry_key = f.find('puid').text
-        except AttributeError:
-            self.format_registry_key = None
-
-    def run(self, filename=None, fid=Fido()):
-        """
-        Identifies the format of the file using the fido library
-
-        Args:
-            filename: The filename to identify
-
-        Returns:
-            A tuple with the format name, version and registry key
-        """
-
-        self.fid = fid
-        self.fid.handle_matches = self.handle_matches
-        self.fid.identify_file(filename)
-
-        return (self.format_name, self.format_version, self.format_registry_key)
-
-    def undo(self, filename=None, fid=Fido()):
-        pass
-
-    def event_outcome_success(self, filename=None, fid=Fido()):
-        return "Identified format of %s" % filename
-
-
-class ParseFile(DBTask):
-    queue = 'file_operation'
-    hidden = True
-
-    def run(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256', rootdir=''):
-        if not relpath:
-            relpath = filepath
-
-        relpath = win_to_posix(relpath)
-
-        timestamp = creation_date(filepath)
-        createdate = timestamp_to_datetime(timestamp)
-
-        checksum_task = ProcessTask(
-            name="ESSArch_Core.tasks.CalculateChecksum",
-            params={
-                "filename": filepath,
-                "algorithm": algorithm
-            },
-            processstep_id=self.step,
-            responsible_id=self.responsible,
-            information_package_id=self.ip
-        )
-
-        fileformat_task = ProcessTask(
-            name="ESSArch_Core.tasks.IdentifyFileFormat",
-            params={
-                "filename": filepath,
-            },
-            processstep_id=self.step,
-            responsible_id=self.responsible,
-            information_package_id=self.ip
-        )
-
-        ProcessTask.objects.bulk_create([checksum_task, fileformat_task])
-
-        checksum = checksum_task.run().get()
-        self.set_progress(50, total=100)
-        (format_name, format_version, format_registry_key) = fileformat_task.run().get()
-
-        fileinfo = {
-            'FName': os.path.basename(relpath),
-            'FDir': rootdir,
-            'FChecksum': checksum,
-            'FID': str(uuid.uuid4()),
-            'daotype': "borndigital",
-            'href': relpath,
-            'FMimetype': mimetype,
-            'FCreated': createdate.isoformat(),
-            'FFormatName': format_name,
-            'FFormatVersion': format_version,
-            'FFormatRegistryKey': format_registry_key,
-            'FSize': str(os.path.getsize(filepath)),
-            'FUse': 'Datafile',
-            'FChecksumType': algorithm,
-            'FLoctype': 'URL',
-            'FLinkType': 'simple',
-            'FChecksumLib': 'hashlib',
-            'FLocationType': 'URI',
-            'FIDType': 'UUID',
-        }
-
-        return fileinfo
-
-    def undo(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256', rootdir=''):
-        return ''
-
-    def event_outcome_success(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256', rootdir=''):
-        return "Parsed file %s" % filepath
 
 
 class GenerateXML(DBTask):
@@ -594,53 +440,26 @@ class CreateZIP(DBTask):
 
 
 class ValidateFiles(DBTask):
-    hidden = True
     fileformat_task = "ESSArch_Core.tasks.ValidateFileFormat"
     checksum_task = "ESSArch_Core.tasks.ValidateIntegrity"
 
     def run(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
-        step = ProcessStep.objects.create(
-            name="Validate Files",
-            parallel=True,
-            parent_step_id=self.step
-        )
-
         if any([validate_fileformat, validate_integrity]):
             if rootdir is None:
                 rootdir = InformationPackage.objects.values_list('object_path', flat=True).get(pk=ip)
 
             tasks = []
+            fid = format.FormatIdentifier()
 
             for f in find_files(xmlfile, rootdir):
+                filename = os.path.join(rootdir, f.path)
+
                 if validate_fileformat and f.format is not None:
-                    tasks.append(ProcessTask(
-                        name=self.fileformat_task,
-                        params={
-                            "filename": os.path.join(rootdir, f.path),
-                            "format_name": f.format,
-                        },
-                        information_package_id=ip,
-                        responsible_id=self.responsible,
-                        processstep=step,
-                    ))
+                    validation.validate_file_format(filename, fid, format_name=f.format)
 
                 if validate_integrity and f.checksum is not None and f.checksum_type is not None:
-                    tasks.append(ProcessTask(
-                        name=self.checksum_task,
-                        params={
-                            "filename": os.path.join(rootdir, f.path),
-                            "checksum": f.checksum,
-                            "algorithm": f.checksum_type,
-                        },
-                        information_package_id=ip,
-                        responsible_id=self.responsible,
-                        processstep=step,
-                    ))
+                    validation.validate_checksum(filename, f.checksum_type, f.checksum)
 
-            ProcessTask.objects.bulk_create(tasks)
-
-        with allow_join_result():
-            return step.run().get()
 
     def undo(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
         pass

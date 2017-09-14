@@ -25,10 +25,20 @@
 from __future__ import absolute_import
 
 import os
+import uuid
 
 from lxml import etree
 
-from ESSArch_Core.util import getSchemas, get_value_from_path, remove_prefix
+from ESSArch_Core.fixity import checksum, format, validation
+
+from ESSArch_Core.util import (
+    creation_date,
+    get_value_from_path,
+    getSchemas,
+    remove_prefix,
+    timestamp_to_datetime,
+    win_to_posix,
+)
 
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
@@ -289,6 +299,43 @@ def find_files(xmlfile, rootdir='', prefix=''):
         files |= find_files(os.path.join(rootdir, pointer.path), rootdir, pointer_prefix)
 
     return files
+
+
+def parse_file(filepath, mimetype, fid, relpath=None, algorithm='SHA-256', rootdir=''):
+    if not relpath:
+        relpath = filepath
+
+    relpath = win_to_posix(relpath)
+
+    timestamp = creation_date(filepath)
+    createdate = timestamp_to_datetime(timestamp)
+
+    digest = checksum.calculate_checksum(filepath, algorithm)
+    (format_name, format_version, format_registry_key) = fid.identify_file_format(filepath)
+
+    fileinfo = {
+        'FName': os.path.basename(relpath),
+        'FDir': rootdir,
+        'FChecksum': digest,
+        'FID': str(uuid.uuid4()),
+        'daotype': "borndigital",
+        'href': relpath,
+        'FMimetype': mimetype,
+        'FCreated': createdate.isoformat(),
+        'FFormatName': format_name,
+        'FFormatVersion': format_version,
+        'FFormatRegistryKey': format_registry_key,
+        'FSize': str(os.path.getsize(filepath)),
+        'FUse': 'Datafile',
+        'FChecksumType': algorithm,
+        'FLoctype': 'URL',
+        'FLinkType': 'simple',
+        'FChecksumLib': 'hashlib',
+        'FLocationType': 'URI',
+        'FIDType': 'UUID',
+    }
+
+    return fileinfo
 
 
 def validate_against_schema(xmlfile, schema=None, rootdir=None):
