@@ -27,7 +27,7 @@ import shutil
 from collections import OrderedDict
 
 from django.conf import settings
-from django.test import TransactionTestCase
+from django.test import TestCase, TransactionTestCase
 
 from lxml import etree
 
@@ -41,7 +41,7 @@ from ESSArch_Core.configuration.models import (
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
-class test_generateXML(TransactionTestCase):
+class test_generateXML(TestCase):
     def setUp(self):
         self.bd = os.path.dirname(os.path.realpath(__file__))
         self.xmldir = os.path.join(self.bd, "xmlfiles")
@@ -60,8 +60,6 @@ class test_generateXML(TransactionTestCase):
             entity="path_mimetypes_definitionfile",
             value=os.path.join(self.bd, "mime.types")
         )
-
-        settings.CELERY_ALWAYS_EAGER = True
 
     def tearDown(self):
         try:
@@ -888,9 +886,6 @@ class test_generateXML(TransactionTestCase):
         file_elements = tree.findall('.//bar')
         self.assertEqual(len(file_elements), num_of_files)
 
-        parse_file_tasks = ProcessTask.objects.filter(name='ESSArch_Core.tasks.ParseFile')
-        self.assertEqual(parse_file_tasks.count(), num_of_files)
-
     def test_multiple_to_create_with_files(self):
         specification = {
             '-name': 'foo',
@@ -945,9 +940,6 @@ class test_generateXML(TransactionTestCase):
         bars2 = tree2.findall('.//bar')
 
         self.assertTrue(len(bars2) == len(bars1) + 1)
-
-        parse_file_tasks = ProcessTask.objects.filter(name='ESSArch_Core.tasks.ParseFile')
-        self.assertEqual(parse_file_tasks.count(), len(bars2))
 
     def test_element_with_containsFiles_without_files(self):
         specification = {
