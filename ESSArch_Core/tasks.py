@@ -59,6 +59,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
 from ESSArch_Core.fixity import format, validation
 from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, validate_against_schema
 from ESSArch_Core.ip.models import EventIP, InformationPackage
+from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.exceptions import TapeDriveLockedError
 from ESSArch_Core.storage.models import StorageMedium, TapeDrive, TapeSlot
 from ESSArch_Core.storage.tape import (
@@ -682,176 +683,7 @@ class CopyDir(DBTask):
         return "Copied %s to %s" % (src, dst)
 
 
-class CopyChunk(DBTask):
-    def local(self, src, dst, offset, block_size=65536):
-        with open(src, 'r') as srcf, open(dst, 'a') as dstf:
-            srcf.seek(offset)
-            dstf.seek(offset)
-
-            dstf.write(srcf.read(block_size))
-
-    @retry(stop_max_attempt_number=5, wait_fixed=60000)
-    def remote(self, src, dst, offset, file_size, requests_session, upload_id=None, block_size=65536):
-        filename = os.path.basename(src)
-
-        with open(src, 'rb') as srcf:
-            srcf.seek(offset)
-            chunk = srcf.read(block_size)
-
-        start = offset
-        end = offset + block_size - 1
-
-        if end > file_size:
-            end = file_size - 1
-
-        HTTP_CONTENT_RANGE = 'bytes %s-%s/%s' % (start, end, file_size)
-        headers = {'Content-Range': HTTP_CONTENT_RANGE}
-
-        data = {'upload_id': upload_id}
-        files = {'the_file': (filename, chunk)}
-        response = requests_session.post(dst, data=data, files=files, headers=headers)
-        response.raise_for_status()
-
-        return response.json()['upload_id']
-
-    def run(self, src, dst, offset, upload_id=None, file_size=None, requests_session=None, block_size=65536):
-        """
-        Copies the given chunk to the given destination
-
-        Args:
-            src: The file to copy
-            dst: Where the file should be copied to
-            requests_session: The session to be used
-            offset: The offset in the file
-            block_size: Size of each block to copy
-        Returns:
-            None
-        """
-
-        if requests_session is not None:
-            if file_size is None:
-                raise ValueError('file_size required on remote transfers')
-
-            return self.remote(src, dst, offset, file_size, requests_session, upload_id, block_size)
-        else:
-            self.local(src, dst, offset, block_size)
-
-    def undo(self, src, dst, offset, upload_id=None, file_size=None, requests_session=None, block_size=65536):
-        pass
-
-    def event_outcome_success(self, src, dst, offset, upload_id, file_size=None, requests_session=None, block_size=65536):
-        return "Copied chunk at offset %s and size %s from %s to %s" % (offset, block_size, src, dst)
-
-
 class CopyFile(DBTask):
-    def local(self, src, dst, block_size=65536, step=None):
-        step = ProcessStep.objects.create(
-            name="Copy %s to %s" % (src, dst),
-            parent_step_id=step
-        )
-
-        fsize = os.stat(src).st_size
-        idx = 0
-
-        tasks = []
-
-        directory = os.path.dirname(dst)
-
-        try:
-            os.makedirs(directory)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
-
-        open(dst, 'w').close()  # remove content of destination if it exists
-
-        while idx*block_size <= fsize:
-            tasks.append(ProcessTask(
-                name="ESSArch_Core.tasks.CopyChunk",
-                args=[src, dst, idx*block_size, self.task_id],
-                params={'block_size': block_size},
-                processstep=step,
-                processstep_pos=idx,
-            ))
-            idx += 1
-
-        ProcessTask.objects.bulk_create(tasks, 1000)
-
-        step.run().get()
-
-    def remote(self, src, dst, requests_session=None, block_size=65536, step=None):
-        step = ProcessStep.objects.create(
-            name="Copy %s to %s" % (src, dst),
-            parent_step_id=step
-        )
-
-        file_size = os.stat(src).st_size
-        idx = 0
-
-        tasks = []
-
-        t = ProcessTask.objects.create(
-            name="ESSArch_Core.tasks.CopyChunk",
-            args=[src, dst, idx*block_size],
-            params={
-                'requests_session': requests_session,
-                'file_size': file_size,
-                'block_size': block_size,
-            },
-            processstep=step,
-            processstep_pos=idx,
-        )
-        upload_id = t.run().get()
-        idx += 1
-
-        while idx*block_size <= file_size:
-            tasks.append(ProcessTask(
-                name="ESSArch_Core.tasks.CopyChunk",
-                args=[src, dst, idx*block_size],
-                params={
-                    'requests_session': requests_session,
-                    'file_size': file_size,
-                    'block_size': block_size,
-                    'upload_id': upload_id,
-                },
-                processstep=step,
-                processstep_pos=idx,
-            ))
-            idx += 1
-
-        ProcessTask.objects.bulk_create(tasks, 1000)
-
-        step.resume().get()
-
-        md5 = ProcessTask.objects.create(
-            name="ESSArch_Core.tasks.CalculateChecksum",
-            params={
-                "filename": src,
-                "block_size": block_size,
-                "algorithm": 'MD5'
-            },
-            information_package_id=self.ip,
-            responsible_id=self.responsible,
-        ).run().get()
-
-        completion_url = dst.rstrip('/') + '_complete/'
-
-        m = MultipartEncoder(
-            fields={
-                'path': os.path.basename(src),
-                'upload_id': upload_id,
-                'md5': md5,
-            }
-        )
-        headers = {'Content-Type': m.content_type}
-
-        @retry(stop_max_attempt_number=5, wait_fixed=60000)
-        def send_completion_request():
-            response = requests_session.post(completion_url, data=m, headers=headers)
-            response.raise_for_status()
-
-        send_completion_request()
-
     def run(self, src, dst, requests_session=None, block_size=65536):
         """
         Copies the given file to the given destination
@@ -865,18 +697,7 @@ class CopyFile(DBTask):
             None
         """
 
-        if dst is None:
-            raise ValueError
-
-        if os.path.isdir(dst):
-            dst = os.path.join(dst, os.path.basename(src))
-
-        step = ProcessTask.objects.values_list('processstep', flat=True).get(pk=self.request.id)
-
-        if requests_session is not None:
-            self.remote(src, dst, requests_session, block_size, step)
-        else:
-            self.local(src, dst, block_size, step)
+        copy_file(src, dst, requests_session=requests_session, block_size=block_size)
 
     def undo(self, src, dst, requests_session=None, block_size=65536):
         pass
