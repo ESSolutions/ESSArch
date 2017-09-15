@@ -26,8 +26,7 @@ import os
 import shutil
 from collections import OrderedDict
 
-from django.conf import settings
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase
 
 from lxml import etree
 
@@ -38,10 +37,9 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseConten
 from ESSArch_Core.configuration.models import (
     Path,
 )
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
-class test_generateXML(TestCase):
+class GenerateXMLTestCase(TestCase):
     def setUp(self):
         self.bd = os.path.dirname(os.path.realpath(__file__))
         self.xmldir = os.path.join(self.bd, "xmlfiles")
@@ -1621,7 +1619,7 @@ class test_generateXML(TestCase):
             )
 
 
-class ExternalTestCase(TransactionTestCase):
+class ExternalTestCase(TestCase):
     def setUp(self):
         self.bd = os.path.dirname(os.path.realpath(__file__))
         self.xmldir = os.path.join(self.bd, "xmlfiles")
@@ -1642,8 +1640,6 @@ class ExternalTestCase(TransactionTestCase):
             entity="path_mimetypes_definitionfile",
             value=os.path.join(self.bd, "mime.types")
         )
-
-        settings.CELERY_ALWAYS_EAGER = True
 
     def tearDown(self):
         try:
@@ -1778,9 +1774,6 @@ class ExternalTestCase(TransactionTestCase):
 
         external2_tree = etree.parse(external2_path)
         self.assertEqual(len(external2_tree.findall(".//file[@href='file1.pdf']")), 1)
-
-        parse_file_tasks = ProcessTask.objects.filter(name='ESSArch_Core.tasks.ParseFile')
-        self.assertEqual(parse_file_tasks.count(), 4)
 
     def test_external_info(self):
         specification = {
@@ -1929,7 +1922,7 @@ class ExternalTestCase(TransactionTestCase):
         self.assertIsNotNone(external2_tree.find('.//xsi:foo', namespaces=nsmap_ext))
 
 
-class test_parseContent(TransactionTestCase):
+class ParseContentTestCase(TestCase):
     def test_parse_content_only_text(self):
         content = [
             {
