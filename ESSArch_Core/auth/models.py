@@ -49,12 +49,18 @@ class UserProfile(models.Model):
 
 
 class Notification(models.Model):
+    INFO = 10
+    SUCCESS = 20
+    WARNING = 30
+    ERROR = 40
+    CRITICAL = 50
+
     LEVEL_CHOICES = (
-        (logging.DEBUG, 'debug'),
-        (logging.INFO, 'info'),
-        (logging.WARNING, 'warning'),
-        (logging.ERROR, 'error'),
-        (logging.CRITICAL, 'critical'),
+        (INFO, 'info'),
+        (SUCCESS, 'success'),
+        (WARNING, 'warning'),
+        (ERROR, 'error'),
+        (CRITICAL, 'critical'),
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
