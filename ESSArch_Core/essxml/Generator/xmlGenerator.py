@@ -25,7 +25,6 @@
 import os
 import re
 import uuid
-import mimetypes
 
 from lxml import etree
 
@@ -34,10 +33,6 @@ from natsort import natsorted
 from django.utils import timezone
 
 from scandir import walk
-
-from ESSArch_Core.configuration.models import (
-    Path,
-)
 
 from ESSArch_Core.exceptions import (
     FileFormatNotAllowed
@@ -314,16 +309,6 @@ class XMLGenerator(object):
         fid = FormatIdentifier()
         files = []
 
-        mimetypes.suffix_map = {}
-        mimetypes.encodings_map = {}
-        mimetypes.types_map = {}
-        mimetypes.common_types = {}
-        mimetypes_file = Path.objects.get(
-            entity="path_mimetypes_definitionfile"
-        ).value
-        mimetypes.init(files=[mimetypes_file])
-        mtypes = mimetypes.types_map
-
         responsible = None
 
         if folderToParse:
@@ -351,14 +336,14 @@ class XMLGenerator(object):
                     external_gen.generate(os.path.join(folderToParse, ext_dir, sub_dir))
 
                     filepath = os.path.join(folderToParse, ptr_file_path)
-                    mimetype = self.get_mimetype(mtypes, ptr_file_path)
+                    mimetype = self.get_mimetype(fid.mimetypes, ptr_file_path)
 
                     fileinfo = parse_file(filepath, mimetype, fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir)
                     files.append(fileinfo)
 
             if os.path.isfile(folderToParse):
                 filepath = folderToParse
-                mimetype = self.get_mimetype(mtypes, filepath)
+                mimetype = self.get_mimetype(fid.mimetypes, filepath)
                 relpath = os.path.basename(folderToParse)
 
                 fileinfo = parse_file(filepath, mimetype, fid, relpath, algorithm=algorithm)
@@ -371,7 +356,7 @@ class XMLGenerator(object):
                     for fname in filenames:
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, folderToParse)
-                        mimetype = self.get_mimetype(mtypes, filepath)
+                        mimetype = self.get_mimetype(fid.mimetypes, filepath)
 
                         fileinfo = parse_file(filepath, mimetype, fid, relpath, algorithm=algorithm)
                         files.append(fileinfo)
@@ -396,7 +381,7 @@ class XMLGenerator(object):
                 relpath = fname
 
             if idx < len(self.toCreate) - 1:
-                mimetype = self.get_mimetype(mtypes, filepath)
+                mimetype = self.get_mimetype(fid.mimetypes, filepath)
                 fileinfo = parse_file(fname, mimetype, fid, relpath, algorithm=algorithm)
                 files.append(fileinfo)
 

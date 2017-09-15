@@ -1,6 +1,9 @@
 import logging
+import mimetypes
 
 from fido.fido import Fido
+
+from ESSArch_Core.configuration.models import Path
 
 logger = logging.getLogger('essarch.fixity.format')
 
@@ -8,6 +11,16 @@ logger = logging.getLogger('essarch.fixity.format')
 class FormatIdentifier:
     def __init__(self):
         self.fido = Fido(handle_matches=self.handle_matches)
+
+        mimetypes.suffix_map = {}
+        mimetypes.encodings_map = {}
+        mimetypes.types_map = {}
+        mimetypes.common_types = {}
+        mimetypes_file = Path.objects.get(
+            entity="path_mimetypes_definitionfile"
+        ).value
+        mimetypes.init(files=[mimetypes_file])
+        self.mimetypes = mimetypes.types_map
 
     def handle_matches(self, fullname, matches, delta_t, matchtype=''):
         if len(matches) == 0:
