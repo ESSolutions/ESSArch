@@ -37,8 +37,9 @@ from pkg_resources import require as pkg_check, DistributionNotFound, VersionCon
 # ESSArch_Core dependencies
 dependencies = [
   'ESSArch-EPP>=2.8.4,<=2.8.5',
-  'ESSArch-TA>=1.0.3,<=1.1.0',
-  'ESSArch-TP>=1.0.3,<=1.1.0',
+  'ESSArch-PP>=3.0.0.*,<=3.0.1.*',
+  'ESSArch-TA>=1.0.3.*,<=1.2.1.*',
+  'ESSArch-TP>=1.0.3.*,<=1.2.1.*',
 ]
 
 def query_yes_no(question, default="yes"):
