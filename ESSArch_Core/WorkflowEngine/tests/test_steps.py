@@ -58,7 +58,7 @@ class test_status(TestCase):
 
     def test_no_steps_or_tasks(self):
         with self.assertNumQueries(2):
-            self.assertEqual(self.step.status, celery_states.SUCCESS)
+            self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_nested_steps(self):
         depth = 5
@@ -68,14 +68,14 @@ class test_status(TestCase):
             parent = ProcessStep.objects.create(parent_step=parent)
 
         with self.assertNumQueries((5*depth) + 2):
-            self.assertEqual(self.step.status, celery_states.SUCCESS)
+            self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status(self):
         with self.assertNumQueries(2):
             self.step.status
 
         with self.assertNumQueries(0):
-            self.assertEqual(self.step.status, celery_states.SUCCESS)
+            self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_nested_steps(self):
         depth = 5
@@ -87,7 +87,7 @@ class test_status(TestCase):
         self.step.status
 
         with self.assertNumQueries(0):
-            self.assertEqual(self.step.status, celery_states.SUCCESS)
+            self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_create_task(self):
         self.step.status
@@ -118,7 +118,7 @@ class test_status(TestCase):
         ProcessStep.objects.create(parent_step=self.step)
 
         with self.assertNumQueries(7):
-            self.assertEqual(self.step.status, celery_states.SUCCESS)
+            self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_add_child_step(self):
         s = ProcessStep.objects.create()
@@ -127,7 +127,7 @@ class test_status(TestCase):
         self.step.add_child_steps(s)
 
         with self.assertNumQueries(7):
-            self.assertEqual(self.step.status, celery_states.SUCCESS)
+            self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_run_task(self):
         t = ProcessTask.objects.create(
@@ -167,7 +167,7 @@ class test_status(TestCase):
         t.undo()
 
         with self.assertNumQueries(2):
-            self.assertEqual(self.step.status, celery_states.SUCCESS)
+            self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_retry_task(self):
         t = ProcessTask.objects.create(
@@ -208,7 +208,7 @@ class test_status(TestCase):
         s.undo()
 
         with self.assertNumQueries(7):
-            self.assertEqual(self.step.status, celery_states.SUCCESS)
+            self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_retry_step(self):
         s = ProcessStep.objects.create(parent_step=self.step)
@@ -372,7 +372,7 @@ class test_status(TestCase):
         t1.save()
 
         self.step.tasks = [t1, t1_undo]
-        self.assertEqual(self.step.status, celery_states.SUCCESS)
+        self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_succeeded_retried_task(self):
         t1 = ProcessTask.objects.create(status=celery_states.SUCCESS)
@@ -394,7 +394,7 @@ class test_status(TestCase):
         t1.save()
 
         self.step.tasks = [t1, t1_undo]
-        self.assertEqual(self.step.status, celery_states.SUCCESS)
+        self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_failed_retried_task(self):
         t1 = ProcessTask.objects.create(status=celery_states.FAILURE)
@@ -424,7 +424,7 @@ class test_progress(TestCase):
 
     def test_no_steps_or_tasks(self):
         with self.assertNumQueries(2):
-            self.assertEqual(self.step.progress, 100)
+            self.assertEqual(self.step.progress, 0)
 
     def test_nested_steps(self):
         depth = 5
@@ -433,8 +433,8 @@ class test_progress(TestCase):
         for i in range(depth):
             parent = ProcessStep.objects.create(parent_step=parent)
 
-        with self.assertNumQueries(2*(depth+1)):
-            self.assertEqual(self.step.progress, 100)
+        with self.assertNumQueries((3*(depth+1))-1):
+            self.assertEqual(self.step.progress, 0)
 
     def test_cached_progress(self):
         with self.assertNumQueries(2):
@@ -453,7 +453,7 @@ class test_progress(TestCase):
         self.step.progress
 
         with self.assertNumQueries(0):
-            self.assertEqual(self.step.progress, 100)
+            self.assertEqual(self.step.progress, 0)
 
     def test_cached_progress_create_task(self):
         self.step.progress
@@ -463,7 +463,7 @@ class test_progress(TestCase):
             processstep=self.step
         )
 
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(4):
             self.assertEqual(self.step.progress, 0)
 
     def test_cached_progress_add_task(self):
@@ -474,7 +474,7 @@ class test_progress(TestCase):
         self.step.progress
         self.step.add_tasks(t)
 
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(4):
             self.assertEqual(self.step.progress, 0)
 
     def test_cached_progress_create_child_step(self):
@@ -482,8 +482,8 @@ class test_progress(TestCase):
 
         ProcessStep.objects.create(parent_step=self.step)
 
-        with self.assertNumQueries(4):
-            self.assertEqual(self.step.progress, 100)
+        with self.assertNumQueries(5):
+            self.assertEqual(self.step.progress, 0)
 
     def test_cached_progress_add_child_step(self):
         s = ProcessStep.objects.create()
@@ -491,8 +491,8 @@ class test_progress(TestCase):
         self.step.progress
         self.step.add_child_steps(s)
 
-        with self.assertNumQueries(4):
-            self.assertEqual(self.step.progress, 100)
+        with self.assertNumQueries(5):
+            self.assertEqual(self.step.progress, 0)
 
     def test_cached_progress_run_task(self):
         t = ProcessTask.objects.create(
@@ -504,7 +504,7 @@ class test_progress(TestCase):
 
         t.run()
 
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(4):
             self.assertEqual(self.step.progress, 100)
 
     def test_cached_progress_run_task_in_nested_step(self):
@@ -518,7 +518,7 @@ class test_progress(TestCase):
 
         t.run()
 
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(7):
             self.assertEqual(self.step.progress, 100)
 
     def test_cached_progress_undo_task(self):
@@ -531,7 +531,7 @@ class test_progress(TestCase):
         self.step.progress
         t.undo()
 
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(4):
             self.assertEqual(self.step.progress, 0)
 
     def test_cached_progress_retry_task(self):
@@ -545,7 +545,7 @@ class test_progress(TestCase):
         self.step.progress
         t.retry()
 
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(4):
             self.assertEqual(self.step.progress, 100)
 
     def test_cached_progress_run_step(self):
@@ -558,7 +558,7 @@ class test_progress(TestCase):
         self.step.progress
         s.run()
 
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(7):
             self.assertEqual(self.step.progress, 100)
 
     def test_cached_progress_undo_step(self):
@@ -572,7 +572,7 @@ class test_progress(TestCase):
         self.step.progress
         s.undo()
 
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(7):
             self.assertEqual(self.step.progress, 0)
 
     def test_cached_progress_retry_step(self):
@@ -587,7 +587,7 @@ class test_progress(TestCase):
         self.step.progress
         s.retry()
 
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(7):
             self.assertEqual(self.step.progress, 100)
 
     def test_cached_progress_resume_step(self):
@@ -612,14 +612,14 @@ class test_progress(TestCase):
         self.step.progress
         s.resume()
 
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(7):
             self.assertEqual(self.step.progress, 100)
 
     def test_single_task(self):
         t = ProcessTask.objects.create(progress=0)
         self.step.add_tasks(t)
 
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(4):
             self.assertEqual(self.step.progress, 0)
 
         self.step.clear_tasks()
@@ -665,7 +665,7 @@ class test_progress(TestCase):
     def test_single_child_step(self):
         s = ProcessStep.objects.create()
         self.step.child_steps = [s]
-        self.assertEqual(self.step.progress, 100)
+        self.assertEqual(self.step.progress, 0)
 
     def test_nested_task(self):
         s = ProcessStep.objects.create()

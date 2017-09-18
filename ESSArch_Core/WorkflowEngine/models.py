@@ -459,6 +459,11 @@ class ProcessStep(Process):
             if cached is not None:
                 return cached
 
+            if not self.child_steps.exists() and not self.tasks.exists():
+                progress = 0
+                cache.set(self.cache_progress_key, progress)
+                return progress
+
             child_steps = self.child_steps.all()
             progress = 0
             task_data = self.tasks.filter(undo_type=False, retried__isnull=True).aggregate(
@@ -519,6 +524,7 @@ class ProcessStep(Process):
             status = celery_states.SUCCESS
 
             if not child_steps.exists() and not tasks.exists():
+                status = celery_states.PENDING
                 cache.set(self.cache_status_key, status)
                 return status
 
