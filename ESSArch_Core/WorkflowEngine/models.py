@@ -456,7 +456,7 @@ class ProcessStep(Process):
         with cache.lock(self.cache_lock_key, timeout=60):
             cached = cache.get(self.cache_progress_key)
 
-            if cached:
+            if cached is not None:
                 return cached
 
             child_steps = self.child_steps.all()
@@ -511,7 +511,7 @@ class ProcessStep(Process):
         with cache.lock(self.cache_lock_key, timeout=60):
             cached = cache.get(self.cache_status_key)
 
-            if cached:
+            if cached is not None:
                 return cached
 
             child_steps = self.child_steps.all()
