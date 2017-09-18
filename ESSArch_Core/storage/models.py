@@ -428,6 +428,7 @@ class IOQueue(models.Model):
     access_queue = models.ForeignKey('AccessQueue', blank=True, null=True)
     remote_status = models.IntegerField(blank=True, default=0, choices=remote_status_CHOICES)
     transfer_task_id = models.CharField(max_length=36, blank=True)
+    step = models.ForeignKey('WorkflowEngine.ProcessStep', on_delete=models.PROTECT, null=True)
 
     class Meta:
         get_latest_by = 'posted'
