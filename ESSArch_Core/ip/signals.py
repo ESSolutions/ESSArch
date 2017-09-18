@@ -17,6 +17,10 @@ from ESSArch_Core.ip.models import (
 
 logger = logging.getLogger('essarch.core')
 
+@receiver(pre_delete, sender=InformationPackage)
+def ip_pre_delete(sender, instance, using, **kwargs):
+    logger.info('Deleting information package %s' % instance.pk)
+
 
 @receiver(post_delete, sender=InformationPackage)
 def ip_post_delete(sender, instance, using, **kwargs):
