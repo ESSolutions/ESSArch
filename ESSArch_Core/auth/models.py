@@ -67,6 +67,7 @@ class Notification(models.Model):
     level = models.IntegerField(choices=LEVEL_CHOICES)
     message = models.CharField(max_length=255)
     time_created = models.DateTimeField(auto_now_add=True)
+    seen = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-time_created']
