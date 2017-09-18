@@ -246,22 +246,22 @@ class DBTask(Task):
 
         if not self.track or self.chunk:
             return
+
         time_done = timezone.now()
+
+        updated = {
+            'result': retval,
+            'status': celery_states.SUCCESS,
+            'time_done': time_done,
+            'progress': 100
+        }
+
         try:
-            ProcessTask.objects.filter(pk=task_id).update(
-                result=retval,
-                status=celery_states.SUCCESS,
-                time_done=time_done,
-                progress=100
-            )
+            ProcessTask.objects.filter(pk=task_id).update(**updated)
         except OperationalError:
             print "Database locked, trying again after 2 seconds"
             time.sleep(2)
-            ProcessTask.objects.filter(pk=task_id).update(
-                result=retval,
-                status=celery_states.SUCCESS,
-                time_done=time_done,
-            )
+            ProcessTask.objects.filter(pk=task_id).update(**updated)
 
         if self.event_type:
             self.create_event(task_id, celery_states.SUCCESS, args, kwargs, None, retval)
