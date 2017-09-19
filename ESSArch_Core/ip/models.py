@@ -333,9 +333,6 @@ class InformationPackage(models.Model):
         steps = self.steps.all()
         state = celery_states.SUCCESS
 
-        if not steps:
-            return celery_states.PENDING
-
         for step in steps:
             step_status = step.status
 
