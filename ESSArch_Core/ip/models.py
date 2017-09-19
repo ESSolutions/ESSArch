@@ -659,8 +659,8 @@ class Workarea(models.Model):
     INGEST = 0
     ACCESS = 1
     TYPE_CHOICES = (
-        (INGEST, 'Ingest'),
-        (ACCESS, 'Access'),
+        (INGEST, 'ingest'),
+        (ACCESS, 'access'),
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
