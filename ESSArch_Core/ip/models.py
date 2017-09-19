@@ -328,7 +328,27 @@ class InformationPackage(models.Model):
             * If a step has started, then STARTED.
             * If a step has failed, then FAILURE.
             * If all steps have succeeded, then SUCCESS.
+
+            If the IP is an AIC, then the same algorithm is
+            applied on the related IPs instead
         """
+
+        if self.package_type == InformationPackage.AIC:
+            ips = self.information_packages.all()
+            state = celery_states.SUCCESS
+
+            for ip in ips:
+                ip_step_state = ip.step_state
+
+                if ip_step_state == celery_states.STARTED:
+                    state = ip_step_state
+                if (ip_step_state == celery_states.PENDING and
+                            state != celery_states.STARTED):
+                    state = ip_step_state
+                if ip_step_state == celery_states.FAILURE:
+                    return ip_step_state
+
+            return state
 
         steps = self.steps.all()
         state = celery_states.SUCCESS
