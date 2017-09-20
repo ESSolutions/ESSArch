@@ -22,6 +22,8 @@
     Email - essarch@essolutions.se
 """
 
+import logging
+
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -44,3 +46,29 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_profile')
     ip_list_columns = PickledObjectField(default=DEFAULT_IP_LIST_COLUMNS,)
     ip_list_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=AIC,)
+
+
+class Notification(models.Model):
+    INFO = 10
+    SUCCESS = 20
+    WARNING = 30
+    ERROR = 40
+    CRITICAL = 50
+
+    LEVEL_CHOICES = (
+        (INFO, 'info'),
+        (SUCCESS, 'success'),
+        (WARNING, 'warning'),
+        (ERROR, 'error'),
+        (CRITICAL, 'critical'),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    level = models.IntegerField(choices=LEVEL_CHOICES)
+    message = models.CharField(max_length=255)
+    time_created = models.DateTimeField(auto_now_add=True)
+    seen = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-time_created']
+        get_latest_by = "time_created"

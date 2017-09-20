@@ -25,10 +25,14 @@
 from ESSArch_Core.auth.serializers import (
     GroupSerializer,
     GroupDetailSerializer,
+    NotificationSerializer,
+    NotificationReadSerializer,
     PermissionSerializer,
     UserSerializer,
     UserLoggedInSerializer,
 )
+
+from ESSArch_Core.auth.models import Notification
 
 from django.conf import settings
 from django.contrib.auth.models import User, Group, Permission
@@ -40,7 +44,7 @@ from rest_auth.views import (
     LogoutView as rest_auth_LogoutView,
 )
 
-from rest_framework import exceptions, viewsets
+from rest_framework import exceptions, permissions, viewsets
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -81,6 +85,19 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Permission.objects.all()
     serializer_class = PermissionSerializer
+
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    queryset = Notification.objects.all()
+
+    def get_queryset(self):
+        return self.request.user.notifications.all()
+
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return NotificationReadSerializer
+
+        return NotificationSerializer
 
 
 class LoginView(rest_auth_LoginView):
