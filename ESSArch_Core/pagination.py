@@ -55,12 +55,12 @@ class NoPagination(pagination.PageNumberPagination):
     display_page_controls = False
 
     def get_page_size(self, request):
-        return self.count
+        return self.count if self.count > 0 else 1
 
     def paginate_queryset(self, queryset, request, view=None):
         self.count = queryset.count()
         return super(NoPagination, self).paginate_queryset(queryset, request, view)
 
     def get_paginated_response(self, data):
-        headers = {'Count': len(data)}
+        headers = {'Count': self.count or 0}
         return Response(data, headers=headers)
