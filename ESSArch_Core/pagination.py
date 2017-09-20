@@ -30,6 +30,8 @@ class LinkHeaderPagination(pagination.PageNumberPagination):
     page_size_query_param = 'page_size'
 
     def get_paginated_response(self, data):
+        headers = {'Count': self.page.paginator.count}
+
         next_url = self.get_next_link()
         previous_url = self.get_previous_link()
 
@@ -43,15 +45,22 @@ class LinkHeaderPagination(pagination.PageNumberPagination):
             link = ''
 
         link = link.format(next_url=next_url, previous_url=previous_url)
-        headers = {'Link': link, 'Count': self.page.paginator.count} if link else {}
+
+        if link:
+            headers['Link'] = link
 
         return Response(data, headers=headers)
 
-class NoPagination(pagination.BasePagination):
+class NoPagination(pagination.PageNumberPagination):
     display_page_controls = False
 
+    def get_page_size(self, request):
+        return self.count
+
     def paginate_queryset(self, queryset, request, view=None):
-        return None
+        self.count = queryset.count()
+        return super(NoPagination, self).paginate_queryset(queryset, request, view)
 
     def get_paginated_response(self, data):
-        return Response(data)
+        headers = {'Count': len(data)}
+        return Response(data, headers=headers)
