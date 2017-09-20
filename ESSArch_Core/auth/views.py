@@ -44,7 +44,7 @@ from rest_auth.views import (
     LogoutView as rest_auth_LogoutView,
 )
 
-from rest_framework import exceptions, permissions, viewsets
+from rest_framework import exceptions, permissions, status, viewsets
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -98,6 +98,10 @@ class NotificationViewSet(viewsets.ModelViewSet):
             return NotificationReadSerializer
 
         return NotificationSerializer
+
+    def delete(self, request, *args, **kwargs):
+        self.get_queryset().delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class LoginView(rest_auth_LoginView):
