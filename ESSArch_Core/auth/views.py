@@ -38,6 +38,8 @@ from django.conf import settings
 from django.contrib.auth.models import User, Group, Permission
 from django.shortcuts import reverse
 
+from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_auth.app_settings import LoginSerializer
 from rest_auth.views import (
     LoginView as rest_auth_LoginView,
@@ -89,6 +91,8 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('seen',)
 
     def get_queryset(self):
         return self.request.user.notifications.all()
