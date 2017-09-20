@@ -183,45 +183,39 @@ def parse_submit_description(xmlfile, srcdir=''):
     except TypeError:
         pass
 
-    try:
-        ip['creator_organization'] = get_agent(root, ROLE='CREATOR', TYPE='ORGANIZATION')['name']
-    except TypeError:
-        pass
+    agents = {
+        'creator_organization': {
+            'ROLE': 'CREATOR', 'TYPE': 'ORGANIZATION',
+        },
+        'submitter_organization': {
+            'ROLE': 'OTHER', 'OTHERROLE': 'SUBMITTER', 'TYPE': 'ORGANIZATION',
+        },
+        'submitter_individual': {
+            'ROLE': 'OTHER', 'OTHERROLE': 'SUBMITTER', 'TYPE': 'INDIVIDUAL',
+        },
+        'producer_organization': {
+            'ROLE': 'OTHER', 'OTHERROLE': 'PRODUCER', 'TYPE': 'ORGANIZATION',
+        },
+        'producer_individual': {
+            'ROLE': 'OTHER', 'OTHERROLE': 'PRODUCER', 'TYPE': 'INDIVIDUAL',
+        },
+        'ipowner_organization': {
+            'ROLE': 'IPOWNER', 'TYPE': 'ORGANIZATION',
+        },
+        'preservation_organization': {
+            'ROLE': 'PRESERVATION', 'TYPE': 'ORGANIZATION',
+        },
+        'system_name': {
+            'ROLE': 'ARCHIVIST', 'TYPE': 'OTHER', 'OTHERTYPE': 'SOFTWARE',
+        },
+    }
 
-    try:
-        ip['submitter_organization'] = get_agent(root, ROLE='OTHER', OTHERROLE='SUBMITTER', TYPE='ORGANIZATION')['name']
-    except TypeError:
-        pass
 
-    try:
-        ip['submitter_individual'] = get_agent(root, ROLE='OTHER', OTHERROLE='SUBMITTER', TYPE='INDIVIDUAL')['name']
-    except TypeError:
-        pass
-
-    try:
-        ip['producer_organization'] = get_agent(root, ROLE='OTHER', OTHERROLE='PRODUCER', TYPE='ORGANIZATION')['name']
-    except TypeError:
-        pass
-
-    try:
-        ip['producer_individual'] = get_agent(root, ROLE='OTHER', OTHERROLE='PRODUCER', TYPE='INDIVIDUAL')['name']
-    except TypeError:
-        pass
-
-    try:
-        ip['ipowner_organization'] = get_agent(root, ROLE='IPOWNER', TYPE='ORGANIZATION')['name']
-    except TypeError:
-        pass
-
-    try:
-        ip['preservation_organization'] = get_agent(root, ROLE='PRESERVATION', TYPE='ORGANIZATION')['name']
-    except TypeError:
-        pass
-
-    try:
-        ip['system_name'] = get_agent(root, ROLE='ARCHIVIST', TYPE='OTHER', OTHERTYPE='SOFTWARE')['name']
-    except TypeError:
-        pass
+    for key, value in agents.iteritems():
+        try:
+            ip[key] = get_agent(root, **value)['name']
+        except TypeError:
+            pass
 
     try:
         ip['system_version'] = get_agent(root, ROLE='ARCHIVIST', TYPE='OTHER', OTHERTYPE='SOFTWARE')['notes'][0],
