@@ -138,6 +138,9 @@ def parse_submit_description(xmlfile, srcdir=''):
     doc = etree.parse(xmlfile)
     root = doc.getroot()
 
+    if root.xpath('local-name()').lower() != 'mets':
+        raise ValueError('%s is not a valid mets file' % xmlfile)
+
     try:
         # try getting objid with prefix
         ip['id'] = root.attrib['OBJID'].split(':')[1]
@@ -150,7 +153,11 @@ def parse_submit_description(xmlfile, srcdir=''):
 
     ip['object_identifier_value'] = ip['id']
     ip['label'] = root.get('LABEL', '')
-    ip['create_date'] = root.find("{*}metsHdr").get('CREATEDATE')
+
+    try:
+        ip['create_date'] = root.find("{*}metsHdr").get('CREATEDATE')
+    except AttributeError:
+        pass
 
     objpath = get_objectpath(root)
 
