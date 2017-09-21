@@ -38,6 +38,7 @@ from requests_toolbelt import MultipartEncoder
 
 from celery.result import allow_join_result
 
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.conf import settings
@@ -53,7 +54,7 @@ from ESSArch_Core.util import (
 )
 
 from ESSArch_Core.auth.models import Notification
-from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     findElementWithoutNamespace,
     XMLGenerator
@@ -309,18 +310,28 @@ class AppendEvents(DBTask):
             'eventDateTime'
         )
 
+        id_types = {}
+
+        for id_type in ['event', 'linking_agent', 'linking_object']:
+            cache_name = 'parameter_%s_identifier_type' % id_type
+            id_types[id_type] = cache.get(cache_name)
+
+            if id_types[id_type] is None:
+                id_types[id_type] = Parameter.objects.values_list('value', flat=True).get(entity=cache_name)
+                cache.set(cache_name, id_types[id_type], 3600*24)
+
         for event in events:
             data = {
-                "eventIdentifierType": "SE/RA",
+                "eventIdentifierType": id_types['event'],
                 "eventIdentifierValue": str(event.id),
                 "eventType": str(event.eventType.code) if event.eventType.code is not None else str(event.eventType.eventType),
                 "eventDateTime": str(event.eventDateTime),
                 "eventDetail": event.eventType.eventDetail,
                 "eventOutcome": str(event.eventOutcome),
                 "eventOutcomeDetailNote": event.eventOutcomeDetailNote,
-                "linkingAgentIdentifierType": "SE/RA",
+                "linkingAgentIdentifierType": id_types['linking_agent'],
                 "linkingAgentIdentifierValue": event.linkingAgentIdentifierValue,
-                "linkingObjectIdentifierType": "SE/RA",
+                "linkingObjectIdentifierType": id_types['linking_object'],
                 "linkingObjectIdentifierValue": event.linkingObjectIdentifierValue,
             }
 
