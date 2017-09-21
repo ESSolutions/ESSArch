@@ -313,7 +313,7 @@ class AppendEvents(DBTask):
             data = {
                 "eventIdentifierType": "SE/RA",
                 "eventIdentifierValue": str(event.id),
-                "eventType": str(event.eventType.code),
+                "eventType": str(event.eventType.code) if event.eventType.code is not None else str(event.eventType.eventType),
                 "eventDateTime": str(event.eventDateTime),
                 "eventDetail": event.eventType.eventDetail,
                 "eventOutcome": str(event.eventOutcome),
