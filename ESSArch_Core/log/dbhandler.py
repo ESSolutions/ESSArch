@@ -2,6 +2,7 @@ from _version import get_versions
 
 from logging import Handler
 
+from django.core.cache import cache
 
 class DBHandler(Handler):
     model_name = 'ESSArch_Core.ip.models.EventIP'
@@ -30,7 +31,12 @@ class DBHandler(Handler):
         enabled = False
 
         if not forced:
-            enabled = EventType.objects.values_list('enabled', flat=True).get(pk=record.event_type)
+            cache_name = 'event_type_%s_enabled' % record.event_type
+            enabled = cache.get(cache_name)
+
+            if enabled is None:
+                enabled = EventType.objects.values_list('enabled', flat=True).get(pk=record.event_type)
+                cache.set(cache_name, enabled, 3600)
 
         if enabled or forced:
             EventIP.objects.create(
