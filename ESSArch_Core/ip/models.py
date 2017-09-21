@@ -605,12 +605,12 @@ class EventIP(models.Model):
     Events related to IP
     """
 
+    SUCCESS = 0
+    FAILURE = 1
+
     OUTCOME_CHOICES = (
-        (10, 'debug'),
-        (20, 'info'),
-        (30, 'warning'),
-        (40, 'error'),
-        (50, 'critical'),
+        (0, 'Success'),
+        (1, 'Failure'),
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -627,16 +627,8 @@ class EventIP(models.Model):
     eventVersion = models.CharField(max_length=255) # The version number of the application (from versioneer)
     eventOutcome = models.IntegerField(choices=OUTCOME_CHOICES, null=True, default=None) # Success (0) or Fail (1)
     eventOutcomeDetailNote = models.CharField(max_length=1024) # Result or traceback from IP
-    linkingAgentIdentifierValue = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL,
-        related_name='events', null=True
-    )
-    linkingObjectIdentifierValue = models.ForeignKey(
-        'InformationPackage',
-        on_delete=models.CASCADE,
-        related_name='events',
-        null=True,
-    )
+    linkingAgentIdentifierValue = models.CharField(max_length=255, blank=True)
+    linkingObjectIdentifierValue = models.CharField(max_length=255, blank=True)
 
     class Meta:
         ordering = ["eventType"]

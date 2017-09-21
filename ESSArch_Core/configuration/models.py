@@ -75,6 +75,8 @@ class EventType(models.Model):
     """
     eventType = models.IntegerField(primary_key=True, default=0)
     eventDetail = models.CharField(max_length=255)
+    enabled = models.BooleanField(default=True)
+    code = models.CharField(max_length=255, blank=True, default='')
 
     class Meta:
         ordering = ["eventType"]

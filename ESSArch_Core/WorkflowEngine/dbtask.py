@@ -33,6 +33,7 @@ from celery import current_app, exceptions, states as celery_states, Task
 
 from ESSArch_Core.configuration.models import EventType
 
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 
 from django.db import (
@@ -43,7 +44,7 @@ from django.db import (
 )
 from django.utils import timezone
 
-from ESSArch_Core.ip.models import EventIP
+from ESSArch_Core.ip.models import EventIP, InformationPackage
 
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import get_result
@@ -51,6 +52,9 @@ from ESSArch_Core.WorkflowEngine.util import get_result
 from ESSArch_Core.util import (
     truncate
 )
+
+
+User = get_user_model()
 
 logger = logging.getLogger('essarch')
 
@@ -188,16 +192,21 @@ class DBTask(Task):
 
     def create_event(self, task_id, status, args, kwargs, retval, einfo):
         if status == celery_states.SUCCESS:
+            outcome = EventIP.SUCCESS
             level = logging.INFO
             kwargs.pop('_options', {})
             outcome_detail_note = self.event_outcome_success(*args, **kwargs)
         else:
+            outcome = EventIP.FAILURE
             level = logging.ERROR
             outcome_detail_note = einfo.traceback
 
         outcome_detail_note = truncate(outcome_detail_note, 1024)
 
-        extra = {'type': self.event_type, 'ip': self.ip, 'user': self.responsible, 'task': self.task_id}
+        objid = InformationPackage.objects.values_list('object_identifier_value', flat=True).get(pk=self.ip)
+        agent = User.objects.values_list('username', flat=True).get(pk=self.responsible)
+
+        extra = {'event_type': self.event_type, 'object': objid, 'agent': agent, 'task': self.task_id, 'outcome': outcome}
         logger.log(level, outcome_detail_note, extra=extra)
 
 

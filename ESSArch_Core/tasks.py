@@ -302,7 +302,8 @@ class AppendEvents(DBTask):
         }
 
         if not events:
-            events = EventIP.objects.filter(linkingObjectIdentifierValue_id=self.ip)
+            objid = InformationPackage.objects.values_list('object_identifier_value', flat=True).get(pk=self.ip)
+            events = EventIP.objects.filter(linkingObjectIdentifierValue=objid)
 
         events = events.order_by(
             'eventDateTime'
@@ -312,15 +313,15 @@ class AppendEvents(DBTask):
             data = {
                 "eventIdentifierType": "SE/RA",
                 "eventIdentifierValue": str(event.id),
-                "eventType": str(event.eventType.eventType),
+                "eventType": str(event.eventType.code),
                 "eventDateTime": str(event.eventDateTime),
                 "eventDetail": event.eventType.eventDetail,
                 "eventOutcome": str(event.eventOutcome),
                 "eventOutcomeDetailNote": event.eventOutcomeDetailNote,
                 "linkingAgentIdentifierType": "SE/RA",
-                "linkingAgentIdentifierValue": event.linkingAgentIdentifierValue.username,
+                "linkingAgentIdentifierValue": event.linkingAgentIdentifierValue,
                 "linkingObjectIdentifierType": "SE/RA",
-                "linkingObjectIdentifierValue": str(event.linkingObjectIdentifierValue.object_identifier_value),
+                "linkingObjectIdentifierValue": event.linkingObjectIdentifierValue,
             }
 
             generator.insert(filename, "premis", template, data)
