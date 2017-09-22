@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import errno
 import os
 import uuid
 
@@ -290,7 +291,11 @@ class StorageObject(models.Model):
             tmppath = os.path.join(verifydir, self.storage_medium.storage_target.target)
 
             if not os.path.exists(tmppath):
-                os.mkdir(tmppath)
+                try:
+                    os.mkdir(tmppath)
+                except OSError as e:
+                    if e.errno != errno.EEXIST:
+                        raise
 
             ProcessTask.objects.create(
                 name='ESSArch_Core.tasks.SetTapeFileNumber',
