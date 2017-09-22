@@ -234,11 +234,6 @@ class StorageMedium(models.Model):
         if objs.count() > 3:
             objs = [objs.first(), objs[objs.count()/2], objs.last()]
 
-        verifydir = Path.objects.get(entity='verify').value
-        tmppath = os.path.join(verifydir, self.storage_target.target)
-        if not os.path.exists(tmppath):
-            os.mkdir(tmppath)
-
         try:
             for obj in objs:
                 obj.verify()
