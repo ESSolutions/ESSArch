@@ -524,41 +524,6 @@ class ValidateFileFormat(DBTask):
         )
 
 
-class ValidateIntegrity(DBTask):
-    queue = 'validation'
-
-    def run(self, filename=None, checksum=None, block_size=65536, algorithm='SHA-256'):
-        """
-        Validates the integrity(checksum) for the given file
-        """
-
-        task = ProcessTask.objects.values(
-            'information_package_id', 'responsible_id'
-        ).get(pk=self.request.id)
-
-        t = ProcessTask.objects.create(
-            name="ESSArch_Core.tasks.CalculateChecksum",
-            params={
-                "filename": filename,
-                "block_size": block_size,
-                "algorithm": algorithm
-            },
-            information_package_id=task.get('information_package_id'),
-            responsible_id=task.get('responsible_id'),
-        )
-
-        digest = t.run().get()
-
-        assert digest == checksum, "checksum for %s is not valid (%s != %s)" % (filename, digest, checksum)
-        return "Success"
-
-    def undo(self, filename=None, checksum=None,  block_size=65536, algorithm='SHA-256'):
-        pass
-
-    def event_outcome_success(self, filename=None, checksum=None, block_size=65536, algorithm='SHA-256'):
-        return "Validated integrity of %s against %s with %s" % (filename, checksum, algorithm)
-
-
 class ValidateXMLFile(DBTask):
     queue = 'validation'
 
