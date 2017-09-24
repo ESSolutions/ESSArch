@@ -621,12 +621,7 @@ class ProcessTask(Process):
     undone = models.OneToOneField('self', on_delete=models.SET_NULL, related_name='undone_task', null=True, blank=True)
     undo_type = models.BooleanField(editable=False, default=False)
     retried = models.OneToOneField('self', on_delete=models.SET_NULL, related_name='retried_task', null=True, blank=True)
-    information_package = models.ForeignKey(
-        'ip.InformationPackage',
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True
-    )
+    information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE)
     log = PickledObjectField(null=True, default=None)
 
     objects = models.Manager()

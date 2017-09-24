@@ -17,6 +17,7 @@ from retrying import retry
 import requests
 
 from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.fixity.validation import validate_checksum
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
@@ -302,7 +303,8 @@ class StorageObject(models.Model):
                 params={
                     'medium': self.storage_medium_id,
                     'num': int(self.content_location_value)
-                }
+                },
+                information_package=self.ip,
             ).run().get()
 
             ProcessTask.objects.create(
@@ -311,18 +313,11 @@ class StorageObject(models.Model):
                     'medium': self.storage_medium_id,
                     'path': tmppath,
                     'block_size': self.storage_medium.block_size * 512,
-                }
+                },
+                information_package=self.ip,
             ).run().get()
 
-            checksum = ProcessTask.objects.create(
-                name='ESSArch_Core.tasks.CalculateChecksum',
-                params={
-                    'filename': os.path.join(tmppath, self.ip.object_identifier_value + '.tar'),
-                    'algorithm': self.ip.get_message_digest_algorithm_display()
-                }
-            ).run().get()
-
-            assert checksum == self.ip.message_digest, '%s is invalid' % self.ip.object_identifier_value
+            validate_checksum(filename, algorithm, self.ip.message_digest)
 
     def __unicode__(self):
         try:
