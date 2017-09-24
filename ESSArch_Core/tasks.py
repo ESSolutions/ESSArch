@@ -313,11 +313,12 @@ class AppendEvents(DBTask):
         id_types = {}
 
         for id_type in ['event', 'linking_agent', 'linking_object']:
-            cache_name = 'parameter_%s_identifier_type' % id_type
+            entity = '%s_identifier_type' % id_type
+            cache_name = 'parameter_%s' % entity
             id_types[id_type] = cache.get(cache_name)
 
             if id_types[id_type] is None:
-                id_types[id_type] = Parameter.objects.values_list('value', flat=True).get(entity=cache_name)
+                id_types[id_type] = Parameter.objects.values_list('value', flat=True).get(entity=entity)
                 cache.set(cache_name, id_types[id_type], 3600*24)
 
         for event in events:
