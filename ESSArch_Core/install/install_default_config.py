@@ -59,6 +59,7 @@ def installDefaultEventTypes():
         'Verified IP is approved for long-term preservation': '30110',
         'Created AIP': '30200',
         'Preserved AIP': '30300',
+        'Cached AIP': '30310',
         'Removed the source to the SIP': '30400',
         'Removed the source to the AIP': '30410',
         'Ingest order completed': '30500',
@@ -84,7 +85,7 @@ def installDefaultEventTypes():
         'Storage medium collected': '40530',
         'Storage medium robot': '40540',
         'Data written to disk storage method': '40600',
-        'Data read the disk storage method': '40610',
+        'Data read from disk storage method': '40610',
         'Data written to tape storage method': '40700',
         'Data read from tape storage method': '40710',
 
