@@ -101,6 +101,8 @@ from scandir import walk
 
 
 class GenerateXML(DBTask):
+    event_type = 50600
+
     def run(self, info={}, filesToCreate={}, folderToParse=None, algorithm='SHA-256'):
         """
         Generates the XML using the specified data and folder, and adds the XML
@@ -155,6 +157,8 @@ class InsertXML(DBTask):
 
 
 class AppendEvents(DBTask):
+    event_type = 50610
+
     def run(self, filename="", events={}):
         generator = XMLGenerator()
         template = {
@@ -353,6 +357,8 @@ class AppendEvents(DBTask):
 
 
 class CopySchemas(DBTask):
+    event_type = 50620
+
     def findDestination(self, dirname, structure, path=''):
         for content in structure:
             if content['name'] == dirname and content['type'] == 'folder':
@@ -399,6 +405,8 @@ class CreateTAR(DBTask):
         tarname: The name of the tar file
     """
 
+    event_type = 50400
+
     def run(self, dirname=None, tarname=None, compress=False):
         compression = ':gz' if compress else ''
         base_dir = os.path.basename(os.path.normpath(dirname))
@@ -428,6 +436,8 @@ class CreateZIP(DBTask):
         dirname: The directory to create a ZIP from
         zipname: The name of the zip file
     """
+
+    event_type = 50410
 
     def run(self, dirname=None, zipname=None, compress=False):
         compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
@@ -525,6 +535,7 @@ class ValidateFileFormat(DBTask):
 
 
 class ValidateXMLFile(DBTask):
+    event_type = 50210
     queue = 'validation'
 
     def run(self, xml_filename=None, schema_filename=None, rootdir=None):
@@ -552,6 +563,7 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
     See http://stackoverflow.com/a/7829388/1523238
     """
 
+    event_type = 50220
     queue = 'validation'
 
     def run(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=""):
@@ -595,6 +607,8 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 
 
 class UpdateIPStatus(DBTask):
+    event_type = 50500
+
     def run(self, ip=None, status=None, prev=None):
         InformationPackage.objects.filter(pk=ip).update(state=status)
         Notification.objects.create(message='IP "%s" is now "%s"' % (ip, status), level=logging.INFO, user_id=self.responsible)
@@ -607,6 +621,8 @@ class UpdateIPStatus(DBTask):
 
 
 class UpdateIPPath(DBTask):
+    event_type = 50510
+
     def run(self, ip=None, path=None, prev=None):
         InformationPackage.objects.filter(pk=ip).update(object_path=path)
     def undo(self, ip=None, path=None, prev=None):
@@ -637,6 +653,8 @@ class UpdateIPSizeAndCount(DBTask):
 
 
 class DeleteFiles(DBTask):
+    event_type = 50710
+
     def run(self, path=None):
         try:
             shutil.rmtree(path)
@@ -757,6 +775,8 @@ class DownloadFile(DBTask):
 
 
 class MountTape(DBTask):
+    event_type = 40200
+
     @retry(stop_max_attempt_number=5, wait_fixed=60000)
     def run(self, medium=None, drive=None, timeout=120):
         """
@@ -842,6 +862,8 @@ class MountTape(DBTask):
 
 
 class UnmountTape(DBTask):
+    event_type = 40100
+
     @retry(stop_max_attempt_number=5, wait_fixed=60000)
     def run(self, drive=None):
         """
