@@ -557,6 +557,7 @@ class InformationPackage(models.Model):
             ('can_receive_remote_files', 'Can receive remote files'),
             ('receive', 'Can receive IP'),
             ('preserve', 'Can preserve IP'),
+            ('preserve_dip', 'Can preserve DIP'),
             ('get_from_storage', 'Can get extracted IP from storage'),
             ('get_tar_from_storage', 'Can get packaged IP from storage'),
             ('get_from_storage_as_new', 'Can get IP "as new" from storage'),
