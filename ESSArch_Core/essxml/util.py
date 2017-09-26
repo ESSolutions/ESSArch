@@ -317,6 +317,7 @@ def parse_file(filepath, mimetype, fid, relpath=None, algorithm='SHA-256', rootd
     fileinfo = {
         'FName': os.path.basename(relpath),
         'FDir': rootdir,
+        'FParentDir': os.path.basename(os.path.dirname(filepath)),
         'FChecksum': digest,
         'FID': str(uuid.uuid4()),
         'daotype': "borndigital",
