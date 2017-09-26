@@ -266,6 +266,12 @@ class InformationPackage(models.Model):
         new_aip.object_identifier_value = object_identifier_value if object_identifier_value is not None else str(new_aip.pk)
         new_aip.save(update_fields=['object_identifier_value'])
 
+        for profile_ip in self.profileip_set.all():
+            new_profile_ip = deepcopy(profile_ip)
+            new_profile_ip.pk = None
+            new_profile_ip.ip = new_aip
+            new_profile_ip.save()
+
         return new_aip
 
     def check_db_sync(self):
