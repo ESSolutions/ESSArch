@@ -22,6 +22,10 @@ def fill_specification_data(data={}, sa=None, ip=None):
     if ip:
         data['_OBJID'] = ip.object_identifier_value
         data['_OBJLABEL'] = ip.label
+        data['_POLICYUUID'] = ip.policy.pk
+        data['_POLICYID'] = ip.policy.policy_id
+        data['_POLICYNAME'] = ip.policy.policy_name
+        data['_INFORMATIONCLASS'] = ip.information_class
 
         if ip.archivist_organization:
             data['_IP_ARCHIVIST_ORGANIZATION'] = ip.archivist_organization.name
