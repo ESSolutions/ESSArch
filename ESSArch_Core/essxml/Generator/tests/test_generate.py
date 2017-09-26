@@ -1947,6 +1947,20 @@ class ParseContentTestCase(TestCase):
         contentobj = parseContent(content, info)
         self.assertEqual(contentobj, 'bar')
 
+    def test_parse_content_only_var_integer(self):
+        content = [
+            {
+                "var": "foo"
+            },
+        ]
+
+        info = {
+            "foo": 0
+        }
+
+        contentobj = parseContent(content, info)
+        self.assertEqual(contentobj, '0')
+
     def test_parse_content_var_and_text(self):
         content = [
             {

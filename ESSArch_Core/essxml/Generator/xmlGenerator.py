@@ -66,8 +66,8 @@ def parseContent(content, info):
                 local = timezone.localtime(now)
                 val = local.replace(microsecond=0).isoformat()
 
-            if val:
-                arr.append(val)
+            if val is not None:
+                arr.append(str(val))
 
     return ''.join(arr)
 
