@@ -31,11 +31,13 @@ import re
 import tarfile
 import zipfile
 
+from copy import deepcopy
 from operator import itemgetter
 
 from celery import states as celery_states
 
 from django.db import models
+from django.db.models import Max
 
 from rest_framework import exceptions, filters, permissions, status
 from rest_framework.response import Response
@@ -246,6 +248,25 @@ class InformationPackage(models.Model):
             self.object_identifier_value = str(self.pk)
 
         super(InformationPackage, self).save(*args, **kwargs)
+
+    def create_new_generation(self, state, responsible, object_identifier_value):
+        new_aip = deepcopy(self)
+        new_aip.pk = None
+        new_aip.object_identifier_value = None
+        new_aip.state = state
+        new_aip.cached = False
+        new_aip.archived = False
+        new_aip.object_path = ''
+        new_aip.responsible = responsible
+
+        max_generation = InformationPackage.objects.filter(aic=self.aic).aggregate(Max('generation'))['generation__max']
+        new_aip.generation = max_generation + 1
+        new_aip.save()
+
+        new_aip.object_identifier_value = object_identifier_value if object_identifier_value is not None else str(new_aip.pk)
+        new_aip.save(update_fields=['object_identifier_value'])
+
+        return new_aip
 
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
