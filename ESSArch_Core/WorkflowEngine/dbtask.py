@@ -203,10 +203,9 @@ class DBTask(Task):
 
         outcome_detail_note = truncate(outcome_detail_note, 1024)
 
-        objid = InformationPackage.objects.values_list('object_identifier_value', flat=True).get(pk=self.ip)
         agent = User.objects.values_list('username', flat=True).get(pk=self.responsible)
 
-        extra = {'event_type': self.event_type, 'object': objid, 'agent': agent, 'task': self.task_id, 'outcome': outcome}
+        extra = {'event_type': self.event_type, 'object': self.ip, 'agent': agent, 'task': self.task_id, 'outcome': outcome}
         logger.log(level, outcome_detail_note, extra=extra)
 
 

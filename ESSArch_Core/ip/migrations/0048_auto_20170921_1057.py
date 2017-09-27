@@ -5,25 +5,12 @@ from __future__ import unicode_literals
 from django.db import migrations, models
 
 
-def idToObjid(apps, schema_editor):
-    EventIP = apps.get_model("ip", "EventIP")
-    InformationPackage = apps.get_model("ip", "InformationPackage")
-    db_alias = schema_editor.connection.alias
-
-    for e in EventIP.objects.using(db_alias).iterator():
-        try:
-            e.linkingObjectIdentifierValue = InformationPackage.objects.using(db_alias).get(pk=e.linkingObjectIdentifierValue).object_identifier_value
-        except:
-            e.linkingObjectIdentifierValue = ''
-
-        e.save(update_fields=['linkingObjectIdentifierValue'])
-
 def noneToEmpty(apps, schema_editor):
     EventIP = apps.get_model("ip", "EventIP")
     db_alias = schema_editor.connection.alias
 
     EventIP.objects.using(db_alias).filter(linkingObjectIdentifierValue__isnull=True).update(linkingObjectIdentifierValue='')
-        
+
 def nothing(apps, schema_editor):
     return
 
@@ -51,5 +38,4 @@ class Migration(migrations.Migration):
             name='linkingObjectIdentifierValue',
             field=models.CharField(max_length=255, blank=True),
         ),
-        migrations.RunPython(idToObjid, nothing),
     ]
