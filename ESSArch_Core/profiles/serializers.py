@@ -106,6 +106,7 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
     profile_import = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='import'))
     profile_submit_description = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='submit_description'))
     profile_sip = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='sip'))
+    profile_aic_description = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aic_description'))
     profile_aip = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aip'))
     profile_aip_description = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aip_description'))
     profile_dip = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='dip'))
@@ -174,6 +175,7 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
                 'profile_import',
                 'profile_submit_description',
                 'profile_sip',
+                'profile_aic_description',
                 'profile_aip',
                 'profile_aip_description',
                 'profile_dip',

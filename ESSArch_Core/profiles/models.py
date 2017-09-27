@@ -244,6 +244,7 @@ class SubmissionAgreement(models.Model):
     profile_import = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='import_sa')
     profile_submit_description = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='submit_description_sa')
     profile_sip = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='sip_sa')
+    profile_aic_description = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aic_description_sa')
     profile_aip = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aip_sa')
     profile_dip = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='dip_sa')
     profile_aip_description = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aip_description_sa')

@@ -7,6 +7,7 @@ profile_types = [
     "Import",
     "Submit Description",
     "SIP",
+    "AIC Description",
     "AIP",
     "AIP Description",
     "DIP",
