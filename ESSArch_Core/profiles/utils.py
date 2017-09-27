@@ -8,6 +8,7 @@ profile_types = [
     "Submit Description",
     "SIP",
     "AIP",
+    "AIP Description",
     "DIP",
     "Workflow",
     "Preservation Metadata",
