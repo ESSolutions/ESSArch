@@ -361,25 +361,25 @@ class XMLGenerator(object):
                         fileinfo = parse_file(filepath, mimetype, fid, relpath, algorithm=algorithm)
                         files.append(fileinfo)
 
-            for path in extra_paths_to_parse:
-                if os.path.isfile(path):
-                    mimetype = self.get_mimetype(fid.mimetypes, path)
-                    relpath = os.path.basename(path)
+        for path in extra_paths_to_parse:
+            if os.path.isfile(path):
+                mimetype = self.get_mimetype(fid.mimetypes, path)
+                relpath = os.path.basename(path)
 
-                    fileinfo = parse_file(path, mimetype, fid, relpath, algorithm=algorithm)
-                    files.append(fileinfo)
+                fileinfo = parse_file(path, mimetype, fid, relpath, algorithm=algorithm)
+                files.append(fileinfo)
 
-                elif os.path.isdir(path):
-                    for root, dirnames, filenames in walk(path):
-                        dirnames[:] = [d for d in dirnames if d not in [e[1] for e in external]]
+            elif os.path.isdir(path):
+                for root, dirnames, filenames in walk(path):
+                    dirnames[:] = [d for d in dirnames if d not in [e[1] for e in external]]
 
-                        for fname in filenames:
-                            filepath = os.path.join(root, fname)
-                            relpath = os.path.relpath(filepath, path)
-                            mimetype = self.get_mimetype(fid.mimetypes, filepath)
+                    for fname in filenames:
+                        filepath = os.path.join(root, fname)
+                        relpath = os.path.relpath(filepath, path)
+                        mimetype = self.get_mimetype(fid.mimetypes, filepath)
 
-                            fileinfo = parse_file(filepath, mimetype, fid, relpath, algorithm=algorithm, rootdir=path)
-                            files.append(fileinfo)
+                        fileinfo = parse_file(filepath, mimetype, fid, relpath, algorithm=algorithm, rootdir=path)
+                        files.append(fileinfo)
 
 
 
