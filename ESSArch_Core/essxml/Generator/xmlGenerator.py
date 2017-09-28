@@ -67,7 +67,7 @@ def parseContent(content, info):
                 val = local.replace(microsecond=0).isoformat()
 
             if val is not None:
-                arr.append(str(val))
+                arr.append(unicode(val))
 
     return ''.join(arr)
 

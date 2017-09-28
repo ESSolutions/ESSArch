@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
     ESSArch is an open source archiving and digital preservation system
 
@@ -1980,3 +1981,11 @@ class ParseContentTestCase(TestCase):
 
         contentobj = parseContent(content, info)
         self.assertEqual(contentobj, 'beforebarafter')
+
+    def test_unicode(self):
+        content = [{"var": "foo"}]
+        foo = unicode("åäö", 'utf-8')
+        info = {"foo": foo}
+
+        contentobj = parseContent(content, info)
+        self.assertEqual(contentobj, foo)
