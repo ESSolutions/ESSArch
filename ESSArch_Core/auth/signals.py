@@ -58,3 +58,21 @@ def notification_post_save(sender, instance, created, **kwargs):
             except c.channel_layer.ChannelFull:
                 channels.discard(channel)
                 cache.set(cache_name, channels)
+
+
+try:
+    from django_auth_ldap.backend import LDAPBackend, ldap_error  # isort:skip
+
+    @receiver(ldap_error, sender=LDAPBackend)
+    def ldap_failed(sender, context, exception, user=None, **kwargs):
+        message = '%s: %s' % (exception.message['desc'], exception.message['info'])
+
+        logger = logging.getLogger('essarch.auth.ldap')
+        logger.critical(message)
+
+        if user is None:
+            return
+
+        Notification.objects.create(level=logging.CRITICAL, message=message, user=user)
+except ImportError:
+    pass
