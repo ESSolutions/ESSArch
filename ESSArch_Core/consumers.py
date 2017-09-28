@@ -16,8 +16,6 @@ def ws_add(message):
 
     cache.set(cache_name, cached)
 
-    message.reply_channel.send({'text': 'connected!'})
-
 # Connected to websocket.receive
 @channel_session_user
 def ws_message(message):
