@@ -2593,10 +2593,7 @@ class WriteToTapeTestCase(TransactionTestCase):
 
         task = ProcessTask.objects.create(
             name=self.taskname,
-            params={
-                'medium': self.medium.pk,
-                'path': self.temp.name,
-            },
+            args=[self.medium.pk, self.temp.name],
         )
 
         with self.assertRaises(ValueError):
@@ -2613,10 +2610,7 @@ class WriteToTapeTestCase(TransactionTestCase):
 
         task = ProcessTask.objects.create(
             name=self.taskname,
-            params={
-                'medium': self.medium.pk,
-                'path': self.temp.name,
-            },
+            args=[self.medium.pk, self.temp.name],
         )
 
         task.run().get()

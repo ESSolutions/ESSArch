@@ -986,7 +986,7 @@ class ReadTape(DBTask):
 
 
 class WriteToTape(DBTask):
-    def run(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
+    def run(self, medium, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
         """
         Writes content to a tape drive
         """
@@ -996,17 +996,17 @@ class WriteToTape(DBTask):
         except TapeDrive.DoesNotExist:
             raise ValueError("Tape not mounted")
 
-        res = write_to_tape(drive.device, path=path, block_size=block_size)
+        res = write_to_tape(drive.device, path, block_size=block_size)
 
         drive.last_change = timezone.now()
         drive.save(update_fields=['last_change'])
 
         return res
 
-    def undo(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
+    def undo(self, medium, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
         pass
 
-    def event_outcome_success(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
+    def event_outcome_success(self, medium, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
         pass
 
 

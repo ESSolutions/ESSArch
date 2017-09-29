@@ -11,6 +11,8 @@ from lxml import etree
 
 from retrying import retry
 
+import six
+
 from ESSArch_Core.storage.exceptions import (
     MTInvalidOperationOrDeviceNameException,
     MTFailedOperationException,
@@ -182,16 +184,19 @@ def read_tape(device, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
         tar.extractall(path)
 
 
-def write_to_tape(device, path, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=None):
+def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=None):
     """
     Writes content to a tape drive
     """
 
-    if arcname is None:
-        arcname = os.path.basename(os.path.normpath(path))
+    if isinstance(paths, six.string_types):
+        paths = [paths]
 
     with tarfile.open(device, 'w|', bufsize=block_size) as tar:
-        tar.add(path, arcname)
+        for path in paths:
+            if arcname is None:
+                arcname = os.path.basename(os.path.normpath(path))
+            tar.add(path, arcname)
 
 
 def get_tape_file_number(drive):
