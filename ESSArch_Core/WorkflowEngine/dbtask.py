@@ -201,6 +201,9 @@ class DBTask(Task):
             level = logging.ERROR
             outcome_detail_note = einfo.traceback
 
+        if outcome_detail_note is None:
+            outcome_detail_note = ''
+
         outcome_detail_note = truncate(outcome_detail_note, 1024)
 
         agent = User.objects.values_list('username', flat=True).get(pk=self.responsible)
