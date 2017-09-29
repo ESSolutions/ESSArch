@@ -860,10 +860,10 @@ class MountTape(DBTask):
             xmlfile.close()
             TapeDrive.objects.filter(pk=drive).update(locked=False)
 
-    def undo(self, robot=None, slot=None, drive=None):
+    def undo(self, medium=None, drive=None, timeout=120):
         pass
 
-    def event_outcome_success(self, robot=None, slot=None, drive=None):
+    def event_outcome_success(self, medium=None, drive=None, timeout=120):
         pass
 
 
