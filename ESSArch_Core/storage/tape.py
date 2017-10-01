@@ -186,7 +186,17 @@ def read_tape(device, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
 
 def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=None):
     """
-    Writes content to a tape drive
+    Writes content to a tape
+
+    Args:
+        device (str): The tape drive we are writing to, e.g. /dev/nst0
+        paths: A string or iterator with the paths we are writing to the tape
+        block_size (int, optional): The block size that will be used
+        arcname (str, optional): If only one path is given then arcname can be used as the
+            alternative name of the file on the tape.
+        
+    Raises:
+        TypeError: If |`paths`| > 1 and `arcname` is not None
     """
 
     if isinstance(paths, six.string_types):
