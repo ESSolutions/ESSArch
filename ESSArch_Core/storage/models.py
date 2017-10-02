@@ -465,6 +465,8 @@ class AccessQueue(models.Model):
     package = models.BooleanField(default=True)
     extracted = models.BooleanField(default=False)
     new = models.BooleanField(default=False)
+    package_xml = models.BooleanField(default=False)
+    aic_xml = models.BooleanField(default=False)
     object_identifier_value = models.CharField(max_length=255, blank=True)
     req_purpose = models.CharField(max_length=255)
     user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='access_queues')
