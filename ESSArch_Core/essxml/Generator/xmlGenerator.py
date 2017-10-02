@@ -305,9 +305,9 @@ class XMLGenerator(object):
 
             raise FileFormatNotAllowed("File format '%s' is not allowed" % file_ext)
 
-    def generate(self, folderToParse=None, extra_paths_to_parse=[], algorithm='SHA-256'):
+    def generate(self, folderToParse=None, extra_paths_to_parse=[], parsed_files=[], algorithm='SHA-256'):
         fid = FormatIdentifier()
-        files = []
+        files = parsed_files
 
         responsible = None
 
