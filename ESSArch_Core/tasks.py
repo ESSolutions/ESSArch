@@ -309,9 +309,7 @@ class AppendEvents(DBTask):
         if not events:
             events = EventIP.objects.filter(linkingObjectIdentifierValue=self.ip)
 
-        events = events.order_by(
-            'eventDateTime'
-        )
+        events = events.order_by('id')
 
         id_types = {}
 
@@ -324,7 +322,7 @@ class AppendEvents(DBTask):
                 id_types[id_type] = Parameter.objects.values_list('value', flat=True).get(entity=entity)
                 cache.set(cache_name, id_types[id_type], 3600*24)
 
-        for event in events:
+        for event in events.iterator():
             objid_cache_name = 'object_identifier_value_%s' % event.linkingObjectIdentifierValue
             objid = cache.get(objid_cache_name)
 
@@ -334,7 +332,7 @@ class AppendEvents(DBTask):
 
             data = {
                 "eventIdentifierType": id_types['event'],
-                "eventIdentifierValue": str(event.id),
+                "eventIdentifierValue": str(event.eventIdentifierValue),
                 "eventType": str(event.eventType.code) if event.eventType.code is not None and event.eventType.code != '' else str(event.eventType.eventType),
                 "eventDateTime": str(event.eventDateTime),
                 "eventDetail": event.eventType.eventDetail,
