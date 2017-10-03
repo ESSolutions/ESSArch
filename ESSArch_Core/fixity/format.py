@@ -1,9 +1,15 @@
+from __future__ import division
+
 import logging
 import mimetypes
+import os
+import time
 
 from fido.fido import Fido
 
 from ESSArch_Core.configuration.models import Path
+
+MB = 1024*1024
 
 logger = logging.getLogger('essarch.fixity.format')
 
@@ -54,9 +60,29 @@ class FormatIdentifier:
             A tuple with the format name, version and registry key
         """
 
-        logger.info("Identifying the format of %s" % filename)
+
+        if os.name == 'nt':
+                start_time = time.clock()
+        else:
+                start_time = time.time()
+
         self.fido.identify_file(filename)
+
+        if os.name == 'nt':
+                end_time = time.clock()
+        else:
+                end_time = time.time()
+
+        time_elapsed = end_time - start_time
+        size = os.path.getsize(filename)
+        size_mb = size / MB
+
+        try:
+                mb_per_sec = size_mb / time_elapsed
+        except ZeroDivisionError:
+                mb_per_sec = size_mb
+
         file_format = (self.format_name, self.format_version, self.format_registry_key)
-        logger.info("Identified the format of %s: %s" % (filename, file_format))
+        logger.info("Identified the format of %s at %s MB/Sec (%s sec): %s" % (filename, mb_per_sec, time_elapsed, file_format))
 
         return file_format
