@@ -745,6 +745,7 @@ class ProcessTask(Process):
 
     class Meta:
         db_table = 'ProcessTask'
+        ordering = ('processstep_pos', 'time_created')
         get_latest_by = "time_created"
 
         permissions = (
