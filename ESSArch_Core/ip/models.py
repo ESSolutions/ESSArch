@@ -657,6 +657,7 @@ class EventIP(models.Model):
     eventOutcome = models.IntegerField(choices=OUTCOME_CHOICES, null=True, default=None) # Success (0) or Fail (1)
     eventOutcomeDetailNote = models.CharField(max_length=1024) # Result or traceback from IP
     linkingAgentIdentifierValue = models.CharField(max_length=255, blank=True)
+    linkingAgentRole = models.CharField(max_length=255, blank=True)
     linkingObjectIdentifierValue = models.CharField(max_length=255, blank=True)
 
     class Meta:
