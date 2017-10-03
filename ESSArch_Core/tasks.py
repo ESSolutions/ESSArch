@@ -277,6 +277,13 @@ class AppendEvents(DBTask):
                             "-namespace": "premis",
                             "#content": [{"var": "linkingAgentIdentifierValue"}]
                         },
+                        {
+                            "-name": "linkingAgentRole",
+                            "-min": 1,
+                            "-max": 1,
+                            "-namespace": "premis",
+                            "#content": [{"var": "linkingAgentRole"}]
+                        },
                     ]
                 },
                 {
@@ -340,6 +347,7 @@ class AppendEvents(DBTask):
                 "eventOutcomeDetailNote": event.eventOutcomeDetailNote,
                 "linkingAgentIdentifierType": id_types['linking_agent'],
                 "linkingAgentIdentifierValue": event.linkingAgentIdentifierValue,
+                "linkingAgentRole": event.linkingAgentRole,
                 "linkingObjectIdentifierType": id_types['linking_object'],
                 "linkingObjectIdentifierValue": objid,
             }

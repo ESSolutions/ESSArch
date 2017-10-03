@@ -8,9 +8,10 @@ class DBHandler(Handler):
     model_name = 'ESSArch_Core.ip.models.EventIP'
     event_type_model_name = 'ESSArch_Core.configuration.models.EventType'
 
-    def __init__(self, application="ESSArch"):
+    def __init__(self, application="ESSArch", agent_role=""):
         Handler.__init__(self)
         self.application = application
+        self.agent_role = agent_role
         self.version = get_versions()['version']
 
     def emit(self, record):
@@ -47,6 +48,7 @@ class DBHandler(Handler):
                 eventOutcome=getattr(record, 'outcome', EventIP.SUCCESS if record.levelno < 40 else EventIP.FAILURE),
                 eventOutcomeDetailNote=record.getMessage(),
                 linkingAgentIdentifierValue=getattr(record, 'agent', ''),
+                linkingAgentRole=self.agent_role,
                 linkingObjectIdentifierValue=getattr(record, 'object', '')
             )
 
