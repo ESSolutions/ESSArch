@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 
+import copy
 import os
 import re
 import uuid
@@ -307,7 +308,7 @@ class XMLGenerator(object):
 
     def generate(self, folderToParse=None, extra_paths_to_parse=[], parsed_files=[], algorithm='SHA-256'):
         fid = FormatIdentifier()
-        files = parsed_files
+        files = copy.deepcopy(parsed_files)
 
         responsible = None
 
