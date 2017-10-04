@@ -335,7 +335,7 @@ class AppendEvents(DBTask):
 
             if objid is None:
                 objid = InformationPackage.objects.values_list('object_identifier_value', flat=True).get(pk=event.linkingObjectIdentifierValue)
-                cache.set(cache_name, objid, 3600*24)
+                cache.set(objid_cache_name, objid, 3600*24)
 
             data = {
                 "eventIdentifierType": id_types['event'],
