@@ -17,9 +17,12 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = EventIPSerializer
     filter_class = EventIPFilter
     filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend,
+        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
     )
     ordering_fields = (
         'id', 'eventType', 'eventOutcomeDetailNote', 'eventOutcome',
         'linkingAgentIdentifierValue', 'eventDateTime',
+    )
+    search_fields = (
+        'eventType__eventType', 'eventType__eventDetail', 'linkingAgentRole', 'eventDateTime',
     )
