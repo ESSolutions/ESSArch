@@ -155,7 +155,7 @@ class XMLElement(object):
 
         return path
 
-    def createLXMLElement(self, info, nsmap={}, files=[], folderToParse='', task=None, parent=None):
+    def createLXMLElement(self, info, nsmap={}, files=[], folderToParse='', parent=None):
         full_nsmap = nsmap.copy()
         full_nsmap.update(self.nsmap)
 
@@ -191,7 +191,7 @@ class XMLElement(object):
                 ptr_info = info
                 ptr_info['_EXT'] = ext_dir
                 ptr_info['_EXT_HREF'] = ptr_file_path
-                self.el.append(ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse, task=task, parent=self))
+                self.el.append(ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse, parent=self))
 
         for child in self.children:
             if child.containsFiles:
@@ -205,9 +205,9 @@ class XMLElement(object):
                     if include:
                         full_info = info.copy()
                         full_info.update(fileinfo)
-                        self.el.append(child.createLXMLElement(full_info, full_nsmap, files=files, folderToParse=folderToParse, task=task, parent=self))
+                        self.el.append(child.createLXMLElement(full_info, full_nsmap, files=files, folderToParse=folderToParse, parent=self))
             else:
-                child_el = child.createLXMLElement(info, full_nsmap, files=files, folderToParse=folderToParse, task=task, parent=self)
+                child_el = child.createLXMLElement(info, full_nsmap, files=files, folderToParse=folderToParse, parent=self)
                 if child_el is not None:
                     self.el.append(child_el)
 
@@ -260,10 +260,9 @@ class XMLAttribute(object):
 
 
 class XMLGenerator(object):
-    def __init__(self, filesToCreate={}, info={}, task=None):
+    def __init__(self, filesToCreate={}, info={}):
         self.info = info
         self.toCreate = []
-        self.task = task
 
         for fname, template in filesToCreate.iteritems():
             self.toCreate.append({
@@ -335,7 +334,6 @@ class XMLGenerator(object):
                             os.path.join(folderToParse, ptr_file_path): ext_spec
                         },
                         info=ext_info,
-                        task=self.task,
                     )
                     external_gen.generate(os.path.join(folderToParse, ext_dir, sub_dir))
 
@@ -394,7 +392,7 @@ class XMLGenerator(object):
             self.info['_XML_FILENAME'] = os.path.basename(fname)
 
             tree = etree.ElementTree(
-                rootEl.createLXMLElement(self.info, files=files, folderToParse=folderToParse, task=self.task)
+                rootEl.createLXMLElement(self.info, files=files, folderToParse=folderToParse)
             )
             tree.write(
                 fname, pretty_print=True, xml_declaration=True,
@@ -419,7 +417,7 @@ class XMLGenerator(object):
         appendedRootEl = XMLElement(template, nsmap=root_nsmap)
 
         try:
-            el = appendedRootEl.createLXMLElement(info, task=self.task)
+            el = appendedRootEl.createLXMLElement(info)
             if index is not None:
                 elementToAppendTo.insert(index, el)
             else:

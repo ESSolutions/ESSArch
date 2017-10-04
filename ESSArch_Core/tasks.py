@@ -113,7 +113,7 @@ class GenerateXML(DBTask):
             parsed_files = []
 
         generator = XMLGenerator(
-            filesToCreate, info, self
+            filesToCreate, info
         )
 
         generator.generate(
