@@ -22,7 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-import copy
 import os
 import re
 import uuid
@@ -306,9 +305,13 @@ class XMLGenerator(object):
 
             raise FileFormatNotAllowed("File format '%s' is not allowed" % file_ext)
 
-    def generate(self, folderToParse=None, extra_paths_to_parse=[], parsed_files=[], algorithm='SHA-256'):
+    def generate(self, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
         fid = FormatIdentifier()
-        files = copy.deepcopy(parsed_files)
+
+        if parsed_files is None:
+            parsed_files = []
+
+        files = parsed_files
 
         responsible = None
 
