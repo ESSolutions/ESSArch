@@ -43,7 +43,7 @@ def fill_specification_data(data={}, sa=None, ip=None):
 
         profile_ids = zip([x.lower().replace(' ', '_') for x in profile_types], ["_PROFILE_" + x.upper().replace(' ', '_') + "_ID" for x in profile_types])
 
-        for (key, profile_type) in profile_ids:
+        for (profile_type, key) in profile_ids:
             try:
                 data[key] = str(ip.get_profile(profile_type).pk)
             except AttributeError:
