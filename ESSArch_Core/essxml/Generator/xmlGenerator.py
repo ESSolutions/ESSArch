@@ -297,7 +297,7 @@ class XMLGenerator(object):
             file_ext = file_name
 
         try:
-            return mtypes[file_ext]
+            return mtypes[file_ext.lower()]
         except KeyError:
             if self.info.get('allow_unknown_file_types', False):
                 return 'application/octet-stream'
