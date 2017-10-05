@@ -27,4 +27,4 @@ def ws_disconnect(message):
     cache_name = 'notification_channel_%s' % message.user.username
     channels = cache.get(cache_name, set([]))
     channels.discard(message.reply_channel.name)
-    cache.set(cache_name, channels, 3600)
+    cache.set(cache_name, channels)
