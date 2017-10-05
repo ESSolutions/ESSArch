@@ -593,6 +593,7 @@ class InformationPackage(models.Model):
             ('add_to_ingest_workarea_as_new', 'Can add IP as new generation to ingest workarea'),
             ('diff-check', 'Can diff-check IP'),
             ('query', 'Can query IP'),
+            ('prepare_ip', 'Can prepare IP'),
         )
 
     def __unicode__(self):
