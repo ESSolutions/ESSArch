@@ -62,6 +62,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
 from ESSArch_Core.fixity import format, validation
 from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, validate_against_schema
 from ESSArch_Core.ip.models import EventIP, InformationPackage
+from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.exceptions import TapeDriveLockedError
 from ESSArch_Core.storage.models import StorageMedium, TapeDrive, TapeSlot
@@ -333,12 +334,7 @@ class AppendEvents(DBTask):
                 cache.set(cache_name, id_types[id_type], 3600*24)
 
         for event in events.iterator():
-            objid_cache_name = 'object_identifier_value_%s' % event.linkingObjectIdentifierValue
-            objid = cache.get(objid_cache_name)
-
-            if objid is None:
-                objid = InformationPackage.objects.values_list('object_identifier_value', flat=True).get(pk=event.linkingObjectIdentifierValue)
-                cache.set(objid_cache_name, objid, 3600*24)
+            objid = get_cached_objid(event.linkingObjectIdentifierValue)
 
             data = {
                 "eventIdentifierType": id_types['event'],
@@ -632,7 +628,7 @@ class UpdateIPStatus(DBTask):
         InformationPackage.objects.filter(pk=ip).update(state=prev)
 
     def event_outcome_success(self, ip=None, status=None, prev=None):
-        return "Updated status of %s to %s" % (ip, status)
+        return "Updated status of %s to %s" % (get_cached_objid(str(ip)), status)
 
 
 class UpdateIPPath(DBTask):
@@ -644,7 +640,7 @@ class UpdateIPPath(DBTask):
         InformationPackage.objects.filter(pk=ip).update(object_path=prev)
 
     def event_outcome_success(self, ip=None, path=None, prev=None):
-        return "Updated path of %s to %s" % (ip, path)
+        return "Updated path of %s to %s" % (get_cached_objid(str(ip)), path)
 
 
 class UpdateIPSizeAndCount(DBTask):
@@ -664,7 +660,7 @@ class UpdateIPSizeAndCount(DBTask):
         pass
 
     def event_outcome_success(self, ip=None):
-        return "Updated size and count of %s" % ip
+        return "Updated size and count of %s" % get_cached_objid(str(ip))
 
 
 class DeleteFiles(DBTask):

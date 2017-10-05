@@ -38,6 +38,7 @@ from celery import states as celery_states
 
 from django.db import models
 from django.db.models import Max
+from django.utils.encoding import python_2_unicode_compatible
 
 from rest_framework import exceptions, filters, permissions, status
 from rest_framework.response import Response
@@ -118,6 +119,7 @@ class ArchivalLocation(models.Model):
         return '%s - %s' % (self.name, self.id)
 
 
+@python_2_unicode_compatible
 class InformationPackage(models.Model):
     """
     Informaion Package
@@ -596,9 +598,8 @@ class InformationPackage(models.Model):
             ('prepare_ip', 'Can prepare IP'),
         )
 
-    def __unicode__(self):
-        # create a unicode representation of this object
-        return '%s - %s' % (self.label, self.pk)
+    def __str__(self):
+        return self.object_identifier_value
 
     def get_value_array(self):
         # make an associative array of all fields  mapping the field
