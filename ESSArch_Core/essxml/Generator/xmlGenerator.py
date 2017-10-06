@@ -105,6 +105,7 @@ class XMLElement(object):
         self.allowEmpty = template.get('-allowEmpty', False)
         self.hideEmptyContent = template.get('-hideEmptyContent', False)
         self.skipIfNoChildren = template.get('-skipIfNoChildren', False)
+        self.requiredParameters = template.get('-requiredParameters', [])
         self.children = []
         self.el = None
 
@@ -170,6 +171,10 @@ class XMLElement(object):
         self.el.text = self.parse(info)
 
         self.parent = parent
+
+        for req_param in self.requiredParameters:
+            if req_param not in info:
+                return None
 
         if parent is not None:
             siblings_same_name = len(parent.el.findall(self.name))

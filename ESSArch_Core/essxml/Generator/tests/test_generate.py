@@ -793,6 +793,67 @@ class GenerateXMLTestCase(TestCase):
         tree = etree.parse(self.fname)
         self.assertEqual('<foo>baz</foo>', etree.tostring(tree.getroot()))
 
+    def test_generate_element_with_requiredParameters_and_required_var(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-requiredParameters': ['bar'],
+                    '-children': [
+                        {
+                            '-name': 'bar',
+                            "#content": [
+                                {
+                                    "var": "bar"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}, {'bar': 'baz'}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        self.assertEqual('<root>\n  <foo>\n    <bar>baz</bar>\n  </foo>\n</root>', etree.tostring(tree.getroot()))
+
+    def test_generate_element_with_requiredParameters_and_no_required_var(self):
+        specification = {
+            '-name': 'root',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-requiredParameters': ['bar'],
+                    '-children': [
+                        {
+                            '-name': 'bar',
+                            "#content": [
+                                {
+                                    "var": "bar"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}, {'foo': 'baz'}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        self.assertEqual('<root/>', etree.tostring(tree.getroot()))
+
     def test_generate_element_with_children(self):
         specification = {
             '-name': 'foo',
