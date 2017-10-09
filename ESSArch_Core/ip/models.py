@@ -71,6 +71,7 @@ MESSAGE_DIGEST_ALGORITHM_CHOICES = (
 )
 
 
+@python_2_unicode_compatible
 class ArchivalInstitution(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, unique=True)
@@ -78,11 +79,11 @@ class ArchivalInstitution(models.Model):
     class Meta:
         verbose_name = 'ArchivalInstitution'
 
-    def __unicode__(self):
-        # create a unicode representation of this object
-        return '%s - %s' % (self.name, self.id)
+    def __str__(self):
+        return self.name
 
 
+@python_2_unicode_compatible
 class ArchivistOrganization(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, unique=True)
@@ -90,11 +91,11 @@ class ArchivistOrganization(models.Model):
     class Meta:
         verbose_name = 'ArchivistOrganization'
 
-    def __unicode__(self):
-        # create a unicode representation of this object
-        return '%s - %s' % (self.name, self.id)
+    def __str__(self):
+        return self.name
 
 
+@python_2_unicode_compatible
 class ArchivalType(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, unique=True)
@@ -102,11 +103,11 @@ class ArchivalType(models.Model):
     class Meta:
         verbose_name = 'ArchivalType'
 
-    def __unicode__(self):
-        # create a unicode representation of this object
-        return '%s - %s' % (self.name, self.id)
+    def __str__(self):
+        return self.name
 
 
+@python_2_unicode_compatible
 class ArchivalLocation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, unique=True)
@@ -114,9 +115,8 @@ class ArchivalLocation(models.Model):
     class Meta:
         verbose_name = 'ArchivalLocation'
 
-    def __unicode__(self):
-        # create a unicode representation of this object
-        return '%s - %s' % (self.name, self.id)
+    def __str__(self):
+        return self.name
 
 
 @python_2_unicode_compatible
