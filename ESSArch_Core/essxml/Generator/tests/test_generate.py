@@ -23,6 +23,7 @@
     Email - essarch@essolutions.se
 """
 
+import mock
 import os
 import shutil
 import unittest
@@ -60,6 +61,11 @@ class GenerateXMLTestCase(TestCase):
             entity="path_mimetypes_definitionfile",
             value=os.path.join(self.bd, "mime.types")
         )
+
+        patcher = mock.patch('ESSArch_Core.essxml.Generator.xmlGenerator.FormatIdentifier')
+        self.addCleanup(patcher.stop)
+        self.mock_fid = patcher.start()
+        self.mock_fid().identify_file_format.return_value = ('name', 'version', 'reg_key')
 
     def tearDown(self):
         try:
@@ -1703,6 +1709,11 @@ class ExternalTestCase(TestCase):
             entity="path_mimetypes_definitionfile",
             value=os.path.join(self.bd, "mime.types")
         )
+
+        patcher = mock.patch('ESSArch_Core.essxml.Generator.xmlGenerator.FormatIdentifier')
+        self.addCleanup(patcher.stop)
+        self.mock_fid = patcher.start()
+        self.mock_fid().identify_file_format.return_value = ('name', 'version', 'reg_key')
 
     def tearDown(self):
         try:
