@@ -25,6 +25,7 @@
 
 import os
 import shutil
+import unittest
 from collections import OrderedDict
 
 from django.test import TestCase
@@ -1984,7 +1985,7 @@ class ExternalTestCase(TestCase):
         self.assertIsNotNone(external2_tree.find('.//xsi:foo', namespaces=nsmap_ext))
 
 
-class ParseContentTestCase(TestCase):
+class ParseContentTestCase(unittest.TestCase):
     def test_parse_content_only_text(self):
         content = [
             {
