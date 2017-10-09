@@ -7,6 +7,7 @@ from ESSArch_Core.ip.models import (
     ArchivalType,
     ArchivalLocation,
     EventIP,
+    InformationPackage,
 )
 
 
@@ -40,6 +41,17 @@ class ArchivalLocationFilter(filters.FilterSet):
     class Meta:
         model = ArchivalLocation
         fields = ('ip_state',)
+
+
+class InformationPackageFilter(filters.FilterSet):
+    state = ListFilter(name='state')
+
+    class Meta:
+        model = InformationPackage
+        fields = [
+            'state', 'archival_institution', 'archivist_organization',
+            'archival_type', 'archival_location'
+        ]
 
 
 class EventIPFilter(filters.FilterSet):
