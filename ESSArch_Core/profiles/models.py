@@ -150,6 +150,19 @@ class ProfileIP(models.Model):
         self.profile.save(update_fields=['specification_data'])
         self.save()
 
+    def get_related_profile_data(self, original_keys=False):
+        data = {}
+        for field in self.profile.template:
+            if field['key'].startswith('$'):
+                profile_type, key = field['key'].split('__')
+                profile_type = profile_type[1:]
+
+                related_profile = ProfileIP.objects.get(ip=self.ip, profile__profile_type=profile_type)
+                if related_profile.data is not None:
+                    data[field['key'] if original_keys else key] = related_profile.data.data.get(key)
+
+        return data
+
     def __unicode__(self):
         return unicode(self.id)
 

@@ -79,7 +79,17 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
 class ProfileIPSerializer(serializers.ModelSerializer):
     profile_type = serializers.SlugRelatedField(slug_field='profile_type', source='profile', read_only=True)
     profile_name = serializers.SlugRelatedField(slug_field='name', source='profile', read_only=True)
-    data = ProfileIPDataSerializer(read_only=True)
+    data = serializers.SerializerMethodField()
+
+    def get_data(self, obj):
+        if obj.data is not None:
+            serializer = ProfileIPDataSerializer(obj.data, context={'request': self.context['request']})
+            data = serializer.data
+        else:
+            data = {'data': {}}
+
+        data['data'].update(obj.get_related_profile_data(original_keys=True))
+        return data
 
     class Meta:
         model = ProfileIP
@@ -198,6 +208,16 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     specification_data = serializers.SerializerMethodField()
+    template = serializers.SerializerMethodField()
+
+    def get_template(self, obj):
+        template = obj.template
+
+        for field in template:
+            if field['key'].startswith('$'):
+                field['templateOptions']['disabled'] = True
+
+        return template
 
     def get_specification_data(self, obj):
         data = obj.specification_data

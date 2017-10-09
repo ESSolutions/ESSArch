@@ -302,7 +302,10 @@ class InformationPackage(models.Model):
             raise AttributeError('No such profile type')
 
     def get_profile_data(self, profile_type):
-        return self.get_profile_rel(profile_type).data.data
+        data = self.get_profile_rel(profile_type).data.data
+        data.update(self.get_profile_rel(profile_type).get_related_profile_data())
+
+        return dict((k, data[k]) for k in data if not k.startswith('$'))
 
     def unlock_profile(self, ptype):
         ProfileIP.objects.filter(
