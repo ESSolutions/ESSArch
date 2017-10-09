@@ -42,7 +42,7 @@ from ESSArch_Core.essxml.util import parse_file
 from ESSArch_Core.fixity.format import FormatIdentifier
 
 from ESSArch_Core.util import (
-    nested_lookup,
+    get_elements_without_namespace, nested_lookup,
 )
 
 
@@ -420,7 +420,10 @@ class XMLGenerator(object):
                 fileinfo = parse_file(fname, mimetype, fid, relpath, algorithm=algorithm)
                 files.append(fileinfo)
 
-    def insert(self, filename, elementToAppendTo, template, info={}, index=None):
+    def insert(self, filename, elementToAppendTo, template, info={}, index=None, before=None, after=None):
+        if before is not None and after is not None:
+            raise ValueError('Both "before" and "after" cannot not be None')
+
         parser = etree.XMLParser(remove_blank_text=True)
         tree = etree.parse(filename, parser)
         elementToAppendTo = findElementWithoutNamespace(tree, elementToAppendTo)
@@ -430,6 +433,23 @@ class XMLGenerator(object):
         try:
             el = appendedRootEl.createLXMLElement(info)
             if index is not None:
+                elementToAppendTo.insert(index, el)
+            elif before is not None:
+                try:
+                    reference_el = get_elements_without_namespace(elementToAppendTo, before)[0]
+                except IndexError:
+                    raise ValueError('%s element does not exist in %s element' % (before, tree.getpath(elementToAppendTo)))
+
+                index = elementToAppendTo.index(reference_el)
+                elementToAppendTo.insert(index, el)
+            elif after is not None:
+                try:
+                    reference_el = get_elements_without_namespace(elementToAppendTo, after)[-1]
+                except IndexError:
+                    raise ValueError('%s element does not exist in %s element' % (after, tree.getpath(elementToAppendTo)))
+
+                reference_el = get_elements_without_namespace(elementToAppendTo, after)[-1]
+                index = elementToAppendTo.index(reference_el)+1
                 elementToAppendTo.insert(index, el)
             else:
                 elementToAppendTo.append(el)

@@ -1516,6 +1516,188 @@ class GenerateXMLTestCase(TestCase):
 
         self.assertLess(root.index(foo), root.index(appended))
 
+    def test_insert_element_before_element(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'bar',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'bar',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'baz',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'baz',
+                    '-allowEmpty': "1",
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//appended'))
+
+        append_specification = {
+            '-name': 'appended',
+            '#content': [
+                {
+                    'text': 'append text'
+                }
+            ]
+        }
+
+        generator.insert(
+            self.fname, 'root', append_specification, {}, before='baz'
+        )
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        appended = tree.find('.//appended')
+        self.assertEqual(root.index(appended), 4)
+
+    def test_insert_element_after_element(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'bar',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'bar',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'baz',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'baz',
+                    '-allowEmpty': "1",
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//appended'))
+
+        append_specification = {
+            '-name': 'appended',
+            '#content': [
+                {
+                    'text': 'append text'
+                }
+            ]
+        }
+
+        generator.insert(
+            self.fname, 'root', append_specification, {}, after='bar'
+        )
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        appended = tree.find('.//appended')
+        self.assertEqual(root.index(appended), 4)
+
+    def test_insert_element_after_non_existing_element(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                },
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//appended'))
+
+        append_specification = {
+            '-name': 'appended',
+            '#content': [
+                {
+                    'text': 'append text'
+                }
+            ]
+        }
+
+        with self.assertRaises(ValueError):
+            generator.insert(self.fname, 'root', append_specification, {}, after='bar')
+
+    def test_insert_element_before_and_after_element(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: specification}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//appended'))
+
+        append_specification = {
+            '-name': 'appended',
+            '#content': [
+                {
+                    'text': 'append text'
+                }
+            ]
+        }
+
+        with self.assertRaises(ValueError):
+            generator.insert(
+                self.fname, 'root', append_specification, {}, before='foo', after="foo"
+            )
+
     def test_insert_nested_elements_with_namespace(self):
         nsmap = {
             'premis': 'http://www.loc.gov/premis/v3'
