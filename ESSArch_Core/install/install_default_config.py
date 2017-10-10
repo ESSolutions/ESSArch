@@ -122,6 +122,9 @@ def installDefaultParameters():
         'event_identifier_type': 'ESS',
         'linking_agent_identifier_type': 'ESS',
         'linking_object_identifier_type': 'ESS',
+        'agent_identifier_type': 'ESS',
+        'object_identifier_type': 'ESS',
+        'related_object_identifier_type': 'ESS',
     }
 
     for key in dct:
