@@ -44,12 +44,13 @@ class ArchivalLocationFilter(filters.FilterSet):
 
 
 class InformationPackageFilter(filters.FilterSet):
+    create_date = IsoDateTimeFromToRangeFilter()
     state = ListFilter(name='state')
 
     class Meta:
         model = InformationPackage
         fields = [
-            'state', 'archival_institution', 'archivist_organization',
+            'create_date', 'state', 'archival_institution', 'archivist_organization',
             'archival_type', 'archival_location'
         ]
 
