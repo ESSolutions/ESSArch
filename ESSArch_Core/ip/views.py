@@ -84,6 +84,4 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         'id', 'eventType', 'eventOutcomeDetailNote', 'eventOutcome',
         'linkingAgentIdentifierValue', 'eventDateTime',
     )
-    search_fields = (
-        'eventType__eventType', 'eventType__eventDetail', 'linkingAgentRole', 'eventDateTime',
-    )
+    search_fields = ('eventOutcomeDetailNote',)
