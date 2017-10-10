@@ -416,7 +416,7 @@ class XMLGenerator(object):
                 relpath = fname
 
             if idx < len(self.toCreate) - 1:
-                mimetype = self.get_mimetype(fid.mimetypes, filepath)
+                mimetype = self.get_mimetype(fid.mimetypes, fname)
                 fileinfo = parse_file(fname, mimetype, fid, relpath, algorithm=algorithm)
                 files.append(fileinfo)
 
