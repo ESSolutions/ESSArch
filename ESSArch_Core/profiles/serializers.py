@@ -208,16 +208,6 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     specification_data = serializers.SerializerMethodField()
-    template = serializers.SerializerMethodField()
-
-    def get_template(self, obj):
-        template = obj.template
-
-        for field in template:
-            if field['key'].startswith('$'):
-                field['templateOptions']['disabled'] = True
-
-        return template
 
     def get_specification_data(self, obj):
         data = obj.specification_data
