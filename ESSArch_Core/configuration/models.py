@@ -23,9 +23,21 @@
 """
 
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.db import models
 
 import uuid
+
+class ParameterManager(models.Manager):
+    def cached(self, entity):
+        cache_name = 'parameter_%s' % entity
+        val = cache.get(cache_name)
+
+        if val is None:
+            val = Parameter.objects.values_list('value', flat=True).get(entity=entity)
+            cache.set(cache_name, val, 3600*24)
+
+        return val
 
 
 class Parameter(models.Model):
@@ -35,6 +47,8 @@ class Parameter(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     entity = models.CharField(max_length=60, unique=True)
     value = models.CharField(max_length=70)
+
+    objects = ParameterManager()
 
     class Meta:
         ordering = ["entity"]
