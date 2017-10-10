@@ -1,6 +1,6 @@
 from django_filters import rest_framework as filters
 
-from ESSArch_Core.filters import ListFilter
+from ESSArch_Core.filters import IsoDateTimeRangeFilter, ListFilter
 from ESSArch_Core.ip.models import (
     ArchivalInstitution,
     ArchivistOrganization,
@@ -55,7 +55,7 @@ class InformationPackageFilter(filters.FilterSet):
 
 
 class EventIPFilter(filters.FilterSet):
-    eventDateTime = filters.DateTimeFromToRangeFilter()
+    eventDateTime = IsoDateTimeRangeFilter()
 
     class Meta:
         model = EventIP

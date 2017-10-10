@@ -24,7 +24,21 @@
 
 import django_filters
 
-from django_filters.fields import Lookup
+from django_filters import rest_framework as filters
+from django_filters.fields import IsoDateTimeField, Lookup, RangeField
+
+
+class IsoDateTimeRangeField(RangeField):
+
+    def __init__(self, *args, **kwargs):
+        fields = (
+            IsoDateTimeField(),
+            IsoDateTimeField())
+        super(IsoDateTimeRangeField, self).__init__(fields, *args, **kwargs)
+
+
+class IsoDateTimeRangeFilter(filters.DateTimeFromToRangeFilter):
+    field_class = IsoDateTimeRangeField
 
 
 class ListFilter(django_filters.Filter):
