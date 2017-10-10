@@ -29,6 +29,7 @@ import uuid
 
 from lxml import etree
 
+from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.fixity import checksum, format, validation
 
 from ESSArch_Core.util import (
@@ -316,6 +317,7 @@ def parse_file(filepath, mimetype, fid, relpath=None, algorithm='SHA-256', rootd
 
     fileinfo = {
         'FName': os.path.basename(relpath),
+        'FExtension': os.path.splitext(relpath)[1],
         'FDir': rootdir,
         'FParentDir': os.path.basename(os.path.dirname(filepath)),
         'FChecksum': digest,
@@ -332,8 +334,8 @@ def parse_file(filepath, mimetype, fid, relpath=None, algorithm='SHA-256', rootd
         'FChecksumType': algorithm,
         'FLoctype': 'URL',
         'FLinkType': 'simple',
-        'FChecksumLib': 'hashlib',
-        'FLocationType': 'URI',
+        'FChecksumLib': 'ESSArch',
+        'FLocationType': Parameter.objects.cached('content_location_type'),
         'FIDType': 'UUID',
     }
 
