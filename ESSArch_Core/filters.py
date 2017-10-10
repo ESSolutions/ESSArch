@@ -24,6 +24,7 @@
 
 import django_filters
 
+from django_filters.constants import EMPTY_VALUES
 from django_filters import rest_framework as filters
 from django_filters.fields import IsoDateTimeField, Lookup, RangeField
 
@@ -43,5 +44,8 @@ class IsoDateTimeRangeFilter(filters.DateTimeFromToRangeFilter):
 
 class ListFilter(django_filters.Filter):
     def filter(self, qs, value):
+        if value in EMPTY_VALUES:
+            return qs
+
         value_list = value.split(u',')
         return super(ListFilter, self).filter(qs, Lookup(value_list, 'in'))
