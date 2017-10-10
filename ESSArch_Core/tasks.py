@@ -104,7 +104,7 @@ from scandir import walk
 class GenerateXML(DBTask):
     event_type = 50600
 
-    def run(self, info={}, filesToCreate={}, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
+    def run(self, filesToCreate={}, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
         """
         Generates the XML using the specified data and folder, and adds the XML
         to the specified files
@@ -113,15 +113,12 @@ class GenerateXML(DBTask):
         if parsed_files is None:
             parsed_files = []
 
-        generator = XMLGenerator(
-            filesToCreate, info
-        )
-
+        generator = XMLGenerator(filesToCreate)
         generator.generate(
             folderToParse=folderToParse, extra_paths_to_parse=extra_paths_to_parse, parsed_files=parsed_files, algorithm=algorithm,
         )
 
-    def undo(self, info={}, filesToCreate={}, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
+    def undo(self, filesToCreate={}, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
         for f, template in filesToCreate.iteritems():
             try:
                 os.remove(f)
@@ -129,7 +126,7 @@ class GenerateXML(DBTask):
                 if e.errno != errno.ENOENT:
                     raise
 
-    def event_outcome_success(self, info={}, filesToCreate={}, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
+    def event_outcome_success(self, filesToCreate={}, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
         return "Generated %s" % ", ".join(filesToCreate.keys())
 
 

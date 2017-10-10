@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 
+import copy
 import os
 import re
 import uuid
@@ -271,15 +272,15 @@ class XMLAttribute(object):
 
 
 class XMLGenerator(object):
-    def __init__(self, filesToCreate={}, info={}):
-        self.info = info
+    def __init__(self, filesToCreate={}):
         self.toCreate = []
 
-        for fname, template in filesToCreate.iteritems():
+        for fname, content in filesToCreate.iteritems():
             self.toCreate.append({
                 'file': fname,
-                'template': template,
-                'root': XMLElement(template)
+                'template': content['spec'],
+                'data': content.get('data', {}),
+                'root': XMLElement(content['spec'])
             })
 
     def find_external_dirs(self):
@@ -297,7 +298,7 @@ class XMLGenerator(object):
 
                 if path not in found_paths:
                     found_paths.append(path)
-                    dirs.append((x['-file'], x['-dir'], x['-specification']))
+                    dirs.append((x['-file'], x['-dir'], x['-specification'], spec['data']))
 
         return dirs
 
@@ -331,20 +332,19 @@ class XMLGenerator(object):
 
             external = self.find_external_dirs()
 
-            for ext_file, ext_dir, ext_spec in external:
+            for ext_file, ext_dir, ext_spec, ext_data in external:
                 ext_sub_dirs = next(walk(os.path.join(folderToParse, ext_dir)))[1]
                 for sub_dir in ext_sub_dirs:
                     ptr_file_path = os.path.join(ext_dir, sub_dir, ext_file)
 
-                    ext_info = self.info
+                    ext_info = copy.deepcopy(ext_data)
                     ext_info['_EXT'] = sub_dir
                     ext_info['_EXT_HREF'] = ptr_file_path
 
                     external_gen = XMLGenerator(
                         filesToCreate={
-                            os.path.join(folderToParse, ptr_file_path): ext_spec
+                            os.path.join(folderToParse, ptr_file_path): {'spec': ext_spec, 'data': ext_info}
                         },
-                        info=ext_info,
                     )
                     external_gen.generate(os.path.join(folderToParse, ext_dir, sub_dir))
 
@@ -399,11 +399,12 @@ class XMLGenerator(object):
         for idx, f in enumerate(self.toCreate):
             fname = f['file']
             rootEl = f['root']
+            data = f.get('data', {})
 
-            self.info['_XML_FILENAME'] = os.path.basename(fname)
+            data['_XML_FILENAME'] = os.path.basename(fname)
 
             tree = etree.ElementTree(
-                rootEl.createLXMLElement(self.info, files=files, folderToParse=folderToParse)
+                rootEl.createLXMLElement(data, files=files, folderToParse=folderToParse)
             )
             tree.write(
                 fname, pretty_print=True, xml_declaration=True,

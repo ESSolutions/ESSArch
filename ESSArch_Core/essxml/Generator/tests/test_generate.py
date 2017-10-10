@@ -105,10 +105,7 @@ class GenerateXMLTestCase(TestCase):
             "xsi:schemaLocation": "http://www.w3.org/1999/xlink schemas/xlink.xsd",
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}, info
-        )
-
+        generator = XMLGenerator({self.fname: {'spec': specification, 'data': info}})
         generator.generate()
 
         tree = etree.parse(self.fname)
@@ -127,7 +124,7 @@ class GenerateXMLTestCase(TestCase):
 
         with self.assertRaises(AssertionError):
             generator = XMLGenerator(
-                {self.fname: specification}, {}
+                {self.fname: {'spec': specification}}
             )
 
             generator.generate()
@@ -148,7 +145,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}, {}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -167,7 +164,7 @@ class GenerateXMLTestCase(TestCase):
 
         with self.assertRaises(AssertionError):
             generator = XMLGenerator(
-                {self.fname: specification}, {}
+                {self.fname: {'spec': specification}}
             )
 
             generator.generate()
@@ -186,7 +183,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}, {}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -208,7 +205,7 @@ class GenerateXMLTestCase(TestCase):
 
         with self.assertRaises(AssertionError):
             generator = XMLGenerator(
-                {self.fname: specification}, {}
+                {self.fname: {'spec': specification}}
             )
 
             generator.generate()
@@ -232,7 +229,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}, {}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -244,7 +241,7 @@ class GenerateXMLTestCase(TestCase):
         specification = {'-name': "foo", "-allowEmpty": 1}
 
         generator = XMLGenerator(
-            {self.fname: specification}, {}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -276,7 +273,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}, {}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -307,7 +304,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}, {}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -340,7 +337,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}, {}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -368,7 +365,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}, {}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -397,7 +394,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}, {}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -438,7 +435,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}, {}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -473,7 +470,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}, {}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate(folderToParse=self.datadir)
@@ -503,7 +500,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -521,7 +518,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -536,7 +533,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         with self.assertRaises(ValueError):
@@ -573,7 +570,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         with self.assertRaises(ValueError) as e:
@@ -598,7 +595,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -630,7 +627,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -658,7 +655,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -678,7 +675,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         with self.assertRaises(ValueError):
@@ -720,7 +717,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         with self.assertRaises(ValueError) as e:
@@ -746,7 +743,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -773,7 +770,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}, {'bar': 'baz'}
+            {self.fname: {'spec': specification, 'data': {'bar': 'baz'}}}
         )
 
         generator.generate()
@@ -792,7 +789,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}, {'bar': 'baz'}
+            {self.fname: {'spec': specification, 'data': {'bar': 'baz'}}}
         )
 
         generator.generate()
@@ -822,7 +819,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}, {'bar': 'baz'}
+            {self.fname: {'spec': specification, 'data': {'bar': 'baz'}}}
         )
 
         generator.generate()
@@ -853,7 +850,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}, {'foo': 'baz'}
+            {self.fname: {'spec': specification, 'data': {'foo': 'baz'}}}
         )
 
         generator.generate()
@@ -877,7 +874,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}, {'bar': 'baz'}
+            {self.fname: {'spec': specification, 'data': {'bar': 'baz'}}}
         )
 
         generator.generate()
@@ -926,7 +923,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate(folderToParse=self.datadir)
@@ -993,8 +990,8 @@ class GenerateXMLTestCase(TestCase):
 
         generator = XMLGenerator(
             OrderedDict([
-                (self.fname, specification),
-                (extra_fname, specification)
+                (self.fname, {'spec': specification}),
+                (extra_fname, {'spec': specification})
             ])
         )
 
@@ -1031,7 +1028,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -1082,7 +1079,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate(folderToParse=self.datadir)
@@ -1147,7 +1144,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate(folderToParse=self.datadir)
@@ -1190,7 +1187,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -1218,7 +1215,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -1250,7 +1247,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate(self.datadir)
@@ -1277,7 +1274,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate(self.datadir)
@@ -1304,7 +1301,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate(self.datadir)
@@ -1331,7 +1328,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate(self.datadir)
@@ -1378,7 +1375,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate(self.datadir)
@@ -1413,7 +1410,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -1459,7 +1456,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -1488,7 +1485,7 @@ class GenerateXMLTestCase(TestCase):
         self.assertLess(root.index(appended), root.index(foo))
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -1548,7 +1545,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -1606,7 +1603,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -1644,7 +1641,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -1676,7 +1673,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -1715,7 +1712,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -1768,7 +1765,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -1808,7 +1805,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -1852,7 +1849,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate()
@@ -1936,7 +1933,7 @@ class ExternalTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate(folderToParse=self.datadir)
@@ -2005,7 +2002,7 @@ class ExternalTestCase(TestCase):
             f.write('a pdf file')
 
         generator = XMLGenerator(
-            {self.fname: specification}
+            {self.fname: {'spec': specification}}
         )
 
         generator.generate(folderToParse=self.datadir)
@@ -2059,8 +2056,7 @@ class ExternalTestCase(TestCase):
         }
 
         generator = XMLGenerator(
-            {self.fname: specification},
-            {'foo': 'bar'}
+            {self.fname: {'spec': specification, 'data': {'foo': 'bar'}}},
         )
 
         generator.generate(folderToParse=self.datadir)
@@ -2110,8 +2106,7 @@ class ExternalTestCase(TestCase):
             },
         }
         generator = XMLGenerator(
-            {self.fname: specification},
-            {'foo': 'bar'}
+            {self.fname: {'spec': specification, 'data': {'foo': 'bar'}}},
         )
         generator.generate(folderToParse=self.datadir)
 
@@ -2163,8 +2158,7 @@ class ExternalTestCase(TestCase):
             },
         }
         generator = XMLGenerator(
-            {self.fname: specification},
-            {'foo': 'bar'}
+            {self.fname: {'spec': specification, 'data': {'foo': 'bar'}}},
         )
         generator.generate(folderToParse=self.datadir)
 
