@@ -303,9 +303,8 @@ class InformationPackage(models.Model):
 
     def get_profile_data(self, profile_type):
         data = self.get_profile_rel(profile_type).data.data
-        data.update(self.get_profile_rel(profile_type).get_related_profile_data())
-
-        return dict((k, data[k]) for k in data if not k.startswith('$'))
+        data.update(self.get_profile_rel(profile_type).get_related_profile_data(original_keys=True))
+        return data
 
     def unlock_profile(self, ptype):
         ProfileIP.objects.filter(
