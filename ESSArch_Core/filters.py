@@ -38,7 +38,7 @@ class IsoDateTimeRangeField(RangeField):
         super(IsoDateTimeRangeField, self).__init__(fields, *args, **kwargs)
 
 
-class IsoDateTimeRangeFilter(filters.DateTimeFromToRangeFilter):
+class IsoDateTimeFromToRangeFilter(filters.DateTimeFromToRangeFilter):
     field_class = IsoDateTimeRangeField
 
 
