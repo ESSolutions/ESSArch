@@ -35,7 +35,7 @@
                     "-children": [
                         {
                             "-name": "objectIdentifierType",
-                            "#content": [{"var": "FIDType"}],
+                            "#content": [{"var": "_PARAMETER_OBJECT_IDENTIFIER_TYPE"}],
                             "-children": []
                         },
                         {
