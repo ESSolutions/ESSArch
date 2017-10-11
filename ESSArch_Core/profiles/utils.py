@@ -32,6 +32,7 @@ def fill_specification_data(data={}, sa=None, ip=None):
         data['_POLICYNAME'] = getattr(ip.policy, 'policy_name', None)
         data['_INFORMATIONCLASS'] = ip.information_class
 
+        data['_CONTENT_LOCATION_TYPE'] = Parameter.objects.cached('content_location_type')
         data['_OBJECT_IDENTIFIER_TYPE'] = Parameter.objects.cached('object_identifier_type')
         data['_RELATED_OBJECT_IDENTIFIER_TYPE'] = Parameter.objects.cached('related_object_identifier_type')
         data['_AGENT_IDENTIFIER_TYPE'] = Parameter.objects.cached('agent_identifier_type')

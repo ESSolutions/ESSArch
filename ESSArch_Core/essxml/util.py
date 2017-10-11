@@ -335,7 +335,6 @@ def parse_file(filepath, mimetype, fid, relpath=None, algorithm='SHA-256', rootd
         'FLoctype': 'URL',
         'FLinkType': 'simple',
         'FChecksumLib': 'ESSArch',
-        'FLocationType': Parameter.objects.cached('content_location_type'),
         'FIDType': 'UUID',
     }
 
