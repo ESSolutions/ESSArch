@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 
+import copy
 import errno
 import logging
 import os
@@ -606,7 +607,12 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
         pass
 
     def event_outcome_success(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=''):
-        return "Validated logical and physical structure of %s and %s" % (xmlfile, dirname)
+        physical = copy.deepcopy(files)
+
+        if dirname is not None:
+            physical.append(dirname)
+
+        return "Validated logical and physical structure of %s and %s" % (xmlfile, ','.join(physical))
 
 
 class UpdateIPStatus(DBTask):
