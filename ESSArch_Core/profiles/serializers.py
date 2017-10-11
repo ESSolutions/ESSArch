@@ -36,6 +36,7 @@ from ESSArch_Core.profiles.models import (
     ProfileIPData,
 )
 
+from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.profiles.validators import validate_template
 
 
@@ -89,6 +90,7 @@ class ProfileIPSerializer(serializers.ModelSerializer):
             data = {'data': {}}
 
         data['data'].update(obj.get_related_profile_data(original_keys=True))
+        data['data'] = fill_specification_data(data=data['data'], ip=obj.ip, sa=obj.ip.submission_agreement)
         return data
 
     class Meta:
