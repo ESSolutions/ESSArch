@@ -38,7 +38,7 @@ from celery import states as celery_states
 
 from django.db import models
 from django.db.models import Max
-from django.utils.encoding import python_2_unicode_compatible
+from django.utils.encoding import python_2_unicode_compatible, smart_text
 
 from rest_framework import exceptions, filters, permissions, status
 from rest_framework.response import Response
@@ -449,6 +449,9 @@ class InformationPackage(models.Model):
         mtypes = mimetypes.types_map
 
         MAX_FILE_SIZE = 100000000 # 100 MB
+
+        path = smart_text(path).encode('utf-8')
+        self.object_path = smart_text(self.object_path).encode('utf-8')
 
         if os.path.isfile(self.object_path):
             container = self.object_path
