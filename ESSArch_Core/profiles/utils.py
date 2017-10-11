@@ -32,11 +32,6 @@ def fill_specification_data(data={}, sa=None, ip=None):
         data['_POLICYNAME'] = getattr(ip.policy, 'policy_name', None)
         data['_INFORMATIONCLASS'] = ip.information_class
 
-        data['_CONTENT_LOCATION_TYPE'] = Parameter.objects.cached('content_location_type')
-        data['_OBJECT_IDENTIFIER_TYPE'] = Parameter.objects.cached('object_identifier_type')
-        data['_RELATED_OBJECT_IDENTIFIER_TYPE'] = Parameter.objects.cached('related_object_identifier_type')
-        data['_AGENT_IDENTIFIER_TYPE'] = Parameter.objects.cached('agent_identifier_type')
-
         if ip.archivist_organization:
             data['_IP_ARCHIVIST_ORGANIZATION'] = ip.archivist_organization.name
 
@@ -56,5 +51,8 @@ def fill_specification_data(data={}, sa=None, ip=None):
                 data[key] = str(ip.get_profile(profile_type).pk)
             except AttributeError:
                 pass
+
+    for p in Parameter.objects.iterator():
+        data['_PARAMETER_%s' % p.entity.upper()] = p.value
 
     return data

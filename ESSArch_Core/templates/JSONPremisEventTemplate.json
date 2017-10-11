@@ -103,7 +103,7 @@
                             "-children": [
                                 {
                                     "-name": "contentLocationType",
-                                    "#content": [{"var": "_CONTENT_LOCATION_TYPE"}],
+                                    "#content": [{"var": "_PARAMETER_CONTENT_LOCATION_TYPE"}],
                                     "-children": []
                                 },
                                 {
