@@ -302,7 +302,15 @@ class InformationPackage(models.Model):
             raise AttributeError('No such profile type')
 
     def get_profile_data(self, profile_type):
-        data = self.get_profile_rel(profile_type).data.data
+        try:
+            profile_rel = self.get_profile_rel(profile_type)
+        except ProfileIP.DoesNotExist:
+            return {}
+
+        if profile_rel.data is None:
+            return {}
+
+        data = profile_rel.data.data
         data.update(self.get_profile_rel(profile_type).get_related_profile_data(original_keys=True))
         return data
 
