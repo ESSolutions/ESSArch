@@ -27,9 +27,6 @@ def fill_specification_data(data={}, sa=None, ip=None):
     if ip:
         data['_OBJID'] = ip.object_identifier_value
         data['_OBJLABEL'] = ip.label
-        data['_POLICYUUID'] = getattr(ip.policy, 'pk', None)
-        data['_POLICYID'] = getattr(ip.policy, 'policy_id', None)
-        data['_POLICYNAME'] = getattr(ip.policy, 'policy_name', None)
         data['_INFORMATIONCLASS'] = ip.information_class
 
         try:
@@ -42,6 +39,22 @@ def fill_specification_data(data={}, sa=None, ip=None):
             container = transfer_project_data.get('container_format', 'TAR')
 
         data['_IP_CONTAINER_FORMAT'] = container.upper()
+
+        if ip.policy is not None:
+            data['_POLICYUUID'] = ip.policy.pk
+            data['_POLICYID'] = ip.policy.policy_id
+            data['_POLICYNAME'] = ip.policy.policy_name
+        else:
+            try:
+                # do we have a transfer project profile?
+                ip.get_profile('transfer_project')
+            except AttributeError:
+                pass
+            else:
+                transfer_project_data = ip.get_profile_data('transfer_project')
+                data['_POLICYUUID'] = transfer_project_data.get('archive_policy_uuid')
+                data['_POLICYID'] = transfer_project_data.get('archive_policy_id')
+                data['_POLICYNAME'] = transfer_project_data.get('archive_policy_name')
 
 
         if ip.archivist_organization:
