@@ -302,7 +302,7 @@ class XMLGenerator(object):
 
         return dirs
 
-    def get_mimetype(self, mtypes, fname):
+    def get_mimetype(self, mtypes, fname, allow_unknown_file_types=False):
         file_name, file_ext = os.path.splitext(fname)
 
         if not file_ext:
@@ -311,7 +311,7 @@ class XMLGenerator(object):
         try:
             return mtypes[file_ext.lower()]
         except KeyError:
-            if self.info.get('allow_unknown_file_types', False):
+            if allow_unknown_file_types:
                 return 'application/octet-stream'
 
             raise FileFormatNotAllowed("File format '%s' is not allowed" % file_ext)
@@ -325,6 +325,14 @@ class XMLGenerator(object):
         files = parsed_files
 
         responsible = None
+
+        # See if any profile allows unknown file types.
+        # If atleast one does allow it, we allow it for all profiles.
+        allow_unknown_file_types = False
+        for idx, f in enumerate(self.toCreate):
+            allow_unknown_file_types = f.get('data', {}).get('allow_unknown_file_types', False)
+            if allow_unknown_file_types:
+                break
 
         if folderToParse:
             folderToParse = folderToParse.rstrip('/')
@@ -349,14 +357,14 @@ class XMLGenerator(object):
                     external_gen.generate(os.path.join(folderToParse, ext_dir, sub_dir))
 
                     filepath = os.path.join(folderToParse, ptr_file_path)
-                    mimetype = self.get_mimetype(fid.mimetypes, ptr_file_path)
+                    mimetype = self.get_mimetype(fid.mimetypes, ptr_file_path, allow_unknown_file_types)
 
                     fileinfo = parse_file(filepath, mimetype, fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir)
                     files.append(fileinfo)
 
             if os.path.isfile(folderToParse):
                 filepath = folderToParse
-                mimetype = self.get_mimetype(fid.mimetypes, filepath)
+                mimetype = self.get_mimetype(fid.mimetypes, filepath, allow_unknown_file_types)
                 relpath = os.path.basename(folderToParse)
 
                 fileinfo = parse_file(filepath, mimetype, fid, relpath, algorithm=algorithm)
@@ -369,14 +377,14 @@ class XMLGenerator(object):
                     for fname in filenames:
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, folderToParse)
-                        mimetype = self.get_mimetype(fid.mimetypes, filepath)
+                        mimetype = self.get_mimetype(fid.mimetypes, filepath, allow_unknown_file_types)
 
                         fileinfo = parse_file(filepath, mimetype, fid, relpath, algorithm=algorithm)
                         files.append(fileinfo)
 
         for path in extra_paths_to_parse:
             if os.path.isfile(path):
-                mimetype = self.get_mimetype(fid.mimetypes, path)
+                mimetype = self.get_mimetype(fid.mimetypes, path, allow_unknown_file_types)
                 relpath = os.path.basename(path)
 
                 fileinfo = parse_file(path, mimetype, fid, relpath, algorithm=algorithm)
@@ -389,7 +397,7 @@ class XMLGenerator(object):
                     for fname in filenames:
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, path)
-                        mimetype = self.get_mimetype(fid.mimetypes, filepath)
+                        mimetype = self.get_mimetype(fid.mimetypes, filepath, allow_unknown_file_types)
 
                         fileinfo = parse_file(filepath, mimetype, fid, relpath, algorithm=algorithm, rootdir=path)
                         files.append(fileinfo)
@@ -417,7 +425,7 @@ class XMLGenerator(object):
                 relpath = fname
 
             if idx < len(self.toCreate) - 1:
-                mimetype = self.get_mimetype(fid.mimetypes, fname)
+                mimetype = self.get_mimetype(fid.mimetypes, fname, allow_unknown_file_types)
                 fileinfo = parse_file(fname, mimetype, fid, relpath, algorithm=algorithm)
                 files.append(fileinfo)
 
