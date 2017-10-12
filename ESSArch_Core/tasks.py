@@ -35,6 +35,8 @@ import zipfile
 
 import requests
 
+import six
+
 from requests_toolbelt import MultipartEncoder
 
 from celery.result import allow_join_result
@@ -64,6 +66,7 @@ from ESSArch_Core.fixity import format, validation
 from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, validate_against_schema
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.ip.utils import get_cached_objid
+from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.exceptions import TapeDriveLockedError
 from ESSArch_Core.storage.models import StorageMedium, TapeDrive, TapeSlot
@@ -113,6 +116,14 @@ class GenerateXML(DBTask):
 
         if parsed_files is None:
             parsed_files = []
+
+        ip = InformationPackage.objects.filter(pk=self.ip).first()
+        sa = None
+        if ip is not None:
+            sa = ip.submission_agreement
+
+        for _, v in six.iteritems(filesToCreate):
+            v['data'] = fill_specification_data(v['data'], ip=ip, sa=sa)
 
         generator = XMLGenerator(filesToCreate)
         generator.generate(
