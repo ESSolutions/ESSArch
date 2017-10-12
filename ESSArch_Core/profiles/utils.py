@@ -32,6 +32,18 @@ def fill_specification_data(data={}, sa=None, ip=None):
         data['_POLICYNAME'] = getattr(ip.policy, 'policy_name', None)
         data['_INFORMATIONCLASS'] = ip.information_class
 
+        try:
+            # do we have a transfer project profile?
+            ip.get_profile('transfer_project')
+        except AttributeError:
+            container = 'TAR'
+        else:
+            transfer_project_data = ip.get_profile_data('transfer_project')
+            container = transfer_project_data.get('container_format', 'TAR')
+
+        data['_IP_CONTAINER_FORMAT'] = container.upper()
+
+
         if ip.archivist_organization:
             data['_IP_ARCHIVIST_ORGANIZATION'] = ip.archivist_organization.name
 
