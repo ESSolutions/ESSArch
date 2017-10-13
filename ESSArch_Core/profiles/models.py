@@ -157,7 +157,10 @@ class ProfileIP(models.Model):
                 profile_type, key = field['key'].split('__')
                 profile_type = profile_type[1:]
 
-                related_profile = ProfileIP.objects.get(ip=self.ip, profile__profile_type=profile_type)
+                try:
+                    related_profile = ProfileIP.objects.get(ip=self.ip, profile__profile_type=profile_type)
+                except ProfileIP.DoesNotExist:
+                    continue
                 if related_profile.data is not None:
                     data[field['key'] if original_keys else key] = related_profile.data.data.get(key)
 
