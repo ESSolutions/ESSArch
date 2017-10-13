@@ -173,9 +173,15 @@ class XMLElement(object):
 
             xpath_attributes = []
             for attrib in new.replace_existing:
-                xpath_attributes.append("@%s='%s'" % (attrib, new.el.get(attrib)))
+                if len(new.el.get(attrib, '')) > 0:
+                    xpath_attributes.append("@%s='%s'" % (attrib, new.el.get(attrib)))
 
-            old = self.el.xpath("./*[local-name()='%s'][%s]" % (new.name, ','.join(xpath_attributes)))
+            attr_string = ""
+            if len(xpath_attributes) > 0:
+                attr_string = "[%s]" % (' and '.join(xpath_attributes))
+
+            old = self.el.xpath("./*[local-name()='%s']%s" % (new.name, attr_string))
+
             if len(old) > 0:
                 self.el.replace(old[-1], new.el)
                 return

@@ -420,6 +420,85 @@ class GenerateXMLTestCase(TestCase):
             '-children': [
                 {
                     '-name': "foo",
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '1'}]}
+                    ],
+                    '#content': [{'text': 'old'}]
+                },
+                {
+                    '-name': "foo",
+                    '-replaceExisting': ['type'],
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '1'}]}
+                    ],
+                    '#content': [{'text': 'new'}]
+                },
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: {'spec': specification}}
+        )
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        elements = root.xpath('//foo')
+
+        self.assertEqual(len(elements), 1)
+        self.assertEqual(elements[0].text, 'new')
+
+    def test_generate_element_replace_existing_multiple_attributes(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '1'}]},
+                        {'-name': 'role', '#content': [{'text': 'foo'}]}
+                    ],
+                    '#content': [{'text': 'old'}]
+                },
+                {
+                    '-name': "foo",
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '1'}]},
+                        {'-name': 'role', '#content': [{'text': 'bar'}]}
+                    ],
+                    '#content': [{'text': 'old 2'}]
+                },
+                {
+                    '-name': "foo",
+                    '-replaceExisting': ['type', 'role'],
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '1'}]},
+                        {'-name': 'role', '#content': [{'text': 'foo'}]}
+                    ],
+                    '#content': [{'text': 'new'}]
+                },
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: {'spec': specification}}
+        )
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        elements = root.xpath('//foo')
+
+        self.assertEqual(len(elements), 2)
+        self.assertEqual(elements[0].text, 'new')
+        self.assertEqual(elements[1].text, 'old 2')
+
+    def test_generate_element_replace_existing_index(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': "foo",
                     '-replaceExisting': ['type'],
                     '-attr': [
                         {'-name': 'type', '#content': [{'text': '1'}]}
@@ -482,6 +561,7 @@ class GenerateXMLTestCase(TestCase):
         root = tree.getroot()
         elements = root.xpath('//bar')
 
+        self.assertEqual(len(elements), 3)
         self.assertEqual(elements[0].text, 'original_1')
         self.assertEqual(elements[1].text, 'new_2')
         self.assertEqual(elements[2].text, 'original_3')
