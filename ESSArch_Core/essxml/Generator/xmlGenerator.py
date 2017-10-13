@@ -104,6 +104,8 @@ class XMLElement(object):
         self.attr = [XMLAttribute(a) for a in template.get('-attr', [])]
         self.content = template.get('#content', [])
         self.containsFiles = template.get('-containsFiles', False)
+        self.foreach = template.get('-foreach', None)
+        self.replace_existing = template.get('-replaceExisting', None)
         self.external = template.get('-external')
         self.fileFilters = template.get('-filters', {})
         self.allowEmpty = template.get('-allowEmpty', False)
@@ -163,6 +165,23 @@ class XMLElement(object):
 
         return path
 
+    def add_element(self, new):
+        if new.replace_existing is not None:
+            # Get other child elements with the attributes in new.replace_existing
+            # set to the same as the attributes in the new element and replace
+            # the last of the old elements with the new
+
+            xpath_attributes = []
+            for attrib in new.replace_existing:
+                xpath_attributes.append("@%s='%s'" % (attrib, new.el.get(attrib)))
+
+            old = self.el.xpath("./*[local-name()='%s'][%s]" % (new.name, ','.join(xpath_attributes)))
+            if len(old) > 0:
+                self.el.replace(old[-1], new.el)
+                return
+
+        self.el.append(new.el)
+
     def createLXMLElement(self, info, nsmap={}, files=[], folderToParse='', parent=None):
         full_nsmap = nsmap.copy()
         full_nsmap.update(self.nsmap)
@@ -203,7 +222,10 @@ class XMLElement(object):
                 ptr_info = info
                 ptr_info['_EXT'] = ext_dir
                 ptr_info['_EXT_HREF'] = ptr_file_path
-                self.el.append(ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse, parent=self))
+                child_el = ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse, parent=self)
+
+                if child_el is not None:
+                    self.add_element(ptr)
 
         for child in self.children:
             if child.containsFiles:
@@ -217,11 +239,23 @@ class XMLElement(object):
                     if include:
                         full_info = info.copy()
                         full_info.update(fileinfo)
-                        self.el.append(child.createLXMLElement(full_info, full_nsmap, files=files, folderToParse=folderToParse, parent=self))
+                        child_el = child.createLXMLElement(full_info, full_nsmap, files=files, folderToParse=folderToParse, parent=self)
+                        if child_el is not None:
+                            self.add_element(child)
+
+            elif child.foreach is not None:
+                for v in info[child.foreach]:
+                    child_info = copy.deepcopy(info)
+                    child_info.update(v)
+
+                    child_el = child.createLXMLElement(child_info, full_nsmap, files=files, folderToParse=folderToParse, parent=self)
+                    if child_el is not None:
+                        self.add_element(child)
+
             else:
                 child_el = child.createLXMLElement(info, full_nsmap, files=files, folderToParse=folderToParse, parent=self)
                 if child_el is not None:
-                    self.el.append(child_el)
+                    self.add_element(child)
 
         if self.isEmpty(info) and self.required:
             raise ValueError("Missing value for required element '%s'" % (self.get_path()))

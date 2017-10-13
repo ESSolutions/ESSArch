@@ -375,6 +375,117 @@ class GenerateXMLTestCase(TestCase):
         tree = etree.parse(self.fname)
         self.assertEqual(etree.tostring(tree.getroot()), '<root/>')
 
+    def test_generate_element_with_foreach(self):
+        specification = {
+            '-name': 'root',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-foreach': 'arr',
+                    '-children': [
+                        {
+                            '-name': "bar",
+                            '#content': [{'var': 'bar'}],
+                        },
+                    ]
+                }
+            ]
+        }
+
+        data = {
+            'arr': [
+                {'bar': 'first'},
+                {'bar': 'second'},
+                {'bar': 'third'},
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: {'spec': specification, 'data': data}}
+        )
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        elements = root.xpath('//bar')
+
+        self.assertEqual(elements[0].text, 'first')
+        self.assertEqual(elements[1].text, 'second')
+        self.assertEqual(elements[2].text, 'third')
+
+    def test_generate_element_replace_existing(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-replaceExisting': ['type'],
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '1'}]}
+                    ],
+                    '-children': [
+                        {
+                            '-name': "bar",
+                            '#content': [{'text': 'original_1'}],
+                        },
+                    ]
+                },
+                {
+                    '-name': "foo",
+                    '-replaceExisting': ['type'],
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '2'}]}
+                    ],
+                    '-children': [
+                        {
+                            '-name': "bar",
+                            '#content': [{'text': 'original_2'}],
+                        },
+                    ]
+                },
+                {
+                    '-name': "foo",
+                    '-replaceExisting': ['type'],
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '3'}]}
+                    ],
+                    '-children': [
+                        {
+                            '-name': "bar",
+                            '#content': [{'text': 'original_3'}],
+                        },
+                    ]
+                },
+                {
+                    '-name': "foo",
+                    '-replaceExisting': ['type'],
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '2'}]}
+                    ],
+                    '-children': [
+                        {
+                            '-name': "bar",
+                            '#content': [{'text': 'new_2'}],
+                        },
+                    ]
+                },
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: {'spec': specification}}
+        )
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        elements = root.xpath('//bar')
+
+        self.assertEqual(elements[0].text, 'original_1')
+        self.assertEqual(elements[1].text, 'new_2')
+        self.assertEqual(elements[2].text, 'original_3')
+
     def test_generate_element_with_empty_child_with_containsFiles_and_hideEmptyContent(self):
         specification = {
             '-name': 'root',
