@@ -317,8 +317,6 @@ class XMLGenerator(object):
             raise FileFormatNotAllowed("File format '%s' is not allowed" % file_ext)
 
     def generate(self, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
-        fid = FormatIdentifier()
-
         if parsed_files is None:
             parsed_files = []
 
@@ -333,6 +331,8 @@ class XMLGenerator(object):
             allow_unknown_file_types = f.get('data', {}).get('allow_unknown_file_types', False)
             if allow_unknown_file_types:
                 break
+
+        fid = FormatIdentifier(allow_unknown_file_types=allow_unknown_file_types)
 
         if folderToParse:
             folderToParse = folderToParse.rstrip('/')

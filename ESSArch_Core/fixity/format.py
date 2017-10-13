@@ -15,8 +15,9 @@ logger = logging.getLogger('essarch.fixity.format')
 
 
 class FormatIdentifier:
-    def __init__(self):
+    def __init__(self, allow_unknown_file_types=False):
         self.fido = Fido(handle_matches=self.handle_matches)
+        self.allow_unknown_file_types = allow_unknown_file_types
 
         mimetypes.suffix_map = {}
         mimetypes.encodings_map = {}
@@ -30,6 +31,12 @@ class FormatIdentifier:
 
     def handle_matches(self, fullname, matches, delta_t, matchtype=''):
         if len(matches) == 0:
+            if self.allow_unknown_file_types:
+                self.format_name = 'Unknown File Format'
+                self.format_version = None
+                self.format_registry_key = None
+                return
+
             raise ValueError("No matches for %s" % fullname)
 
         f, _ = matches[-1]
