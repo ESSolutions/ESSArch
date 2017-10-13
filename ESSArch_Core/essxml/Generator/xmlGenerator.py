@@ -177,7 +177,7 @@ class XMLElement(object):
         self.parent = parent
 
         for req_param in self.requiredParameters:
-            if req_param not in info:
+            if info.get(req_param) is None:
                 return None
 
         if parent is not None:
