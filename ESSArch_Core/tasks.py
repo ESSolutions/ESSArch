@@ -581,7 +581,7 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
     event_type = 50220
     queue = 'validation'
 
-    def run(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=""):
+    def run(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir="", skip_files=None):
         if dirname:
             xmlrelpath = os.path.relpath(xmlfile, dirname)
             xmlrelpath = remove_prefix(xmlrelpath, "./")
@@ -611,6 +611,16 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
                 f = os.path.relpath(f, files_reldir)
             physical_files.add(f)
 
+        if skip_files is not None:
+            for skipped in skip_files:
+                if files_reldir:
+                    if skipped == files_reldir:
+                        physical_files.discard(os.path.basename(skipped))
+                        continue
+
+                    skipped = os.path.relpath(skipped, files_reldir)
+                physical_files.discard(skipped)
+
         missing_logical = physical_files - logical_files
         if len(missing_logical):
             raise AssertionError("The logical representation differs from the physical, %s is only in the physical" % missing_logical.pop())
@@ -621,10 +631,10 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 
         return "Success"
 
-    def undo(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=''):
+    def undo(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir='', skip_files=None):
         pass
 
-    def event_outcome_success(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=''):
+    def event_outcome_success(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir='', skip_files=None):
         physical = copy.deepcopy(files)
 
         if dirname is not None:

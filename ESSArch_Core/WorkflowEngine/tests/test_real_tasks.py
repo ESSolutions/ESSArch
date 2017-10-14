@@ -1540,7 +1540,6 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
                     '-children': [{
                         '-name': 'object',
                         '-containsFiles': True,
-                        '-filters': {'FName': '^((?!' + os.path.basename(self.fname) + ').)*$'},
                         '-children': [
                             {
                                 '-name': 'storage',
@@ -1571,15 +1570,15 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
             if e.errno != 17:
                 raise
 
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def test_validation_without_files(self):
         root = etree.fromstring('<root></root>')
 
         with open(self.fname, 'w') as f:
             f.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
 
-    def tearDown(self):
-        shutil.rmtree(self.datadir)
-
-    def test_validation_without_files(self):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
@@ -1753,6 +1752,44 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
         )
 
         with self.assertRaisesRegexp(AssertionError, ".*new_dir/0.txt is only in the physical$"):
+            task.run()
+
+    def test_validation_with_multiple_generated_files(self):
+        num_of_files = 3
+        files = []
+
+        for i in range(num_of_files):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('%s' % i)
+            files.append(fname)
+
+        additional_xml = os.path.join(self.datadir, 'additional_file.xml')
+        additional_xml_two = os.path.join(self.datadir, 'additional_file_two.xml')
+        self.filesToCreate[additional_xml] = self.filesToCreate[self.fname]
+        self.filesToCreate[additional_xml_two] = self.filesToCreate[self.fname]
+
+        ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.GenerateXML',
+            params={
+                'filesToCreate': self.filesToCreate,
+                'folderToParse': self.datadir
+            }
+        ).run()
+
+        skip = self.filesToCreate.keys()
+        for xml_file in self.filesToCreate.keys():
+            skip.pop(0)
+            task = ProcessTask.objects.create(
+                name=self.taskname,
+                params={
+                    'dirname': self.datadir,
+                    'xmlfile': xml_file,
+                    'files_reldir': self.datadir,
+                    'skip_files': skip,
+                }
+            )
+
             task.run()
 
 
