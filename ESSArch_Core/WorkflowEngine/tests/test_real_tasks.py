@@ -1534,31 +1534,34 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
 
         self.filesToCreate = {
             self.fname: {
-                '-name': 'root',
-                '-children': [{
-                    '-name': 'object',
-                    '-containsFiles': True,
-                    '-filters': {'FName': '^((?!' + os.path.basename(self.fname) + ').)*$'},
-                    '-children': [
-                        {
-                            '-name': 'storage',
-                            '-children': [{
-                                '-name': 'contentLocation',
+                'data': {},
+                'spec': {
+                    '-name': 'root',
+                    '-children': [{
+                        '-name': 'object',
+                        '-containsFiles': True,
+                        '-filters': {'FName': '^((?!' + os.path.basename(self.fname) + ').)*$'},
+                        '-children': [
+                            {
+                                '-name': 'storage',
                                 '-children': [{
-                                    '-name': 'contentLocationValue',
-                                    '#content': [
-                                        {
-                                            'text': 'file:///',
-                                        },
-                                        {
-                                            'var': 'href'
-                                        }
-                                    ]
+                                    '-name': 'contentLocation',
+                                    '-children': [{
+                                        '-name': 'contentLocationValue',
+                                        '#content': [
+                                            {
+                                                'text': 'file:///',
+                                            },
+                                            {
+                                                'var': 'href'
+                                            }
+                                        ]
+                                    }]
                                 }]
-                            }]
-                        }
-                    ]
-                }]
+                            }
+                        ]
+                    }]
+                }
             }
         }
 
@@ -1644,7 +1647,7 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
             }
         )
 
-        with self.assertRaisesRegexp(AssertionError, "the logical representation differs from the physical"):
+        with self.assertRaisesRegexp(AssertionError, ".*0.txtx is only in the physical$"):
             task.run()
 
     def test_validation_with_too_many_files(self):
@@ -1677,7 +1680,7 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
             }
         )
 
-        with self.assertRaisesRegexp(AssertionError, "the logical representation differs from the physical"):
+        with self.assertRaisesRegexp(AssertionError, ".*4.txt is only in the physical$"):
             task.run()
 
     def test_validation_with_too_few_files(self):
@@ -1710,7 +1713,7 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
             }
         )
 
-        with self.assertRaisesRegexp(AssertionError, "the logical representation differs from the physical"):
+        with self.assertRaisesRegexp(AssertionError, ".*2.txt is only in the logical$"):
             task.run()
 
     def test_validation_with_file_in_wrong_folder(self):
@@ -1749,7 +1752,7 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
             }
         )
 
-        with self.assertRaisesRegexp(AssertionError, "the logical representation differs from the physical"):
+        with self.assertRaisesRegexp(AssertionError, ".*new_dir/0.txt is only in the physical$"):
             task.run()
 
 

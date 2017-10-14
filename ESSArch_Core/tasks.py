@@ -611,7 +611,14 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
                 f = os.path.relpath(f, files_reldir)
             physical_files.add(f)
 
-        assert logical_files == physical_files, "the logical representation differs from the physical"
+        missing_logical = physical_files - logical_files
+        if len(missing_logical):
+            raise AssertionError("The logical representation differs from the physical, %s is only in the physical" % missing_logical.pop())
+
+        missing_physical = logical_files - physical_files
+        if len(missing_physical):
+            raise AssertionError("The logical representation differs from the physical, %s is only in the logical" % missing_physical.pop().path)
+
         return "Success"
 
     def undo(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=''):
