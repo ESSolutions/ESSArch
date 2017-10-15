@@ -29,6 +29,8 @@ import uuid
 
 from lxml import etree
 
+import six
+
 from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.fixity import checksum, format, validation
 
@@ -100,6 +102,23 @@ def get_agent(el, ROLE=None, OTHERROLE=None, TYPE=None, OTHERTYPE=None):
         'name': first.xpath("*[local-name()='name']")[0].text,
         'notes': [note.text for note in first.xpath("*[local-name()='note']")]
     }
+
+
+def get_agents(el):
+    agent_els = el.xpath(".//*[local-name()='agent']")
+    agents = []
+
+    for agent_el in agent_els:
+        agent = {
+            '_AGENTS_NAME': agent_el.xpath("*[local-name()='name']")[0].text,
+            '_AGENTS_NOTES': [{'_AGENTS_NOTE': note.text} for note in agent_el.xpath("*[local-name()='note']")],
+        }
+        for key, val in six.iteritems(agent_el.attrib):
+            agent['_AGENTS_%s' % key.upper()] = val
+
+        agents.append(agent)
+
+    return agents
 
 
 def get_altrecordids(el):
@@ -190,6 +209,8 @@ def parse_submit_description(xmlfile, srcdir=''):
         }
     except TypeError:
         pass
+
+    ip['_AGENTS'] = get_agents(root)
 
     agents = {
         'creator_organization': {
