@@ -289,7 +289,7 @@ class XMLFileElement():
         string, we assume its a path and compares it as is
         '''
 
-        if isinstance(other, basestring):
+        if isinstance(other, six.string_types):
             return self.path == other
 
         return self.path == other.path
