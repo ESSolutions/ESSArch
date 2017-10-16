@@ -37,7 +37,7 @@ from operator import itemgetter
 from celery import states as celery_states
 
 from django.db import models
-from django.db.models import Max
+from django.db.models import Min, Max
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 
 from rest_framework import exceptions, filters, permissions, status
@@ -250,6 +250,20 @@ class InformationPackage(models.Model):
             self.object_identifier_value = str(self.pk)
 
         super(InformationPackage, self).save(*args, **kwargs)
+
+    def is_first_generation(self):
+        if self.aic is None:
+            return True
+
+        min_generation = InformationPackage.objects.filter(aic=self.aic).aggregate(Min('generation'))['generation__min']
+        return self.generation == min_generation
+
+    def is_last_generation(self):
+        if self.aic is None:
+            return True
+
+        max_generation = InformationPackage.objects.filter(aic=self.aic).aggregate(Max('generation'))['generation__max']
+        return self.generation == max_generation
 
     def create_new_generation(self, state, responsible, object_identifier_value):
         new_aip = deepcopy(self)
