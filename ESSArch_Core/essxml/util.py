@@ -191,6 +191,9 @@ def parse_submit_description(xmlfile, srcdir=''):
 
     ip['altrecordids'] = get_altrecordids(root)
 
+    ip['start_date'] = ip['altrecordids'].get('STARTDATE', [None])[0]
+    ip['end_date'] = ip['altrecordids'].get('ENDDATE', [None])[0]
+
     codes = ip['altrecordids'].get('REFERENCECODE', [])
     ip['reference_codes'] = [parse_reference_code(code) for code in codes]
 
