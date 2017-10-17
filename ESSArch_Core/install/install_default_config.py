@@ -95,6 +95,7 @@ def installDefaultEventTypes():
         'Validated XML file': '50210',
         'Validated logical representation against physical representation': '50220',
         'Validated checksum': '50230',
+        'Compared XML files': '50240',
         'Virus control done': '50300',
         'Created TAR': '50400',
         'Created ZIP': '50410',

@@ -643,6 +643,36 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
         return "Validated logical and physical structure of %s and %s" % (xmlfile, ','.join(physical))
 
 
+class CompareXMLFiles(DBTask):
+    event_type = 50240
+    queue = 'validation'
+
+    def run(self, first, second, rootdir="", compare_checksum=False):
+        first_files = find_files(first, rootdir, skip_files=[os.path.relpath(second, rootdir)])
+        second_files = list(find_files(second, rootdir, skip_files=[os.path.relpath(first, rootdir)]))
+
+        for first_el in first_files:
+            try:
+                idx = second_files.index(first_el)
+            except ValueError:
+                raise AssertionError("%s is only in %s" % (first_el.path, first))
+            else:
+                if compare_checksum:
+                    if first_el.checksum != second_files[idx].checksum:
+                        raise AssertionError("Checksum of %s in %s does not match checksum in %s" % (first_el.path, first, second))
+
+                second_files.pop(idx)
+
+        if len(second_files):
+            raise AssertionError("%s is only in %s" % (second_files.pop().path, second))
+
+    def undo(self, first, second, rootdir="", compare_checksum=False):
+        pass
+
+    def event_outcome_success(self, first, second, rootdir="", compare_checksum=False):
+        return "%s and %s has the same set of files" % (first, second)
+
+
 class UpdateIPStatus(DBTask):
     event_type = 50500
 
