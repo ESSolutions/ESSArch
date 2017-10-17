@@ -62,8 +62,9 @@ FILE_ELEMENTS = {
         "checksumtype": "@CHECKSUMTYPE",
     },
     "object": {
-        "path": "storage/contentLocation/contentLocationValue",
+        "path": "objectIdentifier/objectIdentifierValue",
         "pathprefix": ["file:///", "file:"],
+        "including_root": True,
         "checksum": "objectCharacteristics/fixity/messageDigest",
         "checksumtype": "objectCharacteristics/fixity/messageDigestAlgorithm",
         "format": "objectCharacteristics/format/formatDesignation/formatName",
@@ -306,14 +307,32 @@ def find_pointers(xmlfile):
             yield XMLFileElement(ptr, props)
 
 
-def find_files(xmlfile, rootdir='', prefix=''):
+def find_files(xmlfile, rootdir='', prefix='', skip_files=None):
     doc = etree.ElementTree(file=xmlfile)
     files = set()
 
+    if skip_files is None:
+        skip_files = []
+
     for elname, props in FILE_ELEMENTS.iteritems():
-        for el in doc.xpath('.//*[local-name()="%s"]' % elname):
+        file_elements = doc.xpath('.//*[local-name()="%s"]' % elname)
+
+        # Remove first object in premis file if it is a "fake" entry describing the tar
+        if len(file_elements) and file_elements[0].get('{%s}type' % XSI_NAMESPACE) == 'premis:file':
+            if len(file_elements[0].xpath('.//*[local-name()="formatName"][. = "TAR"]')):
+                file_elements.pop(0)
+
+        for el in file_elements:
             file_el = XMLFileElement(el, props)
             file_el.path = os.path.join(prefix, file_el.path)
+            if props.get('including_root', False):
+                path_arr = file_el.path.split('/')
+                path_arr.pop(0)
+                file_el.path = '/'.join(path_arr)
+
+            if file_el.path in skip_files:
+                continue
+
             files.add(file_el)
 
     for pointer in find_pointers(xmlfile):
