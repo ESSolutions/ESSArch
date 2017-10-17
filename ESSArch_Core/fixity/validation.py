@@ -8,6 +8,7 @@ logger = logging.getLogger('essarch.fixity.validation')
 def validate_checksum(filename, algorithm, checksum, block_size=65536):
     logger.info('Validating checksum of %s' % filename)
 
+    checksum = checksum.lower()
     actual_checksum = calculate_checksum(filename, algorithm=algorithm, block_size=block_size)
     assert actual_checksum == checksum, "checksum for %s is not valid (%s != %s)" % (filename, checksum, actual_checksum)
 
