@@ -177,6 +177,7 @@ def parse_submit_description(xmlfile, srcdir=''):
 
     try:
         ip['create_date'] = root.find("{*}metsHdr").get('CREATEDATE')
+        ip['entry_date'] = ip['create_date']
     except AttributeError:
         pass
 
