@@ -255,14 +255,18 @@ class InformationPackage(models.Model):
         if self.aic is None:
             return True
 
-        min_generation = InformationPackage.objects.filter(aic=self.aic).aggregate(Min('generation'))['generation__min']
+        min_generation = InformationPackage.objects.filter(aic=self.aic) \
+                                                    .exclude(workareas__read_only=False) \
+                                                    .aggregate(Min('generation'))['generation__min']
         return self.generation == min_generation
 
     def is_last_generation(self):
         if self.aic is None:
             return True
 
-        max_generation = InformationPackage.objects.filter(aic=self.aic).aggregate(Max('generation'))['generation__max']
+        max_generation = InformationPackage.objects.filter(aic=self.aic) \
+                                                    .exclude(workareas__read_only=False) \
+                                                    .aggregate(Max('generation'))['generation__max']
         return self.generation == max_generation
 
     def create_new_generation(self, state, responsible, object_identifier_value):
