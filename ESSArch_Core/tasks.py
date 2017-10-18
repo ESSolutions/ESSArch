@@ -382,9 +382,8 @@ class ParseEvents(DBTask):
         try:
             turn_off_auto_now_add(EventIP, 'eventDateTime')
             EventIP.objects.bulk_create(events)
-        except:
+        finally:
             turn_on_auto_now_add(EventIP, 'eventDateTime')
-            raise
 
 
         if delete_file:
