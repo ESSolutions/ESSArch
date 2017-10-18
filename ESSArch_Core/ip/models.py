@@ -696,7 +696,7 @@ class EventIP(models.Model):
     linkingObjectIdentifierValue = models.CharField(max_length=255, blank=True)
 
     class Meta:
-        ordering = ["eventType"]
+        ordering = ["eventDateTime", "id"]
         verbose_name = 'Events related to IP'
 
     def __unicode__(self):
