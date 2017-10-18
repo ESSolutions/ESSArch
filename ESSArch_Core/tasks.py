@@ -331,8 +331,6 @@ class AppendEvents(DBTask):
         if not events:
             events = EventIP.objects.filter(linkingObjectIdentifierValue=self.ip)
 
-        events = events.order_by('id')
-
         id_types = {}
 
         for id_type in ['event', 'linking_agent', 'linking_object']:
