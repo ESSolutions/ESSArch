@@ -54,6 +54,8 @@ from ESSArch_Core.util import (
     alg_from_str,
     convert_file,
     get_tree_size_and_count,
+    turn_off_auto_now_add,
+    turn_on_auto_now_add,
 )
 
 from ESSArch_Core.auth.models import Notification
@@ -63,7 +65,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator
 )
 from ESSArch_Core.fixity import format, validation
-from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, validate_against_schema
+from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, parse_event_file, validate_against_schema
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -370,6 +372,30 @@ class AppendEvents(DBTask):
     def event_outcome_success(self, filename="", events={}):
         return "Appended events to %s" % filename
 
+
+class ParseEvents(DBTask):
+    event_type = 50630
+
+    def run(self, xmlfile, delete_file=False):
+        events = parse_event_file(xmlfile)
+
+        try:
+            turn_off_auto_now_add(EventIP, 'eventDateTime')
+            EventIP.objects.bulk_create(events)
+        except:
+            turn_on_auto_now_add(EventIP, 'eventDateTime')
+            raise
+
+
+        if delete_file:
+            os.remove(xmlfile)
+
+
+    def undo(self, xmlfile, delete_file=False):
+        pass
+
+    def event_outcome_success(self, xmlfile, delete_file=False):
+        return "Parsed events from %s" % xmlfile
 
 class CopySchemas(DBTask):
     event_type = 50620

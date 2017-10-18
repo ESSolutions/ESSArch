@@ -442,3 +442,32 @@ def generate_file_response(file_obj, content_type, force_download=False):
     if force_download or content_type is None:
         response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(file_obj.name)
     return response
+
+
+def turn_off_auto_now(ModelClass, field_name):
+    def auto_now_off(field):
+        field.auto_now = False
+    do_to_model(ModelClass, field_name, auto_now_off)
+
+
+def turn_on_auto_now(ModelClass, field_name):
+    def auto_now_on(field):
+        field.auto_now = True
+    do_to_model(ModelClass, field_name, auto_now_on)
+
+
+def turn_off_auto_now_add(ModelClass, field_name):
+    def auto_now_add_off(field):
+        field.auto_now_add = False
+    do_to_model(ModelClass, field_name, auto_now_add_off)
+
+
+def turn_on_auto_now_add(ModelClass, field_name):
+    def auto_now_add_on(field):
+        field.auto_now_add = True
+    do_to_model(ModelClass, field_name, auto_now_add_on)
+
+
+def do_to_model(ModelClass, field_name, func):
+    field = ModelClass._meta.get_field(field_name)
+    func(field)

@@ -104,6 +104,7 @@ def installDefaultEventTypes():
         'Generated XML file': '50600',
         'Appended events': '50610',
         'Copied schemas': '50620',
+        'Parsed events file': '50630',
         'Uploaded file': '50700',
         'Deleted files': '50710',
         'Unpacked object': '50720',
