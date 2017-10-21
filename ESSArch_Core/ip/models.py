@@ -298,6 +298,14 @@ class InformationPackage(models.Model):
         if self.last_changed_local is not None and self.last_changed_external is not None:
             return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
 
+    def new_version_in_progress(self):
+        ip = self.related_ips().filter(workareas__read_only=False).first()
+
+        if ip is not None:
+            return ip.workareas.first()
+
+        return None
+
     def get_profile_rel(self, profile_type):
         return self.profileip_set.get(
             profile__profile_type=profile_type
