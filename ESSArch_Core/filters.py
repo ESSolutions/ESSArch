@@ -43,6 +43,10 @@ class IsoDateTimeFromToRangeFilter(filters.DateTimeFromToRangeFilter):
 
 
 class ListFilter(django_filters.Filter):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('lookup_expr', 'in')
+        super(ListFilter, self).__init__(*args, **kwargs)
+
     def filter(self, qs, value):
         if value in EMPTY_VALUES:
             return qs
