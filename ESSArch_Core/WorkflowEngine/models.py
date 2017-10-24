@@ -717,7 +717,7 @@ class ProcessTask(Process):
             processstep_pos=self.processstep_pos,
             undo_type=True, status="PREPARED",
             information_package=self.information_package,
-            eager=self.eager,
+            eager=self.eager, responsible=self.responsible,
         )
 
         self.undone = undo_obj
@@ -735,7 +735,7 @@ class ProcessTask(Process):
             processstep=self.processstep, name=self.name, args=self.args,
             params=self.params, result_params=self.result_params, processstep_pos=self.processstep_pos,
             status="PREPARED", information_package=self.information_package,
-            eager=self.eager
+            eager=self.eager, responsible=self.responsible,
         )
 
         self.retried = retry_obj
