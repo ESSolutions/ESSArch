@@ -143,8 +143,13 @@ class ProfileIP(models.Model):
     def lock(self, user):
         self.LockedBy = user
 
+        extra_data = fill_specification_data(ip=self.ip, sa=self.ip.submission_agreement)
         for field in self.profile.template:
             if 'defaultValue' in field and field['key'] not in self.profile.specification_data.keys():
+                if field['defaultValue'] in extra_data:
+                    self.profile.specification_data[field['key']] = extra_data[field['defaultValue']]
+                    continue
+
                 self.profile.specification_data[field['key']] = field['defaultValue']
 
         self.profile.save(update_fields=['specification_data'])

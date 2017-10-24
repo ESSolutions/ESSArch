@@ -210,6 +210,7 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     specification_data = serializers.SerializerMethodField()
+    template = serializers.SerializerMethodField()
 
     def get_specification_data(self, obj):
         data = obj.specification_data
@@ -228,6 +229,19 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
             data = obj.fill_specification_data(sa, ip)
 
         return data
+
+    def get_template(self, obj):
+        data = fill_specification_data()
+
+        for field in obj.template:
+            try:
+                defaultValue = field['defaultValue']
+                if defaultValue in data:
+                    field['defaultValue'] = data[defaultValue]
+            except KeyError:
+                continue
+
+        return obj.template
 
     class Meta:
         model = Profile
@@ -310,3 +324,12 @@ class ProfileDetailSerializer(ProfileSerializer):
             'specification',
         )
         extra_kwargs = ProfileSerializer.Meta.extra_kwargs
+
+
+class ProfileWriteSerializer(ProfileDetailSerializer):
+    template = serializers.JSONField(default={})
+
+    class Meta:
+        model = ProfileDetailSerializer.Meta.model
+        fields = ProfileDetailSerializer.Meta.fields
+        extra_kwargs = ProfileDetailSerializer.Meta.extra_kwargs
