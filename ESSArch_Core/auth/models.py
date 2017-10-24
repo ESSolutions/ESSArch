@@ -48,6 +48,14 @@ class UserProfile(models.Model):
     ip_list_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=AIC,)
 
 
+class NotificationManager(models.Manager):
+    def create(self, **kwargs):
+        refresh = kwargs.pop('refresh', False)
+        notification = self.model(**kwargs)
+        notification.refresh = refresh
+        notification.save(force_insert=True)
+
+
 class Notification(models.Model):
     INFO = 10
     SUCCESS = 20
@@ -68,6 +76,8 @@ class Notification(models.Model):
     message = models.CharField(max_length=255)
     time_created = models.DateTimeField(auto_now_add=True)
     seen = models.BooleanField(default=False)
+
+    objects = NotificationManager()
 
     class Meta:
         ordering = ['-time_created']

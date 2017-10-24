@@ -53,6 +53,7 @@ def notification_post_save(sender, instance, created, **kwargs):
                         'message': instance.message,
                         'level': instance.get_level_display(),
                         'unseen_count': Notification.objects.filter(user=instance.user, seen=False).count(),
+                        'refresh': instance.refresh,
                     })
                 }, immediately=True)
             except c.channel_layer.ChannelFull:
