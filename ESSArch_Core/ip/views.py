@@ -94,6 +94,9 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
     serializer_class = WorkareaSerializer
     http_method_names = ['delete', 'get', 'head']
 
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
     def destroy(self, request, pk=None, **kwargs):
         workarea = self.get_object()
 
