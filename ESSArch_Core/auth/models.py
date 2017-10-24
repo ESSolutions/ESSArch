@@ -54,6 +54,7 @@ class NotificationManager(models.Manager):
         notification = self.model(**kwargs)
         notification.refresh = refresh
         notification.save(force_insert=True)
+        return notification
 
 
 class Notification(models.Model):
