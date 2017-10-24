@@ -17,6 +17,7 @@ from ESSArch_Core.ip.models import (
     ArchivalType,
     ArchivalLocation,
     EventIP,
+    Workarea,
 )
 from ESSArch_Core.ip.serializers import (
     ArchivalInstitutionSerializer,
@@ -24,6 +25,7 @@ from ESSArch_Core.ip.serializers import (
     ArchivalTypeSerializer,
     ArchivalLocationSerializer,
     EventIPSerializer,
+    WorkareaSerializer,
 )
 
 
@@ -85,3 +87,18 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         'linkingAgentIdentifierValue', 'eventDateTime',
     )
     search_fields = ('eventOutcomeDetailNote',)
+
+
+class WorkareaEntryViewSet(viewsets.ModelViewSet):
+    queryset = Workarea.objects.all()
+    serializer_class = WorkareaSerializer
+    http_method_names = ['delete', 'get', 'head']
+
+    def destroy(self, request, pk=None, **kwargs):
+        workarea = self.get_object()
+
+        if not workarea.read_only:
+            workarea.ip.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        return super(WorkareaEntryViewSet, self).destroy(request, pk, **kwargs)

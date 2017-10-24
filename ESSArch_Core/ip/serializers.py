@@ -3,6 +3,7 @@ from _version import get_versions
 from rest_framework import serializers
 
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
+from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import EventType
 from ESSArch_Core.ip.models import (
     ArchivalInstitution,
@@ -10,6 +11,7 @@ from ESSArch_Core.ip.models import (
     ArchivalType,
     ArchivalLocation,
     EventIP,
+    Workarea,
 )
 
 VERSION = get_versions()['version']
@@ -56,3 +58,22 @@ class EventIPSerializer(serializers.HyperlinkedModelSerializer):
                 'default': VERSION
             }
         }
+
+
+class WorkareaSerializer(serializers.ModelSerializer):
+    extracted = serializers.SerializerMethodField()
+    packaged = serializers.SerializerMethodField()
+    user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+
+    def get_extracted(self, obj):
+        return os.path.isdir(obj.path)
+
+    def get_packaged(self, obj):
+        return os.path.isfile(obj.path + '.tar')
+
+    class Meta:
+        model = Workarea
+        fields = (
+            'id', 'user', 'ip', 'read_only', 'type',
+            'extracted', 'packaged',
+        )
