@@ -1,3 +1,5 @@
+import os
+
 from _version import get_versions
 
 from rest_framework import serializers
