@@ -43,6 +43,24 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
     step_position = serializers.SerializerMethodField()
     time_started = serializers.DateTimeField()
     time_done = serializers.DateTimeField()
+    undo_type = serializers.SerializerMethodField()
+    undone = serializers.SerializerMethodField()
+    retried = serializers.SerializerMethodField()
+
+    def get_undo_type(self, obj):
+        return getattr(obj, 'undo_type', None)
+
+    def get_undone(self, obj):
+        try:
+            return obj.undone.pk
+        except:
+            return None
+
+    def get_retried(self, obj):
+        try:
+            return obj.retried.pk
+        except:
+            return None
 
     def get_url(self, obj):
         flow_type = self.get_flow_type(obj)
