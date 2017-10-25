@@ -60,25 +60,12 @@ class ProcessViewSet(GenericAPIView, viewsets.ViewSet):
     queryset = ProcessStep.objects.none()
 
     def list(self, request, parent_lookup_processstep):
-        hidden = request.query_params.get('hidden')
-
-        if hidden in ['True', 'true', True]:
-            hidden = True
-
-        elif hidden in ['False', 'false', False]:
-            hidden = False
-
         step = ProcessStep.objects.get(pk=parent_lookup_processstep)
         child_steps = step.child_steps.all()
+        child_steps = ProcessStepFilter(data=request.query_params, queryset=child_steps, request=self.request).qs
+
         tasks = step.tasks.all().select_related('responsible')
-
-        if hidden is True:
-            child_steps = child_steps.filter(hidden=True)
-            tasks = tasks.filter(hidden=True)
-        elif hidden is False:
-            child_steps = child_steps.filter(hidden=False)
-            tasks = tasks.filter(hidden=False)
-
+        tasks = ProcessTaskFilter(data=request.query_params, queryset=tasks, request=self.request).qs
 
         queryset = sorted(
             itertools.chain(child_steps, tasks),
