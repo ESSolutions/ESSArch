@@ -51,10 +51,7 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
         return getattr(obj, 'undo_type', None)
 
     def get_undone(self, obj):
-        try:
-            return obj.undone.pk
-        except:
-            return None
+       return getattr(obj.undone, 'pk', obj.undone)
 
     def get_retried(self, obj):
         try:
