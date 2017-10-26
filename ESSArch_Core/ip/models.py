@@ -235,11 +235,16 @@ class InformationPackage(models.Model):
         null=True
     )
 
-    def related_ips(self):
+
+    def related_ips(self, cached=True):
         sorting = ('generation', 'package_type', 'create_date',)
 
         if self.package_type == InformationPackage.AIC:
-            return self.information_packages.order_by(*sorting)
+            # if aic is queried with workareas excluded, we might want to get
+            # the related IPs without any cached restrictions
+            if cached:
+                return self.information_packages.order_by(*sorting)
+            return InformationPackage.objects.get(pk=self.pk).information_packages.order_by(*sorting)
 
         return InformationPackage.objects.filter(
             aic__isnull=False, aic=self.aic,
@@ -299,7 +304,7 @@ class InformationPackage(models.Model):
             return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
 
     def new_version_in_progress(self):
-        ip = self.related_ips().filter(workareas__read_only=False).first()
+        ip = self.related_ips(cached=False).filter(workareas__read_only=False).first()
 
         if ip is not None:
             return ip.workareas.first()
