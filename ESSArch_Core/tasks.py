@@ -750,10 +750,9 @@ class DeleteFiles(DBTask):
             shutil.rmtree(path)
         except OSError as e:
             if e.errno == errno.ENOTDIR:
-                try:
-                    os.remove(path)
-                except:
-                    raise
+                os.remove(path)
+            elif e.errno != errno.ENOENT:
+                raise
 
     def undo(self, path=None):
         pass
