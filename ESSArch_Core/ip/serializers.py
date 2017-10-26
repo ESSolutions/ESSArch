@@ -53,7 +53,7 @@ class EventIPSerializer(serializers.HyperlinkedModelSerializer):
                 'url', 'id', 'eventType', 'eventDateTime', 'eventDetail',
                 'eventVersion', 'eventOutcome',
                 'eventOutcomeDetailNote', 'linkingAgentIdentifierValue',
-                'information_package',
+                'linkingAgentRole', 'information_package',
         )
         extra_kwargs = {
             'eventVersion': {
