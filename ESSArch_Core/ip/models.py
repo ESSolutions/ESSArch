@@ -477,7 +477,7 @@ class InformationPackage(models.Model):
 
         return 0
 
-    def files(self, path='', force_download=False, offset=0, limit=None):
+    def files(self, path='', force_download=False, paginator=None, request=None):
         mimetypes.suffix_map = {}
         mimetypes.encodings_map = {}
         mimetypes.types_map = {}
@@ -595,7 +595,7 @@ class InformationPackage(models.Model):
             content_type = mtypes.get(os.path.splitext(fullpath)[1])
             return generate_file_response(open(fullpath), content_type, force_download)
 
-        for entry in itertools.islice(sorted(get_files_and_dirs(fullpath), key=lambda x: x.name), offset, limit):
+        for entry in sorted(get_files_and_dirs(fullpath), key=lambda x: x.name):
             entry_type = "dir" if entry.is_dir() else "file"
             size, _ = get_tree_size_and_count(entry.path)
 
@@ -608,7 +608,11 @@ class InformationPackage(models.Model):
                 }
             )
 
-        return entries
+        if paginator is not None:
+            paginated = paginator.paginate_queryset(entries, request)
+            return paginator.get_paginated_response(paginated)
+
+        return Response(entries)
 
 
     class Meta:
