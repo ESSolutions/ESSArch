@@ -26,6 +26,7 @@ def fill_specification_data(data={}, sa=None, ip=None):
 
     if ip:
         data['_OBJID'] = ip.object_identifier_value
+        data['_OBJUUID'] = str(ip.pk)
         data['_OBJLABEL'] = ip.label
         data['_INFORMATIONCLASS'] = ip.information_class
 
