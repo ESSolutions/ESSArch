@@ -608,7 +608,7 @@ class InformationPackage(models.Model):
                 }
             )
 
-        return Response(entries)
+        return entries
 
 
     class Meta:
