@@ -22,7 +22,7 @@ profile_types = [
 def fill_specification_data(data={}, sa=None, ip=None):
     if sa:
         data['_SA_ID'] = str(sa.pk)
-        data['_SA_NAME'] = str(sa.name)
+        data['_SA_NAME'] = sa.name
 
     if ip:
         data['_OBJID'] = ip.object_identifier_value
