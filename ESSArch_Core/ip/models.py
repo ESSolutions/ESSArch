@@ -25,6 +25,7 @@
 from __future__ import division
 
 import datetime
+import itertools
 import mimetypes
 import os
 import re
@@ -476,7 +477,7 @@ class InformationPackage(models.Model):
 
         return 0
 
-    def files(self, path='', force_download=False):
+    def files(self, path='', force_download=False, offset=0, limit=None):
         mimetypes.suffix_map = {}
         mimetypes.encodings_map = {}
         mimetypes.types_map = {}
@@ -594,12 +595,8 @@ class InformationPackage(models.Model):
             content_type = mtypes.get(os.path.splitext(fullpath)[1])
             return generate_file_response(open(fullpath), content_type, force_download)
 
-        for entry in get_files_and_dirs(fullpath):
+        for entry in itertools.islice(sorted(get_files_and_dirs(fullpath), key=lambda x: x.name), offset, limit):
             entry_type = "dir" if entry.is_dir() else "file"
-
-            if entry_type == 'file' and re.search(r'\_\d+$', entry.name) is not None:  # file chunk
-                continue
-
             size, _ = get_tree_size_and_count(entry.path)
 
             entries.append(
@@ -611,8 +608,7 @@ class InformationPackage(models.Model):
                 }
             )
 
-        sorted_entries = sorted(entries, key=itemgetter('name'))
-        return Response(sorted_entries)
+        return Response(entries)
 
 
     class Meta:
