@@ -514,6 +514,9 @@ class InformationPackage(models.Model):
                                     "size": member.size,
                                     "modified": timestamp_to_datetime(member.mtime),
                                 })
+                            if paginator is not None:
+                                paginated = paginator.paginate_queryset(entries, request)
+                                return paginator.get_paginated_response(paginated)
                             return Response(entries)
                         else:
                             subpath = fullpath[len(container)+1:]
@@ -543,6 +546,9 @@ class InformationPackage(models.Model):
                                     "size": member.file_size,
                                     "modified": datetime.datetime(*member.date_time),
                                 })
+                            if paginator is not None:
+                                paginated = paginator.paginate_queryset(entries, request)
+                                return paginator.get_paginated_response(paginated)
                             return Response(entries)
                         else:
                             subpath = fullpath[len(container)+1:]
