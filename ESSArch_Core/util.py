@@ -28,13 +28,18 @@ import errno
 import hashlib
 import itertools
 import json
+import mimetypes
 import os
 import platform
 import pyclbr
 import re
 import shutil
+import tarfile
+import zipfile
 
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.response import Response
+from django.utils.encoding import smart_text
 from django.utils.timezone import get_current_timezone
 from django.core.validators import RegexValidator
 from django.http.response import HttpResponse
@@ -46,6 +51,8 @@ from lxml import etree
 from scandir import scandir, walk
 
 from subprocess import Popen, PIPE
+
+from ESSArch_Core.configuration.models import Path
 
 import requests
 
@@ -442,6 +449,110 @@ def generate_file_response(file_obj, content_type, force_download=False):
     if force_download or content_type is None:
         response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(file_obj.name)
     return response
+
+def list_files(path, force_download=False, request=None, paginator=None):
+    mimetypes.suffix_map = {}
+    mimetypes.encodings_map = {}
+    mimetypes.types_map = {}
+    mimetypes.common_types = {}
+    mimetypes_file = Path.objects.get(
+        entity="path_mimetypes_definitionfile"
+    ).value
+    mimetypes.init(files=[mimetypes_file])
+    mtypes = mimetypes.types_map
+
+    path = path.rstrip('/ ')
+    path = smart_text(path).encode('utf-8')
+
+    if os.path.isfile(path):
+        if tarfile.is_tarfile(path):
+            with tarfile.open(path) as tar:
+                entries = []
+                for member in tar.getmembers():
+                    if not member.isfile():
+                        continue
+
+                    entries.append({
+                        "name": member.name,
+                        "type": 'file',
+                        "size": member.size,
+                        "modified": timestamp_to_datetime(member.mtime),
+                    })
+                if paginator is not None:
+                    paginated = paginator.paginate_queryset(entries, request)
+                    return paginator.get_paginated_response(paginated)
+                return Response(entries)
+
+        elif zipfile.is_zipfile(path):
+            with zipfile.ZipFile(path) as zipf:
+                entries = []
+                for member in zipf.filelist:
+                    if member.filename.endswith('/'):
+                        continue
+
+                    entries.append({
+                        "name": member.filename,
+                        "type": 'file',
+                        "size": member.file_size,
+                        "modified": datetime.datetime(*member.date_time),
+                    })
+                if paginator is not None:
+                    paginated = paginator.paginate_queryset(entries, request)
+                    return paginator.get_paginated_response(paginated)
+                return Response(entries)
+
+        content_type = mtypes.get(os.path.splitext(path)[1])
+        return generate_file_response(open(path), content_type, force_download)
+
+    if os.path.isdir(path):
+        entries = []
+        for entry in sorted(get_files_and_dirs(path), key=lambda x: x.name):
+            entry_type = "dir" if entry.is_dir() else "file"
+            size, _ = get_tree_size_and_count(entry.path)
+
+            entries.append(
+                {
+                    "name": os.path.basename(entry.path),
+                    "type": entry_type,
+                    "size": size,
+                    "modified": timestamp_to_datetime(entry.stat().st_mtime),
+                }
+            )
+
+        if paginator is not None and request is not None:
+            paginated = paginator.paginate_queryset(entries, request)
+            return paginator.get_paginated_response(paginated)
+
+    if len(path.split('.tar/')) == 2:
+        tar_path, tar_subpath = path.split('.tar/')
+        tar_path += '.tar'
+
+        with tarfile.open(tar_path) as tar:
+            try:
+                member = tar.getmember(tar_subpath)
+
+                if not member.isfile():
+                    raise NotFound
+
+                f = tar.extractfile(member)
+                content_type = mtypes.get(os.path.splitext(tar_subpath)[1])
+                return generate_file_response(f, content_type, force_download)
+            except KeyError:
+                raise NotFound
+
+    if len(path.split('.zip/')) == 2:
+        zip_path, zip_subpath = path.split('.zip/')
+        tar_path += '.zip'
+
+        with zipfile.open(zip_path) as zipf:
+            try:
+                f = zipf.open(zip_subpath)
+                content_type = mtypes.get(os.path.splitext(zip_subpath)[1])
+                return generate_file_response(f, content_type, force_download)
+            except KeyError:
+                raise NotFound
+
+    raise NotFound
 
 
 def turn_off_auto_now(ModelClass, field_name):
