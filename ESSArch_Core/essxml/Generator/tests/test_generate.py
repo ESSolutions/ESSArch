@@ -1762,6 +1762,38 @@ class GenerateXMLTestCase(TestCase):
         appended = tree.find('.//appended')
         self.assertEqual(root.index(appended), 4)
 
+    def test_insert_element_before_non_existing_element(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                },
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: {'spec': specification}}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//appended'))
+
+        append_specification = {
+            '-name': 'appended',
+            '#content': [
+                {
+                    'text': 'append text'
+                }
+            ]
+        }
+
+        with self.assertRaises(ValueError):
+            generator.insert(self.fname, 'root', append_specification, {}, before='bar')
+
     def test_insert_element_after_element(self):
         specification = {
             '-name': 'root',
