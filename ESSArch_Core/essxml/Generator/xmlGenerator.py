@@ -497,7 +497,6 @@ class XMLGenerator(object):
                 except IndexError:
                     raise ValueError('%s element does not exist in %s element' % (after, tree.getpath(elementToAppendTo)))
 
-                reference_el = get_elements_without_namespace(elementToAppendTo, after)[-1]
                 index = elementToAppendTo.index(reference_el)+1
                 elementToAppendTo.insert(index, el)
             else:
