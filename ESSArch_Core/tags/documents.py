@@ -2,7 +2,7 @@ from elasticsearch_dsl import analyzer, tokenizer, DocType, Date, Keyword, Objec
 
 ngram_tokenizer=tokenizer('custom_ngram_tokenizer', type='ngram', min_gram=1,
                           max_gram=15, token_chars=['letter', 'digit',
-                                                    'punctuation', 'symbol']),
+                                                    'punctuation', 'symbol'])
 ngram_analyzer = analyzer('custom_ngram_analyzer', tokenizer=ngram_tokenizer,
                           filter=['lowercase'])
 
