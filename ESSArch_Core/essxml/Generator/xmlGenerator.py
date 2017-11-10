@@ -129,9 +129,6 @@ class XMLElement(object):
         if self.el is None:
             return True
 
-        if len(self.el) == 0 and self.skipIfNoChildren:
-            return True
-
         if len(self.el):
             return False
 
@@ -267,6 +264,9 @@ class XMLElement(object):
             raise ValueError("Missing value for required element '%s'" % (self.get_path()))
 
         if self.isEmpty(info) and not self.allowEmpty:
+            return None
+
+        if len(self.el) == 0 and self.skipIfNoChildren:
             return None
 
         if self.contentIsEmpty(info) and self.hideEmptyContent:

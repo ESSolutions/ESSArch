@@ -1077,6 +1077,72 @@ class GenerateXMLTestCase(TestCase):
             etree.tostring(tree.getroot())
         )
 
+    def test_skipIfNoChildren_with_empty_child(self):
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'first',
+                    '-skipIfNoChildren': True,
+                    '-attr': [
+                        {'-name': 'myattr', '#content': [{'text': 'attrcontent'}]}
+                    ],
+                    '-children': [
+                        {
+                            '-name': 'bar',
+                        }
+                    ]
+                },
+                {
+                    '-name': 'second',
+                    '#content': [{'text': 'value'}]
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: {'spec': specification}}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+
+        self.assertEqual(
+            '<foo>\n  <second>value</second>\n</foo>',
+            etree.tostring(tree.getroot())
+        )
+
+    def test_skipIfNoChildren_with_non_empty_child(self):
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'first',
+                    '-skipIfNoChildren': True,
+                    '-children': [
+                        {
+                            '-name': 'bar',
+                            '#content': [{'text': 'value'}]
+                        }
+                    ]
+                },
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: {'spec': specification}}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+
+        self.assertEqual(
+            '<foo>\n  <first>\n    <bar>value</bar>\n  </first>\n</foo>',
+            etree.tostring(tree.getroot())
+        )
+
     def test_hide_content_if_missing_with_missing(self):
         specification = {
             "-name": "foo",
