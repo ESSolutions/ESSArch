@@ -794,6 +794,37 @@ class GenerateXMLTestCase(TestCase):
         tree = etree.parse(self.fname)
         self.assertEqual('<foo bar="baz"/>', etree.tostring(tree.getroot()))
 
+    def test_generate_element_with_empty_attribute(self):
+        specification = {
+            '-name': "foo",
+            "-attr": [{"-name": "bar"}],
+            '#content': [{'text': 'baz'}],
+        }
+
+        generator = XMLGenerator(
+            {self.fname: {'spec': specification}}
+        )
+
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        self.assertEqual('<foo>baz</foo>', etree.tostring(tree.getroot()))
+
+    def test_generate_element_with_nameless_attribute(self):
+        specification = {
+            '-name': "foo",
+            "-attr": [{"#content": "bar"}],
+            '#content': [{'text': 'baz'}],
+        }
+
+        with self.assertRaises(ValueError):
+            generator = XMLGenerator(
+                {self.fname: {'spec': specification}}
+            )
+            generator.generate()
+
+        self.assertFalse(os.path.isfile(self.fname))
+
     def test_generate_empty_element_with_multiple_attribute(self):
         specification = {
             '-name': "foo",

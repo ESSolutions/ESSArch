@@ -293,7 +293,7 @@ class XMLAttribute(object):
         try:
             self.name = template['-name']
         except KeyError:
-            raise KeyError("Attribute missing name")
+            raise ValueError("Cannot generate attribute with missing name")
 
         self.namespace = template.get('-namespace')
         self.required = template.get('-req', False)
