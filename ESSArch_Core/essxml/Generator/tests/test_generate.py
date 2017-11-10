@@ -1077,6 +1077,64 @@ class GenerateXMLTestCase(TestCase):
             etree.tostring(tree.getroot())
         )
 
+    def test_hide_content_if_missing_with_missing(self):
+        specification = {
+            "-name": "foo",
+            "-allowEmpty": True,
+            "-children": [
+                {
+                    "-name": "bar",
+                    "#content": [
+                        {"text": "prefix"},
+                        {
+                            "var": "baz",
+                            "hide_content_if_missing": True
+                        }
+                    ]
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: {'spec': specification}}
+        )
+        generator.generate()
+        tree = etree.parse(self.fname)
+
+        self.assertEqual(
+            '<foo/>',
+            etree.tostring(tree.getroot())
+        )
+
+    def test_hide_content_if_missing_with_not_missing(self):
+        specification = {
+            "-name": "foo",
+            "-allowEmpty": True,
+            "-children": [
+                {
+                    "-name": "bar",
+                    "#content": [
+                        {"text": "prefix"},
+                        {
+                            "var": "baz",
+                            "hide_content_if_missing": True
+                        }
+                    ]
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: {'spec': specification, 'data': {'baz': 'value'}}}
+        )
+        generator.generate()
+        tree = etree.parse(self.fname)
+
+        self.assertEqual(
+            '<foo>\n  <bar>prefixvalue</bar>\n</foo>',
+            etree.tostring(tree.getroot())
+        )
+
     def test_element_with_files(self):
         specification = {
             '-name': 'foo',
