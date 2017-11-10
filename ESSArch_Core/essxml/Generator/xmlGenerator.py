@@ -126,9 +126,6 @@ class XMLElement(object):
         if self.containsFiles:
             return False
 
-        if self.el is None:
-            return True
-
         if len(self.el):
             return False
 
