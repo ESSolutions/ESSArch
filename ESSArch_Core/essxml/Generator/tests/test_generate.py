@@ -2624,6 +2624,11 @@ class ParseContentTestCase(unittest.TestCase):
         contentobj = parseContent(content, info)
         self.assertEqual(contentobj, 'bar')
 
+    def test_parse_content_missing_var(self):
+        content = [{"var": "foo"}]
+        contentobj = parseContent(content, {})
+        self.assertEqual(contentobj, '')
+
     def test_parse_content_missing_var_with_default(self):
         content = [
             {
