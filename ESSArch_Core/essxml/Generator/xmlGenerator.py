@@ -23,6 +23,7 @@
 """
 
 import copy
+import datetime
 import os
 import re
 import uuid
@@ -57,7 +58,7 @@ def parseContent(content, info):
             arr.append(c['text'])
         elif 'var' in c:
             var = c['var']
-            val = info.get(var)
+            val = info.get(var) or info.get(var.split('__')[0])
 
             if val is None:
                 val = c.get('default')
@@ -72,6 +73,9 @@ def parseContent(content, info):
                 now = timezone.now()
                 local = timezone.localtime(now)
                 val = local.replace(microsecond=0).isoformat()
+
+            if var.endswith('__DATE'):
+                val = val.strftime('%Y-%m-%d')
 
             if val is not None:
                 arr.append(unicode(val))

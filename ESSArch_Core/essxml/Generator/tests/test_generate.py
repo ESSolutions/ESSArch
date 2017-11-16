@@ -23,6 +23,7 @@
     Email - essarch@essolutions.se
 """
 
+import datetime
 import mock
 import os
 import shutil
@@ -2632,6 +2633,12 @@ class ParseContentTestCase(unittest.TestCase):
 
         contentobj = parseContent(content, {})
         self.assertEqual(contentobj, 'mydefault')
+
+    def test_parse_content_var_datetime_to_date(self):
+        val = datetime.datetime.now()
+        content = [{"var": "foo__DATE",}]
+        contentobj = parseContent(content, {'foo': val})
+        self.assertEqual(contentobj, val.strftime('%Y-%m-%d'))
 
     def test_unicode(self):
         content = [{"var": "foo"}]
