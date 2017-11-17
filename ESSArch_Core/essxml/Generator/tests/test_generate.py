@@ -2639,6 +2639,15 @@ class ParseContentTestCase(unittest.TestCase):
         contentobj = parseContent(content, {})
         self.assertEqual(contentobj, 'mydefault')
 
+    @mock.patch('ESSArch_Core.essxml.Generator.xmlGenerator.uuid.uuid4')
+    def test_parse_content_var_generate_uuid(self, mocked):
+        val = 'the uuid'
+        mocked.return_value = val
+        content = [{"var": "_UUID"}]
+        contentobj = parseContent(content, {})
+        mocked.assert_called_once()
+        self.assertEqual(contentobj, str(val))
+
     def test_parse_content_var_datetime_to_date(self):
         val = datetime.datetime.now()
         content = [{"var": "foo__DATE",}]

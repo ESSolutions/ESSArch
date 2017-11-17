@@ -65,8 +65,6 @@ def parseContent(content, info):
 
             if val is None and c.get('hide_content_if_missing', False):
                 return None
-            elif val is None:
-                continue
 
             if var == '_UUID':
                 val = str(uuid.uuid4())
