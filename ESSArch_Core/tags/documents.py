@@ -32,3 +32,11 @@ class Series(Tag):
 class Volume(Tag):
     class Meta:
         index = 'tags'
+
+class Process(Tag):
+    class Meta:
+        index = 'tags'
+
+class SubProcess(Tag):
+    class Meta:
+        index = 'tags'
