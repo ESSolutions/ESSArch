@@ -491,6 +491,7 @@ class InformationPackage(models.Model):
         ordering = ["id"]
         verbose_name = 'Information Package'
         permissions = (
+            ('view_informationpackage', 'Can view IP'),
             ('can_upload', 'Can upload files to IP'),
             ('set_uploaded', 'Can set IP as uploaded'),
             ('create_sip', 'Can create SIP'),
