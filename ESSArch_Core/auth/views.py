@@ -35,10 +35,12 @@ from ESSArch_Core.auth.serializers import (
 from ESSArch_Core.auth.models import Notification
 
 from django.conf import settings
-from django.contrib.auth.models import User, Group, Permission
+from django.contrib.auth.models import User, Permission
 from django.shortcuts import reverse
 
 from django_filters.rest_framework import DjangoFilterBackend
+
+from groups_manager.models import Group
 
 from rest_auth.app_settings import LoginSerializer
 from rest_auth.views import (
