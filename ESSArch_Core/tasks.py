@@ -1155,6 +1155,8 @@ class RobotInventory(DBTask):
 
 
 class ConvertFile(DBTask):
+    event_type = 50750
+
     def run(self, filepath, new_format, delete_original=True):
         try:
             convert_file(filepath, new_format)

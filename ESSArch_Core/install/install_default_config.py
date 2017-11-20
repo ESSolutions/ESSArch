@@ -110,6 +110,7 @@ def installDefaultEventTypes():
         'Unpacked object': '50720',
         'Converted RES to PREMIS': '50730',
         'Deleted IP': '50740',
+        'Converted file': '50750',
     }
 
     for key in dct:
