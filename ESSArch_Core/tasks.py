@@ -1168,4 +1168,4 @@ class ConvertFile(DBTask):
         pass
 
     def event_outcome_success(self, filepath, new_format):
-        pass
+        return "Converted %s to %s" % (filepath, new_format)
