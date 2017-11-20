@@ -51,7 +51,7 @@ class InformationPackageFilter(filters.FilterSet):
         model = InformationPackage
         fields = [
             'create_date', 'state', 'archival_institution', 'archivist_organization',
-            'archival_type', 'archival_location'
+            'archival_type', 'archival_location', 'responsible',
         ]
 
 
