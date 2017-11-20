@@ -44,6 +44,7 @@ class ArchivalLocationFilter(filters.FilterSet):
 
 
 class InformationPackageFilter(filters.FilterSet):
+    responsible = ListFilter(name='responsible__username')
     create_date = IsoDateTimeFromToRangeFilter()
     state = ListFilter(name='state')
 
