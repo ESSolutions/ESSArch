@@ -479,6 +479,32 @@ class InformationPackage(models.Model):
         return 0
 
     def files(self, path='', force_download=False, paginator=None, request=None):
+        if os.path.isfile(self.object_path):
+            if len(path):
+                fullpath = os.path.join(os.path.dirname(self.object_path), path)
+                return list_files(fullpath, force_download, paginator=paginator, request=request)
+
+            container = self.object_path
+            xml = os.path.splitext(container)[0] + '.xml'
+
+            entries = []
+            entries.append({
+                "name": os.path.basename(container),
+                "type": 'file',
+                "size": os.path.getsize(container),
+                "modified": timestamp_to_datetime(os.path.getmtime(container)),
+            })
+
+            if os.path.isfile(xml):
+                entries.append({
+                    "name": os.path.basename(xml),
+                    "type": 'file',
+                    "size": os.path.getsize(xml),
+                    "modified": timestamp_to_datetime(os.path.getmtime(xml)),
+                })
+
+            return Response(entries)
+
         fullpath = os.path.join(self.object_path, path)
 
         if not in_directory(fullpath, self.object_path):
