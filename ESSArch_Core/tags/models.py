@@ -14,6 +14,11 @@ class Tag(MPTTModel):
     parent = TreeForeignKey('self', null=True, related_name='children', db_index=True)
     information_packages = models.ManyToManyField(InformationPackage, related_name='tags')
 
+    class Meta:
+        permissions = (
+            ('view_pul', 'Can view PuL'),
+        )
+
     def __unicode__(self):
         return self.name
 
