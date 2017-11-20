@@ -40,6 +40,14 @@ class DBHandler(Handler):
                 cache.set(cache_name, enabled, 3600)
 
         if enabled or forced:
+            obj = getattr(record, 'object', '')
+            if obj is None:
+                obj = ''
+
+            agent = getattr(record, 'agent', '')
+            if agent is None:
+                agent = ''
+
             EventIP.objects.create(
                 eventType_id=record.event_type,
                 application=self.application,
@@ -47,9 +55,9 @@ class DBHandler(Handler):
                 eventVersion=self.version,
                 eventOutcome=getattr(record, 'outcome', EventIP.SUCCESS if record.levelno < 40 else EventIP.FAILURE),
                 eventOutcomeDetailNote=record.getMessage(),
-                linkingAgentIdentifierValue=getattr(record, 'agent', ''),
+                linkingAgentIdentifierValue=agent,
                 linkingAgentRole=self.agent_role,
-                linkingObjectIdentifierValue=getattr(record, 'object', '')
+                linkingObjectIdentifierValue=obj,
             )
 
     def get_model(self, name):
