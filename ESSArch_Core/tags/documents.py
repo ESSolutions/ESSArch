@@ -33,10 +33,19 @@ class Volume(Tag):
     class Meta:
         index = 'tags'
 
+class Activity(Tag):
+    class Meta:
+        index = 'tags'
+
+class ProcessGroup(Tag):
+    class Meta:
+        index = 'tags'
+
 class Process(Tag):
     class Meta:
         index = 'tags'
 
-class SubProcess(Tag):
+class Document(Tag):
+    terms_and_condition = Keyword()
     class Meta:
         index = 'tags'
