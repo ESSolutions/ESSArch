@@ -66,7 +66,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
 )
 from ESSArch_Core.fixity import format, validation
 from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, parse_event_file, validate_against_schema
-from ESSArch_Core.ip.models import EventIP, InformationPackage
+from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.copy import copy_file
@@ -570,6 +570,23 @@ class ValidateFileFormat(DBTask):
         return "Validated format of %s to be: format name: %s, format version: %s, format registry key: %s" % (
             filename, format_name, format_version, format_registry_key
         )
+
+
+class ValidateWorkarea(DBTask):
+    queue = 'validation'
+
+    def run(self, workarea, mediaconch=False):
+        workarea = Workarea.objects.get(pk=workarea)
+        ip = workarea.ip
+
+        for root, dirs, files in walk(workarea.path):
+            for f in files:
+                filepath = os.path.join(root, f)
+
+                if mediaconch:
+                    validation.validate_mediaconch(filepath, ip)
+
+        return "Success"
 
 
 class ValidateXMLFile(DBTask):

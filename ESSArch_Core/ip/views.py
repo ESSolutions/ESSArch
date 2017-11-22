@@ -1,10 +1,12 @@
 from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework import filters, status, viewsets
+from rest_framework import exceptions, filters, status, viewsets
+from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.ip.filters import (
     ArchivalInstitutionFilter,
     ArchivistOrganizationFilter,
@@ -28,6 +30,8 @@ from ESSArch_Core.ip.serializers import (
     EventIPSerializer,
     WorkareaSerializer,
 )
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.util import remove_prefix
 
 
 class ArchivalInstitutionViewSet(viewsets.ModelViewSet):
@@ -93,10 +97,40 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 class WorkareaEntryViewSet(viewsets.ModelViewSet):
     queryset = Workarea.objects.all()
     serializer_class = WorkareaSerializer
-    http_method_names = ['delete', 'get', 'head']
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
+
+    @detail_route(methods=['post'], url_path='validate')
+    def validate(self, request, pk=None):
+        workarea = self.get_object()
+        ip = workarea.ip
+
+        prepare = Path.objects.get(entity="ingest_workarea").value
+
+        validators = request.data.get('validators', {})
+        available_validators = [
+            'validate_xml_file', 'validate_file_format', 'validate_integrity',
+            'validate_logical_physical_representation', 'validate_mediaconch',
+        ]
+
+        if not any(v is True and k in available_validators for k, v in validators.iteritems()):
+            raise exceptions.ParseError('No valid validator selected')
+
+        for key in validators:
+            validators[remove_prefix(key, 'validate_')] = validators.pop(key)
+
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.tasks.ValidateWorkarea",
+            args=[pk],
+            params=validators,
+            eager=False,
+            log=EventIP,
+            information_package=ip,
+            responsible=self.request.user,
+        )
+        task.run()
+        return Response("Validating IP")
 
     def destroy(self, request, pk=None, **kwargs):
         workarea = self.get_object()
