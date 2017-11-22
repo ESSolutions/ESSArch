@@ -105,6 +105,7 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
     def validate(self, request, pk=None):
         workarea = self.get_object()
         ip = workarea.ip
+        ip.validation_set.all().delete()
 
         prepare = Path.objects.get(entity="ingest_workarea").value
 
