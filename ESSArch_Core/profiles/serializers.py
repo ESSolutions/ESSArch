@@ -125,6 +125,7 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
     profile_workflow = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='workflow'))
     profile_preservation_metadata = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='preservation_metadata'))
     profile_event = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='event'))
+    profile_mediaconch = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='mediaconch'))
 
     class Meta:
         model = SubmissionAgreement
@@ -194,6 +195,7 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
                 'profile_workflow',
                 'profile_preservation_metadata',
                 'profile_event',
+                'profile_mediaconch',
 
                 'template',
         )
