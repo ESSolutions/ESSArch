@@ -604,28 +604,40 @@ class ValidateWorkarea(DBTask):
     def run(self, workarea, stop_at_failure=True, **validators):
         workarea = Workarea.objects.get(pk=workarea)
         ip = workarea.ip
+        mediaconch_policy_file = None
 
-        for root, dirs, files in walk(workarea.path):
-            for f in files:
-                if f.endswith('.md5'):
-                    continue
+        if 'mediaconch' in validators and ip.get_profile('mediaconch') is not None:
+            mediaconch_policy_file = tempfile.NamedTemporaryFile()
+            mediaconch_profile_spec = ip.get_profile('mediaconch').specification
+            generator = XMLGenerator({mediaconch_policy_file.name: {'spec': mediaconch_profile_spec, 'data': {}}})
+            generator.generate()
 
-                filepath = os.path.join(root, f)
+        try:
+            for root, dirs, files in walk(workarea.path):
+                for f in files:
+                    if f.endswith('.md5'):
+                        continue
 
-                if 'mediaconch' in validators:
-                    self.validate(filepath, 'mediaconch', validation.validate_mediaconch, ip, filepath, stop_at_failure=stop_at_failure)
+                    filepath = os.path.join(root, f)
 
-                if 'integrity' in validators:
-                    algorithm = 'md5'
+                    if 'mediaconch' in validators:
+                        mediaconch_policy = getattr(mediaconch_policy_file, 'name', None)
+                        self.validate(filepath, 'mediaconch', validation.validate_mediaconch, ip, filepath, policy=mediaconch_policy, stop_at_failure=stop_at_failure)
 
-                    try:
-                        with open(filepath + '.md5') as f:
-                            checksum = f.read().rstrip()
-                    except IOError as e:
-                        if e.errno != errno.ENOENT:
-                            raise
-                    else:
-                        self.validate(filepath, 'integrity', validation.validate_checksum, ip, filepath, algorithm, checksum, stop_at_failure=stop_at_failure)
+                    if 'integrity' in validators:
+                        algorithm = 'md5'
+
+                        try:
+                            with open(filepath + '.md5') as f:
+                                checksum = f.read().rstrip()
+                        except IOError as e:
+                            if e.errno != errno.ENOENT:
+                                raise
+                        else:
+                            self.validate(filepath, 'integrity', validation.validate_checksum, ip, filepath, algorithm, checksum, stop_at_failure=stop_at_failure)
+        finally:
+            if mediaconch_policy_file is not None:
+                mediaconch_policy_file.close()
 
         return "Success"
 
