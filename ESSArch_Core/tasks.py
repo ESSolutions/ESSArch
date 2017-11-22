@@ -575,7 +575,7 @@ class ValidateFileFormat(DBTask):
 class ValidateWorkarea(DBTask):
     queue = 'validation'
 
-    def run(self, workarea, **validators):
+    def run(self, workarea, stop_at_failure=True, **validators):
         workarea = Workarea.objects.get(pk=workarea)
         ip = workarea.ip
 
@@ -583,8 +583,12 @@ class ValidateWorkarea(DBTask):
             for f in files:
                 filepath = os.path.join(root, f)
 
-                if 'mediaconch' in validators:
-                    validation.validate_mediaconch(filepath, ip=ip)
+                try:
+                    if 'mediaconch' in validators:
+                        validation.validate_mediaconch(filepath, ip=ip)
+                except AssertionError:
+                    if stop_at_failure:
+                        raise
 
         return "Success"
 

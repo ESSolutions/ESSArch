@@ -109,6 +109,7 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
 
         prepare = Path.objects.get(entity="ingest_workarea").value
 
+        stop_at_failure = request.data.get('stop_at_failure', False)
         validators = request.data.get('validators', {})
         available_validators = [
             'validate_xml_file', 'validate_file_format', 'validate_integrity',
@@ -122,10 +123,13 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
             if validators[key]:
                 validators[remove_prefix(key, 'validate_')] = validators.pop(key)
 
+        params = {'stop_at_failure': stop_at_failure}
+        params.update(validators)
+
         task = ProcessTask.objects.create(
             name="ESSArch_Core.tasks.ValidateWorkarea",
             args=[pk],
-            params=validators,
+            params=params,
             eager=False,
             log=EventIP,
             information_package=ip,
