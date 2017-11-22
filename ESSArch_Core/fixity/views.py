@@ -7,5 +7,5 @@ from ESSArch_Core.fixity.serializers import ValidationSerializer
 
 
 class ValidationViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = Validation.objects.all()
+    queryset = Validation.objects.all().order_by('filename', 'validator')
     serializer_class = ValidationSerializer
