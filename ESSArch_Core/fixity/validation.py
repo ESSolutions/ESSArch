@@ -1,6 +1,10 @@
 import logging
 
+from django.utils import timezone
+
 from .checksum import calculate_checksum
+from .mediaconch import validate_file as mediaconch_validation
+from .models import Validation
 
 logger = logging.getLogger('essarch.fixity.validation')
 
@@ -36,3 +40,22 @@ def validate_file_format(filename, fid, format_name=None, format_version=None, f
         assert actual_format_registry_key == format_registry_key, "format registry key for %s is not valid" % filename
 
     logger.info('Successfully validated format of %s' % filename)
+
+
+def validate_mediaconch(filename, policy=None, ip=None):
+    time_started = timezone.now()
+    passed, message = mediaconch_validation(filename, policy)
+    time_done = timezone.now()
+
+    Validation.objects.create(
+        filename=filename,
+        time_started=time_started,
+        time_done=time_done,
+        validator='mediaconch',
+        passed=passed,
+        message=message,
+        information_package=ip,
+    )
+
+    if not passed:
+        raise AssertionError(msg)
