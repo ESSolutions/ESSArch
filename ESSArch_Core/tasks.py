@@ -65,6 +65,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator
 )
 from ESSArch_Core.fixity import format, validation
+from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, parse_event_file, validate_against_schema
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import get_cached_objid
@@ -575,20 +576,56 @@ class ValidateFileFormat(DBTask):
 class ValidateWorkarea(DBTask):
     queue = 'validation'
 
+    def validate(self, filename, validator, fn, ip, *args, **kwargs):
+        stop_at_failure = kwargs.pop('stop_at_failure', True)
+        obj = Validation.objects.create(
+            filename=filename,
+            time_started=timezone.now(),
+            validator=validator,
+            information_package=ip,
+        )
+        passed = False
+
+        try:
+            fn(*args, **kwargs)
+            passed = True
+        except Exception as e:
+            obj.message = str(e)
+            if stop_at_failure:
+                raise
+            return obj
+        else:
+            return obj
+        finally:
+            obj.time_done = timezone.now()
+            obj.passed = passed
+            obj.save(update_fields=['time_done', 'passed', 'message'])
+
     def run(self, workarea, stop_at_failure=True, **validators):
         workarea = Workarea.objects.get(pk=workarea)
         ip = workarea.ip
 
         for root, dirs, files in walk(workarea.path):
             for f in files:
+                if f.endswith('.md5'):
+                    continue
+
                 filepath = os.path.join(root, f)
 
-                try:
-                    if 'mediaconch' in validators:
-                        validation.validate_mediaconch(filepath, ip=ip)
-                except AssertionError:
-                    if stop_at_failure:
-                        raise
+                if 'mediaconch' in validators:
+                    self.validate(filepath, 'mediaconch', validation.validate_mediaconch, ip, filepath, stop_at_failure=stop_at_failure)
+
+                if 'integrity' in validators:
+                    algorithm = 'md5'
+
+                    try:
+                        with open(filepath + '.md5') as f:
+                            checksum = f.read().rstrip()
+                    except IOError as e:
+                        if e.errno != errno.ENOENT:
+                            raise
+                    else:
+                        self.validate(filepath, 'integrity', validation.validate_checksum, ip, filepath, algorithm, checksum, stop_at_failure=stop_at_failure)
 
         return "Success"
 
