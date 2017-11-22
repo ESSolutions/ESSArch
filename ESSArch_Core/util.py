@@ -265,6 +265,12 @@ def get_files_and_dirs(path):
     return []
 
 
+def get_immediate_subdirectories(path):
+    """Return immediate subdirectories at a given path"""
+
+    return filter(lambda x: x.is_dir(), get_files_and_dirs(path))
+
+
 def get_tree_size_and_count(path='.'):
     """Return total size and count of files in given path and subdirs."""
 
