@@ -118,7 +118,8 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError('No valid validator selected')
 
         for key in validators:
-            validators[remove_prefix(key, 'validate_')] = validators.pop(key)
+            if validators[key]:
+                validators[remove_prefix(key, 'validate_')] = validators.pop(key)
 
         task = ProcessTask.objects.create(
             name="ESSArch_Core.tasks.ValidateWorkarea",
