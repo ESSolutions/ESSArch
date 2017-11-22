@@ -7,6 +7,7 @@ def validate_file(filename, policy=None):
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
 
-    root = etree.fromstring(out)
+    parser = etree.XMLParser(remove_blank_text=True)
+    root = etree.XML(out, parser=parser)
     passed = len(root.xpath('//*[@outcome="fail"][1]')) == 0
-    return passed, out
+    return passed, etree.tostring(root)
