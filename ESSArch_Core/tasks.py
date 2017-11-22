@@ -584,7 +584,7 @@ class ValidateWorkarea(DBTask):
                 filepath = os.path.join(root, f)
 
                 if 'mediaconch' in validators:
-                    validation.validate_mediaconch(filepath, ip)
+                    validation.validate_mediaconch(filepath, ip=ip)
 
         return "Success"
 
