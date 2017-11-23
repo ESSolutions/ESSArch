@@ -587,7 +587,7 @@ class ValidateWorkarea(DBTask):
         passed = False
 
         try:
-            fn(*args, **kwargs)
+            obj.message = fn(*args, **kwargs)
             passed = True
         except Exception as e:
             obj.message = str(e)

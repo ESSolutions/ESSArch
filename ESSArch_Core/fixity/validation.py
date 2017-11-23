@@ -46,3 +46,5 @@ def validate_mediaconch(filename, policy=None):
 
     if not passed:
         raise AssertionError(message)
+
+    return message
