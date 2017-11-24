@@ -129,7 +129,7 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
     profile_event = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='event'))
 
     def validate(self, data):
-        if SubmissionAgreement.objects.filter(pk=data.get('id')).exists():
+        if self.instance is None and SubmissionAgreement.objects.filter(pk=data.get('id')).exists():
             raise Conflict('Submission agreement already exists')
 
         return data
@@ -252,7 +252,7 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
         return obj.template
 
     def validate(self, data):
-        if Profile.objects.filter(pk=data.get('id')).exists():
+        if self.instance is None and Profile.objects.filter(pk=data.get('id')).exists():
             raise Conflict('Profile already exists')
 
         return data
