@@ -50,14 +50,6 @@ from django.utils import timezone
 
 from retrying import retry
 
-from ESSArch_Core.util import (
-    alg_from_str,
-    convert_file,
-    get_tree_size_and_count,
-    turn_off_auto_now_add,
-    turn_on_auto_now_add,
-)
-
 from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
@@ -96,11 +88,17 @@ from ESSArch_Core.WorkflowEngine.models import (
 )
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.util import (
+    alg_from_str,
     creation_date,
+    convert_file,
+    delete_content,
     find_destination,
+    get_tree_size_and_count,
     get_value_from_path,
     remove_prefix,
     timestamp_to_datetime,
+    turn_off_auto_now_add,
+    turn_on_auto_now_add,
     win_to_posix,
 )
 
@@ -433,6 +431,57 @@ class CopySchemas(DBTask):
     def event_outcome_success(self, schema={}, root=None, structure=None):
         src, dst = self.createSrcAndDst(schema, root, structure)
         return "Copied schemas from %s to %s" % src, dst
+
+
+class CreatePhysicalModel(DBTask):
+    event_type = 10300
+
+    def get_root(self):
+        root = Path.objects.get(
+            entity="path_preingest_prepare"
+        ).value
+        return os.path.join(root, unicode(self.ip))
+
+    def run(self, structure={}, root=""):
+        """
+        Creates the IP physical model based on a logical model.
+
+        Args:
+            structure: A dict specifying the logical model.
+            root: The root directory to be used
+        """
+
+        if not root:
+            root = self.get_root()
+
+        try:
+            delete_content(root)
+        except OSError as e:
+            if e.errno != 2:
+                raise
+
+        for content in structure:
+            if content.get('type') == 'folder':
+                name = content.get('name')
+                dirname = os.path.join(root, name)
+                os.makedirs(dirname)
+
+                self.run(content.get('children', []), dirname)
+
+        self.set_progress(1, total=1)
+
+    def undo(self, structure={}, root=""):
+        if not root:
+            root = self.get_root()
+
+        for content in structure:
+            if content.get('type') == 'folder':
+                name = content.get('name')
+                dirname = os.path.join(root, name)
+                shutil.rmtree(dirname)
+
+    def event_outcome_success(self, structure={}, root=""):
+        return "Created physical model for %s" % self.ip_objid
 
 
 class CreateTAR(DBTask):
