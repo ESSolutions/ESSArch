@@ -24,6 +24,8 @@
 
 from rest_framework import serializers
 
+from ESSArch_Core.exceptions import Conflict
+
 from ESSArch_Core.ip.models import (
     InformationPackage,
 )
@@ -125,6 +127,12 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
     profile_workflow = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='workflow'))
     profile_preservation_metadata = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='preservation_metadata'))
     profile_event = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='event'))
+
+    def validate(self, data):
+        if SubmissionAgreement.objects.filter(pk=data.get('id')).exists():
+            raise Conflict('Submission agreement already exists')
+
+        return data
 
     class Meta:
         model = SubmissionAgreement
@@ -242,6 +250,12 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
                 continue
 
         return obj.template
+
+    def validate(self, data):
+        if Profile.objects.filter(pk=data.get('id')).exists():
+            raise Conflict('Profile already exists')
+
+        return data
 
     class Meta:
         model = Profile
