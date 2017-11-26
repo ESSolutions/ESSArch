@@ -78,12 +78,21 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
+class UserFilteredOrganizationField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        request = self.context.get('request', None)
+        if not request:
+            return None
+        return get_organization_groups(request.user)
+
+
 class UserLoggedInSerializer(UserSerializer):
     url = serializers.SerializerMethodField()
     user_permissions = PermissionSerializer(many=True, read_only=True)
     permissions = serializers.SerializerMethodField()
-    groups = serializers.SerializerMethodField()
+    organizations = serializers.SerializerMethodField()
 
+    current_organization = GroupSerializer(source='user_profile.current_organization')
     ip_list_columns = serializers.ListField(source='user_profile.ip_list_columns')
     ip_list_view_type = serializers.ChoiceField(
         choices=UserProfile.IP_LIST_VIEW_CHOICES, default=UserProfile.AIC, source='user_profile.ip_list_view_type'
@@ -94,34 +103,29 @@ class UserLoggedInSerializer(UserSerializer):
 
     def get_permissions(self, obj):
         request = self.context.get('request')
-        try:
-            group_id = request.query_params.get('group')
-            groups = get_membership_descendants(group_id, request.user)
-        except Group.DoesNotExist:
-            try:
-                group_id = getattr(get_organization_groups(request.user).first(), 'pk', None)
-                groups = get_membership_descendants(group_id, request.user)
-            except Group.DoesNotExist:
-                raise exceptions.ParseError('Invalid group')
-
-        if not groups.exists():
-            raise exceptions.ParseError('You are not a member of the selected group')
+        user = request.user
+        groups = get_membership_descendants(user.user_profile.current_organization, user)
 
         perms = Permission.objects.filter(group__in=Subquery(groups.values('django_group__id'))).distinct()
         perms = perms.values_list('content_type__app_label', 'codename').order_by()
 
         return {'%s.%s' % (ct, name) for ct, name in perms}
 
-    def get_groups(self, user):
+    def get_organizations(self, user):
         groups = get_organization_groups(user)
         serializer = GroupSerializer(data=groups, many=True)
         serializer.is_valid()
         return serializer.data
 
     def update(self, instance, validated_data):
-        profile_data = validated_data.pop('user_profile')
+        profile_data = validated_data.pop('user_profile', {})
 
         user_profile = instance.user_profile
+
+        user_profile.current_organization = profile_data.get(
+            'current_organization',
+            user_profile.current_organization,
+        )
 
         user_profile.ip_list_columns = profile_data.get(
             'ip_list_columns',
@@ -134,20 +138,29 @@ class UserLoggedInSerializer(UserSerializer):
 
         user_profile.save()
 
-        return instance
+        return super(UserLoggedInSerializer, self).update(instance, validated_data)
 
     class Meta:
         model = User
         fields = (
             'url', 'id', 'username', 'first_name', 'last_name', 'email',
-            'groups', 'is_staff', 'is_active', 'is_superuser', 'last_login',
+            'organizations', 'is_staff', 'is_active', 'is_superuser', 'last_login',
             'date_joined', 'permissions', 'user_permissions',
-            'ip_list_columns', 'ip_list_view_type',
+            'ip_list_columns', 'ip_list_view_type', 'current_organization',
         )
         read_only_fields = (
-            'id', 'username', 'last_login', 'date_joined', 'groups',
+            'id', 'username', 'last_login', 'date_joined', 'organizations',
             'is_staff', 'is_active', 'is_superuser',
         )
+
+
+class UserLoggedInWriteSerializer(UserLoggedInSerializer):
+    current_organization = UserFilteredOrganizationField(source='user_profile.current_organization')
+
+    class Meta:
+        model = User
+        fields = UserLoggedInSerializer.Meta.fields
+        read_only_fields = UserLoggedInSerializer.Meta.read_only_fields
 
 
 class NotificationSerializer(serializers.ModelSerializer):

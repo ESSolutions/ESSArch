@@ -7,7 +7,7 @@ from rest_framework import exceptions
 ORGANIZATION_TYPE = 'organization'
 
 
-def get_membership_descendants(group_id, user):
+def get_membership_descendants(group, user):
     """
     Gets the non organization groups (+ the group with id `group_id`) directly
     under `group_id` if `group_id` is of type "organization" and `user` is a
@@ -19,7 +19,6 @@ def get_membership_descendants(group_id, user):
         user: The user to check membership for
     """
 
-    group = Group.objects.get(pk=group_id)
     descendants = group.get_descendants(include_self=True).filter(level__in=[group.level, group.level+1])
 
     if not (getattr(group.group_type, 'codename') == ORGANIZATION_TYPE and group.group_members.filter(django_user=user).exists()):

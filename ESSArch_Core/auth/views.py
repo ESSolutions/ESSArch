@@ -30,6 +30,7 @@ from ESSArch_Core.auth.serializers import (
     PermissionSerializer,
     UserSerializer,
     UserLoggedInSerializer,
+    UserLoggedInWriteSerializer,
 )
 
 from ESSArch_Core.auth.models import Notification
@@ -81,6 +82,12 @@ class MeView(RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return UserLoggedInSerializer
+
+        return UserLoggedInWriteSerializer
 
 
 class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
