@@ -19,11 +19,7 @@ def get_membership_descendants(group_id, user):
         user: The user to check membership for
     """
 
-    try:
-        group = Group.objects.get(pk=group_id)
-    except Group.DoesNotExist:
-        raise exceptions.ParseError('Invalid group')
-
+    group = Group.objects.get(pk=group_id)
     descendants = group.get_descendants(include_self=True).filter(level__in=[group.level, group.level+1])
 
     if not (getattr(group.group_type, 'codename') == ORGANIZATION_TYPE and group.group_members.filter(django_user=user).exists()):

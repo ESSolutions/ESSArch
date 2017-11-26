@@ -94,8 +94,15 @@ class UserLoggedInSerializer(UserSerializer):
 
     def get_permissions(self, obj):
         request = self.context.get('request')
-        group_id = request.query_params.get('group')
-        groups = get_membership_descendants(group_id, request.user)
+        try:
+            group_id = request.query_params.get('group')
+            groups = get_membership_descendants(group_id, request.user)
+        except Group.DoesNotExist:
+            try:
+                group_id = getattr(get_organization_groups(request.user).first(), 'pk', None)
+                groups = get_membership_descendants(group_id, request.user)
+            except Group.DoesNotExist:
+                raise exceptions.ParseError('Invalid group')
 
         if not groups.exists():
             raise exceptions.ParseError('You are not a member of the selected group')
