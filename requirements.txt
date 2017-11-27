@@ -8,6 +8,7 @@ django-groups-manager==0.5.1
 django-guardian==1.4.9
 django-jsonfield==1.0.1
 django-mptt==0.8.7
+django-nested-inline==0.3.7
 django-picklefield==0.3.2
 django-redis==4.8.0
 django-rest-auth[with_social]==0.9.2
