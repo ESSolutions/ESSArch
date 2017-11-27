@@ -24,48 +24,52 @@
 
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
-from django.contrib.auth.models import Group, Permission, ContentType
+from django.contrib.auth.models import Permission, ContentType
+from django.db.models import Q, Subquery
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
+
+from groups_manager.models import Group
 
 from rest_framework import exceptions, serializers
 
 from ESSArch_Core.auth.models import Notification, UserProfile
-from ESSArch_Core.serializers import DynamicHyperlinkedModelSerializer
+from ESSArch_Core.auth.util import get_membership_descendants, get_organization_groups
 
 
 User = get_user_model()
 
 
-class PermissionSerializer(DynamicHyperlinkedModelSerializer):
+class PermissionSerializer(serializers.ModelSerializer):
     content_type = serializers.PrimaryKeyRelatedField(queryset=ContentType.objects.all())
 
     class Meta:
         model = Permission
-        fields = ('url', 'id', 'name', 'codename', 'group_set', 'content_type')
+        fields = ('id', 'name', 'codename', 'group_set', 'content_type')
 
 
-class GroupSerializer(DynamicHyperlinkedModelSerializer):
-    permissions = PermissionSerializer(many=True)
-
+class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ('url', 'id', 'name', 'permissions',)
+        fields = ('id', 'name', 'group_type',)
 
 
 class GroupDetailSerializer(GroupSerializer):
-    class Meta:
-        model = Group
-        fields = GroupSerializer.Meta.fields + (
-            'user_set',
-        )
+    group_members = serializers.SerializerMethodField()
+
+    def get_group_members(self, obj):
+        users = User.objects.filter(groups_manager_member_set__groups_manager_group_set=obj)
+        return users.values_list('id', flat=True)
+
+    class Meta(GroupSerializer.Meta):
+        fields = GroupSerializer.Meta.fields + ('group_members',)
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'url', 'id', 'username', 'first_name', 'last_name', 'email',
+            'id', 'username', 'first_name', 'last_name', 'email',
             'last_login', 'date_joined',
         )
         read_only_fields = (
@@ -74,12 +78,21 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         )
 
 
+class UserFilteredOrganizationField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        request = self.context.get('request', None)
+        if not request:
+            return None
+        return get_organization_groups(request.user)
+
+
 class UserLoggedInSerializer(UserSerializer):
     url = serializers.SerializerMethodField()
-    permissions = serializers.ReadOnlyField(source='get_all_permissions')
     user_permissions = PermissionSerializer(many=True, read_only=True)
-    groups = GroupSerializer(many=True, read_only=True)
+    permissions = serializers.SerializerMethodField()
+    organizations = serializers.SerializerMethodField()
 
+    current_organization = GroupSerializer(source='user_profile.current_organization')
     ip_list_columns = serializers.ListField(source='user_profile.ip_list_columns')
     ip_list_view_type = serializers.ChoiceField(
         choices=UserProfile.IP_LIST_VIEW_CHOICES, default=UserProfile.AIC, source='user_profile.ip_list_view_type'
@@ -88,10 +101,31 @@ class UserLoggedInSerializer(UserSerializer):
     def get_url(self, obj):
         return self.context['request'].build_absolute_uri(reverse('me'))
 
+    def get_permissions(self, obj):
+        request = self.context.get('request')
+        user = request.user
+        groups = get_membership_descendants(user.user_profile.current_organization, user)
+
+        perms = Permission.objects.filter(group__in=Subquery(groups.values('django_group__id'))).distinct()
+        perms = perms.values_list('content_type__app_label', 'codename').order_by()
+
+        return {'%s.%s' % (ct, name) for ct, name in perms}
+
+    def get_organizations(self, user):
+        groups = get_organization_groups(user)
+        serializer = GroupSerializer(data=groups, many=True)
+        serializer.is_valid()
+        return serializer.data
+
     def update(self, instance, validated_data):
-        profile_data = validated_data.pop('user_profile')
+        profile_data = validated_data.pop('user_profile', {})
 
         user_profile = instance.user_profile
+
+        user_profile.current_organization = profile_data.get(
+            'current_organization',
+            user_profile.current_organization,
+        )
 
         user_profile.ip_list_columns = profile_data.get(
             'ip_list_columns',
@@ -104,20 +138,29 @@ class UserLoggedInSerializer(UserSerializer):
 
         user_profile.save()
 
-        return instance
+        return super(UserLoggedInSerializer, self).update(instance, validated_data)
 
     class Meta:
         model = User
         fields = (
             'url', 'id', 'username', 'first_name', 'last_name', 'email',
-            'groups', 'is_staff', 'is_active', 'is_superuser', 'last_login',
+            'organizations', 'is_staff', 'is_active', 'is_superuser', 'last_login',
             'date_joined', 'permissions', 'user_permissions',
-            'ip_list_columns', 'ip_list_view_type',
+            'ip_list_columns', 'ip_list_view_type', 'current_organization',
         )
         read_only_fields = (
-            'id', 'username', 'last_login', 'date_joined', 'groups',
+            'id', 'username', 'last_login', 'date_joined', 'organizations',
             'is_staff', 'is_active', 'is_superuser',
         )
+
+
+class UserLoggedInWriteSerializer(UserLoggedInSerializer):
+    current_organization = UserFilteredOrganizationField(source='user_profile.current_organization')
+
+    class Meta:
+        model = User
+        fields = UserLoggedInSerializer.Meta.fields
+        read_only_fields = UserLoggedInSerializer.Meta.read_only_fields
 
 
 class NotificationSerializer(serializers.ModelSerializer):

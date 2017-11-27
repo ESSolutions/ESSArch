@@ -30,15 +30,18 @@ from ESSArch_Core.auth.serializers import (
     PermissionSerializer,
     UserSerializer,
     UserLoggedInSerializer,
+    UserLoggedInWriteSerializer,
 )
 
 from ESSArch_Core.auth.models import Notification
 
 from django.conf import settings
-from django.contrib.auth.models import User, Group, Permission
+from django.contrib.auth.models import User, Permission
 from django.shortcuts import reverse
 
 from django_filters.rest_framework import DjangoFilterBackend
+
+from groups_manager.models import Group
 
 from rest_auth.app_settings import LoginSerializer
 from rest_auth.views import (
@@ -79,6 +82,12 @@ class MeView(RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return UserLoggedInSerializer
+
+        return UserLoggedInWriteSerializer
 
 
 class PermissionViewSet(viewsets.ReadOnlyModelViewSet):

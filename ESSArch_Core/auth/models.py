@@ -27,6 +27,8 @@ import logging
 from django.contrib.auth.models import User
 from django.db import models
 
+from groups_manager.models import Group
+
 from picklefield.fields import PickledObjectField
 
 
@@ -44,6 +46,7 @@ class UserProfile(models.Model):
     )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_profile')
+    current_organization = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
     ip_list_columns = PickledObjectField(default=DEFAULT_IP_LIST_COLUMNS,)
     ip_list_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=AIC,)
 

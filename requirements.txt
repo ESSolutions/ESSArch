@@ -4,6 +4,7 @@ channels==1.1.8
 django==1.11.6
 django-cors-headers==1.1.0
 django-filter==1.0.4
+django-groups-manager==0.5.1
 django-jsonfield==1.0.1
 django-mptt==0.8.7
 django-picklefield==0.3.2
