@@ -42,6 +42,7 @@ from django.db import models
 from django.db.models import Min, Max, Subquery
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 
+from groups_manager.models import Member
 from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 
 from rest_framework import exceptions, filters, permissions, status
