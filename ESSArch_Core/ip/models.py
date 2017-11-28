@@ -332,6 +332,15 @@ class InformationPackage(models.Model):
             new_profile_ip.ip = new_aip
             new_profile_ip.save()
 
+        member = Member.objects.get(django_user=responsible)
+        try:
+            perms = settings.IP_CREATION_PERMS_MAP
+        except AttributeError:
+            raise exceptions.ParseError('Missing IP_CREATION_PERMS_MAP in settings')
+
+        organization = responsible.user_profile.current_organization
+        member.assign_object(organization, new_aip, custom_permissions=perms)
+
         return new_aip
 
     def check_db_sync(self):
