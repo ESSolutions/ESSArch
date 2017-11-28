@@ -41,6 +41,8 @@ from django.db import models
 from django.db.models import Min, Max
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 
+from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
+
 from rest_framework import exceptions, filters, permissions, status
 from rest_framework.response import Response
 
@@ -574,6 +576,14 @@ class InformationPackageMetadata(models.Model):
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
             return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
+
+
+class InformationPackageUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey(InformationPackage, on_delete=models.CASCADE)
+
+
+class InformationPackageGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey(InformationPackage, on_delete=models.CASCADE)
 
 
 class EventIP(models.Model):
