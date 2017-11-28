@@ -37,8 +37,9 @@ from operator import itemgetter
 
 from celery import states as celery_states
 
+from django.conf import settings
 from django.db import models
-from django.db.models import Min, Max
+from django.db.models import Min, Max, Subquery
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 
 from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
@@ -46,6 +47,9 @@ from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 from rest_framework import exceptions, filters, permissions, status
 from rest_framework.response import Response
 
+import six
+
+from ESSArch_Core.auth.util import get_membership_descendants
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
 
 from ESSArch_Core.profiles.models import (
@@ -121,6 +125,32 @@ class ArchivalLocation(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class InformationPackageManager(models.Manager):
+    def for_user(self, user, perms):
+        """
+        Returns information packages for which a given ``users`` groups in the
+        ``users`` current organization has all permissions in ``perms``
+
+        :param user: ``User`` instance for which information packages would be
+        returned
+        :param perms: single permission string, or sequence of permission
+        strings which should be checked
+        """
+
+        if isinstance(perms, six.string_types):
+            perms = [perms]
+
+        groups = get_membership_descendants(user.user_profile.current_organization, user)
+        django_groups = [g.django_group for g in groups]
+
+        sub = InformationPackageGroupObjectPermission.objects.filter(
+            group__in=django_groups, permission__codename__in=perms)
+        return self.get_queryset().filter(pk__in=Subquery(sub.values('content_object')))
+
+    def visible_to_user(self, user):
+        return self.for_user(user, 'view_informationpackage')
 
 
 @python_2_unicode_compatible
@@ -239,6 +269,7 @@ class InformationPackage(models.Model):
         null=True
     )
 
+    objects = InformationPackageManager()
 
     def related_ips(self, cached=True):
         sorting = ('generation', 'package_type', 'create_date',)
