@@ -34,7 +34,7 @@ from groups_manager.models import Group
 from rest_framework import exceptions, serializers
 
 from ESSArch_Core.auth.models import Notification, UserProfile
-from ESSArch_Core.auth.util import get_membership_descendants, get_organization_groups
+from ESSArch_Core.auth.util import get_membership_descendants, get_organization_groups, get_permission_set
 
 
 User = get_user_model()
@@ -102,14 +102,7 @@ class UserLoggedInSerializer(UserSerializer):
         return self.context['request'].build_absolute_uri(reverse('me'))
 
     def get_permissions(self, obj):
-        request = self.context.get('request')
-        user = request.user
-        groups = get_membership_descendants(user.user_profile.current_organization, user)
-
-        perms = Permission.objects.filter(group__in=Subquery(groups.values('django_group__id'))).distinct()
-        perms = perms.values_list('content_type__app_label', 'codename').order_by()
-
-        return {'%s.%s' % (ct, name) for ct, name in perms}
+        return get_permission_set(obj)
 
     def get_organizations(self, user):
         groups = get_organization_groups(user)
