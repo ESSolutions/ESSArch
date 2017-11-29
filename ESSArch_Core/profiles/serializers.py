@@ -42,7 +42,7 @@ from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.profiles.validators import validate_template
 
 
-class ProfileSASerializer(serializers.HyperlinkedModelSerializer):
+class ProfileSASerializer(serializers.ModelSerializer):
     profile_type = serializers.SlugRelatedField(slug_field='profile_type', source='profile', read_only=True)
     profile_name = serializers.SlugRelatedField(slug_field='name', source='profile', read_only=True)
     profile = serializers.PrimaryKeyRelatedField(queryset=Profile.objects.all())
@@ -50,7 +50,7 @@ class ProfileSASerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ProfileSA
         fields = (
-            'url', 'id', 'profile', 'submission_agreement', 'profile_name', 'profile_type', 'LockedBy', 'Unlockable'
+            'id', 'profile', 'submission_agreement', 'profile_name', 'profile_type', 'LockedBy', 'Unlockable'
         )
 
 
@@ -69,7 +69,7 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfileIPData
         fields = (
-            'url', 'id', 'relation', 'data', 'version', 'user', 'created',
+            'id', 'relation', 'data', 'version', 'user', 'created',
         )
         extra_kwargs = {
             'user': {
@@ -98,7 +98,7 @@ class ProfileIPSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfileIP
         fields = (
-            'url', 'id', 'profile', 'ip', 'profile_name', 'profile_type', 'included', 'LockedBy', 'Unlockable', 'data', 'data_versions',
+            'id', 'profile', 'ip', 'profile_name', 'profile_type', 'included', 'LockedBy', 'Unlockable', 'data', 'data_versions',
         )
         read_only_fields = (
             'LockedBy',
@@ -109,7 +109,7 @@ class ProfileIPWriteSerializer(ProfileIPSerializer):
     data = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=ProfileIPData.objects.all())
 
 
-class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
+class SubmissionAgreementSerializer(serializers.ModelSerializer):
     published = serializers.BooleanField(read_only=True)
 
     profile_transfer_project = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='transfer_project'))
@@ -137,7 +137,7 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = SubmissionAgreement
         fields = (
-                'url', 'id', 'name', 'published', 'type', 'status', 'label',
+                'id', 'name', 'published', 'type', 'status', 'label',
 
                 'cm_version',
                 'cm_release_date',
@@ -216,7 +216,7 @@ class SubmissionAgreementSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
-class ProfileSerializer(serializers.HyperlinkedModelSerializer):
+class ProfileSerializer(serializers.ModelSerializer):
     specification_data = serializers.SerializerMethodField()
     template = serializers.SerializerMethodField()
 
@@ -260,7 +260,7 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Profile
         fields = (
-            'url', 'id', 'profile_type', 'name', 'type', 'status', 'label',
+            'id', 'profile_type', 'name', 'type', 'status', 'label',
             'schemas', 'representation_info', 'preservation_descriptive_info',
             'supplemental', 'access_constraints', 'datamodel_reference',
             'cm_release_date', 'cm_change_authority', 'cm_change_description',
@@ -330,6 +330,7 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
                 'allow_blank': True,
             },
         }
+
 
 class ProfileDetailSerializer(ProfileSerializer):
     class Meta:
