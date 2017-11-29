@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.db.models import Q, Subquery
 
@@ -47,14 +48,25 @@ def get_organization_groups(user):
 
 
 def get_permission_objs(user):
+    perms = Permission.objects.none()
+
     if not user.is_active or user.is_anonymous:
-        return Permission.objects.none()
+        return perms
 
     if user.is_superuser:
         return Permission.objects.all()
 
-    groups = get_membership_descendants(user.user_profile.current_organization, user)
-    perms = Permission.objects.filter(group__in=Subquery(groups.values('django_group__id')))
+    org = user.user_profile.current_organization
+    if org is not None:
+        groups = get_membership_descendants(org, user)
+        perms = Permission.objects.filter(group__in=Subquery(groups.values('django_group__id')))
+
+
+    # non-groups_manager group permissions
+    user_groups_field = get_user_model()._meta.get_field('groups')
+    user_groups_query = 'group__%s' % user_groups_field.related_query_name()
+    perms |= Permission.objects.filter(group__group=None, **{user_groups_query: user})
+
     perms |= user.user_permissions.all()
     perms = perms.distinct()
     return perms.values_list('content_type__app_label', 'codename').order_by()
