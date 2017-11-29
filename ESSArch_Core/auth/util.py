@@ -21,6 +21,9 @@ def get_membership_descendants(group, user):
         user: The user to check membership for
     """
 
+    if group is None:
+        return Group.objects.none()
+
     descendants = group.get_descendants(include_self=True).filter(level__in=[group.level, group.level+1])
 
     if not (getattr(group.group_type, 'codename') == ORGANIZATION_TYPE and group.group_members.filter(django_user=user).exists()):
@@ -38,6 +41,8 @@ def get_organization_groups(user):
     """
 
     member = user.groups_manager_member_set.first()
+    if member is None:
+        return Group.objects.none()
 
     sub_group_filter = Q(
         ~Q(sub_groups_manager_group_set__group_type__codename=ORGANIZATION_TYPE) &
