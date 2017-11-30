@@ -25,6 +25,7 @@
 from ESSArch_Core.auth.serializers import (
     GroupSerializer,
     GroupDetailSerializer,
+    LoginSerializer,
     NotificationSerializer,
     NotificationReadSerializer,
     PermissionSerializer,
@@ -43,7 +44,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from groups_manager.models import Group
 
-from rest_auth.app_settings import LoginSerializer
 from rest_auth.views import (
     LoginView as rest_auth_LoginView,
     LogoutView as rest_auth_LogoutView,
@@ -120,16 +120,11 @@ class NotificationViewSet(viewsets.ModelViewSet):
 class LoginView(rest_auth_LoginView):
     serializer_class = LoginSerializer
 
-    def post(self, request, *args, **kwargs):
-        self.request = request
-        try:
-            self.serializer = self.get_serializer(data=self.request.data, context={'request': request})
-            self.serializer.is_valid(raise_exception=True)
-            self.login()
-        except exceptions.ValidationError:
-            raise exceptions.ParseError('Invalid username or password')
+    def get_response(self):
+        serializer = UserLoggedInSerializer(instance=self.user,
+                                            context={'request': self.request})
 
-        return self.get_response()
+        return Response(serializer.data)
 
 
 class LogoutView(rest_auth_LogoutView):
@@ -137,4 +132,4 @@ class LogoutView(rest_auth_LogoutView):
         if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
             return Response({'redirect': reverse('saml2:saml2_logout')})
 
-        return self.logout(request)
+        return super(LogoutView, self).post(request)

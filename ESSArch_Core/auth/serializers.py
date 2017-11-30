@@ -182,65 +182,23 @@ from rest_auth.app_settings import LoginSerializer as rest_auth_LoginSerializer
 
 
 class LoginSerializer(rest_auth_LoginSerializer):
-    def _validate_email(self, email, password):
-        user = None
-
-        if email and password:
-            user = authenticate(email=email, password=password, request=self.request)
-        else:
-            msg = _('Must include "email" and "password".')
-            raise exceptions.ValidationError(msg)
-
-        return user
-
-    def _validate_username(self, username, password):
-        user = None
-
-        if username and password:
-            user = authenticate(username=username, password=password, request=self.request)
-        else:
-            msg = _('Must include "username" and "password".')
-            raise exceptions.ValidationError(msg)
-
-        return user
-
-    def _validate_username_email(self, username, email, password):
-        user = None
-
-        if email and password:
-            user = authenticate(email=email, password=password, request=self.request)
-        elif username and password:
-            user = authenticate(username=username, password=password, request=self.request)
-        else:
-            msg = _('Must include either "username" or "email" and "password".')
-            raise exceptions.ValidationError(msg)
-
-        return user
+    username = serializers.CharField()
+    password = serializers.CharField(style={'input_type': 'password'})
 
     def validate(self, attrs):
         self.request = self.context.get('request')
         username = attrs.get('username')
-        email = attrs.get('email')
         password = attrs.get('password')
 
-        user = None
-
-        if email:
-            try:
-                username = User.objects.get(email__iexact=email).get_username()
-            except User.DoesNotExist:
-                pass
-
-        if username:
-            user = self._validate_username_email(username, '', password)
+        user = authenticate(username=username, password=password, request=self.request)
 
         # Did we get back an active user?
         if user:
             if not user.is_active:
-                msg = _('User account is disabled.')
+                msg = _('User account is disabled')
                 raise exceptions.ValidationError(msg)
         else:
-            msg = _('Unable to log in with provided credentials.')
+            msg = _('Invalid username or password')
             raise exceptions.ValidationError(msg)
 
         # If required, is the email verified?
