@@ -5,10 +5,13 @@ from channels import Channel
 from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 from django.core.cache import cache
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
+from groups_manager.models import GroupMember
+
 from ESSArch_Core.auth.models import Notification, UserProfile
+from ESSArch_Core.auth.util import get_organization_groups
 
 
 @receiver(post_save, sender=User)
@@ -60,6 +63,16 @@ def notification_post_save(sender, instance, created, **kwargs):
                 channels.discard(channel)
                 cache.set(cache_name, channels)
 
+
+@receiver(post_delete, sender=GroupMember)
+@receiver(post_save, sender=GroupMember)
+def set_default_organization(sender, instance, **kwargs):
+    user = instance.member.django_user
+    groups = get_organization_groups(user)
+
+    if user.user_profile.current_organization is None or user.user_profile.current_organization not in groups:
+        user.user_profile.current_organization = groups.first()
+        user.user_profile.save(update_fields=['current_organization'])
 
 try:
     from django_auth_ldap.backend import LDAPBackend, ldap_error  # isort:skip
