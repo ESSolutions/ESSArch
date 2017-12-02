@@ -39,6 +39,7 @@ from ESSArch_Core.configuration.models import (
     EventType, Path,
 )
 from ESSArch_Core.essxml.util import (
+    find_file,
     find_files,
     get_agent,
     get_altrecordid,
@@ -167,6 +168,72 @@ class FindFilesTestCase(TestCase):
         found = find_files(xmlfile, rootdir=self.datadir)
         self.assertEqual(len(found), len(expected))
         self.assertItemsEqual(found, expected)
+
+
+class FindFileTestCase(TestCase):
+    def setUp(self):
+        self.bd = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.bd, "datafiles")
+        os.mkdir(self.datadir)
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.datadir)
+        except:
+            pass
+
+    def test_files_file_element(self):
+        xmlfile = os.path.join(self.datadir, "test.xml")
+
+        with open(xmlfile, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root xmlns:xlink="http://www.w3.org/1999/xlink">
+                <file><FLocat href="file:///1.txt"/></file>
+                <file><FLocat href="file:2.txt"/></file>
+                <file><FLocat href="3.txt"/></file>
+            </root>
+            ''')
+
+        found = find_file(xmlfile, '1.txt', rootdir=self.datadir)
+        self.assertIsNotNone(found)
+
+        found = find_file(xmlfile, '2.txt', rootdir=self.datadir)
+        self.assertIsNotNone(found)
+
+        found = find_file(xmlfile, '4.txt', rootdir=self.datadir)
+        self.assertIsNone(found)
+
+    def test_files_object_element(self):
+        xmlfile = os.path.join(self.datadir, "test.xml")
+
+        with open(xmlfile, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root xmlns:xlink="http://www.w3.org/1999/xlink">
+                <object>
+                    <storage>
+                        <contentLocation>
+                            <contentLocationValue>file:///1.txt</contentLocationValue>
+                        </contentLocation>
+                    </storage>
+                </object>
+                <object>
+                    <storage>
+                        <contentLocation>
+                            <contentLocationValue>file:///2.txt</contentLocationValue>
+                        </contentLocation>
+                    </storage>
+                </object>
+            </root>
+            ''')
+
+        found = find_file(xmlfile, '1.txt', rootdir=self.datadir)
+        self.assertIsNotNone(found)
+
+        found = find_file(xmlfile, '2.txt', rootdir=self.datadir)
+        self.assertIsNotNone(found)
+
+        found = find_file(xmlfile, '3.txt', rootdir=self.datadir)
+        self.assertIsNone(found)
 
 
 class GetAltrecordidTestCase(TestCase):
