@@ -397,7 +397,11 @@ def find_file(xmlfile, filepath, rootdir='', prefix=''):
             for props_path in props_paths:
                 el = get_elements_without_namespace(root, '%s/%s' % (elname, props_path), fullpath)
                 if len(el) > 0:
-                    return XMLFileElement(el[0], props, path=filepath)
+                    el = el[0]
+                    while el.xpath('local-name()') != elname:
+                        el = el.getparent()
+                    xml_el = XMLFileElement(el, props, path=filepath)
+                    return xml_el
 
     for pointer in find_pointers(xmlfile):
         pointer_prefix = os.path.split(pointer.path)[0]
