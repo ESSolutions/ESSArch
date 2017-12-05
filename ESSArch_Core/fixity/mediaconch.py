@@ -9,6 +9,11 @@ def validate_file(filename, policy=None):
 
     parser = etree.XMLParser(remove_blank_text=True)
     root = etree.XML(out, parser=parser)
-    passed = len(root.xpath('//*[@outcome="fail"][1]')) == 0
+
+    passed = True
+    outcome = (root.xpath('//*[@*[local-name() = "outcome"]][1]'))
+    if len(outcome):
+        passed = outcome[0].attrib['outcome'] == 'pass'
+
     minified = etree.tostring(root, xml_declaration=True, encoding='UTF-8')
     return passed, minified
