@@ -78,7 +78,7 @@ class StructureValidator(BaseValidator):
                         valid = True
 
                 if not valid:
-                    raise ValidationError('{file} is now allowed'.format(file=entry.path))
+                    raise ValidationError('{file} is not allowed'.format(file=entry.path))
 
             filepath, ext = os.path.splitext(entry.path)
             if len(valid_extensions) and not ext[1:] in valid_extensions:
