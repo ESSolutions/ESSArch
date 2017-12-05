@@ -106,6 +106,10 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
     def validate(self, request, pk=None):
         workarea = self.get_object()
         ip = workarea.ip
+
+        if ip.get_profile('validation') is None:
+            raise exceptions.ParseError("IP does not have a \"validation\" profile")
+
         ip.validation_set.all().delete()
 
         stop_at_failure = request.data.get('stop_at_failure', False)
