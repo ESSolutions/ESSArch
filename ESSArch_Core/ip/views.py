@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
 from ESSArch_Core.ip.filters import (
     ArchivalInstitutionFilter,
     ArchivistOrganizationFilter,
@@ -107,24 +108,14 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
         ip = workarea.ip
         ip.validation_set.all().delete()
 
-        prepare = Path.objects.get(entity="ingest_workarea").value
-
         stop_at_failure = request.data.get('stop_at_failure', False)
         validators = request.data.get('validators', {})
-        available_validators = [
-            'validate_xml_file', 'validate_file_format', 'validate_integrity',
-            'validate_logical_physical_representation', 'validate_mediaconch',
-        ]
+        available_validators = AVAILABLE_VALIDATORS.keys()
 
-        if not any(v is True and k in available_validators for k, v in validators.iteritems()):
+        if not any(selected in available_validators for selected in validators):
             raise exceptions.ParseError('No valid validator selected')
 
-        for key in validators:
-            if validators[key]:
-                validators[remove_prefix(key, 'validate_')] = validators.pop(key)
-
-        params = {'stop_at_failure': stop_at_failure}
-        params.update(validators)
+        params = {'validators': validators, 'stop_at_failure': stop_at_failure}
 
         task = ProcessTask.objects.create(
             name="ESSArch_Core.tasks.ValidateWorkarea",
