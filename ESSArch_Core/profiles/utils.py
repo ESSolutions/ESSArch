@@ -19,7 +19,7 @@ profile_types = [
     "Workflow",
     "Preservation Metadata",
     "Event",
-    "Mediaconch",
+    "Validation",
 ]
 
 def fill_specification_data(data={}, sa=None, ip=None):

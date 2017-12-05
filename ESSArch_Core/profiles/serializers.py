@@ -127,7 +127,7 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
     profile_workflow = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='workflow'))
     profile_preservation_metadata = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='preservation_metadata'))
     profile_event = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='event'))
-    profile_mediaconch = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='mediaconch'))
+    profile_validation = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='validation'))
 
     def validate(self, data):
         if self.instance is None and SubmissionAgreement.objects.filter(pk=data.get('id')).exists():
@@ -203,7 +203,7 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
                 'profile_workflow',
                 'profile_preservation_metadata',
                 'profile_event',
-                'profile_mediaconch',
+                'profile_validation',
 
                 'template',
         )
