@@ -31,7 +31,7 @@ from ESSArch_Core.ip.serializers import (
     EventIPSerializer,
     WorkareaSerializer,
 )
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.util import remove_prefix
 
 
@@ -132,6 +132,28 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
         )
         task.run()
         return Response("Validating IP")
+
+    @detail_route(methods=['post'], url_path='transform')
+    def transform(self, request, pk=None):
+        workarea = self.get_object()
+        ip = workarea.ip
+
+        if ip.get_profile('transformation') is None:
+            raise exceptions.ParseError("IP does not have a \"transformation\" profile")
+
+        step = ProcessStep.objects.create(name="Transform", eager=False, information_package=ip)
+        task = ProcessTask.objects.create(
+            name="ESSArch_Core.tasks.TransformWorkarea",
+            args=[pk],
+            eager=False,
+            log=EventIP,
+            processstep=step,
+            information_package=ip,
+            responsible=self.request.user,
+        )
+        step.run()
+
+        return Response("Transforming IP")
 
     def destroy(self, request, pk=None, **kwargs):
         workarea = self.get_object()

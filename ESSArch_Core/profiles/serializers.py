@@ -128,6 +128,7 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
     profile_preservation_metadata = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='preservation_metadata'))
     profile_event = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='event'))
     profile_validation = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='validation'))
+    profile_transformation = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='transformation'))
 
     def validate(self, data):
         if self.instance is None and SubmissionAgreement.objects.filter(pk=data.get('id')).exists():
@@ -204,6 +205,7 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
                 'profile_preservation_metadata',
                 'profile_event',
                 'profile_validation',
+                'profile_transformation',
 
                 'template',
         )

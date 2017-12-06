@@ -56,7 +56,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
     findElementWithoutNamespace,
     XMLGenerator
 )
-from ESSArch_Core.fixity import format, validation
+from ESSArch_Core.fixity import format, transformation, validation
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, parse_event_file, validate_against_schema
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
@@ -633,6 +633,17 @@ class ValidateWorkarea(DBTask):
         profile_data = fill_specification_data(data=ip.get_profile_data('validation'), sa=sa, ip=ip)
         validation.validate_path(workarea.path, validators, validation_profile, data=profile_data, ip=ip,
                                  stop_at_failure=stop_at_failure)
+        return "Success"
+
+
+class TransformWorkarea(DBTask):
+    def run(self, workarea):
+        workarea = Workarea.objects.select_related('ip__submission_agreement').get(pk=workarea)
+        ip = workarea.ip
+        sa = ip.submission_agreement
+        profile = ip.get_profile('transformation')
+        profile_data = fill_specification_data(data=ip.get_profile_data('transformation'), sa=sa, ip=ip)
+        transformation.transform_path(workarea.path, profile, data=profile_data, ip=ip)
         return "Success"
 
 

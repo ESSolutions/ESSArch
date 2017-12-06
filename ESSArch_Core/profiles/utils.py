@@ -20,6 +20,7 @@ profile_types = [
     "Preservation Metadata",
     "Event",
     "Validation",
+    "Transformation",
 ]
 
 def fill_specification_data(data={}, sa=None, ip=None):
