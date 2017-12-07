@@ -110,13 +110,17 @@ def validate_path(path, validators, profile, data=None, ip=None, stop_at_failure
     validator_instances = []
 
     for name in validators:
+        if name not in AVAILABLE_VALIDATORS.keys():
+            raise ValueError('Validator "%s" not specified in profile' % name)
+
         try:
             module_name, validator_class = AVAILABLE_VALIDATORS[name].rsplit('.', 1)
         except KeyError:
             raise ValueError('Validator "%s" not found' % name)
 
         validator = getattr(importlib.import_module(module_name), validator_class)
-        for specification in profile.specification[name]:
+
+        for specification in profile.specification.get(name, []):
             context = specification.get('context')
             include = [os.path.join(path, included) for included in specification.get('include', [])]
             exclude = [os.path.join(path, excluded) for excluded in specification.get('exclude', [])]

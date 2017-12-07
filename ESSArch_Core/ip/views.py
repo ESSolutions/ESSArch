@@ -119,6 +119,12 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
         if not any(selected in available_validators for selected in validators):
             raise exceptions.ParseError('No valid validator selected')
 
+        for selected in validators:
+            if selected not in available_validators:
+                raise exceptions.ParseError('Validator "%s" not found' % selected)
+            if selected not in ip.get_profile('validation').specification.keys():
+                raise exceptions.ParseError('Validator "%s" not specified in validation profile' % selected)
+
         params = {'validators': validators, 'stop_at_failure': stop_at_failure}
 
         task = ProcessTask.objects.create(
