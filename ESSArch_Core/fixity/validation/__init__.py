@@ -16,6 +16,7 @@ AVAILABLE_VALIDATORS = {
     'format': 'ESSArch_Core.fixity.validation.backends.format.FormatValidator',
     'mediaconch': 'ESSArch_Core.fixity.validation.backends.mediaconch.MediaconchValidator',
     'structure': 'ESSArch_Core.fixity.validation.backends.structure.StructureValidator',
+    'verapdf': 'ESSArch_Core.fixity.validation.backends.verapdf.VeraPDFValidator',
     'xml': 'ESSArch_Core.fixity.validation.backends.xml.XMLValidator',
 }
 
