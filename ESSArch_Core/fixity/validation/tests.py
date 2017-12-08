@@ -1,13 +1,16 @@
 import errno
 import hashlib
 import os
+import shutil
+import tempfile
 
 from django.test import SimpleTestCase
-
 from pyfakefs import fake_filesystem_unittest
 
 from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
+from ESSArch_Core.fixity.validation.backends.structure import StructureValidator
+
 
 class ChecksumValidatorTests(fake_filesystem_unittest.TestCase):
     def setUp(self):
@@ -19,9 +22,6 @@ class ChecksumValidatorTests(fake_filesystem_unittest.TestCase):
 
         md5 = hashlib.md5(self.content)
         self.checksum = md5.hexdigest()
-
-    def tearDown(self):
-        pass
 
     def test_validate_against_string(self):
         options = {'expected': self.checksum}
@@ -132,3 +132,143 @@ class ChecksumValidatorXMLTests(SimpleTestCase):
 
         self.validator.validate(self.test_file)
         self.validator.validate(test_file2)
+
+
+class StructureValidatorTests(SimpleTestCase):
+    def setUp(self):
+        self.root = tempfile.mkdtemp()
+        self.validator_class = StructureValidator
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.root)
+        except OSError as exc:
+            if exc.errno != errno.ENOENT:
+                raise
+
+    def test_validate_required_files(self):
+        options = {
+            'tree': [
+                {
+                    "type": "root",
+                    "required_files": ["foo.txt", "bar.txt"]
+                }
+            ]
+        }
+
+        validator = self.validator_class(options=options)
+
+        with self.assertRaises(ValidationError):
+            validator.validate(self.root)
+
+        open(os.path.join(self.root, 'foo.txt'), 'a').close()
+
+        with self.assertRaises(ValidationError):
+            validator.validate(self.root)
+
+        open(os.path.join(self.root, 'additional.txt'), 'a').close()
+
+        with self.assertRaises(ValidationError):
+            validator.validate(self.root)
+
+        open(os.path.join(self.root, 'bar.txt'), 'a').close()
+
+        validator.validate(self.root)
+
+    def test_valid_paths(self):
+        options = {
+            'tree': [
+                {
+                    "type": "root",
+                    "valid_paths": ["*.txt", "*.pdf"]
+                }
+            ]
+        }
+
+        validator = self.validator_class(options=options)
+
+        validator.validate(self.root)
+
+        open(os.path.join(self.root, 'foo.txt'), 'a').close()
+        validator.validate(self.root)
+
+        open(os.path.join(self.root, 'bar.pdf'), 'a').close()
+        validator.validate(self.root)
+
+        open(os.path.join(self.root, 'invalid.exe'), 'a').close()
+        with self.assertRaises(ValidationError):
+            validator.validate(self.root)
+
+    def test_valid_related_paths(self):
+        options = {
+            'tree': [
+                {
+                    "type": "root",
+                    "valid_paths": [["*.txt", "*.pdf"], "*.xml"]
+                }
+            ]
+        }
+        validator = self.validator_class(options=options)
+
+        # empty
+        validator.validate(self.root)
+
+        # only xml
+        open(os.path.join(self.root, 'test.xml'), 'a').close()
+        validator.validate(self.root)
+
+        # txt without related pdf
+        open(os.path.join(self.root, 'foo.txt'), 'a').close()
+        with self.assertRaisesRegexp(ValidationError, 'foo.txt missing related file foo.pdf'):
+            validator.validate(self.root)
+
+        # pdf with wrong name added
+        open(os.path.join(self.root, 'bar.pdf'), 'a').close()
+        with self.assertRaisesRegexp(ValidationError, 'foo.txt missing related file foo.pdf'):
+            validator.validate(self.root)
+        os.remove(os.path.join(self.root, 'bar.pdf'))
+
+        # pdf added
+        open(os.path.join(self.root, 'foo.pdf'), 'a').close()
+        validator.validate(self.root)
+
+        # txt deleted
+        os.remove(os.path.join(self.root, 'foo.txt'))
+        with self.assertRaisesRegexp(ValidationError, 'foo.pdf missing related file foo.txt'):
+            validator.validate(self.root)
+
+    def test_valid_related_paths_different_folders(self):
+        os.mkdir(os.path.join(self.root, 'c'))
+        os.mkdir(os.path.join(self.root, 'p'))
+
+        options = {
+            'tree': [
+                {
+                    "type": "root",
+                    "valid_paths": [["c/*.mkv", "c/*.mkv.md5", "p/*.mp4", "p/*.mp4.md5"]]
+                }
+            ]
+        }
+        validator = self.validator_class(options=options)
+
+        # empty
+        validator.validate(self.root)
+
+        # add mkv
+        open(os.path.join(self.root, 'c/test.mkv'), 'a').close()
+        with self.assertRaisesRegexp(ValidationError, 'c/test.mkv missing related file c/test.mkv.md5'):
+            validator.validate(self.root)
+
+        # add mkv.md5
+        open(os.path.join(self.root, 'c/test.mkv.md5'), 'a').close()
+        with self.assertRaisesRegexp(ValidationError, 'c/test.mkv missing related file p/test.mp4'):
+            validator.validate(self.root)
+
+        # add mp4
+        open(os.path.join(self.root, 'p/test.mp4'), 'a').close()
+        with self.assertRaisesRegexp(ValidationError, 'c/test.mkv missing related file p/test.mp4.md5'):
+            validator.validate(self.root)
+
+        # add mp4.md5
+        open(os.path.join(self.root, 'p/test.mp4.md5'), 'a').close()
+        validator.validate(self.root)
