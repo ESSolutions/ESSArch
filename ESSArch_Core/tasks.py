@@ -625,15 +625,28 @@ class ValidateFileFormat(DBTask):
 class ValidateWorkarea(DBTask):
     queue = 'validation'
 
+    def create_notification(self, ip):
+        errcount = Validation.objects.filter(information_package=ip, passed=False).count()
+
+        if errcount:
+            Notification.objects.create(message='Validation of "{ip}" failed with {errcount} error(s)'.format(ip=ip.object_identifier_value, errcount=errcount), level=logging.ERROR, user_id=self.responsible, refresh=True)
+        else:
+            Notification.objects.create(message='"{ip}" was successfully validated'.format(ip=ip.object_identifier_value), level=logging.INFO, user_id=self.responsible, refresh=True)
+
     def run(self, workarea, validators, stop_at_failure=True):
         workarea = Workarea.objects.get(pk=workarea)
         ip = workarea.ip
         sa = ip.submission_agreement
         validation_profile = ip.get_profile('validation')
         profile_data = fill_specification_data(data=ip.get_profile_data('validation'), sa=sa, ip=ip)
-        validation.validate_path(workarea.path, validators, validation_profile, data=profile_data, ip=ip,
-                                 stop_at_failure=stop_at_failure)
-        return "Success"
+
+        try:
+            validation.validate_path(workarea.path, validators, validation_profile, data=profile_data, ip=ip,
+                                     stop_at_failure=stop_at_failure)
+        except ValidationError:
+            self.create_notification(ip)
+        else:
+            self.create_notification(ip)
 
 
 class TransformWorkarea(DBTask):
