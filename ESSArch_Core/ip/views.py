@@ -106,9 +106,13 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
     def validate(self, request, pk=None):
         workarea = self.get_object()
         ip = workarea.ip
+        task_name = "ESSArch_Core.tasks.ValidateWorkarea"
 
         if ip.get_profile('validation') is None:
             raise exceptions.ParseError("IP does not have a \"validation\" profile")
+
+        if ProcessTask.objects.filter(information_package=ip, name=task_name, time_done__isnull=True).exists():
+            raise exceptions.ParseError('"{objid}" is already being validated'.format(objid=ip.object_identifier_value))
 
         ip.validation_set.all().delete()
 
@@ -128,7 +132,7 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
         params = {'validators': validators, 'stop_at_failure': stop_at_failure}
 
         task = ProcessTask.objects.create(
-            name="ESSArch_Core.tasks.ValidateWorkarea",
+            name=task_name,
             args=[pk],
             params=params,
             eager=False,
