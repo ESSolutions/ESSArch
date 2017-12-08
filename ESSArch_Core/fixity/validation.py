@@ -3,7 +3,6 @@ import logging
 from django.utils import timezone
 
 from .checksum import calculate_checksum
-from .mediaconch import validate_file as mediaconch_validation
 
 logger = logging.getLogger('essarch.fixity.validation')
 
@@ -40,11 +39,3 @@ def validate_file_format(filename, fid, format_name=None, format_version=None, f
 
     logger.info('Successfully validated format of %s' % filename)
 
-
-def validate_mediaconch(filename, policy=None):
-    passed, message = mediaconch_validation(filename, policy)
-
-    if not passed:
-        raise AssertionError(message)
-
-    return message
