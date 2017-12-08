@@ -71,8 +71,6 @@ class StructureValidator(BaseValidator):
                             self.update_required_files(os.path.relpath(root, path), f, required_files)
                         except ValueError:
                             raise validation_exc
-                        else:
-                            pass
 
                 if len(required_files):
                     try:
