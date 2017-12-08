@@ -237,6 +237,39 @@ class StructureValidatorTests(SimpleTestCase):
         with self.assertRaisesRegexp(ValidationError, 'foo.pdf missing related file foo.txt'):
             validator.validate(self.root)
 
+    def test_valid_multiple_related_paths(self):
+        options = {
+            'tree': [
+                {
+                    "type": "root",
+                    "valid_paths": [["*.mkv", "*.mkv.md5"], ["*.txt", "*.pdf"]]
+                }
+            ]
+        }
+        validator = self.validator_class(options=options)
+
+        # empty
+        validator.validate(self.root)
+
+        # add mkv
+        open(os.path.join(self.root, 'foo.mkv'), 'a').close()
+        with self.assertRaisesRegexp(ValidationError, 'foo.mkv missing related file foo.mkv.md5'):
+            validator.validate(self.root)
+
+        # add txt
+        open(os.path.join(self.root, 'foo.txt'), 'a').close()
+        with self.assertRaisesRegexp(ValidationError, 'foo.mkv missing related file foo.mkv.md5'):
+            validator.validate(self.root)
+
+        # add mkv.md5
+        open(os.path.join(self.root, 'foo.mkv.md5'), 'a').close()
+        with self.assertRaisesRegexp(ValidationError, 'foo.txt missing related file foo.pdf'):
+            validator.validate(self.root)
+
+        # add pdf
+        open(os.path.join(self.root, 'foo.pdf'), 'a').close()
+        validator.validate(self.root)
+
     def test_valid_related_paths_different_folders(self):
         os.mkdir(os.path.join(self.root, 'c'))
         os.mkdir(os.path.join(self.root, 'p'))
