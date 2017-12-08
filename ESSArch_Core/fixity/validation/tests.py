@@ -199,6 +199,27 @@ class StructureValidatorTests(SimpleTestCase):
         with self.assertRaises(ValidationError):
             validator.validate(self.root)
 
+    def test_valid_paths_and_required_files(self):
+        options = {
+            'tree': [
+                {
+                    "type": "root",
+                    "required_files": ["foo.txt"],
+                    "valid_paths": ["*.pdf"]
+                }
+            ]
+        }
+
+        validator = self.validator_class(options=options)
+
+        # empty
+        with self.assertRaises(ValidationError):
+            validator.validate(self.root)
+
+        # add required file
+        open(os.path.join(self.root, 'foo.txt'), 'a').close()
+        validator.validate(self.root)
+
     def test_valid_related_paths(self):
         options = {
             'tree': [

@@ -18,6 +18,14 @@ class StructureValidator(BaseValidator):
 
     file_validator = False
 
+    def update_required_files(self, rel_dir, filename, required_files):
+        if rel_dir == '.':
+            rel_file = filename
+        else:
+            rel_file = os.path.join(rel_dir, filename)
+
+        required_files.remove(rel_file)
+
     def in_valid_paths(self, root, path, valid_paths):
         for valid_path in [p for p in valid_paths if isinstance(p, six.string_types)]:
             if path in glob(valid_path):
@@ -56,17 +64,19 @@ class StructureValidator(BaseValidator):
         for root, dirs, files in walk(path):
             for f in files:
                 if len(valid_paths):
-                    self.in_valid_paths(path, os.path.join(root, f), valid_paths)
+                    try:
+                        self.in_valid_paths(path, os.path.join(root, f), valid_paths)
+                    except ValidationError as validation_exc:
+                        try:
+                            self.update_required_files(os.path.relpath(root, path), f, required_files)
+                        except ValueError:
+                            raise validation_exc
+                        else:
+                            pass
 
                 if len(required_files):
-                    rel_dir = os.path.relpath(root, path)
-                    if rel_dir == '.':
-                        rel_file = f
-                    else:
-                        rel_file = os.path.join(rel_dir, f)
-
                     try:
-                        required_files.remove(rel_file)
+                        self.update_required_files(os.path.relpath(root, path), f, required_files)
                     except ValueError:
                         pass
 
