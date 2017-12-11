@@ -41,6 +41,7 @@ from requests_toolbelt import MultipartEncoder
 
 from celery.result import allow_join_result
 
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
@@ -104,6 +105,9 @@ from ESSArch_Core.util import (
 
 from lxml import etree
 from scandir import walk
+
+
+User = get_user_model()
 
 
 class GenerateXML(DBTask):
@@ -654,9 +658,10 @@ class TransformWorkarea(DBTask):
         workarea = Workarea.objects.select_related('ip__submission_agreement').get(pk=workarea)
         ip = workarea.ip
         sa = ip.submission_agreement
+        user = User.objects.filter(pk=self.responsible).first()
         profile = ip.get_profile('transformation')
         profile_data = fill_specification_data(data=ip.get_profile_data('transformation'), sa=sa, ip=ip)
-        transformation.transform_path(workarea.path, profile, data=profile_data, ip=ip)
+        transformation.transform_path(workarea.path, profile, data=profile_data, ip=ip, user=user)
         return "Success"
 
 

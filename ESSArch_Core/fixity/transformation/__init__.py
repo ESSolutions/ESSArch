@@ -18,7 +18,7 @@ def _transform_directory(path, transformer, ip=None):
     pass
 
 
-def transform_path(path, profile, data=None, ip=None):
+def transform_path(path, profile, data=None, ip=None, user=None):
     transformer = profile.specification.get('name')
     data = data or {}
 
@@ -32,5 +32,5 @@ def transform_path(path, profile, data=None, ip=None):
     specification = profile.specification
     options = specification.get('options', {})
 
-    transformer_instance = transformer_class(ip=ip, options=options, data=data)
+    transformer_instance = transformer_class(ip=ip, options=options, data=data, user=user)
     transformer_instance.transform(path)
