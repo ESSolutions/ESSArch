@@ -73,10 +73,9 @@ def get_permission_objs(user):
     perms |= Permission.objects.filter(group__group=None, **{user_groups_query: user})
 
     perms |= user.user_permissions.all()
-    perms = perms.distinct()
-    return perms.values_list('content_type__app_label', 'codename').order_by()
+    return perms.distinct()
 
 
 def get_permission_set(user):
-    perms = get_permission_objs(user)
+    perms = get_permission_objs(user).values_list('content_type__app_label', 'codename').order_by()
     return {'%s.%s' % (ct, name) for ct, name in perms}
