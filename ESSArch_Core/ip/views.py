@@ -148,18 +148,55 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
         workarea = self.get_object()
         ip = workarea.ip
 
+        if ip.state.lower() in ('transforming', 'transformed'):
+            raise exceptions.ParseError("\"{ip}\" already {state}".format(ip=ip.object_identifier_value, state=ip.state.lower()))
+
         if ip.get_profile('transformation') is None:
             raise exceptions.ParseError("IP does not have a \"transformation\" profile")
 
         step = ProcessStep.objects.create(name="Transform", eager=False, information_package=ip)
-        task = ProcessTask.objects.create(
+        pos = 0
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.tasks.UpdateIPStatus",
+            params={
+                "ip": ip.pk,
+                "status": "Transforming",
+                "prev": ip.state,
+            },
+            processstep=step,
+            processstep_pos=pos,
+            log=EventIP,
+            information_package=ip,
+            responsible=request.user,
+        )
+
+        pos += 10
+
+        ProcessTask.objects.create(
             name="ESSArch_Core.tasks.TransformWorkarea",
             args=[pk],
-            eager=False,
             log=EventIP,
             processstep=step,
+            processstep_pos=pos,
             information_package=ip,
-            responsible=self.request.user,
+            responsible=request.user,
+        )
+
+        pos += 10
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.tasks.UpdateIPStatus",
+            params={
+                "ip": ip.pk,
+                "status": "Transformed",
+                "prev": "Transforming",
+            },
+            processstep=step,
+            processstep_pos=pos,
+            log=EventIP,
+            information_package=ip,
+            responsible=request.user,
         )
         step.run()
 
