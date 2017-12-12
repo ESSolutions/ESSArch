@@ -154,6 +154,9 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
         if ip.get_profile('transformation') is None:
             raise exceptions.ParseError("IP does not have a \"transformation\" profile")
 
+        if ip.get_profile('validation') is not None and not workarea.successfully_validated:
+            raise exceptions.ParseError("\"{ip}\" hasn't been successfully validated yet".format(ip=ip.object_identifier_value))
+
         step = ProcessStep.objects.create(name="Transform", eager=False, information_package=ip)
         pos = 0
 
