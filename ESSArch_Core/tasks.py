@@ -46,7 +46,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.conf import settings
-from django.db.models import F
+from django.db.models import F, Q
 from django.utils import timezone
 
 from retrying import retry
@@ -639,6 +639,8 @@ class ValidateWorkarea(DBTask):
 
     def run(self, workarea, validators, stop_at_failure=True):
         workarea = Workarea.objects.get(pk=workarea)
+        workarea.successfully_validated = False
+        workarea.save(update_fields=['successfully_validated'])
         ip = workarea.ip
         sa = ip.submission_agreement
         validation_profile = ip.get_profile('validation')
@@ -651,6 +653,28 @@ class ValidateWorkarea(DBTask):
             self.create_notification(ip)
         else:
             self.create_notification(ip)
+        finally:
+            validations = ip.validation_set.all()
+            validation_filter = {}
+            required = []
+
+            for validator_name, validator in six.iteritems(validation_profile.specification):
+                for validation_spec in validator:
+                    if validation_spec.get('required', True):
+                        class_name = validation.AVAILABLE_VALIDATORS[validator_name].split('.')[-1]
+                        required.append(class_name)
+                        validation_filter['validator'] = class_name
+
+            required = set(required)
+
+            if not required.issubset(set(validations.distinct().values_list('validator', flat=True))):
+                # all required validators haven't been executed
+                workarea.successfully_validated = False
+                workarea.save(update_fields=['successfully_validated'])
+                return
+
+            workarea.successfully_validated = not validations.filter(passed=False, validator__in=required).exists()
+            workarea.save(update_fields=['successfully_validated'])
 
 
 class TransformWorkarea(DBTask):

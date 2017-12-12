@@ -689,6 +689,7 @@ class Workarea(models.Model):
     ip = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, related_name='workareas')
     read_only = models.BooleanField(default=True)
     type = models.IntegerField(choices=TYPE_CHOICES, default=0)
+    successfully_validated = models.BooleanField(default=False)
 
     @property
     def path(self):

@@ -2,8 +2,6 @@ import uuid
 
 from django.db import models
 
-from ESSArch_Core.ip.models import InformationPackage
-
 
 class Validation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -13,4 +11,4 @@ class Validation(models.Model):
     time_done = models.DateTimeField(null=True)
     passed = models.NullBooleanField(null=True)
     message = models.TextField(max_length=255, blank=True)
-    information_package = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, null=True)
+    information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
