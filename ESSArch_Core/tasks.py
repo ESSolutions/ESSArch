@@ -655,17 +655,8 @@ class ValidateWorkarea(DBTask):
             self.create_notification(ip)
         finally:
             validations = ip.validation_set.all()
-            validation_filter = {}
-            required = []
-
-            for validator_name, validator in six.iteritems(validation_profile.specification):
-                for validation_spec in validator:
-                    if validation_spec.get('required', True):
-                        class_name = validation.AVAILABLE_VALIDATORS[validator_name].split('.')[-1]
-                        required.append(class_name)
-                        validation_filter['validator'] = class_name
-
-            required = set(required)
+            required = validation_profile.specification.get('_required', [])
+            required = set([validation.AVAILABLE_VALIDATORS[r].split('.')[-1] for r in required])
 
             if not required.issubset(set(validations.distinct().values_list('validator', flat=True))):
                 # all required validators haven't been executed
