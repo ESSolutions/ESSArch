@@ -6,6 +6,7 @@ from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
 
 class ValidationFilter(filters.FilterSet):
     validator = filters.CharFilter(method='filter_validator')
+    passed = filters.BooleanFilter()
 
     def filter_validator(self, queryset, name, value):
         print name, value
