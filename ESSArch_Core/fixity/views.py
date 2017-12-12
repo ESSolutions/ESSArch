@@ -8,6 +8,7 @@ from rest_framework.response import Response
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from ESSArch_Core.fixity.filters import ValidationFilter
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.serializers import ValidationSerializer, ValidationFilesSerializer
 
@@ -18,7 +19,7 @@ class ValidationViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     filter_backends = (
         filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
     )
-    filter_fields = ('filename', 'validator', 'passed', 'information_package',)
+    filter_class = ValidationFilter
 
 
 class ValidationFilesViewSet(ValidationViewSet):
