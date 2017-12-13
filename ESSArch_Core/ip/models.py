@@ -45,6 +45,8 @@ from django.utils.encoding import python_2_unicode_compatible, smart_text
 from groups_manager.models import Member
 from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 
+import jsonfield
+
 from rest_framework import exceptions, filters, permissions, status
 from rest_framework.response import Response
 
@@ -689,7 +691,7 @@ class Workarea(models.Model):
     ip = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, related_name='workareas')
     read_only = models.BooleanField(default=True)
     type = models.IntegerField(choices=TYPE_CHOICES, default=0)
-    successfully_validated = models.BooleanField(default=False)
+    successfully_validated = jsonfield.JSONField(default=None, null=True)
 
     @property
     def path(self):

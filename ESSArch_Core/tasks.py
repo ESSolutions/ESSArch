@@ -639,7 +639,11 @@ class ValidateWorkarea(DBTask):
 
     def run(self, workarea, validators, stop_at_failure=True):
         workarea = Workarea.objects.get(pk=workarea)
-        workarea.successfully_validated = False
+        workarea.successfully_validated = {}
+
+        for validator in validators:
+            workarea.successfully_validated[validator] = None
+
         workarea.save(update_fields=['successfully_validated'])
         ip = workarea.ip
         sa = ip.submission_agreement
@@ -655,16 +659,12 @@ class ValidateWorkarea(DBTask):
             self.create_notification(ip)
         finally:
             validations = ip.validation_set.all()
-            required = validation_profile.specification.get('_required', [])
-            required = set([validation.AVAILABLE_VALIDATORS[r].split('.')[-1] for r in required])
+            failed_validators = validations.values('validator').filter(passed=False).values_list('validator', flat=True)
 
-            if not required.issubset(set(validations.distinct().values_list('validator', flat=True))):
-                # all required validators haven't been executed
-                workarea.successfully_validated = False
-                workarea.save(update_fields=['successfully_validated'])
-                return
+            for k, v in six.iteritems(workarea.successfully_validated):
+                class_name = validation.AVAILABLE_VALIDATORS[k].split('.')[-1]
+                workarea.successfully_validated[k] = class_name not in failed_validators
 
-            workarea.successfully_validated = not validations.filter(passed=False, validator__in=required).exists()
             workarea.save(update_fields=['successfully_validated'])
 
 
