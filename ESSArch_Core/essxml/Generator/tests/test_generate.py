@@ -1740,6 +1740,74 @@ class GenerateXMLTestCase(TestCase):
         self.assertLess(root.index(c), root.index(d))
         self.assertLess(root.index(d), root.index(e))
 
+    def test_insert_from_xml_string(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: {'spec': specification}}
+        )
+        generator.generate()
+
+        append_xml = '<appended>appended text</appended>'
+
+        target = generator.find_element('foo')
+        for i in range(3):
+            generator.insert_from_xml_string(
+                target, append_xml,
+            )
+        generator.write(self.fname)
+
+        tree = etree.parse(self.fname)
+        appended = tree.findall('.//appended')
+
+        self.assertEqual(len(appended), 3)
+        for i in range(3):
+            self.assertEqual(appended[i].text, 'appended text')
+
+    def test_insert_from_xml_file(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                }
+            ]
+        }
+
+        generator = XMLGenerator(
+            {self.fname: {'spec': specification}}
+        )
+        generator.generate()
+
+        append_xml = os.path.join(self.xmldir, 'append.xml')
+        append_xml_string = '<appended>appended text</appended>'
+        append_el = etree.fromstring(append_xml_string)
+        etree.ElementTree(append_el).write(append_xml, xml_declaration=True, encoding='UTF-8')
+
+        target = generator.find_element('foo')
+        for i in range(3):
+            generator.insert_from_xml_file(
+                target, append_xml,
+            )
+
+        generator.write(self.fname)
+
+        tree = etree.parse(self.fname)
+        appended = tree.findall('.//appended')
+
+        self.assertEqual(len(appended), 3)
+        for i in range(3):
+            self.assertEqual(appended[i].text, 'appended text')
+
     def test_insert_element_with_namespace(self):
         nsmap = {
             'premis': 'http://www.loc.gov/premis/v3'
@@ -1775,10 +1843,12 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
+        target = generator.find_element('foo')
         for i in range(3):
-            generator.insert(
-                self.fname, 'foo', append_specification, {},
+            generator.insert_from_specification(
+                target, append_specification, {},
             )
+        generator.write(self.fname)
 
         tree = etree.parse(self.fname)
 
@@ -1820,9 +1890,11 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        generator.insert(
-            self.fname, 'root', append_specification, {}, index=0
+        target = generator.find_element('root')
+        generator.insert_from_specification(
+            target, append_specification, {}, index=0
         )
+        generator.write(self.fname)
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -1849,9 +1921,11 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        generator.insert(
-            self.fname, 'root', append_specification, {}, index=1
+        target = generator.find_element('root')
+        generator.insert_from_specification(
+            target, append_specification, {}, index=1
         )
+        generator.write(self.fname)
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -1909,9 +1983,11 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        generator.insert(
-            self.fname, 'root', append_specification, {}, before='baz'
+        target = generator.find_element('root')
+        generator.insert_from_specification(
+            target, append_specification, {}, before='baz'
         )
+        generator.write(self.fname)
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -1947,8 +2023,9 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
+        target = generator.find_element('root')
         with self.assertRaises(ValueError):
-            generator.insert(self.fname, 'root', append_specification, {}, before='bar')
+            generator.insert_from_specification(target, append_specification, {}, before='bar')
 
     def test_insert_element_after_element(self):
         specification = {
@@ -1999,9 +2076,11 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        generator.insert(
-            self.fname, 'root', append_specification, {}, after='bar'
+        target = generator.find_element('root')
+        generator.insert_from_specification(
+            target, append_specification, {}, after='bar'
         )
+        generator.write(self.fname)
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -2037,8 +2116,9 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
+        target = generator.find_element('root')
         with self.assertRaises(ValueError):
-            generator.insert(self.fname, 'root', append_specification, {}, after='bar')
+            generator.insert_from_specification(target, append_specification, {}, after='bar')
 
     def test_insert_element_before_and_after_element(self):
         specification = {
@@ -2069,10 +2149,13 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
+        target = generator.find_element('root')
         with self.assertRaises(ValueError):
-            generator.insert(
-                self.fname, 'root', append_specification, {}, before='foo', after="foo"
+            generator.insert_from_specification(
+                target, append_specification, {}, before='foo', after="foo"
             )
+
+        generator.write(self.fname)
 
     def test_insert_nested_elements_with_namespace(self):
         nsmap = {
@@ -2120,11 +2203,13 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
+        target = generator.find_element('foo')
         for i in range(3):
-            generator.insert(
-                self.fname, 'foo', append_specification, {},
+            generator.insert_from_specification(
+                target, append_specification, {},
             )
 
+        generator.write(self.fname)
         tree = etree.parse(self.fname)
 
         bar = tree.find('.//{%s}bar' % nsmap.get('premis'))
@@ -2161,9 +2246,11 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        generator.insert(
-            self.fname, 'foo', append_specification, {},
+        target = generator.find_element('foo')
+        generator.insert_from_specification(
+            target, append_specification, {},
         )
+        generator.write(self.fname)
 
         tree = etree.parse(self.fname)
 
@@ -2206,9 +2293,11 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        generator.insert(
-            self.fname, 'foo', append_specification, {},
+        target = generator.find_element('foo')
+        generator.insert_from_specification(
+            target, append_specification, {},
         )
+        generator.write(self.fname)
 
         tree = etree.parse(self.fname)
         appended = tree.find('.//appended')
@@ -2240,10 +2329,12 @@ class GenerateXMLTestCase(TestCase):
             '-name': 'appended',
         }
 
+        target = generator.find_element('foo')
         with self.assertRaisesRegexp(TypeError, "Can't insert"):
-            generator.insert(
-                self.fname, 'foo', append_specification, {},
+            generator.insert_from_specification(
+                target, append_specification, {},
             )
+        generator.write(self.fname)
 
 
 class ExternalTestCase(TestCase):

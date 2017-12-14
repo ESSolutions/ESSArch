@@ -148,9 +148,10 @@ class InsertXML(DBTask):
     """
 
     def run(self, filename=None, elementToAppendTo=None, spec={}, info={}, index=None):
-        generator = XMLGenerator()
-
-        generator.insert(filename, elementToAppendTo, spec, info=info, index=index)
+        generator = XMLGenerator(filepath=filename)
+        target = generator.find_element(elementToAppendTo)
+        generator.insert_from_specification(target, spec, data=info, index=index)
+        generator.write(filename)
 
     def undo(self, filename=None, elementToAppendTo=None, spec={}, info={}, index=None):
         tree = etree.parse(filename)
@@ -173,7 +174,7 @@ class AppendEvents(DBTask):
     event_type = 50610
 
     def run(self, filename="", events={}):
-        generator = XMLGenerator()
+        generator = XMLGenerator(filepath=filename)
         template = {
             "-name": "event",
             "-min": 1,
@@ -335,6 +336,7 @@ class AppendEvents(DBTask):
             entity = '%s_identifier_type' % id_type
             id_types[id_type] = Parameter.objects.cached(entity)
 
+        target = generator.find_element('premis')
         for event in events.iterator():
             objid = get_cached_objid(event.linkingObjectIdentifierValue)
 
@@ -353,7 +355,9 @@ class AppendEvents(DBTask):
                 "linkingObjectIdentifierValue": objid,
             }
 
-            generator.insert(filename, "premis", template, data)
+            generator.insert_from_specification(target, template, data)
+
+        generator.write(filename)
 
     def undo(self, filename="", events={}):
         tree = etree.parse(filename)
