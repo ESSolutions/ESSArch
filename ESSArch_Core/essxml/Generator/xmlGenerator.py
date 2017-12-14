@@ -313,7 +313,14 @@ class XMLAttribute(object):
 
 
 class XMLGenerator(object):
-    def __init__(self, filesToCreate={}):
+    def __init__(self, filesToCreate={}, filepath=None):
+        parser = etree.XMLParser(remove_blank_text=True)
+
+        if filepath is not None:
+            self.tree = etree.parse(filepath, parser=parser)
+        else:
+            self.tree = None
+
         self.toCreate = []
 
         for fname, content in filesToCreate.iteritems():
@@ -452,10 +459,10 @@ class XMLGenerator(object):
 
             data['_XML_FILENAME'] = os.path.basename(fname)
 
-            tree = etree.ElementTree(
+            self.tree = etree.ElementTree(
                 rootEl.createLXMLElement(data, files=files, folderToParse=folderToParse)
             )
-            tree.write(
+            self.tree.write(
                 fname, pretty_print=True, xml_declaration=True,
                 encoding='UTF-8'
             )
@@ -470,44 +477,56 @@ class XMLGenerator(object):
                 fileinfo = parse_file(fname, mimetype, fid, relpath, algorithm=algorithm)
                 files.append(fileinfo)
 
-    def insert(self, filename, elementToAppendTo, template, info={}, index=None, before=None, after=None):
+    def write(self, filepath):
+        self.tree.write(filepath, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+
+    def find_element(self, path):
+        return findElementWithoutNamespace(self.tree, path)
+
+    def insert(self, target, el, index=None, before=None, after=None):
         if before is not None and after is not None:
             raise ValueError('Both "before" and "after" cannot not be None')
 
-        parser = etree.XMLParser(remove_blank_text=True)
-        tree = etree.parse(filename, parser)
-        elementToAppendTo = findElementWithoutNamespace(tree, elementToAppendTo)
-        root_nsmap = {k: v for k, v in elementToAppendTo.nsmap.iteritems() if k}
-        appendedRootEl = XMLElement(template, nsmap=root_nsmap)
-
         try:
-            el = appendedRootEl.createLXMLElement(info)
             if index is not None:
-                elementToAppendTo.insert(index, el)
+                target.insert(index, el)
             elif before is not None:
                 try:
-                    reference_el = get_elements_without_namespace(elementToAppendTo, before)[0]
+                    reference_el = get_elements_without_namespace(target, before)[0]
                 except IndexError:
-                    raise ValueError('%s element does not exist in %s element' % (before, tree.getpath(elementToAppendTo)))
+                    raise ValueError('%s element does not exist in %s element' % (before, self.tree.getpath(target)))
 
-                index = elementToAppendTo.index(reference_el)
-                elementToAppendTo.insert(index, el)
+                index = target.index(reference_el)
+                target.insert(index, el)
             elif after is not None:
                 try:
-                    reference_el = get_elements_without_namespace(elementToAppendTo, after)[-1]
+                    reference_el = get_elements_without_namespace(target, after)[-1]
                 except IndexError:
-                    raise ValueError('%s element does not exist in %s element' % (after, tree.getpath(elementToAppendTo)))
+                    raise ValueError('%s element does not exist in %s element' % (after, self.tree.getpath(target)))
 
-                index = elementToAppendTo.index(reference_el)+1
-                elementToAppendTo.insert(index, el)
+                index = target.index(reference_el) + 1
+                target.insert(index, el)
             else:
-                elementToAppendTo.append(el)
+                target.append(el)
         except TypeError:
             if el is None:
-                raise TypeError("Can't insert null element into %s" % appendedRootEl)
+                raise TypeError("Can't insert null element into %s" % target)
 
+    def insert_from_specification(self, target, spec, data=None, index=None, before=None, after=None):
+        if data is None:
+            data = {}
 
-        tree.write(
-            filename, pretty_print=True, xml_declaration=True,
-            encoding='UTF-8'
-        )
+        root_nsmap = {k: v for k, v in target.nsmap.iteritems() if k}
+        el = XMLElement(spec, nsmap=root_nsmap).createLXMLElement(data)
+
+        return self.insert(target, el, index=index, before=before, after=after)
+
+    def insert_from_xml_string(self, target, xml, index=None, before=None, after=None):
+        parser = etree.XMLParser(remove_blank_text=True)
+        el = etree.fromstring(xml, parser)
+        return self.insert(target, el, index=index, before=before, after=after)
+
+    def insert_from_xml_file(self, target, xml, index=None, before=None, after=None):
+        parser = etree.XMLParser(remove_blank_text=True)
+        el = etree.parse(xml, parser).getroot()
+        return self.insert(target, el, index=index, before=before, after=after)
