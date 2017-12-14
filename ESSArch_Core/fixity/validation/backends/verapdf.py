@@ -19,14 +19,25 @@ def run_verapdf(filepath, policy=None):
 
 
 def get_outcome(root):
-    xpath = '//*[local-name()="{el}" and @*[local-name()="{attr}"] = "false"][1]'.format(el='validationReport', attr='isCompliant')
-    failed_validation = root.xpath(xpath)
+    xpaths = []
+
+    xpath = '//*[local-name()="batchSummary"]/*[local-name()="{el}" and (@*[local-name()="nonCompliant"] > 0 or @*[local-name()="failedJobs"] > 0)][1]'.format(
+        el='validationReports')
+    xpaths.append(xpath)
+
+    xpath = '//*[local-name()="batchSummary"]/*[local-name()="{el}" and @*[local-name()="failedJobs"] > 0][1]'.format(el='featureReports')
+    xpaths.append(xpath)
+
+    xpath = '//*[local-name()="batchSummary"]/*[local-name()="{el}" and @*[local-name()="failedJobs"] > 0][1]'.format(el='repairReports')
+    xpaths.append(xpath)
 
     xpath = '//*[local-name()="{el}" and @*[local-name()="{attr}"] > 0][1]'.format(el='policyReport', attr='failedChecks')
-    failed_policy = root.xpath(xpath)
+    xpaths.append(xpath)
 
-    if len(failed_validation) or len(failed_policy):
-        return False
+    for xpath in xpaths:
+        if len(root.xpath(xpath)):
+            # atleast one failure, the validation didn't pass
+            return False
 
     return True
 
