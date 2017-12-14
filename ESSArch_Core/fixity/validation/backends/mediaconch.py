@@ -29,8 +29,10 @@ def get_outcome(root):
 
 class MediaconchValidator(BaseValidator):
     def validate(self, filepath):
-        policy = self.context
-        out, _, _ = run_mediaconch(filepath, policy=policy)
+        out, err, returncode = run_mediaconch(filepath, policy=self.context)
+
+        if returncode:
+            raise ValidationError(err)
 
         parser = etree.XMLParser(remove_blank_text=True)
         root = etree.XML(out, parser=parser)
