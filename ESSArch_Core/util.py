@@ -56,6 +56,8 @@ from ESSArch_Core.configuration.models import Path
 
 import requests
 
+import six
+
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
 
@@ -382,7 +384,7 @@ def parse_content_range_header(header):
 
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
-    for i in range(0, len(l), n):
+    for i in six.moves.range(0, len(l), n):
         yield l[i:i + n]
 
 
