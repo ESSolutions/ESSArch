@@ -220,6 +220,43 @@ def getSchemas(doc=None, filename=None):
     return etree.XMLSchema(root)
 
 
+def move_schema_locations_to_root(tree=None, filename=None):
+    """
+    Move all schemaLocation attributes in the document to the root element
+    """
+
+    if filename:
+        tree = etree.parse(filename)
+
+    root = tree.getroot()
+    xsi_ns = "{%s}" % root.nsmap['xsi']
+
+    # Get root schema locations
+    root_schema_locations = list(chunks(root.attrib["%sschemaLocation" % xsi_ns].split(), 2))
+
+    # Get all other schema locations
+    other_schema_locations = []
+    schema_location_elements = tree.findall(".//*[@%sschemaLocation]" % xsi_ns)
+    for el in schema_location_elements:
+        other_schema_locations += list(chunks(el.attrib["%sschemaLocation" % xsi_ns].split(), 2))
+
+        # Delete schemaLocation attribute
+        del el.attrib["%sschemaLocation" % xsi_ns]
+
+    # Append all missing schema locations to root_schema_locations
+    for schema_location in other_schema_locations:
+        if schema_location not in root_schema_locations:
+            root_schema_locations.append(schema_location)
+
+    # Convert root_schema_locations to schemaLocation attrib
+    schema_location = ' '.join(flatten(root_schema_locations))
+
+    # Update scehamLocation attrib
+    root.attrib[xsi_ns + "schemaLocation"] = schema_location
+
+    return tree
+
+
 def creation_date(path_to_file):
     """
     Try to get the date that a file was created, falling back to when it was
