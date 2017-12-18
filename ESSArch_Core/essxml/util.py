@@ -95,11 +95,7 @@ def get_agent(el, ROLE=None, OTHERROLE=None, TYPE=None, OTHERTYPE=None):
     if OTHERTYPE:
         s += "[@OTHERTYPE='%s']" % OTHERTYPE
 
-    try:
-        first = el.xpath(s)[0]
-    except IndexError:
-        return None
-
+    first = el.xpath(s)[0]
     return {
         'name': first.xpath("*[local-name()='name']")[0].text,
         'notes': [note.text for note in first.xpath("*[local-name()='note']")]
@@ -111,14 +107,19 @@ def get_agents(el):
     agents = []
 
     for agent_el in agent_els:
-        agent = {
-            '_AGENTS_NAME': agent_el.xpath("*[local-name()='name']")[0].text,
-            '_AGENTS_NOTES': [{'_AGENTS_NOTE': note.text} for note in agent_el.xpath("*[local-name()='note']")],
-        }
-        for key, val in six.iteritems(agent_el.attrib):
-            agent['_AGENTS_%s' % key.upper()] = val
+        try:
+            agent = {
+                '_AGENTS_NAME': agent_el.xpath("*[local-name()='name']")[0].text,
+                '_AGENTS_NOTES': [{'_AGENTS_NOTE': note.text} for note in agent_el.xpath("*[local-name()='note']")],
+            }
+        except IndexError:
+            # agent without name, skip to next
+            continue
+        else:
+            for key, val in six.iteritems(agent_el.attrib):
+                agent['_AGENTS_%s' % key.upper()] = val
 
-        agents.append(agent)
+            agents.append(agent)
 
     return agents
 
@@ -209,16 +210,12 @@ def parse_submit_description(xmlfile, srcdir=''):
     except (KeyError, AttributeError):
         ip['information_class'] = 0
 
-    try:
-        ip['archivist_organization'] = {
-            'name': get_agent(root, ROLE='ARCHIVIST', TYPE='ORGANIZATION')['name']
-        }
-    except TypeError:
-        pass
-
     ip['_AGENTS'] = get_agents(root)
 
     agents = {
+        'archivist_organization': {
+            'ROLE': 'ARCHIVIST', 'TYPE': 'ORGANIZATION',
+        },
         'creator_organization': {
             'ROLE': 'CREATOR', 'TYPE': 'ORGANIZATION',
         },
@@ -245,21 +242,20 @@ def parse_submit_description(xmlfile, srcdir=''):
         },
     }
 
-
     for key, value in agents.iteritems():
         try:
             ip[key] = get_agent(root, **value)['name']
-        except TypeError:
+        except IndexError:
             pass
 
     try:
         ip['system_version'] = get_agent(root, ROLE='ARCHIVIST', TYPE='OTHER', OTHERTYPE='SOFTWARE')['notes'][0],
-    except TypeError:
+    except IndexError:
         pass
 
     try:
         ip['system_type'] = get_agent(root, ROLE='ARCHIVIST', TYPE='OTHER', OTHERTYPE='SOFTWARE')['notes'][1],
-    except TypeError:
+    except IndexError:
         pass
 
     return ip
