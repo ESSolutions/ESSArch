@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Group as DjangoGroup, Permission
 from django.db.models import Q, Subquery
 
 from groups_manager.models import Group
@@ -26,8 +26,11 @@ def get_membership_descendants(group, user):
 
     descendants = group.get_descendants(include_self=True).filter(level__in=[group.level, group.level+1])
 
-    if not (getattr(group.group_type, 'codename') == ORGANIZATION_TYPE and group.group_members.filter(django_user=user).exists()):
-        descendants = descendants.exclude(group_type__codename=ORGANIZATION_TYPE).filter(group_members__django_user=user)
+    is_organization = getattr(group.group_type, 'codename', None) == ORGANIZATION_TYPE
+    is_member = group.django_group.user_set.filter(id=user.id).exists()
+
+    if not (is_organization and is_member):
+        descendants = descendants.exclude(group_type__codename=ORGANIZATION_TYPE).filter(django_group__user__id=user.id)
 
     return descendants
 
@@ -40,15 +43,11 @@ def get_organization_groups(user):
         user: The user to get groups for
     """
 
-    member = user.groups_manager_member_set.first()
-    if member is None:
-        return Group.objects.none()
-
     sub_group_filter = Q(
         ~Q(sub_groups_manager_group_set__group_type__codename=ORGANIZATION_TYPE) &
-        Q(sub_groups_manager_group_set__group_members=member)
+        Q(sub_groups_manager_group_set__django_group__user=user)
     )
-    return Group.objects.filter(Q(Q(sub_group_filter) | Q(group_members=member)),
+    return Group.objects.filter(Q(Q(sub_group_filter) | Q(django_group__user=user)),
                                 group_type__codename=ORGANIZATION_TYPE).distinct()
 
 
