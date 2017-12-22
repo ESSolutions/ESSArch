@@ -9,7 +9,6 @@ class ValidationFilter(filters.FilterSet):
     passed = filters.BooleanFilter()
 
     def filter_validator(self, queryset, name, value):
-        print name, value
         try:
             validator = AVAILABLE_VALIDATORS[value]
         except KeyError:
