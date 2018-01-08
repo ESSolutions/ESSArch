@@ -693,7 +693,7 @@ class ValidateXMLFile(DBTask):
         Validates (using LXML) an XML file using a specified schema file
         """
 
-        assert validate_against_schema(xmlfile=xml_filename, schema=schema_filename, rootdir=rootdir)
+        validate_against_schema(xmlfile=xml_filename, schema=schema_filename, rootdir=rootdir)
         return "Success"
 
     def undo(self, xml_filename=None, schema_filename=None, rootdir=None):

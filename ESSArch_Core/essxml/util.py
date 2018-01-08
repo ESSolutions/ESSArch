@@ -499,7 +499,4 @@ def validate_against_schema(xmlfile, schema=None, rootdir=None):
         rootdir = os.path.split(xmlfile)[0]
 
     for ptr in find_pointers(xmlfile):
-        if not validate_against_schema(os.path.join(rootdir, ptr.path), schema):
-            return False
-
-    return xmlschema.validate(doc)
+        validate_against_schema(os.path.join(rootdir, ptr.path), schema)
