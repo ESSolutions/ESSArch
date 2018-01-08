@@ -37,6 +37,7 @@ from ESSArch_Core.fixity import checksum, format, validation
 
 from ESSArch_Core.util import (
     creation_date,
+    get_elements_without_namespace,
     get_value_from_path,
     getSchemas,
     remove_prefix,
@@ -63,9 +64,8 @@ FILE_ELEMENTS = {
         "checksumtype": "@CHECKSUMTYPE",
     },
     "object": {
-        "path": "objectIdentifier/objectIdentifierValue",
+        "path": ["objectIdentifier/objectIdentifierValue", "storage/contentLocation/contentLocationValue"],
         "pathprefix": ["file:///", "file:"],
-        "including_root": True,
         "checksum": "objectCharacteristics/fixity/messageDigest",
         "checksumtype": "objectCharacteristics/fixity/messageDigestAlgorithm",
         "format": "objectCharacteristics/format/formatDesignation/formatName",
@@ -320,23 +320,35 @@ def parse_event_file(xmlfile):
     return [parse_event(el) for el in root.xpath("./*[local-name()='event']")]
 
 class XMLFileElement():
-    def __init__(self, el, props):
+    def __init__(self, el, props, path=None):
         '''
         args:
             el: lxml.etree._Element
             props: 'dict with properties from FILE_ELEMENTS'
         '''
 
-        self.path = get_value_from_path(el, props.get('path', ''))
-        self.path_prefix = props.get('pathprefix', [])
-        for prefix in sorted(self.path_prefix, key=len, reverse=True):
-            no_prefix = remove_prefix(self.path, prefix)
+        self.path = path
+        if self.path is None:
+            self.paths = props.get('path', [''])
 
-            if no_prefix != self.path:
-                self.path = no_prefix
-                break
+            if isinstance(self.paths, six.string_types):
+                self.paths = [self.paths]
 
-        self.path = self.path.lstrip('/ ')
+            for path in self.paths:
+                self.path = get_value_from_path(el, path)
+
+                if self.path is not None:
+                    break
+
+            self.path_prefix = props.get('pathprefix', [])
+            for prefix in sorted(self.path_prefix, key=len, reverse=True):
+                no_prefix = remove_prefix(self.path, prefix)
+
+                if no_prefix != self.path:
+                    self.path = no_prefix
+                    break
+
+            self.path = self.path.lstrip('/ ')
 
         self.checksum = get_value_from_path(el, props.get('checksum', ''))
         self.checksum_type = get_value_from_path(el, props.get('checksumtype', ''))
@@ -358,12 +370,49 @@ class XMLFileElement():
         return hash(self.path)
 
 
-def find_pointers(xmlfile):
-    doc = etree.ElementTree(file=xmlfile)
+def find_pointers(xmlfile=None, tree=None):
+    if xmlfile is None and tree is None:
+        raise ValueError("Need xmlfile or tree, both can't be None")
+
+    if xmlfile is not None:
+        tree = etree.ElementTree(file=xmlfile)
 
     for elname, props in PTR_ELEMENTS.iteritems():
-        for ptr in doc.xpath('.//*[local-name()="%s"]' % elname):
+        for ptr in tree.xpath('.//*[local-name()="%s"]' % elname):
             yield XMLFileElement(ptr, props)
+
+
+def find_file(filepath, xmlfile=None, tree=None, rootdir='', prefix=''):
+    if xmlfile is None and tree is None:
+        raise ValueError("Need xmlfile or tree, both can't be None")
+
+    if xmlfile is not None:
+        tree = etree.ElementTree(file=xmlfile)
+
+    root = tree.getroot()
+
+    for elname, props in six.iteritems(FILE_ELEMENTS):
+        for prefix in props.get('pathprefix', []) + ['']:
+            fullpath = prefix + filepath
+
+            props_paths = props.get('path')
+            if isinstance(props_paths, six.string_types):
+                props_paths = [props_paths]
+
+            for props_path in props_paths:
+                el = get_elements_without_namespace(root, '%s/%s' % (elname, props_path), fullpath)
+                if len(el) > 0:
+                    el = el[0]
+                    while el.xpath('local-name()') != elname:
+                        el = el.getparent()
+                    xml_el = XMLFileElement(el, props, path=filepath)
+                    return xml_el, el
+
+    for pointer in find_pointers(tree=tree):
+        pointer_prefix = os.path.split(pointer.path)[0]
+        xml_el, el = find_file(filepath, xmlfile=os.path.join(rootdir, pointer.path), rootdir=rootdir, prefix=pointer_prefix)
+        if xml_el is not None:
+            return xml_el, el
 
 
 def find_files(xmlfile, rootdir='', prefix='', skip_files=None):
@@ -384,17 +433,13 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None):
         for el in file_elements:
             file_el = XMLFileElement(el, props)
             file_el.path = os.path.join(prefix, file_el.path)
-            if props.get('including_root', False):
-                path_arr = file_el.path.split('/')
-                path_arr.pop(0)
-                file_el.path = '/'.join(path_arr)
 
             if file_el.path in skip_files:
                 continue
 
             files.add(file_el)
 
-    for pointer in find_pointers(xmlfile):
+    for pointer in find_pointers(xmlfile=xmlfile):
         pointer_prefix = os.path.split(pointer.path)[0]
         files.add(pointer)
         files |= find_files(os.path.join(rootdir, pointer.path), rootdir, pointer_prefix)

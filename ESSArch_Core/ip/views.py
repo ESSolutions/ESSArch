@@ -1,10 +1,13 @@
 from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework import filters, status, viewsets
+from rest_framework import exceptions, filters, status, viewsets
+from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
 from ESSArch_Core.ip.filters import (
     ArchivalInstitutionFilter,
     ArchivistOrganizationFilter,
@@ -28,6 +31,8 @@ from ESSArch_Core.ip.serializers import (
     EventIPSerializer,
     WorkareaSerializer,
 )
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
+from ESSArch_Core.util import remove_prefix
 
 
 class ArchivalInstitutionViewSet(viewsets.ModelViewSet):
@@ -93,10 +98,116 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 class WorkareaEntryViewSet(viewsets.ModelViewSet):
     queryset = Workarea.objects.all()
     serializer_class = WorkareaSerializer
-    http_method_names = ['delete', 'get', 'head']
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
+
+    @detail_route(methods=['post'], url_path='validate')
+    def validate(self, request, pk=None):
+        workarea = self.get_object()
+        ip = workarea.ip
+        task_name = "ESSArch_Core.tasks.ValidateWorkarea"
+
+        if ip.get_profile('validation') is None:
+            raise exceptions.ParseError("IP does not have a \"validation\" profile")
+
+        if ProcessTask.objects.filter(information_package=ip, name=task_name, time_done__isnull=True).exists():
+            raise exceptions.ParseError('"{objid}" is already being validated'.format(objid=ip.object_identifier_value))
+
+        ip.validation_set.all().delete()
+
+        stop_at_failure = request.data.get('stop_at_failure', False)
+        validators = request.data.get('validators', {})
+        available_validators = AVAILABLE_VALIDATORS.keys()
+
+        if not any(selected in available_validators for selected in validators):
+            raise exceptions.ParseError('No valid validator selected')
+
+        for selected in validators:
+            if selected not in available_validators:
+                raise exceptions.ParseError('Validator "%s" not found' % selected)
+            if selected not in ip.get_profile('validation').specification.keys():
+                raise exceptions.ParseError('Validator "%s" not specified in validation profile' % selected)
+
+        params = {'validators': validators, 'stop_at_failure': stop_at_failure}
+
+        task = ProcessTask.objects.create(
+            name=task_name,
+            args=[pk],
+            params=params,
+            eager=False,
+            log=EventIP,
+            information_package=ip,
+            responsible=self.request.user,
+        )
+        task.run()
+        return Response("Validating IP")
+
+    @detail_route(methods=['post'], url_path='transform')
+    def transform(self, request, pk=None):
+        workarea = self.get_object()
+        ip = workarea.ip
+
+        if ip.state.lower() in ('transforming', 'transformed'):
+            raise exceptions.ParseError("\"{ip}\" already {state}".format(ip=ip.object_identifier_value, state=ip.state.lower()))
+
+        if ip.get_profile('transformation') is None:
+            raise exceptions.ParseError("IP does not have a \"transformation\" profile")
+
+        if ip.get_profile('validation') is not None:
+            required_validators = ip.get_profile('validation').specification.get('_required', [])
+
+            for required in required_validators:
+                if workarea.successfully_validated.get(required) is not True:
+                    raise exceptions.ParseError("\"{ip}\" hasn't been successfully validated with \"{validator}\"".format(ip=ip.object_identifier_value, validator=required))
+
+        step = ProcessStep.objects.create(name="Transform", eager=False, information_package=ip)
+        pos = 0
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.tasks.UpdateIPStatus",
+            params={
+                "ip": ip.pk,
+                "status": "Transforming",
+                "prev": ip.state,
+            },
+            processstep=step,
+            processstep_pos=pos,
+            log=EventIP,
+            information_package=ip,
+            responsible=request.user,
+        )
+
+        pos += 10
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.tasks.TransformWorkarea",
+            args=[pk],
+            log=EventIP,
+            processstep=step,
+            processstep_pos=pos,
+            information_package=ip,
+            responsible=request.user,
+        )
+
+        pos += 10
+
+        ProcessTask.objects.create(
+            name="ESSArch_Core.tasks.UpdateIPStatus",
+            params={
+                "ip": ip.pk,
+                "status": "Transformed",
+                "prev": "Transforming",
+            },
+            processstep=step,
+            processstep_pos=pos,
+            log=EventIP,
+            information_package=ip,
+            responsible=request.user,
+        )
+        step.run()
+
+        return Response("Transforming IP")
 
     def destroy(self, request, pk=None, **kwargs):
         workarea = self.get_object()

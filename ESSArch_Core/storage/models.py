@@ -17,7 +17,7 @@ from retrying import retry
 import requests
 
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.fixity.validation import validate_checksum
+from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
@@ -317,7 +317,12 @@ class StorageObject(models.Model):
                 information_package=self.ip,
             ).run().get()
 
-            validate_checksum(filename, algorithm, self.ip.message_digest)
+            filename = os.path.join(tmppath, self.ip.object_identifier_value + '.tar'),
+            algorithm = self.ip.get_message_digest_algorithm_display()
+            options = {'expected': self.ip.message_digest, 'algorithm': algorithm}
+
+            validator = ChecksumValidator(context='checksum_str', options=options)
+            validator.validate(filename)
 
     def __unicode__(self):
         try:

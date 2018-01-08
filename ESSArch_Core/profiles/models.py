@@ -272,6 +272,8 @@ class SubmissionAgreement(models.Model):
     profile_workflow = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='workflow_sa')
     profile_preservation_metadata = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='preservation_metadata_sa')
     profile_event = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='event_sa')
+    profile_validation = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='validation_sa')
+    profile_transformation = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='transformation_sa')
 
     template = jsonfield.JSONField(default=[])
 

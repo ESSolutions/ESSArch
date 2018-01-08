@@ -41,11 +41,12 @@ from requests_toolbelt import MultipartEncoder
 
 from celery.result import allow_join_result
 
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.conf import settings
-from django.db.models import F
+from django.db.models import F, Q
 from django.utils import timezone
 
 from retrying import retry
@@ -56,9 +57,10 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
     findElementWithoutNamespace,
     XMLGenerator
 )
-from ESSArch_Core.fixity import format, validation
+from ESSArch_Core.fixity import format, transformation, validation
+from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, parse_event_file, validate_against_schema
-from ESSArch_Core.ip.models import EventIP, InformationPackage
+from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.copy import copy_file
@@ -103,6 +105,9 @@ from ESSArch_Core.util import (
 
 from lxml import etree
 from scandir import walk
+
+
+User = get_user_model()
 
 
 class GenerateXML(DBTask):
@@ -623,6 +628,60 @@ class ValidateFileFormat(DBTask):
         return "Validated format of %s to be: format name: %s, format version: %s, format registry key: %s" % (
             filename, format_name, format_version, format_registry_key
         )
+
+
+class ValidateWorkarea(DBTask):
+    queue = 'validation'
+
+    def create_notification(self, ip):
+        errcount = Validation.objects.filter(information_package=ip, passed=False).count()
+
+        if errcount:
+            Notification.objects.create(message='Validation of "{ip}" failed with {errcount} error(s)'.format(ip=ip.object_identifier_value, errcount=errcount), level=logging.ERROR, user_id=self.responsible, refresh=True)
+        else:
+            Notification.objects.create(message='"{ip}" was successfully validated'.format(ip=ip.object_identifier_value), level=logging.INFO, user_id=self.responsible, refresh=True)
+
+    def run(self, workarea, validators, stop_at_failure=True):
+        workarea = Workarea.objects.get(pk=workarea)
+        workarea.successfully_validated = {}
+
+        for validator in validators:
+            workarea.successfully_validated[validator] = None
+
+        workarea.save(update_fields=['successfully_validated'])
+        ip = workarea.ip
+        sa = ip.submission_agreement
+        validation_profile = ip.get_profile('validation')
+        profile_data = fill_specification_data(data=ip.get_profile_data('validation'), sa=sa, ip=ip)
+
+        try:
+            validation.validate_path(workarea.path, validators, validation_profile, data=profile_data, ip=ip,
+                                     stop_at_failure=stop_at_failure)
+        except ValidationError:
+            self.create_notification(ip)
+        else:
+            self.create_notification(ip)
+        finally:
+            validations = ip.validation_set.all()
+            failed_validators = validations.values('validator').filter(passed=False).values_list('validator', flat=True)
+
+            for k, v in six.iteritems(workarea.successfully_validated):
+                class_name = validation.AVAILABLE_VALIDATORS[k].split('.')[-1]
+                workarea.successfully_validated[k] = class_name not in failed_validators
+
+            workarea.save(update_fields=['successfully_validated'])
+
+
+class TransformWorkarea(DBTask):
+    def run(self, workarea):
+        workarea = Workarea.objects.select_related('ip__submission_agreement').get(pk=workarea)
+        ip = workarea.ip
+        sa = ip.submission_agreement
+        user = User.objects.filter(pk=self.responsible).first()
+        profile = ip.get_profile('transformation')
+        profile_data = fill_specification_data(data=ip.get_profile_data('transformation'), sa=sa, ip=ip)
+        transformation.transform_path(workarea.path, profile, data=profile_data, ip=ip, user=user)
+        return "Success"
 
 
 class ValidateXMLFile(DBTask):

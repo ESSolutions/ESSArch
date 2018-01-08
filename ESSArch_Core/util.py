@@ -75,12 +75,29 @@ def remove_prefix(text, prefix):
     return text
 
 
-def get_elements_without_namespace(root, path):
-    els = path.split("/")
-    return root.xpath(".//" + "/".join(["*[local-name()='%s']" % e for e in els]))
+def get_elements_without_namespace(root, path, value=None):
+    element_path = []
+    splits = path.split("/")
+    for idx, split in enumerate(splits):
+        if "@" in split:
+            el, attr = split.split("@")
+            if value is not None:
+                split_path = '*[local-name()="{el}" and @*[local-name()="{attr}"]="{value}"]'.format(el=el, attr=attr, value=value)
+            else:
+                split_path = '*[local-name()="{el}" and @*[local-name()="{attr}"]]'.format(el=el, attr=attr)
+        else:
+            if idx == len(splits)-1 and value is not None and "@" not in path:
+                split_path = '*[local-name()="{el}" and text()="{value}"]'.format(el=split, value=value)
+            else:
+                split_path = '*[local-name()="{el}"]'.format(el=split)
+
+        element_path.append(split_path)
+
+    path_string = ".//" + "/".join(element_path)
+    return root.xpath(path_string)
 
 
-def get_value_from_path(el, path):
+def get_value_from_path(root, path):
     """
     Gets the text or attribute from the given attribute using the given path.
 
@@ -105,32 +122,24 @@ def get_value_from_path(el, path):
     if path is None:
         return None
 
-    if "@" in path:
-        try:
-            nested, attr = path.split('@')
-            try:
-                el = get_elements_without_namespace(el, nested)[0]
-            except IndexError:
-                pass
-
-            if el is None:
-                return None
-        except (ValueError, SyntaxError):
-            attr = path[1:]
-
-        for a, val in el.attrib.iteritems():
+    if path.startswith('@'):
+        attr = path[1:]
+        for a, val in six.iteritems(root.attrib):
             if re.sub(r'{.*}', '', a) == attr:
                 return val
-    else:
-        try:
-            el = get_elements_without_namespace(el, path)[0]
-        except IndexError:
-            pass
 
-        try:
-            return el.text
-        except AttributeError:
-            pass
+    try:
+        el = get_elements_without_namespace(root, path)[0]
+        if root == el:
+            return None
+    except IndexError:
+        return None
+
+    if "@" in path:
+        attr = path.split('@')[1]
+        return el.attrib.get(attr)
+
+    return el.text
 
 
 def available_tasks():
@@ -302,6 +311,12 @@ def get_files_and_dirs(path):
         return scandir(path)
 
     return []
+
+
+def get_immediate_subdirectories(path):
+    """Return immediate subdirectories at a given path"""
+
+    return filter(lambda x: x.is_dir(), get_files_and_dirs(path))
 
 
 def get_tree_size_and_count(path='.'):

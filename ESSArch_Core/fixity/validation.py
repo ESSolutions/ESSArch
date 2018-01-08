@@ -1,5 +1,7 @@
 import logging
 
+from django.utils import timezone
+
 from .checksum import calculate_checksum
 
 logger = logging.getLogger('essarch.fixity.validation')
@@ -36,3 +38,4 @@ def validate_file_format(filename, fid, format_name=None, format_version=None, f
         assert actual_format_registry_key == format_registry_key, "format registry key for %s is not valid" % filename
 
     logger.info('Successfully validated format of %s' % filename)
+

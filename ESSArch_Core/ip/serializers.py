@@ -77,5 +77,5 @@ class WorkareaSerializer(serializers.ModelSerializer):
         model = Workarea
         fields = (
             'id', 'user', 'ip', 'read_only', 'type',
-            'extracted', 'packaged',
+            'extracted', 'packaged', 'successfully_validated',
         )
