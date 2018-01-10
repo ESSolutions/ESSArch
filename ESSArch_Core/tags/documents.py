@@ -1,4 +1,4 @@
-from elasticsearch_dsl import analyzer, tokenizer, DocType, Date, Keyword, Object, Text
+from elasticsearch_dsl import analyzer, tokenizer, DocType, MetaField, Date, Integer, Keyword, Object, Text, Nested
 
 ngram_tokenizer=tokenizer('custom_ngram_tokenizer', type='ngram', min_gram=1,
                           max_gram=15, token_chars=['letter', 'digit',
@@ -49,3 +49,31 @@ class Document(Tag):
     terms_and_condition = Keyword()
     class Meta:
         index = 'tags'
+
+
+class Component(DocType):
+    unit_ids = Nested()  # unitid
+    unit_dates = Nested()  # unitdate
+    title = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # unittitle
+    desc = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # e.g. from <odd>
+    type = Keyword()  # series, volume, etc.
+    parent = Keyword()
+    related = Keyword()  # list of ids for components describing same element in other archive/structure
+    archive = Keyword()
+
+    class Meta:
+        index = 'archive'
+        doc_type = 'component'
+
+
+class Archive(DocType):
+    unit_ids = Nested()  # unitid
+    unit_dates = Nested()  # unitdate
+    title = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # unittitle
+    desc = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # e.g. from <odd>
+    type = Keyword()
+    institution = Keyword()
+
+    class Meta:
+        index = 'archive'
+        doc_type = 'archive'
