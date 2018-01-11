@@ -52,6 +52,7 @@ class Document(Tag):
 
 
 class Component(DocType):
+    reference_code = Keyword()
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
     title = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # unittitle
@@ -66,6 +67,7 @@ class Component(DocType):
 
 
 class Archive(DocType):
+    reference_code = Keyword()
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
     title = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # unittitle
