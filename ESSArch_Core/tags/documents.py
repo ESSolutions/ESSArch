@@ -62,8 +62,7 @@ class Component(DocType):
     archive = Keyword()
 
     class Meta:
-        index = 'archive'
-        doc_type = 'component'
+        index = 'component'
 
 
 class Archive(DocType):
@@ -76,4 +75,3 @@ class Archive(DocType):
 
     class Meta:
         index = 'archive'
-        doc_type = 'archive'
