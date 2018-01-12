@@ -74,6 +74,7 @@ class Archive(DocType):
     desc = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # e.g. from <odd>
     type = Keyword()
     institution = Keyword()
+    organization = Keyword()
 
     class Meta:
         index = 'archive'
