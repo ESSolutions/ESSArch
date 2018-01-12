@@ -86,10 +86,11 @@ class FindFilesTestCase(TestCase):
                 <file><FLocat href="file:///1.txt"/></file>
                 <file><FLocat href="file:2.txt"/></file>
                 <file><FLocat href="3.txt"/></file>
+                <file><FLocat xlink:href="4.txt"/></file>
             </root>
             ''')
 
-        expected = ['1.txt', '2.txt', '3.txt']
+        expected = ['1.txt', '2.txt', '3.txt', '4.txt']
         found = find_files(xmlfile, rootdir=self.datadir)
         self.assertItemsEqual([x.path for x in found], expected)
 
