@@ -137,7 +137,8 @@ def get_value_from_path(root, path):
 
     if "@" in path:
         attr = path.split('@')[1]
-        return el.attrib.get(attr)
+        val = el.xpath("@*[local-name()='%s'][1]" % attr)[0]
+        return val
 
     return el.text
 
