@@ -195,13 +195,13 @@ class FindFileTestCase(TestCase):
             </root>
             ''')
 
-        found = find_file(xmlfile, '1.txt', rootdir=self.datadir)
+        found = find_file('1.txt', xmlfile=xmlfile, rootdir=self.datadir)
         self.assertIsNotNone(found)
 
-        found = find_file(xmlfile, '2.txt', rootdir=self.datadir)
+        found = find_file('2.txt', xmlfile=xmlfile, rootdir=self.datadir)
         self.assertIsNotNone(found)
 
-        found = find_file(xmlfile, '4.txt', rootdir=self.datadir)
+        found = find_file('4.txt', xmlfile=xmlfile, rootdir=self.datadir)
         self.assertIsNone(found)
 
     def test_files_object_element(self):
@@ -227,13 +227,13 @@ class FindFileTestCase(TestCase):
             </root>
             ''')
 
-        found = find_file(xmlfile, '1.txt', rootdir=self.datadir)
+        found = find_file('1.txt', xmlfile=xmlfile, rootdir=self.datadir)
         self.assertIsNotNone(found)
 
-        found = find_file(xmlfile, '2.txt', rootdir=self.datadir)
+        found = find_file('2.txt', xmlfile=xmlfile, rootdir=self.datadir)
         self.assertIsNotNone(found)
 
-        found = find_file(xmlfile, '3.txt', rootdir=self.datadir)
+        found = find_file('3.txt', xmlfile=xmlfile, rootdir=self.datadir)
         self.assertIsNone(found)
 
 
