@@ -86,7 +86,8 @@ MESSAGE_DIGEST_ALGORITHM_CHOICES = (
 class ArchivalInstitution(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, unique=True)
-    code = models.CharField(max_length=16, unique=True)  # ISO 15511
+    code = models.CharField(max_length=16, unique=True, blank=True, null=True)  # ISO 15511
+    country_code = models.CharField(max_length=3, blank=True)
 
     class Meta:
         verbose_name = 'ArchivalInstitution'
