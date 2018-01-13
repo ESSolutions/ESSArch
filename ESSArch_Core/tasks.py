@@ -58,6 +58,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator
 )
 from ESSArch_Core.fixity import format, transformation, validation
+from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, parse_event_file, validate_against_schema
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
@@ -577,7 +578,9 @@ class ValidateFiles(DBTask):
                     validation.validate_file_format(filename, fid, format_name=f.format)
 
                 if validate_integrity and f.checksum is not None and f.checksum_type is not None:
-                    validation.validate_checksum(filename, f.checksum_type, f.checksum)
+                    options = {'expected': f.checksum, 'algorithm': f.checksum_type}
+                    validator = ChecksumValidator(context='checksum_str', options=options)
+                    validator.validate(filename)
 
 
     def undo(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
