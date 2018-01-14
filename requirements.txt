@@ -16,7 +16,7 @@ djangorestframework==3.7.0
 drf-dynamic-fields==0.2.0
 drf-extensions==0.3.1
 drf-proxy-pagination==0.1.1
-elasticsearch-dsl==5.3.0
+elasticsearch-dsl==6.1.0
 glob2==0.6
 httpretty==0.8.14
 jsonpickle==0.9.3
