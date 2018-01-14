@@ -43,7 +43,9 @@ from django.db.models import Min, Max, Subquery
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 
 from groups_manager.models import Member
+from groups_manager.utils import get_permission_name
 from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
+from guardian.shortcuts import assign_perm
 
 import jsonfield
 
@@ -344,8 +346,14 @@ class InformationPackage(models.Model):
         except AttributeError:
             raise exceptions.ParseError('Missing IP_CREATION_PERMS_MAP in settings')
 
+        user_perms = perms.pop('owner', [])
+
         organization = responsible.user_profile.current_organization
-        member.assign_object(organization, new_aip, custom_permissions=perms)
+        organization.assign_object(new_aip, custom_permissions=perms)
+
+        for perm in user_perms:
+            perm_name = get_permission_name(perm, new_aip)
+            assign_perm(perm_name, member.django_user, new_aip)
 
         return new_aip
 
