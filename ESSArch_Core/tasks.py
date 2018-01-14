@@ -44,7 +44,7 @@ from celery.result import allow_join_result
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, send_mail
 from django.conf import settings
 from django.db.models import F, Q
 from django.utils import timezone
@@ -580,7 +580,17 @@ class ValidateFiles(DBTask):
                 if validate_integrity and f.checksum is not None and f.checksum_type is not None:
                     options = {'expected': f.checksum, 'algorithm': f.checksum_type}
                     validator = ChecksumValidator(context='checksum_str', options=options)
-                    validator.validate(filename)
+                    try:
+                        validator.validate(filename)
+                    except Exception as e:
+                        recipient = User.objects.get(pk=self.responsible).email
+                        if recipient and self.ip:
+                            ip = InformationPackage.objects.get(pk=self.ip)
+                            subject = 'Rejected "%s"' % ip.object_identifier_value
+                            body = '"%s" was rejected:\n%s' % (ip.object_identifier_value, str(e))
+                            send_mail(subject, body, 'e-archive@essarch.org', [recipient], fail_silently=False)
+
+                    raise
 
 
     def undo(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
@@ -696,7 +706,17 @@ class ValidateXMLFile(DBTask):
         Validates (using LXML) an XML file using a specified schema file
         """
 
-        validate_against_schema(xmlfile=xml_filename, schema=schema_filename, rootdir=rootdir)
+        try:
+            validate_against_schema(xmlfile=xml_filename, schema=schema_filename, rootdir=rootdir)
+        except Exception as e:
+            recipient = User.objects.get(pk=self.responsible).email
+            if recipient and self.ip:
+                ip = InformationPackage.objects.get(pk=self.ip)
+                subject = 'Rejected "%s"' % ip.object_identifier_value
+                body = '"%s" was rejected:\n%s' % (ip.object_identifier_value, str(e))
+                send_mail(subject, body, 'e-archive@essarch.org', [recipient], fail_silently=False)
+
+            raise
         return "Success"
 
     def undo(self, xml_filename=None, schema_filename=None, rootdir=None):
