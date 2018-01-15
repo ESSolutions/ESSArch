@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
     ESSArch is an open source archiving and digital preservation system
 
@@ -24,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 
+# -*- coding: utf-8 -*-
 #
 # ESSArch Core documentation build configuration file, created by
 # sphinx-quickstart on Wed Jan 25 14:11:42 2017.
@@ -42,20 +41,19 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath('.'))
 
-import django
-django.setup()
-
 import importlib
 import inspect
 import os
 import sys
 
 proj_folder = os.path.realpath(
-    os.path.join(os.path.dirname(__file__), '../../..'))
+    os.path.join(os.path.dirname(__file__), '../..'))
 
 sys.path.append(proj_folder)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+import django
+django.setup()
 
 # Stop Django from executing DB queries
 from django.db.models.query import QuerySet
@@ -144,13 +142,19 @@ def setup(app):
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinxtogithub', 'sphinx.ext.autodoc', 'sphinx.ext.inheritance_diagram', 'sphinx.ext.intersphinx', 'sphinx.ext.napoleon', 'sphinx.ext.viewcode']
+extensions = ['sphinxtogithub', 'sphinx.ext.autodoc', 'sphinx.ext.autosectionlabel', 'sphinx.ext.inheritance_diagram', 'sphinx.ext.intersphinx', 'sphinx.ext.napoleon', 'sphinx.ext.viewcode', 'sphinxcontrib.httpdomain']
+
+# True to prefix each section label with the name of the document it is in,
+# followed by a colon. For example, index:Introduction for a section called
+# Introduction that appears in document index.rst. Useful for avoiding
+# ambiguity when the same section heading appears in different documents.
+autosectionlabel_prefix_document = True
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.5', None),
-    'sphinx': ('http://sphinx.pocoo.org/', None),
-    'django': ('https://docs.djangoproject.com/en/dev/', 'https://docs.djangoproject.com/en/dev/_objects/'),
+    'python': ('https://docs.python.org/2.7', None),
     'celery': ('https://celery.readthedocs.org/en/latest/', None),
+    'django': ('https://docs.djangoproject.com/en/1.11/', 'https://docs.djangoproject.com/en/1.11/_objects/'),
+    'sphinx': ('http://sphinx.pocoo.org/', None),
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -203,7 +207,7 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -272,9 +276,3 @@ texinfo_documents = [
      author, 'ESSArchCore', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
-
-
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}

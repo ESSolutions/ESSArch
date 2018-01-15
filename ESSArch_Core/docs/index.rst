@@ -7,10 +7,9 @@ ESSArch Core
 ==================================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 10
 
-   modules
+   restapi/index
 
 
 
