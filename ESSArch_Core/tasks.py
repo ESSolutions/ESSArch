@@ -590,7 +590,7 @@ class ValidateFiles(DBTask):
                             body = '"%s" was rejected:\n%s' % (ip.object_identifier_value, str(e))
                             send_mail(subject, body, 'e-archive@essarch.org', [recipient], fail_silently=False)
 
-                    raise
+                        raise
 
 
     def undo(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
