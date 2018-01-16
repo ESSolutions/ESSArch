@@ -28,7 +28,7 @@ applied on different sets of files.
 
 .. note::
 
-    "Global" XML-variables can be used with the ``{VARIABLE}``-syntax in the
+    XML-variables can be used with the ``{VARIABLE}``-syntax in the
     configuration values. See :ref:`xml-variables` for more information.
 
 
