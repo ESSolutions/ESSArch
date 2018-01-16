@@ -21,8 +21,8 @@ class ChecksumValidator(BaseValidator):
        * ``block_size``: Defaults to 65536
     """
 
-    def __init__(self, include=None, exclude=None, options=None, data=None):
-        super(ChecksumValidator, self).__init__(include=None, exclude=None, options=None, data=None)
+    def __init__(self, *args, **kwargs):
+        super(ChecksumValidator, self).__init__(*args, **kwargs)
 
         if not self.context:
             raise ValueError('Need something to compare to')
