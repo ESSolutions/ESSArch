@@ -9,9 +9,20 @@ logger = logging.getLogger('essarch.fixity.validation.checksum')
 
 
 class ChecksumValidator(BaseValidator):
+    """
+    Validates the checksum of a file against the given ``context``.
 
-    def __init__(self, *args, **kwargs):
-        super(ChecksumValidator, self).__init__(*args, **kwargs)
+    * ``context`` specifies how the input is given and must be one of
+      ``checksum_file``, ``checksum_str`` and ``xml_file``
+    * ``options``
+
+       * ``algorithm`` must be one of ``md5``, ``sha-1``, ``sha-224``,
+         ``sha-256``, ``sha-384`` and ``sha-512``. Defaults to ``md5``
+       * ``block_size``: Defaults to 65536
+    """
+
+    def __init__(self, include=None, exclude=None, options=None, data=None):
+        super(ChecksumValidator, self).__init__(include=None, exclude=None, options=None, data=None)
 
         if not self.context:
             raise ValueError('Need something to compare to')

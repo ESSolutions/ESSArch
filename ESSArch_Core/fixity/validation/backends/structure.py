@@ -13,7 +13,23 @@ logger = logging.getLogger('essarch.fixity.validation.structure')
 
 class StructureValidator(BaseValidator):
     """
-    Validates that the directory has all the required files and no invalid extensions
+    Validates that the directory has all the required files and no invalid
+    extensions.
+
+    The ``tree`` option specifies a set of rules for directories:
+
+    * ``type`` must be either ``root`` or ``folder`` and is only used to
+      specify if we are at the root or not. If ``folder`` is specified then we
+      also require the ``name`` option to be specified.
+    * ``name`` tells us which folder is being described
+    * ``required_files`` is a list with files that must be in the directory
+    * ``valid_paths`` is a list of strings and/or lists that are allowed in the
+      directory. Wildcards can be specified using ``*``.
+
+      Inner lists are used to specify valid file groups. E.g.
+      ``[['*.doc', '*.pdf']]`` says that for each .doc file there must be a
+      .pdf file with the same name.
+
     """
 
     file_validator = False
