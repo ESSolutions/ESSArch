@@ -43,6 +43,13 @@ def get_outcome(root):
 
 
 class VeraPDFValidator(BaseValidator):
+    """
+    Runs verapdf on the specified filepath and parses the output to decide
+    if it passed or not.
+
+    ``context`` is used to specify the path of a verapdf policy file.
+    """
+
     def validate(self, filepath):
         out, err, returncode = run_verapdf(filepath, self.context)
 

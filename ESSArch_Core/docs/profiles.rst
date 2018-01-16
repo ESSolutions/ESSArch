@@ -46,3 +46,16 @@ StructureValidator
 
 .. autoclass:: ESSArch_Core.fixity.validation.backends.structure.StructureValidator
    :members:
+
+MediaconchValidator
+^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: ESSArch_Core.fixity.validation.backends.mediaconch.MediaconchValidator
+   :members:
+
+
+VeraPDFValidator
+^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: ESSArch_Core.fixity.validation.backends.verapdf.VeraPDFValidator
+   :members:

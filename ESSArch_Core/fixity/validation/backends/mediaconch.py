@@ -28,6 +28,13 @@ def get_outcome(root):
 
 
 class MediaconchValidator(BaseValidator):
+    """
+    Runs mediaconch on the specified filepath and parses the output to decide
+    if it passed or not.
+
+    ``context`` is used to specify the path of a mediaconch policy file.
+    """
+
     def validate(self, filepath):
         out, err, returncode = run_mediaconch(filepath, policy=self.context)
 
