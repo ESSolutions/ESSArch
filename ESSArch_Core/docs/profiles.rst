@@ -59,3 +59,13 @@ VeraPDFValidator
 
 .. autoclass:: ESSArch_Core.fixity.validation.backends.verapdf.VeraPDFValidator
    :members:
+
+
+Transformation
+==============
+
+Specification
+-------------
+
+``name`` specifies which transformer in :ref:`essarch_transformers` that should
+be used
