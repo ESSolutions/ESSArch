@@ -275,7 +275,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {
             'id': {
-                'read_only': False
+                'read_only': False,
+                'required': False,
             },
             'cm_change_description': {
                 'required': False,
