@@ -387,7 +387,7 @@ class ParseEvents(DBTask):
 
         try:
             turn_off_auto_now_add(EventIP, 'eventDateTime')
-            EventIP.objects.bulk_create(events)
+            EventIP.objects.bulk_create(events, 100)
         finally:
             turn_on_auto_now_add(EventIP, 'eventDateTime')
 
