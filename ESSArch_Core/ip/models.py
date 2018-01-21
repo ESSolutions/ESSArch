@@ -342,7 +342,7 @@ class InformationPackage(models.Model):
 
         member = Member.objects.get(django_user=responsible)
         try:
-            perms = settings.IP_CREATION_PERMS_MAP
+            perms = deepcopy(settings.IP_CREATION_PERMS_MAP)
         except AttributeError:
             raise exceptions.ParseError('Missing IP_CREATION_PERMS_MAP in settings')
 
