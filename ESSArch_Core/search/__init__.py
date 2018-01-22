@@ -12,3 +12,5 @@ def get_connection(alias='default'):
         return connections.get_connection(alias)
     except:
         return connect(alias)
+
+get_connection()
