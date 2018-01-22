@@ -78,3 +78,18 @@ class Archive(DocType):
 
     class Meta:
         index = 'archive'
+
+
+class Document(DocType):
+    id = Keyword()  # @id
+    ip = Keyword()
+    component = Keyword()
+    archive = Keyword()
+    institution = Keyword()
+    organization = Keyword()
+
+    title = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # @title in 2002, @linktitle in 3.0
+    href = Keyword()  # @href
+
+    class Meta:
+        index = 'document'
