@@ -320,7 +320,7 @@ def parse_event_file(xmlfile):
     return [parse_event(el) for el in root.xpath("./*[local-name()='event']")]
 
 class XMLFileElement():
-    def __init__(self, el, props, path=None):
+    def __init__(self, el, props, path=None, rootdir=None):
         '''
         args:
             el: lxml.etree._Element
@@ -347,6 +347,9 @@ class XMLFileElement():
                 if no_prefix != self.path:
                     self.path = no_prefix
                     break
+
+            if rootdir is not None:
+                self.path = remove_prefix(self.path, os.path.basename(rootdir))
 
             self.path = self.path.lstrip('/ ')
 
@@ -431,7 +434,7 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None):
                 file_elements.pop(0)
 
         for el in file_elements:
-            file_el = XMLFileElement(el, props)
+            file_el = XMLFileElement(el, props, rootdir=rootdir)
             file_el.path = os.path.join(prefix, file_el.path)
 
             if file_el.path in skip_files:
