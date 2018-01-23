@@ -30,19 +30,6 @@ def ip_post_delete(sender, instance, using, **kwargs):
         # this was the last IP in the AIC, delete the AIC as well
         instance.aic.delete()
 
-    ArchivalInstitution.objects.filter(
-        information_packages__isnull=True
-    ).delete()
-    ArchivistOrganization.objects.filter(
-        information_packages__isnull=True
-    ).delete()
-    ArchivalType.objects.filter(
-        information_packages__isnull=True
-    ).delete()
-    ArchivalLocation.objects.filter(
-        information_packages__isnull=True
-    ).delete()
-
 
 @receiver(post_delete, sender=Workarea)
 def workarea_post_delete(sender, instance, using, **kwargs):
