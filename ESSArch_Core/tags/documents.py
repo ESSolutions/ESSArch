@@ -1,4 +1,4 @@
-from elasticsearch_dsl import analyzer, tokenizer, DocType, MetaField, Date, Integer, Keyword, Object, Text, Nested
+from elasticsearch_dsl import analyzer, tokenizer, DocType, MetaField, Date, Integer, Long, Keyword, Object, Text, Nested
 
 ngram_tokenizer=tokenizer('custom_ngram_tokenizer', type='ngram', min_gram=1,
                           max_gram=15, token_chars=['letter', 'digit',
@@ -83,12 +83,24 @@ class Archive(DocType):
 class Document(DocType):
     id = Keyword()  # @id
     ip = Keyword()
-    component = Keyword()
+    parent = Keyword()  # component
+    reference_code = Keyword()
     archive = Keyword()
     institution = Keyword()
     organization = Keyword()
     name = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # @title in 2002, @linktitle in 3.0
     href = Keyword()  # @href
+    size = Long()
+    modified = Date()
 
     class Meta:
         index = 'document'
+
+
+class Directory(DocType):
+    ip = Keyword()
+    name = Keyword()
+    href = Keyword()  # @href
+
+    class Meta:
+        index = 'directory'
