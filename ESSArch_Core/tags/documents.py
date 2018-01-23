@@ -55,7 +55,7 @@ class Component(DocType):
     reference_code = Keyword()
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
-    title = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # unittitle
+    name = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # unittitle
     desc = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # e.g. from <odd>
     type = Keyword()  # series, volume, etc.
     parent = Keyword()
@@ -70,7 +70,7 @@ class Archive(DocType):
     reference_code = Keyword()
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
-    title = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # unittitle
+    name = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # unittitle
     desc = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # e.g. from <odd>
     type = Keyword()
     institution = Keyword()
@@ -87,8 +87,7 @@ class Document(DocType):
     archive = Keyword()
     institution = Keyword()
     organization = Keyword()
-
-    title = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # @title in 2002, @linktitle in 3.0
+    name = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # @title in 2002, @linktitle in 3.0
     href = Keyword()  # @href
 
     class Meta:
