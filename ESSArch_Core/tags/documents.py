@@ -82,6 +82,19 @@ class Archive(DocType):
         index = 'archive'
 
 
+class InformationPackage(DocType):
+    id = Keyword()  # @id
+    object_identifier_value = Text(analyzer=ngram_analyzer, search_analyzer='standard')
+    name = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # label
+    start_date = Date()
+    end_date = Date()
+    institution = Keyword()
+    organization = Keyword()
+
+    class Meta:
+        index = 'information_package'
+
+
 class Document(DocType):
     id = Keyword()  # @id
     ip = Keyword()
