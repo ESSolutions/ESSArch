@@ -61,6 +61,8 @@ class Component(DocType):
     parent = Keyword()
     related = Keyword()  # list of ids for components describing same element in other archive/structure
     archive = Keyword()
+    institution = Keyword()
+    organization = Keyword()
 
     class Meta:
         index = 'component'
