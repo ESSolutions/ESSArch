@@ -83,7 +83,7 @@ Delete IP
 A user that has permissions to delete an IP can delete an IP by clicking
 the **delete**-button.
 
-.. image:: images/list_view_delete_ip_column.png
+.. image:: images/list_view_delete_column.png
 
 .. _user-settings:
 
