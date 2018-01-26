@@ -322,6 +322,7 @@ class InformationPackage(models.Model):
     def create_new_generation(self, state, responsible, object_identifier_value):
         new_aip = deepcopy(self)
         new_aip.pk = None
+        new_aip.active = True
         new_aip.object_identifier_value = None
         new_aip.state = state
         new_aip.cached = False
