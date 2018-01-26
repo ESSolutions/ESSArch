@@ -209,6 +209,8 @@ class InformationPackage(models.Model):
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
 
+    appraisal_date = models.DateTimeField(null=True)
+
     message_digest_algorithm = models.IntegerField(null=True, choices=MESSAGE_DIGEST_ALGORITHM_CHOICES)
     message_digest = models.CharField(max_length=128, blank=True)
     active = models.BooleanField(default=True)
