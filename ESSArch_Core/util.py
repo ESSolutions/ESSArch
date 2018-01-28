@@ -540,7 +540,7 @@ def list_files(path, force_download=False, request=None, paginator=None):
                     return paginator.get_paginated_response(paginated)
                 return Response(entries)
 
-        elif zipfile.is_zipfile(path):
+        elif zipfile.is_zipfile(path) and (os.path.splitext(path)[1] not in ('.doc', '.docx')):
             with zipfile.ZipFile(path) as zipf:
                 entries = []
                 for member in zipf.filelist:
@@ -551,7 +551,7 @@ def list_files(path, force_download=False, request=None, paginator=None):
                         "name": member.filename,
                         "type": 'file',
                         "size": member.file_size,
-                        "modified": datetime.datetime(*member.date_time),
+                        "modified": datetime(*member.date_time),
                     })
                 if paginator is not None:
                     paginated = paginator.paginate_queryset(entries, request)
