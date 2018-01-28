@@ -11,9 +11,9 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.maintenance.filters import AppraisalJobFilter, AppraisalRuleFilter
-from ESSArch_Core.maintenance.models import AppraisalJob, AppraisalRule
-from ESSArch_Core.maintenance.serializers import AppraisalRuleSerializer, AppraisalJobSerializer
+from ESSArch_Core.maintenance.filters import AppraisalJobFilter, AppraisalRuleFilter, ConversionJobFilter, ConversionRuleFilter
+from ESSArch_Core.maintenance.models import AppraisalJob, AppraisalRule, ConversionJob, ConversionRule
+from ESSArch_Core.maintenance.serializers import AppraisalRuleSerializer, AppraisalJobSerializer, ConversionRuleSerializer, ConversionJobSerializer
 from ESSArch_Core.util import generate_file_response
 
 
@@ -36,6 +36,38 @@ class AppraisalJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     @detail_route(methods=['get'])
     def report(self, request, pk=None):
         path = Path.objects.get(entity='appraisal_reports').value
+        path = os.path.join(path, pk + '.pdf')
+
+        with open(path) as pdf:
+            return generate_file_response(pdf, 'application/pdf')
+
+    @detail_route(methods=['post'])
+    def run(self, request, pk=None):
+        job = self.get_object()
+        job.start_date = timezone.now()
+        job.save()
+        job.run()
+        return Response(status=status.HTTP_202_ACCEPTED)
+
+class ConversionRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    queryset = ConversionRule.objects.all()
+    serializer_class = ConversionRuleSerializer
+    filter_class = ConversionRuleFilter
+    filter_backends = (
+        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
+    )
+    search_fields = ('name', 'specification',)
+
+
+class ConversionJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    queryset = ConversionJob.objects.all()
+    serializer_class = ConversionJobSerializer
+    filter_class = ConversionJobFilter
+    filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
+
+    @detail_route(methods=['get'])
+    def report(self, request, pk=None):
+        path = Path.objects.get(entity='conversion_reports').value
         path = os.path.join(path, pk + '.pdf')
 
         with open(path) as pdf:

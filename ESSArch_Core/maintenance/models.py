@@ -312,3 +312,35 @@ class AppraisalJobEntry(models.Model):
     # when type of rule is METADATA
     component = models.CharField(max_length=255, blank=True)
     component_field = models.CharField(max_length=255, blank=True)
+
+
+class ConversionRule(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    information_packages = models.ManyToManyField('ip.InformationPackage', related_name='conversion_rules')
+    frequency = models.CharField(max_length=255, blank=True, default='')  # cron syntax, blank for manual only appraisal
+    specification = jsonfield.JSONField(null=True, default=None)
+
+
+class ConversionJob(models.Model):
+    STATUS_CHOICES = zip(
+        celery_states.ALL_STATES, celery_states.ALL_STATES
+    )
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    rule = models.ForeignKey('maintenance.ConversionRule', on_delete=models.SET_NULL, null=True, related_name='jobs')
+    status = models.CharField(choices=STATUS_CHOICES, max_length=50, default=celery_states.PENDING)
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
+
+
+class ConversionJobEntry(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    job = models.ForeignKey('maintenance.ConversionJob', on_delete=models.CASCADE, related_name='entries')
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
+
+    ip = models.ForeignKey('ip.InformationPackage', on_delete=models.SET_NULL, null=True, related_name='conversion_job_entries')
+    old_document = models.CharField(max_length=255, blank=True)
+    new_document = models.CharField(max_length=255, blank=True)
+    tool = models.CharField(max_length=255, blank=True)
