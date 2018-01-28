@@ -12,6 +12,7 @@ def index_document(ip, filepath):
 
     encoded_content = base64.b64encode(content).decode("ascii")
     filename = os.path.basename(filepath)
+    extension = os.path.splitext(filename)[1][1:]
     dirname = os.path.dirname(filepath)
     href = os.path.relpath(dirname, ip.object_path)
 
@@ -21,7 +22,7 @@ def index_document(ip, filepath):
     size, _ = get_tree_size_and_count(filepath)
     modified = timestamp_to_datetime(os.stat(filepath).st_mtime)
 
-    doc = Document(name=filename, href=href, ip=str(ip.pk), data=encoded_content, size=size, modified=modified)
+    doc = Document(name=filename, extension=extension, href=href, ip=str(ip.pk), data=encoded_content, size=size, modified=modified)
     doc.save(pipeline='ingest_attachment')
     return doc
 
