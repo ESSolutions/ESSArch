@@ -282,6 +282,7 @@ class SubmissionAgreement(models.Model):
         verbose_name = 'Submission Agreement'
         permissions = (
             ('create_new_sa_generation', 'Can create new generations of SA'),
+            ('export_sa', 'Can export SA'),
         )
 
     def __unicode__(self):
@@ -463,6 +464,9 @@ class Profile(models.Model):
     class Meta:
         ordering = ["name"]
         verbose_name = 'Profile'
+        permissions = (
+            ('export_profile', 'Can export profile'),
+        )
 
     def __unicode__(self):
         # create a unicode representation of this object
