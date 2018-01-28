@@ -121,6 +121,9 @@ class AppraisalJob(models.Model):
                 srcdir = os.path.join(policy.cache_storage.value, ip.object_identifier_value)
                 dstdir = os.path.join(policy.cache_storage.value, new_ip.object_identifier_value)
 
+                new_ip.object_path = dstdir
+                new_ip.save()
+
                 aip_profile = new_ip.get_profile_rel('aip').profile
                 aip_profile_data = new_ip.get_profile_data('aip')
 
