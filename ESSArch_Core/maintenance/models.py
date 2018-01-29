@@ -441,15 +441,6 @@ class ConversionJob(models.Model):
                                 convert_file(fpath, target)
 
                                 os.remove(fpath)
-                                s = Search(index='document')
-                                s = s.filter('term', ip=str(ip.pk))
-                                dirname = os.path.dirname(os.path.join(rel, f))
-                                basename = os.path.basename(os.path.join(rel, f))
-                                if dirname == '.':
-                                    dirname = ''
-                                q = ElasticQ('bool', must=[ElasticQ('term', href=dirname), ElasticQ('match', name=basename)])
-                                s = s.query(q)
-                                hits = s.delete()
 
                                 job_entry.new_document = os.path.splitext(job_entry.old_document)[0] + '.' + target
                                 job_entry.end_date = timezone.now()
@@ -468,15 +459,6 @@ class ConversionJob(models.Model):
                         convert_file(path, target)
 
                         os.remove(path)
-                        s = Search(index='document')
-                        s = s.filter('term', ip=str(ip.pk))
-                        dirname = os.path.dirname(rel)
-                        basename = os.path.basename(rel)
-                        if dirname == '.':
-                            dirname = ''
-                        q = ElasticQ('bool', must=[ElasticQ('term', href=dirname), ElasticQ('match', name=basename)])
-                        s = s.query(q)
-                        hits = s.delete()
 
                         job_entry.new_document = os.path.splitext(job_entry.old_document)[0] + '.' + target
                         job_entry.end_date = timezone.now()
