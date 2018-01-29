@@ -12,6 +12,8 @@ from rest_framework.response import Response
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+import six
+
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.maintenance.filters import AppraisalJobFilter, AppraisalRuleFilter, ConversionJobFilter, ConversionRuleFilter
 from ESSArch_Core.maintenance.models import AppraisalJob, AppraisalRule, ConversionJob, ConversionRule
@@ -89,6 +91,29 @@ class ConversionJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = ConversionJobSerializer
     filter_class = ConversionJobFilter
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
+
+    @detail_route(methods=['get'])
+    def preview(self, request, pk=None):
+        job = self.get_object()
+        ips = job.rule.information_packages.all()
+        files = []
+
+        for ip in ips:
+            datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
+            for pattern, spec in six.iteritems(job.rule.specification):
+                for path in iglob(datadir + '/' + pattern):
+                    if os.path.isdir(path):
+                        for root, dirs, files in walk(path):
+                            rel = os.path.relpath(root, datadir)
+
+                            for f in files:
+                                files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
+
+                    elif os.path.isfile(path):
+                        rel = os.path.relpath(path, datadir)
+                        files.append({'ip': ip.object_identifier_value, 'document': rel})
+
+        return Response(files)
 
     @detail_route(methods=['get'])
     def report(self, request, pk=None):
