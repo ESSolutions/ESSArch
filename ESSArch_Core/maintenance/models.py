@@ -13,6 +13,8 @@ from django.db import models
 from django.template.loader import render_to_string
 from django.utils import timezone
 
+from elasticsearch_dsl import Search, Q as ElasticQ
+
 from glob2 import iglob
 
 import jsonfield
@@ -20,6 +22,8 @@ import jsonfield
 from lxml import etree
 
 from scandir import walk
+
+import six
 
 from weasyprint import HTML
 
@@ -32,6 +36,7 @@ from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.ingest import index_path
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.util import (
+    convert_file,
     creation_date,
     find_destination,
     timestamp_to_datetime,
@@ -347,6 +352,256 @@ class ConversionJob(models.Model):
     status = models.CharField(choices=STATUS_CHOICES, max_length=50, default=celery_states.PENDING)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
+
+    class Meta:
+        get_latest_by = 'start_date'
+
+    def _generate_report(self):
+        template = 'conversion_report.html'
+        dstdir = Path.objects.get(entity='conversion_reports').value
+        dst = os.path.join(dstdir, '%s.pdf' % self.pk)
+
+        render = render_to_string(template, {'job': self, 'rule': self.rule})
+        HTML(string=render).write_pdf(dst)
+
+    def _mark_as_complete(self):
+        self.status = celery_states.SUCCESS
+        self.end_date = timezone.now()
+        self.save()
+        self._generate_report()
+
+    def run(self):
+        def get_information_packages(job):
+            return self.rule.information_packages.filter(
+                active=True,
+            ).exclude(
+                conversion_job_entries__job=self,
+            )
+
+        ips = get_information_packages(self)
+
+        if not ips.exists():
+            self._mark_as_complete()
+
+        for ip in ips.iterator():
+            if ip.cached == False:
+                with allow_join_result():
+                    t, created = ProcessTask.objects.get_or_create(
+                        name='workflow.tasks.CacheAIP',
+                        params={'aip': str(ip.pk)},
+                        information_package_id=str(ip.pk),
+                        defaults={'responsible': ip.responsible, 'eager': False}
+                    )
+
+                    if not created:
+                        t.run()
+
+                continue
+
+            policy = ip.policy
+            srcdir = os.path.join(policy.cache_storage.value, ip.object_identifier_value)
+
+            new_ip = ip.create_new_generation(ip.state, ip.responsible, None)
+
+            dstdir = os.path.join(policy.cache_storage.value, new_ip.object_identifier_value)
+
+            new_ip.object_path = dstdir
+            new_ip.save()
+
+            aip_profile = new_ip.get_profile_rel('aip').profile
+            aip_profile_data = new_ip.get_profile_data('aip')
+
+            mets_dir, mets_name = find_destination("mets_file", aip_profile.structure)
+            mets_path = os.path.join(srcdir, mets_dir, mets_name)
+
+            mets_tree = etree.parse(mets_path)
+            agents = get_agents(mets_tree.getroot())
+
+            # copy files to new generation
+            shutil.copytree(srcdir, dstdir)
+
+            # convert files specified in rule
+            for pattern, spec in six.iteritems(self.rule.specification):
+                target = spec['target']
+                tool = spec['tool']
+
+                for path in iglob(dstdir + '/' + pattern):
+                    if os.path.isdir(path):
+                        for root, dirs, files in walk(path):
+                            rel = os.path.relpath(root, dstdir)
+
+                            for f in files:
+                                fpath = os.path.join(root, f)
+                                job_entry = ConversionJobEntry.objects.create(
+                                    job=self,
+                                    start_date=timezone.now(),
+                                    ip=ip,
+                                    old_document=os.path.join(rel, f)
+                                )
+                                convert_file(fpath, target)
+
+                                os.remove(fpath)
+                                s = Search(index='document')
+                                s = s.filter('term', ip=str(ip.pk))
+                                dirname = os.path.dirname(os.path.join(rel, f))
+                                basename = os.path.basename(os.path.join(rel, f))
+                                if dirname == '.':
+                                    dirname = ''
+                                q = ElasticQ('bool', must=[ElasticQ('term', href=dirname), ElasticQ('match', name=basename)])
+                                s = s.query(q)
+                                hits = s.delete()
+
+                                job_entry.new_document = os.path.splitext(job_entry.old_document)[0] + '.' + target
+                                job_entry.end_date = timezone.now()
+                                job_entry.tool = tool
+                                job_entry.save()
+
+                    elif os.path.isfile(path):
+                        rel = os.path.relpath(path, dstdir)
+
+                        job_entry = ConversionJobEntry.objects.create(
+                            job=self,
+                            start_date=timezone.now(),
+                            ip=ip,
+                            old_document=rel,
+                        )
+                        convert_file(path, target)
+
+                        os.remove(path)
+                        s = Search(index='document')
+                        s = s.filter('term', ip=str(ip.pk))
+                        dirname = os.path.dirname(rel)
+                        basename = os.path.basename(rel)
+                        if dirname == '.':
+                            dirname = ''
+                        q = ElasticQ('bool', must=[ElasticQ('term', href=dirname), ElasticQ('match', name=basename)])
+                        s = s.query(q)
+                        hits = s.delete()
+
+                        job_entry.new_document = os.path.splitext(job_entry.old_document)[0] + '.' + target
+                        job_entry.end_date = timezone.now()
+                        job_entry.tool = tool
+                        job_entry.save()
+
+            # preserve new generation
+            sa = new_ip.submission_agreement
+
+            try:
+                os.remove(mets_path)
+            except OSError as e:
+                if e.errno != errno.ENOENT:
+                    raise
+
+            filesToCreate = OrderedDict()
+
+            try:
+                premis_profile = new_ip.get_profile_rel('preservation_metadata').profile
+                premis_profile_data = ip.get_profile_data('preservation_metadata')
+            except ProfileIP.DoesNotExist:
+                pass
+            else:
+                premis_dir, premis_name = find_destination("preservation_description_file", aip_profile.structure)
+                premis_path = os.path.join(dstdir, premis_dir, premis_name)
+
+                try:
+                    os.remove(premis_path)
+                except OSError as e:
+                    if e.errno != errno.ENOENT:
+                        raise
+
+                premis_profile_data['_AGENTS'] = agents
+                filesToCreate[premis_path] = {
+                    'spec': premis_profile.specification,
+                    'data': fill_specification_data(premis_profile_data, ip=new_ip, sa=sa),
+                }
+
+            aip_profile_data['_AGENTS'] = agents
+            filesToCreate[mets_path] = {
+                'spec': aip_profile.specification,
+                'data': fill_specification_data(aip_profile_data, ip=new_ip, sa=sa),
+            }
+
+            t = ProcessTask.objects.create(
+                name='ESSArch_Core.tasks.GenerateXML',
+                params={
+                    'filesToCreate': filesToCreate,
+                    'folderToParse': dstdir,
+                },
+                responsible=new_ip.responsible,
+                information_package=new_ip,
+            )
+            t.run().get()
+
+            dsttar = dstdir + '.tar'
+            dstxml = dstdir + '.xml'
+
+            objid = new_ip.object_identifier_value
+
+            with tarfile.open(dsttar, 'w') as tar:
+                for root, dirs, files in walk(dstdir):
+                    rel = os.path.relpath(root, dstdir)
+                    for d in dirs:
+                        src = os.path.join(root, d)
+                        arc = os.path.join(objid, rel, d)
+                        arc = os.path.normpath(arc)
+                        index_path(new_ip, src)
+                        tar.add(src, arc, recursive=False)
+
+                    for f in files:
+                        src = os.path.join(root, f)
+                        index_path(new_ip, src)
+                        tar.add(src, os.path.normpath(os.path.join(objid, rel, f)))
+
+            algorithm = policy.get_checksum_algorithm_display()
+            checksum = calculate_checksum(dsttar, algorithm=algorithm)
+
+            info = fill_specification_data(new_ip.get_profile_data('aip_description'), ip=new_ip, sa=sa)
+            info["_IP_CREATEDATE"] = timestamp_to_datetime(creation_date(dsttar)).isoformat()
+            info['_AGENTS'] = agents
+
+            aip_desc_profile = new_ip.get_profile('aip_description')
+            filesToCreate = {
+                dstxml: {
+                    'spec': aip_desc_profile.specification,
+                    'data': info
+                }
+            }
+
+            ProcessTask.objects.create(
+                name="ESSArch_Core.tasks.GenerateXML",
+                params={
+                    "filesToCreate": filesToCreate,
+                    "folderToParse": dsttar,
+                    "extra_paths_to_parse": [mets_path],
+                    "algorithm": algorithm,
+                },
+                information_package=new_ip,
+                responsible=new_ip.responsible,
+            ).run().get()
+
+            InformationPackage.objects.filter(pk=new_ip.pk).update(
+                message_digest=checksum, message_digest_algorithm=policy.checksum_algorithm,
+            )
+
+            ProcessTask.objects.create(
+                name='ESSArch_Core.tasks.UpdateIPSizeAndCount',
+                params={'ip': str(new_ip.pk)},
+                information_package=new_ip,
+                responsible=new_ip.responsible,
+            ).run().get()
+
+            t = ProcessTask.objects.create(
+                name='workflow.tasks.StoreAIP',
+                params={'aip': str(new_ip.pk)},
+                information_package_id=str(new_ip.pk),
+                responsible=new_ip.responsible,
+            )
+
+            t.run()
+
+            ips = get_information_packages(self)
+            if not ips.exists():
+                self._mark_as_complete()
 
 
 class ConversionJobEntry(models.Model):
