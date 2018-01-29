@@ -47,7 +47,7 @@ class AppraisalJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         for ip in ips:
             datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
-	    if job.rule.specification:
+            if job.rule.specification:
                 for pattern in job.rule.specification:
                     for path in iglob(datadir + '/' + pattern):
                         if os.path.isdir(path):
