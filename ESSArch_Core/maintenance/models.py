@@ -110,15 +110,30 @@ class AppraisalJob(models.Model):
 
                 continue
 
-            if self.rule.specification:
+            # inactivate old generations
+            InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
+
+            policy = ip.policy
+            srcdir = os.path.join(policy.cache_storage.value, ip.object_identifier_value)
+
+            if not self.rule.specification:
+                # register all files
+                for root, dirs, files in walk(srcdir):
+                    rel = os.path.relpath(root, srcdir)
+
+                    for f in files:
+                        fpath = os.path.join(root, f)
+                        job_entry = AppraisalJobEntry.objects.create(
+                            job=self,
+                            start_date=timezone.now(),
+                            ip=ip,
+                            document=os.path.join(rel, f)
+                        )
+                        job_entry.end_date = timezone.now()
+                        job_entry.save()
+            else:
                 new_ip = ip.create_new_generation(ip.state, ip.responsible, None)
 
-                # inactivate old generations
-                InformationPackage.objects.filter(aic=new_ip.aic, generation__lt=new_ip.generation).update(active=False)
-
-                policy = ip.policy
-
-                srcdir = os.path.join(policy.cache_storage.value, ip.object_identifier_value)
                 dstdir = os.path.join(policy.cache_storage.value, new_ip.object_identifier_value)
 
                 new_ip.object_path = dstdir
