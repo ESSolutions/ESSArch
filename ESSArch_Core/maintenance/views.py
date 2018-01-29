@@ -4,6 +4,8 @@ from django.utils import timezone
 
 from django_filters.rest_framework import DjangoFilterBackend
 
+from glob2 import iglob
+
 from rest_framework import exceptions, filters, status, viewsets
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
@@ -32,6 +34,29 @@ class AppraisalJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = AppraisalJobSerializer
     filter_class = AppraisalJobFilter
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
+
+    @detail_route(methods=['get'])
+    def preview(self, request, pk=None):
+        job = self.get_object()
+        ips = job.rule.information_packages.all()
+        files = []
+
+        for ip in ips:
+            datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
+            for pattern in job.rule.specification:
+                for path in iglob(datadir + '/' + pattern):
+                    if os.path.isdir(path):
+                        for root, dirs, files in walk(path):
+                            rel = os.path.relpath(root, datadir)
+
+                            for f in files:
+                                files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
+
+                    elif os.path.isfile(path):
+                        rel = os.path.relpath(path, datadir)
+                        files.append({'ip': ip.object_identifier_value, 'document': rel})
+
+        return Response(files)
 
     @detail_route(methods=['get'])
     def report(self, request, pk=None):
