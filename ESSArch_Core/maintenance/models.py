@@ -49,19 +49,18 @@ TYPE_CHOICES = (
     (METADATA, 'Metadata'),
 )
 
-class AppraisalRule(models.Model):
+class MaintenanceRule(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    type = models.CharField(max_length=100, choices=TYPE_CHOICES, default=ARCHIVAL_OBJECT)
-    information_packages = models.ManyToManyField('ip.InformationPackage', related_name='appraisal_rules')
     frequency = models.CharField(max_length=255, blank=True, default='')  # cron syntax, blank for manual only appraisal
     specification = jsonfield.JSONField(null=True, default=None)  # empty for all files in IP or all fields in tree node
 
+    class Meta:
+        abstract = True
 
-class AppraisalJob(models.Model):
-    STATUS_CHOICES = zip(
-        celery_states.ALL_STATES, celery_states.ALL_STATES
-    )
+
+class MaintenanceJob(models.Model):
+    STATUS_CHOICES = zip(celery_states.ALL_STATES, celery_states.ALL_STATES)
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     rule = models.ForeignKey('maintenance.AppraisalRule', on_delete=models.CASCADE, null=True, related_name='jobs')
@@ -69,8 +68,12 @@ class AppraisalJob(models.Model):
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
 
+    class Meta:
+        abstract = True
+        get_latest_by = 'start_date'
+
     def _get_report_directory(self):
-        entity = 'appraisal_reports'
+        entity = '%s_reports' % self.MAINTENANCE_TYPE
 
         try:
             return Path.objects.get(entity=entity).value
@@ -78,7 +81,7 @@ class AppraisalJob(models.Model):
             raise Path.DoesNotExist('Path %s is not configured' % entity)
 
     def _generate_report(self):
-        template = 'appraisal_report.html'
+        template = '%s_report.html' % self.MAINTENANCE_TYPE
         dstdir = self._get_report_directory()
         dst = os.path.join(dstdir, '%s.pdf' % self.pk)
 
@@ -90,6 +93,27 @@ class AppraisalJob(models.Model):
         self.end_date = timezone.now()
         self.save()
         self._generate_report()
+
+
+class MaintenanceJobEntry(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    job = models.ForeignKey('maintenance.AppraisalJob', on_delete=models.CASCADE, related_name='entries')
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
+
+    class Meta:
+        abstract = True
+
+
+class AppraisalRule(MaintenanceRule):
+    type = models.CharField(max_length=100, choices=TYPE_CHOICES, default=ARCHIVAL_OBJECT)
+    information_packages = models.ManyToManyField('ip.InformationPackage', related_name='appraisal_rules')
+
+
+class AppraisalJob(MaintenanceJob):
+    rule = models.ForeignKey('maintenance.AppraisalRule', on_delete=models.CASCADE, null=True, related_name='jobs')
+
+    MAINTENANCE_TYPE = 'appraisal'
 
     def _run_metadata(self):
         pass
@@ -324,22 +348,15 @@ class AppraisalJob(models.Model):
             if not ips.exists():
                 self._mark_as_complete()
 
-
     def run(self):
         if self.rule.type == ARCHIVAL_OBJECT:
             return self._run_archive_object()
 
         return self._run_metadata()
 
-    class Meta:
-        get_latest_by = 'start_date'
 
-
-class AppraisalJobEntry(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class AppraisalJobEntry(MaintenanceJobEntry):
     job = models.ForeignKey('maintenance.AppraisalJob', on_delete=models.CASCADE, related_name='entries')
-    start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
 
     # when type of rule is ARCHIVAL_OBJECT
     ip = models.ForeignKey('ip.InformationPackage', on_delete=models.SET_NULL, null=True, related_name='appraisal_job_entries')
@@ -350,49 +367,14 @@ class AppraisalJobEntry(models.Model):
     component_field = models.CharField(max_length=255, blank=True)
 
 
-class ConversionRule(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
+class ConversionRule(MaintenanceRule):
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='conversion_rules')
-    frequency = models.CharField(max_length=255, blank=True, default='')  # cron syntax, blank for manual only appraisal
-    specification = jsonfield.JSONField(null=True, default=None)
 
 
-class ConversionJob(models.Model):
-    STATUS_CHOICES = zip(
-        celery_states.ALL_STATES, celery_states.ALL_STATES
-    )
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class ConversionJob(MaintenanceJob):
     rule = models.ForeignKey('maintenance.ConversionRule', on_delete=models.CASCADE, null=True, related_name='jobs')
-    status = models.CharField(choices=STATUS_CHOICES, max_length=50, default=celery_states.PENDING)
-    start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
 
-    class Meta:
-        get_latest_by = 'start_date'
-
-    def _get_report_directory(self):
-        entity = 'conversion_reports'
-
-        try:
-            return Path.objects.get(entity=entity).value
-        except Path.DoesNotExist:
-            raise Path.DoesNotExist('Path %s is not configured' % entity)
-
-    def _generate_report(self):
-        template = 'conversion_report.html'
-        dstdir = self._get_report_directory()
-        dst = os.path.join(dstdir, '%s.pdf' % self.pk)
-
-        render = render_to_string(template, {'job': self, 'rule': self.rule})
-        HTML(string=render).write_pdf(dst)
-
-    def _mark_as_complete(self):
-        self.status = celery_states.SUCCESS
-        self.end_date = timezone.now()
-        self.save()
-        self._generate_report()
+    MAINTENANCE_TYPE = 'conversion'
 
     def run(self):
         def get_information_packages(job):
@@ -618,11 +600,8 @@ class ConversionJob(models.Model):
                 self._mark_as_complete()
 
 
-class ConversionJobEntry(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class ConversionJobEntry(MaintenanceJobEntry):
     job = models.ForeignKey('maintenance.ConversionJob', on_delete=models.CASCADE, related_name='entries')
-    start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
 
     ip = models.ForeignKey('ip.InformationPackage', on_delete=models.SET_NULL, null=True, related_name='conversion_job_entries')
     old_document = models.CharField(max_length=255, blank=True)
