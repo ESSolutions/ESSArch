@@ -2,6 +2,7 @@ import errno
 import os
 import shutil
 import tarfile
+import time
 import uuid
 
 from collections import OrderedDict
@@ -384,6 +385,9 @@ class ConversionJob(MaintenanceJob):
                 conversion_job_entries__job=self,
             )
 
+        self.status = celery_states.STARTED
+        self.save(update_fields=['status'])
+
         report_dir = self._get_report_directory()
 
         if not os.path.isdir(report_dir):
@@ -394,11 +398,8 @@ class ConversionJob(MaintenanceJob):
 
         ips = get_information_packages(self)
 
-        if not ips.exists():
-            self._mark_as_complete()
-
-        for ip in ips.iterator():
-            if ip.cached == False:
+        for ip in ips.order_by('-cached').iterator():  # convert cached IPs first
+            while not ip.cached:
                 with allow_join_result():
                     t, created = ProcessTask.objects.get_or_create(
                         name='workflow.tasks.CacheAIP',
@@ -410,7 +411,8 @@ class ConversionJob(MaintenanceJob):
                     if not created:
                         t.run()
 
-                continue
+                time.sleep(10)
+                ip.refresh_from_db()
 
             policy = ip.policy
             srcdir = os.path.join(policy.cache_storage.value, ip.object_identifier_value)
@@ -595,9 +597,7 @@ class ConversionJob(MaintenanceJob):
 
             t.run()
 
-            ips = get_information_packages(self)
-            if not ips.exists():
-                self._mark_as_complete()
+        self._mark_as_complete()
 
 
 class ConversionJobEntry(MaintenanceJobEntry):
