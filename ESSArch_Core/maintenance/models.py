@@ -138,11 +138,8 @@ class AppraisalJob(MaintenanceJob):
 
         ips = get_information_packages(self)
 
-        if not ips.exists():
-            self._mark_as_complete()
-
-        for ip in ips.iterator():
-            if ip.cached == False:
+        for ip in ips.order_by('-cached').iterator():  # run cached IPs first
+            while not ip.cached:
                 with allow_join_result():
                     t, created = ProcessTask.objects.get_or_create(
                         name='workflow.tasks.CacheAIP',
@@ -154,7 +151,8 @@ class AppraisalJob(MaintenanceJob):
                     if not created:
                         t.run()
 
-                continue
+                time.sleep(10)
+                ip.refresh_from_db()
 
             # inactivate old generations
             InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
@@ -345,9 +343,7 @@ class AppraisalJob(MaintenanceJob):
 
                 t.run()
 
-            ips = get_information_packages(self)
-            if not ips.exists():
-                self._mark_as_complete()
+        self._mark_as_complete()
 
     def run(self):
         if self.rule.type == ARCHIVAL_OBJECT:
