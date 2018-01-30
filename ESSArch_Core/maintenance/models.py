@@ -69,9 +69,17 @@ class AppraisalJob(models.Model):
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
 
+    def _get_report_directory(self):
+        entity = 'appraisal_reports'
+
+        try:
+            return Path.objects.get(entity=entity).value
+        except Path.DoesNotExist:
+            raise Path.DoesNotExist('Path %s is not configured' % entity)
+
     def _generate_report(self):
         template = 'appraisal_report.html'
-        dstdir = Path.objects.get(entity='appraisal_reports').value
+        dstdir = self._get_report_directory()
         dst = os.path.join(dstdir, '%s.pdf' % self.pk)
 
         render = render_to_string(template, {'job': self, 'rule': self.rule})
@@ -94,6 +102,14 @@ class AppraisalJob(models.Model):
             ).exclude(
                 appraisal_job_entries__job=self,
             )
+
+        report_dir = self._get_report_directory()
+
+        if not os.path.isdir(report_dir):
+            raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), report_dir)
+
+        if not os.access(report_dir, os.W_OK):
+            raise OSError(errno.EACCES, os.strerror(errno.EACCES), report_dir)
 
         ips = get_information_packages(self)
 
@@ -356,9 +372,17 @@ class ConversionJob(models.Model):
     class Meta:
         get_latest_by = 'start_date'
 
+    def _get_report_directory(self):
+        entity = 'conversion_reports'
+
+        try:
+            return Path.objects.get(entity=entity).value
+        except Path.DoesNotExist:
+            raise Path.DoesNotExist('Path %s is not configured' % entity)
+
     def _generate_report(self):
         template = 'conversion_report.html'
-        dstdir = Path.objects.get(entity='conversion_reports').value
+        dstdir = self._get_report_directory()
         dst = os.path.join(dstdir, '%s.pdf' % self.pk)
 
         render = render_to_string(template, {'job': self, 'rule': self.rule})
@@ -377,6 +401,14 @@ class ConversionJob(models.Model):
             ).exclude(
                 conversion_job_entries__job=self,
             )
+
+        report_dir = self._get_report_directory()
+
+        if not os.path.isdir(report_dir):
+            raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), report_dir)
+
+        if not os.access(report_dir, os.W_OK):
+            raise OSError(errno.EACCES, os.strerror(errno.EACCES), report_dir)
 
         ips = get_information_packages(self)
 
