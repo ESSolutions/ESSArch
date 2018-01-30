@@ -92,8 +92,33 @@ class MaintenanceJob(models.Model):
     def _mark_as_complete(self):
         self.status = celery_states.SUCCESS
         self.end_date = timezone.now()
-        self.save()
+        self.save(update_fields=['status', 'end_date'])
         self._generate_report()
+
+    def _run(self):
+        raise NotImplementedError
+
+    def run(self):
+        try:
+            self.status = celery_states.STARTED
+            self.save(update_fields=['status'])
+
+            report_dir = self._get_report_directory()
+
+            if not os.path.isdir(report_dir):
+                raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), report_dir)
+
+            if not os.access(report_dir, os.W_OK):
+                raise OSError(errno.EACCES, os.strerror(errno.EACCES), report_dir)
+
+            self._run()
+        except Exception:
+            self.status = celery_states.FAILURE
+            self.end_date = timezone.now()
+            self.save(update_fields=['status', 'end_date'])
+            raise
+
+        self._mark_as_complete()
 
 
 class MaintenanceJobEntry(models.Model):
@@ -127,14 +152,6 @@ class AppraisalJob(MaintenanceJob):
             ).exclude(
                 appraisal_job_entries__job=self,
             )
-
-        report_dir = self._get_report_directory()
-
-        if not os.path.isdir(report_dir):
-            raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), report_dir)
-
-        if not os.access(report_dir, os.W_OK):
-            raise OSError(errno.EACCES, os.strerror(errno.EACCES), report_dir)
 
         ips = get_information_packages(self)
 
@@ -345,7 +362,7 @@ class AppraisalJob(MaintenanceJob):
 
         self._mark_as_complete()
 
-    def run(self):
+    def _run(self):
         if self.rule.type == ARCHIVAL_OBJECT:
             return self._run_archive_object()
 
@@ -373,24 +390,13 @@ class ConversionJob(MaintenanceJob):
 
     MAINTENANCE_TYPE = 'conversion'
 
-    def run(self):
+    def _run(self):
         def get_information_packages(job):
             return self.rule.information_packages.filter(
                 active=True,
             ).exclude(
                 conversion_job_entries__job=self,
             )
-
-        self.status = celery_states.STARTED
-        self.save(update_fields=['status'])
-
-        report_dir = self._get_report_directory()
-
-        if not os.path.isdir(report_dir):
-            raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), report_dir)
-
-        if not os.access(report_dir, os.W_OK):
-            raise OSError(errno.EACCES, os.strerror(errno.EACCES), report_dir)
 
         ips = get_information_packages(self)
 
@@ -592,8 +598,6 @@ class ConversionJob(MaintenanceJob):
             )
 
             t.run()
-
-        self._mark_as_complete()
 
 
 class ConversionJobEntry(MaintenanceJobEntry):
