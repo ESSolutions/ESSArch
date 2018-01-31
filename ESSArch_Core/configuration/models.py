@@ -28,16 +28,23 @@ from django.db import models
 
 import uuid
 
-class ParameterManager(models.Manager):
-    def cached(self, entity):
-        cache_name = 'parameter_%s' % entity
+
+class CachedManagerMixin:
+    def cached(self, search_key, search_value, value_column):
+        model_name = self.model.__class__.__name__.lower()
+
+        cache_name = '%s_%s' % (model_name, search_value)
         val = cache.get(cache_name)
 
         if val is None:
-            val = Parameter.objects.values_list('value', flat=True).get(entity=entity)
+            val = self.model.objects.values_list(value_column, flat=True).get(**{search_key: search_value})
             cache.set(cache_name, val, 3600*24)
 
         return val
+
+
+class ParameterManager(models.Manager, CachedManagerMixin):
+    pass
 
 
 class Parameter(models.Model):
@@ -67,6 +74,10 @@ class Parameter(models.Model):
         }
 
 
+class PathManager(models.Manager, CachedManagerMixin):
+    pass
+
+
 class Path(models.Model):
     """
     Paths used for different operations
@@ -74,6 +85,8 @@ class Path(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     entity = models.CharField(max_length=255, unique=True)
     value = models.CharField(max_length=255)
+
+    objects = PathManager()
 
     def __unicode__(self):
         return '%s (%s)' % (self.entity, self.value)
