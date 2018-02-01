@@ -461,7 +461,7 @@ def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir='', pro
 
     fileinfo = {
         'FName': os.path.basename(relpath),
-        'FExtension': os.path.splitext(relpath)[1],
+        'FExtension': os.path.splitext(relpath)[1][1:],
         'FDir': rootdir,
         'FParentDir': os.path.basename(os.path.dirname(filepath)),
         'FID': str(uuid.uuid4()),
