@@ -62,6 +62,16 @@ XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
 
 
+def make_unicode(text):
+    try:
+        return six.text_type(text, 'utf-8')
+    except TypeError:
+        if not isinstance(text, six.string_types):
+            return six.text_type(text)
+
+        return text
+
+
 def sliceUntilAttr(iterable, attr, val):
     for i in iterable:
         if getattr(i, attr) == val:

@@ -36,6 +36,8 @@ from lxml import etree
 
 from scandir import walk
 
+import six
+
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseContent
 
 from ESSArch_Core.configuration.models import (
@@ -2747,8 +2749,18 @@ class ParseContentTestCase(unittest.TestCase):
 
     def test_unicode(self):
         content = [{"var": "foo"}]
-        foo = unicode("åäö", 'utf-8')
+        foo = "åäö"
         info = {"foo": foo}
-
         contentobj = parseContent(content, info)
-        self.assertEqual(contentobj, foo)
+        self.assertEqual(contentobj, six.text_type(foo, 'utf-8'))
+
+        content = [{"var": "bar"}]
+        bar = six.text_type("åäö", 'utf-8')
+        info = {"bar": bar}
+        contentobj = parseContent(content, info)
+        self.assertEqual(contentobj, bar)
+
+        content = [{"var": "foo"}, {"var": "bar"}]
+        info = {"foo": foo, "bar": bar}
+        contentobj = parseContent(content, info)
+        self.assertEqual(contentobj, six.text_type(foo, 'utf-8') + bar)

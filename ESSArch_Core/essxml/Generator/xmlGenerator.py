@@ -44,7 +44,7 @@ from ESSArch_Core.essxml.util import parse_file
 from ESSArch_Core.fixity.format import FormatIdentifier
 
 from ESSArch_Core.util import (
-    get_elements_without_namespace, nested_lookup,
+    get_elements_without_namespace, make_unicode, nested_lookup,
 )
 
 
@@ -78,7 +78,7 @@ def parseContent(content, info):
                 val = val.strftime('%Y-%m-%d')
 
             if val is not None:
-                arr.append(unicode(val))
+                arr.append(make_unicode(val))
 
     return ''.join(arr)
 
