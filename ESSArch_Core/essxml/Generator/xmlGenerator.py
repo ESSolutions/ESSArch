@@ -107,6 +107,7 @@ class XMLElement(object):
         self.required = template.get('-req', False)
         self.attr = [XMLAttribute(a) for a in template.get('-attr', [])]
         self.content = template.get('#content', [])
+        self.nestedXMLContent = template.get('-nestedXMLContent')
         self.containsFiles = template.get('-containsFiles', False)
         self.foreach = template.get('-foreach', None)
         self.replace_existing = template.get('-replaceExisting', None)
@@ -134,6 +135,9 @@ class XMLElement(object):
             return False
 
         if parseContent(self.content, info):
+            return False
+
+        if self.nestedXMLContent:
             return False
 
         return True
@@ -260,6 +264,10 @@ class XMLElement(object):
                 child_el = child.createLXMLElement(info, full_nsmap, files=files, folderToParse=folderToParse, parent=self)
                 if child_el is not None:
                     self.add_element(child)
+
+        if self.nestedXMLContent:
+            nested_xml = info[self.nestedXMLContent]
+            self.el.append(etree.fromstring(nested_xml))
 
         if self.isEmpty(info) and self.required:
             raise ValueError("Missing value for required element '%s'" % (self.get_path()))

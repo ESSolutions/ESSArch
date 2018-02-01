@@ -1022,6 +1022,18 @@ class GenerateXMLTestCase(TestCase):
         tree = etree.parse(self.fname)
         self.assertEqual('<foo>baz</foo>', etree.tostring(tree.getroot()))
 
+    def test_generate_element_with_nested_xml_content(self):
+        specification = {
+            '-name': "foo",
+            '-nestedXMLContent': 'bar'
+        }
+
+        generator = XMLGenerator({self.fname: {'spec': specification, 'data': {'bar': '<bar>baz</bar>'}}})
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        self.assertEqual('<foo>\n  <bar>baz</bar>\n</foo>', etree.tostring(tree.getroot()))
+
     def test_generate_element_with_requiredParameters_and_required_var(self):
         specification = {
             '-name': 'root',
