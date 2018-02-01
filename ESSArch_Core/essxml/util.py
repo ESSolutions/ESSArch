@@ -450,7 +450,7 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None):
     return files
 
 
-def parse_file(filepath, mimetype, fid, relpath=None, algorithm='SHA-256', rootdir=''):
+def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir=''):
     if not relpath:
         relpath = filepath
 
@@ -471,7 +471,7 @@ def parse_file(filepath, mimetype, fid, relpath=None, algorithm='SHA-256', rootd
         'FID': str(uuid.uuid4()),
         'daotype': "borndigital",
         'href': relpath,
-        'FMimetype': mimetype,
+        'FMimetype': fid.get_mimetype(filepath),
         'FCreated': createdate.isoformat(),
         'FFormatName': format_name,
         'FFormatVersion': format_version,

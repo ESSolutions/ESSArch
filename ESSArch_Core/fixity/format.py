@@ -8,6 +8,7 @@ import time
 from fido.fido import Fido
 
 from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.exceptions import FileFormatNotAllowed
 
 MB = 1024*1024
 
@@ -28,6 +29,20 @@ class FormatIdentifier:
         ).value
         mimetypes.init(files=[mimetypes_file])
         self.mimetypes = mimetypes.types_map
+
+    def get_mimetype(self, fname):
+        file_name, file_ext = os.path.splitext(fname)
+
+        if not file_ext:
+            file_ext = file_name
+
+        try:
+            return self.mimetypes[file_ext.lower()]
+        except KeyError:
+            if self.allow_unknown_file_types:
+                return 'application/octet-stream'
+
+            raise FileFormatNotAllowed("File format '%s' is not allowed" % file_ext)
 
     def handle_matches(self, fullname, matches, delta_t, matchtype=''):
         if len(matches) == 0:

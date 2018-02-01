@@ -36,10 +36,6 @@ from django.utils import timezone
 
 from scandir import walk
 
-from ESSArch_Core.exceptions import (
-    FileFormatNotAllowed
-)
-
 from ESSArch_Core.essxml.util import parse_file
 from ESSArch_Core.fixity.format import FormatIdentifier
 
@@ -358,20 +354,6 @@ class XMLGenerator(object):
 
         return dirs
 
-    def get_mimetype(self, mtypes, fname, allow_unknown_file_types=False):
-        file_name, file_ext = os.path.splitext(fname)
-
-        if not file_ext:
-            file_ext = file_name
-
-        try:
-            return mtypes[file_ext.lower()]
-        except KeyError:
-            if allow_unknown_file_types:
-                return 'application/octet-stream'
-
-            raise FileFormatNotAllowed("File format '%s' is not allowed" % file_ext)
-
     def generate(self, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
         if parsed_files is None:
             parsed_files = []
@@ -413,17 +395,15 @@ class XMLGenerator(object):
                     external_gen.generate(os.path.join(folderToParse, ext_dir, sub_dir))
 
                     filepath = os.path.join(folderToParse, ptr_file_path)
-                    mimetype = self.get_mimetype(fid.mimetypes, ptr_file_path, allow_unknown_file_types)
 
-                    fileinfo = parse_file(filepath, mimetype, fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir)
+                    fileinfo = parse_file(filepath, fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir)
                     files.append(fileinfo)
 
             if os.path.isfile(folderToParse):
                 filepath = folderToParse
-                mimetype = self.get_mimetype(fid.mimetypes, filepath, allow_unknown_file_types)
                 relpath = os.path.basename(folderToParse)
 
-                fileinfo = parse_file(filepath, mimetype, fid, relpath, algorithm=algorithm)
+                fileinfo = parse_file(filepath, fid, relpath, algorithm=algorithm)
                 files.append(fileinfo)
 
             elif os.path.isdir(folderToParse):
@@ -433,17 +413,15 @@ class XMLGenerator(object):
                     for fname in filenames:
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, folderToParse)
-                        mimetype = self.get_mimetype(fid.mimetypes, filepath, allow_unknown_file_types)
 
-                        fileinfo = parse_file(filepath, mimetype, fid, relpath, algorithm=algorithm)
+                        fileinfo = parse_file(filepath, fid, relpath, algorithm=algorithm)
                         files.append(fileinfo)
 
         for path in extra_paths_to_parse:
             if os.path.isfile(path):
-                mimetype = self.get_mimetype(fid.mimetypes, path, allow_unknown_file_types)
                 relpath = os.path.basename(path)
 
-                fileinfo = parse_file(path, mimetype, fid, relpath, algorithm=algorithm)
+                fileinfo = parse_file(path, fid, relpath, algorithm=algorithm)
                 files.append(fileinfo)
 
             elif os.path.isdir(path):
@@ -453,9 +431,8 @@ class XMLGenerator(object):
                     for fname in filenames:
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, path)
-                        mimetype = self.get_mimetype(fid.mimetypes, filepath, allow_unknown_file_types)
 
-                        fileinfo = parse_file(filepath, mimetype, fid, relpath, algorithm=algorithm, rootdir=path)
+                        fileinfo = parse_file(filepath, fid, relpath, algorithm=algorithm, rootdir=path)
                         files.append(fileinfo)
 
 
@@ -481,8 +458,7 @@ class XMLGenerator(object):
                 relpath = fname
 
             if idx < len(self.toCreate) - 1:
-                mimetype = self.get_mimetype(fid.mimetypes, fname, allow_unknown_file_types)
-                fileinfo = parse_file(fname, mimetype, fid, relpath, algorithm=algorithm)
+                fileinfo = parse_file(fname, fid, relpath, algorithm=algorithm)
                 files.append(fileinfo)
 
     def write(self, filepath):
