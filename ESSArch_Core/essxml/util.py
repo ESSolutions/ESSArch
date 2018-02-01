@@ -450,32 +450,24 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None):
     return files
 
 
-def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir=''):
+def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir='', provided_data=None):
     if not relpath:
         relpath = filepath
 
+    if provided_data is None:
+        provided_data = {}
+
     relpath = win_to_posix(relpath)
-
-    timestamp = creation_date(filepath)
-    createdate = timestamp_to_datetime(timestamp)
-
-    digest = checksum.calculate_checksum(filepath, algorithm)
-    (format_name, format_version, format_registry_key) = fid.identify_file_format(filepath)
 
     fileinfo = {
         'FName': os.path.basename(relpath),
         'FExtension': os.path.splitext(relpath)[1],
         'FDir': rootdir,
         'FParentDir': os.path.basename(os.path.dirname(filepath)),
-        'FChecksum': digest,
         'FID': str(uuid.uuid4()),
         'daotype': "borndigital",
         'href': relpath,
         'FMimetype': fid.get_mimetype(filepath),
-        'FCreated': createdate.isoformat(),
-        'FFormatName': format_name,
-        'FFormatVersion': format_version,
-        'FFormatRegistryKey': format_registry_key,
         'FSize': str(os.path.getsize(filepath)),
         'FUse': 'Datafile',
         'FChecksumType': algorithm,
@@ -484,6 +476,27 @@ def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir=''):
         'FChecksumLib': 'ESSArch',
         'FIDType': 'UUID',
     }
+
+    # We only do heavy computations if their values aren't included in
+    # provided_data
+
+    if 'FCreated' not in provided_data:
+        timestamp = creation_date(filepath)
+        createdate = timestamp_to_datetime(timestamp)
+        fileinfo['FCreated'] = createdate.isoformat()
+
+    if 'FChecksum' not in provided_data:
+        fileinfo['FChecksum'] = checksum.calculate_checksum(filepath, algorithm)
+
+    if any(x not in provided_data for x in ['FFormatName', 'FFormatVersion', 'FFormatRegistryKey']):
+        (format_name, format_version, format_registry_key) = fid.identify_file_format(filepath)
+
+        fileinfo['FFormatName'] = format_name
+        fileinfo['FFormatVersion'] = format_version
+        fileinfo['FFormatRegistryKey'] = format_registry_key
+
+    for key, value in six.iteritems(provided_data):
+        fileinfo[key] = value
 
     return fileinfo
 
