@@ -40,7 +40,7 @@ from django.utils.translation import ugettext as _
 
 from picklefield.fields import PickledObjectField
 
-from ESSArch_Core.util import available_tasks, chunks, flatten, sliceUntilAttr
+from ESSArch_Core.util import chunks, flatten, sliceUntilAttr
 
 class Process(models.Model):
     def _create_task(self, name):
@@ -626,17 +626,6 @@ class ProcessTask(Process):
 
     objects = models.Manager()
     by_step_pos = OrderedProcessTaskManager()
-
-    def clean(self):
-        """
-        Validates the task
-        """
-
-        full_task_names = [k for k, v in available_tasks()]
-
-        # Make sure that the task exists
-        if self.name not in full_task_names:
-            raise ValidationError("Task '%s' does not exist." % self.name)
 
     def run(self):
         """

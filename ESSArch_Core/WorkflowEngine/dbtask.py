@@ -239,7 +239,7 @@ class DBTask(Task):
                 time_done=time_done,
             )
         except OperationalError:
-            print "Database locked, trying again after 2 seconds"
+            print("Database locked, trying again after 2 seconds")
             time.sleep(2)
             ProcessTask.objects.filter(pk=task_id).update(
                 traceback=tb,
@@ -274,7 +274,7 @@ class DBTask(Task):
         try:
             ProcessTask.objects.filter(pk=task_id).update(**updated)
         except OperationalError:
-            print "Database locked, trying again after 2 seconds"
+            print("Database locked, trying again after 2 seconds")
             time.sleep(2)
             ProcessTask.objects.filter(pk=task_id).update(**updated)
 

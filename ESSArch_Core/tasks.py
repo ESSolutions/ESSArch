@@ -29,13 +29,13 @@ import os
 import shutil
 import tarfile
 import tempfile
-import urllib
 import uuid
 import zipfile
 
 import requests
 
 import six
+from six.moves import urllib
 
 from requests_toolbelt import MultipartEncoder
 
@@ -432,7 +432,7 @@ class CopySchemas(DBTask):
         """
 
         src, dst = self.createSrcAndDst(schema, root, structure)
-        urllib.urlretrieve(src, dst)
+        urllib.request.urlretrieve(src, dst)
 
     def undo(self, schema={}, root=None, structure=None):
         pass

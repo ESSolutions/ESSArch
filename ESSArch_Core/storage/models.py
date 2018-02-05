@@ -5,7 +5,8 @@ import os
 import uuid
 
 from datetime import timedelta
-from urlparse import urljoin
+
+from six.moves import urllib
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
@@ -445,7 +446,7 @@ class IOQueue(models.Model):
     def sync_with_master(self, data):
         master_server = self.storage_method_target.storage_target.master_server
         host, user, passw = master_server.split(',')
-        dst = urljoin(host, 'api/io-queue/%s/' % self.pk)
+        dst = urllib.parse.urljoin(host, 'api/io-queue/%s/' % self.pk)
 
         session = requests.Session()
         session.verify = False

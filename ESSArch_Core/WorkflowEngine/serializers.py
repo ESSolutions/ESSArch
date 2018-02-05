@@ -28,7 +28,6 @@ from rest_framework import serializers
 
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import get_result
-from ESSArch_Core.util import available_tasks
 
 
 class ProcessStepChildrenSerializer(serializers.Serializer):
@@ -82,9 +81,6 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
 
 
 class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
-    name = serializers.ChoiceField(
-        choices=available_tasks(),
-    )
     responsible = serializers.SlugRelatedField(
         slug_field='username', read_only=True
     )

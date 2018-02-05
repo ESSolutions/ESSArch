@@ -106,7 +106,7 @@ def analyze2(element, tree, usedTypes=[], minC=1, maxC=1, choise=-1):
                     usedTypes.append(key)
                     analyze2(elementTypes[key], tree, usedTypes=usedTypes)
                 else:
-                    print "type unknown: " +key
+                    print("type unknown: " +key)
         else:
             t = xmlElement(element.get('name'), namespace=tree.namespace)
             t.karMin = minC
@@ -142,7 +142,7 @@ def analyze2(element, tree, usedTypes=[], minC=1, maxC=1, choise=-1):
                         finishedComplexTypes[key] = tree.calculateChildren()
                         attributesComplexTypes[key] = tree.attributes
                     else:
-                        print "type unknown: " + el_type
+                        print("type unknown: " + el_type)
                 else:
                     if key in finishedComplexTypes:
                         t.type = TYPE_TO
@@ -189,7 +189,7 @@ def analyze2(element, tree, usedTypes=[], minC=1, maxC=1, choise=-1):
             if att != None:
                 tree.attributes.append(att)
             else:
-                print 'attribute == none'
+                print('attribute == none')
     elif tag == 'attributeGroup':
         if ref:
             if ':' in ref:
@@ -198,7 +198,7 @@ def analyze2(element, tree, usedTypes=[], minC=1, maxC=1, choise=-1):
                 for child in attributeGroups[ref]:
                     analyze2(child, tree, usedTypes=usedTypes)
             else:
-                print 'attributegroup not found: ' + ref
+                print('attributegroup not found: ' + ref)
     elif tag == 'anyAttribute':
         tree.anyAttribute = True
     elif tag == 'simpleContent':
@@ -240,7 +240,7 @@ def analyze2(element, tree, usedTypes=[], minC=1, maxC=1, choise=-1):
     elif tag == 'annotation':
         pass # comments
     else:
-        print 'other: ' + tag
+        print('other: ' + tag)
 
 
 def parseAttribute(element):
@@ -262,7 +262,7 @@ def parseAttribute(element):
         elif use == 'required':
             templateOptions['required'] = True
         else:
-            print "Odd use value for attribute. value: " + str(use)
+            print("Odd use value for attribute. value: " + str(use))
             return None
         att['templateOptions'] = templateOptions
     else:
@@ -278,7 +278,7 @@ def parseAttribute(element):
                 templateOptions['required'] = True
                 req = True
             else:
-                print "Odd use value for attribute. value: " + str(use)
+                print("Odd use value for attribute. value: " + str(use))
                 return None
             for child in element:
                 if printTag(child.tag) == 'simpleType':
@@ -293,7 +293,7 @@ def parseAttribute(element):
                                     a['value'] = c.get('value')
                                     enumerations.append(a)
                                 elif isinstance(c.tag, str):
-                                    print "unknown restriction: " + c.tag #TODO handle regex string
+                                    print("unknown restriction: " + c.tag) #TODO handle regex string
                             if len(enumerations) > 0:
                                 if not req:
                                     a = OrderedDict()
@@ -303,7 +303,7 @@ def parseAttribute(element):
                                 templateOptions['options'] = enumerations
             att['templateOptions'] = templateOptions
         else:
-            print "ERROR: attribute name is none"
+            print("ERROR: attribute name is none")
             return None
 
     return att
@@ -336,7 +336,7 @@ def generateExtensionRef(schemadoc, namespace):
         elif key == 'xmlns':
             pass # handle xmlns? TODO
         else:
-            print 'unknown schema attribute: ' + key + ', ' + value
+            print('unknown schema attribute: ' + key + ', ' + value)
 
     for child in schemadoc.iterfind(schema + 'complexType'):
         if child.get('name'):
@@ -404,7 +404,7 @@ def generateJsonRes(schemadoc, rootElement, namespace):
         elif key == 'xmlns':
             pass # handle xmlns? TODO
         else:
-            print 'unknown schema attribute: ' + key + ', ' + value
+            print('unknown schema attribute: ' + key + ', ' + value)
 
     for child in schemadoc.iterfind(schema + 'complexType'):
         if child.get('name'):

@@ -26,12 +26,12 @@ from __future__ import absolute_import
 
 import errno
 import hashlib
+import inspect
 import itertools
 import json
 import mimetypes
 import os
 import platform
-import pyclbr
 import re
 import shutil
 import tarfile
@@ -155,21 +155,6 @@ def get_value_from_path(root, path):
     return el.text
 
 
-def available_tasks():
-    modules = ["preingest.tasks", "ESSArch_Core.WorkflowEngine.tests.tasks"]
-    tasks = []
-    for m in modules:
-        try:
-            module_tasks = pyclbr.readmodule(m)
-            tasks = tasks + zip(
-                [m+"."+t for t in module_tasks],
-                module_tasks
-            )
-        except ImportError:
-            continue
-    return tasks
-
-
 def create_event(eventType, eventOutcome, eventOutcomeDetailNote, version, agent, application=None, ip=None):
     """
     Creates a new event and saves it to the database
@@ -187,20 +172,15 @@ def create_event(eventType, eventOutcome, eventOutcomeDetailNote, version, agent
 
     from ESSArch_Core.ip.models import EventIP
 
-    try:
-        e = EventIP.objects.create(
-            eventType=eventType, eventOutcome=eventOutcome, eventVersion=version,
-            eventOutcomeDetailNote=eventOutcomeDetailNote,
-            linkingAgentIdentifierValue=agent, linkingObjectIdentifierValue=ip,
-        )
+    e = EventIP.objects.create(
+        eventType=eventType, eventOutcome=eventOutcome, eventVersion=version,
+        eventOutcomeDetailNote=eventOutcomeDetailNote,
+        linkingAgentIdentifierValue=agent, linkingObjectIdentifierValue=ip,
+    )
 
-        if application:
-            e.eventApplication = application
-            e.save()
-
-    except:
-        print application
-        raise
+    if application:
+        e.eventApplication = application
+        e.save()
 
     return e
 
