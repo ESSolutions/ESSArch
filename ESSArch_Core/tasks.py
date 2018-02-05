@@ -340,7 +340,7 @@ class AppendEvents(DBTask):
 
         for id_type in ['event', 'linking_agent', 'linking_object']:
             entity = '%s_identifier_type' % id_type
-            id_types[id_type] = Parameter.objects.cached(entity)
+            id_types[id_type] = Parameter.objects.cached('entity', entity, 'value')
 
         target = generator.find_element('premis')
         for event in events.iterator():
