@@ -1,43 +1,73 @@
 import os
 
+import six
 from django.utils import timezone
-
 from django_filters.rest_framework import DjangoFilterBackend
-
 from glob2 import iglob
-
-from rest_framework import exceptions, filters, status, viewsets
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
-
 from rest_framework_extensions.mixins import NestedViewSetMixin
-
 from scandir import walk
 
-import six
-
-from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.maintenance.filters import AppraisalJobFilter, AppraisalRuleFilter, ConversionJobFilter, ConversionRuleFilter
-from ESSArch_Core.maintenance.models import AppraisalJob, AppraisalRule, ConversionJob, ConversionRule
-from ESSArch_Core.maintenance.serializers import AppraisalRuleSerializer, AppraisalJobSerializer, ConversionRuleSerializer, ConversionJobSerializer
+from ESSArch_Core.maintenance.filters import (AppraisalJobFilter,
+                                              AppraisalRuleFilter,
+                                              ConversionJobFilter,
+                                              ConversionRuleFilter,
+                                              MaintenanceJobFilter,
+                                              MaintenanceRuleFilter)
+from ESSArch_Core.maintenance.models import (AppraisalJob, AppraisalRule,
+                                             ConversionJob, ConversionRule)
+from ESSArch_Core.maintenance.serializers import (AppraisalJobSerializer,
+                                                  AppraisalRuleSerializer,
+                                                  ConversionJobSerializer,
+                                                  ConversionRuleSerializer,
+                                                  MaintenanceJobSerializer,
+                                                  MaintenanceRuleSerializer)
 from ESSArch_Core.util import generate_file_response
 
 
-class AppraisalRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = AppraisalRule.objects.all()
-    serializer_class = AppraisalRuleSerializer
-    filter_class = AppraisalRuleFilter
+class MaintenanceRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    serializer_class = MaintenanceRuleSerializer
+    filter_class = MaintenanceRuleFilter
     filter_backends = (
         filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
     )
     search_fields = ('name', 'specification',)
 
 
-class AppraisalJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    serializer_class = MaintenanceJobSerializer
+    filter_class = MaintenanceJobFilter
+    filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
+
+    @detail_route(methods=['post'])
+    def run(self, request, pk=None):
+        job = self.get_object()
+        job.start_date = timezone.now()
+        job.save()
+        job.run()
+        return Response(status=status.HTTP_202_ACCEPTED)
+
+    @detail_route(methods=['get'])
+    def report(self, request, pk=None):
+        path = self.get_object()._get_report_directory()
+        path = os.path.join(path, pk + '.pdf')
+
+        with open(path) as pdf:
+            return generate_file_response(pdf, 'application/pdf')
+
+
+class AppraisalRuleViewSet(MaintenanceRuleViewSet):
+    queryset = AppraisalRule.objects.all()
+    serializer_class = AppraisalRuleSerializer
+    filter_class = AppraisalRuleFilter
+
+
+class AppraisalJobViewSet(MaintenanceJobViewSet):
     queryset = AppraisalJob.objects.all()
     serializer_class = AppraisalJobSerializer
     filter_class = AppraisalJobFilter
-    filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
 
     @detail_route(methods=['get'])
     def preview(self, request, pk=None):
@@ -68,37 +98,17 @@ class AppraisalJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                         found.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
         return Response(found)
 
-    @detail_route(methods=['get'])
-    def report(self, request, pk=None):
-        path = Path.objects.get(entity='appraisal_reports').value
-        path = os.path.join(path, pk + '.pdf')
 
-        with open(path) as pdf:
-            return generate_file_response(pdf, 'application/pdf')
-
-    @detail_route(methods=['post'])
-    def run(self, request, pk=None):
-        job = self.get_object()
-        job.start_date = timezone.now()
-        job.save()
-        job.run()
-        return Response(status=status.HTTP_202_ACCEPTED)
-
-class ConversionRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class ConversionRuleViewSet(MaintenanceRuleViewSet):
     queryset = ConversionRule.objects.all()
     serializer_class = ConversionRuleSerializer
     filter_class = ConversionRuleFilter
-    filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
-    )
-    search_fields = ('name', 'specification',)
 
 
-class ConversionJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class ConversionJobViewSet(MaintenanceJobViewSet):
     queryset = ConversionJob.objects.all()
     serializer_class = ConversionJobSerializer
     filter_class = ConversionJobFilter
-    filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
 
     @detail_route(methods=['get'])
     def preview(self, request, pk=None):
@@ -122,19 +132,3 @@ class ConversionJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                         files.append({'ip': ip.object_identifier_value, 'document': rel})
 
         return Response(files)
-
-    @detail_route(methods=['get'])
-    def report(self, request, pk=None):
-        path = Path.objects.get(entity='conversion_reports').value
-        path = os.path.join(path, pk + '.pdf')
-
-        with open(path) as pdf:
-            return generate_file_response(pdf, 'application/pdf')
-
-    @detail_route(methods=['post'])
-    def run(self, request, pk=None):
-        job = self.get_object()
-        job.start_date = timezone.now()
-        job.save()
-        job.run()
-        return Response(status=status.HTTP_202_ACCEPTED)
