@@ -281,20 +281,6 @@ class InformationPackage(models.Model):
 
     objects = InformationPackageManager()
 
-    def related_ips(self, cached=True):
-        sorting = ('generation', 'package_type', 'create_date',)
-
-        if self.package_type == InformationPackage.AIC:
-            # if aic is queried with workareas excluded, we might want to get
-            # the related IPs without any cached restrictions
-            if cached:
-                return self.information_packages.order_by(*sorting)
-            return InformationPackage.objects.get(pk=self.pk).information_packages.order_by(*sorting)
-
-        return InformationPackage.objects.filter(
-            aic__isnull=False, aic=self.aic,
-        ).exclude(pk=self.pk).order_by(*sorting)
-
     def save(self, *args, **kwargs):
         if not self.object_identifier_value:
             self.object_identifier_value = str(self.pk)
@@ -365,7 +351,7 @@ class InformationPackage(models.Model):
             return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
 
     def new_version_in_progress(self):
-        ip = self.related_ips(cached=False).filter(workareas__read_only=False).first()
+        ip = self.related_ips.filter(workareas__read_only=False).first()
 
         if ip is not None:
             return ip.workareas.first()
@@ -441,6 +427,20 @@ class InformationPackage(models.Model):
             return None
 
     @property
+    def related_ips(self):
+        if self.package_type == InformationPackage.AIC:
+            return self.information_packages.all()
+
+        if self.aic is not None:
+            if 'information_packages' in self.aic._prefetched_objects_cache:
+                # prefetched, don't need to filter
+                return self.aic.information_packages
+            else:
+                return self.aic.information_packages.exclude(pk=self.pk)
+
+        return InformationPackage.objects.none()
+
+    @property
     def step_state(self):
         """
         Gets the state of the IP based on its steps
@@ -465,7 +465,7 @@ class InformationPackage(models.Model):
         """
 
         if self.package_type == InformationPackage.AIC:
-            ips = self.information_packages.all()
+            ips = self.related_ips
             state = celery_states.SUCCESS
 
             for ip in ips:
@@ -573,7 +573,7 @@ class InformationPackage(models.Model):
 
 
     class Meta:
-        ordering = ["id"]
+        ordering = ["generation"]
         verbose_name = 'Information Package'
         permissions = (
             ('view_informationpackage', 'Can view IP'),
