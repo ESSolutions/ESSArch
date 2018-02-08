@@ -34,8 +34,8 @@ from picklefield.fields import PickledObjectField
 
 class UserProfile(models.Model):
     DEFAULT_IP_LIST_COLUMNS = [
-        'label', 'object_identifier_value', 'responsible', 'create_date',
-        'state', 'step_state', 'events', 'status', 'delete',
+        'label', 'object_identifier_value', 'start_date', 'end_date', 'responsible',
+        'state', 'step_state', 'status', 'filebrowser', 'delete',
     ]
 
     AIC = 'aic'
