@@ -495,6 +495,13 @@ def generate_file_response(file_obj, content_type, force_download=False):
     response['Content-Disposition'] = 'inline; filename=%s' % os.path.basename(file_obj.name)
     if force_download or content_type is None:
         response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(file_obj.name)
+
+    # disable caching, required for Firefox to be able to load large files multiple times
+    # see https://bugzilla.mozilla.org/show_bug.cgi?id=1436593
+    response["Cache-Control"] = "no-cache, no-store, must-revalidate"  # HTTP 1.1.
+    response["Pragma"] = "no-cache"  # HTTP 1.0.
+    response["Expires"] = "0"  # Proxies.
+
     return response
 
 def list_files(path, force_download=False, request=None, paginator=None):
