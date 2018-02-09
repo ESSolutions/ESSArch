@@ -351,7 +351,7 @@ class InformationPackage(models.Model):
             return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
 
     def new_version_in_progress(self):
-        ip = self.related_ips.filter(workareas__read_only=False).first()
+        ip = self.related_ips(cached=False).filter(workareas__read_only=False).first()
 
         if ip is not None:
             return ip.workareas.first()
@@ -426,12 +426,17 @@ class InformationPackage(models.Model):
         except:
             return None
 
-    @property
-    def related_ips(self):
+    def related_ips(self, cached=True):
         if self.package_type == InformationPackage.AIC:
+            if not cached:
+                return InformationPackage.objects.filter(aic=self)
+
             return self.information_packages.all()
 
         if self.aic is not None:
+            if not cached:
+                return InformationPackage.objects.filter(aic=self.aic).exclude(pk=self.pk)
+
             if 'information_packages' in self.aic._prefetched_objects_cache:
                 # prefetched, don't need to filter
                 return self.aic.information_packages
@@ -465,7 +470,7 @@ class InformationPackage(models.Model):
         """
 
         if self.package_type == InformationPackage.AIC:
-            ips = self.related_ips
+            ips = self.related_ips()
             state = celery_states.SUCCESS
 
             for ip in ips:
