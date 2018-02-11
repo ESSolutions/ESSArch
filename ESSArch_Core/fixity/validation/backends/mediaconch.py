@@ -1,4 +1,6 @@
+import errno
 import logging
+import os
 from subprocess import PIPE, Popen
 
 from lxml import etree
@@ -10,6 +12,12 @@ logger = logging.getLogger('essarch.fixity.validation.mediaconch')
 
 
 def run_mediaconch(filename, reporting_element='Mediaconch', output_format='xml', policy=None):
+    if not os.path.exists(filename):
+        raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
+
+    if policy and not os.path.exists(policy):
+        raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), policy)
+
     cmd = 'mediaconch --{reporter} --Format={format} -p {policy} {filename}'.format(reporter=reporting_element,
                                                                                     format=output_format, policy=policy,
                                                                                     filename=filename)
