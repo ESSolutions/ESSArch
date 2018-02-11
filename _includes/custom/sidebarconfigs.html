@@ -2,17 +2,26 @@
 {% if page.sidebar == "essarch_sidebar" %}
 {% assign sidebar = site.data.sidebars.essarch_sidebar.entries %}
 
-{% elsif page.sidebar == "ec_sidebar" %}
-{% assign sidebar = site.data.sidebars.ec_sidebar.entries %}
+{% elsif page.sidebar == "ec_sidebar_1_1" %}
+{% assign sidebar = site.data.sidebars.ec_sidebar_1_1.entries %}
 
-{% elsif page.sidebar == "etp_sidebar" %}
-{% assign sidebar = site.data.sidebars.etp_sidebar.entries %}
+{% elsif page.sidebar == "etp_sidebar_1_1" %}
+{% assign sidebar = site.data.sidebars.etp_sidebar_1_1.entries %}
 
-{% elsif page.sidebar == "eta_sidebar" %}
-{% assign sidebar = site.data.sidebars.eta_sidebar.entries %}
+{% elsif page.sidebar == "etp_sidebar_1_2" %}
+{% assign sidebar = site.data.sidebars.etp_sidebar_1_2.entries %}
 
-{% elsif page.sidebar == "epp_sidebar" %}
-{% assign sidebar = site.data.sidebars.epp_sidebar.entries %}
+{% elsif page.sidebar == "eta_sidebar_1_1" %}
+{% assign sidebar = site.data.sidebars.eta_sidebar_1_1.entries %}
+
+{% elsif page.sidebar == "eta_sidebar_1_2" %}
+{% assign sidebar = site.data.sidebars.eta_sidebar_1_2.entries %}
+
+{% elsif page.sidebar == "epp_sidebar_2_8" %}
+{% assign sidebar = site.data.sidebars.epp_sidebar_2_8.entries %}
+
+{% elsif page.sidebar == "epp_sidebar_3_0" %}
+{% assign sidebar = site.data.sidebars.epp_sidebar_3_0.entries %}
 
 {% else %}
 {% assign sidebar = site.data.sidebars.essarch_sidebar.entries %}
@@ -28,18 +37,30 @@ sidebar configuration for print files
 {% assign sidebar_pdf = site.data.sidebars.essarch_sidebar.entries %}
 {% endif %}
 
-{% if site.product == "ec" %}
-{% assign sidebar_pdf = site.data.sidebars.ec_sidebar.entries %}
+{% if site.product == "ec_1_1" %}
+{% assign sidebar_pdf = site.data.sidebars.ec_sidebar_1_1.entries %}
 {% endif %}
 
-{% if site.product == "etp" %}
-{% assign sidebar_pdf = site.data.sidebars.etp_sidebar.entries %}
+{% if site.product == "etp_1_1" %}
+{% assign sidebar_pdf = site.data.sidebars.etp_sidebar_1_1.entries %}
 {% endif %}
 
-{% if site.product == "eta" %}
-{% assign sidebar_pdf = site.data.sidebars.eta_sidebar.entries %}
+{% if site.product == "etp_1_2" %}
+{% assign sidebar_pdf = site.data.sidebars.etp_sidebar_1_2.entries %}
 {% endif %}
 
-{% if site.product == "epp" %}
-{% assign sidebar_pdf = site.data.sidebars.epp_sidebar.entries %}
+{% if site.product == "eta_1_1" %}
+{% assign sidebar_pdf = site.data.sidebars.eta_sidebar_1_1.entries %}
+{% endif %}
+
+{% if site.product == "eta_1_2" %}
+{% assign sidebar_pdf = site.data.sidebars.eta_sidebar_1_2.entries %}
+{% endif %}
+
+{% if site.product == "epp_2_8" %}
+{% assign sidebar_pdf = site.data.sidebars.epp_sidebar_2_8.entries %}
+{% endif %}
+
+{% if site.product == "epp_3_0" %}
+{% assign sidebar_pdf = site.data.sidebars.epp_sidebar_3_0.entries %}
 {% endif %}

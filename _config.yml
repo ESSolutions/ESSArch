@@ -93,10 +93,13 @@ defaults:
 
 sidebars:
 - essarch_sidebar
-- ec_sidebar
-- etp_sidebar
-- eta_sidebar
-- epp_sidebar
+- ec_sidebar_1_1
+- etp_sidebar_1_1
+- etp_sidebar_1_2
+- eta_sidebar_1_1
+- eta_sidebar_1_2
+- epp_sidebar_2_8
+- epp_sidebar_3_0
 
 description: "Intended as a documentation theme based on Jekyll for technical writers documenting software and other technical products, this theme has all the elements you would need to handle multiple products with both multi-level sidebar navigation, tags, and other documentation features."
 # the description is used in the feed.xml file

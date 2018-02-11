@@ -1,0 +1,73 @@
+# This is your sidebar TOC. The sidebar code loops through sections here and provides the appropriate formatting.
+
+entries:
+- title: sidebar
+  product: ESSArch Tools Producer
+  version: 1.2
+  folders:
+
+  - title:
+    output: pdf
+    type: frontmatter
+    folderitems:
+    - title:
+      url: /titlepage
+      output: pdf
+      type: frontmatter
+    - title:
+      url: /tocpage
+      output: pdf
+      type: frontmatter
+
+  - title: Overview
+    output: web, pdf
+    folderitems:
+
+    - title: Get started
+      url: /etp_getting_started_1_2.html
+      output: web, pdf
+      type: homepage
+
+    - title: Source Code Documentation
+      external_url: docs/etp/index.html
+      output: web
+
+  - title: Release Notes
+    output: web, pdf
+    folderitems:
+
+    - title: 1.1.0 Release Notes
+      external_url: https://github.com/ESSolutions/ESSArch_Tools_Producer/blob/master/ESSArch_TP/CHANGELOG.md#110
+      output: web, pdf
+
+  - title: Installation
+    output: web, pdf
+    folderitems:
+
+    - title: Prerequisites
+      url: /etp_prerequisites_1_2.html
+      output: web, pdf
+
+    - title: Prepare Environment
+      url: /etp_prepare_environment_1_2.html
+      output: web, pdf
+
+    - title: Install ESSArch Tools Producer
+      url: /etp_install_1_2.html
+      output: web, pdf
+
+    - title: Upgrade ESSArch Tools Producer
+      url: /etp_upgrade_1_2.html
+      output: web, pdf
+
+    - title: Running ESSArch Tools Producer
+      url: /etp_running_1_2.html
+      output: web, pdf
+
+    - title: Safety backup procedures
+      url: /etp_safety_backup_procedures_1_2.html
+      output: web, pdf
+
+    - title: Logfiles
+      url: /etp_logfiles_1_2.html
+      output: web, pdf
