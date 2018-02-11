@@ -38,7 +38,7 @@ from operator import itemgetter
 from celery import states as celery_states
 
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Min, Max, Subquery
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 
@@ -316,9 +316,10 @@ class InformationPackage(models.Model):
         new_aip.object_path = ''
         new_aip.responsible = responsible
 
-        max_generation = InformationPackage.objects.filter(aic=self.aic).aggregate(Max('generation'))['generation__max']
-        new_aip.generation = max_generation + 1
-        new_aip.save()
+        with transaction.atomic():
+            max_generation = InformationPackage.objects.select_for_update().filter(aic=self.aic).aggregate(Max('generation'))['generation__max']
+            new_aip.generation = max_generation + 1
+            new_aip.save()
 
         new_aip.object_identifier_value = object_identifier_value if object_identifier_value is not None else str(new_aip.pk)
         new_aip.save(update_fields=['object_identifier_value'])
