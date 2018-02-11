@@ -306,6 +306,11 @@ class InformationPackage(models.Model):
         return self.generation == max_generation
 
     def create_new_generation(self, state, responsible, object_identifier_value):
+        try:
+            perms = deepcopy(settings.IP_CREATION_PERMS_MAP)
+        except AttributeError:
+            raise exceptions.ParseError('Missing IP_CREATION_PERMS_MAP in settings')
+
         new_aip = deepcopy(self)
         new_aip.pk = None
         new_aip.active = True
@@ -331,11 +336,6 @@ class InformationPackage(models.Model):
             new_profile_ip.save()
 
         member = Member.objects.get(django_user=responsible)
-        try:
-            perms = deepcopy(settings.IP_CREATION_PERMS_MAP)
-        except AttributeError:
-            raise exceptions.ParseError('Missing IP_CREATION_PERMS_MAP in settings')
-
         user_perms = perms.pop('owner', [])
 
         organization = responsible.user_profile.current_organization
