@@ -21,6 +21,7 @@ from ESSArch_Core.ip.models import (
     ArchivalType,
     ArchivalLocation,
     EventIP,
+    InformationPackage,
     Workarea,
 )
 from ESSArch_Core.ip.serializers import (
@@ -100,7 +101,14 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
     serializer_class = WorkareaSerializer
 
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
+        see_all = self.request.user.has_perm('ip.see_all_in_workspaces')
+        ips = InformationPackage.objects.visible_to_user(self.request.user)
+
+        qs = self.queryset.filter(ip__in=ips)
+        if not see_all:
+            qs = qs.filter(user=self.request.user)
+
+        return qs
 
     @detail_route(methods=['post'], url_path='validate')
     def validate(self, request, pk=None):
