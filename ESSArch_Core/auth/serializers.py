@@ -64,6 +64,17 @@ class GroupDetailSerializer(GroupSerializer):
     class Meta(GroupSerializer.Meta):
         fields = GroupSerializer.Meta.fields + ('group_members',)
 
+class OrganizationDetailSerializer(GroupSerializer):
+    group_members = serializers.SerializerMethodField()
+
+    def get_group_members(self, obj):
+        users = User.objects.filter(groups_manager_member_set__in=obj.get_members(subgroups=True))
+        return UserSerializer(users, many=True).data
+        return users.values_list('id', flat=True)
+
+    class Meta(GroupSerializer.Meta):
+        fields = GroupSerializer.Meta.fields + ('group_members',)
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
