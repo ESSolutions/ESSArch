@@ -39,7 +39,7 @@ from celery import states as celery_states
 
 from django.conf import settings
 from django.db import models, transaction
-from django.db.models import Min, Max, Subquery
+from django.db.models import Min, Max, Subquery, Q
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 
 from groups_manager.models import Member
@@ -153,9 +153,16 @@ class InformationPackageManager(models.Manager):
         groups = get_membership_descendants(user.user_profile.current_organization, user)
         django_groups = [g.django_group for g in groups]
 
-        sub = InformationPackageGroupObjectPermission.objects.filter(
+        group_sub = InformationPackageGroupObjectPermission.objects.filter(
             group__in=django_groups, permission__codename__in=perms)
-        return self.get_queryset().filter(pk__in=Subquery(sub.values('content_object')))
+
+        user_sub = InformationPackageUserObjectPermission.objects.filter(
+            user=user, permission__codename__in=perms)
+
+        return self.get_queryset().filter(
+            Q(pk__in=Subquery(group_sub.values('content_object'))) |
+            Q(pk__in=Subquery(user_sub.values('content_object')))
+        )
 
     def visible_to_user(self, user):
         return self.for_user(user, 'view_informationpackage')

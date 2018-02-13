@@ -32,6 +32,9 @@ from django.test import TestCase
 from django.urls import reverse
 
 from groups_manager.models import Group, GroupMember, GroupType, Member
+from groups_manager.utils import get_permission_name
+
+from guardian.shortcuts import assign_perm
 
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -41,6 +44,48 @@ from ESSArch_Core.ip.models import InformationPackage, Workarea
 from ESSArch_Core.util import timestamp_to_datetime
 
 User = get_user_model()
+
+class InformationPackageManagerTestCase(TestCase):
+    def setUp(self):
+        self.org_group_type = GroupType.objects.create(label='organization')
+        self.user = User.objects.create(username="admin")
+        self.member = Member.objects.create(username=self.user.username, django_user=self.user)
+
+    def test_visible_to_user_no_ips_created(self):
+        self.assertFalse(InformationPackage.objects.visible_to_user(self.user).exists())
+
+    def test_visible_to_user_ip_without_permission(self):
+        InformationPackage.objects.create()
+        self.assertFalse(InformationPackage.objects.visible_to_user(self.user).exists())
+
+    def test_visible_to_user_ip_with_permission_added_to_user(self):
+        ip = InformationPackage.objects.create()
+
+        perm_name = get_permission_name('view_informationpackage', ip)
+        assign_perm(perm_name, self.user, ip)
+
+        self.assertTrue(InformationPackage.objects.visible_to_user(self.user).exists())
+
+    def test_visible_to_user_ip_with_permission_added_to_organization(self):
+        ip = InformationPackage.objects.create()
+
+        group = Group.objects.create(name='organization', group_type=self.org_group_type)
+        group.add_member(self.member)
+        perms = {'group': ['view_informationpackage']}
+        self.member.assign_object(group, ip, custom_permissions=perms)
+
+        self.assertTrue(InformationPackage.objects.visible_to_user(self.user).exists())
+
+    def test_visible_to_user_ip_with_permission_added_to_nested_group(self):
+        ip = InformationPackage.objects.create()
+
+        org = Group.objects.create(name='organization', group_type=self.org_group_type)
+        group = Group.objects.create(name='group', parent=org)
+        group.add_member(self.member)
+        perms = {'group': ['view_informationpackage']}
+        self.member.assign_object(group, ip, custom_permissions=perms)
+
+        self.assertTrue(InformationPackage.objects.visible_to_user(self.user).exists())
 
 
 class InformationPackageTestCase(TestCase):
