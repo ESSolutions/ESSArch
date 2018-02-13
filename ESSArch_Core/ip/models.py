@@ -589,7 +589,7 @@ class InformationPackage(models.Model):
 
 
     class Meta:
-        ordering = ["generation"]
+        ordering = ["-create_date"]
         verbose_name = 'Information Package'
         permissions = (
             ('view_informationpackage', 'Can view IP'),
