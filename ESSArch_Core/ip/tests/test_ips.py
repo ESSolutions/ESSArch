@@ -87,6 +87,12 @@ class InformationPackageManagerTestCase(TestCase):
 
         self.assertTrue(InformationPackage.objects.visible_to_user(self.user).exists())
 
+    def test_visible_to_user_with_superuser(self):
+        ip = InformationPackage.objects.create()
+        self.user.is_superuser = True
+        self.user.save()
+        self.assertTrue(InformationPackage.objects.visible_to_user(self.user).exists())
+
 
 class InformationPackageTestCase(TestCase):
     def setUp(self):

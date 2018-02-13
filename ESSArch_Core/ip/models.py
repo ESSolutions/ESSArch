@@ -147,6 +147,9 @@ class InformationPackageManager(models.Manager):
         strings which should be checked
         """
 
+        if user.is_superuser:
+            return self.get_queryset()
+
         if isinstance(perms, six.string_types):
             perms = [perms]
 
