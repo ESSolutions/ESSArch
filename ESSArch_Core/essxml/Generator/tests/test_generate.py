@@ -1311,6 +1311,71 @@ class GenerateXMLTestCase(TestCase):
         file_elements = tree.findall('.//bar')
         self.assertEqual(len(file_elements), num_of_files)
 
+    def test_multiple_to_create_with_reference_from_second_to_first(self):
+        specification = {
+            '-name': 'foo',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': 'bar',
+                    '-containsFiles': True,
+                    '-attr': [
+                        {
+                            '-name': 'name',
+                            '#content': [{'var': 'FName'}]
+                        }
+                    ],
+                    '#content': [{'var': 'href'}]
+                }
+            ],
+        }
+
+        os.mkdir(os.path.join(self.xmldir, 'nested'))
+        first_fname = os.path.join(self.xmldir, 'nested', "first.xml")
+        second_fname = os.path.join(self.xmldir, 'nested', "second.xml")
+
+        generator = XMLGenerator(
+            OrderedDict([
+                (first_fname, {'spec': specification}),
+                (second_fname, {'spec': specification})
+            ])
+        )
+
+        generator.generate()
+
+        tree1 = etree.parse(first_fname)
+        tree2 = etree.parse(second_fname)
+
+        bars1 = tree1.findall('.//bar')
+        bars2 = tree2.findall('.//bar')
+
+        self.assertEqual(len(bars1), 0)
+        self.assertEqual(len(bars2), 1)
+
+        self.assertEqual(bars2[0].text, first_fname)
+
+        # again, but with relpath set
+        generator = XMLGenerator(
+            OrderedDict([
+                (first_fname, {'spec': specification}),
+                (second_fname, {'spec': specification})
+            ]), relpath=self.xmldir
+        )
+
+        generator.generate()
+
+        tree1 = etree.parse(first_fname)
+        tree2 = etree.parse(second_fname)
+
+        bars1 = tree1.findall('.//bar')
+        bars2 = tree2.findall('.//bar')
+
+        self.assertEqual(len(bars1), 0)
+        self.assertEqual(len(bars2), 1)
+
+        self.assertEqual(bars2[0].text, 'nested/first.xml')
+
+
     def test_multiple_to_create_with_files(self):
         specification = {
             '-name': 'foo',
