@@ -1,4 +1,6 @@
+import errno
 import logging
+import os
 from subprocess import PIPE, Popen
 
 from lxml import etree
@@ -9,9 +11,17 @@ from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 logger = logging.getLogger('essarch.fixity.validation.verapdf')
 
 
-def run_verapdf(filepath, policy=None):
+def run_verapdf(filepath, policy=None, validate=True, extract_features=False):
+    if not os.path.exists(filepath):
+        raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), filepath)
+
+    if policy and not os.path.exists(policy):
+        raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), policy)
+
     policy = '--policyfile "{policy}"'.format(policy=policy) if policy else ''
-    cmd = 'verapdf {policy} "{file}"'.format(policy=policy, file=filepath)
+    extract_features = '-x' if extract_features else ''
+    validate = '' if validate else '-o'
+    cmd = 'verapdf {validate} {extract_features} {policy} "{file}"'.format(validate=validate, extract_features=extract_features, policy=policy, file=filepath)
 
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()

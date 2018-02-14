@@ -38,8 +38,8 @@ from operator import itemgetter
 from celery import states as celery_states
 
 from django.conf import settings
-from django.db import models
-from django.db.models import Min, Max, Subquery
+from django.db import models, transaction
+from django.db.models import Min, Max, Subquery, Q
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 
 from groups_manager.models import Member
@@ -147,15 +147,25 @@ class InformationPackageManager(models.Manager):
         strings which should be checked
         """
 
+        if user.is_superuser:
+            return self.get_queryset()
+
         if isinstance(perms, six.string_types):
             perms = [perms]
 
         groups = get_membership_descendants(user.user_profile.current_organization, user)
         django_groups = [g.django_group for g in groups]
 
-        sub = InformationPackageGroupObjectPermission.objects.filter(
+        group_sub = InformationPackageGroupObjectPermission.objects.filter(
             group__in=django_groups, permission__codename__in=perms)
-        return self.get_queryset().filter(pk__in=Subquery(sub.values('content_object')))
+
+        user_sub = InformationPackageUserObjectPermission.objects.filter(
+            user=user, permission__codename__in=perms)
+
+        return self.get_queryset().filter(
+            Q(pk__in=Subquery(group_sub.values('content_object'))) |
+            Q(pk__in=Subquery(user_sub.values('content_object')))
+        )
 
     def visible_to_user(self, user):
         return self.for_user(user, 'view_informationpackage')
@@ -281,20 +291,6 @@ class InformationPackage(models.Model):
 
     objects = InformationPackageManager()
 
-    def related_ips(self, cached=True):
-        sorting = ('generation', 'package_type', 'create_date',)
-
-        if self.package_type == InformationPackage.AIC:
-            # if aic is queried with workareas excluded, we might want to get
-            # the related IPs without any cached restrictions
-            if cached:
-                return self.information_packages.order_by(*sorting)
-            return InformationPackage.objects.get(pk=self.pk).information_packages.order_by(*sorting)
-
-        return InformationPackage.objects.filter(
-            aic__isnull=False, aic=self.aic,
-        ).exclude(pk=self.pk).order_by(*sorting)
-
     def save(self, *args, **kwargs):
         if not self.object_identifier_value:
             self.object_identifier_value = str(self.pk)
@@ -320,6 +316,11 @@ class InformationPackage(models.Model):
         return self.generation == max_generation
 
     def create_new_generation(self, state, responsible, object_identifier_value):
+        try:
+            perms = deepcopy(settings.IP_CREATION_PERMS_MAP)
+        except AttributeError:
+            raise exceptions.ParseError('Missing IP_CREATION_PERMS_MAP in settings')
+
         new_aip = deepcopy(self)
         new_aip.pk = None
         new_aip.active = True
@@ -330,9 +331,10 @@ class InformationPackage(models.Model):
         new_aip.object_path = ''
         new_aip.responsible = responsible
 
-        max_generation = InformationPackage.objects.filter(aic=self.aic).aggregate(Max('generation'))['generation__max']
-        new_aip.generation = max_generation + 1
-        new_aip.save()
+        with transaction.atomic():
+            max_generation = InformationPackage.objects.select_for_update().filter(aic=self.aic).aggregate(Max('generation'))['generation__max']
+            new_aip.generation = max_generation + 1
+            new_aip.save()
 
         new_aip.object_identifier_value = object_identifier_value if object_identifier_value is not None else str(new_aip.pk)
         new_aip.save(update_fields=['object_identifier_value'])
@@ -344,11 +346,6 @@ class InformationPackage(models.Model):
             new_profile_ip.save()
 
         member = Member.objects.get(django_user=responsible)
-        try:
-            perms = deepcopy(settings.IP_CREATION_PERMS_MAP)
-        except AttributeError:
-            raise exceptions.ParseError('Missing IP_CREATION_PERMS_MAP in settings')
-
         user_perms = perms.pop('owner', [])
 
         organization = responsible.user_profile.current_organization
@@ -440,6 +437,25 @@ class InformationPackage(models.Model):
         except:
             return None
 
+    def related_ips(self, cached=True):
+        if self.package_type == InformationPackage.AIC:
+            if not cached:
+                return InformationPackage.objects.filter(aic=self)
+
+            return self.information_packages.all()
+
+        if self.aic is not None:
+            if not cached:
+                return InformationPackage.objects.filter(aic=self.aic).exclude(pk=self.pk)
+
+            if 'information_packages' in self.aic._prefetched_objects_cache:
+                # prefetched, don't need to filter
+                return self.aic.information_packages
+            else:
+                return self.aic.information_packages.exclude(pk=self.pk)
+
+        return InformationPackage.objects.none()
+
     @property
     def step_state(self):
         """
@@ -465,7 +481,7 @@ class InformationPackage(models.Model):
         """
 
         if self.package_type == InformationPackage.AIC:
-            ips = self.information_packages.all()
+            ips = self.related_ips()
             state = celery_states.SUCCESS
 
             for ip in ips:
@@ -573,7 +589,7 @@ class InformationPackage(models.Model):
 
 
     class Meta:
-        ordering = ["id"]
+        ordering = ["generation", "-create_date"]
         verbose_name = 'Information Package'
         permissions = (
             ('view_informationpackage', 'Can view IP'),

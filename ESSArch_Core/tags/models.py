@@ -16,6 +16,7 @@ class Tag(MPTTModel):
 
     class Meta:
         permissions = (
+            ('search', 'Can search'),
             ('view_pul', 'Can view PuL'),
         )
 

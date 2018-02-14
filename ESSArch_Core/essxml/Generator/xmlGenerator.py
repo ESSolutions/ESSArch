@@ -317,7 +317,7 @@ class XMLAttribute(object):
 
 
 class XMLGenerator(object):
-    def __init__(self, filesToCreate={}, filepath=None):
+    def __init__(self, filesToCreate={}, filepath=None, relpath=None):
         parser = etree.XMLParser(remove_blank_text=True)
 
         if filepath is not None:
@@ -325,6 +325,7 @@ class XMLGenerator(object):
         else:
             self.tree = None
 
+        self.relpath = relpath
         self.toCreate = []
 
         for fname, content in filesToCreate.iteritems():
@@ -453,12 +454,15 @@ class XMLGenerator(object):
             )
 
             try:
-                relpath = os.path.relpath(fname, folderToParse)
+                relfilepath = os.path.relpath(fname, self.relpath)
             except:
-                relpath = fname
+                try:
+                    relfilepath = os.path.relpath(fname, folderToParse)
+                except:
+                    relfilepath = fname
 
             if idx < len(self.toCreate) - 1:
-                fileinfo = parse_file(fname, fid, relpath, algorithm=algorithm)
+                fileinfo = parse_file(fname, fid, relfilepath, algorithm=algorithm)
                 files.append(fileinfo)
 
     def write(self, filepath):

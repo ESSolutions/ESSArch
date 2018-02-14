@@ -1,5 +1,7 @@
 from django_filters import rest_framework as filters
 
+from rest_framework import exceptions
+
 from ESSArch_Core.filters import IsoDateTimeFromToRangeFilter, ListFilter
 from ESSArch_Core.ip.models import (
     ArchivalInstitution,
@@ -8,6 +10,7 @@ from ESSArch_Core.ip.models import (
     ArchivalLocation,
     EventIP,
     InformationPackage,
+    Workarea,
 )
 
 
@@ -62,3 +65,20 @@ class EventIPFilter(filters.FilterSet):
     class Meta:
         model = EventIP
         fields = ('eventType', 'eventOutcome', 'linkingAgentRole', 'eventDateTime')
+
+class WorkareaEntryFilter(filters.FilterSet):
+    type = filters.CharFilter(method='filter_type')
+
+    class Meta:
+        model = Workarea
+        fields = ('type', 'user', 'read_only',)
+
+    def filter_type(self, queryset, name, value):
+        workarea_type_reverse = dict((v.lower(), k) for k, v in Workarea.TYPE_CHOICES)
+
+        try:
+            workarea_type = workarea_type_reverse[value]
+        except KeyError:
+            raise exceptions.ParseError('Workarea of type "%s" does not exist' % value)
+
+        return queryset.filter(**{name: workarea_type})

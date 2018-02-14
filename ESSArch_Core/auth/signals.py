@@ -67,10 +67,12 @@ def set_default_organization(sender, instance, action, reverse, *args, **kwargs)
 
     def set_organization(user):
         groups = get_organization_groups(user)
+        current_org = user.user_profile.current_organization
 
-        if user.user_profile.current_organization is None or user.user_profile.current_organization not in groups:
+        if current_org not in groups:
             user.user_profile.current_organization = groups.first()
-            user.user_profile.save(update_fields=['current_organization'])
+
+        user.user_profile.save(update_fields=['current_organization'])
 
     if not reverse:
         user = instance

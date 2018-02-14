@@ -26,6 +26,7 @@ from ESSArch_Core.auth.serializers import (
     GroupSerializer,
     GroupDetailSerializer,
     LoginSerializer,
+    OrganizationDetailSerializer,
     NotificationSerializer,
     NotificationReadSerializer,
     PermissionSerializer,
@@ -74,6 +75,18 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
             return GroupSerializer
 
         return GroupDetailSerializer
+
+class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint that allows groups to be viewed or edited.
+    """
+    queryset = Group.objects.filter(group_type__codename='organization')
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return GroupSerializer
+
+        return OrganizationDetailSerializer
 
 
 class MeView(RetrieveUpdateAPIView):

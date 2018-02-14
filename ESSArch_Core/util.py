@@ -494,6 +494,8 @@ def generate_file_response(file_obj, content_type, force_download=False):
     response = HttpResponse(file_obj.read(), content_type=content_type)
     response['Content-Disposition'] = 'inline; filename=%s' % os.path.basename(file_obj.name)
     if force_download or content_type is None:
+        if content_type is None:
+            response['Content-Type'] = 'application/octet-stream'
         response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(file_obj.name)
 
     # disable caching, required for Firefox to be able to load large files multiple times
@@ -537,7 +539,7 @@ def list_files(path, force_download=False, request=None, paginator=None):
                     return paginator.get_paginated_response(paginated)
                 return Response(entries)
 
-        elif zipfile.is_zipfile(path) and (os.path.splitext(path)[1] not in ('.doc', '.docx')):
+        elif zipfile.is_zipfile(path) and os.path.splitext(path)[1] == '.zip':
             with zipfile.ZipFile(path) as zipf:
                 entries = []
                 for member in zipf.filelist:
