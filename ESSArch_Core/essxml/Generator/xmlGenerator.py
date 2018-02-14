@@ -36,6 +36,8 @@ from django.utils import timezone
 
 from scandir import walk
 
+import six
+
 from ESSArch_Core.essxml.util import parse_file
 from ESSArch_Core.fixity.format import FormatIdentifier
 
@@ -262,7 +264,10 @@ class XMLElement(object):
                     self.add_element(child)
 
         if self.nestedXMLContent:
-            nested_xml = info[self.nestedXMLContent]
+            # we encode the XML to get around LXML limitation with XML strings
+            # containing encoding information.
+            # See https://stackoverflow.com/questions/15830421/xml-unicode-strings-with-encoding-declaration-are-not-supported
+            nested_xml = six.binary_type(bytearray(info[self.nestedXMLContent], encoding='utf-8'))
             self.el.append(etree.fromstring(nested_xml))
 
         if self.isEmpty(info) and self.required:
