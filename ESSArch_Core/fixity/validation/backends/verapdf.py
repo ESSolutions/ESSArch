@@ -11,9 +11,9 @@ from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 logger = logging.getLogger('essarch.fixity.validation.verapdf')
 
 
-def run_verapdf(filename, policy=None):
-    if not os.path.exists(filename):
-        raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
+def run_verapdf(filepath, policy=None):
+    if not os.path.exists(filepath):
+        raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), filepath)
 
     if policy and not os.path.exists(policy):
         raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), policy)
