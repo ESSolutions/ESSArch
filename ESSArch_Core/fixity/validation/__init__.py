@@ -80,6 +80,10 @@ def _validate_file(path, validators, ip=None, stop_at_failure=True):
             time_started=timezone.now(),
             validator=validator.__class__.__name__,
             information_package=ip,
+            specification={
+                'context': validator.context,
+                'options': validator.options,
+            }
         )
         passed = False
 
