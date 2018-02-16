@@ -666,10 +666,11 @@ class ValidateWorkarea(DBTask):
         sa = ip.submission_agreement
         validation_profile = ip.get_profile('validation')
         profile_data = fill_specification_data(data=ip.get_profile_data('validation'), sa=sa, ip=ip)
+        responsible = User.objects.get(pk=self.responsible)
 
         try:
             validation.validate_path(workarea.path, validators, validation_profile, data=profile_data, ip=ip,
-                                     stop_at_failure=stop_at_failure)
+                                     stop_at_failure=stop_at_failure, responsible=responsible)
         except ValidationError:
             self.create_notification(ip)
         else:

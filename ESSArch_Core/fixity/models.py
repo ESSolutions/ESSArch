@@ -1,8 +1,11 @@
 import uuid
 
+from django.contrib.auth import get_user_model
 from django.db import models
 
 import jsonfield
+
+User = get_user_model()
 
 
 class Validation(models.Model):
@@ -15,3 +18,4 @@ class Validation(models.Model):
     passed = models.NullBooleanField(null=True)
     message = models.TextField(max_length=255, blank=True)
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
+    responsible = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)

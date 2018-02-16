@@ -52,7 +52,7 @@ def validate_file_format(filename, fid, format_name=None, format_version=None, f
     logger.info('Successfully validated format of %s' % filename)
 
 
-def _validate_file(path, validators, ip=None, stop_at_failure=True):
+def _validate_file(path, validators, ip=None, stop_at_failure=True, responsible=None):
     for validator in validators:
         included = False
 
@@ -80,6 +80,7 @@ def _validate_file(path, validators, ip=None, stop_at_failure=True):
             time_started=timezone.now(),
             validator=validator.__class__.__name__,
             information_package=ip,
+            responsible=responsible,
             specification={
                 'context': validator.context,
                 'options': validator.options,
@@ -103,7 +104,7 @@ def _validate_file(path, validators, ip=None, stop_at_failure=True):
             obj.save(update_fields=['time_done', 'passed', 'message'])
 
 
-def _validate_directory(path, validators, ip=None, stop_at_failure=True):
+def _validate_directory(path, validators, ip=None, stop_at_failure=True, responsible=None):
     file_validators = [v for v in validators if v.file_validator]
     dir_validators = [v for v in validators if not v.file_validator]
 
@@ -113,6 +114,7 @@ def _validate_directory(path, validators, ip=None, stop_at_failure=True):
             time_started=timezone.now(),
             validator=validator.__class__.__name__,
             information_package=ip,
+            responsible=responsible,
         )
         passed = False
 
@@ -133,10 +135,10 @@ def _validate_directory(path, validators, ip=None, stop_at_failure=True):
 
     for root, dirs, files in walk(path):
         for f in files:
-            _validate_file(os.path.join(root, f), file_validators, ip=ip, stop_at_failure=stop_at_failure)
+            _validate_file(os.path.join(root, f), file_validators, ip=ip, stop_at_failure=stop_at_failure, responsible=responsible)
 
 
-def validate_path(path, validators, profile, data=None, ip=None, stop_at_failure=True):
+def validate_path(path, validators, profile, data=None, ip=None, stop_at_failure=True, responsible=None):
     data = data or {}
     validator_instances = []
 
@@ -161,10 +163,10 @@ def validate_path(path, validators, profile, data=None, ip=None, stop_at_failure
             validator_instances.append(validator_instance)
 
     if os.path.isdir(path):
-        _validate_directory(path, validator_instances, ip=ip, stop_at_failure=stop_at_failure)
+        _validate_directory(path, validator_instances, ip=ip, stop_at_failure=stop_at_failure, responsible=responsible)
 
     elif os.path.isfile(path):
-        _validate_file(path, validator_instances, ip=ip, stop_at_failure=stop_at_failure)
+        _validate_file(path, validator_instances, ip=ip, stop_at_failure=stop_at_failure, responsible=responsible)
 
     else:
         raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), path)
