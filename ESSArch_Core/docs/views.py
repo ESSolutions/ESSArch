@@ -5,7 +5,7 @@ except ModuleNotFoundError:
     from django.urls import reverse
 
 from django.conf import settings
-from django.views.generic import RedirectView
+from django.shortcuts import redirect
 from django.views.static import serve
 
 try:
@@ -13,10 +13,10 @@ try:
 except AttributeError:
     raise ValueError('Missing DOCS_ROOT in settings')
 
-def serve_docs(request, path, **kwargs):
-    kwargs['document_root'] = DOCS_ROOT
+def detail(request, path, **kwargs):
+    lang = kwargs.pop('lang', 'en')
+    kwargs['document_root'] = DOCS_ROOT.format(lang=lang)
     return serve(request, path, **kwargs)
 
-class DocsView(RedirectView):
-    def get_redirect_url(self, **kwargs):
-        return reverse('docs-files', kwargs={'path': 'index.html'})
+def index(request):
+    return redirect('docs:detail', path='index.html', lang='en')
