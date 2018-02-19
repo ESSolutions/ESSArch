@@ -1,4 +1,5 @@
 import errno
+import logging
 import os
 import shutil
 import tarfile
@@ -42,6 +43,8 @@ from ESSArch_Core.util import (
     find_destination,
     timestamp_to_datetime,
 )
+
+logger = logging.getLogger('essarch.maintenance')
 
 ARCHIVAL_OBJECT = 'archival_object'
 METADATA = 'metadata'
@@ -93,7 +96,12 @@ class MaintenanceJob(models.Model):
         self.status = celery_states.SUCCESS
         self.end_date = timezone.now()
         self.save(update_fields=['status', 'end_date'])
-        self._generate_report()
+
+        try:
+            self._generate_report()
+        except Exception:
+            logger.exception('Failed to generate report')
+            raise
 
     def _run(self):
         raise NotImplementedError
