@@ -35,8 +35,13 @@ class ParameterAdmin(admin.ModelAdmin):
     """
     list_display = ('entity', 'value')
     search_fields = ('entity',)
-    readonly_fields = ('entity',)
     fields = ('entity', 'value')
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return self.readonly_fields + ('entity',)
+
+        return self.readonly_fields
 
 admin.site.register(Parameter, ParameterAdmin)
 
@@ -47,8 +52,13 @@ class PathAdmin(admin.ModelAdmin):
     """
     list_display = ('entity', 'value')
     search_fields = ('entity',)
-    readonly_fields = ('entity',)
     fields = ('entity', 'value')
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return self.readonly_fields + ('entity',)
+
+        return self.readonly_fields
 
 admin.site.register(Path, PathAdmin)
 
