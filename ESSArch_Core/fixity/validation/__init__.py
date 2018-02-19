@@ -37,17 +37,18 @@ def validate_file_format(filename, fid, format_name=None, format_version=None, f
 
     actual_format_name, actual_format_version, actual_format_registry_key = fid.identify_file_format(filename)
 
-    if format_name:
-        logger.error('Invalid format name of %s, %s != %s' % (filename, format_name, actual_format_name))
-        assert actual_format_name == format_name, "format name for %s is not valid, (%s != %s)" % (filename, format_name, actual_format_name)
+    try:
+        if format_name:
+            assert actual_format_name == format_name, "format name for %s is not valid, (%s != %s)" % (filename, format_name, actual_format_name)
 
-    if format_version:
-        logger.error('Invalid format version of %s, %s != %s' % (filename, format_version, actual_format_version))
-        assert actual_format_version == format_version, "format version for %s is not valid" % filename
+        if format_version:
+            assert actual_format_version == format_version, "format version for %s is not valid, (%s != %s)" % (filename, format_version, actual_format_version)
 
-    if format_registry_key:
-        logger.error('Invalid format registry key of %s, %s != %s' % (filename, format_registry_key, actual_format_registry_key))
-        assert actual_format_registry_key == format_registry_key, "format registry key for %s is not valid" % filename
+        if format_registry_key:
+            assert actual_format_registry_key == format_registry_key, "format registry key for %s is not valid, (%s != %s)" % (filename, format_registry_key, actual_format_registry_key)
+    except AssertionError:
+        logger.exception('Format validation failed for %s' % filename)
+        raise
 
     logger.info('Successfully validated format of %s' % filename)
 
