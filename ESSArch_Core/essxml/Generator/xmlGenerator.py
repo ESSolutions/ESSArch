@@ -68,12 +68,16 @@ def parseContent(content, info):
                 val = str(uuid.uuid4())
 
             if var == '_NOW':
-                now = timezone.now()
-                local = timezone.localtime(now)
-                val = local.replace(microsecond=0).isoformat()
+                val = timezone.now()
+
+            if var.endswith('__LOCALTIME'):
+                val = timezone.localtime(val)
 
             if var.endswith('__DATE'):
                 val = val.strftime('%Y-%m-%d')
+
+            if isinstance(val, datetime.datetime):
+                val = val.isoformat()
 
             if val is not None:
                 arr.append(make_unicode(val))

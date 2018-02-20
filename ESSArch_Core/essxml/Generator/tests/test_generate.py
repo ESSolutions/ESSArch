@@ -31,6 +31,7 @@ import unittest
 from collections import OrderedDict
 
 from django.test import TestCase
+from django.utils import dateparse, timezone
 
 from lxml import etree
 
@@ -2818,11 +2819,26 @@ class ParseContentTestCase(unittest.TestCase):
         mocked.assert_called_once()
         self.assertEqual(contentobj, str(val))
 
+    def test_parse_content_var_generate_current_time_isoformat(self):
+        content = [{"var": "_NOW",}]
+        contentobj = parseContent(content, {})
+        dt = dateparse.parse_datetime(contentobj)
+        iso = dt.isoformat()
+        self.assertEqual(contentobj, iso)
+        self.assertEqual(dt.utcoffset(), datetime.timedelta(0))
+
     def test_parse_content_var_datetime_to_date(self):
-        val = datetime.datetime.now()
+        val = timezone.now()
         content = [{"var": "foo__DATE",}]
         contentobj = parseContent(content, {'foo': val})
         self.assertEqual(contentobj, val.strftime('%Y-%m-%d'))
+
+    def test_parse_content_var_datetime_to_local_timezone(self):
+        val = timezone.now()
+        content = [{"var": "foo__LOCALTIME",}]
+        contentobj = parseContent(content, {'foo': val})
+        dt = dateparse.parse_datetime(contentobj)
+        self.assertEqual(dt, timezone.localtime(val))
 
     def test_unicode(self):
         content = [{"var": "foo"}]
