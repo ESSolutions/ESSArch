@@ -225,6 +225,18 @@ class InformationPackage(models.Model):
     message_digest = models.CharField(max_length=128, blank=True)
     active = models.BooleanField(default=True)
 
+    content_mets_path = models.CharField(max_length=255, blank=True)
+    content_mets_create_date = models.DateTimeField(null=True)
+    content_mets_size = models.BigIntegerField(null=True)
+    content_mets_digest_algorithm = models.IntegerField(null=True, choices=MESSAGE_DIGEST_ALGORITHM_CHOICES)
+    content_mets_digest = models.CharField(max_length=128, blank=True)
+
+    package_mets_path = models.CharField(max_length=255, blank=True)
+    package_mets_create_date = models.DateTimeField(null=True)
+    package_mets_size = models.BigIntegerField(null=True)
+    package_mets_digest_algorithm = models.IntegerField(null=True, choices=MESSAGE_DIGEST_ALGORITHM_CHOICES)
+    package_mets_digest = models.CharField(max_length=128, blank=True)
+
     linking_agent_identifier_value = models.CharField(max_length=255, blank=True)
     create_agent_identifier_value = models.CharField(max_length=255, blank=True)
 

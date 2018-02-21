@@ -36,6 +36,18 @@ def fill_specification_data(data={}, sa=None, ip=None):
         data['_ENDDATE'] = localtime(ip.end_date)
         data['_INFORMATIONCLASS'] = ip.information_class
 
+        data['_CONTENT_METS_PATH'] = ip.content_mets_path
+        data['_CONTENT_METS_CREATE_DATE'] = localtime(ip.content_mets_create_date)
+        data['_CONTENT_METS_SIZE'] = ip.content_mets_size
+        data['_CONTENT_METS_DIGEST_ALGORITHM'] = ip.get_content_mets_digest_algorithm_display()
+        data['_CONTENT_METS_DIGEST'] = ip.content_mets_digest
+
+        data['_PACKAGE_METS_PATH'] = ip.package_mets_path
+        data['_PACKAGE_METS_CREATE_DATE'] = localtime(ip.package_mets_create_date)
+        data['_PACKAGE_METS_SIZE'] = ip.package_mets_size
+        data['_PACKAGE_METS_DIGEST_ALGORITHM'] = ip.get_package_mets_digest_algorithm_display()
+        data['_PACKAGE_METS_DIGEST'] = ip.package_mets_digest
+
         try:
             # do we have a transfer project profile?
             ip.get_profile('transfer_project')
