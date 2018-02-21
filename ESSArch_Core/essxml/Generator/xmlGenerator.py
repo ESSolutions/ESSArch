@@ -272,7 +272,8 @@ class XMLElement(object):
             # containing encoding information.
             # See https://stackoverflow.com/questions/15830421/xml-unicode-strings-with-encoding-declaration-are-not-supported
             nested_xml = six.binary_type(bytearray(info[self.nestedXMLContent], encoding='utf-8'))
-            self.el.append(etree.fromstring(nested_xml))
+            parser = etree.XMLParser(remove_blank_text=True)
+            self.el.append(etree.fromstring(nested_xml, parser=parser))
 
         if self.isEmpty(info) and self.required:
             raise ValueError("Missing value for required element '%s'" % (self.get_path()))
