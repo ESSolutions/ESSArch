@@ -37,7 +37,8 @@ def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id
 
     data = {'upload_id': upload_id}
     files = {'the_file': (filename, chunk)}
-    response = requests_session.post(dst, data=data, files=files, headers=headers)
+
+    response = requests_session.post(dst, data=data, files=files, headers=headers, timeout=60)
     response.raise_for_status()
 
     return response.json()['upload_id']
