@@ -1,6 +1,7 @@
 import errno
 import logging
 import os
+import time
 
 from requests_toolbelt import MultipartEncoder
 
@@ -8,15 +9,33 @@ from retrying import retry
 
 from ESSArch_Core.fixity.checksum import calculate_checksum
 
+MB = 1024*1024
 
 logger = logging.getLogger('essarch.storage.copy')
 
-def copy_chunk_locally(src, dst, offset, block_size=65536):
+
+def copy_chunk_locally(src, dst, offset, file_size, block_size=65536):
     with open(src, 'r') as srcf, open(dst, 'a') as dstf:
         srcf.seek(offset)
         dstf.seek(offset)
 
+        time_start = time.time()
         dstf.write(srcf.read(block_size))
+        time_end = time.time()
+
+        time_elapsed = time_end-time_start
+
+        start = offset
+        end = offset + block_size - 1
+        if end > file_size:
+            end = file_size - 1
+        chunk_size = block_size / MB
+        try:
+            mb_per_sec = chunk_size / time_elapsed
+        except ZeroDivisionError:
+            mb_per_sec = chunk_size
+
+        logger.info('Copied chunk bytes %s - %s / %s from %s to %s at %s MB/Sec (%s sec)' % (start, end, file_size, src, dst, mb_per_sec, time_elapsed))
 
 
 def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id=None, block_size=65536):
@@ -40,11 +59,19 @@ def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id
 
     response = requests_session.post(dst, data=data, files=files, headers=headers, timeout=60)
     response.raise_for_status()
+    response_time = response.elapsed.total_seconds()
+    request_size = (end-start) / MB
+    try:
+        mb_per_sec = request_size / response_time
+    except ZeroDivisionError:
+        mb_per_sec = request_size
+
+    logger.info('Copied chunk bytes %s - %s / %s from %s to %s at %s MB/Sec (%s sec)' % (start, end, file_size, src, dst, mb_per_sec, response_time))
 
     return response.json()['upload_id']
 
 
-def copy_chunk(src, dst, offset, file_size=None, requests_session=None, upload_id=None, block_size=65536):
+def copy_chunk(src, dst, offset, file_size, requests_session=None, upload_id=None, block_size=65536):
     """
     Copies the given chunk to the given destination
 
@@ -58,12 +85,12 @@ def copy_chunk(src, dst, offset, file_size=None, requests_session=None, upload_i
         None
     """
 
-    def local(src, dst, offset, block_size=65536):
-        return copy_chunk_locally(src, dst, offset, block_size)
+    def local(src, dst, offset, file_size, block_size=65536):
+        return copy_chunk_locally(src, dst, offset, file_size, block_size=block_size)
 
     @retry(stop_max_attempt_number=5, wait_fixed=60000)
     def remote(src, dst, offset, file_size, requests_session, upload_id=None, block_size=65536):
-        return copy_chunk_remotely(src, dst, offset, file_size=file_size,
+        return copy_chunk_remotely(src, dst, offset, file_size,
                                    requests_session=requests_session, upload_id=upload_id,
                                    block_size=block_size)
 
@@ -73,7 +100,7 @@ def copy_chunk(src, dst, offset, file_size=None, requests_session=None, upload_i
 
         return remote(src, dst, offset, file_size, requests_session, upload_id, block_size)
     else:
-        local(src, dst, offset, block_size)
+        local(src, dst, offset, file_size, block_size=block_size)
 
 
 def copy_file_locally(src, dst, block_size=65536):
@@ -91,7 +118,7 @@ def copy_file_locally(src, dst, block_size=65536):
     open(dst, 'w').close()  # remove content of destination if it exists
 
     while idx*block_size <= fsize:
-        copy_chunk(src, dst, idx*block_size, block_size=block_size)
+        copy_chunk(src, dst, idx*block_size, fsize, block_size=block_size)
         idx += 1
 
 
@@ -99,8 +126,8 @@ def copy_file_remotely(src, dst, requests_session=None, block_size=65536):
     file_size = os.stat(src).st_size
     idx = 0
 
-    upload_id = copy_chunk(src, dst, idx*block_size, requests_session=requests_session,
-                           file_size=file_size, block_size=block_size)
+    upload_id = copy_chunk(src, dst, idx*block_size, file_size,
+                           requests_session=requests_session, block_size=block_size)
     idx += 1
 
     while idx*block_size <= file_size:
