@@ -6,7 +6,7 @@ class ValidationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Validation
         fields = ('id', 'filename', 'validator', 'passed', 'message',
-                'information_package', 'time_started', 'time_done',)
+                'information_package', 'time_started', 'time_done', 'required',)
 
 
 class ValidationFilesSerializer(serializers.ModelSerializer):
