@@ -1,4 +1,4 @@
-from django.db.models import QuerySet, Min, Max, Case, Value, When, NullBooleanField, Subquery, OuterRef, CharField
+from django.db.models import QuerySet, Min, Max, Case, Value, When, NullBooleanField, Exists, OuterRef, CharField
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -25,12 +25,12 @@ class ValidationViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
 class ValidationFilesViewSet(ValidationViewSet):
     sub = Validation.objects.filter(
         information_package=OuterRef('information_package'),
-        filename=OuterRef('filename')
-    ).order_by('passed')
+        filename=OuterRef('filename'), passed=False, required=True,
+    )
 
     queryset = Validation.objects.distinct().values('filename').annotate(
         time_started=Min('time_started'), time_done=Max('time_done'),
-        passed=Subquery(sub.values('passed')[:1]),
+        passed=~Exists(sub),
     ).order_by('time_started')
 
     serializer_class = ValidationFilesSerializer
