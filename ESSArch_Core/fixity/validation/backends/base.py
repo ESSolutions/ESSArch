@@ -1,7 +1,7 @@
 class BaseValidator(object):
     file_validator = True  # Does the validator operate on single files or entire directories?
 
-    def __init__(self, context=None, include=None, exclude=None, options=None, data=None):
+    def __init__(self, context=None, include=None, exclude=None, options=None, data=None, required=True):
         """
         Initializes for validation of one or more files
         """
@@ -10,6 +10,7 @@ class BaseValidator(object):
         self.exclude = exclude or []
         self.options = options or {}
         self.data = data or {}
+        self.required = required
 
     def validate(self, filepath):
         raise NotImplementedError('subclasses of BaseValidator must provide a validate() method')

@@ -80,6 +80,7 @@ def _validate_file(path, validators, ip=None, stop_at_failure=True, responsible=
             filename=path,
             time_started=timezone.now(),
             validator=validator.__class__.__name__,
+            required=validator.required,
             information_package=ip,
             responsible=responsible,
             specification={
@@ -114,6 +115,7 @@ def _validate_directory(path, validators, ip=None, stop_at_failure=True, respons
             filename=path,
             time_started=timezone.now(),
             validator=validator.__class__.__name__,
+            required=validator.required,
             information_package=ip,
             responsible=responsible,
         )
@@ -155,12 +157,13 @@ def validate_path(path, validators, profile, data=None, ip=None, stop_at_failure
         validator = getattr(importlib.import_module(module_name), validator_class)
 
         for specification in profile.specification.get(name, []):
+            required = specification.get('required', True)
             context = specification.get('context')
             include = [os.path.join(path, included) for included in specification.get('include', [])]
             exclude = [os.path.join(path, excluded) for excluded in specification.get('exclude', [])]
             options = specification.get('options', {})
 
-            validator_instance = validator(context=context, include=include, exclude=exclude, options=options, data=data)
+            validator_instance = validator(context=context, include=include, exclude=exclude, options=options, data=data, required=required)
             validator_instances.append(validator_instance)
 
     if os.path.isdir(path):

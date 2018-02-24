@@ -16,6 +16,7 @@ class Validation(models.Model):
     time_started = models.DateTimeField(null=True)
     time_done = models.DateTimeField(null=True)
     passed = models.NullBooleanField(null=True)
+    required = models.BooleanField(default=True)
     message = models.TextField(max_length=255, blank=True)
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
     responsible = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)

@@ -6,6 +6,8 @@ from rest_framework.response import Response
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+import six
+
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
 from ESSArch_Core.ip.filters import (
@@ -163,11 +165,9 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError("IP does not have a \"transformation\" profile")
 
         if ip.get_profile('validation') is not None:
-            required_validators = ip.get_profile('validation').specification.get('_required', [])
-
-            for required in required_validators:
-                if workarea.successfully_validated.get(required) is not True:
-                    raise exceptions.ParseError("\"{ip}\" hasn't been successfully validated with \"{validator}\"".format(ip=ip.object_identifier_value, validator=required))
+            for validator, successful in six.iteritems(workarea.successfully_validated):
+                if successful is not True:
+                    raise exceptions.ParseError("\"{ip}\" hasn't been successfully validated with \"{validator}\"".format(ip=ip.object_identifier_value, validator=validator))
 
         step = ProcessStep.objects.create(name="Transform", eager=False, information_package=ip)
         pos = 0

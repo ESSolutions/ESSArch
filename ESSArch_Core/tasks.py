@@ -647,7 +647,7 @@ class ValidateWorkarea(DBTask):
     queue = 'validation'
 
     def create_notification(self, ip):
-        errcount = Validation.objects.filter(information_package=ip, passed=False).count()
+        errcount = Validation.objects.filter(information_package=ip, passed=False, required=True).count()
 
         if errcount:
             Notification.objects.create(message='Validation of "{ip}" failed with {errcount} error(s)'.format(ip=ip.object_identifier_value, errcount=errcount), level=logging.ERROR, user_id=self.responsible, refresh=True)
@@ -677,7 +677,7 @@ class ValidateWorkarea(DBTask):
             self.create_notification(ip)
         finally:
             validations = ip.validation_set.all()
-            failed_validators = validations.values('validator').filter(passed=False).values_list('validator', flat=True)
+            failed_validators = validations.values('validator').filter(passed=False, required=True).values_list('validator', flat=True)
 
             for k, v in six.iteritems(workarea.successfully_validated):
                 class_name = validation.AVAILABLE_VALIDATORS[k].split('.')[-1]
