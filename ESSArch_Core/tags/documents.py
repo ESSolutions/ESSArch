@@ -50,7 +50,7 @@ class Document(Tag):
         index = 'tags'
 
 
-class Parent(InnerDoc):
+class Node(InnerDoc):
     id = Keyword()
     index = Keyword()
 
@@ -62,7 +62,7 @@ class Component(DocType):
     name = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # unittitle
     desc = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # e.g. from <odd>
     type = Keyword()  # series, volume, etc.
-    parent = Object(Parent)
+    parent = Object(Node)
     related = Keyword()  # list of ids for components describing same element in other archive/structure
     archive = Keyword()
     institution = Keyword()
@@ -102,7 +102,7 @@ class InformationPackage(DocType):
 class Document(DocType):
     id = Keyword()  # @id
     ip = Keyword()
-    parent = Object(Parent)  # component
+    parent = Object(Node)  # component
     reference_code = Keyword()
     archive = Keyword()
     institution = Keyword()
