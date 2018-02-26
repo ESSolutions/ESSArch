@@ -24,6 +24,7 @@
 
 import copy
 import datetime
+import logging
 import os
 import re
 import uuid
@@ -45,6 +46,7 @@ from ESSArch_Core.util import (
     get_elements_without_namespace, make_unicode, nested_lookup,
 )
 
+logger = logging.getLogger('essarch.essxml.generator')
 
 def parseContent(content, info):
     if not content:
@@ -271,9 +273,14 @@ class XMLElement(object):
             # we encode the XML to get around LXML limitation with XML strings
             # containing encoding information.
             # See https://stackoverflow.com/questions/15830421/xml-unicode-strings-with-encoding-declaration-are-not-supported
-            nested_xml = six.binary_type(bytearray(info[self.nestedXMLContent], encoding='utf-8'))
-            parser = etree.XMLParser(remove_blank_text=True)
-            self.el.append(etree.fromstring(nested_xml, parser=parser))
+            if self.nestedXMLContent not in info:
+                logger.warn("Nested XML '%s' not found in data and will not be created" % self.nestedXMLContent)
+                if not self.allowEmpty:
+                    return None
+            else:
+                nested_xml = six.binary_type(bytearray(info[self.nestedXMLContent], encoding='utf-8'))
+                parser = etree.XMLParser(remove_blank_text=True)
+                self.el.append(etree.fromstring(nested_xml, parser=parser))
 
         if self.isEmpty(info) and self.required:
             raise ValueError("Missing value for required element '%s'" % (self.get_path()))
