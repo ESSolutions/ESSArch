@@ -75,7 +75,7 @@ class VersionedDocType(DocType):
             data['current_version'] = False
 
         new_obj = self.__class__(**data)
-        new_obj.save(pipeline='add_timestamp', old=self, refresh=refresh)
+        new_obj.save(pipeline='add_timestamp', refresh=refresh)
         return new_obj
 
     def set_as_current_version(self):
