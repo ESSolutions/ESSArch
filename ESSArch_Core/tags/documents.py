@@ -1,4 +1,7 @@
-from elasticsearch_dsl import analyzer, tokenizer, DocType, InnerDoc, MetaField, Date, Integer, Long, Keyword, Object, Text, Nested
+from django.utils import timezone
+from elasticsearch_dsl import (Boolean, Date, DocType, InnerDoc, Keyword, Long,
+                               Nested, Object, Q, Text, analyzer,
+                               tokenizer)
 
 ngram_tokenizer=tokenizer('custom_ngram_tokenizer', type='ngram', min_gram=1,
                           max_gram=15)
@@ -55,15 +58,47 @@ class Node(InnerDoc):
     index = Keyword()
 
 
-class Component(DocType):
+class VersionedDocType(DocType):
+    link_id = Keyword()
+    current_version = Boolean()
+
+    def create_new_version(self, start_date=None, end_date=None, refresh=False):
+        data = self.to_dict(include_meta=False)
+        data['_index'] = self.meta.index
+        data['start_date'] = start_date
+        data['end_date'] = end_date
+
+        if data['start_date'] is not None and data['start_date'] <= timezone.now():
+            self.update(current_version=False)
+            data['current_version'] = True
+        else:
+            data['current_version'] = False
+
+        new_obj = self.__class__(**data)
+        new_obj.save(pipeline='add_timestamp', old=self, refresh=refresh)
+        return new_obj
+
+    def set_as_current_version(self):
+        index = self.meta.index
+        versions = self.__class__.search(index=index).source(False).query(
+            'bool', must=[Q('term', link_id=self.link_id)], must_not=[Q('term', _id=self._id)]
+        ).execute()
+
+        for version in versions:
+            version.update(current_version=False)
+
+        self.update(current_version=True)
+
+
+class Component(VersionedDocType):
     reference_code = Keyword()
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
     name = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # unittitle
+    create_date = Date()
     desc = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # e.g. from <odd>
     type = Keyword()  # series, volume, etc.
     parent = Object(Node)
-    related = Keyword()  # list of ids for components describing same element in other archive/structure
     archive = Keyword()
     institution = Keyword()
     organization = Keyword()
@@ -72,7 +107,7 @@ class Component(DocType):
         index = 'component'
 
 
-class Archive(DocType):
+class Archive(VersionedDocType):
     reference_code = Keyword()
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
@@ -99,7 +134,7 @@ class InformationPackage(DocType):
         index = 'information_package'
 
 
-class Document(DocType):
+class Document(VersionedDocType):
     id = Keyword()  # @id
     ip = Keyword()
     parent = Object(Node)  # component
