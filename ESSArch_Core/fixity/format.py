@@ -42,7 +42,7 @@ class FormatIdentifier:
             if self.allow_unknown_file_types:
                 return 'application/octet-stream'
 
-            raise FileFormatNotAllowed("File format '%s' is not allowed" % file_ext)
+            raise FileFormatNotAllowed("Extension of '%s' is missing from mimetypes and is not allowed" % fname)
 
     def handle_matches(self, fullname, matches, delta_t, matchtype=''):
         if len(matches) == 0:
