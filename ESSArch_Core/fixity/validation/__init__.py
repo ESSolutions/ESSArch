@@ -2,6 +2,7 @@ import errno
 import importlib
 import logging
 import os
+import traceback
 
 from django.conf import settings
 from django.utils import timezone
@@ -95,7 +96,7 @@ def _validate_file(path, validators, ip=None, stop_at_failure=True, responsible=
             obj.message = validator.validate(path)
             passed = True
         except Exception as e:
-            obj.message = str(e)
+            obj.message = traceback.format_exc()
             if stop_at_failure:
                 raise
         finally:
@@ -126,7 +127,7 @@ def _validate_directory(path, validators, ip=None, stop_at_failure=True, respons
             obj.message = validator.validate(path)
             passed = True
         except Exception as e:
-            obj.message = str(e)
+            obj.message = traceback.format_exc()
             if stop_at_failure:
                 raise
         finally:
