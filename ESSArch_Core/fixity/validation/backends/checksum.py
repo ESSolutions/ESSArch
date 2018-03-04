@@ -31,7 +31,7 @@ class ChecksumValidator(BaseValidator):
         self.block_size = self.options.get('block_size', 65536)
 
     def validate(self, filepath):
-        logger.info('Validating checksum of %s' % filepath)
+        logger.debug('Validating checksum of %s' % filepath)
 
         expected = self.options['expected'].format(**self.data)
 

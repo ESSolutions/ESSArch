@@ -21,6 +21,7 @@ def run_mediaconch(filename, reporting_element='Mediaconch', output_format='xml'
     cmd = 'mediaconch --{reporter} --Format={format} -p {policy} {filename}'.format(reporter=reporting_element,
                                                                                     format=output_format, policy=policy,
                                                                                     filename=filename)
+    logger.debug(cmd)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
     return out, err, p.returncode
@@ -44,9 +45,11 @@ class MediaconchValidator(BaseValidator):
     """
 
     def validate(self, filepath):
+        logger.debug("Validating %s with Mediaconch" % filepath)
         out, err, returncode = run_mediaconch(filepath, policy=self.context)
 
         if returncode:
+            logger.warning("Mediaconch validation of %s failed, %s" % (filepath, err))
             raise ValidationError(err)
 
         parser = etree.XMLParser(remove_blank_text=True)
@@ -56,6 +59,9 @@ class MediaconchValidator(BaseValidator):
         message = etree.tostring(root, xml_declaration=True, encoding='UTF-8')
 
         if not passed:
+            logger.warning("Mediaconch validation of %s failed, %s" % (filepath, message))
             raise ValidationError(message)
+
+        logger.info("Successful Mediaconch validation of %s" % filepath)
 
         return message

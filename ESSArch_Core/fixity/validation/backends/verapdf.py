@@ -23,6 +23,7 @@ def run_verapdf(filepath, policy=None, validate=True, extract_features=False):
     validate = '' if validate else '-o'
     cmd = 'verapdf {validate} {extract_features} {policy} "{file}"'.format(validate=validate, extract_features=extract_features, policy=policy, file=filepath)
 
+    logger.debug(cmd)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
     return out, err, p.returncode
@@ -61,9 +62,11 @@ class VeraPDFValidator(BaseValidator):
     """
 
     def validate(self, filepath):
+        logger.debug("Validating %s with VeraPDF" % filepath)
         out, err, returncode = run_verapdf(filepath, self.context)
 
         if returncode:
+            logger.warning("VeraPDF validation of %s failed, %s" % (filepath, err))
             raise ValidationError(err)
 
         parser = etree.XMLParser(remove_blank_text=True)
@@ -73,6 +76,9 @@ class VeraPDFValidator(BaseValidator):
         message = etree.tostring(root, xml_declaration=True, encoding='UTF-8')
 
         if not passed:
+            logger.warning("VeraPDF validation of %s failed, %s" % (filepath, message))
             raise ValidationError(message)
+
+        logger.info("Successful VeraPDF validation of %s" % filepath)
 
         return message

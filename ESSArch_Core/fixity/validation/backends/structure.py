@@ -100,8 +100,16 @@ class StructureValidator(BaseValidator):
     def validate(self, filepath, expected=None):
         root = self.options.get('tree', [])
 
-        for node in root:
-            if node['type'] == 'root':
-                self.validate_folder(filepath, node)
-            elif node['type'] == 'folder':
-                self.validate_folder(os.path.join(filepath, node['name']), node)
+        logger.debug("Validating structure of %s" % filepath)
+
+        try:
+            for node in root:
+                if node['type'] == 'root':
+                    self.validate_folder(filepath, node)
+                elif node['type'] == 'folder':
+                    self.validate_folder(os.path.join(filepath, node['name']), node)
+        except ValidationError as e:
+            logger.warning("Structure validation of %s failed, %s" % (filepath, e.message))
+            raise
+
+        logger.info("Successful structure validation of %s" % filepath)
