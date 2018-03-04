@@ -41,8 +41,8 @@ class ChecksumValidator(BaseValidator):
             with open(expected, 'rb') as checksum_file:
                 checksum = checksum_file.read().strip()
         elif self.context == 'xml_file':
-            el = find_file(filepath, xmlfile=expected)
-            checksum = el.checksum
+            xml_el, _ = find_file(filepath, xmlfile=expected)
+            checksum = xml_el.checksum
 
         actual_checksum = calculate_checksum(filepath, algorithm=self.algorithm, block_size=self.block_size)
         if actual_checksum != checksum:
