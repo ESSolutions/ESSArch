@@ -29,6 +29,8 @@ import os
 import re
 import uuid
 
+from django.template import Template, Context
+
 from lxml import etree
 
 from natsort import natsorted
@@ -51,6 +53,11 @@ logger = logging.getLogger('essarch.essxml.generator')
 def parseContent(content, info):
     if not content:
         return None
+
+    if isinstance(content, six.string_types):
+        t = Template(content)
+        c = Context(info)
+        return t.render(c)
 
     arr = []
     for c in content:

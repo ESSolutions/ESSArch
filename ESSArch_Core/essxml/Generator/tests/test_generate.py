@@ -2857,3 +2857,13 @@ class ParseContentTestCase(unittest.TestCase):
         info = {"foo": foo, "bar": bar}
         contentobj = parseContent(content, info)
         self.assertEqual(contentobj, six.text_type(foo, 'utf-8') + bar)
+
+    def test_parse_django_template(self):
+        contentobj = parseContent("hello {{foo}}", {"foo": "world"})
+        self.assertEqual(contentobj, 'hello world')
+
+        val = timezone.now()
+        content = "{% load tz %}{{foo | date:'c'}}"
+        contentobj = parseContent(content, {'foo': val})
+        dt = dateparse.parse_datetime(contentobj)
+        self.assertEqual(str(dt), str(timezone.localtime(val)))

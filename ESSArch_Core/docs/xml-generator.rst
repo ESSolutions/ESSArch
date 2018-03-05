@@ -149,3 +149,36 @@ If we create this with ``created = "2018-02-05 12:30:25"`` we get the following 
 ``DATE``                               Keep only the date part of the variable
 ``LOCALTIME``                          Convert the variable to local timezone with a UTC offset
 ====================================== =====
+
+Django Templates
+--------------
+
+In addition to the variables and formatters above we can also use the `Django
+Template Engine <https://docs.djangoproject.com/en/1.11/ref/templates/>`_ by
+using a string instead of a dictionary:
+
+.. code-block:: json
+
+    {
+        "-name": "myelement",
+        "#content": "hello {{myvar}}, how are you?"
+    }
+
+used with ``myvar = "world"`` results in
+
+.. code-block:: xml
+
+    <myelement>hello world, how are you?</myelement>
+
+All Django tags and filters works too:
+
+.. code-block:: json
+
+    {
+        "-name": "myelement",
+        "#content": "{% load tz %}The time is now {% timezone 'UTC' %}{% now 'c' %}{% endtimezone %}"
+    }
+
+.. code-block:: xml
+
+    <myelement>The time is now 2018-03-05T12:36:55.089440+00:00</myelement>
