@@ -182,3 +182,13 @@ All Django tags and filters works too:
 .. code-block:: xml
 
     <myelement>The time is now 2018-03-05T12:36:55.089440+00:00</myelement>
+
+Template Tags
+^^^^^^^^^^^^^
+
+In addition to Django's built-in tags there are the ``essxml`` template tags
+available by using ``{% load essxml %}``
+
+====================================== =====
+``uuid4``                              Generates a version 4 UUID
+====================================== =====
