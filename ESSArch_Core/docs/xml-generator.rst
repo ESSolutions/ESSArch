@@ -8,8 +8,37 @@
 
     :ref:`profiles`
 
-Specification syntax
+XML Specification
 --------------------
+
+Creating an empty element
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Each XML-element is specified as a nested json object. All elements require the
+``name`` parameter so the most simple specification we can have is
+
+.. code-block:: json
+
+    {
+        "-name": "file"
+    }
+
+This will however generate an error since no empty elements are created by
+default and XML files without elements are invalid. We can fix this by setting
+the ``-allowEmpty`` parameter:
+
+.. code-block:: json
+
+    {
+        "-name": "file",
+        "-allowEmpty": true
+    }
+
+Which will generate
+
+.. code-block:: xml
+
+    <file/>
 
 .. _xml-variables:
 
