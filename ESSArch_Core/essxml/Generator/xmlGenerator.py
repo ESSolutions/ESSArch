@@ -50,9 +50,12 @@ from ESSArch_Core.util import (
 
 logger = logging.getLogger('essarch.essxml.generator')
 
-def parseContent(content, info):
+def parseContent(content, info=None):
     if not content:
         return None
+
+    if info is None:
+        info = {}
 
     if isinstance(content, six.string_types):
         t = Template(content)
