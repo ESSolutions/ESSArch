@@ -96,3 +96,27 @@ dynamic, automatically populated data.
 
 In addition to the list above, all parameters can also be accessed with the
 ``_PARAMETER_{ENTITY}`` syntax where ``{ENTITY}`` is the name of the parameter.
+
+XML Formatters
+--------------
+
+XML formatters are suffixes that can be used to transform variables. They can
+be used by appending a ``__{FORMAT}`` suffix to a variable:
+
+.. code-block:: json
+
+    {
+        "#content": [{"var": "created___DATE"}]
+    }
+
+If we create this with ``created = "2018-02-05 12:30:25"`` we get the following XML
+
+.. code-block:: xml
+
+    <myelement>2018-02-05</myelement>
+
+
+====================================== =====
+``DATE``                               Keep only the date part of the variable
+``LOCALTIME``                          Convert the variable to local timezone with a UTC offset
+====================================== =====
