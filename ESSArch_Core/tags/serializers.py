@@ -1,7 +1,9 @@
+import elasticsearch
 from rest_framework import serializers
 
 from ESSArch_Core.tags.documents import VersionedDocType
 from ESSArch_Core.tags.models import Tag
+
 
 class TagWriteSerializer(serializers.ModelSerializer):
     class Meta:
@@ -29,8 +31,11 @@ class TagSerializer(serializers.ModelSerializer):
         }
 
     def get__source(self, obj):
-        doc = VersionedDocType.get(index=obj.index, id=str(obj.pk))
-        return doc.to_dict()
+        try:
+            doc = VersionedDocType.get(index=obj.index, id=str(obj.pk))
+            return doc.to_dict()
+        except elasticsearch.NotFoundError:
+            return None
 
     class Meta:
         model = Tag
