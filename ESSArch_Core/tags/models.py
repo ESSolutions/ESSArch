@@ -117,12 +117,13 @@ class TagStructure(MPTTModel):
     parent = TreeForeignKey('self', null=True, related_name='children', db_index=True)
 
     def create_new(self, representation):
+        tree_id = self.__class__.objects._get_next_tree_id()
         new_objs = []
 
         def create_copy(tag, representation):
             # create copies with same parent as old version
             return TagStructure(tag_id=tag.tag_id, structure=representation, parent_id=tag.parent_id,
-                                tree_id=0, lft=0, rght=0, level=0,)
+                                tree_id=tree_id, lft=0, rght=0, level=0,)
 
         with transaction.atomic():
             with TagStructure.objects.disable_mptt_updates():
