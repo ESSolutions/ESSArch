@@ -45,7 +45,7 @@ class TagVersionSerializer(TagVersionNestedSerializer):
 
     def get_structures(self, obj):
         structure_ids = obj.tag.structures.values_list('structure', flat=True)
-        structures = Structure.objects.filter(pk__in=structure_ids)
+        structures = Structure.objects.filter(pk__in=structure_ids).order_by('create_date')
         return StructureSerializer(structures, many=True).data
 
     def get_parent(self, obj):
