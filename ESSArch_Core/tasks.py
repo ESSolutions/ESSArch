@@ -23,6 +23,7 @@
 """
 
 import copy
+import cPickle
 import errno
 import logging
 import os
@@ -48,6 +49,8 @@ from django.core.mail import EmailMessage, send_mail
 from django.conf import settings
 from django.db.models import F, Q
 from django.utils import timezone
+
+from elasticsearch import Elasticsearch, helpers as es_helpers
 
 from retrying import retry
 
@@ -84,6 +87,7 @@ from ESSArch_Core.storage.tape import (
     wait_to_come_online,
     write_to_tape,
 )
+from ESSArch_Core.tags import DELETION_QUEUE, INDEX_QUEUE, UPDATE_QUEUE
 from ESSArch_Core.WorkflowEngine.models import (
     ProcessStep,
     ProcessTask,
@@ -105,11 +109,14 @@ from ESSArch_Core.util import (
 )
 
 from lxml import etree
+from redis import Redis
 from scandir import walk
 
 
 User = get_user_model()
 
+es = Elasticsearch()
+redis = Redis()
 
 class GenerateXML(DBTask):
     event_type = 50600
@@ -1307,3 +1314,84 @@ class ConvertFile(DBTask):
 
     def event_outcome_success(self, filepath, new_format):
         return "Converted %s to %s" % (filepath, new_format)
+
+
+class IndexTags(DBTask):
+    def create_doctypes(self, tags):
+        for tag_string in tags:
+            yield cPickle.loads(tag_string).to_dict(include_meta=True)
+
+    def run(self):
+        # TODO: store (and lock?) items from queue in temporary list instead
+        # of deleting immediately. Only delete when done with items
+        while True:
+            pipe = redis.pipeline()
+            pipe.lrange(INDEX_QUEUE, 0, 1000)
+            pipe.ltrim(INDEX_QUEUE, 1001, -1)
+            tags, _ = pipe.execute()
+
+            if not len(tags):
+                break
+
+            doctypes = self.create_doctypes(tags)
+            es_helpers.bulk(es, doctypes)
+
+    def undo(self):
+        pass
+
+    def event_outcome_success(self):
+        pass
+
+
+class UpdateTags(DBTask):
+    def create_doctypes(self, tags):
+        for tag_string in tags:
+            yield cPickle.loads(tag_string)
+
+    def run(self):
+        # TODO: store (and lock?) items from queue in temporary list instead
+        # of deleting immediately. Only delete when done with items
+        while True:
+            pipe = redis.pipeline()
+            pipe.lrange(UPDATE_QUEUE, 0, 1000)
+            pipe.ltrim(UPDATE_QUEUE, 1001, -1)
+            tags, _ = pipe.execute()
+
+            if not len(tags):
+                break
+
+            doctypes = self.create_doctypes(tags)
+            es_helpers.bulk(es, doctypes)
+
+    def undo(self):
+        pass
+
+    def event_outcome_success(self):
+        pass
+
+
+class DeleteTags(DBTask):
+    def create_doctypes(self, tags):
+        for tag_string in tags:
+            yield cPickle.loads(tag_string)
+
+    def run(self):
+        # TODO: store (and lock?) items from queue in temporary list instead
+        # of deleting immediately. Only delete when done with items
+        while True:
+            pipe = redis.pipeline()
+            pipe.lrange(DELETION_QUEUE, 0, 1000)
+            pipe.ltrim(DELETION_QUEUE, 1001, -1)
+            tags, _ = pipe.execute()
+
+            if not len(tags):
+                break
+
+            doctypes = self.create_doctypes(tags)
+            es_helpers.bulk(es, doctypes)
+
+    def undo(self):
+        pass
+
+    def event_outcome_success(self):
+        pass
