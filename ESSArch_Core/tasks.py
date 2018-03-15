@@ -30,6 +30,7 @@ import os
 import shutil
 import tarfile
 import tempfile
+import time
 import uuid
 import zipfile
 
@@ -87,7 +88,7 @@ from ESSArch_Core.storage.tape import (
     wait_to_come_online,
     write_to_tape,
 )
-from ESSArch_Core.tags import DELETION_QUEUE, INDEX_QUEUE, UPDATE_QUEUE
+from ESSArch_Core.tags import DELETION_QUEUE, DELETION_PROCESS_QUEUE, INDEX_QUEUE, INDEX_PROCESS_QUEUE, UPDATE_QUEUE, UPDATE_PROCESS_QUEUE
 from ESSArch_Core.WorkflowEngine.models import (
     ProcessStep,
     ProcessTask,
@@ -109,14 +110,14 @@ from ESSArch_Core.util import (
 )
 
 from lxml import etree
-from redis import Redis
+from redis import StrictRedis
 from scandir import walk
 
 
 User = get_user_model()
 
 es = Elasticsearch()
-redis = Redis()
+redis = StrictRedis()
 
 class GenerateXML(DBTask):
     event_type = 50600
@@ -1316,25 +1317,28 @@ class ConvertFile(DBTask):
         return "Converted %s to %s" % (filepath, new_format)
 
 
-class IndexTags(DBTask):
-    def create_doctypes(self, tags):
-        for tag_string in tags:
-            yield cPickle.loads(tag_string).to_dict(include_meta=True)
+class ClearTagProcessQueue(DBTask):
+    _clear_process_tag_queue_lua = """
+    local values = redis.call("ZREVRANGEBYSCORE", KEYS[1], ARGV[1], "-inf")
+    if next(values) ~= nil then
+        redis.call("RPUSH", KEYS[2], unpack(values))
+    end
+    redis.call("ZREMRANGEBYSCORE", KEYS[1], ARGV[1], "-inf")
+    """
+
+    _clear_process_tag_queue = redis.register_script(_clear_process_tag_queue_lua)
 
     def run(self):
-        # TODO: store (and lock?) items from queue in temporary list instead
-        # of deleting immediately. Only delete when done with items
-        while True:
-            pipe = redis.pipeline()
-            pipe.lrange(INDEX_QUEUE, 0, 1000)
-            pipe.ltrim(INDEX_QUEUE, 1001, -1)
-            tags, _ = pipe.execute()
+        """
+        Deletes items older than 60 seconds from the process queue
+        and pushes them into their original queue
+        """
 
-            if not len(tags):
-                break
+        max_time = int(time.time()) - 60
 
-            doctypes = self.create_doctypes(tags)
-            es_helpers.bulk(es, doctypes)
+        self._clear_process_tag_queue(keys=[INDEX_PROCESS_QUEUE, INDEX_QUEUE], args=[max_time])
+        self._clear_process_tag_queue(keys=[UPDATE_PROCESS_QUEUE, UPDATE_QUEUE], args=[max_time])
+        self._clear_process_tag_queue(keys=[DELETION_PROCESS_QUEUE, DELETION_QUEUE], args=[max_time])
 
     def undo(self):
         pass
@@ -1343,25 +1347,38 @@ class IndexTags(DBTask):
         pass
 
 
-class UpdateTags(DBTask):
-    def create_doctypes(self, tags):
-        for tag_string in tags:
-            yield cPickle.loads(tag_string)
+class ProcessTags(DBTask):
+    id_pickles = {}
+    abstract = True
+
+    _process_tag_queue_lua = """
+    local value = redis.call("RPOP", KEYS[1])
+    if value then
+        redis.call("ZADD", KEYS[2], ARGV[1], value)
+    end
+    return value"""
+
+    _process_tag_queue = redis.register_script(_process_tag_queue_lua)
+
+    def deserialize(self, tags):
+        for tag_string in [t for t in tags if t is not None]:
+            d = cPickle.loads(tag_string)
+            self.id_pickles[str(d['_id'])] = tag_string
+            yield d
 
     def run(self):
-        # TODO: store (and lock?) items from queue in temporary list instead
-        # of deleting immediately. Only delete when done with items
-        while True:
-            pipe = redis.pipeline()
-            pipe.lrange(UPDATE_QUEUE, 0, 1000)
-            pipe.ltrim(UPDATE_QUEUE, 1001, -1)
-            tags, _ = pipe.execute()
+        tags = []
+        for i in range(1):
+            epoch_time = int(time.time())
+            tags.append(self._process_tag_queue(keys=[self.redis_queue, self.redis_process_queue], args=[epoch_time]))
 
-            if not len(tags):
-                break
-
-            doctypes = self.create_doctypes(tags)
-            es_helpers.bulk(es, doctypes)
+        doctypes = self.deserialize(tags)
+        for result in es_helpers.streaming_bulk(es, doctypes, raise_on_exception=False):
+            ok, info = result
+            if ok:
+                _id = self.get_id(info)
+                tag_string = self.id_pickles[_id]
+                redis.zrem(self.redis_process_queue, tag_string)
 
     def undo(self):
         pass
@@ -1370,28 +1387,31 @@ class UpdateTags(DBTask):
         pass
 
 
-class DeleteTags(DBTask):
-    def create_doctypes(self, tags):
-        for tag_string in tags:
-            yield cPickle.loads(tag_string)
+class IndexTags(ProcessTags):
+    redis_queue = INDEX_QUEUE
+    redis_process_queue = INDEX_PROCESS_QUEUE
 
-    def run(self):
-        # TODO: store (and lock?) items from queue in temporary list instead
-        # of deleting immediately. Only delete when done with items
-        while True:
-            pipe = redis.pipeline()
-            pipe.lrange(DELETION_QUEUE, 0, 1000)
-            pipe.ltrim(DELETION_QUEUE, 1001, -1)
-            tags, _ = pipe.execute()
+    def deserialize(self, tags):
+        for tag_string in [t for t in tags if t is not None]:
+            d = cPickle.loads(tag_string).to_dict(include_meta=True)
+            self.id_pickles[str(d['_id'])] = tag_string
+            yield d
 
-            if not len(tags):
-                break
+    def get_id(self, data):
+        return data['index']['_id']
 
-            doctypes = self.create_doctypes(tags)
-            es_helpers.bulk(es, doctypes)
 
-    def undo(self):
-        pass
+class UpdateTags(ProcessTags):
+    redis_queue = UPDATE_QUEUE
+    redis_process_queue = UPDATE_PROCESS_QUEUE
 
-    def event_outcome_success(self):
-        pass
+    def get_id(self, data):
+        return data['update']['_id']
+
+
+class DeleteTags(ProcessTags):
+    redis_queue = DELETION_QUEUE
+    redis_process_queue = DELETION_PROCESS_QUEUE
+
+    def get_id(self, data):
+        return data['delete']['_id']

@@ -3,13 +3,13 @@ import logging
 
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
-from redis import Redis
+from redis import StrictRedis
 
 from ESSArch_Core.tags import DELETION_QUEUE, INDEX_QUEUE, UPDATE_QUEUE
 from ESSArch_Core.tags.models import TagVersion
 
 logger = logging.getLogger('essarch.core')
-r = Redis()
+r = StrictRedis()
 
 
 @receiver(post_save, sender=TagVersion)
