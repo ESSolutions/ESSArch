@@ -1367,17 +1367,30 @@ class ProcessTags(DBTask):
             yield d
 
     def run(self):
+        """
+        Uses a reliable queue to process the latest entries.
+
+        Entries are popped and returned from the queue while also being added
+        to the process queue. Each entry is then sent and processed by
+        elasticsearch. If elasticsearch returns a successful response
+        the entry is deleted from the process queue.
+        """
         tags = []
         for i in range(1000):
             epoch_time = int(time.time())
+            # Pop the latest entry, add it to the process queue with the
+            # current time as score and return it
             tags.append(self._process_tag_queue(keys=[self.redis_queue, self.redis_process_queue], args=[epoch_time]))
 
         doctypes = self.deserialize(tags)
+
+        # Send the entries in bulk to elasticsearch
         for result in es_helpers.streaming_bulk(es, doctypes, raise_on_exception=False):
             ok, info = result
             if ok:
                 _id = self.get_id(info)
                 tag_string = self.id_pickles[_id]
+                # Delete successful entries from the process queue
                 redis.zrem(self.redis_process_queue, tag_string)
 
     def undo(self):
