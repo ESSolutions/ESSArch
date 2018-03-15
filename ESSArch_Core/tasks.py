@@ -1368,7 +1368,7 @@ class ProcessTags(DBTask):
 
     def run(self):
         tags = []
-        for i in range(1):
+        for i in range(1000):
             epoch_time = int(time.time())
             tags.append(self._process_tag_queue(keys=[self.redis_queue, self.redis_process_queue], args=[epoch_time]))
 
