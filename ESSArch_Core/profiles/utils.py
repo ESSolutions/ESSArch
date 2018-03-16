@@ -54,8 +54,7 @@ def fill_specification_data(data={}, sa=None, ip=None):
         except AttributeError:
             container = 'TAR'
         else:
-            transfer_project_data = ip.get_profile_data('transfer_project')
-            container = transfer_project_data.get('container_format', 'TAR')
+            container = ip.get_container_format()
 
         data['_IP_CONTAINER_FORMAT'] = container.upper()
 
