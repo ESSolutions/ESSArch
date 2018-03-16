@@ -23,6 +23,11 @@ class Tag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     current_version = models.ForeignKey('tags.TagVersion', on_delete=models.SET_NULL, null=True, related_name='current_version_tags')
 
+    class Meta:
+        permissions = (
+            ('search', 'Can search'),
+        )
+
 
 class TagVersion(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
