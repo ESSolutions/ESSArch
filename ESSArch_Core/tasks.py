@@ -1376,7 +1376,7 @@ class ProcessTags(DBTask):
         the entry is deleted from the process queue.
         """
         tags = []
-        for i in range(1000):
+        for i in range(10000):
             epoch_time = int(time.time())
             # Pop the latest entry, add it to the process queue with the
             # current time as score and return it
