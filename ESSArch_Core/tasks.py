@@ -1319,11 +1319,11 @@ class ConvertFile(DBTask):
 
 class ClearTagProcessQueue(DBTask):
     _clear_process_tag_queue_lua = """
-    local values = redis.call("ZREVRANGEBYSCORE", KEYS[1], ARGV[1], "-inf")
-    if next(values) ~= nil then
+    local values = redis.call("ZREVRANGEBYSCORE", KEYS[1], ARGV[1], "-inf", "LIMIT", "0", "1000")
+    if table.getn(values) > 0 then
         redis.call("RPUSH", KEYS[2], unpack(values))
+        redis.call("ZREM", KEYS[1], unpack(values))
     end
-    redis.call("ZREMRANGEBYSCORE", KEYS[1], ARGV[1], "-inf")
     """
 
     _clear_process_tag_queue = redis.register_script(_clear_process_tag_queue_lua)
