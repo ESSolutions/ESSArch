@@ -1385,13 +1385,27 @@ class ProcessTags(DBTask):
         doctypes = self.deserialize(tags)
 
         # Send the entries in bulk to elasticsearch
-        for result in es_helpers.streaming_bulk(es, doctypes, raise_on_exception=False):
+        errors = []
+        for result in es_helpers.streaming_bulk(es, doctypes, raise_on_exception=False, raise_on_error=False):
             ok, info = result
             if ok:
                 _id = self.get_id(info)
                 tag_string = self.id_pickles[_id]
                 # Delete successful entries from the process queue
                 redis.zrem(self.redis_process_queue, tag_string)
+            else:
+                if info.get('delete', {}).get('status') == 404:
+                    # trying to delete already deleted doc, delete it from
+                    # the process queue
+                    _id = self.get_id(info)
+                    tag_string = self.id_pickles[_id]
+                    redis.zrem(self.redis_process_queue, tag_string)
+                else:
+                    errors.append(info)
+
+        if errors:
+            raise es_helpers.BulkIndexError('%d document(s) failed to index.' % len(errors),
+                                            errors)
 
     def undo(self):
         pass
