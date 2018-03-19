@@ -77,6 +77,7 @@ class TagVersion(models.Model):
         old_data = self.from_search()['_source']
 
         new_data = old_data
+        new_data['current_version'] = False
         new_data.update(data)
 
         for (key, value) in six.iteritems(new_data):
@@ -88,6 +89,18 @@ class TagVersion(models.Model):
 
     def set_as_current_version(self):
         Tag.objects.filter(pk=self.tag.pk).update(current_version=self)
+        other_versions = [str(x) for x in
+                          TagVersion.objects.filter(tag=self.tag).exclude(pk=self.pk).values_list('pk', flat=True)]
+
+        # update other versions
+        es.update_by_query(index=self.elastic_index,
+                           body={"script": {"source": "ctx._source.current_version=false", "lang": "painless"},
+                                 "query": {"terms": {"_id": other_versions}}})
+
+        # update this version
+        es.update_by_query(index=self.elastic_index,
+                           body={"script": {"source": "ctx._source.current_version=true", "lang": "painless"},
+                                 "query": {"term": {"_id": str(self.pk)}}})
 
     def get_structures(self):
         return self.tag.structures
