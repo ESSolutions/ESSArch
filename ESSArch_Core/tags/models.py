@@ -3,9 +3,12 @@ import uuid
 import six
 from django.db import models, transaction
 from django.db.models import F, OuterRef, Subquery
+from elasticsearch import Elasticsearch
 from mptt.models import MPTTModel, TreeForeignKey
 
 from ESSArch_Core.tags.documents import VersionedDocType
+
+es = Elasticsearch()
 
 
 class Structure(models.Model):
@@ -51,7 +54,7 @@ class TagVersion(models.Model):
         return VersionedDocType(**d)
 
     def from_search(self):
-        return VersionedDocType.get(index=self.elastic_index, id=str(self.pk))
+        return es.get(index=self.elastic_index, doc_type='_all', id=str(self.pk))
 
     def update_search(self, data):
         doc = self.to_search()
@@ -71,7 +74,7 @@ class TagVersion(models.Model):
 
         # TODO: create new copy of old elastic document updated with `data`
         doc = new.to_search()
-        old_data = self.from_search().to_dict()
+        old_data = self.from_search()['_source']
 
         new_data = old_data
         new_data.update(data)
