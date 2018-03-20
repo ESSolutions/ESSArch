@@ -15,7 +15,7 @@ r = StrictRedis()
 @receiver(post_save, sender=TagVersion)
 def queue_tag_for_index(sender, instance, created, **kwargs):
     if created:
-        if instance.tag.versions.count == 1:
+        if instance.tag.versions.count() == 1:
             r.rpush(INDEX_QUEUE, cPickle.dumps(instance.to_search()))
     else:
         data = {
