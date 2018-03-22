@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ess.auth', '0004_auto_20170915_1030'),
+        ('essauth', '0004_auto_20170915_1030'),
     ]
 
     operations = [

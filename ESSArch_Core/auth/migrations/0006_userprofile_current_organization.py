@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('groups_manager', '0003_0_5_0_rename_reverse_relations_with_vars'),
-        ('ess.auth', '0005_notification_seen'),
+        ('essauth', '0005_notification_seen'),
     ]
 
     operations = [

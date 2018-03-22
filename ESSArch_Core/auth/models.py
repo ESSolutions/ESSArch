@@ -50,6 +50,9 @@ class UserProfile(models.Model):
     ip_list_columns = PickledObjectField(default=DEFAULT_IP_LIST_COLUMNS,)
     ip_list_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=IP,)
 
+    class Meta:
+        db_table = "essauth_userprofile"
+
 
 class NotificationManager(models.Manager):
     def create(self, **kwargs):
@@ -86,3 +89,4 @@ class Notification(models.Model):
     class Meta:
         ordering = ['-time_created']
         get_latest_by = "time_created"
+        db_table = "essauth_notification"

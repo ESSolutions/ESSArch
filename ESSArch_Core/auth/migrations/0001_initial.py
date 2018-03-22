@@ -7,13 +7,12 @@ from django.db import migrations, models
 import django.db.models.deletion
 import picklefield.fields
 
-
 def create_default_for_existing_users(apps, schema_editor):
     User = apps.get_model("auth", "User")
-    UserProfile = apps.get_model("ess.auth", "UserProfile")
+    UserProfile = apps.get_model("essauth", "UserProfile")
     db_alias = schema_editor.connection.alias
 
-    for user in User.objects.using(db_alias).all():
+    for user in User.objects.using(db_alias).filter(user_profile__isnull=True):
         UserProfile.objects.create(user=user)
 
 def nothing(apps, schema_editor):
@@ -36,6 +35,9 @@ class Migration(migrations.Migration):
                 ('ip_list_view_type', models.CharField(choices=[(b'aic', b'AIC'), (b'ip', b'IP')], default=b'aic', max_length=10)),
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='user_profile', to=settings.AUTH_USER_MODEL)),
             ],
+            options={
+                'db_table': 'essauth_userprofile',
+            },
         ),
         migrations.RunPython(create_default_for_existing_users, nothing),
     ]

@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('ess.auth', '0002_auto_20170622_1000'),
+        ('essauth', '0002_auto_20170622_1000'),
     ]
 
     operations = [
@@ -27,6 +27,7 @@ class Migration(migrations.Migration):
             options={
                 'ordering': ['-time_created'],
                 'get_latest_by': 'time_created',
+                'db_table': 'essauth_notification',
             },
         ),
     ]

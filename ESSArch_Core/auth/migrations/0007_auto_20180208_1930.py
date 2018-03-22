@@ -9,7 +9,7 @@ import picklefield.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ess.auth', '0006_userprofile_current_organization'),
+        ('essauth', '0006_userprofile_current_organization'),
     ]
 
     operations = [
