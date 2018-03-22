@@ -31,7 +31,7 @@ from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.urls import reverse
 
-from groups_manager.models import Group, GroupMember, GroupType, Member
+from groups_manager.models import GroupType
 from groups_manager.utils import get_permission_name
 
 from guardian.shortcuts import assign_perm
@@ -39,6 +39,7 @@ from guardian.shortcuts import assign_perm
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from ESSArch_Core.auth.models import Group, GroupMember, Member
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.ip.models import InformationPackage, Workarea
 from ESSArch_Core.util import timestamp_to_datetime

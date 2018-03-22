@@ -1,7 +1,9 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from groups_manager.models import Group, GroupType, Member
+from groups_manager.models import GroupType
+
+from ESSArch_Core.auth.models import Group, Member
 
 class OrganizationTestCase(TestCase):
     def setUp(self):

@@ -22,14 +22,65 @@
     Email - essarch@essolutions.se
 """
 
-import logging
-
-from django.contrib.auth.models import User
+from django.apps import apps
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group as DjangoGroup
 from django.db import models
-
-from groups_manager.models import Group
-
+from groups_manager.models import GroupMixin, MemberMixin, GroupMemberMixin, GroupMemberRole, GroupType
+from mptt.models import TreeForeignKey
 from picklefield.fields import PickledObjectField
+
+DjangoUser = get_user_model()
+
+
+class Member(MemberMixin):
+    django_user = models.OneToOneField(DjangoUser, null=False, on_delete=models.CASCADE,
+                                       related_name='essauth_member')
+
+    @property
+    def group_model(self):
+        return apps.get_model('essauth', 'Group')
+
+    @property
+    def group_member_model(self):
+        return apps.get_model('essauth', 'GroupMember')
+
+    class Meta(MemberMixin.Meta):
+        abstract = False
+
+
+class Group(GroupMixin):
+    group_type = models.ForeignKey(GroupType, null=True, on_delete=models.SET_NULL,
+                                   related_name='essauth_groups')
+
+    django_group = models.OneToOneField(DjangoGroup, null=False, on_delete=models.CASCADE,
+                                        related_name='essauth_group')
+    group_members = models.ManyToManyField(Member, through='GroupMember',
+                                           related_name='essauth_groups')
+    parent = TreeForeignKey('self', null=True, blank=True,
+                            related_name='sub_%(app_label)s_%(class)s_set')
+
+    @property
+    def member_model(self):
+        return apps.get_model('essauth', 'Member')
+
+    @property
+    def group_member_model(self):
+        return apps.get_model('essauth', 'GroupMember')
+
+    class Meta(GroupMixin.Meta):
+        abstract = False
+
+
+class GroupMember(GroupMemberMixin):
+    group = models.ForeignKey(Group, related_name='group_membership', on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, related_name='group_membership', on_delete=models.CASCADE)
+    roles = models.ManyToManyField(GroupMemberRole, related_name='group_memberships')
+    expiration_date = models.DateTimeField(null=True, default=None)
+
+    class Meta(GroupMemberMixin.Meta):
+        unique_together = ('group', 'member')
+        abstract = False
 
 
 class UserProfile(models.Model):
@@ -45,7 +96,7 @@ class UserProfile(models.Model):
         (IP, 'IP'),
     )
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_profile')
+    user = models.OneToOneField(DjangoUser, on_delete=models.CASCADE, related_name='user_profile')
     current_organization = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
     ip_list_columns = PickledObjectField(default=DEFAULT_IP_LIST_COLUMNS,)
     ip_list_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=IP,)
@@ -78,7 +129,7 @@ class Notification(models.Model):
         (CRITICAL, 'critical'),
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey(DjangoUser, on_delete=models.CASCADE, related_name='notifications')
     level = models.IntegerField(choices=LEVEL_CHOICES)
     message = models.CharField(max_length=255)
     time_created = models.DateTimeField(auto_now_add=True)

@@ -2,13 +2,15 @@ import json
 import logging
 
 from channels import Channel
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group as DjangoGroup, User
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 from django.core.cache import cache
-from django.db.models.signals import post_save, m2m_changed
+from django.db.models.signals import post_delete, pre_save, post_save, m2m_changed
 from django.dispatch import receiver
 
-from ESSArch_Core.auth.models import Notification, UserProfile
+from groups_manager.models import group_member_save as groups_manager_group_member_save, group_member_delete as groups_manager_group_member_delete
+
+from ESSArch_Core.auth.models import Group, GroupMember, Member, Notification, UserProfile
 from ESSArch_Core.auth.util import get_organization_groups
 
 
@@ -34,6 +36,49 @@ def user_logged_out(sender, user, request, **kwargs):
 def user_login_failed(sender, credentials, **kwargs):
     logger = logging.getLogger('essarch.auth')
     logger.warning("Authentication failure with credentials: %s" % (repr(credentials)))
+
+@receiver(pre_save, sender=Member)
+def member_pre_save(sender, instance, **kwargs):
+    if instance.django_user_id is None:
+        django_user = User(
+            username=instance.username,
+            first_name=instance.first_name,
+            last_name=instance.last_name,
+        )
+
+        if instance.email:
+            django_user.email = instance.email
+
+        django_user.save()
+        instance.django_user = django_user
+
+@receiver(post_delete, sender=Member)
+def member_post_delete(sender, instance, **kwargs):
+    if instance.django_user_id is not None:
+        instance.django_user.delete()
+
+
+@receiver(pre_save, sender=Group)
+def group_pre_save(sender, instance, **kwargs):
+    if instance.django_group_id is None:
+        django_group = DjangoGroup.objects.create(name=instance.name)
+        instance.django_group = django_group
+
+
+@receiver(post_delete, sender=Group)
+def group_post_delete(sender, instance, **kwargs):
+    if instance.django_group_id is not None:
+        instance.django_group.delete()
+
+
+@receiver(post_save, sender=GroupMember)
+def group_member_save(sender, instance, created, *args, **kwargs):
+    groups_manager_group_member_save(sender, instance, created, *args, **kwargs)
+
+
+@receiver(post_delete, sender=GroupMember)
+def group_member_delete(sender, instance, *args, **kwargs):
+    groups_manager_group_member_delete(sender, instance, *args, **kwargs)
 
 
 @receiver(post_save, sender=Notification)

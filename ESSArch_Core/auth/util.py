@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as DjangoGroup, Permission
 from django.db.models import Q, Subquery
 
-from groups_manager.models import Group
+from ESSArch_Core.auth.models import Group
 
 from rest_framework import exceptions
 
@@ -44,8 +44,8 @@ def get_organization_groups(user):
     """
 
     sub_group_filter = Q(
-        ~Q(sub_groups_manager_group_set__group_type__codename=ORGANIZATION_TYPE) &
-        Q(sub_groups_manager_group_set__django_group__user=user)
+        ~Q(sub_essauth_group_set__group_type__codename=ORGANIZATION_TYPE) &
+        Q(sub_essauth_group_set__django_group__user=user)
     )
     return Group.objects.filter(Q(Q(sub_group_filter) | Q(django_group__user=user)),
                                 group_type__codename=ORGANIZATION_TYPE).distinct()

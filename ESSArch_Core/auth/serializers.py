@@ -29,11 +29,9 @@ from django.db.models import Q, Subquery
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
-from groups_manager.models import Group
-
 from rest_framework import exceptions, serializers
 
-from ESSArch_Core.auth.models import Notification, UserProfile
+from ESSArch_Core.auth.models import Group, Notification, UserProfile
 from ESSArch_Core.auth.util import get_membership_descendants, get_organization_groups, get_permission_set
 
 
