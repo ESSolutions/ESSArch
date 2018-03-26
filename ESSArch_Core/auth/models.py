@@ -26,6 +26,7 @@ from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as DjangoGroup
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
 from groups_manager.models import GroupMixin, MemberMixin, GroupMemberMixin, GroupMemberRole, GroupType
 from mptt.models import TreeForeignKey
 from picklefield.fields import PickledObjectField
@@ -33,9 +34,27 @@ from picklefield.fields import PickledObjectField
 DjangoUser = get_user_model()
 
 
+class ProxyGroup(DjangoGroup):
+    class Meta:
+        verbose_name = _('group')
+        verbose_name_plural = _('groups')
+        proxy = True
+
+
+class ProxyUser(DjangoUser):
+    class Meta:
+        verbose_name = _('user')
+        verbose_name_plural = _('users')
+        proxy = True
+
+
 class Member(MemberMixin):
     django_user = models.OneToOneField(DjangoUser, null=False, on_delete=models.CASCADE,
                                        related_name='essauth_member')
+
+    @property
+    def full_name(self):
+        return self.username
 
     @property
     def group_model(self):
