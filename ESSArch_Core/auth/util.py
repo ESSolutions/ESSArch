@@ -65,12 +65,6 @@ def get_permission_objs(user):
         groups = get_membership_descendants(org, user)
         perms = Permission.objects.filter(group__in=Subquery(groups.values('django_group__id')))
 
-
-    # non-groups_manager group permissions
-    user_groups_field = get_user_model()._meta.get_field('groups')
-    user_groups_query = 'group__%s' % user_groups_field.related_query_name()
-    perms |= Permission.objects.filter(group__group=None, **{user_groups_query: user})
-
     perms |= user.user_permissions.all()
     return perms.distinct()
 
