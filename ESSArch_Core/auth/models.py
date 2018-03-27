@@ -87,6 +87,10 @@ class Group(GroupMixin):
     def group_member_model(self):
         return apps.get_model('essauth', 'GroupMember')
 
+    @property
+    def subgroups(self):
+        return self.sub_essauth_group_set
+
     class Meta(GroupMixin.Meta):
         abstract = False
 
