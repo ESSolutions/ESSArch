@@ -42,7 +42,6 @@ from django.contrib.auth.models import User, Permission
 from django.shortcuts import reverse
 
 from django_filters.rest_framework import DjangoFilterBackend
-from djangosaml2.views import logout as saml2_logout
 
 from rest_auth.views import (
     LoginView as rest_auth_LoginView,
@@ -53,6 +52,11 @@ from rest_framework import exceptions, permissions, status, viewsets
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+try:
+    from djangosaml2.views import logout as saml2_logout
+except ImportError:
+    pass
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
