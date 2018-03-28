@@ -134,7 +134,7 @@ try:
         logger = logging.getLogger('essarch.auth.ldap')
         logger.critical(message)
 
-        if user is None:
+        if user is None or user.is_anonymous:
             return
 
         Notification.objects.create(level=logging.CRITICAL, message=message, user=user)
