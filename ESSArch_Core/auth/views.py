@@ -42,6 +42,7 @@ from django.contrib.auth.models import User, Permission
 from django.shortcuts import reverse
 
 from django_filters.rest_framework import DjangoFilterBackend
+from djangosaml2.views import logout as saml2_logout
 
 from rest_auth.views import (
     LoginView as rest_auth_LoginView,
@@ -141,6 +142,11 @@ class LoginView(rest_auth_LoginView):
 class LogoutView(rest_auth_LogoutView):
     def post(self, request):
         if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
-            return Response({'redirect': reverse('saml2:saml2_logout')})
+            try:
+                redirect_response = saml2_logout(request)
+                new_location = redirect_response.get('Location')
+                return Response({'redirect': new_location})
+            except AttributeError:
+                pass
 
         return super(LogoutView, self).post(request)
