@@ -210,7 +210,10 @@ class DBTask(Task):
 
         outcome_detail_note = truncate(outcome_detail_note, 1024)
 
-        agent = User.objects.values_list('username', flat=True).get(pk=self.responsible)
+        try:
+            agent = User.objects.values_list('username', flat=True).get(pk=self.responsible)
+        except User.DoesNotExist:
+            agent = None
 
         extra = {'event_type': self.event_type, 'object': self.ip, 'agent': agent, 'task': self.task_id, 'outcome': outcome}
         logger.log(level, outcome_detail_note, extra=extra)
