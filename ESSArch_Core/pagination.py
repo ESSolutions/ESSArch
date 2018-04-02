@@ -22,12 +22,15 @@
     Email - essarch@essolutions.se
 """
 
-from rest_framework import pagination
+from django.db.models import F, Subquery
+from rest_framework import exceptions, pagination
 from rest_framework.response import Response
 
 
 class LinkHeaderPagination(pagination.PageNumberPagination):
     page_size_query_param = 'page_size'
+    after_query_param = 'after'
+    after_field_query_param = 'after_field'
 
     def get_paginated_response(self, data):
         headers = {'Count': self.page.paginator.count}
@@ -50,6 +53,24 @@ class LinkHeaderPagination(pagination.PageNumberPagination):
             headers['Link'] = link
 
         return Response(data, headers=headers)
+
+    def paginate_queryset(self, queryset, request, view=None):
+        after = request.query_params.get(self.after_query_param, None)
+        after_field = request.query_params.get(self.after_field_query_param, None)
+
+        if after is not None and after_field is None:
+            raise exceptions.ParseError('"after_field" is required when using "after"')
+
+        if after is not None:
+            model = queryset.model
+            current_filter = {after_field: after}
+            after_filter = {'%s__lte' % after_field: F('current')}
+            current = model.objects.filter(**current_filter)
+            queryset = queryset.exclude(**current_filter)
+            queryset = queryset.annotate(current=Subquery(current.values(after_field)[:1])).filter(**after_filter)
+
+        return super(LinkHeaderPagination, self).paginate_queryset(queryset, request, view)
+
 
 class NoPagination(pagination.PageNumberPagination):
     display_page_controls = False
