@@ -27,14 +27,11 @@ from __future__ import absolute_import
 import os
 import uuid
 
+import six
 from lxml import etree
 
-import six
-
-from ESSArch_Core.configuration.models import Parameter
+from ESSArch_Core.fixity import checksum
 from ESSArch_Core.ip.models import EventIP, InformationPackage
-from ESSArch_Core.fixity import checksum, format, validation
-
 from ESSArch_Core.util import (
     creation_date,
     get_elements_without_namespace,
