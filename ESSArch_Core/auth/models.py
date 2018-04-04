@@ -123,6 +123,7 @@ class UserProfile(models.Model):
     current_organization = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
     ip_list_columns = PickledObjectField(default=DEFAULT_IP_LIST_COLUMNS,)
     ip_list_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=IP,)
+    notifications_enabled = models.BooleanField(default=True)
 
     class Meta:
         db_table = "essauth_userprofile"
