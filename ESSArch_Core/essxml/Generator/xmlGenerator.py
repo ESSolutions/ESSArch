@@ -154,6 +154,9 @@ class XMLElement(object):
         if len(self.el):
             return False
 
+        if getattr(self.el, 'text', None) is not None and len(self.el.text):
+            return False
+
         if parseContent(self.content, info):
             return False
 
@@ -298,10 +301,11 @@ class XMLElement(object):
                 parser = etree.XMLParser(remove_blank_text=True)
                 self.el.append(etree.fromstring(nested_xml, parser=parser))
 
-        if self.isEmpty(info) and self.required:
+        is_empty = self.isEmpty(info)
+        if is_empty and self.required:
             raise ValueError("Missing value for required element '%s'" % (self.get_path()))
 
-        if self.isEmpty(info) and not self.allowEmpty:
+        if is_empty and not self.allowEmpty:
             return None
 
         if len(self.el) == 0 and self.skipIfNoChildren:
