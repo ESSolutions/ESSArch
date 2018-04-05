@@ -58,6 +58,8 @@ def parseContent(content, info=None):
     if info is None:
         info = {}
 
+    logger.debug('Parsing {content}'.format(content=content))
+
     if isinstance(content, six.string_types):
         t = Template(content)
         c = Context(info)
@@ -214,6 +216,15 @@ class XMLElement(object):
         self.el.append(new.el)
 
     def createLXMLElement(self, info, nsmap={}, files=[], folderToParse='', parent=None):
+        self.parent = parent
+        if parent is not None:
+            siblings_same_name = len(parent.el.findall(self.name))
+            self.parent_pos = siblings_same_name
+        else:
+            self.parent_pos = 0
+
+        logger.debug('Creating lxml-element for {path}'.format(path=self.get_path()))
+
         full_nsmap = nsmap.copy()
         full_nsmap.update(self.nsmap)
 
@@ -224,17 +235,11 @@ class XMLElement(object):
 
         self.el.text = self.parse(info)
 
-        self.parent = parent
 
         for req_param in self.requiredParameters:
             if info.get(req_param) is None or len(info.get(req_param, '')) == 0:
                 return None
 
-        if parent is not None:
-            siblings_same_name = len(parent.el.findall(self.name))
-            self.parent_pos = siblings_same_name
-        else:
-            self.parent_pos = 0
 
         for attr in self.attr:
             name, content, required = attr.parse(info, nsmap=full_nsmap)
@@ -268,6 +273,7 @@ class XMLElement(object):
                             include = False
 
                     if include:
+                        logger.debug('Creating child element with additional file data: {data}'.format(data=fileinfo))
                         full_info = info.copy()
                         full_info.update(fileinfo)
                         child_el = child.createLXMLElement(full_info, full_nsmap, files=files, folderToParse=folderToParse, parent=self)
@@ -481,6 +487,8 @@ class XMLGenerator(object):
             data = f.get('data', {})
 
             data['_XML_FILENAME'] = os.path.basename(fname)
+
+            logger.debug('Creating {f} with {d}'.format(f=fname, d=data))
 
             self.tree = etree.ElementTree(
                 rootEl.createLXMLElement(data, files=files, folderToParse=folderToParse)
