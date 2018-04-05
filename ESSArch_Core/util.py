@@ -68,8 +68,9 @@ def make_unicode(text):
     except TypeError:
         if not isinstance(text, six.string_types):
             return six.text_type(text)
-
         return text
+    except UnicodeDecodeError:
+        return six.text_type(text.decode('iso-8859-1'))
 
 
 def sliceUntilAttr(iterable, attr, val):

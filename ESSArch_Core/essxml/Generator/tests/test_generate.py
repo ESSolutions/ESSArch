@@ -2840,6 +2840,16 @@ class ParseContentTestCase(unittest.TestCase):
         dt = dateparse.parse_datetime(contentobj)
         self.assertEqual(dt, timezone.localtime(val))
 
+    def test_parse_django_template(self):
+        contentobj = parseContent("hello {{foo}}", {"foo": "world"})
+        self.assertEqual(contentobj, 'hello world')
+
+        val = timezone.now()
+        content = "{% load tz %}{{foo | date:'c'}}"
+        contentobj = parseContent(content, {'foo': val})
+        dt = dateparse.parse_datetime(contentobj)
+        self.assertEqual(str(dt), str(timezone.localtime(val)))
+
     def test_unicode(self):
         content = [{"var": "foo"}]
         foo = "åäö"
@@ -2858,12 +2868,17 @@ class ParseContentTestCase(unittest.TestCase):
         contentobj = parseContent(content, info)
         self.assertEqual(contentobj, six.text_type(foo, 'utf-8') + bar)
 
-    def test_parse_django_template(self):
-        contentobj = parseContent("hello {{foo}}", {"foo": "world"})
-        self.assertEqual(contentobj, 'hello world')
+        # django template system
+        contentobj = parseContent("{{foo}}", {"foo": "åäö"})
+        self.assertEqual(contentobj, u"åäö")
 
-        val = timezone.now()
-        content = "{% load tz %}{{foo | date:'c'}}"
-        contentobj = parseContent(content, {'foo': val})
-        dt = dateparse.parse_datetime(contentobj)
-        self.assertEqual(str(dt), str(timezone.localtime(val)))
+    def test_iso_8859(self):
+        content = [{"var": "foo"}]
+        foo = u"åäö".encode("iso-8859-1")
+        info = {"foo": foo}
+        contentobj = parseContent(content, info)
+        self.assertEqual(contentobj, u"åäö")
+
+        # django template system
+        contentobj = parseContent("{{foo}}", info)
+        self.assertEqual(contentobj, u"åäö")

@@ -30,6 +30,7 @@ import re
 import uuid
 
 from django.template import Template, Context
+from django.utils.encoding import DjangoUnicodeDecodeError
 
 from lxml import etree
 
@@ -60,12 +61,17 @@ def parseContent(content, info=None):
     if isinstance(content, six.string_types):
         t = Template(content)
         c = Context(info)
-        return t.render(c)
+        try:
+            return t.render(c)
+        except DjangoUnicodeDecodeError:
+            for k, v in six.iteritems(info):
+                info[k] = make_unicode(v)
+            return t.render(c)
 
     arr = []
     for c in content:
         if 'text' in c:
-            arr.append(c['text'])
+            arr.append(make_unicode(c['text']))
         elif 'var' in c:
             var = c['var']
             val = info.get(var) or info.get(var.split('__')[0])
