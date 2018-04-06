@@ -6,9 +6,7 @@ import traceback
 
 from django.conf import settings
 from django.utils import timezone
-
 from glob2 import glob
-
 from scandir import walk
 
 from ESSArch_Core.fixity.models import Validation
@@ -17,6 +15,7 @@ logger = logging.getLogger('essarch.fixity.validation')
 
 AVAILABLE_VALIDATORS = {
     'checksum': 'ESSArch_Core.fixity.validation.backends.checksum.ChecksumValidator',
+    'diff_check': 'ESSArch_Core.fixity.validation.backends.xml.DiffCheckValidator',
     'format': 'ESSArch_Core.fixity.validation.backends.format.FormatValidator',
     'mediaconch': 'ESSArch_Core.fixity.validation.backends.mediaconch.MediaconchValidator',
     'structure': 'ESSArch_Core.fixity.validation.backends.structure.StructureValidator',
@@ -164,7 +163,7 @@ def validate_path(path, validators, profile, data=None, ip=None, stop_at_failure
             exclude = [os.path.join(path, excluded) for excluded in specification.get('exclude', [])]
             options = specification.get('options', {})
 
-            validator_instance = validator(context=context, include=include, exclude=exclude, options=options, data=data, required=required)
+            validator_instance = validator(context=context, include=include, exclude=exclude, options=options, data=data, required=required, ip=ip, responsible=responsible)
             validator_instances.append(validator_instance)
 
     if os.path.isdir(path):
@@ -175,3 +174,6 @@ def validate_path(path, validators, profile, data=None, ip=None, stop_at_failure
 
     else:
         raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), path)
+
+    for validator in validator_instances:
+        validator.post_validation()

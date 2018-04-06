@@ -4,12 +4,17 @@ import os
 import shutil
 import tempfile
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
+from lxml import etree
 from pyfakefs import fake_filesystem_unittest
 
+from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.essxml import Generator
+from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.fixity.validation.backends.structure import StructureValidator
+from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator
 
 
 class ChecksumValidatorTests(fake_filesystem_unittest.TestCase):
@@ -326,3 +331,178 @@ class StructureValidatorTests(SimpleTestCase):
         # add mp4.md5
         open(os.path.join(self.root, 'p/test.mp4.md5'), 'a').close()
         validator.validate(self.root)
+
+
+class DiffCheckValidatorTests(TestCase):
+    def setUp(self):
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.fname = os.path.join(self.datadir, 'test1.xml')
+        self.options = {'rootdir': self.datadir}
+        mimetypes_path = os.path.join(os.path.dirname(Generator.__file__), 'mime.types')
+
+        Path.objects.create(
+            entity="path_mimetypes_definitionfile",
+            value=mimetypes_path
+        )
+
+        self.filesToCreate = {
+            self.fname: {
+                'data': {},
+                'spec': {
+                    '-name': 'root',
+                    '-children': [
+                        {
+                            "-name": "file",
+                            "-containsFiles": True,
+                            "-attr": [
+                                {
+                                    "-name": "MIMETYPE",
+                                    "#content": "{{FMimetype}}",
+                                },
+                                {
+                                    "-name": "CHECKSUM",
+                                    "#content": "{{FChecksum}}"
+                                },
+                                {
+                                    "-name": "CHECKSUMTYPE",
+                                    "#content": "{{FChecksumType}}"
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "FLocat",
+                                    "-attr": [
+                                        {
+                                            "-name": "href",
+                                            "-namespace": "xlink",
+                                            "#content": "file:///{{href}}"
+                                        },
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def create_files(self):
+        files = []
+        for i in range(3):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('%s' % i)
+            files.append(fname)
+
+        return files
+
+    def generate_xml(self):
+        generator = XMLGenerator(self.filesToCreate)
+        generator.generate(folderToParse=self.datadir)
+
+    def test_validation_without_files(self):
+        root = etree.fromstring('<root></root>')
+
+        with open(self.fname, 'w') as f:
+            f.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        self.validator.post_validation()
+
+    def test_validation_with_unchanged_files(self):
+        files = self.create_files()
+        self.generate_xml()
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        for f in files:
+            self.validator.validate(f)
+
+        self.validator.post_validation()
+
+    def test_validation_with_unchanged_files_with_same_content(self):
+        files = [os.path.join(self.datadir, 'first.txt'), os.path.join(self.datadir, 'second.txt')]
+
+        for f in files:
+            with open(os.path.join(f), 'w') as fp:
+                fp.write('foo')
+
+        self.generate_xml()
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        for f in files:
+            self.validator.validate(f)
+
+        self.validator.post_validation()
+
+    def test_validation_with_deleted_file(self):
+        files = self.create_files()
+        self.generate_xml()
+        os.remove(files[0])
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        for f in files[1:]:
+            self.validator.validate(f)
+
+        with self.assertRaisesRegexp(ValidationError, '1 file\(s\) has been deleted'):
+            self.validator.post_validation()
+
+    def test_validation_with_added_file(self):
+        files = self.create_files()
+        self.generate_xml()
+
+        added = os.path.join(self.datadir, 'added.txt')
+        with open(added, 'w') as f:
+            f.write('added')
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        for f in files:
+            self.validator.validate(f)
+
+        with self.assertRaisesRegexp(ValidationError, '{file} has been added'.format(file=added)):
+            self.validator.validate(added)
+
+        self.validator.post_validation()
+
+    def test_validation_with_renamed_file(self):
+        files = self.create_files()
+        self.generate_xml()
+
+        old = files[0]
+        new = os.path.join(self.datadir, 'new.txt')
+        os.rename(old, new)
+        files[0] = new
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        for f in files[1:]:
+            self.validator.validate(f)
+
+        with self.assertRaisesRegexp(ValidationError, '{old} has been renamed to {new}'.format(old=old, new=new)):
+            self.validator.validate(new)
+
+        self.validator.post_validation()
+
+    def test_validation_with_changed_file(self):
+        files = self.create_files()
+        self.generate_xml()
+
+        with open(files[0], 'a') as f:
+            f.write('changed')
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        for f in files[1:]:
+            self.validator.validate(f)
+
+        with self.assertRaisesRegexp(ValidationError, '{file} has been changed'.format(file=files[0])):
+            self.validator.validate(files[0])
+
+        self.validator.post_validation()
