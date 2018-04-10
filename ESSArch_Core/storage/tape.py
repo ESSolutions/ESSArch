@@ -294,7 +294,7 @@ def set_tape_file_number(drive, num=0):
 
     cmd = 'mt -f %s %s %d' % (drive, op, new_num)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
-    logger.debug('Setting file number of {drive} to {num}: {cmd}'.format(num=file_number, drive=drive, cmd=cmd))
+    logger.debug('Setting file number of {drive} to {num}: {cmd}'.format(num=num, drive=drive, cmd=cmd))
     out, err = p.communicate()
 
     if p.returncode:
@@ -305,7 +305,7 @@ def set_tape_file_number(drive, num=0):
     elif p.returncode == 2:
         raise MTFailedOperationException(err)
 
-    logger.debug('File number of {drive} set to {num}'.format(num=file_number, drive=drive))
+    logger.debug('File number of {drive} set to {num}'.format(num=num, drive=drive))
     return out
 
 
