@@ -134,15 +134,8 @@ class InformationPackage(DocType):
         index = 'information_package'
 
 
-class Document(VersionedDocType):
-    id = Keyword()  # @id
+class Document(Component):
     ip = Keyword()
-    parent = Object(Node)  # component
-    reference_code = Keyword()
-    archive = Keyword()
-    institution = Keyword()
-    organization = Keyword()
-    name = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # @title in 2002, @linktitle in 3.0
     extension = Keyword()
     href = Keyword()  # @href
     size = Long()
