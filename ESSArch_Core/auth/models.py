@@ -39,6 +39,7 @@ class ProxyGroup(DjangoGroup):
         verbose_name = _('group')
         verbose_name_plural = _('groups')
         proxy = True
+        default_permissions = []
 
 
 class ProxyUser(DjangoUser):
@@ -46,6 +47,7 @@ class ProxyUser(DjangoUser):
         verbose_name = _('user')
         verbose_name_plural = _('users')
         proxy = True
+        default_permissions = []
 
 
 class Member(MemberMixin):
@@ -66,6 +68,12 @@ class Member(MemberMixin):
 
     class Meta(MemberMixin.Meta):
         abstract = False
+
+
+class GroupType(GroupType):
+    class Meta:
+        proxy = True
+        default_permissions = []
 
 
 class Group(GroupMixin):

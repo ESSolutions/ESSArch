@@ -23,6 +23,7 @@ class Migration(migrations.Migration):
                 'proxy': True,
                 'verbose_name_plural': 'groups',
                 'indexes': [],
+                'default_permissions': [],
             },
             bases=('auth.group',),
             managers=[
@@ -38,6 +39,7 @@ class Migration(migrations.Migration):
                 'proxy': True,
                 'verbose_name_plural': 'users',
                 'indexes': [],
+                'default_permissions': [],
             },
             bases=('auth.user',),
             managers=[

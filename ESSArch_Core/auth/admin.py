@@ -4,24 +4,32 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserChangeForm as DjangoUserChangeForm
 from django.contrib.auth.admin import GroupAdmin as DjangoGroupAdmin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import Group as DjangoGroup
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from groups_manager.models import Group as GroupManagerGroup
-from groups_manager.models import GroupEntity, GroupMemberRole, GroupType
+from groups_manager.models import GroupEntity, GroupMemberRole, GroupType as GroupManagerGroupType
 from groups_manager.models import GroupMember as GroupManagerGroupMember
 from groups_manager.models import Member as GroupManagerMember
 from nested_inline.admin import NestedModelAdmin, NestedTabularInline
 
 from ESSArch_Core.admin import NestedStackedInlineWithoutHeader
-from ESSArch_Core.auth.models import (Group, GroupMember, Member, ProxyGroup,
+from ESSArch_Core.auth.models import (Group, GroupMember, GroupType, Member, ProxyGroup,
                                       ProxyUser)
 
 User = get_user_model()
 
 admin.site.unregister(
-    [GroupManagerMember, GroupManagerGroup, GroupManagerGroupMember, GroupEntity, GroupMemberRole, GroupType])
+    [GroupManagerMember, GroupManagerGroup, GroupManagerGroupMember, GroupEntity, GroupMemberRole, GroupManagerGroupType])
+
+
+def filter_permissions(qs):
+    apps = ['groups_manager']
+    excluded = Q(~Q(content_type__model='grouptype'), content_type__app_label__in=apps)
+    return qs.exclude(excluded)
 
 
 class GroupMemberForm(forms.ModelForm):
@@ -50,6 +58,12 @@ class GroupMemberInline(NestedTabularInline):
     def has_delete_permission(self, request, obj=None):
         return False
 
+    def has_change_permission(self, request, obj=None):
+        return True
+
+    def has_module_permission(self, request):
+        return True
+
 
 class MemberInline(NestedStackedInlineWithoutHeader):
     model = Member
@@ -65,6 +79,12 @@ class MemberInline(NestedStackedInlineWithoutHeader):
     def has_delete_permission(self, request, obj=None):
         return False
 
+    def has_change_permission(self, request, obj=None):
+        return True
+
+    def has_module_permission(self, request):
+        return True
+
 
 class UserAdmin(DjangoUserAdmin, NestedModelAdmin):
     add_form_template = 'essauth/admin/user/add_form.html'
@@ -77,6 +97,25 @@ class UserAdmin(DjangoUserAdmin, NestedModelAdmin):
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
         ('Groups', {'fields': ('groups',)})
     )
+
+    def formfield_for_manytomany(self, db_field, request=None, **kwargs):
+        if db_field.name == 'user_permissions':
+            qs = kwargs.get('queryset', db_field.remote_field.model.objects)
+            kwargs['queryset'] = filter_permissions(qs)
+        return super(UserAdmin, self).formfield_for_manytomany(
+            db_field, request=request, **kwargs)
+
+    def has_add_permission(self, request):
+        return request.user.has_perm("%s.%s" % ('auth', 'add_user'))
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('auth', 'change_user'))
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('auth', 'delete_user'))
+
+    def has_module_permission(self, request):
+        return request.user.has_module_perms('auth')
 
 
 class GroupForm(forms.ModelForm):
@@ -104,12 +143,52 @@ class GroupInline(admin.StackedInline):
     def has_delete_permission(self, request, obj=None):
         return False
 
+    def has_change_permission(self, request, obj=None):
+        return True
+
+    def has_module_permission(self, request):
+        return True
+
 
 class GroupAdmin(DjangoGroupAdmin):
     inlines = [GroupInline]
+
+    def formfield_for_manytomany(self, db_field, request=None, **kwargs):
+        if db_field.name == 'permissions':
+            qs = kwargs.get('queryset', db_field.remote_field.model.objects)
+            kwargs['queryset'] = filter_permissions(qs)
+        return super(GroupAdmin, self).formfield_for_manytomany(
+            db_field, request=request, **kwargs)
+
+    def has_add_permission(self, request):
+        return request.user.has_perm("%s.%s" % ('auth', 'add_group'))
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('auth', 'change_group'))
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('auth', 'delete_group'))
+
+    def has_module_permission(self, request):
+        return request.user.has_module_perms('auth')
+
+
+class GroupTypeAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return request.user.has_perm("%s.%s" % ('groups_manager', 'add_grouptype'))
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('groups_manager', 'change_grouptype'))
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('groups_manager', 'delete_grouptype'))
+
+    def has_module_permission(self, request):
+        return request.user.has_module_perms('groups_manager')
 
 
 admin.site.unregister(DjangoGroup)
 admin.site.unregister(User)
 admin.site.register(ProxyGroup, GroupAdmin)
 admin.site.register(ProxyUser, UserAdmin)
+admin.site.register(GroupType, GroupTypeAdmin)

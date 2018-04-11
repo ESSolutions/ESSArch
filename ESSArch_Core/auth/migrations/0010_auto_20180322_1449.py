@@ -99,6 +99,7 @@ class Migration(migrations.Migration):
             options={
                 'ordering': ('name',),
                 'abstract': False,
+                'default_permissions': [],
             },
             bases=(groups_manager.models.GroupRelationsMixin, models.Model),
         ),
@@ -116,6 +117,7 @@ class Migration(migrations.Migration):
             options={
                 'ordering': ('last_name', 'first_name'),
                 'abstract': False,
+                'default_permissions': [],
             },
             bases=(groups_manager.models.MemberRelationsMixin, models.Model),
         ),
@@ -131,6 +133,7 @@ class Migration(migrations.Migration):
             options={
                 'ordering': ('group', 'member'),
                 'abstract': False,
+                'default_permissions': [],
             },
         ),
         migrations.AddField(
