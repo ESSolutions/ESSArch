@@ -68,6 +68,7 @@ class Member(MemberMixin):
 
     class Meta(MemberMixin.Meta):
         abstract = False
+        default_permissions = []
 
 
 class GroupType(GroupType):
@@ -101,6 +102,7 @@ class Group(GroupMixin):
 
     class Meta(GroupMixin.Meta):
         abstract = False
+        default_permissions = []
 
 
 class GroupMember(GroupMemberMixin):
@@ -112,6 +114,7 @@ class GroupMember(GroupMemberMixin):
     class Meta(GroupMemberMixin.Meta):
         unique_together = ('group', 'member')
         abstract = False
+        default_permissions = []
 
 
 class UserProfile(models.Model):
