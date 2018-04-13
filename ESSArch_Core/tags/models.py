@@ -102,33 +102,31 @@ class TagVersion(models.Model):
                            body={"script": {"source": "ctx._source.current_version=true", "lang": "painless"},
                                  "query": {"term": {"_id": str(self.pk)}}})
 
-    def get_structures(self):
-        return self.tag.structures
+    def get_structures(self, structure=None):
+        query_filter = {}
+        structures = self.tag.structures
+        if structure is not None:
+            query_filter['structure'] = structure
+            structures = structures.filter(**query_filter)
+
+        return structures
 
     def get_active_structure(self):
         return self.tag.structures.latest()
 
     def get_parent(self, structure=None):
-        query_filter = {}
-        if structure is not None:
-            query_filter['structure'] = structure
-
-        return self.get_structures().filter(**query_filter).latest().parent
+        return self.get_structures(structure).latest().parent
 
     def get_children(self, structure=None):
-        query_filter = {}
-        if structure is not None:
-            query_filter['structure'] = structure
-
-        structure_children = self.get_structures().filter(**query_filter).latest().get_children()
+        structure_children = self.get_structures(structure).latest().get_children()
         return TagVersion.objects.filter(tag__current_version=F('pk'), tag__structures__in=structure_children).select_related('tag')
 
-    def is_leaf_node(self, structure=None):
-        query_filter = {}
-        if structure is not None:
-            query_filter['structure'] = structure
+    def get_descendants(self, structure=None):
+        structure_descendants = self.get_structures(structure).latest().get_descendants(include_self=False)
+        return TagVersion.objects.filter(tag__current_version=F('pk'), tag__structures__in=structure_descendants).select_related('tag')
 
-        return self.get_structures().filter(**query_filter).latest().is_leaf_node()
+    def is_leaf_node(self, structure=None):
+        return self.get_structures(structure).latest().is_leaf_node()
 
 
 class TagStructure(MPTTModel):
