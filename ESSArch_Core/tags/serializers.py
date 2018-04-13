@@ -11,6 +11,24 @@ class StructureSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'version', 'create_date',)
 
 
+class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
+    is_leaf_node = serializers.SerializerMethodField()
+    structures = serializers.SerializerMethodField()
+
+    def get_is_leaf_node(self, obj):
+        return obj.is_leaf_node(structure=self.context.get('structure'))
+
+    def get_structures(self, obj):
+        structure_ids = obj.tag.structures.values_list('structure', flat=True)
+        structures = Structure.objects.filter(pk__in=structure_ids).order_by('create_date')
+        return StructureSerializer(structures, many=True).data
+
+    class Meta:
+        model = TagVersion
+        fields = ('id', 'elastic_index', 'name', 'type', 'create_date', 'start_date',
+                  'end_date', 'is_leaf_node', 'structures')
+
+
 class TagVersionWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = TagVersion
