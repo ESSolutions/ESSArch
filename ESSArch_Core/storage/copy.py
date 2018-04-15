@@ -4,8 +4,8 @@ import os
 import time
 
 from requests_toolbelt import MultipartEncoder
-
 from retrying import retry
+from scandir import walk
 
 from ESSArch_Core.fixity.checksum import calculate_checksum
 
@@ -180,4 +180,28 @@ def copy_file(src, dst, requests_session=None, block_size=65536):
         copy_file_locally(src, dst, block_size=block_size)
 
     logger.info('Copied %s to %s' % (src, dst))
+    return dst
 
+
+def copy_dir(src, dst, requests_session=None, block_size=65536):
+    for root, dirs, files in walk(src):
+        for f in files:
+            src_filepath = os.path.join(root, f)
+            src_relpath = os.path.relpath(src_filepath, src)
+            dst_filepath = os.path.join(dst, src_relpath)
+
+            try:
+                os.makedirs(os.path.dirname(dst_filepath))
+            except OSError as exc:
+                if exc.errno != errno.EEXIST:
+                    raise
+
+            copy_file(src_filepath, dst_filepath, requests_session=requests_session, block_size=block_size)
+    return dst
+
+
+def copy(src, dst, requests_session=None, block_size=65536):
+    if os.path.isfile(src):
+        return copy_file(src, dst, requests_session=requests_session, block_size=block_size)
+
+    return copy_dir(src, dst, requests_session=requests_session, block_size=block_size)

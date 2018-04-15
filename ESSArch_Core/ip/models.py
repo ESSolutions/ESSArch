@@ -566,6 +566,11 @@ class InformationPackage(models.Model):
         return 0
 
     def files(self, path='', force_download=False, paginator=None, request=None):
+        if self.archived:
+            fp = self.storage.active().fastest().first().read(path)
+            path = os.path.realpath(fp.name)
+            return list_files(path, force_download, paginator=paginator, request=request)
+
         if os.path.isfile(self.object_path):
             if len(path):
                 fullpath = os.path.join(os.path.dirname(self.object_path), path)

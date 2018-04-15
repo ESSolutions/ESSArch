@@ -3,24 +3,22 @@ from __future__ import unicode_literals
 import errno
 import os
 import uuid
-
 from datetime import timedelta
 
-from six.moves import urllib
-
+import requests
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+from django.db.models import Case, When, Value, IntegerField
 from django.db.models.functions import Cast
-
 from picklefield.fields import PickledObjectField
-
 from retrying import retry
-import requests
+from six.moves import urllib
 
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.storage.backends import get_backend
 
 DISK = 200
 TAPE = 300
@@ -132,6 +130,31 @@ min_chunk_size_CHOICES = (
 )
 
 
+def get_backend_from_storage_type(type):
+    return {
+        DISK: 'disk',
+        TAPE: 'tape',
+    }[type]
+
+
+def get_storage_type_from_medium_type(medium_type):
+    if DISK <= medium_type < TAPE:
+        return DISK
+
+    if TAPE <= medium_type < CAS:
+        return TAPE
+
+    return CAS
+
+
+class StorageMethodQueryset(models.QuerySet):
+    def archival_storage(self):
+        return self.filter(containers=False)
+
+    def secure_storage(self):
+        return self.filter(containers=True)
+
+
 class StorageMethod(models.Model):
     """Disk, tape or CAS"""
 
@@ -139,8 +162,11 @@ class StorageMethod(models.Model):
     name = models.CharField('Name', max_length=255, blank=True)
     status = models.BooleanField('Storage method status', default=False)
     type = models.IntegerField('Type', choices=storage_type_CHOICES, default=200)
+    containers = models.BooleanField(default=False)
     archive_policy = models.ForeignKey('configuration.ArchivePolicy', related_name='storage_methods')
     targets = models.ManyToManyField('StorageTarget', through='StorageMethodTargetRelation', related_name='methods')
+
+    objects = StorageMethodQueryset.as_manager()
 
     @property
     def active_targets(self):
@@ -195,6 +221,11 @@ class StorageTarget(models.Model):
     master_server = models.CharField('Master server (https://hostname,user,password)', max_length=255, blank=True)
     target = models.CharField('Target (URL, path or barcodeprefix)', max_length=255)
 
+    def get_storage_backend(self):
+        storage_type = get_storage_type_from_medium_type(self.type)
+        name = get_backend_from_storage_type(storage_type)
+        return get_backend(name)()
+
     class Meta:
         verbose_name = 'Storage Target'
         ordering = ['name']
@@ -204,6 +235,39 @@ class StorageTarget(models.Model):
             return self.name
 
         return unicode(self.id)
+
+
+class StorageMediumQueryset(models.QuerySet):
+    def archival_storage(self):
+        return self.filter(storage_target__methods__containers=False)
+
+    def secure_storage(self):
+        return self.filter(storage_target__methods__containers=True)
+
+    def readable(self):
+        return self.filter(status__in=[20, 30])
+
+    def fastest(self):
+        container = Case(
+            When(storage_target__methods__containers=False, then=Value(1)),
+            When(storage_target__methods__containers=True, then=Value(2)),
+            output_field=IntegerField(),
+        )
+        remote = Case(
+            When(storage_target__remote_server__isnull=True, then=Value(1)),
+            When(storage_target__remote_server__isnull=False, then=Value(2)),
+            output_field=IntegerField(),
+        )
+        storage_type = Case(
+            When(storage_target__methods__type=DISK, then=Value(1)),
+            When(storage_target__methods__type=TAPE, then=Value(2)),
+            output_field=IntegerField(),
+        )
+        return self.annotate(
+            container_order=container,
+            remote=remote,
+            storage_type=storage_type
+        ).order_by('remote', 'container_order', 'storage_type')
 
 
 class StorageMedium(models.Model):
@@ -228,6 +292,17 @@ class StorageMedium(models.Model):
     storage_target = models.ForeignKey('StorageTarget')
     tape_slot = models.OneToOneField('TapeSlot', models.PROTECT, related_name='storage_medium', null=True)
     tape_drive = models.OneToOneField('TapeDrive', models.PROTECT, related_name='storage_medium', null=True)
+
+    objects = StorageMediumQueryset.as_manager()
+
+    def get_type(self):
+        target_type = self.storage_target.type
+        if target_type < 300:
+            return DISK
+        elif target_type < 400:
+            return TAPE
+        else:
+            return CAS
 
     def mark_as_full(self):
         objs = self.storage.annotate(
@@ -266,10 +341,44 @@ class StorageMedium(models.Model):
         return False
 
 
+class StorageObjectQueryset(models.QuerySet):
+    def archival_storage(self):
+        return self.filter(container=False)
+
+    def secure_storage(self):
+        return self.filter(container=True)
+
+    def active(self):
+        return self.filter(storage_medium__status__in=[20, 30])
+
+    def fastest(self):
+        container = Case(
+            When(container=False, then=Value(1)),
+            When(container=True, then=Value(2)),
+            output_field=IntegerField(),
+        )
+        remote = Case(
+            When(storage_medium__storage_target__remote_server__isnull=True, then=Value(1)),
+            When(storage_medium__storage_target__remote_server__isnull=False, then=Value(2)),
+            output_field=IntegerField(),
+        )
+        storage_type = Case(
+            When(content_location_type=DISK, then=Value(1)),
+            When(content_location_type=TAPE, then=Value(2)),
+            output_field=IntegerField(),
+        )
+        return self.annotate(
+            container_order=container,
+            remote=remote,
+            storage_type=storage_type
+        ).order_by('remote', 'container_order', 'storage_type')
+
+
 class StorageObject(models.Model):
     """The stored representation of an archive object on a storage medium"""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    container = models.BooleanField(default=False)
     content_location_type = models.IntegerField(choices=storage_type_CHOICES)
     content_location_value = models.CharField(max_length=255, blank=True)
 
@@ -278,6 +387,50 @@ class StorageObject(models.Model):
 
     ip = models.ForeignKey(InformationPackage, related_name='storage')
     storage_medium = models.ForeignKey('StorageMedium', related_name='storage')
+
+    objects = StorageObjectQueryset.as_manager()
+
+    def get_root(self):
+        target = self.storage_medium.storage_target.target
+        if self.content_location_value == '':
+            target = os.path.join(target, self.ip.object_identifier_value)
+            if self.container:
+                target += '.tar'
+        else:
+            return os.path.join(target, self.content_location_value)
+        return target
+
+    def get_full_path(self):
+        return os.path.join(self.get_root())
+
+    def get_storage_backend(self):
+        return self.storage_medium.storage_target.get_storage_backend()
+
+    def extract(self):
+        if not self.container:
+            raise ValueError("Not a container")
+
+        policy = self.ip.policy
+        target_medium = StorageMedium.objects.archival_storage().readable().fastest().filter(storage_target__methods__archive_policy=policy).first()
+
+        if target_medium is None:
+            raise ValueError("No available archival storage configured for IP")
+
+        backend = self.get_storage_backend()
+        target_path = backend.read(self, target_medium.storage_target.target, extract=True, include_xml=False)
+        medium_type = target_medium.get_type()
+        new_obj = StorageObject.objects.create(ip=self.ip, storage_medium=target_medium, container=False,
+                                               content_location_type=medium_type, content_location_value=target_path)
+        return new_obj
+
+    def read(self, path):
+        if not self.container:
+            backend = self.get_storage_backend()
+            with backend.open(self, path) as fp:
+                return fp
+
+        extracted = self.extract()
+        return extracted.read(path)
 
     class Meta:
         permissions = (
