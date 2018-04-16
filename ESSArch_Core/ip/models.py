@@ -567,7 +567,10 @@ class InformationPackage(models.Model):
 
     def files(self, path='', force_download=False, paginator=None, request=None):
         if self.archived:
-            fp = self.storage.active().fastest().first().read(path)
+            storage_obj = self.storage.readable().fastest().first()
+            if storage_obj is None:
+                raise ValueError("No readable storage configured for IP")
+            fp = storage_obj.read(path)
             path = os.path.realpath(fp.name)
             return list_files(path, force_download, paginator=paginator, request=request)
 

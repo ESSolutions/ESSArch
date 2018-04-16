@@ -245,7 +245,10 @@ class StorageMediumQueryset(models.QuerySet):
         return self.filter(storage_target__methods__containers=True)
 
     def readable(self):
-        return self.filter(status__in=[20, 30])
+        return self.filter(status__in=[20, 30], location_status=50)
+
+    def writeable(self):
+        return self.filter(status__in=[20], location_status=50)
 
     def fastest(self):
         container = Case(
@@ -348,8 +351,8 @@ class StorageObjectQueryset(models.QuerySet):
     def secure_storage(self):
         return self.filter(container=True)
 
-    def active(self):
-        return self.filter(storage_medium__status__in=[20, 30])
+    def readable(self):
+        return self.filter(storage_medium__status__in=[20, 30], storage_medium__location_status=50)
 
     def fastest(self):
         container = Case(
@@ -411,10 +414,11 @@ class StorageObject(models.Model):
             raise ValueError("Not a container")
 
         policy = self.ip.policy
-        target_medium = StorageMedium.objects.archival_storage().readable().fastest().filter(storage_target__methods__archive_policy=policy).first()
+        target_medium = StorageMedium.objects.archival_storage().writeable().fastest().filter(
+            storage_target__methods__archive_policy=policy).first()
 
         if target_medium is None:
-            raise ValueError("No available archival storage configured for IP")
+            raise ValueError("No writeable archival storage configured for IP")
 
         backend = self.get_storage_backend()
         target_path = backend.read(self, target_medium.storage_target.target, extract=True, include_xml=False)
