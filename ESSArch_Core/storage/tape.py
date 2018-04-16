@@ -298,7 +298,7 @@ def set_tape_file_number(drive, num=0):
     out, err = p.communicate()
 
     if p.returncode:
-        logger.error('Failed to set tape file number of {drive} to {num}'.format(drive=drive, num=num))
+        logger.error('Failed to set tape file number of {drive} to {num}: {err}'.format(drive=drive, num=num, err=err))
 
     if p.returncode == 1:
         raise MTInvalidOperationOrDeviceNameException(err)
