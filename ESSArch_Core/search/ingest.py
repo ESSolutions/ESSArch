@@ -62,7 +62,8 @@ def index_path(ip, path, parent=None):
 
     tag = Tag.objects.create()
     tag_version = TagVersion(pk=id, tag=tag, name=os.path.basename(path))
-    TagStructure.objects.create(tag=tag, parent=parent, structure=getattr(parent, 'structure', None))
+    if parent:
+        TagStructure.objects.create(tag=tag, parent=parent, structure=parent.structure)
 
     if isfile:
         tag_version.elastic_index = 'document'
