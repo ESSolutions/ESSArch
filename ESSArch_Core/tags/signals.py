@@ -14,6 +14,12 @@ r = StrictRedis()
 
 @receiver(post_save, sender=TagVersion)
 def queue_tag_for_index(sender, instance, created, **kwargs):
+    if created:
+        if instance.tag.current_version is None:
+            tag = instance.tag
+            tag.current_version = instance
+            tag.save(update_fields=['current_version'])
+
     data = {
         '_op_type': 'update',
         'doc_as_upsert': True,
@@ -30,6 +36,14 @@ def queue_tag_for_index(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=TagVersion)
 def queue_tag_for_deletion(sender, instance, **kwargs):
+    if instance.tag.current_version is None:
+        try:
+            tag = instance.tag
+            tag.current_version = tag.versions.latest()
+            tag.save(update_fields=['current_version'])
+        except TagVersion.DoesNotExist:
+            pass
+
     data = {
         '_op_type': 'delete',
         '_index': instance.elastic_index,
