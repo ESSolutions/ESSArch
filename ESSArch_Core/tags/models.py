@@ -128,6 +128,9 @@ class TagVersion(models.Model):
     def is_leaf_node(self, structure=None):
         return self.get_structures(structure).latest().is_leaf_node()
 
+    class Meta:
+        get_latest_by = 'create_date'
+
 
 class TagStructure(MPTTModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -176,3 +179,4 @@ class TagStructure(MPTTModel):
 
     class Meta:
         get_latest_by = 'structure__create_date'
+        ordering = ('structure__create_date',)
