@@ -136,6 +136,7 @@ class InformationPackage(DocType):
 
 class Document(Component):
     ip = Keyword()
+    filename = Keyword()
     extension = Keyword()
     href = Keyword()  # @href
     size = Long()
