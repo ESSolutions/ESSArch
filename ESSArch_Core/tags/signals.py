@@ -14,22 +14,18 @@ r = StrictRedis()
 
 @receiver(post_save, sender=TagVersion)
 def queue_tag_for_index(sender, instance, created, **kwargs):
-    if created:
-        if instance.tag.versions.count() == 1:
-            r.rpush(INDEX_QUEUE, cPickle.dumps(instance.to_search()))
-    else:
-        data = {
-            '_op_type': 'update',
-            'doc_as_upsert': True,
-            '_index': instance.elastic_index,
-            '_type': 'doc',
-            '_id': str(instance.pk),
-            'doc': {
-                'name': instance.name,
-                'type': instance.type,
-            },
-        }
-        r.rpush(UPDATE_QUEUE, cPickle.dumps(data))
+    data = {
+        '_op_type': 'update',
+        'doc_as_upsert': True,
+        '_index': instance.elastic_index,
+        '_type': 'doc',
+        '_id': str(instance.pk),
+        'doc': {
+            'name': instance.name,
+            'type': instance.type,
+        },
+    }
+    r.rpush(UPDATE_QUEUE, cPickle.dumps(data))
 
 
 @receiver(post_delete, sender=TagVersion)
