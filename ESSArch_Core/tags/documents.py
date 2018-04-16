@@ -3,7 +3,7 @@ from elasticsearch_dsl import (Boolean, Date, DocType, InnerDoc, Keyword, Long,
                                Nested, Object, Q, Text, analyzer,
                                tokenizer)
 
-ngram_tokenizer=tokenizer('custom_ngram_tokenizer', type='ngram', min_gram=2,
+ngram_tokenizer=tokenizer('custom_ngram_tokenizer', type='ngram', min_gram=3,
                           max_gram=3)
 ngram_analyzer = analyzer('custom_ngram_analyzer', tokenizer=ngram_tokenizer,
                           filter=['lowercase'])
