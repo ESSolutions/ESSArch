@@ -264,6 +264,8 @@ class InformationPackage(models.Model):
     policy = models.ForeignKey('configuration.ArchivePolicy', on_delete=models.PROTECT, related_name='information_packages', null=True)
     aic = models.ForeignKey('self', on_delete=models.PROTECT, related_name='information_packages', null=True)
 
+    tag = models.ForeignKey('tags.TagStructure', on_delete=models.SET_NULL, related_name='information_packages', null=True)
+
     submission_agreement = models.ForeignKey(
         SA,
         on_delete=models.CASCADE,
