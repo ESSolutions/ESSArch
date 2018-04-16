@@ -2,7 +2,7 @@ import elasticsearch
 from rest_framework import serializers
 
 from ESSArch_Core.tags.documents import VersionedDocType
-from ESSArch_Core.tags.models import TagVersion, Structure
+from ESSArch_Core.tags.models import Tag, TagVersion, Structure, TagStructure
 
 
 class StructureSerializer(serializers.ModelSerializer):
@@ -11,22 +11,20 @@ class StructureSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'version', 'create_date',)
 
 
+class TagStructureSerializer(serializers.ModelSerializer):
+    structure = StructureSerializer(read_only=True)
+
+    class Meta:
+        model = TagStructure
+        fields = ('id', 'parent', 'structure')
+        read_only_fields = ('parent', 'structure',)
+
+
 class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
-    is_leaf_node = serializers.SerializerMethodField()
-    structures = serializers.SerializerMethodField()
-
-    def get_is_leaf_node(self, obj):
-        return obj.is_leaf_node(structure=self.context.get('structure'))
-
-    def get_structures(self, obj):
-        structure_ids = obj.tag.structures.values_list('structure', flat=True)
-        structures = Structure.objects.filter(pk__in=structure_ids).order_by('create_date')
-        return StructureSerializer(structures, many=True).data
-
     class Meta:
         model = TagVersion
         fields = ('id', 'elastic_index', 'name', 'type', 'create_date', 'start_date',
-                  'end_date', 'is_leaf_node', 'structures')
+                  'end_date',)
 
 
 class TagVersionWriteSerializer(serializers.ModelSerializer):
@@ -89,3 +87,17 @@ class TagVersionSerializerWithVersions(TagVersionSerializer):
 
     class Meta(TagVersionSerializer.Meta):
         fields = TagVersionSerializer.Meta.fields + ('versions',)
+
+
+class TagSerializer(serializers.ModelSerializer):
+    structures = TagStructureSerializer(many=True, read_only=True)
+    current_version = TagVersionSerializerWithoutSource(read_only=True)
+    other_versions = serializers.SerializerMethodField()
+
+    def get_other_versions(self, obj):
+        versions = obj.versions.exclude(pk=obj.current_version.pk)
+        return TagVersionSerializer(versions, many=True, context=self.context).data
+
+    class Meta:
+        model = Tag
+        fields = ('id', 'current_version', 'other_versions', 'structures')

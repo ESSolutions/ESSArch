@@ -1,0 +1,19 @@
+from django.db.models import F
+
+from django_filters import rest_framework as filters
+from django_filters.widgets import BooleanWidget
+
+from ESSArch_Core.tags.models import Tag
+
+class TagFilter(filters.FilterSet):
+    index = filters.CharFilter(method='filter_index')
+
+    def filter_index(self, queryset, name, value):
+        if value:
+            return queryset.filter(versions__elastic_index=value)
+
+        return queryset
+
+    class Meta:
+        model = Tag
+        fields = ['index']
