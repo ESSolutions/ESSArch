@@ -26,6 +26,32 @@ class Tag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     current_version = models.ForeignKey('tags.TagVersion', on_delete=models.SET_NULL, null=True, related_name='current_version_tags')
 
+    def get_structures(self, structure=None):
+        query_filter = {}
+        structures = self.structures
+        if structure is not None:
+            query_filter['structure'] = structure
+            structures = structures.filter(**query_filter)
+
+        return structures
+
+    def get_active_structure(self):
+        return self.structures.latest()
+
+    def get_parent(self, structure=None):
+        return self.get_structures(structure).latest().parent
+
+    def get_children(self, structure=None):
+        structure_children = self.get_structures(structure).latest().get_children()
+        return Tag.objects.filter(structures__in=structure_children)
+
+    def get_descendants(self, structure=None):
+        structure_descendants = self.get_structures(structure).latest().get_descendants(include_self=False)
+        return Tag.objects.filter(structures__in=structure_descendants)
+
+    def is_leaf_node(self, structure=None):
+        return self.get_structures(structure).latest().is_leaf_node()
+
     class Meta:
         permissions = (
             ('search', 'Can search'),
