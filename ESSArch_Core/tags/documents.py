@@ -3,8 +3,8 @@ from elasticsearch_dsl import (Boolean, Date, DocType, InnerDoc, Keyword, Long,
                                Nested, Object, Q, Text, analyzer,
                                tokenizer)
 
-ngram_tokenizer=tokenizer('custom_ngram_tokenizer', type='ngram', min_gram=1,
-                          max_gram=15)
+ngram_tokenizer=tokenizer('custom_ngram_tokenizer', type='ngram', min_gram=2,
+                          max_gram=3)
 ngram_analyzer = analyzer('custom_ngram_analyzer', tokenizer=ngram_tokenizer,
                           filter=['lowercase'])
 
@@ -94,9 +94,9 @@ class Component(VersionedDocType):
     reference_code = Keyword()
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
-    name = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # unittitle
+    name = Text(analyzer=ngram_analyzer)  # unittitle
     create_date = Date()
-    desc = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # e.g. from <odd>
+    desc = Text(analyzer=ngram_analyzer)  # e.g. from <odd>
     type = Keyword()  # series, volume, etc.
     parent = Object(Node)
     archive = Keyword()
@@ -111,8 +111,8 @@ class Archive(VersionedDocType):
     reference_code = Keyword()
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
-    name = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # unittitle
-    desc = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # e.g. from <odd>
+    name = Text(analyzer=ngram_analyzer)  # unittitle
+    desc = Text(analyzer=ngram_analyzer)  # e.g. from <odd>
     type = Keyword()
     institution = Keyword()
     organization = Keyword()
