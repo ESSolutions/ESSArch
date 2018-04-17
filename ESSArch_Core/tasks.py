@@ -22,8 +22,8 @@
     Email - essarch@essolutions.se
 """
 
-import copy
 import cPickle
+import copy
 import errno
 import logging
 import os
@@ -31,88 +31,54 @@ import shutil
 import tarfile
 import tempfile
 import time
-import uuid
 import zipfile
 
 import requests
-
 import six
-from six.moves import urllib
-
-from requests_toolbelt import MultipartEncoder
-
-from celery.result import allow_join_result
-
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage, send_mail
-from django.conf import settings
-from django.db.models import F, Q
+from django.db.models import F
 from django.utils import timezone
-
-from elasticsearch import Elasticsearch, helpers as es_helpers
-
+from elasticsearch import Elasticsearch
+from elasticsearch import helpers as es_helpers
+from lxml import etree
+from redis import StrictRedis
 from retrying import retry
+from scandir import walk
+from six.moves import urllib
 
+from ESSArch_Core.WorkflowEngine.dbtask import DBTask
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.auth.models import Notification
-from ESSArch_Core.configuration.models import Parameter
-from ESSArch_Core.essxml.Generator.xmlGenerator import (
-    findElementWithoutNamespace,
-    XMLGenerator
-)
+from ESSArch_Core.configuration.models import Parameter, Path
+from ESSArch_Core.essxml.Generator.xmlGenerator import (XMLGenerator,
+                                                        findElementWithoutNamespace)
+from ESSArch_Core.essxml.util import (find_files, parse_event_file,
+                                      validate_against_schema)
 from ESSArch_Core.fixity import format, transformation, validation
-from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.fixity.models import Validation
-from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, parse_event_file, validate_against_schema
+from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.exceptions import TapeDriveLockedError
 from ESSArch_Core.storage.models import StorageMedium, TapeDrive, TapeSlot
-from ESSArch_Core.storage.tape import (
-    DEFAULT_TAPE_BLOCK_SIZE,
-
-    create_tape_label,
-    get_tape_file_number,
-    is_tape_drive_online,
-    mount_tape,
-    read_tape,
-    rewind_tape,
-    robot_inventory,
-    set_tape_file_number,
-    tape_empty,
-    unmount_tape,
-    verify_tape_label,
-    wait_to_come_online,
-    write_to_tape,
-)
-from ESSArch_Core.tags import DELETION_QUEUE, DELETION_PROCESS_QUEUE, INDEX_QUEUE, INDEX_PROCESS_QUEUE, UPDATE_QUEUE, UPDATE_PROCESS_QUEUE
-from ESSArch_Core.WorkflowEngine.models import (
-    ProcessStep,
-    ProcessTask,
-)
-from ESSArch_Core.WorkflowEngine.dbtask import DBTask
-from ESSArch_Core.util import (
-    alg_from_str,
-    creation_date,
-    convert_file,
-    delete_content,
-    find_destination,
-    get_tree_size_and_count,
-    get_value_from_path,
-    remove_prefix,
-    timestamp_to_datetime,
-    turn_off_auto_now_add,
-    turn_on_auto_now_add,
-    win_to_posix,
-)
-
-from lxml import etree
-from redis import StrictRedis
-from scandir import walk
-
+from ESSArch_Core.storage.tape import (DEFAULT_TAPE_BLOCK_SIZE,
+                                       create_tape_label, get_tape_file_number,
+                                       is_tape_drive_online, mount_tape,
+                                       read_tape, rewind_tape, robot_inventory,
+                                       set_tape_file_number, tape_empty,
+                                       unmount_tape, verify_tape_label,
+                                       wait_to_come_online, write_to_tape)
+from ESSArch_Core.tags import (DELETION_PROCESS_QUEUE, DELETION_QUEUE,
+                               INDEX_PROCESS_QUEUE, INDEX_QUEUE,
+                               UPDATE_PROCESS_QUEUE, UPDATE_QUEUE)
+from ESSArch_Core.util import (convert_file, delete_content, find_destination,
+                               get_tree_size_and_count, remove_prefix,
+                               turn_off_auto_now_add, turn_on_auto_now_add,
+                               win_to_posix)
 
 User = get_user_model()
 
