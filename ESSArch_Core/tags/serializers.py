@@ -45,7 +45,13 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     def get__source(self, obj):
         try:
             doc = VersionedDocType.get(index=obj.elastic_index, id=str(obj.pk))
-            return doc.to_dict()
+            d = doc.to_dict()
+            if doc._index == 'document':
+                try:
+                    d['attachment'].pop('content', None)
+                except KeyError:
+                    pass
+            return d
         except elasticsearch.NotFoundError:
             return None
 
