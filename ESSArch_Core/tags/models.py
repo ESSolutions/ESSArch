@@ -39,18 +39,27 @@ class Tag(models.Model):
         return self.structures.latest()
 
     def get_parent(self, structure=None):
-        return self.get_structures(structure).latest().parent
+        try:
+            return self.get_structures(structure).latest().parent
+        except TagStructure.DoesNotExist:
+            return None
 
     def get_children(self, structure=None):
-        structure_children = self.get_structures(structure).latest().get_children()
-        return Tag.objects.filter(structures__in=structure_children)
+        try:
+            structure_children = self.get_structures(structure).latest().get_children()
+            return Tag.objects.filter(structures__in=structure_children)
+        except TagStructure.DoesNotExist:
+            return Tag.objects.none()
 
     def get_descendants(self, structure=None):
         structure_descendants = self.get_structures(structure).latest().get_descendants(include_self=False)
         return Tag.objects.filter(structures__in=structure_descendants)
 
     def is_leaf_node(self, structure=None):
-        return self.get_structures(structure).latest().is_leaf_node()
+        try:
+            return self.get_structures(structure).latest().is_leaf_node()
+        except TagStructure.DoesNotExist:
+            return True
 
     class Meta:
         permissions = (
@@ -141,18 +150,18 @@ class TagVersion(models.Model):
         return self.tag.structures.latest()
 
     def get_parent(self, structure=None):
-        return self.get_structures(structure).latest().parent
+        return self.tag.get_parent(structure)
 
     def get_children(self, structure=None):
-        structure_children = self.get_structures(structure).latest().get_children()
-        return TagVersion.objects.filter(tag__current_version=F('pk'), tag__structures__in=structure_children).select_related('tag')
+        tag_children = self.tag.get_children()
+        return TagVersion.objects.filter(tag__current_version=F('pk'), tag__in=tag_children).select_related('tag')
 
     def get_descendants(self, structure=None):
         structure_descendants = self.get_structures(structure).latest().get_descendants(include_self=False)
         return TagVersion.objects.filter(tag__current_version=F('pk'), tag__structures__in=structure_descendants).select_related('tag')
 
     def is_leaf_node(self, structure=None):
-        return self.get_structures(structure).latest().is_leaf_node()
+        return self.tag.is_leaf_node(structure)
 
     class Meta:
         get_latest_by = 'create_date'
