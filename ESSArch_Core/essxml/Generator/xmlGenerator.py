@@ -29,7 +29,7 @@ import os
 import re
 import uuid
 
-from django.template import Template, Context
+from django.template import Template, Context, TemplateSyntaxError
 from django.utils.encoding import DjangoUnicodeDecodeError
 
 from lxml import etree
@@ -51,6 +51,31 @@ from ESSArch_Core.util import (
 
 logger = logging.getLogger('essarch.essxml.generator')
 
+
+def parse_content_django(content, info=None, unicode_error=False, syntax_error=False):
+    c = Context(info)
+    try:
+        t = Template(content)
+    except TemplateSyntaxError:
+        if syntax_error:
+            raise
+        for k, v in six.iteritems(info):
+            if k.startswith('_'):
+                new_key = k[1:]
+                content = content.replace(k, new_key)
+                info[new_key] = info.pop(k)
+        return parse_content_django(content, info=info, syntax_error=True)
+
+    try:
+        return t.render(c)
+    except DjangoUnicodeDecodeError:
+        if unicode_error:
+            raise
+        for k, v in six.iteritems(info):
+            info[k] = make_unicode(v)
+        return parse_content_django(content, info=info, unicode_error=True)
+
+
 def parseContent(content, info=None):
     if not content:
         return None
@@ -61,14 +86,8 @@ def parseContent(content, info=None):
     logger.debug('Parsing {content}'.format(content=content))
 
     if isinstance(content, six.string_types):
-        t = Template(content)
-        c = Context(info)
-        try:
-            return t.render(c)
-        except DjangoUnicodeDecodeError:
-            for k, v in six.iteritems(info):
-                info[k] = make_unicode(v)
-            return t.render(c)
+        return parse_content_django(content, info=info)
+
 
     arr = []
     for c in content:
