@@ -25,7 +25,6 @@
 from __future__ import absolute_import
 
 import errno
-import hashlib
 import inspect
 import itertools
 import json
@@ -333,22 +332,6 @@ def get_tree_size_and_count(path='.'):
 
 def win_to_posix(path):
     return path.replace('\\', '/')
-
-
-def alg_from_str(algname):
-    valid = {
-        "MD5": hashlib.md5,
-        "SHA-1": hashlib.sha1,
-        "SHA-224": hashlib.sha224,
-        "SHA-256": hashlib.sha256,
-        "SHA-384": hashlib.sha384,
-        "SHA-512": hashlib.sha512
-    }
-
-    try:
-        return valid[algname.upper()]
-    except:
-        raise KeyError("Algorithm %s does not exist" % algname)
 
 
 def mkdir_p(path):

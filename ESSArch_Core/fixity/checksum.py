@@ -1,14 +1,29 @@
 from __future__ import division
 
+import hashlib
 import logging
 import os
 import time
 
-from ESSArch_Core.util import alg_from_str
-
 MB = 1024*1024
 
 logger = logging.getLogger('essarch.fixity.checksum')
+
+
+def alg_from_str(algname):
+    valid = {
+        "MD5": hashlib.md5,
+        "SHA-1": hashlib.sha1,
+        "SHA-224": hashlib.sha224,
+        "SHA-256": hashlib.sha256,
+        "SHA-384": hashlib.sha384,
+        "SHA-512": hashlib.sha512
+    }
+
+    try:
+        return valid[algname.upper()]
+    except KeyError:
+        raise KeyError("Algorithm %s does not exist" % algname)
 
 
 def calculate_checksum(filename, algorithm='SHA-256', block_size=65536):
