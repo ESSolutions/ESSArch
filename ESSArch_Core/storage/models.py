@@ -293,8 +293,8 @@ class StorageMedium(models.Model):
 
     agent = models.ForeignKey('auth.User', on_delete=models.PROTECT)
     storage_target = models.ForeignKey('StorageTarget')
-    tape_slot = models.OneToOneField('TapeSlot', models.PROTECT, related_name='storage_medium', null=True)
-    tape_drive = models.OneToOneField('TapeDrive', models.PROTECT, related_name='storage_medium', null=True)
+    tape_slot = models.OneToOneField('TapeSlot', models.PROTECT, related_name='storage_medium', null=True, blank=True)
+    tape_drive = models.OneToOneField('TapeDrive', models.PROTECT, related_name='storage_medium', null=True, blank=True)
 
     objects = StorageMediumQueryset.as_manager()
 
