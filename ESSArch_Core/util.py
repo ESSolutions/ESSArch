@@ -28,7 +28,6 @@ import errno
 import inspect
 import itertools
 import json
-import mimetypes
 import os
 import platform
 import re
@@ -51,7 +50,7 @@ from scandir import scandir, walk
 
 from subprocess import Popen, PIPE
 
-from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.fixity.format import FormatIdentifier
 
 import requests
 
@@ -491,16 +490,7 @@ def generate_file_response(file_obj, content_type, force_download=False):
     return response
 
 def list_files(path, force_download=False, request=None, paginator=None):
-    mimetypes.suffix_map = {}
-    mimetypes.encodings_map = {}
-    mimetypes.types_map = {}
-    mimetypes.common_types = {}
-    mimetypes_file = Path.objects.get(
-        entity="path_mimetypes_definitionfile"
-    ).value
-    mimetypes.init(files=[mimetypes_file])
-    mtypes = mimetypes.types_map
-
+    fid = FormatIdentifier()
     path = path.rstrip('/ ')
     path = smart_text(path).encode('utf-8')
 
@@ -541,7 +531,7 @@ def list_files(path, force_download=False, request=None, paginator=None):
                     return paginator.get_paginated_response(paginated)
                 return Response(entries)
 
-        content_type = mtypes.get(os.path.splitext(path)[1])
+        content_type = fid.get_mimetype(path)
         return generate_file_response(open(path), content_type, force_download)
 
     if os.path.isdir(path):
@@ -575,7 +565,7 @@ def list_files(path, force_download=False, request=None, paginator=None):
                     raise NotFound
 
                 f = tar.extractfile(member)
-                content_type = mtypes.get(os.path.splitext(tar_subpath)[1])
+                content_type = fid.get_mimetype(tar_subpath)
                 return generate_file_response(f, content_type, force_download)
             except KeyError:
                 raise NotFound
@@ -587,7 +577,7 @@ def list_files(path, force_download=False, request=None, paginator=None):
         with zipfile.open(zip_path) as zipf:
             try:
                 f = zipf.open(zip_subpath)
-                content_type = mtypes.get(os.path.splitext(zip_subpath)[1])
+                content_type = fid.get_mimetype(zip_subpath)
                 return generate_file_response(f, content_type, force_download)
             except KeyError:
                 raise NotFound
