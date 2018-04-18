@@ -23,12 +23,16 @@ class EardErmsImporter(object):
         self.xmlparser = etree.XMLParser(remove_blank_text=True)
 
     def get_archive(self, unitid):
-        query = Archive.search().query("nested", path="unit_ids", query=ElasticQ("match", unit_ids__id=unitid))
+        query = Archive.search().query("bool", must=[ElasticQ("term", current_version=True),
+                                                     ElasticQ("nested", path="unit_ids",
+                                                              query=ElasticQ("match", unit_ids__id=unitid))])
         doc = query.execute().hits[0]
         return TagVersion.objects.get(pk=doc._id)
 
     def get_component(self, unitid):
-        query = Component.search().query("nested", path="unit_ids", query=ElasticQ("match", unit_ids__id=unitid))
+        query = Component.search().query("bool", must=[ElasticQ("term", current_version=True),
+                                                       ElasticQ("nested", path="unit_ids",
+                                                                query=ElasticQ("match", unit_ids__id=unitid))])
         doc = query.execute().hits[0]
         return TagVersion.objects.get(pk=doc._id)
 
@@ -75,7 +79,7 @@ class EardErmsImporter(object):
         type = act.xpath("*[local-name()='Handlingstyp']")[0].text
         parent = Node(id=errand._id, index=errand._index)
 
-        return Component(_id=id, unit_ids=unit_ids, parent=parent, name=name, type=type)
+        return Component(_id=id, current_version=True, unit_ids=unit_ids, parent=parent, name=name, type=type)
 
     def parse_acts(self, errand, acts_root, parent):
         for act_el in acts_root.xpath("*[local-name()='ArkivobjektHandling']"):
@@ -101,7 +105,7 @@ class EardErmsImporter(object):
         parent = self.get_component(reference_code)
         parent = Node(id=str(parent.pk), index=parent.elastic_index)
 
-        return Component(_id=id, unit_ids=unit_ids, parent=parent, name=name, type=type)
+        return Component(_id=id, current_version=True, unit_ids=unit_ids, parent=parent, name=name, type=type)
 
     def get_tag_structure(self, tag_version_id):
         return TagStructure.objects.get(tag__versions__pk=tag_version_id)
