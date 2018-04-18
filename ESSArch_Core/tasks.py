@@ -1391,6 +1391,8 @@ class IndexTags(ProcessTags):
     def deserialize(self, tags):
         for tag_string in [t for t in tags if t is not None]:
             d = cPickle.loads(tag_string).to_dict(include_meta=True)
+            if d['_index'] == 'document':
+                d['pipeline'] = 'ingest_attachment'
             self.id_pickles[str(d['_id'])] = tag_string
             yield d
 

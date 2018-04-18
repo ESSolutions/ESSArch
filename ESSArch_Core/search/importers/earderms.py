@@ -60,9 +60,8 @@ class EardErmsImporter(object):
         size, _ = get_tree_size_and_count(filepath)
         modified = timestamp_to_datetime(os.stat(filepath).st_mtime)
 
-        d = Document(_id=id,  name=name, type='document', desc=desc, filename=filename, href=href, extension=ext,
+        d = Document(_id=id, name=name, type='document', desc=desc, filename=filename, href=href, extension=ext,
                      data=encoded_content, size=size, modified=modified, current_version=True, ip=str(self.ip.pk))
-        d.meta.pipeline = 'ingest_attachment'
 
         tag = Tag()
         tag_version = TagVersion(pk=d.meta.id, tag=tag,
