@@ -17,10 +17,7 @@ def index_document(ip, filepath, id):
     extension = os.path.splitext(filename)[1][1:]
     dirname = os.path.dirname(filepath)
     href = os.path.relpath(dirname, ip.object_path)
-
-    if href == '.':
-        href = ''
-
+    href = '' if href == '.' else href
     size, _ = get_tree_size_and_count(filepath)
     modified = timestamp_to_datetime(os.stat(filepath).st_mtime)
 
@@ -34,9 +31,7 @@ def index_directory(ip, dirpath, id):
     dirname = os.path.basename(dirpath)
     parent_dir = os.path.dirname(dirpath)
     href = os.path.relpath(parent_dir, ip.object_path)
-
-    if href == '.':
-        href = ''
+    href = '' if href == '.' else href
 
     doc = Directory(_id=id, name=dirname, href=href, ip=str(ip.pk), current_version=True)
     doc.save()

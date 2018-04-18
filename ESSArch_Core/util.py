@@ -333,6 +333,10 @@ def win_to_posix(path):
     return path.replace('\\', '/')
 
 
+def normalize_path(path):
+    return os.path.normpath(os.sep.join(re.split(r'\\|/', path)))
+
+
 def mkdir_p(path):
     """
     http://stackoverflow.com/a/600612/1523238
