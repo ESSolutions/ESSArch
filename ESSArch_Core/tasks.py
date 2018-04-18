@@ -52,7 +52,7 @@ from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import Parameter, Path
-from ESSArch_Core.essxml.Generator.xmlGenerator import (XMLGenerator,
+from ESSArch_Core.essxml.Generator.xmlGenerator import (parseContent, XMLGenerator,
                                                         findElementWithoutNamespace)
 from ESSArch_Core.essxml.util import (find_files, parse_event_file,
                                       validate_against_schema)
@@ -443,10 +443,14 @@ class CreatePhysicalModel(DBTask):
             if e.errno != 2:
                 raise
 
+        ip = InformationPackage.objects.get(pk=self.ip)
+        data = fill_specification_data(ip=ip, sa=ip.submission_agreement)
+
         for content in structure:
             if content.get('type') == 'folder':
                 name = content.get('name')
                 dirname = os.path.join(root, name)
+                dirname = parseContent(dirname, data)
                 os.makedirs(dirname)
 
                 self.run(content.get('children', []), dirname)
