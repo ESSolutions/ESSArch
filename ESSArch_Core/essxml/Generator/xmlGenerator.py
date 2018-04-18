@@ -59,12 +59,15 @@ def parse_content_django(content, info=None, unicode_error=False, syntax_error=F
     except TemplateSyntaxError:
         if syntax_error:
             raise
+        new_data = dict()
         for k, v in six.iteritems(info):
             if k.startswith('_'):
                 new_key = k[1:]
                 content = content.replace(k, new_key)
-                info[new_key] = info.pop(k)
-        return parse_content_django(content, info=info, syntax_error=True)
+                new_data[new_key] = v
+            else:
+                new_data[k] = v
+        return parse_content_django(content, info=new_data, syntax_error=True)
 
     try:
         return t.render(c)
