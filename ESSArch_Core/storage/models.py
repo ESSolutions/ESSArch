@@ -162,7 +162,7 @@ class StorageMethod(models.Model):
     name = models.CharField('Name', max_length=255, blank=True)
     status = models.BooleanField('Storage method status', default=False)
     type = models.IntegerField('Type', choices=storage_type_CHOICES, default=200)
-    containers = models.BooleanField(default=False)
+    containers = models.BooleanField('Long-term', default=False)
     archive_policy = models.ForeignKey('configuration.ArchivePolicy', related_name='storage_methods')
     targets = models.ManyToManyField('StorageTarget', through='StorageMethodTargetRelation', related_name='methods')
 
