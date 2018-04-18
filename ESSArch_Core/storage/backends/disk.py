@@ -54,7 +54,7 @@ class DiskStorageBackend(BaseStorageBackend):
         if update_obj is not None and create_obj:
             raise ValueError("Cannot both update and create storage object")
 
-        logger.debug('writing {src} to {medium}'.format(ip=ip.object_identifier_value, medium=storage_medium))
+        logger.debug('writing {src} to {medium}'.format(src=src, medium=storage_medium))
 
         storage_target = storage_medium.storage_target
         dst = storage_target.target
