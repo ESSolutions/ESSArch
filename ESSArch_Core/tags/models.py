@@ -153,7 +153,7 @@ class TagVersion(models.Model):
         return self.tag.get_parent(structure)
 
     def get_children(self, structure=None):
-        tag_children = self.tag.get_children()
+        tag_children = self.tag.get_children(structure)
         return TagVersion.objects.filter(tag__current_version=F('pk'), tag__in=tag_children).select_related('tag')
 
     def get_descendants(self, structure=None):
