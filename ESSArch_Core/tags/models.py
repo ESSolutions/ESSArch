@@ -51,9 +51,12 @@ class Tag(models.Model):
         except TagStructure.DoesNotExist:
             return Tag.objects.none()
 
-    def get_descendants(self, structure=None):
-        structure_descendants = self.get_structures(structure).latest().get_descendants(include_self=False)
-        return Tag.objects.filter(structures__in=structure_descendants)
+    def get_descendants(self, structure=None, include_self=False):
+        try:
+            structure_descendants = self.get_structures(structure).latest().get_descendants(include_self=include_self)
+            return Tag.objects.filter(structures__in=structure_descendants)
+        except TagStructure.DoesNotExist:
+            return Tag.objects.none()
 
     def is_leaf_node(self, structure=None):
         try:
@@ -156,9 +159,9 @@ class TagVersion(models.Model):
         tag_children = self.tag.get_children(structure)
         return TagVersion.objects.filter(tag__current_version=F('pk'), tag__in=tag_children).select_related('tag')
 
-    def get_descendants(self, structure=None):
-        structure_descendants = self.get_structures(structure).latest().get_descendants(include_self=False)
-        return TagVersion.objects.filter(tag__current_version=F('pk'), tag__structures__in=structure_descendants).select_related('tag')
+    def get_descendants(self, structure=None, include_self=False):
+        tag_descendants = self.tag.get_descendants(structure, include_self=include_self)
+        return TagVersion.objects.filter(tag__current_version=F('pk'), tag__in=tag_descendants).select_related('tag')
 
     def is_leaf_node(self, structure=None):
         return self.tag.is_leaf_node(structure)
