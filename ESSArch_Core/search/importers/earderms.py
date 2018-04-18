@@ -68,6 +68,7 @@ class EardErmsImporter(object):
                                  elastic_index=d.meta.index,
                                  name=d.name, type=d.type)
         tag_repr = TagStructure(tag=tag, parent=parent, structure=parent.structure, tree_id=parent.tree_id, lft=0, rght=0, level=0)
+        self.indexed_files.append(filepath)
         return tag, tag_version, tag_repr, cPickle.dumps(d)
 
     def parse_act(self, act, errand):
@@ -131,6 +132,7 @@ class EardErmsImporter(object):
         self.rootdir = rootdir
         self.xmlpath = xmlpath
         self.ip = ip
+        self.indexed_files = []
 
         tree = etree.parse(self.xmlpath, self.xmlparser)
         root = tree.getroot()
@@ -155,3 +157,4 @@ class EardErmsImporter(object):
                     redis_conn.rpush(INDEX_QUEUE, *components)
 
         TagStructure.objects.partial_rebuild(archive.get_active_structure().tree_id)
+        return self.indexed_files
