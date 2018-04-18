@@ -29,6 +29,7 @@ def queue_tag_for_index(sender, instance, created, **kwargs):
         'doc': {
             'name': instance.name,
             'type': instance.type,
+            'current_version': instance.tag.current_version == instance
         },
     }
     r.rpush(UPDATE_QUEUE, cPickle.dumps(data))
