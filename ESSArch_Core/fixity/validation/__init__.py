@@ -20,7 +20,7 @@ AVAILABLE_VALIDATORS = {
     'mediaconch': 'ESSArch_Core.fixity.validation.backends.mediaconch.MediaconchValidator',
     'structure': 'ESSArch_Core.fixity.validation.backends.structure.StructureValidator',
     'verapdf': 'ESSArch_Core.fixity.validation.backends.verapdf.VeraPDFValidator',
-    'xml': 'ESSArch_Core.fixity.validation.backends.xml.XMLValidator',
+    'xml_schema': 'ESSArch_Core.fixity.validation.backends.xml.XMLSchemaValidator',
 }
 
 extra_validators = getattr(settings, 'ESSARCH_VALIDATORS', {})

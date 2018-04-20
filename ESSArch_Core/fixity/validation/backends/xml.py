@@ -3,7 +3,7 @@ import os
 
 from django.utils import timezone
 
-from ESSArch_Core.essxml.util import find_files
+from ESSArch_Core.essxml.util import find_files, validate_against_schema
 from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.fixity.models import Validation
@@ -100,3 +100,20 @@ class DiffCheckValidator(BaseValidator):
 
         if len(self.deleted):
             raise ValidationError('{len} file(s) has been deleted'.format(len=len(self.deleted)))
+
+
+class XMLSchemaValidator(BaseValidator):
+    def validate(self, filepath):
+        if self.context:
+            logger.debug('Validating schema of {xml} against {schema}'.format(xml=filepath, schema=self.context))
+        else:
+            logger.debug('Validating schema of {xml}'.format(xml=filepath))
+
+        rootdir = self.options.get('rootdir')
+        try:
+            validate_against_schema(filepath, self.context, rootdir)
+        except Exception as e:
+            logger.warn('Schema validation of {xml} failed, {msg}'.format(xml=filepath, msg=e.message))
+            raise
+
+        logger.info("Successful schema validation of {xml}".format(xml=filepath))
