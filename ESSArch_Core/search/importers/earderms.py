@@ -4,6 +4,7 @@ import itertools
 import os
 import uuid
 
+import six
 from django.db import transaction
 from django.db.models import OuterRef, Subquery, F
 from elasticsearch_dsl import Q as ElasticQ
@@ -79,7 +80,22 @@ class EardErmsImporter(object):
         type = act.xpath("*[local-name()='Handlingstyp']")[0].text
         parent = Node(id=errand._id, index=errand._index)
 
-        return Component(_id=id, current_version=True, unit_ids=unit_ids, parent=parent, name=name, type=type)
+        date_mappings = {
+            'dispatch_date': 'Expedierad',
+            'arrival_date': 'Inkommen',
+            'last_usage_date': 'SistaAnvandandetidpunkt',
+            'create_date': 'Skapad',
+            'preparation_date': 'Upprattad',
+        }
+        dates = {}
+
+        for k, v in six.iteritems(date_mappings):
+            try:
+                dates[k] = act.xpath("*[local-name()='{el}']".format(el=v))[0].text
+            except IndexError:
+                continue
+
+        return Component(_id=id, current_version=True, unit_ids=unit_ids, parent=parent, name=name, type=type, **dates)
 
     def parse_acts(self, errand, acts_root, parent):
         for act_el in acts_root.xpath("*[local-name()='ArkivobjektHandling']"):
@@ -105,7 +121,23 @@ class EardErmsImporter(object):
         parent = self.get_component(reference_code)
         parent = Node(id=str(parent.pk), index=parent.elastic_index)
 
-        return Component(_id=id, current_version=True, unit_ids=unit_ids, parent=parent, name=name, type=type)
+        date_mappings = {
+            'decision_date': 'Beslutat',
+            'dispatch_date': 'Expedierad',
+            'arrival_date': 'Inkommen',
+            'last_usage_date': 'SistaAnvandandetidpunkt',
+            'create_date': 'Skapad',
+            'preparation_date': 'Upprattad',
+        }
+        dates = {}
+
+        for k, v in six.iteritems(date_mappings):
+            try:
+                dates[k] = errand.xpath("*[local-name()='{el}']".format(el=v))[0].text
+            except IndexError:
+                continue
+
+        return Component(_id=id, current_version=True, unit_ids=unit_ids, parent=parent, name=name, type=type, **dates)
 
     def get_tag_structure(self, tag_version_id):
         return TagStructure.objects.get(tag__versions__pk=tag_version_id)

@@ -61,6 +61,7 @@ class Node(InnerDoc):
 class VersionedDocType(DocType):
     link_id = Keyword()
     current_version = Boolean()
+    index_date = Date()
 
     def create_new_version(self, start_date=None, end_date=None, refresh=False):
         data = self.to_dict(include_meta=False)
@@ -95,7 +96,12 @@ class Component(VersionedDocType):
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
     name = Text(analyzer=ngram_analyzer)  # unittitle
+    arrival_date = Date()
+    decision_date = Date()
+    preparation_date = Date()
     create_date = Date()
+    dispatch_date = Date()
+    last_usage_date = Date()
     desc = Text(analyzer=ngram_analyzer)  # e.g. from <odd>
     type = Keyword()  # series, volume, etc.
     parent = Object(Node)
