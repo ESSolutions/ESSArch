@@ -3,7 +3,7 @@ from django.conf import settings
 from elasticsearch_dsl.connections import connections
 
 DEFAULT_MAX_RESULT_WINDOW = 10000
-ELASTICSEARCH_REQUEST_TIMEOUT = settings.getattr('ELASTICSEARCH_REQUEST_TIMEOUT', 60)
+ELASTICSEARCH_REQUEST_TIMEOUT = getattr(settings, 'ELASTICSEARCH_REQUEST_TIMEOUT', 60)
 
 
 def connect(alias='default'):
