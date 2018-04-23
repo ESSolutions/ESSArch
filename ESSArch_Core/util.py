@@ -365,6 +365,13 @@ def get_event_element_spec():
         return json.load(json_file)
 
 
+def get_premis_ip_object_element_spec():
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    fname = 'templates/PremisIPObjectElementTemplate.json'
+    with open(os.path.join(dirname, fname)) as json_file:
+        return json.load(json_file)
+
+
 def truncate(text, max_len, suffix=' (truncated)'):
     if len(text) > max_len:
         return text[:max_len - len(suffix)] + suffix
