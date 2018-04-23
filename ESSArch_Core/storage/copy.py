@@ -197,6 +197,16 @@ def copy_dir(src, dst, requests_session=None, block_size=65536):
                     raise
 
             copy_file(src_filepath, dst_filepath, requests_session=requests_session, block_size=block_size)
+
+        for d in dirs:
+            src_dir = os.path.join(root, d)
+            src_relpath = os.path.relpath(src_dir, src)
+            dst_dir = os.path.join(dst, src_relpath)
+            try:
+                os.makedirs(os.path.dirname(dst_dir))
+            except OSError as exc:
+                if exc.errno != errno.EEXIST:
+                    raise
     return dst
 
 
