@@ -82,6 +82,15 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
 class ProfileIPSerializer(serializers.ModelSerializer):
     profile_type = serializers.SlugRelatedField(slug_field='profile_type', source='profile', read_only=True)
     profile_name = serializers.SlugRelatedField(slug_field='name', source='profile', read_only=True)
+
+    class Meta:
+        model = ProfileIP
+        fields = ('id', 'profile', 'ip', 'profile_name', 'profile_type', 'included', 'LockedBy', 'Unlockable',
+                  'data_versions',)
+        read_only_fields = ('LockedBy',)
+
+
+class ProfileIPSerializerWithData(ProfileIPSerializer):
     data = serializers.SerializerMethodField()
 
     def get_data(self, obj):
@@ -95,14 +104,8 @@ class ProfileIPSerializer(serializers.ModelSerializer):
         data['data'] = fill_specification_data(data=data['data'], ip=obj.ip, sa=obj.ip.submission_agreement)
         return data
 
-    class Meta:
-        model = ProfileIP
-        fields = (
-            'id', 'profile', 'ip', 'profile_name', 'profile_type', 'included', 'LockedBy', 'Unlockable', 'data', 'data_versions',
-        )
-        read_only_fields = (
-            'LockedBy',
-        )
+    class Meta(ProfileIPSerializer.Meta):
+        fields = ProfileIPSerializer.Meta.fields + ('data',)
 
 
 class ProfileIPWriteSerializer(ProfileIPSerializer):

@@ -1,7 +1,7 @@
 from rest_framework import exceptions
 
 from ESSArch_Core.profiles.serializers import (
-    ProfileIPSerializer,
+    ProfileIPSerializerWithData,
     ProfileIPDataSerializer,
     ProfileIPWriteSerializer,
 )
@@ -22,7 +22,7 @@ class ProfileIPViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
-            return ProfileIPSerializer
+            return ProfileIPSerializerWithData
 
         return ProfileIPWriteSerializer
 
