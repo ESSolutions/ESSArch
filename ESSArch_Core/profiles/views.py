@@ -1,7 +1,9 @@
+from rest_framework_extensions.mixins import NestedViewSetMixin
 from rest_framework import exceptions
 
 from ESSArch_Core.profiles.serializers import (
     ProfileIPSerializerWithData,
+    ProfileIPSerializerWithProfileAndData,
     ProfileIPDataSerializer,
     ProfileIPWriteSerializer,
 )
@@ -14,11 +16,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, viewsets
 
 
-class ProfileIPViewSet(viewsets.ModelViewSet):
+class ProfileIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = ProfileIP.objects.all()
 
     filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('ip', 'profile',)
+    filter_fields = ('ip', 'profile', 'profile__profile_type')
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -34,6 +36,14 @@ class ProfileIPViewSet(viewsets.ModelViewSet):
             raise exceptions.MethodNotAllowed(method=request.method, detail=detail)
 
         return super(ProfileIPViewSet, self).update(request, *args, **kwargs)
+
+
+class InformationPackageProfileIPViewSet(ProfileIPViewSet):
+    queryset = ProfileIP.objects.all()
+    http_method_names = ('get', 'head', 'options')
+
+    def get_serializer_class(self):
+        return ProfileIPSerializerWithProfileAndData
 
 
 class ProfileIPDataViewSet(viewsets.ModelViewSet):

@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 
+import six
 from rest_framework import serializers
 
 from ESSArch_Core.exceptions import Conflict
@@ -59,11 +60,17 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
         relation = data['relation']
         instance_data = data.get('data', {})
 
-        if relation.data is not None and instance_data == relation.data.data:
+        if self.instance is None and relation.data is not None and instance_data == relation.data.data:
             raise serializers.ValidationError('No changes made')
 
-        validate_template(relation.profile.template, instance_data)
+        filtered_data = {}
+        extra_data = fill_specification_data(ip=relation.ip, sa=relation.ip.submission_agreement)
+        for k, v in six.iteritems(instance_data):
+            if k not in extra_data:
+                filtered_data[k] = v
 
+        validate_template(relation.profile.template, filtered_data)
+        data['data'] = filtered_data
         return data
 
     class Meta:
@@ -87,7 +94,7 @@ class ProfileIPSerializer(serializers.ModelSerializer):
         model = ProfileIP
         fields = ('id', 'profile', 'ip', 'profile_name', 'profile_type', 'included', 'LockedBy', 'Unlockable',
                   'data_versions',)
-        read_only_fields = ('LockedBy',)
+        read_only_fields = ('LockedBy', 'data_versions',)
 
 
 class ProfileIPSerializerWithData(ProfileIPSerializer):
@@ -101,15 +108,24 @@ class ProfileIPSerializerWithData(ProfileIPSerializer):
             data = {'data': {}}
 
         data['data'].update(obj.get_related_profile_data(original_keys=True))
-        data['data'] = fill_specification_data(data=data['data'], ip=obj.ip, sa=obj.ip.submission_agreement)
+        extra_data = fill_specification_data(ip=obj.ip, sa=obj.ip.submission_agreement)
+
+        for field in obj.profile.template:
+            if field['key'] in extra_data:
+                data['data'][field['key']] = extra_data[field['key']]
+
         return data
 
     class Meta(ProfileIPSerializer.Meta):
         fields = ProfileIPSerializer.Meta.fields + ('data',)
+        read_only_fields = ProfileIPSerializer.Meta.read_only_fields + ('data',)
 
 
 class ProfileIPWriteSerializer(ProfileIPSerializer):
     data = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=ProfileIPData.objects.all())
+
+    class Meta(ProfileIPSerializer.Meta):
+        fields = ProfileIPSerializer.Meta.fields + ('data',)
 
 
 class SubmissionAgreementSerializer(serializers.ModelSerializer):
@@ -356,3 +372,7 @@ class ProfileWriteSerializer(ProfileDetailSerializer):
         model = ProfileDetailSerializer.Meta.model
         fields = ProfileDetailSerializer.Meta.fields
         extra_kwargs = ProfileDetailSerializer.Meta.extra_kwargs
+
+
+class ProfileIPSerializerWithProfileAndData(ProfileIPSerializerWithData):
+    profile = ProfileSerializer()
