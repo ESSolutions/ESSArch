@@ -195,6 +195,17 @@ class ProfileIPData(models.Model):
         )
 
 
+class ProfileIPDataTemplate(models.Model):
+    name = models.CharField(max_length=50, blank=False)
+    data = jsonfield.JSONField(default={})
+    created = models.DateTimeField(auto_now_add=True)
+    profile = models.ForeignKey('Profile', on_delete=models.CASCADE)
+
+
+    class Meta:
+        ordering = ['created']
+
+
 class SubmissionAgreement(models.Model):
     id = models.UUIDField(
         primary_key=True,

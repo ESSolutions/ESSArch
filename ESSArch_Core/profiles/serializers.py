@@ -37,6 +37,7 @@ from ESSArch_Core.profiles.models import (
     ProfileSA,
     ProfileIP,
     ProfileIPData,
+    ProfileIPDataTemplate,
 )
 
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -84,6 +85,12 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
                 'default': serializers.CurrentUserDefault(),
             }
         }
+
+
+class ProfileIPDataTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProfileIPDataTemplate
+        fields = ('id', 'name', 'data', 'created', 'profile')
 
 
 class ProfileIPSerializer(serializers.ModelSerializer):
