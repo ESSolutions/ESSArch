@@ -37,6 +37,7 @@ def fill_specification_data(data={}, sa=None, ip=None):
         data['_OBJID'] = ip.object_identifier_value
         data['_OBJUUID'] = str(ip.pk)
         data['_OBJLABEL'] = ip.label
+        data['_OBJPATH'] = ip.object_path
         data['_STARTDATE'] = localtime(ip.start_date)
         data['_ENDDATE'] = localtime(ip.end_date)
         data['_INFORMATIONCLASS'] = ip.information_class
