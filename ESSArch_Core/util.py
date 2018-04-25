@@ -508,7 +508,7 @@ def generate_file_response(file_obj, content_type, force_download=False):
     return response
 
 def list_files(path, force_download=False, request=None, paginator=None):
-    fid = FormatIdentifier()
+    fid = FormatIdentifier(allow_unknown_file_types=True)
     path = path.rstrip('/ ')
     path = smart_text(path).encode('utf-8')
 
