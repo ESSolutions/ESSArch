@@ -116,7 +116,7 @@ if __name__ == '__main__':
         author_email='info@essolutions.se',
         url='http://www.essolutions.se',
         install_requires=[
-            "mysqlclient>=1.3.10",
+            "mysqlclient>=1.3.12",
             "pyodbc>=3.0.10",
             "pytz>=2017.2",
             "psutil>=3.2.1",
