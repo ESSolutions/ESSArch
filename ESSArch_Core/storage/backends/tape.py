@@ -1,6 +1,7 @@
 import errno
 import logging
 import os
+import shutil
 import tarfile
 import tempfile
 
@@ -52,31 +53,32 @@ class TapeStorageBackend(BaseStorageBackend):
                 with tarfile.open(src_tar) as t:
                     root = os.path.commonprefix(t.getnames())
                     t.extractall(dst)
-                    return os.path.join(dst, root)
+                    new = os.path.join(dst, root)
             else:
-                return copy(src_tar, dst, block_size=block_size)
+                new = copy(src_tar, dst, block_size=block_size)
         else:
-            return copy(src, dst, block_size=block_size)
+            new = copy(src, dst, block_size=block_size)
 
-    def write(self, src, ip, storage_method, storage_medium, create_obj=True, update_obj=None, block_size=DEFAULT_TAPE_BLOCK_SIZE):
-        if update_obj is not None and create_obj:
-            raise ValueError("Cannot both update and create storage object")
+        try:
+            shutil.rmtree(tmp_path)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
+        return new
 
+    def write(self, src, ip, storage_method, storage_medium, block_size=DEFAULT_TAPE_BLOCK_SIZE):
         block_size = storage_medium.block_size*512
 
-        if update_obj is None:
-            last_written_obj = StorageObject.objects.filter(
-                storage_medium=storage_medium
-            ).annotate(
-                content_location_value_int=Cast('content_location_value', IntegerField())
-            ).order_by('content_location_value_int').only('content_location_value').last()
+        last_written_obj = StorageObject.objects.filter(
+            storage_medium=storage_medium
+        ).annotate(
+            content_location_value_int=Cast('content_location_value', IntegerField())
+        ).order_by('content_location_value_int').only('content_location_value').last()
 
-            if last_written_obj is None:
-                tape_pos = 1
-            else:
-                tape_pos = last_written_obj.content_location_value_int + 1
+        if last_written_obj is None:
+            tape_pos = 1
         else:
-            tape_pos = int(update_obj.content_location_value)
+            tape_pos = last_written_obj.content_location_value_int + 1
 
         try:
             drive = TapeDrive.objects.get(storage_medium=storage_medium)
@@ -95,12 +97,9 @@ class TapeStorageBackend(BaseStorageBackend):
         drive.last_change = timezone.now()
         drive.save(update_fields=['last_change'])
 
-        if create_obj:
-            return StorageObject.objects.create(
-                content_location_value=tape_pos,
-                content_location_type=TAPE,
-                ip=ip, storage_medium=storage_medium,
-                container=storage_method.containers
-            )
-        elif update_obj:
-            return update_obj
+        return StorageObject.objects.create(
+            content_location_value=tape_pos,
+            content_location_type=TAPE,
+            ip=ip, storage_medium=storage_medium,
+            container=storage_method.containers
+        )

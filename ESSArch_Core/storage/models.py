@@ -15,7 +15,7 @@ from retrying import retry
 from six.moves import urllib
 
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
-from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.storage.backends import get_backend
@@ -205,6 +205,36 @@ class StorageMethodTargetRelation(models.Model):
         return unicode(self.id)
 
 
+class StorageTargetQueryset(models.QuerySet):
+    def archival_storage(self):
+        return self.filter(methods__containers=False)
+
+    def secure_storage(self):
+        return self.filter(methods__containers=True)
+
+    def fastest(self):
+        container = Case(
+            When(methods__containers=False, then=Value(1)),
+            When(methods__containers=True, then=Value(2)),
+            output_field=IntegerField(),
+        )
+        remote = Case(
+            When(remote_server__isnull=True, then=Value(1)),
+            When(remote_server__isnull=False, then=Value(2)),
+            output_field=IntegerField(),
+        )
+        storage_type = Case(
+            When(methods__type=DISK, then=Value(1)),
+            When(methods__type=TAPE, then=Value(2)),
+            output_field=IntegerField(),
+        )
+        return self.annotate(
+            container_order=container,
+            remote=remote,
+            storage_type=storage_type
+        ).order_by('remote', 'container_order', 'storage_type')
+
+
 class StorageTarget(models.Model):
     """A series of tapes or a single disk"""
 
@@ -220,6 +250,38 @@ class StorageTarget(models.Model):
     remote_server = models.CharField('Remote server (https://hostname,user,password)', max_length=255, blank=True)
     master_server = models.CharField('Master server (https://hostname,user,password)', max_length=255, blank=True)
     target = models.CharField('Target (URL, path or barcodeprefix)', max_length=255)
+
+    objects = StorageTargetQueryset.as_manager()
+
+    def get_or_create_storage_medium(self, qs=None):
+        if qs is None:
+            qs = StorageMedium.objects.all()
+
+        medium = qs.filter(storage_target=self).first()
+        if medium is not None:
+            return medium, False
+
+        storage_type = get_storage_type_from_medium_type(self.type)
+        medium_location = Parameter.objects.get(entity='medium_location').value
+        agent = Parameter.objects.get(entity='agent_identifier_value').value
+
+        if storage_type == TAPE:
+            slot = TapeSlot.objects.filter(status=20, storage_medium__isnull=True,
+                                           medium_id__startswith=self.target).exclude(medium_id__exact='').first()
+            if slot is None:
+                raise ValueError("No tape available for allocation")
+            medium = StorageMedium.objects.create(medium_id=slot.medium_id, storage_target=self, status=20,
+                                                  location=medium_location, location_status=50,
+                                                  block_size=self.default_block_size, format=self.default_format,
+                                                  agent=agent, tape_slot=slot)
+        elif storage_type == DISK:
+            medium = StorageMedium.objects.create(medium_id=self.name, storage_target=self, status=20,
+                                                  location=medium_location, location_status=50,
+                                                  block_size=self.default_block_size, format=self.default_format,
+                                                  agent=agent)
+        else:
+            raise NotImplementedError()
+        return medium, True
 
     def get_storage_backend(self):
         storage_type = get_storage_type_from_medium_type(self.type)
@@ -291,7 +353,7 @@ class StorageMedium(models.Model):
     last_changed_local = models.DateTimeField(null=True)
     last_changed_external = models.DateTimeField(null=True)
 
-    agent = models.ForeignKey('auth.User', on_delete=models.PROTECT)
+    agent = models.CharField(max_length=255)
     storage_target = models.ForeignKey('StorageTarget')
     tape_slot = models.OneToOneField('TapeSlot', models.PROTECT, related_name='storage_medium', null=True, blank=True)
     tape_drive = models.OneToOneField('TapeDrive', models.PROTECT, related_name='storage_medium', null=True, blank=True)
@@ -418,7 +480,9 @@ class StorageObject(models.Model):
             storage_target__methods__archive_policy=policy).first()
 
         if target_medium is None:
-            raise ValueError("No writeable archival storage configured for IP")
+            target = StorageTarget.objects.archival_storage().fastest().filter(methods__archive_policy=policy).first()
+            qs = StorageMedium.objects.archival_storage().writeable().fastest()
+            target_medium, _ = target.get_or_create_storage_medium(qs=qs)
 
         backend = self.get_storage_backend()
         target_path = backend.read(self, target_medium.storage_target.target, extract=True, include_xml=False)

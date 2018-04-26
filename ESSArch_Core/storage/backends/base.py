@@ -8,5 +8,5 @@ class BaseStorageBackend(object):
     def read(self, storage_object, dst, extract=False, include_xml=True, block_size=None):
         raise NotImplementedError('subclasses of BaseValidator must provide an read() method')
 
-    def write(self, src, ip, storage_method, storage_medium, create_obj=True, update_obj=None, block_size=None):
+    def write(self, src, ip, storage_method, storage_medium, block_size=None):
         raise NotImplementedError('subclasses of BaseValidator must provide an write() method')

@@ -3,6 +3,8 @@ import os
 import tarfile
 from contextlib import contextmanager
 
+import six
+
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
 from ESSArch_Core.storage.copy import copy
 from ESSArch_Core.storage.models import DISK, StorageObject
@@ -50,28 +52,26 @@ class DiskStorageBackend(BaseStorageBackend):
         else:
             return copy(src, dst, block_size=block_size)
 
-    def write(self, src, ip, storage_method, storage_medium, create_obj=True, update_obj=None, block_size=65536):
-        if update_obj is not None and create_obj:
-            raise ValueError("Cannot both update and create storage object")
-
+    def write(self, src, ip, storage_method, storage_medium, block_size=65536):
         logger.debug('writing {src} to {medium}'.format(src=src, medium=storage_medium))
 
         storage_target = storage_medium.storage_target
         dst = storage_target.target
         if not storage_method.containers:
             dst = os.path.join(dst, ip.object_identifier_value)
-        else:
-            dst = os.path.join(dst, os.path.basename(src))
 
-        copy(src, dst, block_size=block_size)
+        if isinstance(src, six.string_types):
+            src = [src]
 
-        if create_obj:
-            return StorageObject.objects.create(
-                content_location_value=dst,
-                content_location_type=DISK,
-                ip=ip, storage_medium=storage_medium,
-                container=storage_method.containers,
-            )
-        elif update_obj:
-            return update_obj
+        for idx, f in enumerate(src):
+            new = copy(f, dst, block_size=block_size)
+            if idx == 0:
+                content_location_value = new
+
+        return StorageObject.objects.create(
+            content_location_value=content_location_value,
+            content_location_type=DISK,
+            ip=ip, storage_medium=storage_medium,
+            container=storage_method.containers,
+        )
 
