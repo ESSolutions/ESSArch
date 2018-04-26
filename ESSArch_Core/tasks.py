@@ -59,6 +59,7 @@ from ESSArch_Core.essxml.util import (find_files, parse_event_file,
 from ESSArch_Core.fixity import format, transformation, validation
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
+from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -558,76 +559,38 @@ class ValidateXMLFile(DBTask):
 class ValidateLogicalPhysicalRepresentation(DBTask):
     """
     Validates the logical and physical representation of objects.
-
-    The comparison checks if the lists contains the same elements (though not
-    the order of the elements).
-
-    See http://stackoverflow.com/a/7829388/1523238
     """
 
     event_type = 50220
     queue = 'validation'
 
-    def run(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir="", skip_files=None):
-        if dirname:
-            xmlrelpath = os.path.relpath(xmlfile, dirname)
-            xmlrelpath = remove_prefix(xmlrelpath, "./")
+    def run(self, path, xmlfile, skip_files=None):
+        if skip_files is None:
+            skip_files = []
+
+        if os.path.isdir(path):
+            rootdir = path
         else:
-            xmlrelpath = xmlfile
+            rootdir = os.path.dirname(path)
 
-        logical_files = find_files(xmlfile, rootdir)
-        physical_files = set()
-
-        if dirname:
-            for root, dirs, filenames in walk(dirname):
-                for f in filenames:
-                    reldir = os.path.relpath(root, dirname)
-                    relfile = os.path.join(reldir, f)
-                    relfile = win_to_posix(relfile)
-                    relfile = remove_prefix(relfile, "./")
-
-                    if relfile != xmlrelpath:
-                        physical_files.add(relfile)
-
-        for f in files:
-            if files_reldir:
-                if f == files_reldir:
-                    physical_files.add(os.path.basename(f))
-                    continue
-
-                f = os.path.relpath(f, files_reldir)
-            physical_files.add(f)
-
-        if skip_files is not None:
-            for skipped in skip_files:
-                if files_reldir:
-                    if skipped == files_reldir:
-                        physical_files.discard(os.path.basename(skipped))
+        validator = DiffCheckValidator(context=xmlfile, options={'rootdir': rootdir})
+        if os.path.isdir(path):
+            for root, dirs, files in walk(path):
+                for f in files:
+                    filepath = os.path.join(root, f)
+                    if filepath in skip_files or filepath == xmlfile:
                         continue
+                    validator.validate(filepath)
+        else:
+            validator.validate(path)
 
-                    skipped = os.path.relpath(skipped, files_reldir)
-                physical_files.discard(skipped)
+        validator.post_validation()
 
-        missing_logical = physical_files - logical_files
-        if len(missing_logical):
-            raise AssertionError("The logical representation differs from the physical, %s is only in the physical" % missing_logical.pop())
-
-        missing_physical = logical_files - physical_files
-        if len(missing_physical):
-            raise AssertionError("The logical representation differs from the physical, %s is only in the logical" % missing_physical.pop().path)
-
-        return "Success"
-
-    def undo(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir='', skip_files=None):
+    def undo(self, path, xmlfile, skip_files=None):
         pass
 
-    def event_outcome_success(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir='', skip_files=None):
-        physical = copy.deepcopy(files)
-
-        if dirname is not None:
-            physical.append(dirname)
-
-        return "Validated logical and physical structure of %s and %s" % (xmlfile, ','.join(physical))
+    def event_outcome_success(self, path, xmlfile, skip_files=None):
+        return "Validated logical and physical structure of {path} against {xml}".format(path=path, xml=xmlfile)
 
 
 class CompareXMLFiles(DBTask):
