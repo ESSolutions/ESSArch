@@ -113,6 +113,9 @@ class ProcessStep(Process):
     hidden = models.BooleanField(default=False)
     parallel = models.BooleanField(default=False)
 
+    def get_pos(self):
+        return self.parent_step_pos
+
     def add_tasks(self, *tasks):
         self.clear_cache()
         self.tasks.add(*tasks)
@@ -627,6 +630,9 @@ class ProcessTask(Process):
 
     objects = models.Manager()
     by_step_pos = OrderedProcessTaskManager()
+
+    def get_pos(self):
+        return self.processstep_pos
 
     def run(self):
         """
