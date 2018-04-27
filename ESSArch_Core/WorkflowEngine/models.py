@@ -25,6 +25,7 @@
 from __future__ import unicode_literals
 
 import importlib
+import itertools
 import uuid
 
 from celery import chain, group, states as celery_states
@@ -200,15 +201,8 @@ class ProcessStep(Process):
 
             return group()
 
-        step_canvas = func(s.run(direct=False) for s in child_steps) if child_steps else chain()
-        task_canvas = func(create_sub_task(t) for t in tasks)
-
-        if not child_steps:
-            workflow = task_canvas
-        elif not tasks:
-            workflow = step_canvas
-        else:
-            workflow = (step_canvas | task_canvas)
+        result_list = sorted(itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
+        workflow = func(x.run(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x) for x in result_list)
 
         if direct:
             if self.eager:
@@ -217,41 +211,6 @@ class ProcessStep(Process):
                 return workflow.apply_async()
         else:
             return workflow
-
-    def chunk(self, size=None, direct=True):
-        def create_options(task):
-            return {
-                'args': task.args,
-                'responsible': task.responsible_id, 'ip': task.information_package_id,
-                'step_pos': task.processstep_pos, 'hidden': task.hidden,
-                'task_id': task.pk
-            }
-
-        tasks = self.tasks.all().order_by('time_created').iterator()
-
-        try:
-            first = tasks.next()
-        except StopIteration:
-            return []
-
-        t = self._create_task(first.name)
-
-        first.params['_options'] = create_options(first)
-        params = [first.params]
-
-        for task in tasks:
-            task.params['_options'] = create_options(task)
-            params.append(task.params)
-
-        if size is None:
-            size = len(params)
-
-        res = []
-
-        for param_chunk in chunks(params, size):
-            res.append(t.apply_async(args=param_chunk, kwargs={'_options': {'chunk': True, 'step': self.pk}}, queue=t.queue).get())
-
-        return flatten(res)
 
     def undo(self, only_failed=False, direct=True):
         """
@@ -297,15 +256,8 @@ class ProcessStep(Process):
 
         func = group if self.parallel else chain
 
-        task_canvas = func(create_sub_task(t) for t in tasks.reverse())
-        step_canvas = func(s.undo(only_failed=only_failed, direct=False) for s in child_steps.reverse())
-
-        if not child_steps:
-            workflow = task_canvas
-        elif not tasks:
-            workflow = step_canvas
-        else:
-            workflow = (task_canvas | step_canvas)
+        result_list = sorted(itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created), reverse=True)
+        workflow = func(x.undo(only_failed=only_failed, direct=False) if isinstance(x, ProcessStep) else create_sub_task(x) for x in result_list)
 
         if direct:
             if self.eager:
@@ -354,15 +306,8 @@ class ProcessStep(Process):
 
         func = group if self.parallel else chain
 
-        step_canvas = func(s.retry(direct=False) for s in child_steps)
-        task_canvas = func(create_sub_task(t) for t in tasks)
-
-        if not child_steps:
-            workflow = task_canvas
-        elif not tasks:
-            workflow = step_canvas
-        else:
-            workflow = (step_canvas | task_canvas)
+        result_list = sorted(itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
+        workflow = func(x.retry(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x) for x in result_list)
 
         if direct:
             if self.eager:
@@ -403,15 +348,8 @@ class ProcessStep(Process):
         if not tasks.exists() and not child_steps.exists():
             return EagerResult(self.pk, [], celery_states.SUCCESS)
 
-        step_canvas = func(s.run(direct=False) for s in child_steps)
-        task_canvas = func(create_sub_task(t) for t in tasks)
-
-        if not child_steps:
-            workflow = task_canvas
-        elif not tasks:
-            workflow = step_canvas
-        else:
-            workflow = (step_canvas | task_canvas)
+        result_list = sorted(itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
+        workflow = func(x.run(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x) for x in result_list)
 
         if direct:
             if self.eager:
