@@ -35,6 +35,7 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     flow_type = serializers.SerializerMethodField()
     name = serializers.CharField()
+    label = serializers.SerializerMethodField()
     hidden = serializers.BooleanField()
     progress = serializers.IntegerField()
     status = serializers.CharField()
@@ -67,6 +68,11 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
     def get_flow_type(self, obj):
         return 'task' if type(obj).__name__ == 'ProcessTask' else 'step'
 
+    def get_label(self, obj):
+        if type(obj).__name__ == 'ProcessTask':
+            return obj.label
+        return obj.name
+
     def get_responsible(self, obj):
         if type(obj).__name__ == 'ProcessTask':
             if obj.responsible:
@@ -88,7 +94,7 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ProcessTask
         fields = (
-            'url', 'id', 'name', 'status', 'progress',
+            'url', 'id', 'name', 'label', 'status', 'progress',
             'processstep', 'processstep_pos', 'time_created', 'time_started',
             'time_done', 'undone', 'undo_type', 'retried',
             'responsible', 'hidden',

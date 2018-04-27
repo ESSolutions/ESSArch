@@ -596,6 +596,7 @@ class ProcessTask(Process):
     )
 
     name = models.CharField(max_length=255)
+    label = models.CharField(max_length=255, blank=True)
     status = models.CharField(
         _('state'), max_length=50, default=celery_states.PENDING,
         choices=TASK_STATE_CHOICES
