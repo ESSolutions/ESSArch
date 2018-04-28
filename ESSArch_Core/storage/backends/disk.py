@@ -57,6 +57,12 @@ class DiskStorageBackend(BaseStorageBackend):
 
         storage_target = storage_medium.storage_target
         dst = storage_target.target
+
+        if not os.path.isdir(dst):
+            msg = "{dst} is not a directory".format(dst=dst)
+            logger.error(msg)
+            raise ValueError(msg)
+
         if not storage_method.containers:
             dst = os.path.join(dst, ip.object_identifier_value)
 
