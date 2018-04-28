@@ -17,6 +17,7 @@ class DiskStorageBackend(BaseStorageBackend):
 
     def _extract(self, storage_object, dst):
         path = storage_object.get_full_path()
+        logger.debug('Extracting {src} to {dst}'.format(src=path, dst=dst))
 
         with tarfile.open(path) as t:
             root = os.path.commonprefix(t.getnames())
@@ -53,10 +54,10 @@ class DiskStorageBackend(BaseStorageBackend):
             return copy(src, dst, block_size=block_size)
 
     def write(self, src, ip, storage_method, storage_medium, block_size=65536):
-        logger.debug('writing {src} to {medium}'.format(src=src, medium=storage_medium))
-
-        storage_target = storage_medium.storage_target
-        dst = storage_target.target
+        if isinstance(src, six.string_types):
+            src = [src]
+        dst = storage_medium.storage_target.target
+        logger.debug('Writing {src} to {dst}'.format(src=', '.join(src), dst=dst))
 
         if not os.path.isdir(dst):
             msg = "{dst} is not a directory".format(dst=dst)
@@ -65,9 +66,6 @@ class DiskStorageBackend(BaseStorageBackend):
 
         if not storage_method.containers:
             dst = os.path.join(dst, ip.object_identifier_value)
-
-        if isinstance(src, six.string_types):
-            src = [src]
 
         for idx, f in enumerate(src):
             new = copy(f, dst, block_size=block_size)
