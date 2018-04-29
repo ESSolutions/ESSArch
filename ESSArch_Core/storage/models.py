@@ -622,7 +622,7 @@ class RobotQueue(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='robot_queue_entries')
     posted = models.DateTimeField(auto_now_add=True)
     robot = models.OneToOneField('Robot', related_name='robot_queue', null=True)
-    io_queue_entry = models.ForeignKey('IOQueue', models.PROTECT, null=True)
+    io_queue_entry = models.ForeignKey('IOQueue', models.SET_NULL, null=True)
     storage_medium = models.ForeignKey('StorageMedium', models.PROTECT)
     tape_drive = models.ForeignKey('TapeDrive', models.CASCADE, null=True)
     req_type = models.IntegerField(choices=robot_req_type_CHOICES)
@@ -650,7 +650,7 @@ class IOQueue(models.Model):
     access_queue = models.ForeignKey('AccessQueue', blank=True, null=True)
     remote_status = models.IntegerField(blank=True, default=0, choices=remote_status_CHOICES)
     transfer_task_id = models.CharField(max_length=36, blank=True)
-    step = models.ForeignKey('WorkflowEngine.ProcessStep', on_delete=models.PROTECT, null=True)
+    step = models.ForeignKey('WorkflowEngine.ProcessStep', on_delete=models.SET_NULL, null=True)
 
     class Meta:
         get_latest_by = 'posted'
