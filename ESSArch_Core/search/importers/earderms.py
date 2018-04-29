@@ -64,7 +64,7 @@ class EardErmsImporter(object):
         d = Document(_id=id, name=name, type='document', desc=desc, filename=filename, href=href, extension=ext,
                      data=encoded_content, size=size, modified=modified, current_version=True, ip=str(self.ip.pk))
 
-        tag = Tag()
+        tag = Tag(information_package=self.ip)
         tag_version = TagVersion(pk=d.meta.id, tag=tag,
                                  elastic_index=d.meta.index,
                                  name=d.name, type=d.type)
