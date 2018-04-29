@@ -1,5 +1,7 @@
+import errno
 import logging
 import os
+import shutil
 import tarfile
 from contextlib import contextmanager
 
@@ -79,3 +81,22 @@ class DiskStorageBackend(BaseStorageBackend):
             container=storage_method.containers,
         )
 
+    def delete(self, storage_object):
+        path = storage_object.content_location_value
+        if not storage_object.container:
+            try:
+                shutil.rmtree(path)
+            except OSError as e:
+                if e.errno != errno.ENOENT:
+                    raise
+        else:
+            tar = path
+            xml = os.path.splitext(tar)[0] + '.xml'
+            aic_xml = os.path.join(os.path.dirname(tar), str(storage_object.ip.aic.pk) + '.xml')
+            files = [tar, xml, aic_xml]
+            for f in files:
+                try:
+                    os.remove(f)
+                except OSError as e:
+                    if e.errno != errno.ENOENT:
+                        raise

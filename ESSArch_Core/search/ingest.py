@@ -55,7 +55,7 @@ def index_path(ip, path, parent=None):
     isfile = os.path.isfile(path)
     id = str(uuid.uuid4())
 
-    tag = Tag.objects.create()
+    tag = Tag.objects.create(information_package=ip)
     tag_version = TagVersion(pk=id, tag=tag, name=os.path.basename(path))
     if parent:
         TagStructure.objects.create(tag=tag, parent=parent, structure=parent.structure)

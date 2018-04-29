@@ -103,3 +103,6 @@ class TapeStorageBackend(BaseStorageBackend):
             ip=ip, storage_medium=storage_medium,
             container=storage_method.containers
         )
+
+    def delete(self, storage_object):
+        pass

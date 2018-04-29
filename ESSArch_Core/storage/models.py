@@ -500,6 +500,10 @@ class StorageObject(models.Model):
         extracted = self.extract()
         return extracted.read(path)
 
+    def delete_files(self):
+        backend = self.get_storage_backend()
+        backend.delete(self)
+
     class Meta:
         permissions = (
             ("list_storage", "Can list storage"),

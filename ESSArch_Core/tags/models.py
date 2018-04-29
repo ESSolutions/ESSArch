@@ -25,6 +25,7 @@ class Structure(models.Model):
 class Tag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     current_version = models.ForeignKey('tags.TagVersion', on_delete=models.SET_NULL, null=True, related_name='current_version_tags')
+    information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True, related_name='tags')
 
     def get_structures(self, structure=None):
         query_filter = {}

@@ -10,3 +10,6 @@ class BaseStorageBackend(object):
 
     def write(self, src, ip, storage_method, storage_medium, block_size=None):
         raise NotImplementedError('subclasses of BaseValidator must provide an write() method')
+
+    def delete(self, storage_object):
+        raise NotImplementedError('subclasses of BaseValidator must provide a delete() method')

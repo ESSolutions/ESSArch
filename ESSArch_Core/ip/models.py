@@ -638,6 +638,7 @@ class InformationPackage(models.Model):
             ('prepare_ip', 'Can prepare IP'),
             ('delete_first_generation', 'Can delete first generation of IP'),
             ('delete_last_generation', 'Can delete last generation of IP'),
+            ('delete_archived', 'Can delete archived IP'),
             ('see_all_in_workspaces', 'Can see all IPs workspaces'),
         )
 
