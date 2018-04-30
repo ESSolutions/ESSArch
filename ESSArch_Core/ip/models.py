@@ -24,55 +24,30 @@
 
 from __future__ import division
 
-import datetime
-import itertools
-import mimetypes
+import math
 import os
-import re
-import tarfile
-import zipfile
-
+import uuid
 from copy import deepcopy
-from operator import itemgetter
 
+import jsonfield
+import six
 from celery import states as celery_states
-
 from django.conf import settings
 from django.db import models, transaction
-from django.db.models import Min, Max, Subquery, Q
-from django.utils.encoding import python_2_unicode_compatible, smart_text
-
+from django.db.models import Max, Min, Q, Subquery
+from django.utils.encoding import python_2_unicode_compatible
 from groups_manager.utils import get_permission_name
 from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 from guardian.shortcuts import assign_perm
-
-import jsonfield
-
-from rest_framework import exceptions, filters, permissions, status
+from rest_framework import exceptions
 from rest_framework.response import Response
-
-import six
 
 from ESSArch_Core.auth.models import Member
 from ESSArch_Core.auth.util import get_membership_descendants
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
-
-from ESSArch_Core.profiles.models import (
-    SubmissionAgreement as SA,
-    ProfileIP, ProfileSA,
-)
-
-from ESSArch_Core.util import (
-    generate_file_response,
-    get_files_and_dirs,
-    get_tree_size_and_count,
-    in_directory,
-    list_files,
-    timestamp_to_datetime,
-)
-
-import math
-import uuid
+from ESSArch_Core.profiles.models import ProfileIP, ProfileSA
+from ESSArch_Core.profiles.models import SubmissionAgreement as SA
+from ESSArch_Core.util import in_directory, list_files, timestamp_to_datetime
 
 MESSAGE_DIGEST_ALGORITHM_CHOICES = (
     (ArchivePolicy.MD5, 'MD5'),
