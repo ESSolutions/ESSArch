@@ -145,7 +145,7 @@ def wait_to_come_online(drive, timeout=120):
         time.sleep(1)
         timeout -= 1
 
-    logger.error('{drive} did not come online after {timeout} seconds'.format(drive=drive, timeout=timeout))
+    logger.error('{drive} did not come online after {timeout} seconds'.format(drive=drive, timeout=120))
     raise RobotMountTimeoutException()
 
 
