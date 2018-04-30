@@ -266,13 +266,8 @@ class InformationPackage(models.Model):
 
     tag = models.ForeignKey('tags.TagStructure', on_delete=models.SET_NULL, related_name='information_packages', null=True)
 
-    submission_agreement = models.ForeignKey(
-        SA,
-        on_delete=models.CASCADE,
-        related_name='information_packages',
-        default=None,
-        null=True,
-    )
+    submission_agreement = models.ForeignKey(SA, on_delete=models.PROTECT, related_name='information_packages',
+                                             default=None, null=True)
     submission_agreement_locked = models.BooleanField(default=False)
     archival_institution = models.ForeignKey(
         ArchivalInstitution,
