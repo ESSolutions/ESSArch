@@ -57,6 +57,7 @@ MESSAGE_DIGEST_ALGORITHM_CHOICES = (
     (ArchivePolicy.SHA384, 'SHA-384'),
     (ArchivePolicy.SHA512, 'SHA-512'),
 )
+MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT = {v: k for k, v in MESSAGE_DIGEST_ALGORITHM_CHOICES}
 
 
 @python_2_unicode_compatible
