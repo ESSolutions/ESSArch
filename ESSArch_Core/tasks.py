@@ -155,6 +155,9 @@ class AppendEvents(DBTask):
     event_type = 50610
 
     def run(self, filename="", events={}):
+        if not filename:
+            ip = InformationPackage.objects.get(pk=self.ip)
+            filename = os.path.join(ip.object_path, 'ipevents.xml')
         generator = XMLGenerator(filepath=filename)
         template = get_event_element_spec()
 
@@ -191,6 +194,9 @@ class AppendEvents(DBTask):
         generator.write(filename)
 
     def undo(self, filename="", events={}):
+        if not filename:
+            ip = InformationPackage.objects.get(pk=self.ip)
+            filename = os.path.join(ip.object_path, 'ipevents.xml')
         tree = etree.parse(filename)
         parent = findElementWithoutNamespace(tree, 'premis')
 
@@ -201,6 +207,9 @@ class AppendEvents(DBTask):
         tree.write(filename, pretty_print=True, xml_declaration=True, encoding='UTF-8')
 
     def event_outcome_success(self, filename="", events={}):
+        if not filename:
+            ip = InformationPackage.objects.get(pk=self.ip)
+            filename = os.path.join(ip.object_path, 'ipevents.xml')
         return "Appended events to %s" % filename
 
 
