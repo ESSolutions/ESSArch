@@ -1,6 +1,9 @@
+import os
+
 from django.utils.timezone import localtime
 
 from ESSArch_Core.configuration.models import Parameter
+from ESSArch_Core.util import find_destination
 
 
 profile_types = [
@@ -53,6 +56,13 @@ def fill_specification_data(data={}, sa=None, ip=None):
         data['_PACKAGE_METS_SIZE'] = ip.package_mets_size
         data['_PACKAGE_METS_DIGEST_ALGORITHM'] = ip.get_package_mets_digest_algorithm_display()
         data['_PACKAGE_METS_DIGEST'] = ip.package_mets_digest
+
+        if ip.get_package_type_display() in ['SIP', 'AIP']:
+            ip_profile = ip.get_profile(ip.get_package_type_display().lower())
+            premis_dir, premis_file = find_destination("preservation_description_file", ip_profile.structure)
+            if premis_dir is None or premis_file is None:
+                return None
+            data['_PREMIS_PATH'] = os.path.join(ip.object_path, premis_dir, premis_file)
 
         try:
             # do we have a transfer project profile?
