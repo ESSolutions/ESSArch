@@ -24,6 +24,7 @@
 
 from __future__ import absolute_import, division
 
+import json
 import logging
 import time
 
@@ -44,8 +45,10 @@ from django.db import (
 )
 from django.utils import timezone
 
+from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.ip.utils import get_cached_objid
+from ESSArch_Core.profiles.utils import fill_specification_data
 
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import get_result
@@ -153,6 +156,12 @@ class DBTask(Task):
         return self._run(*args, **kwargs)
 
     def _run(self, *args, **kwargs):
+        if self.ip:
+            ip = InformationPackage.objects.select_related('submission_agreement').get(pk=self.ip)
+            self.extra_data = fill_specification_data(ip=ip, sa=ip.submission_agreement)
+        else:
+            self.extra_data = {}
+
         if self.undo_type:
             try:
                 res = self.undo(*args, **kwargs)
@@ -300,6 +309,9 @@ class DBTask(Task):
             ProcessTask.objects.filter(pk=self.task_id).update(
                 progress=percent
             )
+
+    def parse_params(self, *params):
+        return tuple([parseContent(param, self.extra_data) for param in params])
 
     def event_outcome_success(self, *args, **kwargs):
         raise NotImplementedError()
