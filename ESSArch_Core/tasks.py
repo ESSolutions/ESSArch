@@ -1102,20 +1102,41 @@ class RobotInventory(DBTask):
 class ConvertFile(DBTask):
     event_type = 50750
 
-    def run(self, filepath, new_format, delete_original=True):
-        try:
-            convert_file(filepath, new_format)
-        except:
-            raise
-        else:
-            if delete_original:
-                os.remove(filepath)
+    def run(self, path, format_map, delete_original=True):
+        self.files_count = 0
+        path, = self.parse_params(path)
 
-    def undo(self, filepath, new_format):
+        if os.path.isfile(path):
+            try:
+                new_format = format_map[os.path.splitext(path)[1][1:]]
+            except KeyError:
+                return
+            else:
+                convert_file(path, new_format)
+                self.files_count += 1
+                if delete_original:
+                    os.remove(path)
+            return
+
+        for root, dirs, filenames in walk(path):
+            for fname in filenames:
+                filepath = os.path.join(root, fname)
+                try:
+                    new_format = format_map[os.path.splitext(filepath)[1][1:]]
+                except KeyError:
+                    continue
+                else:
+                    convert_file(filepath, new_format)
+                    self.files_count += 1
+                    if delete_original:
+                        os.remove(filepath)
+
+    def undo(self, path, format_map, delete_original=True):
         pass
 
-    def event_outcome_success(self, filepath, new_format):
-        return "Converted %s to %s" % (filepath, new_format)
+    def event_outcome_success(self, path, format_map, delete_original=True):
+        path, = self.parse_params(path)
+        return "Converted %s file(s) at %s" % (self.files_count, path,)
 
 
 class ClearTagProcessQueue(DBTask):
