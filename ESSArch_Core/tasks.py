@@ -545,6 +545,7 @@ class ValidateXMLFile(DBTask):
         Validates (using LXML) an XML file using a specified schema file
         """
 
+        xml_filename, schema_filename, rootdir = self.parse_params(xml_filename, schema_filename, rootdir)
         try:
             validator = XMLSchemaValidator(context=schema_filename, options={'rootdir': rootdir})
             validator.validate(xml_filename)
@@ -563,6 +564,7 @@ class ValidateXMLFile(DBTask):
         pass
 
     def event_outcome_success(self, xml_filename=None, schema_filename=None, rootdir=None):
+        xml_filename = self.parse_params(xml_filename)
         return "Validated %s against schema" % xml_filename
 
 
@@ -575,8 +577,11 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
     queue = 'validation'
 
     def run(self, path, xmlfile, skip_files=None):
+        path, xmlfile, = self.parse_params(path, xmlfile)
         if skip_files is None:
             skip_files = []
+        else:
+            skip_files = self.parse_params(*skip_files)
 
         if os.path.isdir(path):
             rootdir = path
@@ -600,6 +605,7 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
         pass
 
     def event_outcome_success(self, path, xmlfile, skip_files=None):
+        path, xmlfile = self.parse_params(path, xmlfile)
         return "Validated logical and physical structure of {path} against {xml}".format(path=path, xml=xmlfile)
 
 
@@ -608,6 +614,7 @@ class CompareXMLFiles(DBTask):
     queue = 'validation'
 
     def run(self, first, second, rootdir="", compare_checksum=False):
+        first, second, rootdir = self.parse_params(first, second, rootdir)
         first_files = find_files(first, rootdir, skip_files=[os.path.relpath(second, rootdir)])
         second_files = list(find_files(second, rootdir, skip_files=[os.path.relpath(first, rootdir)]))
 
@@ -630,6 +637,7 @@ class CompareXMLFiles(DBTask):
         pass
 
     def event_outcome_success(self, first, second, rootdir="", compare_checksum=False):
+        first, second = self.parse_params(first, second)
         return "%s and %s has the same set of files" % (first, second)
 
 
@@ -741,13 +749,19 @@ class CopyFile(DBTask):
 
 
 class SendEmail(DBTask):
-    def run(self, sender=None, recipients=[], subject=None, body=None, attachments=[]):
-        email = EmailMessage(
-            subject,
-            body,
-            sender,
-            recipients,
-        )
+    def run(self, sender=None, recipients=None, subject=None, body=None, attachments=None):
+        sender, subject, body = self.parse_params(sender, subject, body)
+        if recipients is None:
+            recipients = []
+        else:
+            recipients = self.parse_params(*recipients)
+
+        if attachments is None:
+            attachments = []
+        else:
+            attachments = self.parse_params(*attachments)
+
+        email = EmailMessage(subject, body, sender, recipients)
 
         for a in attachments:
             email.attach_file(a)
