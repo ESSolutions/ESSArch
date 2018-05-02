@@ -55,12 +55,11 @@ from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import (parseContent, XMLGenerator,
                                                         findElementWithoutNamespace)
-from ESSArch_Core.essxml.util import (find_files, parse_event_file,
-                                      validate_against_schema)
+from ESSArch_Core.essxml.util import find_files, parse_event_file
 from ESSArch_Core.fixity import format, transformation, validation
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
-from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator
+from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLSchemaValidator
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -538,7 +537,8 @@ class ValidateXMLFile(DBTask):
         """
 
         try:
-            validate_against_schema(xmlfile=xml_filename, schema=schema_filename, rootdir=rootdir)
+            validator = XMLSchemaValidator(context=schema_filename, options={'rootdir': rootdir})
+            validator.validate(xml_filename)
         except Exception as e:
             recipient = User.objects.get(pk=self.responsible).email
             if recipient and self.ip:
