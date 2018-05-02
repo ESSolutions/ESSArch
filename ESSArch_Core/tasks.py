@@ -628,7 +628,7 @@ class UpdateIPStatus(DBTask):
 
     def run(self, ip=None, status=None, prev=None):
         InformationPackage.objects.filter(pk=ip).update(state=status)
-        Notification.objects.create(message='%s is now %s' % (get_cached_objid(ip), status.lower()), level=logging.INFO, user_id=self.responsible, refresh=True)
+        Notification.objects.create(message='%s %s' % (status.capitalize(), get_cached_objid(ip)), level=logging.INFO, user_id=self.responsible, refresh=True)
 
     def undo(self, ip=None, status=None, prev=None):
         InformationPackage.objects.filter(pk=ip).update(state=prev)
