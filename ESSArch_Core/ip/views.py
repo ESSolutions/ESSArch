@@ -174,11 +174,7 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
 
         ProcessTask.objects.create(
             name="ESSArch_Core.tasks.UpdateIPStatus",
-            params={
-                "ip": ip.pk,
-                "status": "Transforming",
-                "prev": ip.state,
-            },
+            args=["Transforming"],
             processstep=step,
             processstep_pos=pos,
             log=EventIP,
@@ -202,11 +198,7 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
 
         ProcessTask.objects.create(
             name="ESSArch_Core.tasks.UpdateIPStatus",
-            params={
-                "ip": ip.pk,
-                "status": "Transformed",
-                "prev": "Transforming",
-            },
+            args=["Transformed"],
             processstep=step,
             processstep_pos=pos,
             log=EventIP,

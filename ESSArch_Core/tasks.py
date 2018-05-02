@@ -38,6 +38,7 @@ import six
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage, send_mail
+from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
 from elasticsearch import Elasticsearch
@@ -626,15 +627,23 @@ class CompareXMLFiles(DBTask):
 class UpdateIPStatus(DBTask):
     event_type = 50500
 
-    def run(self, ip=None, status=None, prev=None):
-        InformationPackage.objects.filter(pk=ip).update(state=status)
-        Notification.objects.create(message='%s %s' % (status.capitalize(), get_cached_objid(ip)), level=logging.INFO, user_id=self.responsible, refresh=True)
+    @transaction.atomic
+    def run(self, status, prev=None):
+        ip = InformationPackage.objects.get(pk=self.ip)
+        if prev is None:
+            t = ProcessTask.objects.get(pk=self.task_id)
+            t.params['prev'] = ip.state
+            t.save()
+        ip.state = status
+        ip.save()
+        Notification.objects.create(message='%s %s' % (status.capitalize(), ip.object_identifier_value),
+                                    level=logging.INFO, user_id=self.responsible, refresh=True)
 
-    def undo(self, ip=None, status=None, prev=None):
-        InformationPackage.objects.filter(pk=ip).update(state=prev)
+    def undo(self, status, prev=None):
+        InformationPackage.objects.filter(pk=self.ip).update(state=prev)
 
-    def event_outcome_success(self, ip=None, status=None, prev=None):
-        return "Updated status of %s to %s" % (get_cached_objid(str(ip)), status)
+    def event_outcome_success(self, status, prev=None):
+        return "Updated status of %s to %s" % (get_cached_objid(str(self.ip)), status)
 
 
 class UpdateIPPath(DBTask):
