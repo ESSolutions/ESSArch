@@ -300,6 +300,9 @@ class SubmissionAgreement(models.Model):
         # create a unicode representation of this object
         return '%s - %s' % (self.name, self.id)
 
+    def get_profiles(self):
+        return [getattr(self, 'profile_%s' % p_type.lower().replace(' ', '_'), None) for p_type in profile_types]
+
     def get_profile_rel(self, profile_type):
         return self.profilesa_set.filter(
             profile__profile_type=profile_type

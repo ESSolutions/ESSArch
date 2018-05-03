@@ -1,24 +1,39 @@
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Max, Prefetch
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from rest_framework import exceptions
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
 from ESSArch_Core.profiles.serializers import (
+    ProfileSerializer,
     ProfileIPSerializerWithData,
     ProfileIPSerializerWithProfileAndData,
     ProfileIPDataSerializer,
     ProfileIPDataTemplateSerializer,
     ProfileIPWriteSerializer,
+    SubmissionAgreementSerializer,
 )
 
-from ESSArch_Core.profiles.models import (
-    ProfileIP, ProfileIPData, ProfileIPDataTemplate
-)
+from ESSArch_Core.profiles.models import ProfileIP, ProfileIPData, ProfileIPDataTemplate, SubmissionAgreement
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, viewsets
+
+
+class SubmissionAgreementViewSet(viewsets.ModelViewSet):
+    queryset = SubmissionAgreement.objects.all().prefetch_related(
+        Prefetch('profilesa_set', to_attr='profiles')
+    )
+    serializer_class = SubmissionAgreementSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('published',)
+
+    @detail_route()
+    def profiles(self, request, pk=None):
+        sa = self.get_object()
+        profiles = [p for p in sa.get_profiles() if p is not None]
+        return Response(ProfileSerializer([p for p in profiles if p is not None], many=True).data)
 
 
 class ProfileIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
