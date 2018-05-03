@@ -307,7 +307,7 @@ def parse_event(el):
         eventType_id=event_dict['type'],
         eventDateTime=event_dict['datetime'],
         eventOutcome=event_dict['outcome_information']['outcome'],
-        eventOutcomeDetailNote=event_dict['outcome_information']['outcome_detail_note'],
+        eventOutcomeDetailNote=event_dict['outcome_information']['outcome_detail_note'] or '',
         linkingAgentIdentifierValue=username,
         linkingObjectIdentifierValue=ip,
     )
