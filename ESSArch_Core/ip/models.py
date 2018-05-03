@@ -45,8 +45,9 @@ from rest_framework.response import Response
 from ESSArch_Core.auth.models import Member
 from ESSArch_Core.auth.util import get_membership_descendants
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
-from ESSArch_Core.profiles.models import ProfileIP, ProfileSA
+from ESSArch_Core.profiles.models import ProfileIP, ProfileIPData, ProfileSA
 from ESSArch_Core.profiles.models import SubmissionAgreement as SA
+from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.util import in_directory, list_files, timestamp_to_datetime
 
 MESSAGE_DIGEST_ALGORITHM_CHOICES = (
@@ -353,6 +354,32 @@ class InformationPackage(models.Model):
             return ip.workareas.first()
 
         return None
+
+    def create_profile_rels(self, profile_types, user):
+        sa = self.submission_agreement
+        extra_data = fill_specification_data(ip=self, sa=sa)
+        for p_type in profile_types:
+            profile = getattr(sa, 'profile_%s' % p_type, None)
+
+            if profile is None:
+                continue
+
+            profile_ip = ProfileIP.objects.create(ip=self, profile=profile)
+            data = {}
+
+            for field in profile_ip.profile.template:
+                try:
+                    if field['defaultValue'] in extra_data:
+                        data[field['key']] = extra_data[field['defaultValue']]
+                        continue
+
+                    data[field['key']] = field['defaultValue']
+                except KeyError:
+                    pass
+            data_obj = ProfileIPData.objects.create(relation=profile_ip, data=data, version=0, user=user)
+            profile_ip.data = data_obj
+            profile_ip.save()
+
 
     def get_profile_rel(self, profile_type):
         return self.profileip_set.get(
