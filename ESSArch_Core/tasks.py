@@ -678,7 +678,8 @@ class UpdateIPPath(DBTask):
 class UpdateIPSizeAndCount(DBTask):
     queue = 'file_operation'
 
-    def run(self, ip=None):
+    def run(self):
+        ip = self.ip
         path = InformationPackage.objects.values_list('object_path', flat=True).get(pk=ip)
         size, count = get_tree_size_and_count(path)
 
@@ -688,11 +689,11 @@ class UpdateIPSizeAndCount(DBTask):
 
         return size, count
 
-    def undo(self, ip=None):
+    def undo(self):
         pass
 
-    def event_outcome_success(self, ip=None):
-        return "Updated size and count of %s" % get_cached_objid(str(ip))
+    def event_outcome_success(self):
+        return "Updated size and count of IP"
 
 
 class DeleteFiles(DBTask):
