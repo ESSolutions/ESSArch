@@ -354,7 +354,6 @@ class AppraisalJob(MaintenanceJob):
 
                 ProcessTask.objects.create(
                     name='ESSArch_Core.tasks.UpdateIPSizeAndCount',
-                    params={'ip': str(new_ip.pk)},
                     information_package=new_ip,
                     responsible=new_ip.responsible,
                 ).run().get()
@@ -593,7 +592,6 @@ class ConversionJob(MaintenanceJob):
 
             ProcessTask.objects.create(
                 name='ESSArch_Core.tasks.UpdateIPSizeAndCount',
-                params={'ip': str(new_ip.pk)},
                 information_package=new_ip,
                 responsible=new_ip.responsible,
             ).run().get()
