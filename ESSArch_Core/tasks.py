@@ -157,7 +157,7 @@ class AppendEvents(DBTask):
     def run(self, filename="", events={}):
         if not filename:
             ip = InformationPackage.objects.get(pk=self.ip)
-            filename = os.path.join(ip.object_path, 'ipevents.xml')
+            filename = ip.get_events_file_path()
         generator = XMLGenerator(filepath=filename)
         template = get_event_element_spec()
 
