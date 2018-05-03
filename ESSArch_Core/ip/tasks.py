@@ -131,7 +131,7 @@ class GenerateEventsXML(DBTask):
     def run(self):
         ip = InformationPackage.objects.get(pk=self.ip)
         sa = ip.submission_agreement
-        xml_path = os.path.join(ip.object_path, 'ipevents.xml')
+        xml_path = ip.get_events_file_path()
         files_to_create = {
             xml_path: {
                 'spec': get_event_spec(),
@@ -202,7 +202,7 @@ class AddPremisIPObjectElementToEventsFile(DBTask):
         }
         spec = get_premis_ip_object_element_spec()
         info = fill_specification_data(info, ip=ip)
-        xmlfile = os.path.join(ip.object_path, 'ipevents.xml')
+        xmlfile = ip.get_events_file_path()
 
         generator = XMLGenerator(filepath=xmlfile)
         target = generator.find_element('premis')

@@ -449,6 +449,12 @@ class InformationPackage(models.Model):
         except:
             return None
 
+    def get_events_file_path(self):
+        if os.path.isdir(self.object_path):
+            return os.path.join(self.object_path, 'ipevents.xml')
+
+        return os.path.splitext(self.object_path)[0] + '_ipevents.xml'
+
     def related_ips(self, cached=True):
         if self.package_type == InformationPackage.AIC:
             if not cached:
