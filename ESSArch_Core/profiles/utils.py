@@ -1,7 +1,5 @@
 import os
 
-from django.utils.timezone import localtime
-
 from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.util import find_destination
 
@@ -41,18 +39,18 @@ def fill_specification_data(data={}, sa=None, ip=None):
         data['_OBJUUID'] = str(ip.pk)
         data['_OBJLABEL'] = ip.label
         data['_OBJPATH'] = ip.object_path
-        data['_STARTDATE'] = localtime(ip.start_date)
-        data['_ENDDATE'] = localtime(ip.end_date)
+        data['_STARTDATE'] = ip.start_date
+        data['_ENDDATE'] = ip.end_date
         data['_INFORMATIONCLASS'] = ip.information_class
 
         data['_CONTENT_METS_PATH'] = ip.content_mets_path
-        data['_CONTENT_METS_CREATE_DATE'] = localtime(ip.content_mets_create_date)
+        data['_CONTENT_METS_CREATE_DATE'] = ip.content_mets_create_date
         data['_CONTENT_METS_SIZE'] = ip.content_mets_size
         data['_CONTENT_METS_DIGEST_ALGORITHM'] = ip.get_content_mets_digest_algorithm_display()
         data['_CONTENT_METS_DIGEST'] = ip.content_mets_digest
 
         data['_PACKAGE_METS_PATH'] = ip.package_mets_path
-        data['_PACKAGE_METS_CREATE_DATE'] = localtime(ip.package_mets_create_date)
+        data['_PACKAGE_METS_CREATE_DATE'] = ip.package_mets_create_date
         data['_PACKAGE_METS_SIZE'] = ip.package_mets_size
         data['_PACKAGE_METS_DIGEST_ALGORITHM'] = ip.get_package_mets_digest_algorithm_display()
         data['_PACKAGE_METS_DIGEST'] = ip.package_mets_digest
