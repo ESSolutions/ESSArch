@@ -61,7 +61,7 @@ class EardErmsImporter(object):
         size, _ = get_tree_size_and_count(filepath)
         modified = timestamp_to_datetime(os.stat(filepath).st_mtime)
 
-        d = Document(_id=id, name=name, type='document', desc=desc, filename=filename, href=href, extension=ext,
+        d = Document(_id=id, name=name, type='document', archive=act.archive, desc=desc, filename=filename, href=href, extension=ext,
                      data=encoded_content, size=size, modified=modified, current_version=True, ip=str(self.ip.pk))
 
         tag = Tag(information_package=self.ip)
@@ -95,7 +95,7 @@ class EardErmsImporter(object):
             except IndexError:
                 continue
 
-        return Component(_id=id, current_version=True, unit_ids=unit_ids, parent=parent, name=name, type=type, **dates)
+        return Component(_id=id, current_version=True, unit_ids=unit_ids, parent=parent, name=name, type=type, archive=errand.archive, **dates)
 
     def parse_acts(self, errand, acts_root, parent):
         for act_el in acts_root.xpath("*[local-name()='ArkivobjektHandling']"):
