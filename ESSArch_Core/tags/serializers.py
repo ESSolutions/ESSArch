@@ -76,8 +76,8 @@ class TagVersionSerializer(TagVersionNestedSerializer):
             return None
 
         return {
-            'id': str(parent.tag.current_version.pk),
-            'index': parent.tag.current_version.elastic_index
+            'id': str(parent.pk),
+            'index': parent.elastic_index
         }
 
     class Meta(TagVersionNestedSerializer.Meta):

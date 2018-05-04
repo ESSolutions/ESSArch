@@ -32,6 +32,11 @@ def queue_tag_for_index(sender, instance, created, **kwargs):
             'current_version': instance.tag.current_version == instance
         },
     }
+
+    if instance.elastic_index != 'archive':
+        archive = instance.get_root()
+        if archive is not None:
+            data['doc']['archive'] = str(archive.pk)
     r.rpush(UPDATE_QUEUE, cPickle.dumps(data))
 
 

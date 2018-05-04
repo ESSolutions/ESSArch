@@ -39,9 +39,15 @@ class Tag(models.Model):
     def get_active_structure(self):
         return self.structures.latest()
 
+    def get_root(self, structure=None):
+        try:
+            return self.get_structures(structure).latest().get_root().tag
+        except TagStructure.DoesNotExist:
+            return None
+
     def get_parent(self, structure=None):
         try:
-            return self.get_structures(structure).latest().parent
+            return self.get_structures(structure).latest().parent.tag
         except TagStructure.DoesNotExist:
             return None
 
@@ -153,8 +159,17 @@ class TagVersion(models.Model):
     def get_active_structure(self):
         return self.tag.structures.latest()
 
+    def get_root(self, structure=None):
+        try:
+            return self.tag.get_root(structure).current_version
+        except AttributeError:
+            return None
+
     def get_parent(self, structure=None):
-        return self.tag.get_parent(structure)
+        try:
+            return self.tag.get_parent(structure).current_version
+        except AttributeError:
+            return None
 
     def get_children(self, structure=None):
         tag_children = self.tag.get_children(structure)
