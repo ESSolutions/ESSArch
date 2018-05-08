@@ -2825,6 +2825,13 @@ class ParseContentTestCase(unittest.TestCase):
         contentobj = parseContent(content, info)
         self.assertEqual(contentobj, 'bar')
 
+    def test_parse_content_nested_var(self):
+        content = [{"var": "foo.bar"}]
+        info = {"foo": {"bar": "baz"}}
+
+        contentobj = parseContent(content, info)
+        self.assertEqual(contentobj, 'baz')
+
     def test_parse_content_missing_var(self):
         content = [{"var": "foo"}]
         contentobj = parseContent(content, {})

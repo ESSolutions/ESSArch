@@ -91,6 +91,13 @@ def parseContent(content, info=None):
     if isinstance(content, six.string_types):
         return parse_content_django(content, info=info)
 
+    def get_nested_val(dct, key):
+        for k in key.split('.'):
+            try:
+                dct = dct[k]
+            except KeyError:
+                return None
+        return dct
 
     arr = []
     for c in content:
@@ -98,7 +105,10 @@ def parseContent(content, info=None):
             arr.append(make_unicode(c['text']))
         elif 'var' in c:
             var = c['var']
-            val = info.get(var) or info.get(var.split('__')[0])
+            if '.' in var:
+                val = get_nested_val(copy.deepcopy(info), var)
+            else:
+                val = info.get(var) or info.get(var.split('__')[0])
 
             if val is None:
                 val = c.get('default')
