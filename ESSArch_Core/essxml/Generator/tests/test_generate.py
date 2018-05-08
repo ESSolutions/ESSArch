@@ -418,6 +418,36 @@ class GenerateXMLTestCase(TestCase):
         self.assertEqual(elements[1].text, 'second')
         self.assertEqual(elements[2].text, 'third')
 
+    def test_generate_element_with_foreach_dict(self):
+        specification = {
+            '-name': 'root',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-foreach': 'agents',
+                    '#content': [{'var': 'agents__key'}, {'text': ': '}, {'var': 'name'}],
+                }
+            ]
+        }
+        data = {
+            'agents': OrderedDict([
+                ('archivist_organization', {'name': 'foo'}),
+                ('preservation_software', {'name': 'essarch'}),
+            ])
+        }
+
+        generator = XMLGenerator({self.fname: {'spec': specification, 'data': data}})
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        elements = root.xpath('//foo')
+
+        self.assertEqual(len(elements), 2)
+        self.assertEqual(elements[0].text, 'archivist_organization: foo')
+        self.assertEqual(elements[1].text, 'preservation_software: essarch')
+
     def test_generate_element_replace_existing(self):
         specification = {
             '-name': 'root',

@@ -314,9 +314,15 @@ class XMLElement(object):
                     logger.exception(msg)
                     raise KeyError(msg)
 
-                for v in foreach_el:
+                try:
+                    iterator = six.iteritems(foreach_el)
+                except AttributeError:
+                    iterator = enumerate(foreach_el)
+
+                for idx, v in iterator:
                     child_info = copy.deepcopy(info)
                     child_info.update(v)
+                    child_info['{foreach}__key'.format(foreach=child.foreach)] = idx
 
                     child_el = child.createLXMLElement(child_info, full_nsmap, files=files, folderToParse=folderToParse, parent=self)
                     if child_el is not None:
