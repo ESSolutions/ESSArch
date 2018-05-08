@@ -163,6 +163,8 @@ class XMLElement(object):
         self.requiredParameters = template.get('-requiredParameters', [])
         self.children = []
         self.el = None
+        self.parent = None
+        self.parent_pos = 0
 
         for child in template.get('-children', []):
             child_el = XMLElement(child)
@@ -285,7 +287,9 @@ class XMLElement(object):
                 if child_el is not None:
                     self.add_element(ptr)
 
-        for child in self.children:
+        for child_idx, child in enumerate(self.children):
+            child.parent = self
+            child.parent_pos = child_idx
             if child.containsFiles:
                 for fileinfo in files:
                     include = True
@@ -303,7 +307,14 @@ class XMLElement(object):
                             self.add_element(child)
 
             elif child.foreach is not None:
-                for v in info[child.foreach]:
+                try:
+                    foreach_el = info[child.foreach]
+                except KeyError:
+                    msg = 'Foreach key "{key}" for {el} not found in data'.format(key=child.foreach, el=child.get_path())
+                    logger.exception(msg)
+                    raise KeyError(msg)
+
+                for v in foreach_el:
                     child_info = copy.deepcopy(info)
                     child_info.update(v)
 
