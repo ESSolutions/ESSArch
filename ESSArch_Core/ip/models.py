@@ -433,9 +433,12 @@ class InformationPackage(models.Model):
 
     def get_checksum_algorithm(self):
         try:
-            name = self.get_profile_data('transfer_project').get(
-                'checksum_algorithm', 'SHA-256'
-            )
+            if self.profile_type == InformationPackage.SIP:
+                name = self.get_profile_data('transfer_project').get(
+                    'checksum_algorithm', 'SHA-256'
+                )
+            else:
+                name = self.policy.get_checksum_algorithm_display().upper()
         except:
             name = 'SHA-256'
 
