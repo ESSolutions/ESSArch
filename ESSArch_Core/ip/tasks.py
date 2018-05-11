@@ -104,8 +104,9 @@ class GeneratePremis(DBTask):
         sa = ip.submission_agreement
         premis_profile_rel = ip.get_profile_rel('preservation_metadata')
         premis_profile_data = ip.get_profile_data('preservation_metadata')
-        sip_profile_rel = ip.get_profile_rel('sip')
-        structure = sip_profile_rel.profile.structure
+        ip_profile_type = ip.get_package_type_display().lower()
+        ip_profile_rel = ip.get_profile_rel(ip_profile_type)
+        structure = ip_profile_rel.profile.structure
         premis_dir, premis_name = find_destination("preservation_description_file", structure)
         premis_path = os.path.join(ip.object_path, premis_dir, premis_name)
         files_to_create = {
