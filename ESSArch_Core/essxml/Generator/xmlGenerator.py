@@ -59,14 +59,16 @@ def parse_content_django(content, info=None, unicode_error=False, syntax_error=F
     except TemplateSyntaxError:
         if syntax_error:
             raise
-        new_data = dict()
-        for k, v in six.iteritems(info):
-            if k.startswith('_'):
-                new_key = k[1:]
-                content = content.replace(k, new_key)
-                new_data[new_key] = v
-            else:
-                new_data[k] = v
+
+        def remove_underscore_prefix(s, d):
+            new = {}
+            for k, v in d.iteritems():
+                if isinstance(v, dict):
+                    s, v = remove_underscore_prefix(s, v)
+                new[k[1:]] = v
+                s = s.replace(k, k[1:])
+            return s, new
+        content, new_data = remove_underscore_prefix(content, info)
         return parse_content_django(content, info=new_data, syntax_error=True)
 
     try:
