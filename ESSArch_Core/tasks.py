@@ -545,7 +545,13 @@ class ValidateXMLFile(DBTask):
         Validates (using LXML) an XML file using a specified schema file
         """
 
-        xml_filename, schema_filename, rootdir = self.parse_params(xml_filename, schema_filename, rootdir)
+        xml_filename, schema_filename = self.parse_params(xml_filename, schema_filename)
+        if rootdir is None and self.ip is not None:
+            ip = InformationPackage.objects.get(pk=self.ip)
+            rootdir = ip.object_path
+        else:
+            rootdir, = self.parse_params(rootdir)
+
         try:
             validator = XMLSchemaValidator(context=schema_filename, options={'rootdir': rootdir})
             validator.validate(xml_filename)
@@ -613,8 +619,14 @@ class CompareXMLFiles(DBTask):
     event_type = 50240
     queue = 'validation'
 
-    def run(self, first, second, rootdir="", compare_checksum=False):
-        first, second, rootdir = self.parse_params(first, second, rootdir)
+    def run(self, first, second, rootdir=None, compare_checksum=False):
+        first, second = self.parse_params(first, second)
+        if rootdir is None and self.ip is not None:
+            ip = InformationPackage.objects.get(pk=self.ip)
+            rootdir = ip.object_path
+        else:
+            rootdir, = self.parse_params(rootdir)
+
         first_files = find_files(first, rootdir, skip_files=[os.path.relpath(second, rootdir)])
         second_files = list(find_files(second, rootdir, skip_files=[os.path.relpath(first, rootdir)]))
 
