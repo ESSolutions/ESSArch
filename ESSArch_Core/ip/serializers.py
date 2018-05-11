@@ -2,44 +2,30 @@ import os
 
 from _version import get_versions
 
+from guardian.shortcuts import get_perms
 from rest_framework import serializers
 
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import EventType
-from ESSArch_Core.ip.models import (
-    ArchivalInstitution,
-    ArchivistOrganization,
-    ArchivalType,
-    ArchivalLocation,
-    EventIP,
-    Workarea,
-)
+from ESSArch_Core.ip.models import Agent, AgentNote, EventIP, InformationPackage, Workarea
 
 VERSION = get_versions()['version']
 
-class ArchivalInstitutionSerializer(serializers.ModelSerializer):
+
+class AgentNoteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ArchivalInstitution
-        fields = ('url', 'id', 'name',)
+        model = AgentNote
+        fields = ('id', 'note')
 
 
-class ArchivistOrganizationSerializer(serializers.ModelSerializer):
+class AgentSerializer(serializers.ModelSerializer):
+    notes = AgentNoteSerializer(many=True, read_only=True)
+
     class Meta:
-        model = ArchivistOrganization
-        fields = ('url', 'id', 'name',)
+        model = Agent
+        fields = ('id', 'role', 'type', 'name', 'code', 'notes')
 
-
-class ArchivalTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ArchivalType
-        fields = ('url', 'id', 'name',)
-
-
-class ArchivalLocationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ArchivalLocation
-        fields = ('url', 'id', 'name',)
 
 class EventIPSerializer(serializers.HyperlinkedModelSerializer):
     linkingAgentIdentifierValue = serializers.CharField(read_only=True, default=CurrentUsernameDefault())
@@ -60,6 +46,42 @@ class EventIPSerializer(serializers.HyperlinkedModelSerializer):
                 'default': VERSION
             }
         }
+
+
+class InformationPackageSerializer(serializers.ModelSerializer):
+    responsible = UserSerializer(read_only=True)
+    agents = serializers.SerializerMethodField()
+    permissions = serializers.SerializerMethodField()
+    package_type = serializers.ChoiceField(choices=InformationPackage.PACKAGE_TYPE_CHOICES)
+    package_type_display = serializers.CharField(source='get_package_type_display')
+
+    def get_agents(self, obj):
+        agents = AgentSerializer(obj.agents.all(), many=True).data
+        return {'{role}_{type}'.format(role=a['role'], type=a['type']): a for a in agents}
+
+    def get_permissions(self, obj):
+        checker = self.context.get('perm_checker')
+        if checker is not None:
+            return checker.get_perms(obj)
+
+        request = self.context.get('request')
+        if hasattr(request, 'user'):
+            return get_perms(request.user, obj)
+        return []
+
+    class Meta:
+        model = InformationPackage
+        fields = (
+            'url', 'id', 'label', 'object_identifier_value', 'object_size',
+            'object_path', 'submission_agreement', 'submission_agreement_locked',
+            'package_type', 'package_type_display', 'responsible', 'create_date',
+            'object_num_items', 'entry_date', 'state', 'status', 'step_state',
+            'archived', 'cached', 'aic', 'generation', 'agents',
+            'policy', 'message_digest', 'message_digest_algorithm',
+            'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
+            'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
+            'start_date', 'end_date', 'permissions', 'appraisal_date',
+        )
 
 
 class WorkareaSerializer(serializers.ModelSerializer):

@@ -44,19 +44,15 @@
     Email - essarch@essolutions.se
 """
 
+import uuid
 from copy import copy
 
+import jsonfield
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email, URLValidator
 from django.db import models
 
-import jsonfield
-import uuid
-
-from ESSArch_Core.profiles.validators import validate_template
 from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
-from ESSArch_Core.util import validate_remote_url
+from ESSArch_Core.profiles.validators import validate_template
 
 Profile_Status_CHOICES = (
     (0, 'Disabled'),
@@ -382,91 +378,6 @@ class Profile(models.Model):
     template = jsonfield.JSONField(default=[])
     specification = jsonfield.JSONField(default={})
     specification_data = jsonfield.JSONField(default={})
-
-    def fill_specification_data(self, sa=None, ip=None):
-        data = self.specification_data
-
-        if sa:
-            data['_SA_ID'] = str(sa.pk)
-            data['_SA_NAME'] = str(sa.name)
-
-        if ip:
-            data['_OBJID'] = ip.object_identifier_value
-            data['_OBJLABEL'] = ip.label
-
-            if ip.archivist_organization:
-                data['_IP_ARCHIVIST_ORGANIZATION'] = ip.archivist_organization.name
-
-            if ip.archival_institution:
-                data['_IP_ARCHIVAL_INSTITUTION'] = ip.archival_institution.name
-
-            if ip.archival_type:
-                data['_IP_ARCHIVAL_TYPE'] = ip.archival_type.name
-
-            if ip.archival_location:
-                data['_IP_ARCHIVAL_LOCATION'] = ip.archival_location.name
-
-            try:
-                data["_PROFILE_TRANSFER_PROJECT_ID"] = str(ip.get_profile('transfer_project').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_SUBMIT_DESCRIPTION_ID"] = str(ip.get_profile('submit_description').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_SIP_ID"] = str(ip.get_profile('sip').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_AIP_ID"] = str(ip.get_profile('aip').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_DIP_ID"] = str(ip.get_profile('dip').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_CONTENT_TYPE_ID"] = str(ip.get_profile('content_type').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_AUTHORITY_INFORMATION_ID"] = str(ip.get_profile('authority_information').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_ARCHIVAL_DESCRIPTION_ID"] = str(ip.get_profile('archival_description').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_PRESERVATION_METADATA_ID"] = str(ip.get_profile('preservation_metadata').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_DATA_SELECTION_ID"] = str(ip.get_profile('data_selection').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_IMPORT_ID"] = str(ip.get_profile('import').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_WORKFLOW_ID"] = str(ip.get_profile('workflow').pk)
-            except AttributeError:
-                pass
-
-        return data
 
     def clean(self, data={}):
         validate_template(self.template, data)

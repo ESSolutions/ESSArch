@@ -88,18 +88,27 @@ def fill_specification_data(data={}, sa=None, ip=None):
                 data['_POLICYID'] = transfer_project_data.get('archive_policy_id')
                 data['_POLICYNAME'] = transfer_project_data.get('archive_policy_name')
 
+        data['_AGENTS'] = {}
+        for a in ip.agents.all():
+            agent = {
+                '_AGENTS_NAME': a.name,
+                '_AGENTS_NOTES': [{'_AGENTS_NOTE': n.note} for n in a.notes.all()],
+            }
 
-        if ip.archivist_organization:
-            data['_IP_ARCHIVIST_ORGANIZATION'] = ip.archivist_organization.name
+            if a.other_role:
+                agent['_AGENTS_ROLE'] = 'OTHER'
+                agent['_AGENTS_OTHERROLE'] = a.role
+            else:
+                agent['_AGENTS_ROLE'] = a.role
 
-        if ip.archival_institution:
-            data['_IP_ARCHIVAL_INSTITUTION'] = ip.archival_institution.name
+            if a.other_type:
+                agent['_AGENTS_TYPE'] = 'OTHER'
+                agent['_AGENTS_OTHERTYPE'] = a.type
+            else:
+                agent['_AGENTS_TYPE'] = a.type
 
-        if ip.archival_type:
-            data['_IP_ARCHIVAL_TYPE'] = ip.archival_type.name
-
-        if ip.archival_location:
-            data['_IP_ARCHIVAL_LOCATION'] = ip.archival_location.name
+            agent_key = '{role}_{type}'.format(role=a.role.upper(), type=a.type.upper())
+            data['_AGENTS'][agent_key] = agent
 
         profile_ids = zip([x.lower().replace(' ', '_') for x in profile_types], ["_PROFILE_" + x.upper().replace(' ', '_') + "_ID" for x in profile_types])
 

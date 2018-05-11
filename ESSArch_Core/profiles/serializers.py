@@ -264,7 +264,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             if not sa and ip:
                 sa = ip.submission_agreement
 
-            data = obj.fill_specification_data(sa, ip)
+            data = fill_specification_data(data=data, sa=sa, ip=ip)
 
         return data
 

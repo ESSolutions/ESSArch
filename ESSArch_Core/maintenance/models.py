@@ -30,7 +30,6 @@ import six
 from weasyprint import HTML
 
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.essxml.util import get_agents
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.profiles.models import ProfileIP
@@ -215,7 +214,6 @@ class AppraisalJob(MaintenanceJob):
                 mets_path = os.path.join(srcdir, mets_dir, mets_name)
 
                 mets_tree = etree.parse(mets_path)
-                agents = get_agents(mets_tree.getroot())
 
                 # copy files to new generation
                 shutil.copytree(srcdir, dstdir)
@@ -278,13 +276,11 @@ class AppraisalJob(MaintenanceJob):
                         if e.errno != errno.ENOENT:
                             raise
 
-                    premis_profile_data['_AGENTS'] = agents
                     filesToCreate[premis_path] = {
                         'spec': premis_profile.specification,
                         'data': fill_specification_data(premis_profile_data, ip=new_ip, sa=sa),
                     }
 
-                aip_profile_data['_AGENTS'] = agents
                 filesToCreate[mets_path] = {
                     'spec': aip_profile.specification,
                     'data': fill_specification_data(aip_profile_data, ip=new_ip, sa=sa),
@@ -326,7 +322,6 @@ class AppraisalJob(MaintenanceJob):
 
                 info = fill_specification_data(new_ip.get_profile_data('aip_description'), ip=new_ip, sa=sa)
                 info["_IP_CREATEDATE"] = timestamp_to_datetime(creation_date(dsttar)).isoformat()
-                info['_AGENTS'] = agents
 
                 aip_desc_profile = new_ip.get_profile('aip_description')
                 filesToCreate = {
@@ -440,7 +435,6 @@ class ConversionJob(MaintenanceJob):
             mets_path = os.path.join(srcdir, mets_dir, mets_name)
 
             mets_tree = etree.parse(mets_path)
-            agents = get_agents(mets_tree.getroot())
 
             # copy files to new generation
             shutil.copytree(srcdir, dstdir)
@@ -516,13 +510,11 @@ class ConversionJob(MaintenanceJob):
                     if e.errno != errno.ENOENT:
                         raise
 
-                premis_profile_data['_AGENTS'] = agents
                 filesToCreate[premis_path] = {
                     'spec': premis_profile.specification,
                     'data': fill_specification_data(premis_profile_data, ip=new_ip, sa=sa),
                 }
 
-            aip_profile_data['_AGENTS'] = agents
             filesToCreate[mets_path] = {
                 'spec': aip_profile.specification,
                 'data': fill_specification_data(aip_profile_data, ip=new_ip, sa=sa),
@@ -564,7 +556,6 @@ class ConversionJob(MaintenanceJob):
 
             info = fill_specification_data(new_ip.get_profile_data('aip_description'), ip=new_ip, sa=sa)
             info["_IP_CREATEDATE"] = timestamp_to_datetime(creation_date(dsttar)).isoformat()
-            info['_AGENTS'] = agents
 
             aip_desc_profile = new_ip.get_profile('aip_description')
             filesToCreate = {

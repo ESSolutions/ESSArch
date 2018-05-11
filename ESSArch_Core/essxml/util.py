@@ -100,25 +100,7 @@ def get_agent(el, ROLE=None, OTHERROLE=None, TYPE=None, OTHERTYPE=None):
 
 
 def get_agents(el):
-    agent_els = el.xpath(".//*[local-name()='agent']")
-    agents = []
-
-    for agent_el in agent_els:
-        try:
-            agent = {
-                '_AGENTS_NAME': agent_el.xpath("*[local-name()='name']")[0].text,
-                '_AGENTS_NOTES': [{'_AGENTS_NOTE': note.text} for note in agent_el.xpath("*[local-name()='note']")],
-            }
-        except IndexError:
-            # agent without name, skip to next
-            continue
-        else:
-            for key, val in six.iteritems(agent_el.attrib):
-                agent['_AGENTS_%s' % key.upper()] = val
-
-            agents.append(agent)
-
-    return agents
+    return el.xpath(".//*[local-name()='agent']")
 
 
 def get_altrecordids(el):
@@ -207,43 +189,15 @@ def parse_submit_description(xmlfile, srcdir=''):
     except (KeyError, AttributeError):
         ip['information_class'] = 0
 
-    ip['_AGENTS'] = get_agents(root)
-
-    agents = {
-        'archivist_organization': {
-            'ROLE': 'ARCHIVIST', 'TYPE': 'ORGANIZATION',
-        },
-        'creator_organization': {
-            'ROLE': 'CREATOR', 'TYPE': 'ORGANIZATION',
-        },
-        'submitter_organization': {
-            'ROLE': 'OTHER', 'OTHERROLE': 'SUBMITTER', 'TYPE': 'ORGANIZATION',
-        },
-        'submitter_individual': {
-            'ROLE': 'OTHER', 'OTHERROLE': 'SUBMITTER', 'TYPE': 'INDIVIDUAL',
-        },
-        'producer_organization': {
-            'ROLE': 'OTHER', 'OTHERROLE': 'PRODUCER', 'TYPE': 'ORGANIZATION',
-        },
-        'producer_individual': {
-            'ROLE': 'OTHER', 'OTHERROLE': 'PRODUCER', 'TYPE': 'INDIVIDUAL',
-        },
-        'ipowner_organization': {
-            'ROLE': 'IPOWNER', 'TYPE': 'ORGANIZATION',
-        },
-        'preservation_organization': {
-            'ROLE': 'PRESERVATION', 'TYPE': 'ORGANIZATION',
-        },
-        'system_name': {
-            'ROLE': 'ARCHIVIST', 'TYPE': 'OTHER', 'OTHERTYPE': 'SOFTWARE',
-        },
-    }
-
-    for key, value in agents.iteritems():
-        try:
-            ip[key] = get_agent(root, **value)['name']
-        except IndexError:
-            pass
+    ip['agents'] = {}
+    for a in get_agents(root):
+        other_role = a.get("ROLE") == 'OTHER'
+        other_type = a.get("TYPE") == 'OTHER'
+        agent_role = a.get("OTHERROLE") if other_role else a.get("ROLE")
+        agent_type = a.get("OTHERTYPE") if other_type else a.get("TYPE")
+        name = a.xpath('*[local-name()="name"]')[0].text
+        notes = [n.text for n in a.xpath('*[local-name()="note"]')]
+        ip['agents']['{role}_{type}'.format(role=agent_role, type=agent_type)] = {'name': name, 'notes': notes}
 
     try:
         ip['system_version'] = get_agent(root, ROLE='ARCHIVIST', TYPE='OTHER', OTHERTYPE='SOFTWARE')['notes'][0],

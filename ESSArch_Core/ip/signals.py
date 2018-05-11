@@ -6,16 +6,10 @@ import shutil
 from django.db.models.signals import pre_delete, post_delete
 from django.dispatch import receiver
 
-from ESSArch_Core.ip.models import (
-    ArchivalInstitution,
-    ArchivistOrganization,
-    ArchivalType,
-    ArchivalLocation,
-    InformationPackage, Workarea,
-)
-
+from ESSArch_Core.ip.models import InformationPackage, Workarea
 
 logger = logging.getLogger('essarch.core')
+
 
 @receiver(pre_delete, sender=InformationPackage)
 def ip_pre_delete(sender, instance, using, **kwargs):

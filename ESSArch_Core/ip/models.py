@@ -34,7 +34,7 @@ import six
 from celery import states as celery_states
 from django.conf import settings
 from django.db import models, transaction
-from django.db.models import Max, Min, Q, Subquery
+from django.db.models import Count, Max, Min, Q, Subquery
 from django.utils.encoding import python_2_unicode_compatible
 from groups_manager.utils import get_permission_name
 from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
@@ -61,55 +61,50 @@ MESSAGE_DIGEST_ALGORITHM_CHOICES = (
 MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT = {v: k for k, v in MESSAGE_DIGEST_ALGORITHM_CHOICES}
 
 
-@python_2_unicode_compatible
-class ArchivalInstitution(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255, unique=True)
-    code = models.CharField(max_length=16, unique=True, blank=True, null=True)  # ISO 15511
-    country_code = models.CharField(max_length=3, blank=True)
+class AgentQuerySet(models.QuerySet):
+    def with_notes(self, notes):
+        qs = self.annotate(Count('notes', distinct=True)).filter(notes__count=len(notes))
+        for n in notes:
+            qs = qs.filter(notes__note=n)
 
-    class Meta:
-        verbose_name = 'ArchivalInstitution'
-
-    def __str__(self):
-        return self.name
+        return qs
 
 
-@python_2_unicode_compatible
-class ArchivistOrganization(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255, unique=True)
-    code = models.CharField(max_length=255, unique=True, blank=True, null=True)
+class AgentManager(models.Manager):
+    def get_queryset(self):
+        return AgentQuerySet(self.model, using=self._db)
 
-    class Meta:
-        verbose_name = 'ArchivistOrganization'
+    def from_mets_element(self, el):
+        other_role = el.get("ROLE") == 'OTHER'
+        other_type = el.get("TYPE") == 'OTHER'
+        agent_role = el.get("OTHERROLE") if other_role else el.get("ROLE")
+        agent_type = el.get("OTHERTYPE") if other_type else el.get("TYPE")
+        name = el.xpath('*[local-name()="name"]')[0].text
+        notes = [n.text for n in el.xpath('*[local-name()="note"]')]
 
-    def __str__(self):
-        return self.name
-
-
-@python_2_unicode_compatible
-class ArchivalType(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255, unique=True)
-
-    class Meta:
-        verbose_name = 'ArchivalType'
-
-    def __str__(self):
-        return self.name
+        existing_agents_with_notes = self.model.objects.all().with_notes(notes)
+        agent, created = self.model.objects.get_or_create(role=agent_role, type=agent_type, name=name,
+                                                          pk__in=existing_agents_with_notes,
+                                                          defaults={'other_role': other_role, 'other_type': other_type})
+        if created:
+            AgentNote.objects.bulk_create(AgentNote(agent=agent, note=n) for n in notes)
+        return agent
 
 
-@python_2_unicode_compatible
-class ArchivalLocation(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255, unique=True)
+class Agent(models.Model):
+    role = models.CharField(max_length=255)
+    other_role = models.BooleanField(default=False)
+    type = models.CharField(max_length=255)
+    other_type = models.BooleanField(default=False)
+    name = models.CharField(max_length=255)
+    code = models.CharField(max_length=16)
 
-    class Meta:
-        verbose_name = 'ArchivalLocation'
+    objects = AgentManager()
 
-    def __str__(self):
-        return self.name
+
+class AgentNote(models.Model):
+    agent = models.ForeignKey(Agent, on_delete=models.CASCADE, related_name='notes')
+    note = models.CharField(max_length=255)
 
 
 class InformationPackageManager(models.Manager):
@@ -246,34 +241,7 @@ class InformationPackage(models.Model):
     submission_agreement = models.ForeignKey(SA, on_delete=models.PROTECT, related_name='information_packages',
                                              default=None, null=True)
     submission_agreement_locked = models.BooleanField(default=False)
-    archival_institution = models.ForeignKey(
-        ArchivalInstitution,
-        on_delete=models.CASCADE,
-        related_name='information_packages',
-        default=None,
-        null=True
-    )
-    archivist_organization = models.ForeignKey(
-        ArchivistOrganization,
-        on_delete=models.CASCADE,
-        related_name='information_packages',
-        default=None,
-        null=True
-    )
-    archival_type = models.ForeignKey(
-        ArchivalType,
-        on_delete=models.CASCADE,
-        related_name='information_packages',
-        default=None,
-        null=True
-    )
-    archival_location = models.ForeignKey(
-        ArchivalLocation,
-        on_delete=models.CASCADE,
-        related_name='information_packages',
-        default=None,
-        null=True
-    )
+    agents = models.ManyToManyField(Agent, related_name='information_packages')
 
     objects = InformationPackageManager()
 
@@ -282,6 +250,12 @@ class InformationPackage(models.Model):
             self.object_identifier_value = str(self.pk)
 
         super(InformationPackage, self).save(*args, **kwargs)
+
+    def get_agent(self, role, type):
+        try:
+            return self.agents.get(role=role, type=type)
+        except Agent.DoesNotExist:
+            return None
 
     def is_first_generation(self):
         if self.aic is None:
