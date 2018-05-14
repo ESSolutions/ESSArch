@@ -336,7 +336,8 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None):
 
     for pointer in find_pointers(xmlfile=xmlfile):
         pointer_prefix = os.path.split(pointer.path)[0]
-        files.add(pointer)
+        if pointer.path not in skip_files:
+            files.add(pointer)
         files |= find_files(os.path.join(rootdir, pointer.path), rootdir, pointer_prefix)
 
     return files

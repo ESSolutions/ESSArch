@@ -55,7 +55,7 @@ from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import (parseContent, XMLGenerator,
                                                         findElementWithoutNamespace)
-from ESSArch_Core.essxml.util import find_files
+from ESSArch_Core.essxml.util import find_files, find_pointers
 from ESSArch_Core.fixity import format, transformation, validation
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
@@ -625,8 +625,12 @@ class CompareXMLFiles(DBTask):
         else:
             rootdir, = self.parse_params(rootdir)
 
-        first_files = find_files(first, rootdir, skip_files=[os.path.relpath(second, rootdir)])
-        second_files = list(find_files(second, rootdir, skip_files=[os.path.relpath(first, rootdir)]))
+        skipped_first = [p.path for p in find_pointers(first)]
+        skipped_first.append(os.path.relpath(second, rootdir))
+        first_files = find_files(first, rootdir, skip_files=skipped_first)
+        skipped_second = [p.path for p in find_pointers(second)]
+        skipped_second.append(os.path.relpath(first, rootdir))
+        second_files = list(find_files(second, rootdir, skip_files=skipped_second))
 
         for first_el in first_files:
             try:
