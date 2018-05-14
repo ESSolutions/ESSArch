@@ -35,7 +35,7 @@ class DiffCheckValidator(BaseValidator):
         self.checksums           = {}  # Map fname -> checksum
         self.checksum_algorithms = {}  # Map fname -> checksum algorithm
 
-        self.logical_files = find_files(self.context)
+        self.logical_files = find_files(self.context, rootdir=rootdir)
         for logical in self.logical_files:
             if rootdir is not None:
                 logical_path = os.path.join(rootdir, logical.path)
