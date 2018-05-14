@@ -36,6 +36,7 @@ from django.conf import settings
 from django.db import models, transaction
 from django.db.models import Count, Max, Min, Q, Subquery
 from django.utils.encoding import python_2_unicode_compatible
+from lxml import etree
 from groups_manager.utils import get_permission_name
 from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 from guardian.shortcuts import assign_perm
@@ -45,6 +46,7 @@ from rest_framework.response import Response
 from ESSArch_Core.auth.models import Member
 from ESSArch_Core.auth.util import get_membership_descendants
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
+from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.profiles.models import ProfileIP, ProfileIPData, ProfileSA
 from ESSArch_Core.profiles.models import SubmissionAgreement as SA
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -663,6 +665,69 @@ class InformationPackageGroupObjectPermission(GroupObjectPermissionBase):
     content_object = models.ForeignKey(InformationPackage, on_delete=models.CASCADE)
 
 
+class EventIPManager(models.Manager):
+    def from_premis_element(self, el, save=True):
+        '''
+        Parses a Premis event element
+
+        Args:
+            el: A lxml etree element
+
+        Returns:
+            An EventIP object describing the event
+        '''
+
+        def from_path(p):
+            return '/'.join([("*[local-name()='%s']" % part) for part in p.split('/')])
+
+        event_dict = {
+            'identifier': {
+                'type': el.xpath(from_path('eventIdentifier/eventIdentifierType'))[0].text,
+                'value': el.xpath(from_path('eventIdentifier/eventIdentifierValue'))[0].text
+            },
+            'type': el.xpath(from_path('eventType'))[0].text,
+            'datetime': el.xpath(from_path('eventDateTime'))[0].text,
+            'detail': el.xpath(from_path('eventDetailInformation/eventDetail'))[0].text,
+            'outcome_information': {
+                'outcome': el.xpath(from_path('eventOutcomeInformation/eventOutcome'))[0].text,
+                'outcome_detail_note': el.xpath(from_path('eventOutcomeInformation/eventOutcomeDetail/eventOutcomeDetailNote'))[0].text,
+            },
+            'linking_agent_identifier': {
+                'type': el.xpath(from_path('linkingAgentIdentifier/linkingAgentIdentifierType'))[0].text,
+                'value': el.xpath(from_path('linkingAgentIdentifier/linkingAgentIdentifierValue'))[0].text
+            },
+            'linking_object_identifier': {
+                'type': el.xpath(from_path('linkingObjectIdentifier/linkingObjectIdentifierType'))[0].text,
+                'value': el.xpath(from_path('linkingObjectIdentifier/linkingObjectIdentifierValue'))[0].text
+            },
+        }
+
+        objid = event_dict['linking_object_identifier']['value']
+        username = event_dict['linking_agent_identifier']['value']
+
+        try:
+            ip = str(InformationPackage.objects.get(object_identifier_value=objid).pk)
+        except InformationPackage.DoesNotExist:
+            ip = objid
+
+        event = self.model(
+            eventIdentifierValue=event_dict['identifier']['value'],
+            eventType_id=event_dict['type'],
+            eventDateTime=event_dict['datetime'],
+            eventOutcome=event_dict['outcome_information']['outcome'],
+            eventOutcomeDetailNote=event_dict['outcome_information']['outcome_detail_note'] or '',
+            linkingAgentIdentifierValue=username,
+            linkingObjectIdentifierValue=ip,
+        )
+        if save:
+            event.save()
+        return event
+
+    def from_premis_file(self, xmlfile, save=True):
+        root = etree.parse(xmlfile).getroot()
+        return [self.from_premis_element(el, save) for el in root.xpath("./*[local-name()='event']")]
+
+
 class EventIP(models.Model):
     """
     Events related to IP
@@ -694,6 +759,8 @@ class EventIP(models.Model):
     linkingAgentIdentifierValue = models.CharField(max_length=255, blank=True)
     linkingAgentRole = models.CharField(max_length=255, blank=True)
     linkingObjectIdentifierValue = models.CharField(max_length=255, blank=True)
+
+    objects = EventIPManager()
 
     class Meta:
         ordering = ["eventDateTime", "id"]

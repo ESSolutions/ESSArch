@@ -31,7 +31,6 @@ import six
 from lxml import etree
 
 from ESSArch_Core.fixity import checksum
-from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.util import (
     creation_date,
     get_elements_without_namespace,
@@ -211,64 +210,6 @@ def parse_submit_description(xmlfile, srcdir=''):
 
     return ip
 
-
-def parse_event(el):
-    '''
-    Parses a Premis event element
-
-    Args:
-        el: A lxml etree element
-
-    Returns:
-        An EventIP object describing the event
-    '''
-
-    def from_path(p):
-        return '/'.join([("*[local-name()='%s']" % part) for part in p.split('/')])
-
-    event_dict = {
-        'identifier': {
-            'type': el.xpath(from_path('eventIdentifier/eventIdentifierType'))[0].text,
-            'value': el.xpath(from_path('eventIdentifier/eventIdentifierValue'))[0].text
-        },
-        'type': el.xpath(from_path('eventType'))[0].text,
-        'datetime': el.xpath(from_path('eventDateTime'))[0].text,
-        'detail': el.xpath(from_path('eventDetailInformation/eventDetail'))[0].text,
-        'outcome_information': {
-            'outcome': el.xpath(from_path('eventOutcomeInformation/eventOutcome'))[0].text,
-            'outcome_detail_note': el.xpath(from_path('eventOutcomeInformation/eventOutcomeDetail/eventOutcomeDetailNote'))[0].text,
-        },
-        'linking_agent_identifier': {
-            'type': el.xpath(from_path('linkingAgentIdentifier/linkingAgentIdentifierType'))[0].text,
-            'value': el.xpath(from_path('linkingAgentIdentifier/linkingAgentIdentifierValue'))[0].text
-        },
-        'linking_object_identifier': {
-            'type': el.xpath(from_path('linkingObjectIdentifier/linkingObjectIdentifierType'))[0].text,
-            'value': el.xpath(from_path('linkingObjectIdentifier/linkingObjectIdentifierValue'))[0].text
-        },
-    }
-
-    objid = event_dict['linking_object_identifier']['value']
-    username = event_dict['linking_agent_identifier']['value']
-
-    try:
-        ip = str(InformationPackage.objects.get(object_identifier_value=objid).pk)
-    except InformationPackage.DoesNotExist:
-        ip = objid
-
-    return EventIP(
-        eventIdentifierValue=event_dict['identifier']['value'],
-        eventType_id=event_dict['type'],
-        eventDateTime=event_dict['datetime'],
-        eventOutcome=event_dict['outcome_information']['outcome'],
-        eventOutcomeDetailNote=event_dict['outcome_information']['outcome_detail_note'] or '',
-        linkingAgentIdentifierValue=username,
-        linkingObjectIdentifierValue=ip,
-    )
-
-def parse_event_file(xmlfile):
-    root = etree.parse(xmlfile).getroot()
-    return [parse_event(el) for el in root.xpath("./*[local-name()='event']")]
 
 class XMLFileElement():
     def __init__(self, el, props, path=None, rootdir=None):

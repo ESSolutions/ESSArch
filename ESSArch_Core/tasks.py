@@ -55,7 +55,7 @@ from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import (parseContent, XMLGenerator,
                                                         findElementWithoutNamespace)
-from ESSArch_Core.essxml.util import find_files, parse_event_file
+from ESSArch_Core.essxml.util import find_files
 from ESSArch_Core.fixity import format, transformation, validation
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
@@ -217,14 +217,12 @@ class ParseEvents(DBTask):
     event_type = 50630
 
     def run(self, xmlfile, delete_file=False):
-        events = parse_event_file(xmlfile)
-
+        events = EventIP.objects.from_premis_file(xmlfile, save=False)
         try:
             turn_off_auto_now_add(EventIP, 'eventDateTime')
             EventIP.objects.bulk_create(events, 100)
         finally:
             turn_on_auto_now_add(EventIP, 'eventDateTime')
-
 
         if delete_file:
             os.remove(xmlfile)
