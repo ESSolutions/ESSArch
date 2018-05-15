@@ -652,6 +652,50 @@ class GenerateXMLTestCase(TestCase):
         self.assertEqual(elements[2].text, 'first')
         self.assertEqual(elements[3].text, 'third')
 
+    def test_generate_element_ignore_existing_with_foreach(self):
+        specification = {
+            '-name': 'root',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-attr': [
+                        {'-name': 'idx', '#content': [{'text': 1}]}
+                    ],
+                    '#content': [{'text': 'old'}]
+                },
+                {
+                    '-name': "foo",
+                    '-ignoreExisting': ['idx'],
+                    '-attr': [
+                        {'-name': 'idx', '#content': [{'var': 'idx'}]}
+                    ],
+                    '-foreach': 'arr',
+                    '#content': [{'var': 'bar'}]
+                }
+            ]
+        }
+
+        data = {
+            'arr': [
+                {'idx': 0, 'bar': 'first'},
+                {'idx': 1, 'bar': 'second'},
+                {'idx': 2, 'bar': 'third'},
+            ]
+        }
+
+        generator = XMLGenerator({self.fname: {'spec': specification, 'data': data}})
+        generator.generate()
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        elements = root.xpath('//foo')
+
+        self.assertEqual(len(elements), 3)
+        self.assertEqual(elements[0].text, 'old')
+        self.assertEqual(elements[1].text, 'first')
+        self.assertEqual(elements[2].text, 'third')
+
     def test_generate_element_with_empty_child_with_containsFiles_and_hideEmptyContent(self):
         specification = {
             '-name': 'root',

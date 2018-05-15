@@ -167,6 +167,7 @@ class XMLElement(object):
         self.containsFiles = template.get('-containsFiles', False)
         self.foreach = template.get('-foreach', None)
         self.replace_existing = template.get('-replaceExisting', None)
+        self.ignore_existing = template.get('-ignoreExisting', None)
         self.external = template.get('-external')
         self.fileFilters = template.get('-filters', {})
         self.allowEmpty = template.get('-allowEmpty', False)
@@ -228,25 +229,39 @@ class XMLElement(object):
 
         return path
 
+    def get_existing_elements(self, new_el, attrs):
+        # Get elements that have the same name as new_el and where the attributes
+        # in attrs have the same value as new_el
+
+        xpath_attributes = []
+        for attrib in attrs:
+            if len(new_el.el.get(attrib, '')) > 0:
+                xpath_attributes.append("@%s='%s'" % (attrib, new_el.el.get(attrib)))
+
+        attr_string = ""
+        if len(xpath_attributes) > 0:
+            attr_string = "[%s]" % (' and '.join(xpath_attributes))
+
+        return self.el.xpath("./*[local-name()='%s']%s" % (new_el.name, attr_string))
+
     def add_element(self, new):
         if new.replace_existing is not None:
             # Get other child elements with the attributes in new.replace_existing
             # set to the same as the attributes in the new element and replace
             # the last of the old elements with the new
 
-            xpath_attributes = []
-            for attrib in new.replace_existing:
-                if len(new.el.get(attrib, '')) > 0:
-                    xpath_attributes.append("@%s='%s'" % (attrib, new.el.get(attrib)))
+            existing = self.get_existing_elements(new, new.replace_existing)
+            if len(existing) > 0:
+                self.el.replace(existing[-1], new.el)
+                return
 
-            attr_string = ""
-            if len(xpath_attributes) > 0:
-                attr_string = "[%s]" % (' and '.join(xpath_attributes))
+        if new.ignore_existing:
+            # If there exists child elements with the attributes in new.ignore_existing
+            # set to the same as the attributes in the new element then we will not create
+            # the new element
 
-            old = self.el.xpath("./*[local-name()='%s']%s" % (new.name, attr_string))
-
-            if len(old) > 0:
-                self.el.replace(old[-1], new.el)
+            existing = self.get_existing_elements(new, new.ignore_existing)
+            if len(existing) > 0:
                 return
 
         self.el.append(new.el)
