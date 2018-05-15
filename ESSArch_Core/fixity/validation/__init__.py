@@ -21,6 +21,8 @@ AVAILABLE_VALIDATORS = {
     'structure': 'ESSArch_Core.fixity.validation.backends.structure.StructureValidator',
     'verapdf': 'ESSArch_Core.fixity.validation.backends.verapdf.VeraPDFValidator',
     'xml_schema': 'ESSArch_Core.fixity.validation.backends.xml.XMLSchemaValidator',
+    'xml_schematron': 'ESSArch_Core.fixity.validation.backends.xml.XMLSchematronValidator',
+    'xml_iso_schematron': 'ESSArch_Core.fixity.validation.backends.xml.XMLISOSchematronValidator',
 }
 
 extra_validators = getattr(settings, 'ESSARCH_VALIDATORS', {})

@@ -2,6 +2,7 @@ import logging
 import os
 
 from django.utils import timezone
+from lxml import etree, isoschematron
 
 from ESSArch_Core.essxml.util import find_files, validate_against_schema
 from ESSArch_Core.exceptions import ValidationError
@@ -117,3 +118,29 @@ class XMLSchemaValidator(BaseValidator):
             raise
 
         logger.info("Successful schema validation of {xml}".format(xml=filepath))
+
+class XMLSchematronValidator(BaseValidator):
+    def validate(self, filepath):
+        logger.debug('Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
+        try:
+            sct_doc = etree.parse(self.context)
+            schematron = etree.Schematron(sct_doc)
+            schematron.assertValid(etree.parse(filepath))
+        except etree.DocumentInvalid as e:
+            logger.warn('Schematron validation of {xml} against {schema} failed, {msg}'.format(xml=filepath, schema=self.context, msg=e.message))
+            raise
+
+        logger.info("Successful schematron validation of {xml} against {schema}".format(xml=filepath, schema=self.context))
+
+class XMLISOSchematronValidator(BaseValidator):
+    def validate(self, filepath):
+        logger.debug('Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
+        try:
+            sct_doc = etree.parse(self.context)
+            schematron = isoschematron.Schematron(sct_doc)
+            schematron.assertValid(etree.parse(filepath))
+        except etree.DocumentInvalid as e:
+            logger.warn('ISO-Schematron validation of {xml} against {schema} failed, {msg}'.format(xml=filepath, schema=self.context, msg=e.message))
+            raise
+
+        logger.info("Successful iso-schematron validation of {xml} against {schema}".format(xml=filepath, schema=self.context))
