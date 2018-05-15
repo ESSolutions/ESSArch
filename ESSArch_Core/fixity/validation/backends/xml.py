@@ -1,8 +1,10 @@
 import logging
 import os
 
+import six
 from django.utils import timezone
 from lxml import etree, isoschematron
+from scandir import walk
 
 from ESSArch_Core.essxml.util import find_files, validate_against_schema
 from ESSArch_Core.exceptions import ValidationError
@@ -22,13 +24,15 @@ class DiffCheckValidator(BaseValidator):
     the XML was generated.
     """
 
+    file_validator = False
+
     def __init__(self, *args, **kwargs):
         super(DiffCheckValidator, self).__init__(*args, **kwargs)
 
         if not self.context:
             raise ValueError('A context (xml) is required')
 
-        rootdir = self.options.get('rootdir')
+        self.rootdir = self.options.get('rootdir')
         self.default_algorithm = self.options.get('default_algorithm', 'SHA-256')
 
         self.present             = {}  # Map checksum -> fname
@@ -36,10 +40,15 @@ class DiffCheckValidator(BaseValidator):
         self.checksums           = {}  # Map fname -> checksum
         self.checksum_algorithms = {}  # Map fname -> checksum algorithm
 
-        self.logical_files = find_files(self.context, rootdir=rootdir)
+        self.confirmed = 0
+        self.added = 0
+        self.changed = 0
+        self.renamed = 0
+
+        self.logical_files = find_files(self.context, rootdir=self.rootdir)
         for logical in self.logical_files:
-            if rootdir is not None:
-                logical_path = os.path.join(rootdir, logical.path)
+            if self.rootdir is not None:
+                logical_path = os.path.join(self.rootdir, logical.path)
             else:
                 logical_path = logical.path
 
@@ -48,60 +57,81 @@ class DiffCheckValidator(BaseValidator):
             self.checksums[logical_path] = logical.checksum
             self.checksum_algorithms[logical_path] = logical.checksum_type
 
+    def _create_obj(self, filename, passed, msg):
+        return Validation(
+            filename=filename,
+            time_started=timezone.now(),
+            time_done=timezone.now(),
+            validator=self.__class__.__name__,
+            required=self.required,
+            information_package=self.ip,
+            responsible=self.responsible,
+            message=msg,
+            passed=passed,
+            specification={
+                'context': self.context,
+                'options': self.options,
+            }
+        )
+
     def _validate(self, filepath):
         algorithm = self.checksum_algorithms.get(filepath, self.default_algorithm)
+        relpath = os.path.relpath(filepath, self.rootdir)
         newhash = calculate_checksum(filepath, algorithm=algorithm)
-
         self.deleted.pop(newhash, None)
 
         if newhash in self.present:
             oldname = self.present[newhash]
             if filepath not in self.checksums:
                 if oldname.lower() != filepath.lower():
-                    raise ValidationError('{old} has been renamed to {new}'.format(old=self.present[newhash], new=filepath))
+                    self.renamed += 1
+                    msg = '{old} has been renamed to {new}'.format(old=oldname, new=relpath)
+                    return self._create_obj(relpath, False, msg)
         elif filepath in self.checksums:
             oldhash = self.checksums[filepath]
             if oldhash != newhash:
                 self.deleted.pop(oldhash, None)
-                raise ValidationError('{file} has been changed'.format(file=filepath))
+                self.changed += 1
+                msg = '{f} has been changed'.format(f=relpath)
+                return self._create_obj(filepath, False, msg)
         elif filepath not in self.checksums:
-            raise ValidationError('{file} has been added'.format(file=filepath))
+            self.added += 1
+            msg = '{f} is missing from xml'.format(f=relpath)
+            return self._create_obj(filepath, False, msg)
 
-    def validate(self, filepath):
+        self.confirmed += 1
+        msg = '{f} confirmed in xml'.format(f=relpath)
+        return self._create_obj(filepath, True, msg)
+
+    def validate(self, path):
         xmlfile = self.context
-        logger.debug('Validating {file} against {xml}'.format(file=filepath, xml=xmlfile))
+        objs = []
+        logger.debug('Validating {path} against {xml}'.format(path=path, xml=xmlfile))
 
-        try:
-            self._validate(filepath)
-        except Exception as e:
-            logger.warn('Validation of {file} against {xml} failed, {msg}'.format(file=filepath, xml=xmlfile, msg=e.message))
-            raise
+        if os.path.isdir(path):
+            for root, dirs, files in walk(path):
+                for f in files:
+                    filepath = os.path.join(root, f)
+                    if filepath in self.exclude or filepath == xmlfile:
+                        continue
+                    objs.append(self._validate(filepath))
+        else:
+            objs.append(self._validate(path))
 
-        logger.info("Successful validation of {file} against {xml}".format(file=filepath, xml=xmlfile))
-
-    def post_validation(self):
-        for deleted in self.deleted:
+        for _, deleted in six.iteritems(self.deleted):
             msg = '{file} has been deleted'.format(file=deleted)
-            logger.warn('Validation of {file} against {xml} failed, {msg}'.format(file=deleted, xml=self.context, msg=msg))
-            Validation.objects.create(
-                filename=deleted,
-                time_started=timezone.now(),
-                time_done=timezone.now(),
-                validator=self.__class__.__name__,
-                required=self.required,
-                information_package=self.ip,
-                responsible=self.responsible,
-                message=msg,
-                passed=False,
-                specification={
-                    'context': self.context,
-                    'options': self.options,
-                }
-            )
+            objs.append(self._create_obj(deleted, False, msg))
 
-        if len(self.deleted):
-            raise ValidationError('{len} file(s) has been deleted'.format(len=len(self.deleted)))
+        Validation.objects.bulk_create(objs, batch_size=100)
 
+        if len(self.deleted) + self.added + self.changed + self.renamed > 0:
+            msg = 'Diff-check validation of {path} against {xml} failed: {cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted'.format(
+                path=path, xml=self.context, cfmd=self.confirmed, a=self.added, c=self.changed, r=self.renamed,
+                d=len(self.deleted))
+            logger.warn(msg)
+            raise ValidationError(msg)
+
+        logger.info("Successful diff-check validation of {path} against {xml}".format(path=path, xml=self.context))
 
 class XMLSchemaValidator(BaseValidator):
     def validate(self, filepath):

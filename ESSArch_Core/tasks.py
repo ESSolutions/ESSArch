@@ -592,18 +592,10 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
         else:
             rootdir = os.path.dirname(path)
 
-        validator = DiffCheckValidator(context=xmlfile, options={'rootdir': rootdir})
-        if os.path.isdir(path):
-            for root, dirs, files in walk(path):
-                for f in files:
-                    filepath = os.path.join(root, f)
-                    if filepath in skip_files or filepath == xmlfile:
-                        continue
-                    validator.validate(filepath)
-        else:
-            validator.validate(path)
-
-        validator.post_validation()
+        ip = InformationPackage.objects.get(pk=self.ip)
+        validator = DiffCheckValidator(context=xmlfile, exclude=skip_files, options={'rootdir': rootdir}, ip=ip,
+                                       responsible=ip.responsible)
+        validator.validate(path)
 
     def undo(self, path, xmlfile, skip_files=None):
         pass

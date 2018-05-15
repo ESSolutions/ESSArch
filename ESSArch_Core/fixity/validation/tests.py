@@ -417,17 +417,14 @@ class DiffCheckValidatorTests(TestCase):
             f.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        self.validator.post_validation()
+        self.validator.validate(self.datadir)
 
     def test_validation_with_unchanged_files(self):
         files = self.create_files()
         self.generate_xml()
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        for f in files:
-            self.validator.validate(f)
-
-        self.validator.post_validation()
+        self.validator.validate(self.datadir)
 
     def test_validation_with_unchanged_files_with_same_content(self):
         files = [os.path.join(self.datadir, 'first.txt'), os.path.join(self.datadir, 'second.txt')]
@@ -439,10 +436,7 @@ class DiffCheckValidatorTests(TestCase):
         self.generate_xml()
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        for f in files:
-            self.validator.validate(f)
-
-        self.validator.post_validation()
+        self.validator.validate(self.datadir)
 
     def test_validation_with_deleted_file(self):
         files = self.create_files()
@@ -450,11 +444,9 @@ class DiffCheckValidatorTests(TestCase):
         os.remove(files[0])
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        for f in files[1:]:
-            self.validator.validate(f)
-
-        with self.assertRaisesRegexp(ValidationError, '1 file\(s\) has been deleted'):
-            self.validator.post_validation()
+        msg = '2 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'.format(xml=self.fname)
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.datadir)
 
     def test_validation_with_added_file(self):
         files = self.create_files()
@@ -465,13 +457,9 @@ class DiffCheckValidatorTests(TestCase):
             f.write('added')
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        for f in files:
-            self.validator.validate(f)
-
-        with self.assertRaisesRegexp(ValidationError, '{file} has been added'.format(file=added)):
-            self.validator.validate(added)
-
-        self.validator.post_validation()
+        msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'.format(xml=self.fname)
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.datadir)
 
     def test_validation_with_renamed_file(self):
         files = self.create_files()
@@ -480,16 +468,11 @@ class DiffCheckValidatorTests(TestCase):
         old = files[0]
         new = os.path.join(self.datadir, 'new.txt')
         os.rename(old, new)
-        files[0] = new
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        for f in files[1:]:
-            self.validator.validate(f)
-
-        with self.assertRaisesRegexp(ValidationError, '{old} has been renamed to {new}'.format(old=old, new=new)):
-            self.validator.validate(new)
-
-        self.validator.post_validation()
+        msg = '2 confirmed, 0 added, 0 changed, 1 renamed, 0 deleted$'.format(xml=self.fname)
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.datadir)
 
     def test_validation_with_changed_file(self):
         files = self.create_files()
@@ -499,10 +482,23 @@ class DiffCheckValidatorTests(TestCase):
             f.write('changed')
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        for f in files[1:]:
-            self.validator.validate(f)
+        msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'.format(xml=self.fname)
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.datadir)
 
-        with self.assertRaisesRegexp(ValidationError, '{file} has been changed'.format(file=files[0])):
-            self.validator.validate(files[0])
+    def test_validation_with_all_alterations(self):
+        files = self.create_files()
+        self.generate_xml()
 
-        self.validator.post_validation()
+        with open(files[0], 'a') as f:
+            f.write('changed')
+        os.remove(files[1])
+        os.rename(files[2], os.path.join(self.datadir, 'new.txt'))
+        added = os.path.join(self.datadir, 'added.txt')
+        with open(added, 'w') as f:
+            f.write('added')
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        msg = '0 confirmed, 1 added, 1 changed, 1 renamed, 1 deleted$'.format(xml=self.fname)
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.datadir)

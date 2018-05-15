@@ -16,6 +16,3 @@ class BaseValidator(object):
 
     def validate(self, filepath):
         raise NotImplementedError('subclasses of BaseValidator must provide a validate() method')
-
-    def post_validation(self):
-        pass

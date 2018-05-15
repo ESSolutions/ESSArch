@@ -176,6 +176,3 @@ def validate_path(path, validators, profile, data=None, ip=None, stop_at_failure
 
     else:
         raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), path)
-
-    for validator in validator_instances:
-        validator.post_validation()
