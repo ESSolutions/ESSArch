@@ -50,7 +50,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.profiles.models import ProfileIP, ProfileIPData, ProfileSA
 from ESSArch_Core.profiles.models import SubmissionAgreement as SA
 from ESSArch_Core.profiles.utils import fill_specification_data
-from ESSArch_Core.util import in_directory, list_files, timestamp_to_datetime
+from ESSArch_Core.util import find_destination, in_directory, list_files, timestamp_to_datetime
 
 MESSAGE_DIGEST_ALGORITHM_CHOICES = (
     (ArchivePolicy.MD5, 'MD5'),
@@ -428,11 +428,23 @@ class InformationPackage(models.Model):
         except:
             return None
 
-    def get_events_file_path(self):
-        if os.path.isdir(self.object_path):
+    def get_events_file_path(self, from_container=False):
+        if not from_container and os.path.isfile(self.object_path):
+            return os.path.splitext(self.object_path)[0] + '_ipevents.xml'
+
+        objpath = "" if from_container else self.object_path
+        ip_profile = self.get_profile(self.get_package_type_display().lower())
+        structure = ip_profile.structure
+
+        events_dir, events_file = find_destination('events_file', structure, objpath)
+        if events_dir is not None:
+            full_path = os.path.join(events_dir, events_file)
+            return parseContent(full_path, fill_specification_data(ip=self))
+
+        if not from_container:
             return os.path.join(self.object_path, 'ipevents.xml')
 
-        return os.path.splitext(self.object_path)[0] + '_ipevents.xml'
+        return 'ipevents.xml'
 
     def related_ips(self, cached=True):
         if self.package_type == InformationPackage.AIC:
