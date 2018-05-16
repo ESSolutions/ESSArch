@@ -1,0 +1,27 @@
+<html>
+    <body>
+        <div class="login">
+            <div class="login-box">
+                <div class="login-header">
+                    <h3>{{model.app}}</h3>
+                </div>
+                <div class="login-body">
+                    <form role="form" ng-submit="login(loginForm)" name="loginForm" novalidate>
+                        <div class="form-group">
+                            <label for="id_username">{{'USERNAME' | translate}}</label>
+                            <input name="username" id="id_username" type="text" ng-model="model.username" ng-attr-placeholder="{{'USERNAME' | translate}}" class="form-control" required focused="true" autocapitalize="none" />
+                        </div>
+                        <div class="form-group">
+                            <label for="id_password">{{'PASSWORD' | translate}}</label>
+                            <input name="password" id="id_password" type="password" ng-model="model.password" ng-attr-placeholder="{{'PASSWORD' | translate}}" class="form-control" required />
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" ng-disabled="loginForm.$invalid" class="btn btn-primary">{{'LOGIN' | translate}}</button>
+                        </div>
+                        <div class="alert alert-danger" ng-show="error">{{error}}</div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
