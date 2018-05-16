@@ -19,7 +19,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'mptt',
-    'frontend',
     'ESSArch_Core.admin',
     'ESSArch_Core.auth',
     'ESSArch_Core.config',
@@ -34,7 +33,5 @@ INSTALLED_APPS = [
     'ESSArch_Core.storage',
     'ESSArch_Core.tags',
     'ESSArch_Core.WorkflowEngine',
-    'configuration',
-    'storage',
     'guardian',
 ]
