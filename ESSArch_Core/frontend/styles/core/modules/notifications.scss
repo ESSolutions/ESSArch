@@ -1,0 +1,203 @@
+.top-alert-container {
+    position: absolute;
+    z-index: 1150;
+    top: 4rem;
+    right: 0;
+    width: 320px;
+    max-height: 60vh;
+    min-width: 100px;
+    @include small-screen {
+        width: 100%;
+        top: 0;
+        right: 0;
+        left: 0;
+    }
+}
+.notification-title {
+    padding: .5rem;
+}
+.notification-table-wrapper {
+    max-height: 60vh;
+    overflow-y: scroll;
+}
+
+.mobile-notification {
+    margin-right: 5px;
+    .unseen-text {
+        top: -9.6px;
+    }
+}
+
+.alert-indicator-container {
+    background-color: #f7f7f7;
+    width: 38px;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+}
+
+.alert-indicator {
+    width: 1rem;
+    height: 1rem;
+    border-radius: .5rem;
+    display: inline-block;
+
+    &.error {
+        background-color: $step-fail;
+    }
+    &.success {
+        background-color: $step-success;
+    }
+    &.info {
+        background-color: $step-in-progress;
+    }
+    &.warning {
+        background-color: #fde073;
+        color: black !important;
+    }
+    &.critical {
+        background-color: $step-fail;
+    }
+}
+
+.top-alert.ng-enter, .top-alert.ng-leave {
+    -webkit-transition: .1s linear all;
+    transition: .1s linear all;
+}
+
+.alert-list {
+    background-color: white;
+    color: black;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, .25);
+    padding-bottom: 1rem;
+    .alert-text {
+        margin-left: 36px;
+        padding: 5px;
+        font-size: 14px;
+        overflow-x: hidden;
+        text-overflow: ellipsis;
+        .alert-message {
+            padding-bottom: .3rem;
+        }
+    }
+}
+
+.popup-enabled {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 29px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    input {
+        margin: 0 5px 0 0;
+    }
+}
+.close-notifications {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 29px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.show-sm {
+    display: none;
+    @include small-screen {
+        display: inline;
+    }
+}
+
+.alert-list-item {
+    &:hover {
+        background-color: #f7f7f7;
+    }
+    background-color: white;
+    overflow: hidden;
+}
+
+.alert-text-icons-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.alert-date {
+    text-align: left;
+    font-size: 1rem;
+}
+
+.notification-page {
+    @include container(5px);
+    margin-top: 10px;
+}
+
+/* Transitions */
+
+.top-alert.ng-enter {
+    opacity: 0;
+}
+.top-alert.ng-enter.ng-enter-active {
+    opacity: 1;
+}
+.top-alert.ng-leave {
+    opacity: 1;
+}
+.top-alert.ng-leave.ng-leave-active {
+    opacity: 0;
+}
+.alert-list.ng-enter, .alert-list.ng-leave {
+    -webkit-transition: .3s linear all;
+    transition: .3s linear all;
+}
+ .alert-list.ng-enter {
+   min-height: 0;
+   opacity: .7;
+}
+ .alert-list.ng-enter.ng-enter-active {
+    min-height: 1px;
+    opacity: 1;
+}
+ .alert-list.ng-leave {
+    min-height: 1px;
+    opacity: 1;
+}
+ .alert-list.ng-leave.ng-leave-active {
+    min-height: 0;
+    opacity: .7;
+}
+
+// Override field validation message class
+
+.messenger-message {
+    &.message {
+        margin-top: 0px !important;
+    }
+}
+
+// Override Alert colors
+
+ul.messenger-theme-flat .messenger-message.alert-success .messenger-message-inner:before {
+    background: $step-success !important;
+}
+ul.messenger-theme-flat .messenger-message.alert-info .messenger-message-inner:before {
+    background: $step-in-progress !important;
+}
+ul.messenger-theme-flat .messenger-message.alert-warning .messenger-message-inner:before {
+    background: #fde073 !important;
+}
+ul.messenger-theme-flat .messenger-message.alert-error .messenger-message-inner:before {
+    background: $step-fail !important;
+}
+ul.messenger-theme-flat .messenger-message.alert-critical .messenger-message-inner:before {
+    background: $step-fail !important;
+}
+
+ul.messenger-theme-flat .messenger-message.alert-error.messenger-retry-soon .messenger-spinner .messenger-spinner-side .messenger-spinner-fill {
+    background: #dd6a45 !important;
+}
