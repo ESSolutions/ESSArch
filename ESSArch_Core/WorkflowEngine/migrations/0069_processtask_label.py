@@ -5,6 +5,12 @@ from __future__ import unicode_literals
 from django.db import migrations, models
 
 
+def forward(apps, schema_editor):
+    db_alias = schema_editor.connection.alias
+    ProcessTask = apps.get_model("WorkflowEngine", "ProcessTask")
+    ProcessTask.objects.using(db_alias).filter(label="").update(label=models.F('name'))
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -17,4 +23,5 @@ class Migration(migrations.Migration):
             name='label',
             field=models.CharField(blank=True, max_length=255),
         ),
+        migrations.RunPython(forward, migrations.RunPython.noop),
     ]
