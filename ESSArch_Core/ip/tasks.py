@@ -22,17 +22,14 @@ class GenerateContentMets(DBTask):
     
     def run(self):
         ip = InformationPackage.objects.get(pk=self.ip)
-        sa = ip.submission_agreement
+        mets_path = ip.get_content_mets_file_path()
         profile_type = ip.get_package_type_display().lower()
         profile_rel = ip.get_profile_rel(profile_type)
         profile_data = ip.get_profile_data(profile_type)
-        structure = profile_rel.profile.structure
-        mets_dir, mets_name = find_destination("mets_file", structure)
-        mets_path = os.path.join(ip.object_path, mets_dir, mets_name)
         files_to_create = {
             mets_path: {
                 'spec': profile_rel.profile.specification,
-                'data': fill_specification_data(profile_data, ip=ip, sa=sa)
+                'data': fill_specification_data(profile_data, ip=ip)
             }
         }
         algorithm = ip.get_checksum_algorithm()
@@ -51,7 +48,8 @@ class GenerateContentMets(DBTask):
         pass
 
     def event_outcome_success(self):
-        pass
+        ip = InformationPackage.objects.get(pk=self.ip)
+        return 'Generated {xml}'.format(xml=ip.content_mets_path)
 
 
 class GeneratePackageMets(DBTask):
@@ -65,7 +63,7 @@ class GeneratePackageMets(DBTask):
         elif ip.package_type == InformationPackage.AIP:
             profile_type = 'aip_description'
         else:
-            raise ValueError('Cannot create package mets for IP of type {package_type}'.format(ip.package_type))
+            raise ValueError('Cannot create package mets for IP of type {package_type}'.format(package_type=ip.package_type))
         profile_rel = ip.get_profile_rel(profile_type)
         profile_data = ip.get_profile_data(profile_type)
         xmlpath = os.path.splitext(ip.object_path)[0] + '.xml'
@@ -93,7 +91,8 @@ class GeneratePackageMets(DBTask):
         pass
 
     def event_outcome_success(self):
-        pass
+        ip = InformationPackage.objects.get(pk=self.ip)
+        return 'Generated {xml}'.format(xml=ip.package_mets_path)
 
 
 class GeneratePremis(DBTask):
@@ -101,18 +100,13 @@ class GeneratePremis(DBTask):
 
     def run(self):
         ip = InformationPackage.objects.get(pk=self.ip)
-        sa = ip.submission_agreement
+        premis_path = ip.get_premis_file_path()
         premis_profile_rel = ip.get_profile_rel('preservation_metadata')
         premis_profile_data = ip.get_profile_data('preservation_metadata')
-        ip_profile_type = ip.get_package_type_display().lower()
-        ip_profile_rel = ip.get_profile_rel(ip_profile_type)
-        structure = ip_profile_rel.profile.structure
-        premis_dir, premis_name = find_destination("preservation_description_file", structure)
-        premis_path = os.path.join(ip.object_path, premis_dir, premis_name)
         files_to_create = {
             premis_path: {
                 'spec': premis_profile_rel.profile.specification,
-                'data': fill_specification_data(premis_profile_data, ip=ip, sa=sa)
+                'data': fill_specification_data(premis_profile_data, ip=ip)
             }
         }
         algorithm = ip.get_checksum_algorithm()
@@ -123,7 +117,8 @@ class GeneratePremis(DBTask):
         pass
 
     def event_outcome_success(self):
-        pass
+        ip = InformationPackage.objects.get(pk=self.ip)
+        return 'Generated {xml}'.format(xml=ip.get_premis_file_path())
 
 
 class GenerateEventsXML(DBTask):
@@ -131,12 +126,11 @@ class GenerateEventsXML(DBTask):
 
     def run(self):
         ip = InformationPackage.objects.get(pk=self.ip)
-        sa = ip.submission_agreement
         xml_path = ip.get_events_file_path()
         files_to_create = {
             xml_path: {
                 'spec': get_event_spec(),
-                'data': fill_specification_data(ip=ip, sa=sa)
+                'data': fill_specification_data(ip=ip)
             }
         }
         algorithm = ip.get_checksum_algorithm()
@@ -147,7 +141,8 @@ class GenerateEventsXML(DBTask):
         pass
 
     def event_outcome_success(self):
-        pass
+        ip = InformationPackage.objects.get(pk=self.ip)
+        return 'Generated {xml}'.format(xml=ip.get_events_file_path())
 
 
 class DownloadSchemas(DBTask):
@@ -175,6 +170,7 @@ class DownloadSchemas(DBTask):
 
                 t = ProcessTask.objects.create(
                     name="ESSArch_Core.tasks.DownloadFile",
+                    label="Download file",
                     params={'src': schema, 'dst': dst},
                     processstep_id=self.step,
                     processstep_pos=self.step_pos,
@@ -258,4 +254,5 @@ class CreateContainer(DBTask):
         pass
 
     def event_outcome_success(self):
-        pass
+        ip = InformationPackage.objects.get(pk=self.ip)
+        return "Created {path}".format(path=ip.object_path)

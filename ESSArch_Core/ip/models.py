@@ -428,6 +428,32 @@ class InformationPackage(models.Model):
         except:
             return None
 
+    def get_content_mets_file_path(self):
+        ip_profile_type = self.get_package_type_display().lower()
+        ip_profile_rel = self.get_profile_rel(ip_profile_type)
+        structure = ip_profile_rel.profile.structure
+        mets_dir, mets_name = find_destination("mets_file", structure)
+        if mets_dir is not None:
+            path = os.path.join(mets_dir, mets_name)
+            path = parseContent(path, fill_specification_data(ip=self))
+        else:
+            path = 'mets.xml'
+
+        return os.path.join(self.object_path, path)
+
+    def get_premis_file_path(self):
+        ip_profile_type = self.get_package_type_display().lower()
+        ip_profile_rel = self.get_profile_rel(ip_profile_type)
+        structure = ip_profile_rel.profile.structure
+        premis_dir, premis_name = find_destination("preservation_description_file", structure)
+        if premis_dir is not None:
+            path = os.path.join(premis_dir, premis_name)
+            path = parseContent(path, fill_specification_data(ip=self))
+        else:
+            path = 'metadata/premis.xml'
+
+        return os.path.join(self.object_path, path)
+
     def get_events_file_path(self, from_container=False):
         if not from_container and os.path.isfile(self.object_path):
             return os.path.splitext(self.object_path)[0] + '_ipevents.xml'
