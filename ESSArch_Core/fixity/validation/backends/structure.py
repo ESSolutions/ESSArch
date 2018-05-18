@@ -68,7 +68,9 @@ class StructureValidator(BaseValidator):
 
     def validate_folder(self, path, node):
         valid_paths = node.get('valid_paths', [])
+        allow_empty = node.get('allow_empty', True)
         required_files = [req.format(**self.data) for req in node.get('required_files', [])]
+        file_count = 0
 
         for idx, valid in enumerate(valid_paths):
             if isinstance(valid, six.string_types):
@@ -79,6 +81,7 @@ class StructureValidator(BaseValidator):
 
         for root, dirs, files in walk(path):
             for f in files:
+                file_count += 1
                 if len(valid_paths):
                     try:
                         self.in_valid_paths(path, os.path.join(root, f), valid_paths)
@@ -93,6 +96,9 @@ class StructureValidator(BaseValidator):
                         self.update_required_files(os.path.relpath(root, path), f, required_files)
                     except ValueError:
                         pass
+
+        if not allow_empty and file_count == 0:
+            raise ValidationError('{path} is not allowed to be empty'.format(path=path))
 
         if len(required_files):
             raise ValidationError('Missing {files} in {path}'.format(files=','.join(required_files), path=path))

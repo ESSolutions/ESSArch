@@ -151,6 +151,65 @@ class StructureValidatorTests(SimpleTestCase):
             if exc.errno != errno.ENOENT:
                 raise
 
+    def test_validate_allow_empty_false(self):
+        options = {
+            'tree': [
+                {
+                    "type": "root",
+                    "allow_empty": False
+                }
+            ]
+        }
+        validator = self.validator_class(options=options)
+
+        with self.assertRaises(ValidationError):
+            validator.validate(self.root)
+
+        open(os.path.join(self.root, 'foo.txt'), 'a').close()
+        validator.validate(self.root)
+
+    def test_validate_allow_empty_true(self):
+        options = {
+            'tree': [
+                {
+                    "type": "root",
+                    "allow_empty": True
+                }
+            ]
+        }
+        validator = self.validator_class(options=options)
+        validator.validate(self.root)
+        open(os.path.join(self.root, 'foo.txt'), 'a').close()
+        validator.validate(self.root)
+
+    def test_validate_allow_empty_nested_dir(self):
+        options = {
+            'tree': [
+                {
+                    "type": "folder",
+                    "name": "dir1",
+                    "allow_empty": True
+                },
+                {
+                    "type": "folder",
+                    "name": "dir2",
+                    "allow_empty": False
+                },
+            ]
+        }
+        os.mkdir(os.path.join(self.root, 'dir1'))
+        os.mkdir(os.path.join(self.root, 'dir2'))
+        validator = self.validator_class(options=options)
+        with self.assertRaises(ValidationError):
+            validator.validate(self.root)
+
+        open(os.path.join(self.root, 'dir1', 'foo.txt'), 'a').close()
+        with self.assertRaises(ValidationError):
+            validator.validate(self.root)
+
+        open(os.path.join(self.root, 'dir2', 'foo.txt'), 'a').close()
+        validator.validate(self.root)
+
     def test_validate_required_files(self):
         options = {
             'tree': [
