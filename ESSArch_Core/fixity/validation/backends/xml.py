@@ -37,6 +37,7 @@ class DiffCheckValidator(BaseValidator):
 
         self.present             = {}  # Map checksum -> fname
         self.deleted             = {}  # Map checksum -> fname
+        self.sizes               = {}  # Map fname -> size
         self.checksums           = {}  # Map fname -> checksum
         self.checksum_algorithms = {}  # Map fname -> checksum algorithm
 
@@ -56,6 +57,7 @@ class DiffCheckValidator(BaseValidator):
             self.present[logical.checksum] = logical_path
             self.checksums[logical_path] = logical.checksum
             self.checksum_algorithms[logical_path] = logical.checksum_type
+            self.sizes[logical_path] = logical.size
 
     def _create_obj(self, filename, passed, msg):
         return Validation(
@@ -78,6 +80,7 @@ class DiffCheckValidator(BaseValidator):
         algorithm = self.checksum_algorithms.get(filepath, self.default_algorithm)
         relpath = os.path.relpath(filepath, self.rootdir)
         newhash = calculate_checksum(filepath, algorithm=algorithm)
+        newsize = os.path.getsize(filepath)
         self.deleted.pop(newhash, None)
 
         if newhash in self.present:
@@ -97,6 +100,13 @@ class DiffCheckValidator(BaseValidator):
         elif filepath not in self.checksums:
             self.added += 1
             msg = '{f} is missing from xml'.format(f=relpath)
+            return self._create_obj(filepath, False, msg)
+
+        oldsize = self.sizes[filepath]
+        if oldsize != newsize:
+            self.deleted.pop(oldhash, None)
+            self.changed += 1
+            msg = '{f} size has been changed: {old} != {new}'.format(f=relpath, old=oldsize, new=newsize)
             return self._create_obj(filepath, False, msg)
 
         self.confirmed += 1
