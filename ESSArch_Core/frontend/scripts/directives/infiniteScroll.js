@@ -1,11 +1,15 @@
 angular.module('myApp').directive('onScroll', function() {
-    return function(scope, elm, attr) {
-        var raw = elm[0];
+    return {
+        restrict: 'A',
+        link: function (scope, element, attrs) {
+            var raw = element[0];
+            console.log('loading onScroll directive');
 
-        elm.bind('scroll', function() {
-            if (raw.scrollTop + raw.offsetHeight >= raw.scrollHeight) {
-                scope.$apply(attr.onScroll);
-            }
-        });
+            element.bind('scroll', function () {
+                if (raw.scrollTop + raw.offsetHeight >= raw.scrollHeight) {
+                    scope.$apply(attrs.onScroll);
+                }
+            });
+        }
     };
 });
