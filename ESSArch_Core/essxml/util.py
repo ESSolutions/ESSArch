@@ -52,18 +52,21 @@ FILE_ELEMENTS = {
         "checksum": "@CHECKSUM",
         "checksumtype": "@CHECKSUMTYPE",
         "format": "@FILEFORMATNAME",
+        "size": "@SIZE",
     },
     "mdRef": {
         "path": "@href",
         "pathprefix": ["file:///", "file:"],
         "checksum": "@CHECKSUM",
         "checksumtype": "@CHECKSUMTYPE",
+        "size": "@SIZE",
     },
     "object": {
         "path": ["objectIdentifier/objectIdentifierValue", "storage/contentLocation/contentLocationValue"],
         "pathprefix": ["file:///", "file:"],
         "checksum": "objectCharacteristics/fixity/messageDigest",
         "checksumtype": "objectCharacteristics/fixity/messageDigestAlgorithm",
+        "size": "objectCharacteristics/size",
         "format": "objectCharacteristics/format/formatDesignation/formatName",
     },
 }
@@ -247,7 +250,8 @@ class XMLFileElement():
 
         self.checksum = get_value_from_path(el, props.get('checksum', ''))
         self.checksum_type = get_value_from_path(el, props.get('checksumtype', ''))
-
+        self.size = get_value_from_path(el, props.get('size', ''))
+        self.size = int(self.size) if self.size is not None else None
         self.format = get_value_from_path(el, props.get('format', ''))
 
     def __eq__(self, other):
