@@ -504,6 +504,140 @@ class DiffCheckValidatorTests(TestCase):
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
+    def test_validation_two_identical_files_one_missing(self):
+        files = []
+        for i in range(2):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('foo')
+            files.append(fname)
+        self.generate_xml()
+        os.remove(files[0])
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        msg = '1 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'.format(xml=self.fname)
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.datadir)
+
+    def test_validation_two_identical_files_one_renamed(self):
+        files = []
+        for i in range(2):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('foo')
+            files.append(fname)
+        self.generate_xml()
+
+        old = files[0]
+        new = os.path.join(self.datadir, 'new.txt')
+        os.rename(old, new)
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        msg = '1 confirmed, 0 added, 0 changed, 1 renamed, 0 deleted$'.format(xml=self.fname)
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.datadir)
+
+    def test_validation_two_identical_files_one_renamed_one_deleted(self):
+        files = []
+        for i in range(2):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('foo')
+            files.append(fname)
+        self.generate_xml()
+
+        old = files[0]
+        new = os.path.join(self.datadir, 'new.txt')
+        os.rename(old, new)
+
+        os.remove(files[1])
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        msg = '0 confirmed, 0 added, 0 changed, 1 renamed, 1 deleted$'.format(xml=self.fname)
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.datadir)
+
+    def test_validation_three_identical_files_two_renamed_one_deleted(self):
+        files = []
+        for i in range(3):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('foo')
+            files.append(fname)
+        self.generate_xml()
+
+        old = files[0]
+        new = os.path.join(self.datadir, 'new.txt')
+        os.rename(old, new)
+
+        old = files[1]
+        new = os.path.join(self.datadir, 'newer.txt')
+        os.rename(old, new)
+
+        os.remove(files[2])
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        msg = '0 confirmed, 0 added, 0 changed, 2 renamed, 1 deleted$'.format(xml=self.fname)
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.datadir)
+
+    def test_validation_three_identical_files_two_renamed_one_added(self):
+        files = []
+        for i in range(3):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('foo')
+            files.append(fname)
+        self.generate_xml()
+
+        old = files[0]
+        new = os.path.join(self.datadir, 'new.txt')
+        os.rename(old, new)
+
+        old = files[1]
+        new = os.path.join(self.datadir, 'newer.txt')
+        os.rename(old, new)
+
+        added = os.path.join(self.datadir, 'added.txt')
+        with open(added, 'w') as f:
+            f.write('foo')
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        msg = '1 confirmed, 1 added, 0 changed, 2 renamed, 0 deleted$'.format(xml=self.fname)
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.datadir)
+
+    def test_validation_two_identical_files_one_changed(self):
+        files = []
+        for i in range(2):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('foo')
+            files.append(fname)
+        self.generate_xml()
+
+        with open(files[0], 'a') as f:
+            f.write('changed')
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        msg = '1 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'.format(xml=self.fname)
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.datadir)
+
+    def test_validation_with_added_identical_file(self):
+        files = self.create_files()
+        self.generate_xml()
+
+        added = os.path.join(self.datadir, 'added.txt')
+        with open(added, 'w') as f:
+            with open(files[1]) as f1:
+                f.write(f1.read())
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'.format(xml=self.fname)
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.datadir)
+
     def test_validation_with_all_alterations(self):
         files = self.create_files()
         self.generate_xml()

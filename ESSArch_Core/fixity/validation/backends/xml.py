@@ -53,8 +53,14 @@ class DiffCheckValidator(BaseValidator):
             else:
                 logical_path = logical.path
 
-            self.deleted[logical.checksum] = logical_path
-            self.present[logical.checksum] = logical_path
+            try:
+                self.deleted[logical.checksum].append(logical_path)
+            except KeyError:
+                self.deleted[logical.checksum] = [logical_path]
+            try:
+                self.present[logical.checksum].append(logical_path)
+            except KeyError:
+                self.present[logical.checksum] = [logical_path]
             self.checksums[logical_path] = logical.checksum
             self.checksum_algorithms[logical_path] = logical.checksum_type
             self.sizes[logical_path] = logical.size
@@ -76,30 +82,42 @@ class DiffCheckValidator(BaseValidator):
             }
         )
 
+    def _pop_checksum_dict(self, d, checksum, filepath):
+        l = d[checksum]
+        l.remove(filepath)
+
+        if not len(l):
+            d.pop(checksum)
+
     def _validate(self, filepath):
         algorithm = self.checksum_algorithms.get(filepath, self.default_algorithm)
         relpath = os.path.relpath(filepath, self.rootdir)
         newhash = calculate_checksum(filepath, algorithm=algorithm)
         newsize = os.path.getsize(filepath)
-        self.deleted.pop(newhash, None)
+        try:
+            self._pop_checksum_dict(self.deleted, newhash, filepath)
+        except (KeyError, ValueError):
+            pass
 
         if newhash in self.present:
-            oldname = self.present[newhash]
-            if filepath not in self.checksums:
-                if oldname.lower() != filepath.lower():
-                    self.renamed += 1
-                    msg = '{old} has been renamed to {new}'.format(old=oldname, new=relpath)
-                    return self._create_obj(relpath, False, msg)
-        elif filepath in self.checksums:
-            oldhash = self.checksums[filepath]
-            if oldhash != newhash:
-                self.deleted.pop(oldhash, None)
-                self.changed += 1
-                msg = '{f} has been changed'.format(f=relpath)
-                return self._create_obj(filepath, False, msg)
-        elif filepath not in self.checksums:
+            try:
+                self._pop_checksum_dict(self.present, newhash, filepath)
+            except ValueError:
+                self.present[newhash].append(filepath)
+                return
+        else:
+            self.present[newhash] = [filepath]
+
+        if filepath not in self.checksums:
             self.added += 1
             msg = '{f} is missing from xml'.format(f=relpath)
+            return self._create_obj(filepath, False, msg)
+
+        oldhash = self.checksums[filepath]
+        if oldhash != newhash:
+            self.deleted.pop(oldhash, None)
+            self.changed += 1
+            msg = '{f} checksum has been changed: {old} != {new}'.format(f=relpath, old=oldhash, new=newhash)
             return self._create_obj(filepath, False, msg)
 
         oldsize = self.sizes[filepath]
@@ -128,16 +146,35 @@ class DiffCheckValidator(BaseValidator):
         else:
             objs.append(self._validate(path))
 
-        for _, deleted in six.iteritems(self.deleted):
-            msg = '{file} has been deleted'.format(file=deleted)
-            objs.append(self._create_obj(deleted, False, msg))
+        delete_count = 0
+        for deleted_hash, deleted_hash_files in six.iteritems(self.deleted):
+            present_hash_files = self.present.get(deleted_hash, [])
 
+            for f in present_hash_files[:]:
+                if f not in deleted_hash_files:
+                    try:
+                        present_hash_files.remove(f)
+                        old = deleted_hash_files.pop()
+                        self.renamed += 1
+                        msg = '{old} has been renamed to {new}'.format(old=old, new=f)
+                        objs.append(self._create_obj(old, False, msg))
+                    except IndexError:
+                        self.added += 1
+                        msg = '{f} is missing from xml'.format(f=f)
+                        objs.append(self._create_obj(f, False, msg))
+
+            for f in deleted_hash_files:
+                msg = '{file} has been deleted'.format(file=f)
+                objs.append(self._create_obj(f, False, msg))
+                delete_count += 1
+
+        objs = [o for o in objs if o is not None]
         Validation.objects.bulk_create(objs, batch_size=100)
 
-        if len(self.deleted) + self.added + self.changed + self.renamed > 0:
+        if delete_count + self.added + self.changed + self.renamed > 0:
             msg = 'Diff-check validation of {path} against {xml} failed: {cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted'.format(
                 path=path, xml=self.context, cfmd=self.confirmed, a=self.added, c=self.changed, r=self.renamed,
-                d=len(self.deleted))
+                d=delete_count)
             logger.warn(msg)
             raise ValidationError(msg)
 
