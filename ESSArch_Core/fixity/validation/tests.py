@@ -563,6 +563,18 @@ class DiffCheckValidatorTests(TestCase):
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
+    def test_validation_with_size_attribute_missing(self):
+        files = self.create_files()
+        self.generate_xml()
+
+        tree = etree.parse(self.fname)
+        file_el = tree.xpath('*[local-name()="file"]')[1]
+        file_el.attrib.pop('SIZE')
+        tree.write(self.fname, xml_declaration=True, encoding='UTF-8')
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        self.validator.validate(self.datadir)
+
     def test_validation_two_identical_files_one_missing(self):
         files = []
         for i in range(2):

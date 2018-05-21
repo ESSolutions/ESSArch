@@ -121,7 +121,7 @@ class DiffCheckValidator(BaseValidator):
             return self._create_obj(filepath, False, msg)
 
         oldsize = self.sizes[filepath]
-        if oldsize != newsize:
+        if oldsize is not None and oldsize != newsize:
             self.deleted.pop(oldhash, None)
             self.changed += 1
             msg = '{f} size has been changed: {old} != {new}'.format(f=relpath, old=oldsize, new=newsize)
