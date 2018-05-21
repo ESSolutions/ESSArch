@@ -291,17 +291,18 @@ class CreatePhysicalModel(DBTask):
 
 
 class CreateTAR(DBTask):
-    """
-    Creates a TAR file from the specified directory
-
-    Args:
-        dirname: The directory to create a TAR from
-        tarname: The name of the tar file
-    """
-
     event_type = 50400
 
     def run(self, dirname=None, tarname=None, compress=False):
+        """
+        Creates a TAR file from the specified directory
+
+        Args:
+            dirname: The directory to create a TAR from
+            tarname: The name of the tar file
+            compress: Compresses the tar if true
+        """
+
         compression = ':gz' if compress else ''
         base_dir = os.path.basename(os.path.normpath(dirname))
         with tarfile.open(tarname, 'w%s' % compression) as new_tar:
@@ -323,17 +324,18 @@ class CreateTAR(DBTask):
 
 
 class CreateZIP(DBTask):
-    """
-    Creates a ZIP file from the specified directory
-
-    Args:
-        dirname: The directory to create a ZIP from
-        zipname: The name of the zip file
-    """
-
     event_type = 50410
 
     def run(self, dirname=None, zipname=None, compress=False):
+        """
+        Creates a ZIP file from the specified directory
+
+        Args:
+            dirname: The directory to create a ZIP from
+            zipname: The name of the zip file
+            compress: Compresses the zip file if true
+        """
+
         compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
         with zipfile.ZipFile(zipname, 'w', compression) as new_zip:
             for root, dirs, files in walk(dirname):
