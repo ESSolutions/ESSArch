@@ -28,6 +28,7 @@ import errno
 import inspect
 import itertools
 import json
+import logging
 import os
 import platform
 import re
@@ -58,6 +59,8 @@ import six
 
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
+
+logger = logging.getLogger('essarch')
 
 
 def make_unicode(text):
@@ -142,6 +145,7 @@ def get_value_from_path(root, path):
         if root == el:
             return None
     except IndexError:
+        logger.warning('{path} not found in {root}'.format(path=path, root=root.getroottree().getpath(root)))
         return None
 
     if "@" in path:
@@ -149,6 +153,7 @@ def get_value_from_path(root, path):
         try:
             return el.xpath("@*[local-name()='%s'][1]" % attr)[0]
         except IndexError:
+            logger.warning('{path} not found in {root}'.format(path=path, root=root.getroottree().getpath(root)))
             return None
 
     return el.text
