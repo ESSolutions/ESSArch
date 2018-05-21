@@ -549,6 +549,20 @@ class DiffCheckValidatorTests(TestCase):
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
+    def test_validation_with_checksum_attribute_missing(self):
+        files = self.create_files()
+        self.generate_xml()
+
+        tree = etree.parse(self.fname)
+        file_el = tree.xpath('*[local-name()="file"]')[1]
+        file_el.attrib.pop('CHECKSUM')
+        tree.write(self.fname, xml_declaration=True, encoding='UTF-8')
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'.format(xml=self.fname)
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.datadir)
+
     def test_validation_with_incorrect_size(self):
         files = self.create_files()
         self.generate_xml()
