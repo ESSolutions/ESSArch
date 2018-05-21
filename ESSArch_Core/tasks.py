@@ -234,45 +234,6 @@ class ParseEvents(DBTask):
     def event_outcome_success(self, xmlfile, delete_file=False):
         return "Parsed events from %s" % xmlfile
 
-class CopySchemas(DBTask):
-    event_type = 50620
-
-    def findDestination(self, dirname, structure, path=''):
-        for content in structure:
-            if content['name'] == dirname and content['type'] == 'folder':
-                return os.path.join(path, dirname)
-            elif content['type'] == 'dir':
-                rec = self.findDestination(
-                    dirname, content['children'], os.path.join(path, content['name'])
-                )
-                if rec: return rec
-
-    def createSrcAndDst(self, schema, root, structure):
-        src = schema['location']
-        fname = os.path.basename(src.rstrip("/"))
-        dst = os.path.join(
-            root,
-            self.findDestination(schema['preservation_location'], structure),
-            fname
-        )
-
-        return src, dst
-
-    def run(self, schema={}, root=None, structure=None):
-        """
-        Copies the schema to a specified location
-        """
-
-        src, dst = self.createSrcAndDst(schema, root, structure)
-        urllib.request.urlretrieve(src, dst)
-
-    def undo(self, schema={}, root=None, structure=None):
-        pass
-
-    def event_outcome_success(self, schema={}, root=None, structure=None):
-        src, dst = self.createSrcAndDst(schema, root, structure)
-        return "Copied schemas from %s to %s" % src, dst
-
 
 class CreatePhysicalModel(DBTask):
     event_type = 10300
