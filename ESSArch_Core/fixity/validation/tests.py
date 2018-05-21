@@ -489,6 +489,14 @@ class DiffCheckValidatorTests(TestCase):
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         self.validator.validate(self.datadir)
 
+    def test_validation_with_unchanged_files_multiple_times(self):
+        files = self.create_files()
+        self.generate_xml()
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        self.validator.validate(self.datadir)
+        self.validator.validate(self.datadir)
+
     def test_validation_with_unchanged_files_with_same_content(self):
         files = [os.path.join(self.datadir, 'first.txt'), os.path.join(self.datadir, 'second.txt')]
 
@@ -906,6 +914,15 @@ class XMLComparisonValidatorTests(TestCase):
         self.generate_premis_xml()
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        self.validator.validate(self.premis)
+
+    def test_validation_with_unchanged_files_multiple_times(self):
+        files = self.create_files()
+        self.generate_mets_xml()
+        self.generate_premis_xml()
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        self.validator.validate(self.premis)
         self.validator.validate(self.premis)
 
     def test_validation_with_unchanged_files_with_same_content(self):

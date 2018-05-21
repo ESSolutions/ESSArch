@@ -1,3 +1,4 @@
+import copy
 import logging
 import os
 
@@ -35,18 +36,14 @@ class DiffCheckValidator(BaseValidator):
         self.rootdir = self.options.get('rootdir')
         self.default_algorithm = self.options.get('default_algorithm', 'SHA-256')
 
-        self.present             = {}  # Map checksum -> fname
-        self.deleted             = {}  # Map checksum -> fname
+        self.initial_present     = {}  # Map checksum -> fname
+        self.initial_deleted     = {}  # Map checksum -> fname
         self.sizes               = {}  # Map fname -> size
         self.checksums           = {}  # Map fname -> checksum
         self.checksum_algorithms = {}  # Map fname -> checksum algorithm
 
-        self.confirmed = 0
-        self.added = 0
-        self.changed = 0
-        self.renamed = 0
-
         self.logical_files = find_files(self.context, rootdir=self.rootdir)
+        self._get_files()
         for logical in self.logical_files:
             if self.rootdir is not None:
                 logical_path = os.path.join(self.rootdir, logical.path)
@@ -54,16 +51,29 @@ class DiffCheckValidator(BaseValidator):
                 logical_path = logical.path
 
             try:
-                self.deleted[logical.checksum].append(logical_path)
+                self.initial_deleted[logical.checksum].append(logical_path)
             except KeyError:
-                self.deleted[logical.checksum] = [logical_path]
+                self.initial_deleted[logical.checksum] = [logical_path]
             try:
-                self.present[logical.checksum].append(logical_path)
+                self.initial_present[logical.checksum].append(logical_path)
             except KeyError:
-                self.present[logical.checksum] = [logical_path]
+                self.initial_present[logical.checksum] = [logical_path]
             self.checksums[logical_path] = logical.checksum
             self.checksum_algorithms[logical_path] = logical.checksum_type
             self.sizes[logical_path] = logical.size
+
+    def _reset_dicts(self):
+        self.present = copy.deepcopy(self.initial_present)
+        self.deleted = copy.deepcopy(self.initial_deleted)
+
+    def _reset_counters(self):
+        self.confirmed = 0
+        self.added = 0
+        self.changed = 0
+        self.renamed = 0
+
+    def _get_files(self):
+        self.logical_files = find_files(self.context, rootdir=self.rootdir)
 
     def _create_obj(self, filename, passed, msg):
         return Validation(
@@ -180,6 +190,8 @@ class DiffCheckValidator(BaseValidator):
     def validate(self, path):
         xmlfile = self.context
         objs = []
+        self._reset_dicts()
+        self._reset_counters()
         logger.debug('Validating {path} against {xml}'.format(path=path, xml=xmlfile))
 
         if os.path.isdir(path):
@@ -209,45 +221,9 @@ class DiffCheckValidator(BaseValidator):
 
 
 class XMLComparisonValidator(DiffCheckValidator):
-    def __init__(self, *args, **kwargs):
-        super(XMLComparisonValidator, self).__init__(*args, **kwargs)
-
-        if not self.context:
-            raise ValueError('A context (xml) is required')
-
-        self.rootdir = self.options.get('rootdir')
-        self.default_algorithm = self.options.get('default_algorithm', 'SHA-256')
-
-        self.present             = {}  # Map checksum -> fname
-        self.deleted             = {}  # Map checksum -> fname
-        self.sizes               = {}  # Map fname -> size
-        self.checksums           = {}  # Map fname -> checksum
-        self.checksum_algorithms = {}  # Map fname -> checksum algorithm
-
-        self.confirmed = 0
-        self.added = 0
-        self.changed = 0
-        self.renamed = 0
-
+    def _get_files(self):
         skip_files = [p.path for p in find_pointers(self.context)]
         self.logical_files = find_files(self.context, rootdir=self.rootdir, skip_files=skip_files)
-        for logical in self.logical_files:
-            if self.rootdir is not None:
-                logical_path = os.path.join(self.rootdir, logical.path)
-            else:
-                logical_path = logical.path
-
-            try:
-                self.deleted[logical.checksum].append(logical_path)
-            except KeyError:
-                self.deleted[logical.checksum] = [logical_path]
-            try:
-                self.present[logical.checksum].append(logical_path)
-            except KeyError:
-                self.present[logical.checksum] = [logical_path]
-            self.checksums[logical_path] = logical.checksum
-            self.checksum_algorithms[logical_path] = logical.checksum_type
-            self.sizes[logical_path] = logical.size
 
     def _get_filepath(self, input_file):
         return os.path.join(self.rootdir, input_file.path)
@@ -261,6 +237,8 @@ class XMLComparisonValidator(DiffCheckValidator):
     def validate(self, path):
         xmlfile = self.context
         objs = []
+        self._reset_dicts()
+        self._reset_counters()
         logger.debug('Validating {path} against {xml}'.format(path=path, xml=xmlfile))
         checksum_in_context_file = self.checksums.get(path)
 
