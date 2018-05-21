@@ -109,15 +109,15 @@ class DiffCheckValidator(BaseValidator):
             self.present[newhash] = [filepath]
 
         if filepath not in self.checksums:
-            self.added += 1
-            msg = '{f} is missing from xml'.format(f=relpath)
-            return self._create_obj(filepath, False, msg)
+            return
 
         oldhash = self.checksums[filepath]
         if oldhash != newhash:
             self.deleted.pop(oldhash, None)
             self.changed += 1
             msg = '{f} checksum has been changed: {old} != {new}'.format(f=relpath, old=oldhash, new=newhash)
+            self._pop_checksum_dict(self.present, oldhash, filepath)
+            self._pop_checksum_dict(self.present, newhash, filepath)
             return self._create_obj(filepath, False, msg)
 
         oldsize = self.sizes[filepath]
@@ -153,20 +153,29 @@ class DiffCheckValidator(BaseValidator):
             for f in present_hash_files[:]:
                 if f not in deleted_hash_files:
                     try:
-                        present_hash_files.remove(f)
                         old = deleted_hash_files.pop()
                         self.renamed += 1
                         msg = '{old} has been renamed to {new}'.format(old=old, new=f)
                         objs.append(self._create_obj(old, False, msg))
+                        present_hash_files.remove(old)
+                        present_hash_files.remove(f)
                     except IndexError:
-                        self.added += 1
-                        msg = '{f} is missing from xml'.format(f=f)
-                        objs.append(self._create_obj(f, False, msg))
+                        pass
 
             for f in deleted_hash_files:
                 msg = '{file} has been deleted'.format(file=f)
                 objs.append(self._create_obj(f, False, msg))
                 delete_count += 1
+                present_hash_files.remove(f)
+
+            if not len(present_hash_files):
+                self.present.pop(deleted_hash, None)
+
+        for present_hash, present_hash_files in six.iteritems(self.present):
+            for f in present_hash_files:
+                self.added += 1
+                msg = '{f} is missing from xml'.format(f=f)
+                objs.append(self._create_obj(f, False, msg))
 
         objs = [o for o in objs if o is not None]
         Validation.objects.bulk_create(objs, batch_size=100)

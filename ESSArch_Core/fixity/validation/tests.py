@@ -723,6 +723,23 @@ class DiffCheckValidatorTests(TestCase):
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
+    def test_validation_with_added_identical_file_reversed_walk(self):
+        files = self.create_files()
+        self.generate_xml()
+
+        added = os.path.join(self.datadir, 'added.txt')
+        with open(added, 'w') as f:
+            with open(files[1]) as f1:
+                f.write(f1.read())
+        for f in files:
+            os.remove(f)
+        self.create_files()
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'.format(xml=self.fname)
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.datadir)
+
     def test_validation_with_all_alterations(self):
         files = self.create_files()
         self.generate_xml()
