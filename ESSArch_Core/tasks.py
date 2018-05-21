@@ -239,12 +239,10 @@ class CreatePhysicalModel(DBTask):
     event_type = 10300
 
     def get_root(self):
-        root = Path.objects.get(
-            entity="path_preingest_prepare"
-        ).value
-        return os.path.join(root, unicode(self.ip))
+        ip = self.get_information_package()
+        return ip.object_path
 
-    def run(self, structure={}, root=""):
+    def run(self, structure, root=""):
         """
         Creates the IP physical model based on a logical model.
 
@@ -253,17 +251,9 @@ class CreatePhysicalModel(DBTask):
             root: The root directory to be used
         """
 
-        if not root:
-            root = self.get_root()
-
-        try:
-            delete_content(root)
-        except OSError as e:
-            if e.errno != 2:
-                raise
-
         ip = InformationPackage.objects.get(pk=self.ip)
         data = fill_specification_data(ip=ip, sa=ip.submission_agreement)
+        root = self.get_root() if not root else root
 
         for content in structure:
             if content.get('type') == 'folder':
@@ -276,9 +266,8 @@ class CreatePhysicalModel(DBTask):
 
         self.set_progress(1, total=1)
 
-    def undo(self, structure={}, root=""):
-        if not root:
-            root = self.get_root()
+    def undo(self, structure, root=""):
+        root = self.get_root() if not root else root
 
         for content in structure:
             if content.get('type') == 'folder':
@@ -286,7 +275,7 @@ class CreatePhysicalModel(DBTask):
                 dirname = os.path.join(root, name)
                 shutil.rmtree(dirname)
 
-    def event_outcome_success(self, structure={}, root=""):
+    def event_outcome_success(self, structure, root=""):
         return "Created physical model for %s" % self.ip_objid
 
 

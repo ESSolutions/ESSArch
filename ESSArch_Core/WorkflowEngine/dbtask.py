@@ -313,6 +313,9 @@ class DBTask(Task):
     def parse_params(self, *params):
         return tuple([parseContent(param, self.extra_data) for param in params])
 
+    def get_information_package(self):
+        return InformationPackage.objects.get(pk=self.ip)
+
     def event_outcome_success(self, *args, **kwargs):
         raise NotImplementedError()
 
