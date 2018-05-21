@@ -112,7 +112,7 @@ class GenerateXML(DBTask):
         )
 
     def undo(self, filesToCreate={}, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
-        for f, template in filesToCreate.iteritems():
+        for f, template in six.iteritems(filesToCreate):
             try:
                 os.remove(f)
             except OSError as e:

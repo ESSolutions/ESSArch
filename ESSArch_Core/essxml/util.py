@@ -276,7 +276,7 @@ def find_pointers(xmlfile=None, tree=None):
     if xmlfile is not None:
         tree = etree.ElementTree(file=xmlfile)
 
-    for elname, props in PTR_ELEMENTS.iteritems():
+    for elname, props in six.iteritems(PTR_ELEMENTS):
         for ptr in tree.xpath('.//*[local-name()="%s"]' % elname):
             yield XMLFileElement(ptr, props)
 
@@ -321,7 +321,7 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None):
     if skip_files is None:
         skip_files = []
 
-    for elname, props in FILE_ELEMENTS.iteritems():
+    for elname, props in six.iteritems(FILE_ELEMENTS):
         file_elements = doc.xpath('.//*[local-name()="%s"]' % elname)
 
         # Remove first object in premis file if it is a "fake" entry describing the tar
