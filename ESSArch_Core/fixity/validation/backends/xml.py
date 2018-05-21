@@ -6,7 +6,7 @@ from django.utils import timezone
 from lxml import etree, isoschematron
 from scandir import walk
 
-from ESSArch_Core.essxml.util import find_files, validate_against_schema
+from ESSArch_Core.essxml.util import find_files, find_pointers, validate_against_schema
 from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.fixity.models import Validation
@@ -89,11 +89,22 @@ class DiffCheckValidator(BaseValidator):
         if not len(l):
             d.pop(checksum)
 
+    def _get_filepath(self, input_file):
+        return input_file
+
+    def _get_checksum(self, input_file):
+        algorithm = self.checksum_algorithms.get(input_file, self.default_algorithm)
+        return calculate_checksum(input_file, algorithm=algorithm)
+
+    def _get_size(self, input_file):
+        return os.path.getsize(input_file)
+
     def _validate(self, filepath):
-        algorithm = self.checksum_algorithms.get(filepath, self.default_algorithm)
+        newhash = self._get_checksum(filepath)
+        newsize = self._get_size(filepath)
+        filepath = self._get_filepath(filepath)
         relpath = os.path.relpath(filepath, self.rootdir)
-        newhash = calculate_checksum(filepath, algorithm=algorithm)
-        newsize = os.path.getsize(filepath)
+
         try:
             self._pop_checksum_dict(self.deleted, newhash, filepath)
         except (KeyError, ValueError):
@@ -121,7 +132,7 @@ class DiffCheckValidator(BaseValidator):
             return self._create_obj(filepath, False, msg)
 
         oldsize = self.sizes[filepath]
-        if oldsize is not None and oldsize != newsize:
+        if oldsize is not None and newsize is not None and oldsize != newsize:
             self.deleted.pop(oldhash, None)
             self.changed += 1
             msg = '{f} size has been changed: {old} != {new}'.format(f=relpath, old=oldsize, new=newsize)
@@ -131,21 +142,7 @@ class DiffCheckValidator(BaseValidator):
         msg = '{f} confirmed in xml'.format(f=relpath)
         return self._create_obj(filepath, True, msg)
 
-    def validate(self, path):
-        xmlfile = self.context
-        objs = []
-        logger.debug('Validating {path} against {xml}'.format(path=path, xml=xmlfile))
-
-        if os.path.isdir(path):
-            for root, dirs, files in walk(path):
-                for f in files:
-                    filepath = os.path.join(root, f)
-                    if filepath in self.exclude or filepath == xmlfile:
-                        continue
-                    objs.append(self._validate(filepath))
-        else:
-            objs.append(self._validate(path))
-
+    def _validate_deleted_files(self, objs):
         delete_count = 0
         for deleted_hash, deleted_hash_files in six.iteritems(self.deleted):
             present_hash_files = self.present.get(deleted_hash, [])
@@ -171,11 +168,32 @@ class DiffCheckValidator(BaseValidator):
             if not len(present_hash_files):
                 self.present.pop(deleted_hash, None)
 
+        return delete_count
+
+    def _validate_present_files(self, objs):
         for present_hash, present_hash_files in six.iteritems(self.present):
             for f in present_hash_files:
                 self.added += 1
-                msg = '{f} is missing from xml'.format(f=f)
+                msg = '{f} is missing from {xml}'.format(f=f, xml=self.context)
                 objs.append(self._create_obj(f, False, msg))
+
+    def validate(self, path):
+        xmlfile = self.context
+        objs = []
+        logger.debug('Validating {path} against {xml}'.format(path=path, xml=xmlfile))
+
+        if os.path.isdir(path):
+            for root, dirs, files in walk(path):
+                for f in files:
+                    filepath = os.path.join(root, f)
+                    if filepath in self.exclude or filepath == xmlfile:
+                        continue
+                    objs.append(self._validate(filepath))
+        else:
+            objs.append(self._validate(path))
+
+        delete_count = self._validate_deleted_files(objs)
+        self._validate_present_files(objs)
 
         objs = [o for o in objs if o is not None]
         Validation.objects.bulk_create(objs, batch_size=100)
@@ -188,6 +206,104 @@ class DiffCheckValidator(BaseValidator):
             raise ValidationError(msg)
 
         logger.info("Successful diff-check validation of {path} against {xml}".format(path=path, xml=self.context))
+
+
+class XMLComparisonValidator(DiffCheckValidator):
+    def __init__(self, *args, **kwargs):
+        super(XMLComparisonValidator, self).__init__(*args, **kwargs)
+
+        if not self.context:
+            raise ValueError('A context (xml) is required')
+
+        self.rootdir = self.options.get('rootdir')
+        self.default_algorithm = self.options.get('default_algorithm', 'SHA-256')
+
+        self.present             = {}  # Map checksum -> fname
+        self.deleted             = {}  # Map checksum -> fname
+        self.sizes               = {}  # Map fname -> size
+        self.checksums           = {}  # Map fname -> checksum
+        self.checksum_algorithms = {}  # Map fname -> checksum algorithm
+
+        self.confirmed = 0
+        self.added = 0
+        self.changed = 0
+        self.renamed = 0
+
+        skip_files = [p.path for p in find_pointers(self.context)]
+        self.logical_files = find_files(self.context, rootdir=self.rootdir, skip_files=skip_files)
+        for logical in self.logical_files:
+            if self.rootdir is not None:
+                logical_path = os.path.join(self.rootdir, logical.path)
+            else:
+                logical_path = logical.path
+
+            try:
+                self.deleted[logical.checksum].append(logical_path)
+            except KeyError:
+                self.deleted[logical.checksum] = [logical_path]
+            try:
+                self.present[logical.checksum].append(logical_path)
+            except KeyError:
+                self.present[logical.checksum] = [logical_path]
+            self.checksums[logical_path] = logical.checksum
+            self.checksum_algorithms[logical_path] = logical.checksum_type
+            self.sizes[logical_path] = logical.size
+
+    def _get_filepath(self, input_file):
+        return os.path.join(self.rootdir, input_file.path)
+
+    def _get_checksum(self, input_file):
+        return input_file.checksum
+
+    def _get_size(self, input_file):
+        return input_file.size
+
+    def validate(self, path):
+        xmlfile = self.context
+        objs = []
+        logger.debug('Validating {path} against {xml}'.format(path=path, xml=xmlfile))
+        checksum_in_context_file = self.checksums.get(path)
+
+        if checksum_in_context_file:
+            try:
+                self._pop_checksum_dict(self.deleted, checksum_in_context_file, path)
+                self._pop_checksum_dict(self.present, checksum_in_context_file, path)
+            except (KeyError, ValueError):
+                pass
+
+        skip_files = [os.path.relpath(xmlfile, self.rootdir)]
+        skip_files.extend([p.path for p in find_pointers(path)])
+        for f in find_files(path, rootdir=self.rootdir, skip_files=skip_files):
+            if f in self.exclude:
+                continue
+            objs.append(self._validate(f))
+
+        delete_count = self._validate_deleted_files(objs)
+        self._validate_present_files(objs)
+
+        if checksum_in_context_file:
+            try:
+                self.deleted[checksum_in_context_file].append(path)
+            except KeyError:
+                self.deleted[checksum_in_context_file] = [path]
+
+            try:
+                self.present[checksum_in_context_file].append(path)
+            except KeyError:
+                self.present[checksum_in_context_file] = [path]
+
+        objs = [o for o in objs if o is not None]
+        Validation.objects.bulk_create(objs, batch_size=100)
+
+        if delete_count + self.added + self.changed + self.renamed > 0:
+            msg = 'Comparision of {path} against {xml} failed: {cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted'.format(
+                path=path, xml=self.context, cfmd=self.confirmed, a=self.added, c=self.changed, r=self.renamed,
+                d=delete_count)
+            logger.warn(msg)
+            raise ValidationError(msg)
+
+        logger.info("Successful comparison of {path} against {xml}".format(path=path, xml=self.context))
+
 
 class XMLSchemaValidator(BaseValidator):
     def validate(self, filepath):

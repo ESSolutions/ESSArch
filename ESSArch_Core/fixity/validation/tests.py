@@ -14,7 +14,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.fixity.validation.backends.structure import StructureValidator
-from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator
+from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLComparisonValidator
 
 
 class ChecksumValidatorTests(fake_filesystem_unittest.TestCase):
@@ -756,3 +756,421 @@ class DiffCheckValidatorTests(TestCase):
         msg = '0 confirmed, 1 added, 1 changed, 1 renamed, 1 deleted$'.format(xml=self.fname)
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
+
+
+class XMLComparisonValidatorTests(TestCase):
+    def setUp(self):
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.mets = os.path.join(self.datadir, 'mets.xml')
+        self.premis = os.path.join(self.datadir, 'premis.xml')
+        self.options = {'rootdir': self.datadir}
+        mimetypes_path = os.path.join(os.path.dirname(Generator.__file__), 'mime.types')
+
+        Path.objects.create(
+            entity="path_mimetypes_definitionfile",
+            value=mimetypes_path
+        )
+
+        self.mets_spec = {
+            self.mets: {
+                'data': {},
+                'spec': {
+                    '-name': 'root',
+                    '-children': [
+                        {
+                            "-name": "file",
+                            "-containsFiles": True,
+                            "-attr": [
+                                {
+                                    "-name": "MIMETYPE",
+                                    "#content": "{{FMimetype}}",
+                                },
+                                {
+                                    "-name": "CHECKSUM",
+                                    "#content": "{{FChecksum}}"
+                                },
+                                {
+                                    "-name": "CHECKSUMTYPE",
+                                    "#content": "{{FChecksumType}}"
+                                },
+                                {
+                                    "-name": "SIZE",
+                                    "#content": "{{FSize}}"
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "FLocat",
+                                    "-attr": [
+                                        {
+                                            "-name": "href",
+                                            "-namespace": "xlink",
+                                            "#content": "file:///{{href}}"
+                                        },
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+
+        self.premis_spec = {
+            self.premis: {
+                'data': {},
+                'spec': {
+                    '-name': 'root',
+                    '-children': [
+                        {
+                            "-name": "file",
+                            "-containsFiles": True,
+                            "-attr": [
+                                {
+                                    "-name": "MIMETYPE",
+                                    "#content": "{{FMimetype}}",
+                                },
+                                {
+                                    "-name": "CHECKSUM",
+                                    "#content": "{{FChecksum}}"
+                                },
+                                {
+                                    "-name": "CHECKSUMTYPE",
+                                    "#content": "{{FChecksumType}}"
+                                },
+                                {
+                                    "-name": "SIZE",
+                                    "#content": "{{FSize}}"
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "FLocat",
+                                    "-attr": [
+                                        {
+                                            "-name": "href",
+                                            "-namespace": "xlink",
+                                            "#content": "file:///{{href}}"
+                                        },
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+
+        try:
+            os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def create_files(self):
+        files = []
+        for i in range(3):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('%s' % i)
+            files.append(fname)
+
+        return files
+
+    def generate_mets_xml(self):
+        generator = XMLGenerator(self.mets_spec)
+        generator.generate(folderToParse=self.datadir)
+
+    def generate_premis_xml(self):
+        generator = XMLGenerator(self.premis_spec)
+        generator.generate(folderToParse=self.datadir)
+
+    def test_validation_without_files(self):
+        root = etree.fromstring('<root></root>')
+
+        with open(self.mets, 'w') as f:
+            f.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
+        with open(self.premis, 'w') as f:
+            f.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        self.validator.validate(self.premis)
+
+    def test_validation_with_unchanged_files(self):
+        files = self.create_files()
+        self.generate_mets_xml()
+        self.generate_premis_xml()
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        self.validator.validate(self.premis)
+
+    def test_validation_with_unchanged_files_with_same_content(self):
+        files = [os.path.join(self.datadir, 'first.txt'), os.path.join(self.datadir, 'second.txt')]
+
+        for f in files:
+            with open(os.path.join(f), 'w') as fp:
+                fp.write('foo')
+
+        self.generate_mets_xml()
+        self.generate_premis_xml()
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        self.validator.validate(self.premis)
+
+    def test_validation_with_deleted_file(self):
+        files = self.create_files()
+        self.generate_mets_xml()
+        os.remove(files[0])
+        self.generate_premis_xml()
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        msg = '2 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.premis)
+
+    def test_validation_with_added_file(self):
+        files = self.create_files()
+        self.generate_mets_xml()
+
+        added = os.path.join(self.datadir, 'added.txt')
+        with open(added, 'w') as f:
+            f.write('added')
+        self.generate_premis_xml()
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.premis)
+
+    def test_validation_with_renamed_file(self):
+        files = self.create_files()
+        self.generate_mets_xml()
+
+        old = files[0]
+        new = os.path.join(self.datadir, 'new.txt')
+        os.rename(old, new)
+        self.generate_premis_xml()
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        msg = '2 confirmed, 0 added, 0 changed, 1 renamed, 0 deleted$'
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.premis)
+
+    def test_validation_with_changed_file(self):
+        files = self.create_files()
+        self.generate_mets_xml()
+
+        with open(files[0], 'a') as f:
+            f.write('changed')
+        self.generate_premis_xml()
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.premis)
+
+    def test_validation_with_checksum_attribute_missing(self):
+        files = self.create_files()
+        self.generate_mets_xml()
+        self.generate_premis_xml()
+
+        tree = etree.parse(self.premis)
+        file_el = tree.xpath('*[local-name()="file"]')[1]
+        file_el.attrib.pop('CHECKSUM')
+        tree.write(self.premis, xml_declaration=True, encoding='UTF-8')
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.premis)
+
+    def test_validation_with_incorrect_size(self):
+        files = self.create_files()
+        self.generate_mets_xml()
+        self.generate_premis_xml()
+
+        tree = etree.parse(self.premis)
+        file_el = tree.xpath('*[local-name()="file"]')[1]
+        file_el.attrib['SIZE'] = str(os.path.getsize(files[1])*2)
+        tree.write(self.premis, xml_declaration=True, encoding='UTF-8')
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.premis)
+
+    def test_validation_with_size_attribute_missing(self):
+        files = self.create_files()
+        self.generate_mets_xml()
+        self.generate_premis_xml()
+
+        tree = etree.parse(self.premis)
+        file_el = tree.xpath('*[local-name()="file"]')[1]
+        file_el.attrib.pop('SIZE')
+        tree.write(self.premis, xml_declaration=True, encoding='UTF-8')
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        self.validator.validate(self.premis)
+
+    def test_validation_two_identical_files_one_missing(self):
+        files = []
+        for i in range(2):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('foo')
+            files.append(fname)
+        self.generate_mets_xml()
+        os.remove(files[0])
+        self.generate_premis_xml()
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        msg = '1 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.premis)
+
+    def test_validation_two_identical_files_one_renamed(self):
+        files = []
+        for i in range(2):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('foo')
+            files.append(fname)
+        self.generate_mets_xml()
+
+        old = files[0]
+        new = os.path.join(self.datadir, 'new.txt')
+        os.rename(old, new)
+        self.generate_premis_xml()
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        msg = '1 confirmed, 0 added, 0 changed, 1 renamed, 0 deleted$'
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.premis)
+
+    def test_validation_two_identical_files_one_renamed_one_deleted(self):
+        files = []
+        for i in range(2):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('foo')
+            files.append(fname)
+        self.generate_mets_xml()
+
+        old = files[0]
+        new = os.path.join(self.datadir, 'new.txt')
+        os.rename(old, new)
+
+        os.remove(files[1])
+        self.generate_premis_xml()
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        msg = '0 confirmed, 0 added, 0 changed, 1 renamed, 1 deleted$'
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.premis)
+
+    def test_validation_three_identical_files_two_renamed_one_deleted(self):
+        files = []
+        for i in range(3):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('foo')
+            files.append(fname)
+        self.generate_mets_xml()
+
+        old = files[0]
+        new = os.path.join(self.datadir, 'new.txt')
+        os.rename(old, new)
+
+        old = files[1]
+        new = os.path.join(self.datadir, 'newer.txt')
+        os.rename(old, new)
+
+        os.remove(files[2])
+        self.generate_premis_xml()
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        msg = '0 confirmed, 0 added, 0 changed, 2 renamed, 1 deleted$'
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.premis)
+
+    def test_validation_three_identical_files_two_renamed_one_added(self):
+        files = []
+        for i in range(3):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('foo')
+            files.append(fname)
+        self.generate_mets_xml()
+
+        old = files[0]
+        new = os.path.join(self.datadir, 'new.txt')
+        os.rename(old, new)
+
+        old = files[1]
+        new = os.path.join(self.datadir, 'newer.txt')
+        os.rename(old, new)
+
+        added = os.path.join(self.datadir, 'added.txt')
+        with open(added, 'w') as f:
+            f.write('foo')
+        self.generate_premis_xml()
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        msg = '1 confirmed, 1 added, 0 changed, 2 renamed, 0 deleted$'
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.premis)
+
+    def test_validation_two_identical_files_one_changed(self):
+        files = []
+        for i in range(2):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('foo')
+            files.append(fname)
+        self.generate_mets_xml()
+
+        with open(files[0], 'a') as f:
+            f.write('changed')
+        self.generate_premis_xml()
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        msg = '1 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.premis)
+
+    def test_validation_with_added_identical_file(self):
+        files = self.create_files()
+        self.generate_mets_xml()
+
+        added = os.path.join(self.datadir, 'added.txt')
+        with open(added, 'w') as f:
+            with open(files[1]) as f1:
+                f.write(f1.read())
+        self.generate_premis_xml()
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.premis)
+
+    def test_validation_with_all_alterations(self):
+        files = self.create_files()
+        self.generate_mets_xml()
+
+        with open(files[0], 'a') as f:
+            f.write('changed')
+        os.remove(files[1])
+        os.rename(files[2], os.path.join(self.datadir, 'new.txt'))
+        added = os.path.join(self.datadir, 'added.txt')
+        with open(added, 'w') as f:
+            f.write('added')
+        self.generate_premis_xml()
+
+        self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
+        msg = '0 confirmed, 1 added, 1 changed, 1 renamed, 1 deleted$'
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.premis)

@@ -59,7 +59,7 @@ from ESSArch_Core.essxml.util import find_files, find_pointers
 from ESSArch_Core.fixity import format, transformation, validation
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
-from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLSchemaValidator
+from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLComparisonValidator, XMLSchemaValidator
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -561,40 +561,22 @@ class CompareXMLFiles(DBTask):
     event_type = 50240
     queue = 'validation'
 
-    def run(self, first, second, rootdir=None, compare_checksum=False):
+    def run(self, first, second, rootdir=None):
         first, second = self.parse_params(first, second)
-        if rootdir is None and self.ip is not None:
-            ip = InformationPackage.objects.get(pk=self.ip)
+        ip = InformationPackage.objects.get(pk=self.ip)
+        if rootdir is None:
             rootdir = ip.object_path
         else:
             rootdir, = self.parse_params(rootdir)
 
-        skipped_first = [p.path for p in find_pointers(first)]
-        skipped_first.append(os.path.relpath(second, rootdir))
-        first_files = find_files(first, rootdir, skip_files=skipped_first)
-        skipped_second = [p.path for p in find_pointers(second)]
-        skipped_second.append(os.path.relpath(first, rootdir))
-        second_files = list(find_files(second, rootdir, skip_files=skipped_second))
+        validator = XMLComparisonValidator(context=first, options={'rootdir': rootdir}, ip=ip,
+                                           responsible=ip.responsible)
+        validator.validate(second)
 
-        for first_el in first_files:
-            try:
-                idx = second_files.index(first_el)
-            except ValueError:
-                raise AssertionError("%s is only in %s" % (first_el.path, first))
-            else:
-                if compare_checksum:
-                    if first_el.checksum != second_files[idx].checksum:
-                        raise AssertionError("Checksum of %s in %s does not match checksum in %s" % (first_el.path, first, second))
-
-                second_files.pop(idx)
-
-        if len(second_files):
-            raise AssertionError("%s is only in %s" % (second_files.pop().path, second))
-
-    def undo(self, first, second, rootdir="", compare_checksum=False):
+    def undo(self, first, second, rootdir=None):
         pass
 
-    def event_outcome_success(self, first, second, rootdir="", compare_checksum=False):
+    def event_outcome_success(self, first, second, rootdir=None):
         first, second = self.parse_params(first, second)
         return "%s and %s has the same set of files" % (first, second)
 
