@@ -1,5 +1,5 @@
 <div class="top-alert-container" ng-if="vm.visible">
-    <div class="angular-animate alert-list">
+    <div class="angular-animate alert-list position-relative">
         <span class="popup-enabled">
             <input type="checkbox" ng-change="vm.updateEnabledStatus(vm.notificationsEnabled)" ng-model="vm.notificationsEnabled"/>
             {{'POPUP_ENABLED' | translate}}
@@ -30,9 +30,9 @@
                     <span ng-click="vm.removeAlert(x, $index)" class="cursor-pointer float-right">&#10005;</span>
                 </div>
             </li>
-            <li ng-if="vm.nextPageLoading" class="loading-column text-center">
-                {{'LOADING' | translate}}
-            </li>
         </ul>
+        <div ng-if="vm.nextPageLoading" class="loading-column text-center absolute-bottom-middle">
+            {{'LOADING' | translate}}
+        </div>
     </div>
 </div>

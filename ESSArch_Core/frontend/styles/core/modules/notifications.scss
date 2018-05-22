@@ -13,6 +13,7 @@
         left: 0;
     }
 }
+
 .notification-title {
     padding: .5rem;
 }
@@ -79,12 +80,19 @@
     background-color: white;
     color: black;
     box-shadow: 0 3px 8px rgba(0, 0, 0, .25);
-    padding-bottom: 1rem;
+    padding-bottom: 2rem;
     .alert-text {
         padding: 2px 5px;
         font-size: 14px;
         overflow-x: hidden;
         text-overflow: ellipsis;
+    }
+
+    .loading-column {
+        position: absolute;
+        bottom: .5rem;
+        left: 0;
+        right: 0;
     }
 }
 
