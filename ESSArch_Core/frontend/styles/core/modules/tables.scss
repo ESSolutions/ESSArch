@@ -4,13 +4,19 @@
 }
 
 .global-search {
-    width: 50%;
-    min-width: 78px;
+    min-width: 105px;
+    flex-grow: 1;
+    max-width: 500px;
 }
 
 .items-per-page {
     width: 100px !important;
+    min-width: 55px;
     margin-right: 10px;
+}
+
+.prepare-dip-button {
+    min-width: 168px;
 }
 
 // Refresh button
@@ -233,14 +239,12 @@
 .refresh-icon {
     padding: 3px 0 3px 3px;
     overflow: hidden;
-}
-
-.toolbar-row {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    overflow-x: auto;
-    width: 100%;
+    min-width: 21px;
+    flex-grow: 1;
+    align-self: center;
+    .fa-refresh {
+        float: right;
+    }
 }
 
 .search-prepare-wrapper {
@@ -248,13 +252,17 @@
     flex-direction: row;
     font-weight: bold;
     flex-wrap: nowrap;
-    align-items: stretch;
-    justify-content: flex-start;
-    flex-grow: 1;
     padding: 0 0 10px 0;
+    overflow-x: auto;
     .btn-info {
         margin-left: 10px;
         padding: 2px 12px;
+    }
+    .organization-select {
+        min-width: 75px;
+    }
+    > *:nth-last-child(2) {
+        margin-right: 10px;
     }
 }
 
