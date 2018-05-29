@@ -1,0 +1,25 @@
+{% load static from staticfiles %}
+<!doctype html>
+<html ng-app="myApp" ng-controller="AppCtrl as vm" ng-keydown="vm.questionMarkListener($event)">
+    <head ng-controller="HeadCtrl as vm">
+        <link rel="stylesheet" type="text/css" href="{% static "frontend/styles/styles.css" %}">
+
+        <!--Polyfills -->
+        <script src="{% static "frontend/scripts/polyfills.min.js" %}"></script>
+
+        <!--Vendors -->
+        <script src="{% static "frontend/scripts/vendors.min.js" %}"></script>
+
+        <!--App -->
+        <script src="{% static "frontend/scripts/scripts.min.js" %}"></script>
+
+        {% verbatim %}
+        <meta name="viewport" content="{{vm.responsiveTag}}">
+        <style>.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }</style>
+        <title ng-bind="vm.pageTitle"></title>
+        {% endverbatim %}
+    </head>
+    {% verbatim %}
+    <body ui-view></body>
+    {% endverbatim %}
+</html>
