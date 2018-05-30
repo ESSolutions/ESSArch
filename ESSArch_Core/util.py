@@ -496,9 +496,9 @@ def validate_remote_url(url):
     validate(url)
 
 
-def generate_file_response(file_obj, content_type, force_download=False):
+def generate_file_response(file_obj, content_type, force_download=False, name=None):
     response = HttpResponse(file_obj.read(), content_type=content_type)
-    response['Content-Disposition'] = 'inline; filename=%s' % os.path.basename(file_obj.name)
+    response['Content-Disposition'] = 'inline; filename=%s' % os.path.basename(name or file_obj.name)
     if force_download or content_type is None:
         if content_type is None:
             response['Content-Type'] = 'application/octet-stream'
