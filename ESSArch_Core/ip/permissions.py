@@ -23,7 +23,7 @@
 """
 
 from rest_framework import permissions
-
+from ESSArch_Core.auth.util import get_permissions
 
 class IsOrderResponsibleOrAdmin(permissions.IsAuthenticated):
     message = "You are not responsible for this order"
@@ -54,10 +54,7 @@ class CanDeleteIP(IsResponsibleOrReadOnly):
     message = "You are not allowed to delete this IP"
 
     def has_object_permission(self, request, view, obj):
-        responsible = self.is_responsible(request, obj)
-        has_perm = request.user.has_perm('ip.delete_informationpackage')
-
-        return responsible or has_perm
+        return 'ip.delete_informationpackage' in get_permissions(request.user, obj)
 
 
 class CanUpload(IsResponsibleOrReadOnly):

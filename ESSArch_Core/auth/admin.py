@@ -11,19 +11,19 @@ from django.contrib.auth.models import Group as DjangoGroup
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from groups_manager.models import Group as GroupManagerGroup
-from groups_manager.models import GroupEntity, GroupMemberRole, GroupType as GroupManagerGroupType
+from groups_manager.models import GroupEntity, GroupMemberRole as GroupManagerGroupMemberRole, GroupType as GroupManagerGroupType
 from groups_manager.models import GroupMember as GroupManagerGroupMember
 from groups_manager.models import Member as GroupManagerMember
 from nested_inline.admin import NestedModelAdmin, NestedTabularInline
 
 from ESSArch_Core.admin import NestedStackedInlineWithoutHeader
-from ESSArch_Core.auth.models import (Group, GroupMember, GroupType, Member, ProxyGroup,
+from ESSArch_Core.auth.models import (Group, GroupMember, GroupMemberRole, GroupType, Member, ProxyGroup,
                                       ProxyUser)
 
 User = get_user_model()
 
 admin.site.unregister(
-    [GroupManagerMember, GroupManagerGroup, GroupManagerGroupMember, GroupEntity, GroupMemberRole, GroupManagerGroupType])
+    [GroupManagerMember, GroupManagerGroup, GroupManagerGroupMember, GroupEntity, GroupManagerGroupMemberRole, GroupManagerGroupType])
 
 
 def filter_permissions(qs):
@@ -187,8 +187,13 @@ class GroupTypeAdmin(admin.ModelAdmin):
         return request.user.has_module_perms('groups_manager')
 
 
+class GroupMemberRoleAdmin(admin.ModelAdmin):
+    filter_horizontal = ['permissions']
+
+
 admin.site.unregister(DjangoGroup)
 admin.site.unregister(User)
 admin.site.register(ProxyGroup, GroupAdmin)
 admin.site.register(ProxyUser, UserAdmin)
 admin.site.register(GroupType, GroupTypeAdmin)
+admin.site.register(GroupMemberRole, GroupMemberRoleAdmin)

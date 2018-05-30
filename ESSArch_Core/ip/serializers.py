@@ -2,7 +2,6 @@ import os
 
 from _version import get_versions
 
-from guardian.shortcuts import get_perms
 from rest_framework import serializers
 
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
@@ -60,14 +59,9 @@ class InformationPackageSerializer(serializers.ModelSerializer):
         return {'{role}_{type}'.format(role=a['role'], type=a['type']): a for a in agents}
 
     def get_permissions(self, obj):
+        user = getattr(self.context.get('request'), 'user', None)
         checker = self.context.get('perm_checker')
-        if checker is not None:
-            return checker.get_perms(obj)
-
-        request = self.context.get('request')
-        if hasattr(request, 'user'):
-            return get_perms(request.user, obj)
-        return []
+        return obj.get_permissions(user=user, checker=checker)
 
     class Meta:
         model = InformationPackage

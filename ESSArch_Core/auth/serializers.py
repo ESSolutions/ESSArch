@@ -25,14 +25,13 @@
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.models import Permission, ContentType
-from django.db.models import Q, Subquery
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from rest_framework import exceptions, serializers
 
 from ESSArch_Core.auth.models import Group, Notification, UserProfile
-from ESSArch_Core.auth.util import get_membership_descendants, get_organization_groups, get_permission_set
+from ESSArch_Core.auth.util import get_organization_groups, get_permissions
 
 
 User = get_user_model()
@@ -112,7 +111,7 @@ class UserLoggedInSerializer(UserSerializer):
         return self.context['request'].build_absolute_uri(reverse('me'))
 
     def get_permissions(self, obj):
-        return get_permission_set(obj)
+        return get_permissions(obj)
 
     def get_organizations(self, user):
         groups = get_organization_groups(user)

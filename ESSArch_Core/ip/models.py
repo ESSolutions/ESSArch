@@ -30,11 +30,10 @@ import uuid
 from copy import deepcopy
 
 import jsonfield
-import six
 from celery import states as celery_states
 from django.conf import settings
 from django.db import models, transaction
-from django.db.models import Count, Max, Min, Q, Subquery
+from django.db.models import Count, Max, Min
 from django.utils.encoding import python_2_unicode_compatible
 from lxml import etree
 from groups_manager.utils import get_permission_name
@@ -44,7 +43,7 @@ from rest_framework import exceptions
 from rest_framework.response import Response
 
 from ESSArch_Core.auth.models import Member
-from ESSArch_Core.auth.util import get_membership_descendants
+from ESSArch_Core.auth.util import get_objects_for_user, get_permissions
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.profiles.models import ProfileIP, ProfileIPData, ProfileSA
@@ -121,25 +120,7 @@ class InformationPackageManager(models.Manager):
         strings which should be checked
         """
 
-        if user.is_superuser:
-            return self.get_queryset()
-
-        if isinstance(perms, six.string_types):
-            perms = [perms]
-
-        groups = get_membership_descendants(user.user_profile.current_organization, user)
-        django_groups = [g.django_group for g in groups]
-
-        group_sub = InformationPackageGroupObjectPermission.objects.filter(
-            group__in=django_groups, permission__codename__in=perms)
-
-        user_sub = InformationPackageUserObjectPermission.objects.filter(
-            user=user, permission__codename__in=perms)
-
-        return self.get_queryset().filter(
-            Q(pk__in=Subquery(group_sub.values('content_object'))) |
-            Q(pk__in=Subquery(user_sub.values('content_object')))
-        )
+        return get_objects_for_user(user, self.model, perms)
 
     def visible_to_user(self, user):
         return self.for_user(user, 'view_informationpackage')
@@ -259,6 +240,11 @@ class InformationPackage(models.Model):
         except Agent.DoesNotExist:
             return None
 
+    def get_permissions(self, user=None, checker=None):
+        if user is not None:
+            return get_permissions(user, self, checker)
+        return []
+
     def is_first_generation(self):
         if self.aic is None:
             return True
@@ -278,10 +264,7 @@ class InformationPackage(models.Model):
         return self.generation == max_generation
 
     def create_new_generation(self, state, responsible, object_identifier_value):
-        try:
-            perms = deepcopy(settings.IP_CREATION_PERMS_MAP)
-        except AttributeError:
-            raise exceptions.ParseError('Missing IP_CREATION_PERMS_MAP in settings')
+        perms = deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
 
         new_aip = deepcopy(self)
         new_aip.pk = None
@@ -312,6 +295,7 @@ class InformationPackage(models.Model):
 
         organization = responsible.user_profile.current_organization
         organization.assign_object(new_aip, custom_permissions=perms)
+        organization.add_object(new_aip)
 
         for perm in user_perms:
             perm_name = get_permission_name(perm, new_aip)
@@ -693,14 +677,6 @@ class InformationPackageMetadata(models.Model):
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
             return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
-
-
-class InformationPackageUserObjectPermission(UserObjectPermissionBase):
-    content_object = models.ForeignKey(InformationPackage, on_delete=models.CASCADE)
-
-
-class InformationPackageGroupObjectPermission(GroupObjectPermissionBase):
-    content_object = models.ForeignKey(InformationPackage, on_delete=models.CASCADE)
 
 
 class EventIPManager(models.Manager):
