@@ -43,7 +43,7 @@ from rest_framework import exceptions
 from rest_framework.response import Response
 
 from ESSArch_Core.auth.models import Member
-from ESSArch_Core.auth.util import get_objects_for_user, get_permissions
+from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.profiles.models import ProfileIP, ProfileIPData, ProfileSA
@@ -240,10 +240,8 @@ class InformationPackage(models.Model):
         except Agent.DoesNotExist:
             return None
 
-    def get_permissions(self, user=None, checker=None):
-        if user is not None:
-            return get_permissions(user, self, checker)
-        return []
+    def get_permissions(self, user, checker=None):
+        return user.get_all_permissions(self)
 
     def is_first_generation(self):
         if self.aic is None:

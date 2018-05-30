@@ -31,7 +31,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import exceptions, serializers
 
 from ESSArch_Core.auth.models import Group, Notification, UserProfile
-from ESSArch_Core.auth.util import get_organization_groups, get_permissions
+from ESSArch_Core.auth.util import get_organization_groups
 
 
 User = get_user_model()
@@ -111,7 +111,7 @@ class UserLoggedInSerializer(UserSerializer):
         return self.context['request'].build_absolute_uri(reverse('me'))
 
     def get_permissions(self, obj):
-        return get_permissions(obj)
+        return obj.get_all_permissions()
 
     def get_organizations(self, user):
         groups = get_organization_groups(user)

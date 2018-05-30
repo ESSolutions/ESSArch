@@ -50,59 +50,6 @@ def get_user_roles(user, start_group=None):
     return GroupMemberRole.objects.filter(group_memberships__in=memberships)
 
 
-def get_permission_objs(user, obj=None):
-    perms = Permission.objects.none()
-
-    if not user.is_active or user.is_anonymous:
-        return perms
-
-    if user.is_superuser:
-        return Permission.objects.all()
-
-    org = user.user_profile.current_organization
-    if org is not None:
-        if obj is not None:
-            start_grp = obj.group
-        else:
-            start_grp = org
-
-        roles = get_user_roles(user, start_grp)
-        perms = Permission.objects.filter(roles__in=roles)
-
-    perms |= user.user_permissions.all()
-    perms |= Permission.objects.filter(group__essauth_group__in=get_user_groups(user))
-
-    return perms.distinct()
-
-
-def get_permissions(user, obj=None, checker=None):
-    if not user.is_active or user.is_anonymous:
-        return []
-
-    generic_obj = obj
-    perms = set()
-
-    if obj is not None:
-        ctype = ContentType.objects.get_for_model(obj)
-        if checker is not None:
-            guardian_perms = checker.get_perms(obj)
-        else:
-            guardian_perms = get_perms(user, obj)
-
-        label = ctype.app_label
-        perms |= set(['{label}.{name}'.format(label=label, name=p) for p in guardian_perms])
-
-        groups = get_user_groups(user)
-        try:
-            generic_obj = GroupGenericObjects.objects.get(content_type=ctype, object_id=obj.pk, group__in=groups)
-        except GroupGenericObjects.DoesNotExist:
-            return perms
-
-    perm_objs = get_permission_objs(user, generic_obj).values_list('content_type__app_label', 'codename')
-    perms |= {'%s.%s' % (ct, name) for ct, name in perm_objs}
-    return perms
-
-
 def get_objects_for_user(user, klass, perms):
     qs = _get_queryset(klass)
 
