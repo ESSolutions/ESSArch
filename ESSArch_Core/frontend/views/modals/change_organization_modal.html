@@ -1,0 +1,17 @@
+<div class="enter-profile-name">
+    <h3 class="modal-title" id="modal-title">{{'CHANGE_ORGANIZATION' | translate}}</h3>
+</div>
+<form ng-submit="$ctrl.save()">
+    <div class="modal-body" id="modal-body">
+        <select class="form-control" ng-model="$ctrl.organization" ng-options="org.id as org.name for org in $ctrl.organizations"></select>
+    </div>
+    <div class="modal-footer">
+        <button ng-disabled="$ctrl.currentOrganization === $ctrl.organization"
+                class="btn btn-primary"
+                type="button"
+                ng-click="$ctrl.save()">
+        {{'OK' | translate}} <i ng-if="$ctrl.saving" class="fa fa-spinner fa-spin"/>
+    </button>
+        <button class="btn btn-warning" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+    </div>
+</form>
