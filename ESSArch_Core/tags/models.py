@@ -74,6 +74,7 @@ class Tag(models.Model):
     class Meta:
         permissions = (
             ('search', 'Can search'),
+            ('create_archive', 'Can create new archives'),
         )
 
 
