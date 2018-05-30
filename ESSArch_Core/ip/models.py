@@ -32,6 +32,7 @@ from copy import deepcopy
 import jsonfield
 from celery import states as celery_states
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.db.models import Count, Max, Min
 from django.utils.encoding import python_2_unicode_compatible
@@ -42,7 +43,7 @@ from guardian.shortcuts import assign_perm
 from rest_framework import exceptions
 from rest_framework.response import Response
 
-from ESSArch_Core.auth.models import Member
+from ESSArch_Core.auth.models import GroupGenericObjects, Member
 from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
@@ -260,6 +261,13 @@ class InformationPackage(models.Model):
                                                     .exclude(workareas__read_only=False) \
                                                     .aggregate(Max('generation'))['generation__max']
         return self.generation == max_generation
+
+    def change_organization(self, organization):
+        if organization.group_type.codename != 'organization':
+            raise ValueError('{} is not an organization'.format(organization))
+        ctype = ContentType.objects.get_for_model(self)
+        GroupGenericObjects.objects.update_or_create(object_id=self.pk, content_type=ctype,
+                                                     defaults={'group': organization})
 
     def create_new_generation(self, state, responsible, object_identifier_value):
         perms = deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
