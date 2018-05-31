@@ -6,6 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from glob2 import iglob
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import detail_route
+from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from scandir import walk
@@ -29,6 +30,7 @@ from ESSArch_Core.util import generate_file_response
 
 
 class MaintenanceRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    permission_classes = (DjangoModelPermissions,)
     serializer_class = MaintenanceRuleSerializer
     filter_class = MaintenanceRuleFilter
     filter_backends = (
@@ -36,8 +38,8 @@ class MaintenanceRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     )
     search_fields = ('name', 'specification',)
 
-
 class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    permission_classes = (DjangoModelPermissions,)
     serializer_class = MaintenanceJobSerializer
     filter_class = MaintenanceJobFilter
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
