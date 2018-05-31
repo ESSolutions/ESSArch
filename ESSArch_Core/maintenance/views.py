@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from scandir import walk
 
+from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.maintenance.filters import (AppraisalJobFilter,
                                               AppraisalRuleFilter,
                                               ConversionJobFilter,
@@ -68,6 +69,11 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
     queryset = AppraisalJob.objects.all()
     serializer_class = AppraisalJobSerializer
     filter_class = AppraisalJobFilter
+
+    @permission_required_or_403(['maintenance.run_appraisaljob'])
+    @detail_route(methods=['post'])
+    def run(self, request, pk=None):
+        return super(AppraisalJobViewSet, self).run(request, pk)
 
     @detail_route(methods=['get'])
     def preview(self, request, pk=None):
