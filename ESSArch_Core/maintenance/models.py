@@ -5,37 +5,28 @@ import shutil
 import tarfile
 import time
 import uuid
-
 from collections import OrderedDict
 
+import jsonfield
+import six
 from celery import states as celery_states
 from celery.result import allow_join_result
-
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.template.loader import render_to_string
 from django.utils import timezone
-
-from elasticsearch_dsl import Search, Q as ElasticQ
-
 from glob2 import iglob
-
-import jsonfield
-
 from lxml import etree
-
 from scandir import walk
-
-import six
-
 from weasyprint import HTML
 
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.profiles.models import ProfileIP
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.ingest import index_path
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.util import (
     convert_file,
     creation_date,
@@ -44,6 +35,7 @@ from ESSArch_Core.util import (
 )
 
 logger = logging.getLogger('essarch.maintenance')
+User = get_user_model()
 
 ARCHIVAL_OBJECT = 'archival_object'
 METADATA = 'metadata'
@@ -57,6 +49,7 @@ class MaintenanceRule(models.Model):
     name = models.CharField(max_length=255)
     frequency = models.CharField(max_length=255, blank=True, default='')  # cron syntax, blank for manual only appraisal
     specification = jsonfield.JSONField(null=True, default=None)  # empty for all files in IP or all fields in tree node
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=True)
 
     class Meta:
         abstract = True
@@ -70,6 +63,7 @@ class MaintenanceJob(models.Model):
     status = models.CharField(choices=STATUS_CHOICES, max_length=50, default=celery_states.PENDING)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=True)
 
     class Meta:
         abstract = True

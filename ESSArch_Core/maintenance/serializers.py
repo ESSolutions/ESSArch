@@ -1,23 +1,28 @@
 from rest_framework import serializers
 
+from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.maintenance.models import (AppraisalJob, AppraisalRule,
                                              ConversionJob, ConversionRule,
                                              MaintenanceJob, MaintenanceRule)
 
 
 class MaintenanceRuleSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+
     class Meta:
         model = MaintenanceRule
         fields = (
-            'id', 'name', 'frequency', 'specification',
+            'id', 'name', 'frequency', 'specification', 'user',
         )
 
 
 class MaintenanceJobSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+
     class Meta:
         model = MaintenanceJob
         fields = (
-            'id', 'rule', 'status', 'start_date', 'end_date',
+            'id', 'rule', 'status', 'start_date', 'end_date', 'user',
         )
 
 
