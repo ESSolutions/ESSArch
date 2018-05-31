@@ -148,6 +148,11 @@ class AppraisalJob(MaintenanceJob):
 
     MAINTENANCE_TYPE = 'appraisal'
 
+    class Meta:
+        permissions = (
+            ('run_appraisaljob', 'Can run appraisal job'),
+        )
+
     def _run_metadata(self):
         pass
 
