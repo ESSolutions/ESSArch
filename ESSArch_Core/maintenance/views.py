@@ -12,6 +12,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from scandir import walk
 
 from ESSArch_Core.auth.decorators import permission_required_or_403
+from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.maintenance.filters import (AppraisalJobFilter,
                                               AppraisalRuleFilter,
                                               ConversionJobFilter,
@@ -37,6 +38,14 @@ class MaintenanceRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
     )
     search_fields = ('name', 'specification',)
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = self.queryset
+        public = qs.filter(public=True)
+        local = get_objects_for_user(user, qs.filter(public=False), [])
+        return public | local
+
 
 class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     permission_classes = (DjangoModelPermissions,)

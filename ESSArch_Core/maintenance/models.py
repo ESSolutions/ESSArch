@@ -50,6 +50,7 @@ class MaintenanceRule(models.Model):
     frequency = models.CharField(max_length=255, blank=True, default='')  # cron syntax, blank for manual only appraisal
     specification = jsonfield.JSONField(null=True, default=None)  # empty for all files in IP or all fields in tree node
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    public = models.BooleanField(default=True)
 
     class Meta:
         abstract = True
