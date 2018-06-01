@@ -376,7 +376,7 @@ class ValidateFiles(DBTask):
                             ip = InformationPackage.objects.get(pk=self.ip)
                             subject = 'Rejected "%s"' % ip.object_identifier_value
                             body = '"%s" was rejected:\n%s' % (ip.object_identifier_value, str(e))
-                            send_mail(subject, body, 'e-archive@essarch.org', [recipient], fail_silently=False)
+                            send_mail(subject, body, None, [recipient], fail_silently=False)
 
                         raise
 
@@ -511,7 +511,7 @@ class ValidateXMLFile(DBTask):
                 ip = InformationPackage.objects.get(pk=self.ip)
                 subject = 'Rejected "%s"' % ip.object_identifier_value
                 body = '"%s" was rejected:\n%s' % (ip.object_identifier_value, str(e))
-                send_mail(subject, body, 'e-archive@essarch.org', [recipient], fail_silently=False)
+                send_mail(subject, body, None, [recipient], fail_silently=False)
 
             raise
         return "Success"
