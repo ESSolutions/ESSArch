@@ -9,6 +9,20 @@ from ESSArch_Core.maintenance.models import (AppraisalJob, AppraisalRule,
 class MaintenanceRuleSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
 
+    def validate(self, data):
+        if data['user'].user_profile.current_organization is None and not data['public']:
+            raise serializers.ValidationError("You must be in an organization to create non-public rules")
+
+        return data
+
+    def create(self, data):
+        instance = super(MaintenanceRuleSerializer, self).create(validated_data=data)
+        if not instance.public:
+            org = data['user'].user_profile.current_organization
+            org.add_object(instance)
+
+        return instance
+
     class Meta:
         model = MaintenanceRule
         fields = (
