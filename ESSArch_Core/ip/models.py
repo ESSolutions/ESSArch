@@ -578,19 +578,19 @@ class InformationPackage(models.Model):
 
         return 0
 
-    def files(self, path='', force_download=False, paginator=None, request=None):
+    def files(self, path=''):
         if self.archived:
             storage_obj = self.storage.readable().fastest().first()
             if storage_obj is None:
                 raise ValueError("No readable storage configured for IP")
             fp = storage_obj.read(path)
             path = os.path.realpath(fp.name)
-            return list_files(path, force_download, paginator=paginator, request=request)
+            return path
 
         if os.path.isfile(self.object_path):
             if len(path):
                 fullpath = os.path.join(os.path.dirname(self.object_path), path)
-                return list_files(fullpath, force_download, paginator=paginator, request=request)
+                return fullpath
 
             container = self.object_path
             xml = os.path.splitext(container)[0] + '.xml'
@@ -611,14 +611,14 @@ class InformationPackage(models.Model):
                     "modified": timestamp_to_datetime(os.path.getmtime(xml)),
                 })
 
-            return Response(entries)
+            return entries
 
         fullpath = os.path.join(self.object_path, path)
 
         if not in_directory(fullpath, self.object_path):
             raise exceptions.ParseError('Illegal path %s' % path)
 
-        return list_files(fullpath, force_download, paginator=paginator, request=request)
+        return fullpath
 
 
     class Meta:
