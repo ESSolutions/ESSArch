@@ -49,7 +49,7 @@ class MaintenanceRule(models.Model):
     name = models.CharField(max_length=255)
     frequency = models.CharField(max_length=255, blank=True, default='')  # cron syntax, blank for manual only appraisal
     specification = jsonfield.JSONField(null=True, default=None)  # empty for all files in IP or all fields in tree node
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     class Meta:
         abstract = True
@@ -63,7 +63,7 @@ class MaintenanceJob(models.Model):
     status = models.CharField(choices=STATUS_CHOICES, max_length=50, default=celery_states.PENDING)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     class Meta:
         abstract = True
