@@ -95,7 +95,7 @@ class Component(VersionedDocType):
     reference_code = Keyword()
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
-    name = Text(analyzer=ngram_analyzer)  # unittitle
+    name = Text(analyzer=ngram_analyzer, fields={'keyword': {'type': 'keyword'}})  # unittitle
     arrival_date = Date()
     decision_date = Date()
     preparation_date = Date()
@@ -117,7 +117,7 @@ class Archive(VersionedDocType):
     reference_code = Keyword()
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
-    name = Text(analyzer=ngram_analyzer)  # unittitle
+    name = Text(analyzer=ngram_analyzer, fields={'keyword': {'type': 'keyword'}})  # unittitle
     desc = Text(analyzer=ngram_analyzer)  # e.g. from <odd>
     type = Keyword()
     institution = Keyword()
@@ -129,8 +129,8 @@ class Archive(VersionedDocType):
 
 class InformationPackage(DocType):
     id = Keyword()  # @id
-    object_identifier_value = Text(analyzer=ngram_analyzer, search_analyzer='standard')
-    name = Text(analyzer=ngram_analyzer, search_analyzer='standard')  # label
+    object_identifier_value = Text(analyzer=ngram_analyzer, search_analyzer='standard', fields={'keyword': {'type': 'keyword'}})
+    name = Text(analyzer=ngram_analyzer, search_analyzer='standard', fields={'keyword': {'type': 'keyword'}})  # label
     start_date = Date()
     end_date = Date()
     institution = Keyword()
