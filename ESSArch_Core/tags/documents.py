@@ -58,11 +58,18 @@ class Node(InnerDoc):
     index = Keyword()
 
 
+class Restriction(InnerDoc):
+    name = Keyword()
+    fields = Keyword()
+    permissions = Keyword()
+
+
 class VersionedDocType(DocType):
     link_id = Keyword()
     current_version = Boolean()
     index_date = Date()
     personal_identification_numbers = Keyword()
+    restrictions = Nested(Restriction)
 
     def create_new_version(self, start_date=None, end_date=None, refresh=False):
         data = self.to_dict(include_meta=False)
@@ -90,6 +97,18 @@ class VersionedDocType(DocType):
             version.update(current_version=False)
 
         self.update(current_version=True)
+
+    def get_masked_fields(self, user):
+        fields = set()
+        for restriction in self.restrictions:
+            if not len(restriction.fields):
+                continue
+
+            for perm in restriction.permissions:
+                if user is None or not user.has_perm(perm):
+                    fields |= set(restriction.fields)
+
+        return list(fields)
 
 
 class Component(VersionedDocType):

@@ -38,19 +38,33 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     _index = serializers.CharField(source='elastic_index')
     is_leaf_node = serializers.SerializerMethodField()
     _source = serializers.SerializerMethodField()
+    masked_fields = serializers.SerializerMethodField()
 
     def get_is_leaf_node(self, obj):
         return obj.is_leaf_node(structure=self.context.get('structure'))
 
+    def _get_doc(self, obj):
+        return VersionedDocType.get(index=obj.elastic_index, id=str(obj.pk))
+
+    def get_masked_fields(self, obj):
+        try:
+            doc = self._get_doc(obj)
+            return doc.get_masked_fields(self.context.get('user'))
+        except elasticsearch.NotFoundError:
+            return []
+
     def get__source(self, obj):
         try:
-            doc = VersionedDocType.get(index=obj.elastic_index, id=str(obj.pk))
+            doc = self._get_doc(obj)
             d = doc.to_dict()
             if doc._index == 'document':
                 try:
                     d['attachment'].pop('content', None)
                 except KeyError:
                     pass
+            for field in d.keys():
+                if field in doc.get_masked_fields(self.context.get('user')):
+                    d[field] = ''
             return d
         except elasticsearch.NotFoundError:
             return None
@@ -58,7 +72,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     class Meta:
         model = TagVersion
         fields = ('_id', '_index', 'name', 'type', 'create_date', 'start_date',
-                  'end_date', 'is_leaf_node', '_source')
+                  'end_date', 'is_leaf_node', '_source', 'masked_fields')
 
 
 class TagVersionSerializer(TagVersionNestedSerializer):
