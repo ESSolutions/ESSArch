@@ -84,6 +84,14 @@ class ProxyUser(DjangoUser):
         default_permissions = []
 
 
+class ProxyPermission(Permission):
+    class Meta:
+        verbose_name = _('permission')
+        verbose_name_plural = _('permissions')
+        proxy = True
+        default_permissions = []
+
+
 class Member(MemberMixin):
     django_user = models.OneToOneField(DjangoUser, null=False, on_delete=models.CASCADE,
                                        related_name='essauth_member')

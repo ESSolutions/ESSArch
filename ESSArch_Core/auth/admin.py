@@ -18,7 +18,7 @@ from nested_inline.admin import NestedModelAdmin, NestedTabularInline
 
 from ESSArch_Core.admin import NestedStackedInlineWithoutHeader
 from ESSArch_Core.auth.models import (Group, GroupMember, GroupMemberRole, GroupType, Member, ProxyGroup,
-                                      ProxyUser)
+                                      ProxyUser, ProxyPermission)
 
 User = get_user_model()
 
@@ -193,6 +193,7 @@ class GroupMemberRoleAdmin(admin.ModelAdmin):
 
 admin.site.unregister(DjangoGroup)
 admin.site.unregister(User)
+admin.site.register(ProxyPermission)
 admin.site.register(ProxyGroup, GroupAdmin)
 admin.site.register(ProxyUser, UserAdmin)
 admin.site.register(GroupType, GroupTypeAdmin)
