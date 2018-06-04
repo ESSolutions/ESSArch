@@ -41,7 +41,7 @@ class MaintenanceRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        qs = self.queryset
+        qs = super(MaintenanceRuleViewSet, self).get_queryset()
         public = qs.filter(public=True)
         local = get_objects_for_user(user, qs.filter(public=False), [])
         return public | local
