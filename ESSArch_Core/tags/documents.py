@@ -62,6 +62,7 @@ class VersionedDocType(DocType):
     link_id = Keyword()
     current_version = Boolean()
     index_date = Date()
+    personal_identification_numbers = Keyword()
 
     def create_new_version(self, start_date=None, end_date=None, refresh=False):
         data = self.to_dict(include_meta=False)
