@@ -1,5 +1,5 @@
 from django.utils import timezone
-from elasticsearch_dsl import (Boolean, Date, DocType, InnerDoc, Keyword, Long,
+from elasticsearch_dsl import (Boolean, Date, DocType, InnerDoc, Integer, Keyword, Long,
                                Nested, Object, Q, Text, analyzer,
                                tokenizer)
 
@@ -122,6 +122,7 @@ class Archive(VersionedDocType):
     type = Keyword()
     institution = Keyword()
     organization = Keyword()
+    organization_group = Integer()
 
     class Meta:
         index = 'archive'
