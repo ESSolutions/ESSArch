@@ -47,5 +47,7 @@ class GroupRoleBackend(object):
         return list(set(chain(*_get_permission_objs(user_obj, obj).annotate(full_name=full_name).values_list('full_name'))))
 
     def has_perm(self, user_obj, perm, obj=None):
+        if '.' in perm:
+            app_label, perm = perm.split('.')
         return perm in self.get_all_permissions(user_obj, obj=obj)
 
