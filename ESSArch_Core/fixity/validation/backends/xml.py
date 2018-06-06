@@ -136,7 +136,7 @@ class DiffCheckValidator(BaseValidator):
         if oldhash != newhash:
             self.deleted.pop(oldhash, None)
             self.changed += 1
-            msg = '{f} checksum has been changed: {old} != {new}'.format(f=relpath, old=oldhash, new=newhash)
+            msg = u'{f} checksum has been changed: {old} != {new}'.format(f=relpath, old=oldhash, new=newhash)
             self._pop_checksum_dict(self.present, oldhash, filepath)
             self._pop_checksum_dict(self.present, newhash, filepath)
             return self._create_obj(filepath, False, msg)
@@ -145,11 +145,11 @@ class DiffCheckValidator(BaseValidator):
         if oldsize is not None and newsize is not None and oldsize != newsize:
             self.deleted.pop(oldhash, None)
             self.changed += 1
-            msg = '{f} size has been changed: {old} != {new}'.format(f=relpath, old=oldsize, new=newsize)
+            msg = u'{f} size has been changed: {old} != {new}'.format(f=relpath, old=oldsize, new=newsize)
             return self._create_obj(filepath, False, msg)
 
         self.confirmed += 1
-        msg = '{f} confirmed in xml'.format(f=relpath)
+        msg = u'{f} confirmed in xml'.format(f=relpath)
         return self._create_obj(filepath, True, msg)
 
     def _validate_deleted_files(self, objs):
@@ -162,7 +162,7 @@ class DiffCheckValidator(BaseValidator):
                     try:
                         old = deleted_hash_files.pop()
                         self.renamed += 1
-                        msg = '{old} has been renamed to {new}'.format(old=old, new=f)
+                        msg = u'{old} has been renamed to {new}'.format(old=old, new=f)
                         objs.append(self._create_obj(old, False, msg))
                         present_hash_files.remove(old)
                         present_hash_files.remove(f)
@@ -170,7 +170,7 @@ class DiffCheckValidator(BaseValidator):
                         pass
 
             for f in deleted_hash_files:
-                msg = '{file} has been deleted'.format(file=f)
+                msg = u'{file} has been deleted'.format(file=f)
                 objs.append(self._create_obj(f, False, msg))
                 delete_count += 1
                 present_hash_files.remove(f)
@@ -184,7 +184,7 @@ class DiffCheckValidator(BaseValidator):
         for present_hash, present_hash_files in six.iteritems(self.present):
             for f in present_hash_files:
                 self.added += 1
-                msg = '{f} is missing from {xml}'.format(f=f, xml=self.context)
+                msg = u'{f} is missing from {xml}'.format(f=f, xml=self.context)
                 objs.append(self._create_obj(f, False, msg))
 
     def validate(self, path):
@@ -192,7 +192,7 @@ class DiffCheckValidator(BaseValidator):
         objs = []
         self._reset_dicts()
         self._reset_counters()
-        logger.debug('Validating {path} against {xml}'.format(path=path, xml=xmlfile))
+        logger.debug(u'Validating {path} against {xml}'.format(path=path, xml=xmlfile))
 
         if os.path.isdir(path):
             for root, dirs, files in walk(path):
@@ -211,13 +211,13 @@ class DiffCheckValidator(BaseValidator):
         Validation.objects.bulk_create(objs, batch_size=100)
 
         if delete_count + self.added + self.changed + self.renamed > 0:
-            msg = 'Diff-check validation of {path} against {xml} failed: {cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted'.format(
+            msg = u'Diff-check validation of {path} against {xml} failed: {cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted'.format(
                 path=path, xml=self.context, cfmd=self.confirmed, a=self.added, c=self.changed, r=self.renamed,
                 d=delete_count)
             logger.warn(msg)
             raise ValidationError(msg)
 
-        logger.info("Successful diff-check validation of {path} against {xml}".format(path=path, xml=self.context))
+        logger.info(u"Successful diff-check validation of {path} against {xml}".format(path=path, xml=self.context))
 
 
 class XMLComparisonValidator(DiffCheckValidator):
@@ -239,7 +239,7 @@ class XMLComparisonValidator(DiffCheckValidator):
         objs = []
         self._reset_dicts()
         self._reset_counters()
-        logger.debug('Validating {path} against {xml}'.format(path=path, xml=xmlfile))
+        logger.debug(u'Validating {path} against {xml}'.format(path=path, xml=xmlfile))
         checksum_in_context_file = self.checksums.get(path)
 
         if checksum_in_context_file:
@@ -274,53 +274,53 @@ class XMLComparisonValidator(DiffCheckValidator):
         Validation.objects.bulk_create(objs, batch_size=100)
 
         if delete_count + self.added + self.changed + self.renamed > 0:
-            msg = 'Comparision of {path} against {xml} failed: {cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted'.format(
+            msg = u'Comparision of {path} against {xml} failed: {cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted'.format(
                 path=path, xml=self.context, cfmd=self.confirmed, a=self.added, c=self.changed, r=self.renamed,
                 d=delete_count)
             logger.warn(msg)
             raise ValidationError(msg)
 
-        logger.info("Successful comparison of {path} against {xml}".format(path=path, xml=self.context))
+        logger.info(u"Successful comparison of {path} against {xml}".format(path=path, xml=self.context))
 
 
 class XMLSchemaValidator(BaseValidator):
     def validate(self, filepath):
         if self.context:
-            logger.debug('Validating schema of {xml} against {schema}'.format(xml=filepath, schema=self.context))
+            logger.debug(u'Validating schema of {xml} against {schema}'.format(xml=filepath, schema=self.context))
         else:
-            logger.debug('Validating schema of {xml}'.format(xml=filepath))
+            logger.debug(u'Validating schema of {xml}'.format(xml=filepath))
 
         rootdir = self.options.get('rootdir')
         try:
             validate_against_schema(filepath, self.context, rootdir)
         except Exception as e:
-            logger.warn('Schema validation of {xml} failed, {msg}'.format(xml=filepath, msg=e.message))
+            logger.warn(u'Schema validation of {xml} failed, {msg}'.format(xml=filepath, msg=e.message))
             raise
 
-        logger.info("Successful schema validation of {xml}".format(xml=filepath))
+        logger.info(u"Successful schema validation of {xml}".format(xml=filepath))
 
 class XMLSchematronValidator(BaseValidator):
     def validate(self, filepath):
-        logger.debug('Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
+        logger.debug(u'Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
         try:
             sct_doc = etree.parse(self.context)
             schematron = etree.Schematron(sct_doc)
             schematron.assertValid(etree.parse(filepath))
         except etree.DocumentInvalid as e:
-            logger.warn('Schematron validation of {xml} against {schema} failed, {msg}'.format(xml=filepath, schema=self.context, msg=e.message))
+            logger.warn(u'Schematron validation of {xml} against {schema} failed, {msg}'.format(xml=filepath, schema=self.context, msg=e.message))
             raise
 
-        logger.info("Successful schematron validation of {xml} against {schema}".format(xml=filepath, schema=self.context))
+        logger.info(u"Successful schematron validation of {xml} against {schema}".format(xml=filepath, schema=self.context))
 
 class XMLISOSchematronValidator(BaseValidator):
     def validate(self, filepath):
-        logger.debug('Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
+        logger.debug(u'Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
         try:
             sct_doc = etree.parse(self.context)
             schematron = isoschematron.Schematron(sct_doc)
             schematron.assertValid(etree.parse(filepath))
         except etree.DocumentInvalid as e:
-            logger.warn('ISO-Schematron validation of {xml} against {schema} failed, {msg}'.format(xml=filepath, schema=self.context, msg=e.message))
+            logger.warn(u'ISO-Schematron validation of {xml} against {schema} failed, {msg}'.format(xml=filepath, schema=self.context, msg=e.message))
             raise
 
-        logger.info("Successful iso-schematron validation of {xml} against {schema}".format(xml=filepath, schema=self.context))
+        logger.info(u"Successful iso-schematron validation of {xml} against {schema}".format(xml=filepath, schema=self.context))
