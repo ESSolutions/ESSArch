@@ -88,6 +88,8 @@ class FormatIdentifier:
         else:
                 start_time = time.time()
 
+        logger.debug("Identifying file format of %s ..." % (filename,))
+
         self.fido.identify_file(filename)
 
         if os.name == 'nt':
