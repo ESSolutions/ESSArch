@@ -61,6 +61,7 @@ def fill_specification_data(data={}, sa=None, ip=None):
             if premis_dir is None or premis_file is None:
                 return None
             data['_PREMIS_PATH'] = os.path.join(ip.object_path, premis_dir, premis_file)
+            data['allow_unknown_file_types'] = ip.get_profile_data(ip.get_package_type_display().lower()).get('allow_unknown_file_types', False)
 
         try:
             # do we have a transfer project profile?
