@@ -20,7 +20,7 @@ def ip_pre_delete(sender, instance, using, **kwargs):
 def ip_post_delete(sender, instance, using, **kwargs):
     logger.info('Information package %s was deleted' % instance.pk)
 
-    if instance.aic is not None and not instance.aic.information_packages.exists():
+    if getattr(instance, 'aic') is not None and not instance.aic.information_packages.exists():
         # this was the last IP in the AIC, delete the AIC as well
         instance.aic.delete()
 
