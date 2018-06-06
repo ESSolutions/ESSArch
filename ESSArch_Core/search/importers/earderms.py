@@ -114,7 +114,7 @@ class EardErmsImporter(object):
 
     def parse_errand(self, errand):
         id = errand.get("Systemidentifierare")
-        reference_code = errand.xpath("*[local-name()='Klass']")[0].text
+        reference_code = errand.xpath("*[local-name()='KlassReferens']")[0].text
         unit_ids = {'id': reference_code}
         name = errand.xpath("*[local-name()='Arendemening']")[0].text
         type = errand.xpath("*[local-name()='ArendeTyp']")[0].text
