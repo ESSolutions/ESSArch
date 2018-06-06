@@ -7,36 +7,19 @@ import uuid
 import six
 from django.db import transaction
 from django.db.models import OuterRef, Subquery, F
-from elasticsearch_dsl import Q as ElasticQ
 from lxml import etree
 from redis import Redis
 
+from ESSArch_Core.search.importers.base import BaseImporter
 from ESSArch_Core.tags import INDEX_QUEUE
-from ESSArch_Core.tags.documents import Archive, Component, Document, Node
+from ESSArch_Core.tags.documents import Component, Document, Node
 from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
 from ESSArch_Core.util import get_tree_size_and_count, normalize_path, timestamp_to_datetime
 
 redis_conn = Redis()
 
 
-class EardErmsImporter(object):
-    def __init__(self):
-        self.xmlparser = etree.XMLParser(remove_blank_text=True)
-
-    def get_archive(self, unitid):
-        query = Archive.search().query("bool", must=[ElasticQ("term", current_version=True),
-                                                     ElasticQ("nested", path="unit_ids",
-                                                              query=ElasticQ("match", unit_ids__id=unitid))])
-        doc = query.execute().hits[0]
-        return TagVersion.objects.get(pk=doc._id)
-
-    def get_component(self, unitid):
-        query = Component.search().query("bool", must=[ElasticQ("term", current_version=True),
-                                                       ElasticQ("nested", path="unit_ids",
-                                                                query=ElasticQ("match", unit_ids__id=unitid))])
-        doc = query.execute().hits[0]
-        return TagVersion.objects.get(pk=doc._id)
-
+class EardErmsImporter(BaseImporter):
     def get_errands_root(self, el):
         return el.xpath("*[local-name()='ArkivobjektListaArenden']")
 
