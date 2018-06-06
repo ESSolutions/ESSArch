@@ -1,5 +1,4 @@
 import base64
-import cPickle
 import itertools
 import os
 import uuid
@@ -9,6 +8,7 @@ from django.db import transaction
 from django.db.models import OuterRef, Subquery, F
 from lxml import etree
 from redis import Redis
+from six.moves import cPickle
 
 from ESSArch_Core.search.importers.base import BaseImporter
 from ESSArch_Core.tags import INDEX_QUEUE
