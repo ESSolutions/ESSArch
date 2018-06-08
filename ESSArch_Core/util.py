@@ -513,6 +513,12 @@ def generate_file_response(file_obj, content_type, force_download=False, name=No
     return response
 
 def list_files(path, force_download=False, request=None, paginator=None):
+    if isinstance(path, list):
+        if paginator is not None:
+            paginated = paginator.paginate_queryset(path, request)
+            return paginator.get_paginated_response(paginated)
+        return Response(path)
+
     fid = FormatIdentifier(allow_unknown_file_types=True)
     path = path.rstrip('/ ')
     path = smart_text(path).encode('utf-8')
