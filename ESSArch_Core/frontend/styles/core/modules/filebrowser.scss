@@ -38,6 +38,21 @@
         table-layout: fixed;
         width: 100%;
         margin-bottom: 5px;
+        .name-column {
+            width: auto;
+        }
+        .size-column {
+            width: 100px;
+            @include small-screen {
+                width: 23%;
+            }
+        }
+        .changed-column {
+            width: 165px;
+            @include small-screen {
+                width: 37%;
+            }
+        }
     }
 }
 
