@@ -15,7 +15,7 @@ logger = logging.getLogger('essarch.storage.copy')
 
 
 def copy_chunk_locally(src, dst, offset, file_size, block_size=65536):
-    with open(src, 'r') as srcf, open(dst, 'a') as dstf:
+    with open(src, 'rb') as srcf, open(dst, 'ab') as dstf:
         srcf.seek(offset)
         dstf.seek(offset)
 
@@ -115,7 +115,7 @@ def copy_file_locally(src, dst, block_size=65536):
         if e.errno != errno.EEXIST:
             raise
 
-    open(dst, 'w').close()  # remove content of destination if it exists
+    open(dst, 'wb').close()  # remove content of destination if it exists
 
     while idx*block_size <= fsize:
         copy_chunk(src, dst, idx*block_size, fsize, block_size=block_size)

@@ -48,7 +48,7 @@ def calculate_checksum(filename, algorithm='SHA-256', block_size=65536):
 
     logger.debug("Calculaing checksum for %s with %s ..." % (filename, algorithm))
 
-    with open(filename, 'r') as f:
+    with open(filename, 'rb') as f:
         while True:
             data = f.read(block_size)
             if data:

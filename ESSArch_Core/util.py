@@ -561,7 +561,7 @@ def list_files(path, force_download=False, request=None, paginator=None):
                 return Response(entries)
 
         content_type = fid.get_mimetype(path)
-        return generate_file_response(open(path), content_type, force_download)
+        return generate_file_response(open(path, 'rb'), content_type, force_download)
 
     if os.path.isdir(path):
         entries = []
