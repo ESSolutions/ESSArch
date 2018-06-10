@@ -12,6 +12,7 @@ from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.base import BaseValidator
+from ESSArch_Core.util import normalize_path
 
 logger = logging.getLogger('essarch.fixity.validation.xml')
 
@@ -33,6 +34,7 @@ class DiffCheckValidator(BaseValidator):
         if not self.context:
             raise ValueError('A context (xml) is required')
 
+        self.context = normalize_path(self.context)
         self.rootdir = self.options.get('rootdir')
         self.default_algorithm = self.options.get('default_algorithm', 'SHA-256')
 
@@ -49,6 +51,7 @@ class DiffCheckValidator(BaseValidator):
                 logical_path = os.path.join(self.rootdir, logical.path)
             else:
                 logical_path = logical.path
+            logical_path =  normalize_path(logical_path)
 
             try:
                 self.initial_deleted[logical.checksum].append(logical_path)
@@ -197,7 +200,7 @@ class DiffCheckValidator(BaseValidator):
         if os.path.isdir(path):
             for root, dirs, files in walk(path):
                 for f in files:
-                    filepath = os.path.join(root, f)
+                    filepath = normalize_path(os.path.join(root, f))
                     if filepath in self.exclude or filepath == xmlfile:
                         continue
                     objs.append(self._validate(filepath))
@@ -226,7 +229,7 @@ class XMLComparisonValidator(DiffCheckValidator):
         self.logical_files = find_files(self.context, rootdir=self.rootdir, skip_files=skip_files)
 
     def _get_filepath(self, input_file):
-        return os.path.join(self.rootdir, input_file.path)
+        return normalize_path(os.path.join(self.rootdir, input_file.path))
 
     def _get_checksum(self, input_file):
         return input_file.checksum
@@ -251,6 +254,7 @@ class XMLComparisonValidator(DiffCheckValidator):
 
         skip_files = [os.path.relpath(xmlfile, self.rootdir)]
         skip_files.extend([p.path for p in find_pointers(path)])
+        skip_files = map(normalize_path, skip_files)
         for f in find_files(path, rootdir=self.rootdir, skip_files=skip_files):
             if f in self.exclude:
                 continue

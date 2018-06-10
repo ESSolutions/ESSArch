@@ -7,6 +7,7 @@ from scandir import walk
 
 from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.validation.backends.base import BaseValidator
+from ESSArch_Core.util import normalize_path
 
 logger = logging.getLogger('essarch.fixity.validation.structure')
 
@@ -44,22 +45,24 @@ class StructureValidator(BaseValidator):
 
     def in_valid_paths(self, root, path, valid_paths):
         for valid_path in [p for p in valid_paths if isinstance(p, six.string_types)]:
-            if path in glob(valid_path):
+            if path in map(normalize_path, glob(valid_path)):
                 return True
 
         for valid_path in [p for p in valid_paths if not isinstance(p, six.string_types)]:
             for nested_valid_path in valid_path:
                 for found_nested_path, matches in iglob(nested_valid_path, with_matches=True):
+                    found_nested_path = normalize_path(found_nested_path)
                     if found_nested_path == path:
                         # check matches
+                        matches = map(normalize_path, matches)
                         for match in matches:
                             for related_path in valid_path:
                                 if related_path != found_nested_path:
                                     related_path = related_path.replace('*', match, 1)
 
                                     if not os.path.isfile(related_path):
-                                        rel_path = os.path.relpath(path, root)
-                                        rel_related_path = os.path.relpath(related_path, root)
+                                        rel_path = normalize_path(os.path.relpath(path, root))
+                                        rel_related_path = normalize_path(os.path.relpath(related_path, root))
                                         raise ValidationError('{file} missing related file {related}'.format(file=rel_path, related=rel_related_path))
 
                         return True
@@ -69,22 +72,22 @@ class StructureValidator(BaseValidator):
     def validate_folder(self, path, node):
         valid_paths = node.get('valid_paths', [])
         allow_empty = node.get('allow_empty', True)
-        required_files = [req.format(**self.data) for req in node.get('required_files', [])]
+        required_files = map(normalize_path, [req.format(**self.data) for req in node.get('required_files', [])])
         file_count = 0
 
         for idx, valid in enumerate(valid_paths):
             if isinstance(valid, six.string_types):
-                valid_paths[idx] = os.path.join(path, valid).format(**self.data)
+                valid_paths[idx] = normalize_path(os.path.join(path, valid).format(**self.data))
             else:
                 for nested_idx, nested_valid in enumerate(valid):
-                    valid[nested_idx] = os.path.join(path, nested_valid).format(**self.data)
+                    valid[nested_idx] = normalize_path(os.path.join(path, nested_valid).format(**self.data))
 
         for root, dirs, files in walk(path):
             for f in files:
                 file_count += 1
                 if len(valid_paths):
                     try:
-                        self.in_valid_paths(path, os.path.join(root, f), valid_paths)
+                        self.in_valid_paths(path, normalize_path(os.path.join(root, f)), valid_paths)
                     except ValidationError as validation_exc:
                         try:
                             self.update_required_files(os.path.relpath(root, path), f, required_files)
@@ -105,7 +108,7 @@ class StructureValidator(BaseValidator):
 
     def validate(self, filepath):
         root = self.options.get('tree', [])
-
+        filepath = normalize_path(filepath)
         logger.debug("Validating structure of %s" % filepath)
 
         try:

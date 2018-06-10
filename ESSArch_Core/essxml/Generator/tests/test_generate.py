@@ -44,6 +44,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseConten
 from ESSArch_Core.configuration.models import (
     Path,
 )
+from ESSArch_Core.util import normalize_path
 
 
 class GenerateXMLTestCase(TestCase):
@@ -1426,8 +1427,7 @@ class GenerateXMLTestCase(TestCase):
                 self.assertIsNotNone(file_element)
 
                 filepath = os.path.join(root, f)
-                relpath = os.path.relpath(filepath, self.datadir)
-
+                relpath = normalize_path(os.path.relpath(filepath, self.datadir))
                 filepath_element = tree.find(
                     ".//bar[@name='%s']/baz[@href='%s']" % (f, relpath)
                 )
@@ -1458,8 +1458,8 @@ class GenerateXMLTestCase(TestCase):
         }
 
         os.mkdir(os.path.join(self.xmldir, 'nested'))
-        first_fname = os.path.join(self.xmldir, 'nested', "first.xml")
-        second_fname = os.path.join(self.xmldir, 'nested', "second.xml")
+        first_fname = normalize_path(os.path.join(self.xmldir, 'nested', "first.xml"))
+        second_fname = normalize_path(os.path.join(self.xmldir, 'nested', "second.xml"))
 
         generator = XMLGenerator(
             OrderedDict([
@@ -1647,7 +1647,7 @@ class GenerateXMLTestCase(TestCase):
                 self.assertIsNotNone(file_element)
 
                 filepath = os.path.join(root, f)
-                relpath = os.path.relpath(filepath, self.datadir)
+                relpath = normalize_path(os.path.relpath(filepath, self.datadir))
 
                 filepath_element = tree.find(
                     ".//{%s}bar[@name='%s']/{%s}baz[@href='%s']" % (nsmap['premis'], f, nsmap['premis'], relpath)
@@ -1709,7 +1709,7 @@ class GenerateXMLTestCase(TestCase):
         for root, dirs, files in walk(self.datadir):
             for f in files:
                 filepath = os.path.join(root, f)
-                relpath = os.path.relpath(filepath, self.datadir)
+                relpath = normalize_path(os.path.relpath(filepath, self.datadir))
 
                 filepath_element = tree.find(
                     ".//bar[@name='%s']/baz[@href='%s']" % (f, relpath)

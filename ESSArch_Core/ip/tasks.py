@@ -13,7 +13,7 @@ from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import InformationPackage, MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.util import (creation_date, find_destination, get_event_spec,
-                               get_premis_ip_object_element_spec,
+                               get_premis_ip_object_element_spec, normalize_path,
                                timestamp_to_datetime)
 
 
@@ -80,7 +80,7 @@ class GeneratePackageMets(DBTask):
         generator = XMLGenerator(files_to_create)
         generator.generate(folderToParse=ip.object_path, algorithm=algorithm)
 
-        ip.package_mets_path = xmlpath
+        ip.package_mets_path = normalize_path(xmlpath)
         ip.package_mets_create_date = timestamp_to_datetime(creation_date(xmlpath)).isoformat()
         ip.package_mets_size = os.path.getsize(xmlpath)
         ip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
@@ -223,7 +223,7 @@ class CreateContainer(DBTask):
         src = ip.object_path
         dst_dir = Path.objects.cached('entity', 'path_preingest_reception', 'value')
         dst_filename = ip.object_identifier_value + '.' + container_format
-        dst = os.path.join(dst_dir, dst_filename)
+        dst = normalize_path(os.path.join(dst_dir, dst_filename))
 
         if container_format == 'zip':
             self.event_type = 50410

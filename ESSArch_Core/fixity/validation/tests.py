@@ -309,8 +309,13 @@ class StructureValidatorTests(SimpleTestCase):
 
         # pdf with wrong name added
         open(os.path.join(self.root, 'bar.pdf'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, 'foo.txt missing related file foo.pdf'):
-            validator.validate(self.root)
+        try:
+            with self.assertRaisesRegexp(ValidationError, 'foo.txt missing related file foo.pdf'):
+                validator.validate(self.root)
+        except AssertionError:
+            # ordering of files (especially on Windows)
+            with self.assertRaisesRegexp(ValidationError, 'bar.pdf missing related file bar.txt'):
+                validator.validate(self.root)
         os.remove(os.path.join(self.root, 'bar.pdf'))
 
         # pdf added
@@ -501,7 +506,20 @@ class DiffCheckValidatorTests(TestCase):
         files = [os.path.join(self.datadir, 'first.txt'), os.path.join(self.datadir, 'second.txt')]
 
         for f in files:
-            with open(os.path.join(f), 'w') as fp:
+            with open(f, 'w') as fp:
+                fp.write('foo')
+
+        self.generate_xml()
+
+        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+        self.validator.validate(self.datadir)
+
+    def test_validation_with_unchanged_file_in_directory(self):
+        os.mkdir(os.path.join(self.datadir, 'dir1'))
+        files = [os.path.join(self.datadir, 'dir1', 'first.txt')]
+
+        for f in files:
+            with open(f, 'w') as fp:
                 fp.write('foo')
 
         self.generate_xml()
@@ -770,8 +788,9 @@ class XMLComparisonValidatorTests(TestCase):
     def setUp(self):
         self.root = os.path.dirname(os.path.realpath(__file__))
         self.datadir = os.path.join(self.root, "datadir")
-        self.mets = os.path.join(self.datadir, 'mets.xml')
-        self.premis = os.path.join(self.datadir, 'premis.xml')
+        self.xmldir = os.path.join(self.datadir, "metadata")
+        self.mets = os.path.join(self.xmldir, 'mets.xml')
+        self.premis = os.path.join(self.xmldir, 'premis.xml')
         self.options = {'rootdir': self.datadir}
         mimetypes_path = os.path.join(os.path.dirname(Generator.__file__), 'mime.types')
 
@@ -872,6 +891,12 @@ class XMLComparisonValidatorTests(TestCase):
 
         try:
             os.mkdir(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+        try:
+            os.mkdir(self.xmldir)
         except OSError as e:
             if e.errno != 17:
                 raise
