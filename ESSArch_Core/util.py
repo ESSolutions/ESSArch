@@ -339,7 +339,9 @@ def win_to_posix(path):
 
 
 def normalize_path(path):
-    return os.path.normpath(os.sep.join(re.split(r'\\|/', path)))
+    sep = os.sep
+    if sep != '/':
+        return path.replace(sep, '/')
 
 
 def mkdir_p(path):
