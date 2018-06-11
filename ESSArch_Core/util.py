@@ -342,6 +342,7 @@ def normalize_path(path):
     sep = os.sep
     if sep != '/':
         return path.replace(sep, '/')
+    return path
 
 
 def mkdir_p(path):
