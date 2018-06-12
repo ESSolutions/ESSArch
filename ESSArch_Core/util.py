@@ -327,9 +327,13 @@ def get_tree_size_and_count(path='.'):
 
     for dirpath, dirnames, filenames in walk(path):
         for f in filenames:
-            fp = os.path.join(dirpath, f)
-            total_size += os.path.getsize(fp)
-            count += 1
+            try:
+                fp = os.path.join(dirpath, f)
+                total_size += os.path.getsize(fp)
+                count += 1
+            except OSError as e:
+                if e.errno != errno.ENOENT:
+                    raise
 
     return total_size, count
 
