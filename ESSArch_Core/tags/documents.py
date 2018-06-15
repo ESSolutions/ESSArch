@@ -68,6 +68,7 @@ class Restriction(InnerDoc):
 
 class VersionedDocType(DocType):
     name = Text(analyzer=autocomplete_analyzer, search_analyzer='standard', fields={'keyword': {'type': 'keyword'}})  # unittitle
+    reference_code = Keyword()
     link_id = Keyword()
     current_version = Boolean()
     index_date = Date()
@@ -115,7 +116,6 @@ class VersionedDocType(DocType):
 
 
 class Component(VersionedDocType):
-    reference_code = Keyword()
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
     arrival_date = Date()
@@ -130,13 +130,13 @@ class Component(VersionedDocType):
     archive = Keyword()
     institution = Keyword()
     organization = Keyword()
+    ip = Keyword()
 
     class Meta:
         index = 'component'
 
 
 class Archive(VersionedDocType):
-    reference_code = Keyword()
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
     desc = Text(analyzer=autocomplete_analyzer, search_analyzer='standard')
@@ -162,7 +162,6 @@ class InformationPackage(VersionedDocType):
 
 
 class Document(Component):
-    ip = Keyword()
     filename = Keyword()
     extension = Keyword()
     href = Keyword()  # @href
