@@ -24,7 +24,10 @@ profile_types = [
     "Transformation",
 ]
 
-def fill_specification_data(data={}, sa=None, ip=None):
+def fill_specification_data(data=None, sa=None, ip=None):
+    if data is None:
+        data = {}
+
     if sa:
         data['_SA_ID'] = str(sa.pk)
         data['_SA_NAME'] = sa.name
