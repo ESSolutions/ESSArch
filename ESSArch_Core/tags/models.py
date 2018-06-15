@@ -81,6 +81,7 @@ class Tag(models.Model):
 class TagVersion(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tag = models.ForeignKey('tags.Tag', on_delete=models.CASCADE, related_name='versions')
+    reference_code = models.CharField(max_length=255, blank=True)
     type = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     elastic_index = models.CharField(max_length=255, blank=False, default=None)
@@ -185,6 +186,7 @@ class TagVersion(models.Model):
 
     class Meta:
         get_latest_by = 'create_date'
+        ordering = ('reference_code',)
 
 
 class TagStructure(MPTTModel):
