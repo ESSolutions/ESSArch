@@ -1,13 +1,15 @@
 from django.utils import timezone
 from elasticsearch_dsl import (Boolean, Date, DocType, InnerDoc, Integer, Keyword, Long,
                                Nested, Object, Q, Text, analyzer,
-                               tokenizer)
+                               tokenizer, token_filter)
 
 ngram_tokenizer=tokenizer('custom_ngram_tokenizer', type='ngram', min_gram=3,
                           max_gram=3)
 ngram_analyzer = analyzer('custom_ngram_analyzer', tokenizer=ngram_tokenizer,
                           filter=['lowercase'])
 
+autocomplete_filter = token_filter('autocomplete_filter', type='edge_ngram', min_gram=1, max_gram=20)
+autocomplete_analyzer = analyzer('autocomplete_analyzer', filter=[autocomplete_filter, 'lowercase'], tokenizer='standard')
 
 class Tag(DocType):
     name = Text(analyzer=ngram_analyzer, search_analyzer='standard')
@@ -65,6 +67,7 @@ class Restriction(InnerDoc):
 
 
 class VersionedDocType(DocType):
+    name = Text(analyzer=autocomplete_analyzer, search_analyzer='standard', fields={'keyword': {'type': 'keyword'}})  # unittitle
     link_id = Keyword()
     current_version = Boolean()
     index_date = Date()
@@ -115,14 +118,13 @@ class Component(VersionedDocType):
     reference_code = Keyword()
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
-    name = Text(analyzer=ngram_analyzer, fields={'keyword': {'type': 'keyword'}})  # unittitle
     arrival_date = Date()
     decision_date = Date()
     preparation_date = Date()
     create_date = Date()
     dispatch_date = Date()
     last_usage_date = Date()
-    desc = Text(analyzer=ngram_analyzer)  # e.g. from <odd>
+    desc = Text(analyzer=autocomplete_analyzer, search_analyzer='standard')
     type = Keyword()  # series, volume, etc.
     parent = Object(Node)
     archive = Keyword()
@@ -137,8 +139,7 @@ class Archive(VersionedDocType):
     reference_code = Keyword()
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
-    name = Text(analyzer=ngram_analyzer, fields={'keyword': {'type': 'keyword'}})  # unittitle
-    desc = Text(analyzer=ngram_analyzer)  # e.g. from <odd>
+    desc = Text(analyzer=autocomplete_analyzer, search_analyzer='standard')
     type = Keyword()
     institution = Keyword()
     organization = Keyword()
@@ -148,10 +149,9 @@ class Archive(VersionedDocType):
         index = 'archive'
 
 
-class InformationPackage(DocType):
+class InformationPackage(VersionedDocType):
     id = Keyword()  # @id
     object_identifier_value = Text(analyzer=ngram_analyzer, search_analyzer='standard', fields={'keyword': {'type': 'keyword'}})
-    name = Text(analyzer=ngram_analyzer, search_analyzer='standard', fields={'keyword': {'type': 'keyword'}})  # label
     start_date = Date()
     end_date = Date()
     institution = Keyword()
@@ -173,9 +173,8 @@ class Document(Component):
         index = 'document'
 
 
-class Directory(DocType):
+class Directory(VersionedDocType):
     ip = Keyword()
-    name = Keyword()
     href = Keyword()  # @href
 
     class Meta:
