@@ -26,6 +26,7 @@ from __future__ import division
 
 import math
 import os
+import tarfile
 import uuid
 from copy import deepcopy
 
@@ -620,6 +621,18 @@ class InformationPackage(models.Model):
 
         return fullpath
 
+    def read_file(self, path=''):
+        if self.archived:
+            storage_obj = self.storage.readable().fastest().first()
+            if storage_obj is None:
+                raise ValueError("No readable storage configured for IP")
+            return storage_obj.read(path)
+
+        if os.path.isfile(self.object_path):
+            with tarfile.open(self.object_path) as tar:
+                return tar.extractfile(path.split('/', 1)[1])
+
+        return open(self.files(path), 'rb')
 
     class Meta:
         ordering = ["generation", "-create_date"]
