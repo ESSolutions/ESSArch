@@ -103,6 +103,9 @@ class TagVersion(models.Model):
     def from_search(self):
         return es.get(index=self.elastic_index, doc_type='_all', id=str(self.pk), params={'_source_exclude': 'attachment.content'})
 
+    def get_doc(self):
+        return VersionedDocType.get(index=self.elastic_index, id=str(self.pk))
+
     def update_search(self, data):
         doc = self.to_search()
         doc.update(**data)
