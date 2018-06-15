@@ -2,6 +2,7 @@ import logging
 
 from django.db.models.signals import pre_delete, post_delete, post_save
 from django.dispatch import receiver
+from elasticsearch import Elasticsearch
 from redis import StrictRedis
 from six.moves import cPickle
 
@@ -9,6 +10,7 @@ from ESSArch_Core.tags import DELETION_QUEUE, INDEX_QUEUE, UPDATE_QUEUE
 from ESSArch_Core.tags.models import TagVersion
 
 logger = logging.getLogger('essarch.core')
+es = Elasticsearch()
 r = StrictRedis()
 
 
@@ -21,12 +23,9 @@ def queue_tag_for_index(sender, instance, created, **kwargs):
             tag.save(update_fields=['current_version'])
 
     data = {
-        '_op_type': 'update',
         'doc_as_upsert': True,
-        '_index': instance.elastic_index,
-        '_type': 'doc',
-        '_id': str(instance.pk),
         'doc': {
+            'reference_code': instance.reference_code,
             'name': instance.name,
             'type': instance.type,
             'current_version': instance.tag.current_version == instance
@@ -37,7 +36,7 @@ def queue_tag_for_index(sender, instance, created, **kwargs):
         archive = instance.get_root()
         if archive is not None:
             data['doc']['archive'] = str(archive.pk)
-    r.rpush(UPDATE_QUEUE, cPickle.dumps(data))
+    es.update(instance.elastic_index, 'doc', str(instance.pk), body=data)
 
 
 @receiver(pre_delete, sender=TagVersion)
