@@ -24,6 +24,7 @@
 
 from __future__ import division
 
+import logging
 import math
 import os
 import tarfile
@@ -51,7 +52,10 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.profiles.models import ProfileIP, ProfileIPData, ProfileSA
 from ESSArch_Core.profiles.models import SubmissionAgreement as SA
 from ESSArch_Core.profiles.utils import fill_specification_data
+from ESSArch_Core.search.importers import get_content_type_importer
 from ESSArch_Core.util import find_destination, in_directory, list_files, normalize_path, timestamp_to_datetime
+
+logger = logging.getLogger('essarch.ip')
 
 MESSAGE_DIGEST_ALGORITHM_CHOICES = (
     (ArchivePolicy.MD5, 'MD5'),
@@ -309,6 +313,43 @@ class InformationPackage(models.Model):
             assign_perm(perm_name, member.django_user, new_aip)
 
         return new_aip
+
+    def get_inner_ip_path(self):
+        # TODO: use self.inner_sip attribute instead of self.object_path
+        content_dir, content_name = find_destination('content', self.get_structure(), self.object_path)
+        content_path = os.path.join(content_dir, content_name)
+        return normalize_path(os.path.join(content_path, self.object_identifier_value))
+
+    def get_content_type_importer_name(self):
+        ct_profile = self.get_profile('content_type')
+        if ct_profile is None:
+            msg = 'No content_type profile set for {objid}'.format(objid=self.object_identifier_value)
+            logger.error(msg)
+            raise ValueError(msg)
+
+        try:
+            return ct_profile.specification['name']
+        except KeyError:
+            logger.exception('No content type importer specified in {profile}'.format(profile=ct_profile.name))
+            raise
+
+    def get_content_type_file(self):
+        ctsdir, ctsfile = find_destination('content_type_specification', self.get_structure())
+        if ctsdir is None:
+            return None
+        path = parseContent(os.path.join(ctsdir, ctsfile), fill_specification_data(ip=self))
+        return self.read_file(path)
+
+    def get_archive_tag(self):
+        if self.tag is not None:
+            return self.tag
+
+        try:
+            ct_importer_name = self.get_content_type_importer_name()
+            ct_importer = get_content_type_importer(ct_importer_name)()
+            return ct_importer.get_archive(self)
+        except ValueError:
+            return None
 
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
