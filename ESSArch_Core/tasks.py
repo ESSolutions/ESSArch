@@ -642,12 +642,13 @@ class DeleteFiles(DBTask):
     def run(self, path=None):
         try:
             shutil.rmtree(path)
-        except WindowsError as e:
-            if e.winerror == 267:
-                os.remove(path)
-            elif e.winerror != 3:
-                raise
         except OSError as e:
+            if os.name == 'nt':
+                if e.errno == 267:
+                    os.remove(path)
+                elif e.errno != 3:
+                    raise
+
             if e.errno == errno.ENOTDIR:
                 os.remove(path)
             elif e.errno != errno.ENOENT:
