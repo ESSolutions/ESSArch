@@ -1,7 +1,8 @@
+from django.core.cache import cache
 import elasticsearch
 from rest_framework import serializers
 
-from ESSArch_Core.tags.documents import VersionedDocType
+from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.tags.models import Tag, TagVersion, Structure, TagStructure
 
 
@@ -30,7 +31,7 @@ class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
 class TagVersionWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = TagVersion
-        fields = ('start_date', 'end_date', 'name', 'type',)
+        fields = ('start_date', 'end_date', 'name', 'type', 'reference_code',)
 
 
 class TagVersionNestedSerializer(serializers.ModelSerializer):
@@ -43,28 +44,41 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     def get_is_leaf_node(self, obj):
         return obj.is_leaf_node(structure=self.context.get('structure'))
 
-    def _get_doc(self, obj):
-        return VersionedDocType.get(index=obj.elastic_index, id=str(obj.pk))
-
     def get_masked_fields(self, obj):
+        cache_key = u'{}_masked_fields'.format(obj.pk)
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
         try:
-            doc = self._get_doc(obj)
-            return doc.get_masked_fields(self.context.get('user'))
+            doc = obj.get_doc()
+            masked = doc.get_masked_fields(self.context.get('user'))
+            cache.set(cache_key, masked, 60)
+            return masked
         except elasticsearch.NotFoundError:
             return []
 
     def get__source(self, obj):
+        hidden_fields = ['restrictions']
         try:
-            doc = self._get_doc(obj)
+            doc = obj.get_doc()
+            masked_fields = self.get_masked_fields(obj)
             d = doc.to_dict()
+
+            try:
+                d['ip_objid'] = get_cached_objid(d['ip'])
+            except KeyError:
+                pass
+
             if doc._index == 'document':
                 try:
                     d['attachment'].pop('content', None)
                 except KeyError:
                     pass
             for field in d.keys():
-                if field in doc.get_masked_fields(self.context.get('user')):
+                if field in masked_fields:
                     d[field] = ''
+                if field in hidden_fields:
+                    d.pop(field)
             return d
         except elasticsearch.NotFoundError:
             return None
