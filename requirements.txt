@@ -14,7 +14,7 @@ django-nested-inline==0.3.7
 django-picklefield==0.3.2
 django-redis==4.8.0
 django-rest-auth[with_social]==0.9.2
-djangorestframework==3.7.0
+djangorestframework==3.7.7
 drf-dynamic-fields==0.2.0
 drf-extensions==0.3.1
 drf-proxy-pagination==0.1.1
