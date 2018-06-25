@@ -3,13 +3,19 @@ import elasticsearch
 from rest_framework import serializers
 
 from ESSArch_Core.ip.utils import get_cached_objid
-from ESSArch_Core.tags.models import Tag, TagVersion, Structure, TagStructure
+from ESSArch_Core.tags.models import Tag, TagVersion, Structure, StructureUnit, TagStructure
 
 
 class StructureSerializer(serializers.ModelSerializer):
     class Meta:
         model = Structure
         fields = ('id', 'name', 'version', 'create_date',)
+
+
+class StructureUnitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StructureUnit
+        fields = ('id', 'parent', 'name', 'description', 'reference_code')
 
 
 class TagStructureSerializer(serializers.ModelSerializer):

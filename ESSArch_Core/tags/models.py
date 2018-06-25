@@ -3,6 +3,7 @@ import uuid
 import six
 from django.db import models, transaction
 from django.db.models import F, OuterRef, Subquery
+from django.utils.encoding import python_2_unicode_compatible
 from elasticsearch import Elasticsearch
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -14,12 +15,27 @@ es = Elasticsearch()
 class Structure(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, blank=False)
-    version = models.CharField(max_length=255, blank=False)
+    version = models.CharField(max_length=255, blank=False, default='1.0')
     version_link = models.UUIDField(default=uuid.uuid4, null=False)
     create_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         get_latest_by = 'create_date'
+
+
+@python_2_unicode_compatible
+class StructureUnit(MPTTModel):
+    structure = models.ForeignKey('tags.Structure', on_delete=models.CASCADE, null=False, related_name='units')
+    parent = TreeForeignKey('self', null=True, related_name='children', db_index=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    reference_code = models.CharField(max_length=255)
+
+    def __str__(self):
+        return u'{} {}'.format(self.reference_code, self.name)
+
+    class Meta:
+        unique_together = (('structure', 'reference_code'),)
 
 
 class Tag(models.Model):
