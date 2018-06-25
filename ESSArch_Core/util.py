@@ -471,6 +471,14 @@ def nested_lookup(key, document):
                         yield result
 
 
+def mptt_to_dict(node, serializer):
+    result = serializer(instance=node).data
+    children = [mptt_to_dict(c, serializer) for c in node.get_children()]
+    if children:
+        result['children'] = children
+    return result
+
+
 def convert_file(path, new_format):
     cmd = 'unoconv -f %s -eSelectPdfVersion=1 "%s"' % (new_format, path)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
