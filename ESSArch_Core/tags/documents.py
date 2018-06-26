@@ -68,7 +68,7 @@ class Restriction(InnerDoc):
 
 class VersionedDocType(DocType):
     name = Text(analyzer=autocomplete_analyzer, search_analyzer='standard', fields={'keyword': {'type': 'keyword'}})  # unittitle
-    reference_code = Keyword()
+    reference_code = Text(analyzer=autocomplete_analyzer, search_analyzer='standard', fields={'keyword': {'type': 'keyword'}})
     link_id = Keyword()
     current_version = Boolean()
     index_date = Date()
