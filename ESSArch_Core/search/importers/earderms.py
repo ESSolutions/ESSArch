@@ -291,7 +291,6 @@ class EardErmsImporter(BaseImporter):
             'name': ['Arendemening', 'Rubrik', 'ArkivobjektID'],
             'status': 'StatusArande',
             'arendetyp': 'ArendeTyp',
-            'informationsklass': 'Informationsklass',
         }
         data = self.parse_mappings(data_mappings, errand)
 
