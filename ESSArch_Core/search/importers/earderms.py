@@ -125,6 +125,12 @@ class EardErmsImporter(BaseImporter):
 
         return data
 
+    def parse_relation(self, el):
+        return {
+            'typ': el.get('AnnanTyp') if el.get('Typ') == 'Egen relationsdefinition' else el.get('Typ'),
+            'referens': el.text
+        }
+
     def parse_initiator(self, el):
         initiator_obj = {}
         value_map = {
@@ -293,6 +299,17 @@ class EardErmsImporter(BaseImporter):
             'arendetyp': 'ArendeTyp',
         }
         data = self.parse_mappings(data_mappings, errand)
+
+        try:
+            motpart = errand.xpath("*[local-name()='Motpart']")[0]
+            data['motpart'] = self.parse_person(motpart)
+        except IndexError:
+            pass
+
+        data['relationer'] = []
+        for relation in errand.xpath("*[local-name()='ArendeRelation']"):
+            data['relationer'].append(self.parse_relation(relation))
+
 
         data['agenter'] = []
         for agent in errand.xpath("*[local-name()='Agent']"):
