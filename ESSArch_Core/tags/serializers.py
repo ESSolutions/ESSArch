@@ -15,7 +15,7 @@ class StructureSerializer(serializers.ModelSerializer):
 class StructureUnitSerializer(serializers.ModelSerializer):
     class Meta:
         model = StructureUnit
-        fields = ('id', 'parent', 'name', 'description', 'reference_code')
+        fields = ('id', 'parent', 'name', 'type', 'description', 'reference_code')
 
 
 class TagStructureSerializer(serializers.ModelSerializer):

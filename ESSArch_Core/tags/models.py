@@ -28,6 +28,7 @@ class StructureUnit(MPTTModel):
     structure = models.ForeignKey('tags.Structure', on_delete=models.CASCADE, null=False, related_name='units')
     parent = TreeForeignKey('self', null=True, related_name='children', db_index=True)
     name = models.CharField(max_length=255)
+    type = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     reference_code = models.CharField(max_length=255)
 
