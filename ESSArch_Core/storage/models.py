@@ -503,7 +503,7 @@ class StorageObject(models.Model):
         if not self.container:
             backend = self.get_storage_backend()
             with backend.open(self, path) as fp:
-                return fp
+                return fp.read()
 
         extracted = self.extract()
         return extracted.read(path)
