@@ -338,7 +338,7 @@ class InformationPackage(models.Model):
         if ctsdir is None:
             return None
         path = parseContent(os.path.join(ctsdir, ctsfile), fill_specification_data(ip=self))
-        return self.read_file(path)
+        return self.open_file(path)
 
     def get_archive_tag(self):
         if self.tag is not None:
@@ -660,6 +660,18 @@ class InformationPackage(models.Model):
             raise exceptions.ParseError('Illegal path %s' % path)
 
         return fullpath
+
+    def open_file(self, path='', *args, **kwargs):
+        if self.archived:
+            storage_obj = self.storage.readable().fastest().first()
+            if storage_obj is None:
+                raise ValueError("No readable storage configured for IP")
+            return storage_obj.open(path, *args, **kwargs)
+        if os.path.isfile(self.object_path):
+            with tarfile.open(self.object_path) as tar:
+                return tar.extractfile(path.split('/', 1)[1])
+
+        return open(self.files(path), *args, **kwargs)
 
     def read_file(self, path=''):
         if self.archived:

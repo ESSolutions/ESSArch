@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import base64
+import errno
 import itertools
 import logging
 import os
@@ -25,8 +26,8 @@ redis_conn = Redis()
 
 class EardErmsImporter(BaseImporter):
     def get_archive(self, ip):
-        ctsfile = ip.get_content_type_file()
         try:
+            ctsfile = ip.get_content_type_file()
             tree = etree.parse(ctsfile, self.xmlparser)
             root = tree.getroot()
             archive_id = root.xpath("//*[local-name()='ArkivReferens']")[0].text
@@ -34,7 +35,10 @@ class EardErmsImporter(BaseImporter):
             try:
                 return TagVersion.objects.get(Q(Q(name=archive_id) | Q(reference_code=archive_id)), elastic_index='archive')
             except TagVersion.DoesNotExist:
-                logger.exception(u'"{}" not found'.format(reference))
+                logger.exception(u'"{}" not found'.format(archive_id))
+                raise
+        except OSError as e:
+            if e.errno != errno.ENOENT:
                 raise
         except (IndexError, TagVersion.DoesNotExist):
             pass
@@ -440,9 +444,8 @@ class EardErmsImporter(BaseImporter):
 
     def import_content(self, ip):
         self.indexed_files = []
-        ctsfile = ip.get_content_type_file()
-
-        tree = etree.parse(ctsfile, self.xmlparser)
+        with ip.get_content_type_file() as ctsfile:
+            tree = etree.parse(ctsfile, self.xmlparser)
         root = tree.getroot()
 
         archive = self.get_archive(ip).tag.current_version
