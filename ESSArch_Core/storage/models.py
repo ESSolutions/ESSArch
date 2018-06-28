@@ -491,6 +491,14 @@ class StorageObject(models.Model):
                                                content_location_type=medium_type, content_location_value=target_path)
         return new_obj
 
+    def open(self, path, *args, **kwargs):
+        if not self.container:
+            backend = self.get_storage_backend()
+            return backend.open(self, path, *args, **kwargs)
+
+        extracted = self.extract()
+        return extracted.open(path, *args, **kwargs)
+
     def read(self, path):
         if not self.container:
             backend = self.get_storage_backend()
