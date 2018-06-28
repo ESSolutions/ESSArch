@@ -624,7 +624,7 @@ class InformationPackage(models.Model):
             storage_obj = self.storage.readable().fastest().first()
             if storage_obj is None:
                 raise ValueError("No readable storage configured for IP")
-            fp = storage_obj.read(path)
+            fp = storage_obj.open(path)
             path = os.path.realpath(fp.name)
             return path
 
