@@ -193,6 +193,39 @@ class EardErmsImporter(BaseImporter):
         data['gallras'] = el.get('gallras') == 'true'
         return data
 
+    def parse_egenskaper(self, el):
+        data_mappings = {
+            'varde': 'Varde',
+        }
+        data = self.parse_mappings(data_mappings, el)
+        data['namn'] = el.get('Namn')
+        data['datatyp'] = el.get('DataTyp')
+        data['format'] = el.get('Format')
+        data['egenskaper'] = [self.parse_egenskaper(e) for e in
+                              el.xpath('*[local-name()="Egenskaper"]/*[local-name()="Egenskap"]')]
+        return data
+
+    def parse_eget_element(self, el):
+        data_mappings = {
+            'varde': 'Varde',
+        }
+        data = self.parse_mappings(data_mappings, el)
+        data['namn'] = el.get('Namn')
+        data['datatyp'] = el.get('DataTyp')
+        data['format'] = el.get('Format')
+        data['element'] = [self.parse_eget_element(e) for e in el.xpath('*[local-name()="EgetElement"]')]
+        data['egenskaper'] = [self.parse_egenskaper(e) for e in
+                              el.xpath('*[local-name()="Egenskaper"]/*[local-name()="Egenskap"]')]
+        return data
+
+    def parse_egna_element(self, el):
+        data_mappings = {
+            'beskrivning': 'EgnaElementBeskrivning',
+        }
+        data = self.parse_mappings(data_mappings, el)
+        data['element'] = [self.parse_eget_element(e) for e in el.xpath('*[local-name()="EgetElement"]')]
+        return data
+
     def parse_act(self, act, errand):
         id = str(uuid.uuid4())#act.get("Systemidentifierare")
         reference_code = act.xpath("*[local-name()='ArkivobjektID']")[0].text
@@ -247,6 +280,10 @@ class EardErmsImporter(BaseImporter):
             data['gallring'] = self.parse_gallring(act.xpath("*[local-name()='Gallring']")[0])
         except IndexError:
             pass
+
+        data['egna_element'] = []
+        for egna_element in act.xpath("*[local-name()='EgnaElement']"):
+            data['egna_element'].append(self.parse_egna_element(egna_element))
 
         date_mappings = {
             'dispatch_date': 'Expedierad',
@@ -349,6 +386,10 @@ class EardErmsImporter(BaseImporter):
         data['restriktioner'] = []
         for restriktion in errand.xpath("*[local-name()='Restriktion']"):
             data['restriktioner'].append(self.parse_restriction(restriktion))
+
+        data['egna_element'] = []
+        for egna_element in errand.xpath("*[local-name()='EgnaElement']"):
+            data['egna_element'].append(self.parse_egna_element(egna_element))
 
         date_mappings = {
             'decision_date': 'Beslutat',
