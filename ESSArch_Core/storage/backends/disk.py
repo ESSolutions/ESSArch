@@ -3,7 +3,6 @@ import logging
 import os
 import shutil
 import tarfile
-from contextlib import contextmanager
 
 import six
 
@@ -27,12 +26,9 @@ class DiskStorageBackend(BaseStorageBackend):
 
         return os.path.join(dst, root)
 
-    @contextmanager
     def open(self, storage_object, file, *args, **kwargs):
         path = os.path.join(storage_object.content_location_value, file)
-        f = open(path, *args, **kwargs)
-        yield f
-        f.close()
+        return open(path, *args, **kwargs)
 
     def read(self, storage_object, dst, extract=False, include_xml=True, block_size=65536):
         medium = storage_object.storage_medium
