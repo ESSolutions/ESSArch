@@ -131,6 +131,12 @@ class EardErmsImporter(BaseImporter):
             'referens': el.text
         }
 
+    def parse_extra_id(self, el):
+        return {
+            'typ': el.get('ExtraIDTyp'),
+            'id': el.text
+        }
+
     def parse_initiator(self, el):
         initiator_obj = {}
         value_map = {
@@ -177,6 +183,16 @@ class EardErmsImporter(BaseImporter):
         data['typ'] = six.text_type(typ)
         return data
 
+    def parse_gallring(self, el):
+        data_mappings = {
+            'frist': 'GallringsFrist',
+            'forklaring': 'GallringsForklaring',
+            'period_slut': 'GallringsPeriodSlut',
+        }
+        data = self.parse_mappings(data_mappings, el)
+        data['gallras'] = el.get('gallras') == 'true'
+        return data
+
     def parse_act(self, act, errand):
         id = str(uuid.uuid4())#act.get("Systemidentifierare")
         reference_code = act.xpath("*[local-name()='ArkivobjektID']")[0].text
@@ -203,11 +219,13 @@ class EardErmsImporter(BaseImporter):
                     else:
                         found = True
 
-        try:
-            avsandare = act.xpath("*[local-name()='Avsandare']")[0]
-            data['avsandare'] = self.parse_person(avsandare)
-        except IndexError:
-            pass
+        data['avsandare'] = []
+        for avsandare in act.xpath("*[local-name()='Avsandare']"):
+            data['avsandare'].append(self.parse_person(avsandare))
+
+        data['mottagare'] = []
+        for mottagare in act.xpath("*[local-name()='Mottagare']"):
+            data['mottagare'].append(self.parse_person(mottagare))
 
         data['agenter'] = []
         for agent in act.xpath("*[local-name()='Agent']"):
@@ -216,6 +234,19 @@ class EardErmsImporter(BaseImporter):
         data['restriktioner'] = []
         for restriktion in act.xpath("*[local-name()='Restriktion']"):
             data['restriktioner'].append(self.parse_restriction(restriktion))
+
+        data['relationer'] = []
+        for relation in act.xpath("*[local-name()='HandlingRelation']"):
+            data['relationer'].append(self.parse_relation(relation))
+
+        data['extra_ids'] = []
+        for extra_id in act.xpath("*[local-name()='ExtraID']"):
+            data['extra_ids'].append(self.parse_extra_id(extra_id))
+
+        try:
+            data['gallring'] = self.parse_gallring(act.xpath("*[local-name()='Gallring']")[0])
+        except IndexError:
+            pass
 
         date_mappings = {
             'dispatch_date': 'Expedierad',
