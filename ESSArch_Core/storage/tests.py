@@ -44,15 +44,16 @@ class CopyChunkTestCase(TestCase):
         copy_chunk(self.src, dst, 1, file_size=3, upload_id=upload_id, requests_session=session, block_size=1)
 
         mock_copy_chunk_remotely.assert_called_once_with(
-            self.src, dst, 1, file_size=3, upload_id=upload_id,
+            self.src, dst, 1, 3, upload_id=upload_id,
             requests_session=session, block_size=1
         )
 
     @mock.patch('ESSArch_Core.storage.copy.open', fake_open)
     def test_copy_chunk_locally(self):
+        fsize = self.fs.GetStat(self.src).st_size
         self.dst = "dst.txt"
 
-        copy_chunk_locally(self.src, self.dst, 1, block_size=1)
+        copy_chunk_locally(self.src, self.dst, 1, fsize, block_size=1)
 
         with self.fake_open(self.dst) as dstf:
             self.assertEqual(dstf.read(), 'o')
@@ -63,7 +64,8 @@ class CopyChunkTestCase(TestCase):
         dst = "http://remote.destination/upload"
         session = requests.Session()
 
-        attrs = {'json.return_value': {'upload_id': uuid.uuid4().hex}}
+        attrs = {'json.return_value': {'upload_id': uuid.uuid4().hex},
+                 'elapsed': mock.PropertyMock(**{'total_seconds.return_value': 1})}
         mock_response = mock.Mock()
         mock_response.configure_mock(**attrs)
 
@@ -71,12 +73,13 @@ class CopyChunkTestCase(TestCase):
 
         upload_id = uuid.uuid4().hex
 
-        copy_chunk_remotely(self.src, dst, 1, file_size=3, upload_id=upload_id, requests_session=session, block_size=1)
+        copy_chunk_remotely(self.src, dst, 1, 3, upload_id=upload_id, requests_session=session, block_size=1)
 
         mock_post.assert_called_once_with(
             dst, files={'the_file': ('src.txt', 'o')},
             data={'upload_id': upload_id},
             headers={'Content-Range': 'bytes 1-1/3'},
+            timeout=60,
         )
 
     @mock.patch('ESSArch_Core.storage.copy.open', fake_open)
@@ -94,14 +97,14 @@ class CopyChunkTestCase(TestCase):
         upload_id = uuid.uuid4().hex
 
         with self.assertRaises(requests.exceptions.HTTPError):
-            copy_chunk_remotely(self.src, dst, 1, file_size=3, upload_id=upload_id, requests_session=session, block_size=1)
+            copy_chunk_remotely(self.src, dst, 1, 3, upload_id=upload_id, requests_session=session, block_size=1)
 
         mock_post.assert_called_once_with(
             dst, files={'the_file': ('src.txt', 'o')},
             data={'upload_id': upload_id},
             headers={'Content-Range': 'bytes 1-1/3'},
+            timeout=60,
         )
-
 
     @mock.patch('ESSArch_Core.storage.copy.open', fake_open)
     def test_local_non_ascii_file_name(self):
@@ -114,7 +117,8 @@ class CopyChunkTestCase(TestCase):
         with self.fake_open(src, 'w') as f:
             f.write('foo')
 
-        copy_chunk_locally(src, dst, 1, block_size=1)
+        fsize = self.fs.GetStat(src).st_size
+        copy_chunk_locally(src, dst, 1, fsize, block_size=1)
 
         with self.fake_open(dst) as dstf:
             self.assertEqual(dstf.read(), 'o')
@@ -150,7 +154,8 @@ class CopyFileTestCase(TestCase):
     @mock.patch('ESSArch_Core.storage.copy.copy_chunk')
     def test_local_empty(self, mock_copy_chunk):
         copy_file_locally(self.src, self.dst)
-        mock_copy_chunk.assert_called_once_with(self.src, self.dst, 0, block_size=mock.ANY)
+        fsize = self.fs.GetStat(self.src).st_size
+        mock_copy_chunk.assert_called_once_with(self.src, self.dst, 0, fsize, block_size=mock.ANY)
 
     @mock.patch('ESSArch_Core.storage.copy.os', fake_os)
     @mock.patch('ESSArch_Core.storage.copy.open', fake_open)
@@ -162,5 +167,6 @@ class CopyFileTestCase(TestCase):
 
         copy_file_locally(self.src, self.dst, block_size=1)
 
-        calls = [mock.call(self.src, self.dst, x, block_size=1) for x in range(len(content))]
+        fsize = self.fs.GetStat(self.src).st_size
+        calls = [mock.call(self.src, self.dst, x, fsize, block_size=1) for x in range(len(content))]
         mock_copy_chunk.assert_has_calls(calls)
