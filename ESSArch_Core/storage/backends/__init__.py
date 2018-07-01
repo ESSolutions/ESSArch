@@ -8,6 +8,7 @@ logger = logging.getLogger('essarch.storage')
 AVAILABLE_STORAGE_BACKENDS = {
     'disk': 'ESSArch_Core.storage.backends.disk.DiskStorageBackend',
     'tape': 'ESSArch_Core.storage.backends.tape.TapeStorageBackend',
+    's3': 'ESSArch_Core.storage.backends.s3.S3StorageBackend',
 }
 
 extra_storage_backends = getattr(settings, 'ESSARCH_STORAGE_BACKENDS', {})

@@ -134,6 +134,7 @@ def get_backend_from_storage_type(type):
     return {
         DISK: 'disk',
         TAPE: 'tape',
+        CAS: 's3',
     }[type]
 
 
