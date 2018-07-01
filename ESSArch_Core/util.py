@@ -41,7 +41,7 @@ from rest_framework.response import Response
 from django.utils.encoding import smart_text
 from django.utils.timezone import get_current_timezone
 from django.core.validators import RegexValidator
-from django.http.response import HttpResponse
+from django.http.response import FileResponse
 
 from datetime import datetime
 
@@ -512,7 +512,7 @@ def validate_remote_url(url):
 
 
 def generate_file_response(file_obj, content_type, force_download=False, name=None):
-    response = HttpResponse(file_obj.read(), content_type=content_type)
+    response = FileResponse(file_obj, content_type=content_type)
     response['Content-Disposition'] = 'inline; filename=%s' % os.path.basename(name or file_obj.name)
     if force_download or content_type is None:
         if content_type is None:
