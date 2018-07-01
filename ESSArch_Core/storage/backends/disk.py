@@ -37,8 +37,8 @@ class DiskStorageBackend(BaseStorageBackend):
         src = storage_object.get_full_path()
 
         if storage_object.container:
-            src_tar = src + '.tar'
-            src_xml = src + '.xml'
+            src_tar = src
+            src_xml = os.path.splitext(src)[0] + '.xml'
             src_aic_xml = os.path.join(target.target, str(ip.aic.pk)) + '.xml'
 
             if include_xml:
