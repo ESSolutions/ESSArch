@@ -616,9 +616,9 @@ def list_files(path, force_download=False, request=None, paginator=None):
 
     if len(path.split('.zip/')) == 2:
         zip_path, zip_subpath = path.split('.zip/')
-        tar_path += '.zip'
+        zip_path += '.zip'
 
-        with zipfile.open(zip_path) as zipf:
+        with zipfile.ZipFile(zip_path) as zipf:
             try:
                 f = zipf.open(zip_subpath)
                 content_type = fid.get_mimetype(zip_subpath)
