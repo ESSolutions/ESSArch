@@ -27,6 +27,8 @@ class Migration(migrations.Migration):
                 ('tree_id', models.PositiveIntegerField(db_index=True, editable=False)),
                 ('level', models.PositiveIntegerField(db_index=True, editable=False)),
                 ('parent', mptt.fields.TreeForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='tags.StructureUnit')),
+                ('start_date', models.DateTimeField(null=True)),
+                ('end_date', models.DateTimeField(null=True)),
             ],
         ),
         migrations.AlterField(
@@ -42,5 +44,15 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='structureunit',
             unique_together=set([('structure', 'reference_code')]),
+        ),
+        migrations.AddField(
+            model_name='structure',
+            name='start_date',
+            field=models.DateTimeField(null=True),
+        ),
+        migrations.AddField(
+            model_name='structure',
+            name='end_date',
+            field=models.DateTimeField(null=True),
         ),
     ]

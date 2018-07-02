@@ -18,6 +18,8 @@ class Structure(models.Model):
     version = models.CharField(max_length=255, blank=False, default='1.0')
     version_link = models.UUIDField(default=uuid.uuid4, null=False)
     create_date = models.DateTimeField(auto_now_add=True)
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
 
     class Meta:
         get_latest_by = 'create_date'
@@ -31,6 +33,8 @@ class StructureUnit(MPTTModel):
     type = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     reference_code = models.CharField(max_length=255)
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
 
     def __str__(self):
         return u'{} {}'.format(self.reference_code, self.name)
