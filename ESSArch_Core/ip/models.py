@@ -24,14 +24,18 @@
 
 from __future__ import division
 
+import errno
 import logging
 import math
 import os
 import tarfile
 import uuid
+import zipfile
 from copy import deepcopy
+from datetime import datetime
 
 import jsonfield
+import six
 from celery import states as celery_states
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -49,11 +53,12 @@ from ESSArch_Core.auth.models import GroupGenericObjects, Member
 from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
+from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.profiles.models import ProfileIP, ProfileIPData, ProfileSA
 from ESSArch_Core.profiles.models import SubmissionAgreement as SA
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_content_type_importer
-from ESSArch_Core.util import find_destination, in_directory, list_files, normalize_path, timestamp_to_datetime
+from ESSArch_Core.util import find_destination, generate_file_response, get_files_and_dirs, get_tree_size_and_count, in_directory, normalize_path, timestamp_to_datetime
 
 logger = logging.getLogger('essarch.ip')
 
@@ -616,30 +621,48 @@ class InformationPackage(models.Model):
 
         return 0
 
-    def files(self, path=''):
-        if self.archived:
-            storage_obj = self.storage.readable().fastest().first()
-            if storage_obj is None:
-                raise ValueError("No readable storage configured for IP")
-            fp = storage_obj.open(path)
-            path = os.path.realpath(fp.name)
-            return path
+    def list_files(self, path):
+        fullpath = os.path.join(self.object_path, path).rstrip('/')
+        if os.path.basename(self.object_path) == path and os.path.isfile(self.object_path):
+            if tarfile.is_tarfile(self.object_path):
+                with tarfile.open(self.object_path) as tar:
+                    entries = []
+                    for member in tar.getmembers():
+                        if not member.isfile():
+                            continue
 
-        if os.path.isfile(self.object_path):
-            if len(path):
-                fullpath = os.path.join(os.path.dirname(self.object_path), path)
-                return fullpath
+                        entries.append({
+                            "name": member.name,
+                            "type": 'file',
+                            "size": member.size,
+                            "modified": timestamp_to_datetime(member.mtime),
+                        })
+                    return entries
 
+            elif zipfile.is_zipfile(self.object_path) and os.path.splitext(self.object_path)[1] == '.zip':
+                with zipfile.ZipFile(self.object_path) as zipf:
+                    entries = []
+                    for member in zipf.filelist:
+                        if member.filename.endswith('/'):
+                            continue
+
+                        entries.append({
+                            "name": member.filename,
+                            "type": 'file',
+                            "size": member.file_size,
+                            "modified": datetime(*member.date_time),
+                        })
+                    return entries
+
+        if os.path.isfile(self.object_path) and not path:
             container = self.object_path
             xml = os.path.splitext(container)[0] + '.xml'
-
-            entries = []
-            entries.append({
+            entries = [{
                 "name": os.path.basename(container),
                 "type": 'file',
                 "size": os.path.getsize(container),
                 "modified": timestamp_to_datetime(os.path.getmtime(container)),
-            })
+            }]
 
             if os.path.isfile(xml):
                 entries.append({
@@ -651,12 +674,57 @@ class InformationPackage(models.Model):
 
             return entries
 
-        fullpath = normalize_path(os.path.join(self.object_path, path))
+        entries = []
+        for entry in sorted(get_files_and_dirs(fullpath), key=lambda x: x.name):
+            entry_type = "dir" if entry.is_dir() else "file"
+            size, _ = get_tree_size_and_count(entry.path)
 
-        if not in_directory(fullpath, self.object_path):
-            raise exceptions.ParseError('Illegal path %s' % path)
+            entries.append(
+                {
+                    "name": os.path.basename(entry.path),
+                    "type": entry_type,
+                    "size": size,
+                    "modified": timestamp_to_datetime(entry.stat().st_mtime),
+                }
+            )
 
-        return fullpath
+        return entries
+
+    def validate_path(self, path):
+        fullpath = os.path.join(self.object_path, path)
+        if not in_directory(fullpath, self.object_path) and fullpath != os.path.splitext(self.object_path)[0] + '.xml':
+            raise exceptions.ValidationError(u'Illegal path: {s}'.format(path))
+
+    def get_path_response(self, path, request, force_download=False, paginator=None):
+        self.validate_path(path)
+        try:
+            if not path:
+                raise OSError(errno.EISDIR, os.strerror(errno.EISDIR), path)
+
+            if os.path.isfile(self.object_path):
+                if os.path.join(os.path.dirname(self.object_path), path.split('/', 1)[0]) == self.object_path:
+                    path = path.split('/', 1)[1]
+
+            fid = FormatIdentifier(allow_unknown_file_types=True)
+            content_type = fid.get_mimetype(path)
+            return generate_file_response(self.open_file(path, 'rb'), content_type, force_download=force_download, name=path)
+        except (IOError, OSError) as e:
+            if e.errno == errno.ENOENT:
+                raise exceptions.NotFound
+
+            if e.errno != errno.EISDIR:
+                raise
+        except IndexError:
+            if force_download:
+                fid = FormatIdentifier(allow_unknown_file_types=True)
+                content_type = fid.get_mimetype(path)
+                return generate_file_response(self.open_file(self.object_path, 'rb'), content_type, force_download=force_download, name=path)
+
+        entries = self.list_files(path)
+        if paginator is not None:
+            paginated = paginator.paginate_queryset(entries, request)
+            return paginator.get_paginated_response(paginated)
+        return Response(entries)
 
     def open_file(self, path='', *args, **kwargs):
         if self.archived:
@@ -664,24 +732,38 @@ class InformationPackage(models.Model):
             if storage_obj is None:
                 raise ValueError("No readable storage configured for IP")
             return storage_obj.open(path, *args, **kwargs)
-        if os.path.isfile(self.object_path):
-            with tarfile.open(self.object_path) as tar:
-                return tar.extractfile(path.split('/', 1)[1])
+        if os.path.isfile(self.object_path) and path:
+            if path == self.object_path:
+                return open(path, *args, **kwargs)
 
-        return open(self.files(path), *args, **kwargs)
+            xmlfile = self.package_mets_path
+            if not xmlfile:
+                xmlfile = os.path.join(os.path.dirname(self.object_path), u'{}.xml'.format(self.object_identifier_value))
+            if os.path.join(os.path.dirname(self.object_path), path) == xmlfile:
+                return open(xmlfile, *args)
 
-    def read_file(self, path=''):
-        if self.archived:
-            storage_obj = self.storage.readable().fastest().first()
-            if storage_obj is None:
-                raise ValueError("No readable storage configured for IP")
-            return storage_obj.read(path)
+            try:
+                with tarfile.open(self.object_path) as tar:
+                    try:
+                        f = tar.extractfile(path)
+                    except KeyError:
+                        f = tar.extractfile(os.path.join(self.object_identifier_value, path))
+                    return six.moves.StringIO(f.read())
+            except tarfile.ReadError:
+                logger.debug('Invalid tar file, trying zipfile instead')
+                try:
+                    with zipfile.ZipFile(self.object_path) as zipf:
+                        try:
+                            f = zipf.open(path)
+                        except KeyError:
+                            f = zipf.open(os.path.join(self.object_identifier_value, path))
+                        return six.moves.StringIO(f.read())
+                except zipfile.BadZipfile:
+                    logger.debug('Invalid zip file')
+            except KeyError:
+                raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(self.object_path, path))
 
-        if os.path.isfile(self.object_path):
-            with tarfile.open(self.object_path) as tar:
-                return tar.extractfile(path.split('/', 1)[1])
-
-        return open(self.files(path), 'rb')
+        return open(os.path.join(self.object_path, path), *args, **kwargs)
 
     class Meta:
         ordering = ["generation", "-create_date"]

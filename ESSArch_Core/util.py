@@ -596,14 +596,9 @@ def list_files(path, force_download=False, request=None, paginator=None):
 
         with tarfile.open(tar_path) as tar:
             try:
-                member = tar.getmember(tar_subpath)
-
-                if not member.isfile():
-                    raise NotFound
-
-                f = tar.extractfile(member)
+                f = six.moves.StringIO(tar.extractfile(tar_subpath).read())
                 content_type = fid.get_mimetype(tar_subpath)
-                return generate_file_response(f, content_type, force_download)
+                return generate_file_response(f, content_type, force_download, name=tar_subpath)
             except KeyError:
                 raise NotFound
 
@@ -613,9 +608,9 @@ def list_files(path, force_download=False, request=None, paginator=None):
 
         with zipfile.ZipFile(zip_path) as zipf:
             try:
-                f = zipf.open(zip_subpath)
+                f = six.moves.StringIO(zipf.open(zip_subpath).read())
                 content_type = fid.get_mimetype(zip_subpath)
-                return generate_file_response(f, content_type, force_download)
+                return generate_file_response(f, content_type, force_download, name=zip_subpath)
             except KeyError:
                 raise NotFound
 
