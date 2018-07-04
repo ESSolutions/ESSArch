@@ -38,10 +38,13 @@ def fill_specification_data(data=None, sa=None, ip=None):
             data['_SA_ID'] = str(sa.pk)
             data['_SA_NAME'] = sa.name
 
+
         data['_OBJID'] = ip.object_identifier_value
         data['_OBJUUID'] = str(ip.pk)
         data['_OBJLABEL'] = ip.label
         data['_OBJPATH'] = ip.object_path
+        data['_INNER_IP_OBJID'] = ip.sip_objid
+        data['_INNER_IP_PATH'] = ip.sip_path
         data['_STARTDATE'] = ip.start_date
         data['_ENDDATE'] = ip.end_date
         data['_INFORMATIONCLASS'] = ip.information_class

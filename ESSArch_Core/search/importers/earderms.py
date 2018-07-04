@@ -63,7 +63,7 @@ class EardErmsImporter(BaseImporter):
         id = str(uuid.uuid4())
         name = document.get("Namn")
         desc = document.get("Beskrivning")
-        filepath = normalize_path(os.path.join(ip.get_inner_ip_path(), 'Files', name))
+        filepath = normalize_path(os.path.join(ip.object_path, ip.sip_path, 'Files', name))
         href = os.path.dirname(os.path.relpath(filepath, rootdir))
         href = '' if href == '.' else href
         filename = os.path.basename(name)

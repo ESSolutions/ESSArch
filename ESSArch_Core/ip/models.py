@@ -225,6 +225,9 @@ class InformationPackage(models.Model):
     policy = models.ForeignKey('configuration.ArchivePolicy', on_delete=models.PROTECT, related_name='information_packages', null=True)
     aic = models.ForeignKey('self', on_delete=models.PROTECT, related_name='information_packages', null=True)
 
+    sip_objid = models.CharField(max_length=255)
+    sip_path = models.CharField(max_length=255)
+
     tag = models.ForeignKey('tags.TagStructure', on_delete=models.SET_NULL, related_name='information_packages', null=True)
 
     submission_agreement = models.ForeignKey(SA, on_delete=models.PROTECT, related_name='information_packages',
@@ -313,12 +316,6 @@ class InformationPackage(models.Model):
             assign_perm(perm_name, member.django_user, new_aip)
 
         return new_aip
-
-    def get_inner_ip_path(self):
-        # TODO: use self.inner_sip attribute instead of self.object_path
-        content_dir, content_name = find_destination('content', self.get_structure(), self.object_path)
-        content_path = os.path.join(content_dir, content_name)
-        return normalize_path(os.path.join(content_path, self.object_identifier_value))
 
     def get_content_type_importer_name(self):
         ct_profile = self.get_profile('content_type')
