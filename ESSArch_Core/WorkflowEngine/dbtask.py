@@ -311,10 +311,10 @@ class DBTask(Task):
         return InformationPackage.objects.get(pk=self.ip)
 
     def event_outcome_success(self, *args, **kwargs):
-        raise NotImplementedError()
+        pass
 
     def run(self, *args, **kwargs):
         raise NotImplementedError()
 
     def undo(self, *args, **kwargs):
-        raise NotImplementedError()
+        pass
