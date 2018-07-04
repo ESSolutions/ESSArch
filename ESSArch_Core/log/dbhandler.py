@@ -55,7 +55,7 @@ class DBHandler(Handler):
                 task_id=getattr(record, 'task', None),
                 eventVersion=self.version,
                 eventOutcome=getattr(record, 'outcome', EventIP.SUCCESS if record.levelno < 40 else EventIP.FAILURE),
-                eventOutcomeDetailNote=record.getMessage(),
+                eventOutcomeDetailNote=Truncator(record.getMessage()).chars(1024, truncate=' (truncated)'),
                 linkingAgentIdentifierValue=agent,
                 linkingAgentRole=self.agent_role,
                 linkingObjectIdentifierValue=obj,
