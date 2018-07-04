@@ -4,6 +4,7 @@
 /dist/
 /ESSArch_Core.egg-info/
 MANIFEST
+.idea/
 .settings/
 tools.db
 .DS_Store
