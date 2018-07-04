@@ -3,6 +3,7 @@ import shutil
 import tarfile
 import zipfile
 
+from django.db import transaction
 from scandir import walk
 
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
@@ -10,11 +11,11 @@ from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.fixity.checksum import calculate_checksum
-from ESSArch_Core.ip.models import InformationPackage, MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT
+from ESSArch_Core.ip.models import EventIP, InformationPackage, MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.util import (creation_date, find_destination, get_event_spec,
                                get_premis_ip_object_element_spec, normalize_path,
-                               timestamp_to_datetime)
+                               timestamp_to_datetime, turn_off_auto_now_add, turn_on_auto_now_add)
 
 
 class GenerateContentMets(DBTask):
@@ -256,3 +257,28 @@ class CreateContainer(DBTask):
     def event_outcome_success(self):
         ip = InformationPackage.objects.get(pk=self.ip)
         return "Created {path}".format(path=ip.object_path)
+
+
+class ParseEvents(DBTask):
+    event_type = 50630
+
+    def get_path(self, ip):
+        return ip.get_events_file_path(from_container=True)
+
+    @transaction.atomic
+    def run(self):
+        ip = InformationPackage.objects.get(pk=self.ip)
+        xmlfile = ip.open_file(self.get_path(ip), 'rb')
+        events = EventIP.objects.from_premis_file(xmlfile, save=False)
+        try:
+            turn_off_auto_now_add(EventIP, 'eventDateTime')
+            EventIP.objects.bulk_create(events, 100)
+        finally:
+            turn_on_auto_now_add(EventIP, 'eventDateTime')
+
+    def undo(self):
+        pass
+
+    def event_outcome_success(self):
+        ip = InformationPackage.objects.get(pk=self.ip)
+        return "Parsed events from %s" % self.get_path(ip)
