@@ -257,9 +257,9 @@ class CreateContainer(DBTask):
             with tarfile.open(dst, 'w%s' % compression) as new_tar:
                 new_tar.add(src, base_dir)
 
-        shutil.rmtree(src)
         ip.object_path = dst
         ip.save()
+        shutil.rmtree(src)
         return dst
 
     def undo(self):
