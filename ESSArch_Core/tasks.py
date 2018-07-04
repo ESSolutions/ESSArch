@@ -735,37 +735,6 @@ class SendEmail(DBTask):
         pass
 
 
-class DownloadSchemas(DBTask):
-    def run(self, template=None, dirname=None, structure=[], root=""):
-        schemaPreserveLoc = template.get('-schemaPreservationLocation')
-
-        if schemaPreserveLoc and structure:
-            dirname, _ = find_destination(
-                schemaPreserveLoc, structure
-            )
-            dirname = os.path.join(root, dirname)
-
-        for schema in template.get('-schemasToPreserve', []):
-            dst = os.path.join(dirname, os.path.basename(schema))
-
-            t = ProcessTask.objects.create(
-                name="ESSArch_Core.tasks.DownloadFile",
-                params={'src': schema, 'dst': dst},
-                processstep_id=self.step,
-                processstep_pos=self.step_pos,
-                responsible_id=self.responsible,
-                information_package_id=self.ip,
-            )
-
-            t.run().get()
-
-    def undo(self, template=None, dirname=None, structure=[], root="", task=None):
-        pass
-
-    def event_outcome_success(self, template=None, dirname=None, structure=[], root="", task=None):
-        pass
-
-
 class DownloadFile(DBTask):
     def run(self, src=None, dst=None):
         r = requests.get(src, stream=True, verify=False)

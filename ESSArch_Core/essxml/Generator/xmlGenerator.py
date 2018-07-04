@@ -559,10 +559,7 @@ class XMLGenerator(object):
             self.tree = etree.ElementTree(
                 rootEl.createLXMLElement(data, files=files, folderToParse=folderToParse)
             )
-            self.tree.write(
-                fname, pretty_print=True, xml_declaration=True,
-                encoding='UTF-8'
-            )
+            self.write(fname)
 
             try:
                 relfilepath = os.path.relpath(fname, self.relpath)

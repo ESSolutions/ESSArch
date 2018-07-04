@@ -1,13 +1,15 @@
+import errno
+import logging
 import os
 import shutil
 import tarfile
 import zipfile
 
+import requests
 from django.db import transaction
 from scandir import walk
 
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.fixity.checksum import calculate_checksum
@@ -20,7 +22,7 @@ from ESSArch_Core.util import (creation_date, find_destination, get_event_spec,
 
 class GenerateContentMets(DBTask):
     event_type = 50600
-    
+
     def run(self):
         ip = InformationPackage.objects.get(pk=self.ip)
         mets_path = ip.get_content_mets_file_path()
@@ -147,11 +149,13 @@ class GenerateEventsXML(DBTask):
 
 
 class DownloadSchemas(DBTask):
-    def run(self):
+    logger = logging.getLogger('essarch.core.ip.tasks.DownloadSchemas')
+
+    def run(self, verify=True):
         ip = InformationPackage.objects.get(pk=self.ip)
         ip_profile_type = ip.get_package_type_display().lower()
         ip_profile = ip.get_profile_rel(ip_profile_type).profile
-        structure = ip_profile.structure
+        structure = ip.get_structure()
         rootdir = ip.object_path
 
         specifications = [ip_profile.specification, get_event_spec()]
@@ -159,6 +163,7 @@ class DownloadSchemas(DBTask):
         if premis_profile_rel is not None:
             specifications.append(premis_profile_rel.profile.specification)
 
+        self.logger.debug(u'Downloading schemas')
         for spec in specifications:
             schema_preserve_loc = spec.get('-schemaPreservationLocation', 'xsd_files')
             if schema_preserve_loc and structure:
@@ -166,26 +171,32 @@ class DownloadSchemas(DBTask):
                 dirname = os.path.join(rootdir, reldir)
             else:
                 dirname = rootdir
+
             for schema in spec.get('-schemasToPreserve', []):
                 dst = os.path.join(dirname, os.path.basename(schema))
-
-                t = ProcessTask.objects.create(
-                    name="ESSArch_Core.tasks.DownloadFile",
-                    label="Download file",
-                    params={'src': schema, 'dst': dst},
-                    processstep_id=self.step,
-                    processstep_pos=self.step_pos,
-                    responsible_id=self.responsible,
-                    information_package_id=self.ip,
-                )
-
-                t.run().get()
-
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
-        pass
+                self.logger.info(u'Downloading schema from {} to {}'.format(schema, dst))
+                try:
+                    r = requests.get(schema, stream=True, verify=verify)
+                    r.raise_for_status()
+                    with open(dst, 'wb') as f:
+                        for chunk in r:
+                            f.write(chunk)
+                except Exception:
+                    self.logger.exception(u'Download of schema failed: {}'.format(schema))
+                    try:
+                        self.logger.debug(u'Deleting downloaded file if it exists: {}'.format(dst))
+                        os.remove(dst)
+                    except OSError as e:
+                        if e.errno != errno.ENOENT:
+                            self.logger.exception(u'Failed to delete downloaded file: {}'.format(dst))
+                            raise
+                    else:
+                        self.logger.info(u'Deleted downloaded file: {}'.format(dst))
+                    raise
+                else:
+                    self.logger.info(u'Downloaded schema to {}'.format(dst))
+        else:
+            self.logger.info(u'No schemas to download')
 
 
 class AddPremisIPObjectElementToEventsFile(DBTask):
