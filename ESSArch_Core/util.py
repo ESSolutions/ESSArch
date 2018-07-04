@@ -384,13 +384,6 @@ def get_premis_ip_object_element_spec():
         return json.load(json_file)
 
 
-def truncate(text, max_len, suffix=' (truncated)'):
-    if len(text) > max_len:
-        return text[:max_len - len(suffix)] + suffix
-
-    return text
-
-
 def delete_content(folder):
     for entry in scandir(folder):
         if entry.is_file():

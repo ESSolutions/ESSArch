@@ -3,6 +3,7 @@ from _version import get_versions
 from logging import Handler
 
 from django.core.cache import cache
+from django.utils.text import Truncator
 
 class DBHandler(Handler):
     model_name = 'ESSArch_Core.ip.models.EventIP'

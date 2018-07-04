@@ -53,10 +53,6 @@ from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import get_result
 
-from ESSArch_Core.util import (
-    truncate
-)
-
 
 User = get_user_model()
 
@@ -216,8 +212,6 @@ class DBTask(Task):
 
         if outcome_detail_note is None:
             outcome_detail_note = ''
-
-        outcome_detail_note = truncate(outcome_detail_note, 1024)
 
         try:
             agent = User.objects.values_list('username', flat=True).get(pk=self.responsible)
