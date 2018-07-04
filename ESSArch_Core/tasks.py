@@ -154,7 +154,7 @@ class InsertXML(DBTask):
 class AppendEvents(DBTask):
     event_type = 50610
 
-    def run(self, filename="", events={}):
+    def run(self, filename="", events=None):
         if not filename:
             ip = InformationPackage.objects.get(pk=self.ip)
             filename = ip.get_events_file_path()
@@ -193,23 +193,10 @@ class AppendEvents(DBTask):
 
         generator.write(filename)
 
-    def undo(self, filename="", events={}):
+    def event_outcome_success(self, filename="", events=None):
         if not filename:
             ip = InformationPackage.objects.get(pk=self.ip)
-            filename = os.path.join(ip.object_path, 'ipevents.xml')
-        tree = etree.parse(filename)
-        parent = findElementWithoutNamespace(tree, 'premis')
-
-        # Remove last |events| from parent
-        for event_el in parent.findall('.//{*}event')[-len(events):]:
-            parent.remove(event_el)
-
-        tree.write(filename, pretty_print=True, xml_declaration=True, encoding='UTF-8')
-
-    def event_outcome_success(self, filename="", events={}):
-        if not filename:
-            ip = InformationPackage.objects.get(pk=self.ip)
-            filename = os.path.join(ip.object_path, 'ipevents.xml')
+            filename = ip.get_events_file_path()
         return "Appended events to %s" % filename
 
 
