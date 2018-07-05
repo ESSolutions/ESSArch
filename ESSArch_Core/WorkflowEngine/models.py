@@ -572,6 +572,16 @@ class ProcessTask(Process):
     def get_pos(self):
         return self.processstep_pos
 
+    def get_root_step(self):
+        if self.processstep is None:
+            return None
+
+        parent = self.processstep
+        while parent.parent_step is not None:
+            parent = parent.parent_step
+
+        return parent
+
     def reset(self):
         self.status = celery_states.PENDING
         self.time_started = None

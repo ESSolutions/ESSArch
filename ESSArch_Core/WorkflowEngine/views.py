@@ -157,5 +157,12 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     @detail_route(methods=['post'], permission_classes=[CanRetry])
     def retry(self, request, pk=None):
-        self.get_object().retry()
+        obj = self.get_object()
+        root = obj.get_root_step()
+        if root is not None:
+            obj.reset()
+            root.resume()
+        else:
+            obj.retry()
+
         return Response({'status': 'retries task'})
