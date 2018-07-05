@@ -572,6 +572,16 @@ class ProcessTask(Process):
     def get_pos(self):
         return self.processstep_pos
 
+    def reset(self):
+        self.status = celery_states.PENDING
+        self.time_started = None
+        self.time_done = None
+        self.traceback = ''
+        self.exception = ''
+        self.progress = 0
+        self.save()
+        return self
+
     def run(self):
         """
         Runs the task
@@ -621,22 +631,8 @@ class ProcessTask(Process):
         Retries the task
         """
 
-        t = self._create_task(self.name)
-
-        retryobj = self.create_retry_obj()
-        self.params['_options'] = {
-            'responsible': self.responsible_id, 'ip':
-            self.information_package_id, 'step': self.processstep_id,
-            'step_pos': self.processstep_pos, 'hidden': self.hidden,
-        }
-
-        if retryobj.eager:
-            retryobj.params['_options']['result_params'] = retryobj.result_params
-            res = t.apply(args=retryobj.args, kwargs=retryobj.params, task_id=str(retryobj.pk))
-        else:
-            res = t.apply_async(args=retryobj.args, kwargs=retryobj.params, task_id=str(retryobj.pk), queue=t.queue)
-
-        return res
+        self.reset()
+        return self.run()
 
     def create_undo_obj(self):
         """
@@ -666,7 +662,7 @@ class ProcessTask(Process):
         """
 
         retry_obj = ProcessTask.objects.create(
-            processstep=self.processstep, name=self.name, args=self.args,
+            processstep=self.processstep, name=self.name, label=self.label, args=self.args,
             params=self.params, result_params=self.result_params, processstep_pos=self.processstep_pos,
             status="PREPARED", information_package=self.information_package,
             eager=self.eager, responsible=self.responsible,
