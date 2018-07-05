@@ -39,6 +39,7 @@ import six
 from celery import states as celery_states
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import Count, Max, Min
 from django.utils.encoding import python_2_unicode_compatible
@@ -253,6 +254,15 @@ class InformationPackage(models.Model):
             return self.agents.get(role=role, type=type)
         except Agent.DoesNotExist:
             return None
+
+    def get_lock_key(self):
+        return 'lock_ip_{}'.format(str(self.pk))
+
+    def is_locked(self):
+        return cache.has_key(self.get_lock_key())
+
+    def get_lock(self):
+        return cache.lock(self.get_lock_key())
 
     def get_permissions(self, user, checker=None):
         return user.get_all_permissions(self)

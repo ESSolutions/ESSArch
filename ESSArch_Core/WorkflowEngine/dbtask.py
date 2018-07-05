@@ -152,43 +152,35 @@ class DBTask(Task):
         return self._run(*args, **kwargs)
 
     def _run(self, *args, **kwargs):
+        lock = None
         if self.ip:
             ip = InformationPackage.objects.select_related('submission_agreement').get(pk=self.ip)
             self.extra_data = fill_specification_data(ip=ip, sa=ip.submission_agreement)
+            lock = ip.get_lock()
+            lock.acquire(blocking=True)
         else:
             self.extra_data = {}
 
-        if self.undo_type:
-            try:
+        try:
+            if self.undo_type:
                 res = self.undo(*args, **kwargs)
-            except exceptions.Ignore:
-                raise
-            except Exception as e:
-                einfo = ExceptionInfo()
-                self.failure(e, self.task_id, args, kwargs, einfo)
-
-                if self.eager:
-                    self.after_return(celery_states.FAILURE, e, self.task_id, args, kwargs, einfo)
-                raise
             else:
-                self.success(res, self.task_id, args, kwargs)
-
-            return res
-        else:
-            try:
                 res = self.run(*args, **kwargs)
-            except exceptions.Ignore:
-                raise
-            except Exception as e:
-                einfo = ExceptionInfo()
-                self.failure(e, self.task_id, args, kwargs, einfo)
-                if self.eager:
-                    self.after_return(celery_states.FAILURE, e, self.task_id, args, kwargs, einfo)
-                raise
-            else:
-                self.success(res, self.task_id, args, kwargs)
+        except exceptions.Ignore:
+            raise
+        except Exception as e:
+            einfo = ExceptionInfo()
+            self.failure(e, self.task_id, args, kwargs, einfo)
+            if self.eager:
+                self.after_return(celery_states.FAILURE, e, self.task_id, args, kwargs, einfo)
+            raise
+        else:
+            self.success(res, self.task_id, args, kwargs)
+        finally:
+            if lock is not None:
+                lock.release()
 
-            return res
+        return res
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
         try:
