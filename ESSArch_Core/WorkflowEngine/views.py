@@ -122,6 +122,9 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     @detail_route(methods=['post'], permission_classes=[CanRetry])
     def retry(self, request, pk=None):
         obj = self.get_object()
+        if obj.status != celery_states.FAILURE:
+            raise exceptions.ParseError('Only failed tasks can be retried')
+
         root = obj.get_root_step()
         if root is not None:
             obj.reset()
