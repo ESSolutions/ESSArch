@@ -7,13 +7,15 @@ import zipfile
 
 import requests
 from django.db import transaction
+from lxml import etree
 from scandir import walk
 
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
-from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.configuration.models import ArchivePolicy, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseContent
+from ESSArch_Core.essxml.util import get_agents, parse_submit_description
 from ESSArch_Core.fixity.checksum import calculate_checksum
-from ESSArch_Core.ip.models import EventIP, InformationPackage, MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT
+from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.util import (creation_date, find_destination, get_event_spec,
                                get_premis_ip_object_element_spec, normalize_path,
@@ -319,6 +321,38 @@ class CreateContainer(DBTask):
     def event_outcome_success(self):
         ip = InformationPackage.objects.get(pk=self.ip)
         return "Created {path}".format(path=ip.object_path)
+
+
+class ParseSubmitDescription(DBTask):
+    @transaction.atomic
+    def run(self):
+        ip = InformationPackage.objects.get(pk=self.ip)
+        rootdir = os.path.dirname(ip.object_path) if os.path.isfile(ip.object_path) else ip.object_path
+        xml = ip.package_mets_path
+        parsed = parse_submit_description(xml, rootdir)
+
+        ip.label = parsed.get('label')
+        ip.entry_date = parsed.get('entry_date')
+        ip.start_date = parsed.get('start_date')
+        ip.end_date = parsed.get('end_date')
+
+        if ip.policy is None:
+            parsed_policy = parsed.get('altrecordids', {}).get('POLICYID')[0]
+            ip.policy = ArchivePolicy.objects.get(policy_id=parsed_policy)
+
+        ip.information_class = parsed.get('information_class', ip.policy.information_class)
+        if ip.information_class != ip.policy.information_class:
+            raise ValueError('Information class of IP and policy does not match')
+
+        for agent_el in get_agents(etree.parse(xml)):
+            agent = Agent.objects.from_mets_element(agent_el)
+            ip.agents.add(agent)
+
+        ip.save()
+
+    def event_outcome_success(self):
+        ip = InformationPackage.objects.get(pk=self.ip)
+        return "Parsed submit description at {}".format(ip.package_mets_path)
 
 
 class ParseEvents(DBTask):
