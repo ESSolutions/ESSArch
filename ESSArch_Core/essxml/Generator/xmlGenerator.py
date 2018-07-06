@@ -62,7 +62,7 @@ def parse_content_django(content, info=None, unicode_error=False, syntax_error=F
 
         def remove_underscore_prefix(s, d):
             new = {}
-            for k, v in d.iteritems():
+            for k, v in six.iteritems(d):
                 if isinstance(v, dict):
                     s, v = remove_underscore_prefix(s, v)
                 new[k[1:]] = v
