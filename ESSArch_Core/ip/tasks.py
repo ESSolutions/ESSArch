@@ -11,7 +11,7 @@ from scandir import walk
 
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
+from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseContent
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import EventIP, InformationPackage, MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -223,7 +223,58 @@ class AddPremisIPObjectElementToEventsFile(DBTask):
 
     def event_outcome_success(self):
         pass
-    
+
+
+class CreatePhysicalModel(DBTask):
+    event_type = 10300
+
+    def get_dirs(self, structure, data, root=""):
+        for content in structure:
+            if content.get('type') == 'folder':
+                name = content.get('name')
+                dirname = os.path.join(root, name)
+                dirname = parseContent(dirname, data)
+                yield dirname
+                for x in self.get_dirs(content.get('children', []), data, dirname):
+                    yield x
+
+    def create_dirs(self, structure, data, root=""):
+        for dirname in self.get_dirs(structure, data, root):
+            os.makedirs(dirname)
+
+    def run(self, structure=None, root=""):
+        """
+        Creates the IP physical model based on a logical model.
+
+        Args:
+            structure: A dict specifying the logical model.
+            root: The root directory to be used
+        """
+
+        ip = InformationPackage.objects.get(pk=self.ip)
+        data = fill_specification_data(ip=ip, sa=ip.submission_agreement)
+        structure = structure or ip.get_structure()
+        root = ip.object_path if not root else root
+
+        created = []
+        try:
+            for dirname in self.get_dirs(structure, data, root):
+                os.makedirs(dirname)
+                created.append(dirname)
+        except Exception:
+            for dirname in created:
+                try:
+                    shutil.rmtree(dirname)
+                except OSError as e:
+                    if e.errno != errno.ENOENT:
+                        raise
+            raise
+
+        self.set_progress(1, total=1)
+
+    def event_outcome_success(self, *args, **kwargs):
+        return "Created physical model for %s" % self.ip_objid
+
     
 class CreateContainer(DBTask):
     def run(self):

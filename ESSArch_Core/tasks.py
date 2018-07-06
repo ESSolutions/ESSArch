@@ -222,63 +222,6 @@ class ParseEvents(DBTask):
         return "Parsed events from %s" % xmlfile
 
 
-class CreatePhysicalModel(DBTask):
-    event_type = 10300
-
-    def get_root(self):
-        ip = self.get_information_package()
-        return ip.object_path
-
-    def get_dirs(self, structure, data, root=""):
-        for content in structure:
-            if content.get('type') == 'folder':
-                name = content.get('name')
-                dirname = os.path.join(root, name)
-                dirname = parseContent(dirname, data)
-                yield dirname
-                for x in self.get_dirs(content.get('children', []), data, dirname):
-                    yield x
-
-    def create_dirs(self, structure, data, root=""):
-        for dirname in self.get_dirs(structure, data, root):
-            os.makedirs(dirname)
-
-    def run(self, structure, root=""):
-        """
-        Creates the IP physical model based on a logical model.
-
-        Args:
-            structure: A dict specifying the logical model.
-            root: The root directory to be used
-        """
-
-        ip = InformationPackage.objects.get(pk=self.ip)
-        data = fill_specification_data(ip=ip, sa=ip.submission_agreement)
-        root = self.get_root() if not root else root
-
-        created = []
-        try:
-            for dirname in self.get_dirs(structure, data, root):
-                os.makedirs(dirname)
-                created.append(dirname)
-        except Exception:
-            for dirname in created:
-                try:
-                    shutil.rmtree(dirname)
-                except OSError as e:
-                    if e.errno != errno.ENOENT:
-                        raise
-            raise
-
-        self.set_progress(1, total=1)
-
-    def undo(self, structure, root=""):
-        pass
-
-    def event_outcome_success(self, structure, root=""):
-        return "Created physical model for %s" % self.ip_objid
-
-
 class CreateTAR(DBTask):
     event_type = 50400
 
