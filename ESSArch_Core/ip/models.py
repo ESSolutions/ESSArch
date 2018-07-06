@@ -501,17 +501,13 @@ class InformationPackage(models.Model):
         if not from_container and os.path.isfile(self.object_path):
             return os.path.splitext(self.object_path)[0] + '_ipevents.xml'
 
-        objpath = "" if from_container else self.object_path
         ip_profile = self.get_profile(self.get_package_type_display().lower())
         structure = ip_profile.structure
 
-        events_dir, events_file = find_destination('events_file', structure, objpath)
+        events_dir, events_file = find_destination('events_file', structure)
         if events_dir is not None:
             full_path = os.path.join(events_dir, events_file)
             return normalize_path(parseContent(full_path, fill_specification_data(ip=self)))
-
-        if not from_container:
-            return normalize_path(os.path.join(self.object_path, 'ipevents.xml'))
 
         return 'ipevents.xml'
 
