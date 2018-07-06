@@ -529,6 +529,7 @@ class UpdateIPStatus(DBTask):
 
     @transaction.atomic
     def run(self, status, prev=None):
+        status, = self.parse_params(status)
         ip = InformationPackage.objects.get(pk=self.ip)
         if prev is None:
             t = ProcessTask.objects.get(pk=self.task_id)
@@ -543,19 +544,30 @@ class UpdateIPStatus(DBTask):
         InformationPackage.objects.filter(pk=self.ip).update(state=prev)
 
     def event_outcome_success(self, status, prev=None):
+        status, = self.parse_params(status)
         return "Updated status of %s to %s" % (get_cached_objid(str(self.ip)), status)
 
 
 class UpdateIPPath(DBTask):
     event_type = 50510
 
-    def run(self, ip=None, path=None, prev=None):
-        InformationPackage.objects.filter(pk=ip).update(object_path=path)
-    def undo(self, ip=None, path=None, prev=None):
-        InformationPackage.objects.filter(pk=ip).update(object_path=prev)
+    @transaction.atomic
+    def run(self, path, prev=None):
+        path, = self.parse_params(path)
+        ip = InformationPackage.objects.get(pk=self.ip)
+        if prev is None:
+            t = ProcessTask.objects.get(pk=self.task_id)
+            t.params['prev'] = ip.object_path
+            t.save()
+        ip.object_path = path
+        ip.save()
 
-    def event_outcome_success(self, ip=None, path=None, prev=None):
-        return "Updated path of %s to %s" % (get_cached_objid(str(ip)), path)
+    def undo(self, status, prev=None):
+        InformationPackage.objects.filter(pk=self.ip).update(path=prev)
+
+    def event_outcome_success(self, path, prev=None):
+        path, = self.parse_params(path)
+        return "Updated path of %s to %s" % (get_cached_objid(str(self.ip)), path)
 
 
 class UpdateIPSizeAndCount(DBTask):
