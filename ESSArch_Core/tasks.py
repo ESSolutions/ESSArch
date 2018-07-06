@@ -497,7 +497,7 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 
     def event_outcome_success(self, path, xmlfile, skip_files=None):
         path, xmlfile = self.parse_params(path, xmlfile)
-        return "Validated logical and physical structure of {path} against {xml}".format(path=path, xml=xmlfile)
+        return "Successfully validated logical and physical structure of {path} against {xml}".format(path=path, xml=xmlfile)
 
 
 class CompareXMLFiles(DBTask):
