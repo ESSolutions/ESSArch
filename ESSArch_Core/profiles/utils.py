@@ -83,7 +83,7 @@ def fill_specification_data(data=None, sa=None, ip=None):
             data['_POLICYUUID'] = ip.policy.pk
             data['_POLICYID'] = ip.policy.policy_id
             data['_POLICYNAME'] = ip.policy.policy_name
-            data['_POLICY_INGEST_PATH'] = ip.policy.ingest_path.value
+            data['POLICY_INGEST_PATH'] = ip.policy.ingest_path.value
         else:
             try:
                 # do we have a transfer project profile?
