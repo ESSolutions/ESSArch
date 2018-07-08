@@ -236,13 +236,12 @@ class CreatePhysicalModel(DBTask):
                 name = content.get('name')
                 dirname = os.path.join(root, name)
                 dirname = parseContent(dirname, data)
+                if not content.get('create', True):
+                    continue
+
                 yield dirname
                 for x in self.get_dirs(content.get('children', []), data, dirname):
                     yield x
-
-    def create_dirs(self, structure, data, root=""):
-        for dirname in self.get_dirs(structure, data, root):
-            os.makedirs(dirname)
 
     def run(self, structure=None, root=""):
         """
