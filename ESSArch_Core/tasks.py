@@ -594,7 +594,8 @@ class UpdateIPSizeAndCount(DBTask):
 class DeleteFiles(DBTask):
     event_type = 50710
 
-    def run(self, path=None):
+    def run(self, path):
+        path, = self.parse_params(path)
         try:
             shutil.rmtree(path)
         except OSError as e:
@@ -609,10 +610,7 @@ class DeleteFiles(DBTask):
             elif e.errno != errno.ENOENT:
                 raise
 
-    def undo(self, path=None):
-        pass
-
-    def event_outcome_success(self, path=None):
+    def event_outcome_success(self, path):
         return "Deleted %s" % path
 
 
