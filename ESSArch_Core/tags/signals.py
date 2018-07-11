@@ -2,7 +2,7 @@ import logging
 
 from django.db.models.signals import pre_delete, post_delete, post_save
 from django.dispatch import receiver
-from elasticsearch import Elasticsearch
+from elasticsearch_dsl.connections import get_connection
 from redis import StrictRedis
 from six.moves import cPickle
 
@@ -10,7 +10,7 @@ from ESSArch_Core.tags import DELETION_QUEUE, INDEX_QUEUE, UPDATE_QUEUE
 from ESSArch_Core.tags.models import TagVersion
 
 logger = logging.getLogger('essarch.core')
-es = Elasticsearch()
+es = get_connection()
 r = StrictRedis()
 
 

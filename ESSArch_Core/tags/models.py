@@ -4,13 +4,10 @@ import six
 from django.db import models, transaction
 from django.db.models import F, OuterRef, Subquery
 from django.utils.encoding import python_2_unicode_compatible
-from elasticsearch import Elasticsearch
+from elasticsearch_dsl.connections import get_connection
 from mptt.models import MPTTModel, TreeForeignKey
 
 from ESSArch_Core.tags.documents import VersionedDocType
-
-es = Elasticsearch()
-
 
 class Structure(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -122,6 +119,7 @@ class TagVersion(models.Model):
         return VersionedDocType(**d)
 
     def from_search(self):
+        es = get_connection()
         return es.get(index=self.elastic_index, doc_type='_all', id=str(self.pk), params={'_source_exclude': 'attachment.content'})
 
     def get_doc(self):
@@ -159,6 +157,7 @@ class TagVersion(models.Model):
         return new
 
     def set_as_current_version(self):
+        es = get_connection()
         Tag.objects.filter(pk=self.tag.pk).update(current_version=self)
         other_versions = [str(x) for x in
                           TagVersion.objects.filter(tag=self.tag).exclude(pk=self.pk).values_list('pk', flat=True)]

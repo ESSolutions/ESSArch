@@ -5,7 +5,8 @@ see https://github.com/elastic/elasticsearch-dsl-py/blob/fcd8988d0b0fccf92e5b67f
 """
 from datetime import datetime
 
-from elasticsearch_dsl import IndexTemplate, connections
+from elasticsearch_dsl import IndexTemplate
+from elasticsearch_dsl.connections import get_connection
 
 def setup_index(doctype):
     """
@@ -26,7 +27,7 @@ def setup_index(doctype):
     index_template.save()
 
     # get the low level connection
-    es = connections.get_connection()
+    es = get_connection()
     # create the first index if it doesn't exist
     if not es.indices.exists_alias(alias):
         index = get_next_index(pattern)
@@ -56,7 +57,7 @@ def migrate(doctype, move_data=True, update_alias=True, delete_old_index=False):
     not perform any writes at this time as those might be lost.
     """
     # get the low level connection
-    es = connections.get_connection()
+    es = get_connection()
 
     # get current index name from the alias
     current_index = es.indices.get_alias(doctype._doc_type.index).keys()[0]

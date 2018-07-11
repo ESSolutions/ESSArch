@@ -41,8 +41,8 @@ from django.core.mail import EmailMessage, send_mail
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
-from elasticsearch import Elasticsearch
 from elasticsearch import helpers as es_helpers
+from elasticsearch_dsl.connections import get_connection
 from lxml import etree
 from redis import StrictRedis
 from retrying import retry
@@ -83,7 +83,7 @@ from ESSArch_Core.util import (convert_file, delete_content, find_destination,
 
 User = get_user_model()
 
-es = Elasticsearch()
+es = get_connection()
 redis = StrictRedis()
 
 class GenerateXML(DBTask):
