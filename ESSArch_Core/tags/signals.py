@@ -10,12 +10,12 @@ from ESSArch_Core.tags import DELETION_QUEUE, INDEX_QUEUE, UPDATE_QUEUE
 from ESSArch_Core.tags.models import TagVersion
 
 logger = logging.getLogger('essarch.core')
-es = get_connection()
 r = StrictRedis()
 
 
 @receiver(post_save, sender=TagVersion)
 def queue_tag_for_index(sender, instance, created, **kwargs):
+    es = get_connection()
     if created:
         if instance.tag.current_version is None:
             tag = instance.tag

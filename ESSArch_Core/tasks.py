@@ -82,8 +82,6 @@ from ESSArch_Core.util import (convert_file, delete_content, find_destination,
                                win_to_posix)
 
 User = get_user_model()
-
-es = get_connection()
 redis = StrictRedis()
 
 class GenerateXML(DBTask):
@@ -1080,6 +1078,7 @@ class ProcessTags(DBTask):
         elasticsearch. If elasticsearch returns a successful response
         the entry is deleted from the process queue.
         """
+        es = get_connection()
         tags = []
         for i in range(10000):
             epoch_time = int(time.time())
