@@ -94,8 +94,12 @@
         user-select: none;
         margin: 0 15px 0 0 !important;
         white-space: nowrap;
-
+        color: inherit;
+        &:hover {
+          text-decoration: none;
+        }
         &:focus {
+            text-decoration: none;
             outline: 0;
             color: #b4caf8;
             &:after {

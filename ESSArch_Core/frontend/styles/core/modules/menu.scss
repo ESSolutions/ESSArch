@@ -48,9 +48,15 @@
         user-select: none;
         margin: 0 15px 0 0 !important;
         white-space: nowrap;
+        color: inherit;
+
+        &:hover {
+          text-decoration: none;
+        }
 
         &:focus {
             outline: 0;
+            text-decoration: none;
             color: #b4caf8;
             &:after {
                 color: #b4caf8;
