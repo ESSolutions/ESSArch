@@ -50,6 +50,7 @@ from ESSArch_Core.util import (
 )
 
 logger = logging.getLogger('essarch.essxml.generator')
+leading_underscore_tag_re = re.compile('%s *_.*?(?=\})%s' % (re.escape('{{'), re.escape('}}')))
 
 
 def parse_content_django(content, info=None, unicode_error=False, syntax_error=False):
@@ -65,11 +66,15 @@ def parse_content_django(content, info=None, unicode_error=False, syntax_error=F
             for k, v in six.iteritems(d):
                 if isinstance(v, dict):
                     s, v = remove_underscore_prefix(s, v)
-                new[k[1:]] = v
-                s = s.replace(k, k[1:])
+                if k.startswith('_'):
+                    new[k[1:]] = v
+                    s = s.replace(k, k[1:])
+                else:
+                    new[k] = v
             return s, new
         content, new_data = remove_underscore_prefix(content, info)
-        return parse_content_django(content, info=new_data, syntax_error=True)
+        regcontent = leading_underscore_tag_re.sub('', content)
+        return parse_content_django(regcontent, info=new_data, syntax_error=True)
 
     try:
         return t.render(c)
