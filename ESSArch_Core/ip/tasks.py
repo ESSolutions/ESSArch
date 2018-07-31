@@ -19,7 +19,7 @@ from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, MESSAGE_D
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.util import (creation_date, find_destination, get_event_spec,
                                get_premis_ip_object_element_spec, normalize_path,
-                               timestamp_to_datetime, turn_off_auto_now_add, turn_on_auto_now_add)
+                               timestamp_to_datetime)
 
 
 class GenerateContentMets(DBTask):
@@ -365,14 +365,7 @@ class ParseEvents(DBTask):
         ip = InformationPackage.objects.get(pk=self.ip)
         xmlfile = ip.open_file(self.get_path(ip), 'rb')
         events = EventIP.objects.from_premis_file(xmlfile, save=False)
-        try:
-            turn_off_auto_now_add(EventIP, 'eventDateTime')
-            EventIP.objects.bulk_create(events, 100)
-        finally:
-            turn_on_auto_now_add(EventIP, 'eventDateTime')
-
-    def undo(self):
-        pass
+        EventIP.objects.bulk_create(events, 100)
 
     def event_outcome_success(self):
         ip = InformationPackage.objects.get(pk=self.ip)

@@ -78,7 +78,6 @@ from ESSArch_Core.tags import (DELETION_PROCESS_QUEUE, DELETION_QUEUE,
                                UPDATE_PROCESS_QUEUE, UPDATE_QUEUE)
 from ESSArch_Core.util import (convert_file, delete_content, find_destination,
                                get_event_element_spec, get_tree_size_and_count, remove_prefix,
-                               turn_off_auto_now_add, turn_on_auto_now_add,
                                win_to_posix)
 
 User = get_user_model()
@@ -203,18 +202,10 @@ class ParseEvents(DBTask):
 
     def run(self, xmlfile, delete_file=False):
         events = EventIP.objects.from_premis_file(xmlfile, save=False)
-        try:
-            turn_off_auto_now_add(EventIP, 'eventDateTime')
-            EventIP.objects.bulk_create(events, 100)
-        finally:
-            turn_on_auto_now_add(EventIP, 'eventDateTime')
+        EventIP.objects.bulk_create(events, 100)
 
         if delete_file:
             os.remove(xmlfile)
-
-
-    def undo(self, xmlfile, delete_file=False):
-        pass
 
     def event_outcome_success(self, xmlfile, delete_file=False):
         return "Parsed events from %s" % xmlfile

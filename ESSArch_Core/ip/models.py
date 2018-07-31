@@ -43,6 +43,7 @@ from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import Count, Max, Min
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils import timezone
 from lxml import etree
 from groups_manager.utils import get_permission_name
 from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
@@ -917,7 +918,7 @@ class EventIP(models.Model):
         'configuration.EventType',
         on_delete=models.CASCADE
     )
-    eventDateTime = models.DateTimeField(auto_now_add=True)
+    eventDateTime = models.DateTimeField(default=timezone.now)
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask', on_delete=models.CASCADE, null=True,
         related_name='events',
