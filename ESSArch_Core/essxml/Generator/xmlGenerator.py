@@ -343,8 +343,8 @@ class XMLElement(object):
                     foreach_el = info[child.foreach]
                 except KeyError:
                     msg = 'Foreach key "{key}" for {el} not found in data'.format(key=child.foreach, el=child.get_path())
-                    logger.exception(msg)
-                    raise KeyError(msg)
+                    logger.warning(msg)
+                    continue
 
                 try:
                     iterator = six.iteritems(foreach_el)
