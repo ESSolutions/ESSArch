@@ -85,7 +85,8 @@ class DiffCheckValidator(BaseValidator):
             time_done=timezone.now(),
             validator=self.__class__.__name__,
             required=self.required,
-            information_package=self.ip,
+            task_id=self.task,
+            information_package_id=self.ip,
             responsible=self.responsible,
             message=msg,
             passed=passed,
@@ -295,36 +296,165 @@ class XMLSchemaValidator(BaseValidator):
             logger.debug(u'Validating schema of {xml}'.format(xml=filepath))
 
         rootdir = self.options.get('rootdir')
+        etree.clear_error_log()
+        started = timezone.now()
+        relpath = os.path.relpath(filepath, rootdir)
         try:
             validate_against_schema(filepath, self.context, rootdir)
+        except etree.DocumentInvalid as e:
+            logger.exception(u'Schema validation of {xml} failed'.format(xml=filepath))
+            done = timezone.now()
+            validation_objs = []
+            for error in e.error_log:
+                message = u'{line}: {msg}'.format(line=error.line, msg=error.message)
+                validation_objs.append(Validation(
+                    passed=False,
+                    validator=self.__class__.__name__,
+                    filename=relpath,
+                    message=message,
+                    time_started=started,
+                    time_done=done,
+                    information_package_id=self.ip,
+                    task_id=self.task,
+                ))
+
+            Validation.objects.bulk_create(validation_objs, 100)
+            raise
         except Exception as e:
-            logger.warn(u'Schema validation of {xml} failed, {msg}'.format(xml=filepath, msg=e.message))
+            logger.exception(u'Unknown error during schema validation of {xml}'.format(xml=filepath))
+            done = timezone.now()
+            Validation.objects.create(
+                passed=False,
+                validator=self.__class__.__name__,
+                filename=relpath,
+                message=e.message,
+                time_started=started,
+                time_done=done,
+                information_package_id=self.ip,
+                task_id=self.task,
+            )
             raise
 
+        Validation.objects.create(
+            passed=True,
+            validator=self.__class__.__name__,
+            filename=relpath,
+            time_started=started,
+            time_done=timezone.now(),
+            information_package_id=self.ip,
+            task_id=self.task,
+        )
         logger.info(u"Successful schema validation of {xml}".format(xml=filepath))
 
 class XMLSchematronValidator(BaseValidator):
     def validate(self, filepath):
         logger.debug(u'Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
+
+        rootdir = self.options.get('rootdir')
+        etree.clear_error_log()
+        started = timezone.now()
+        relpath = os.path.relpath(filepath, rootdir)
         try:
             sct_doc = etree.parse(self.context)
             schematron = etree.Schematron(sct_doc)
             schematron.assertValid(etree.parse(filepath))
         except etree.DocumentInvalid as e:
-            logger.warn(u'Schematron validation of {xml} against {schema} failed, {msg}'.format(xml=filepath, schema=self.context, msg=e.message))
+            logger.exception(u'Schematron validation of {xml} against {schema} failed'.format(xml=filepath, schema=self.context))
+            done = timezone.now()
+            validation_objs = []
+            for error in e.error_log:
+                message = u'{line}: {msg}'.format(line=error.line, msg=error.message)
+                validation_objs.append(Validation(
+                    passed=False,
+                    validator=self.__class__.__name__,
+                    filename=relpath,
+                    message=message,
+                    time_started=started,
+                    time_done=done,
+                    information_package_id=self.ip,
+                    task_id=self.task,
+                ))
+
+            Validation.objects.bulk_create(validation_objs, 100)
+            raise
+        except Exception as e:
+            logger.exception(u'Unknown error during schematron validation of {xml} against {schema}'.format(xml=filepath, schema=self.context))
+            done = timezone.now()
+            Validation.objects.create(
+                passed=False,
+                validator=self.__class__.__name__,
+                filename=relpath,
+                message=e.message,
+                time_started=started,
+                time_done=done,
+                information_package_id=self.ip,
+                task_id=self.task,
+            )
             raise
 
+        Validation.objects.create(
+            passed=True,
+            validator=self.__class__.__name__,
+            filename=relpath,
+            time_started=started,
+            time_done=timezone.now(),
+            information_package_id=self.ip,
+            task_id=self.task,
+        )
         logger.info(u"Successful schematron validation of {xml} against {schema}".format(xml=filepath, schema=self.context))
 
 class XMLISOSchematronValidator(BaseValidator):
     def validate(self, filepath):
         logger.debug(u'Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
+        rootdir = self.options.get('rootdir')
+        etree.clear_error_log()
+        started = timezone.now()
+        relpath = os.path.relpath(filepath, rootdir)
         try:
             sct_doc = etree.parse(self.context)
             schematron = isoschematron.Schematron(sct_doc)
             schematron.assertValid(etree.parse(filepath))
         except etree.DocumentInvalid as e:
-            logger.warn(u'ISO-Schematron validation of {xml} against {schema} failed, {msg}'.format(xml=filepath, schema=self.context, msg=e.message))
+            logger.exception(u'ISO-Schematron validation of {xml} against {schema} failed'.format(xml=filepath, schema=self.context))
+            done = timezone.now()
+            validation_objs = []
+            for error in e.error_log:
+                message = u'{line}: {msg}'.format(line=error.line, msg=error.message)
+                validation_objs.append(Validation(
+                    passed=False,
+                    validator=self.__class__.__name__,
+                    filename=relpath,
+                    message=message,
+                    time_started=started,
+                    time_done=done,
+                    information_package_id=self.ip,
+                    task_id=self.task,
+                ))
+
+            Validation.objects.bulk_create(validation_objs, 100)
+            raise
+        except Exception as e:
+            logger.exception(u'Unknown error during iso-schematron validation of {xml} against {schema}'.format(xml=filepath, schema=self.context))
+            done = timezone.now()
+            Validation.objects.create(
+                passed=False,
+                validator=self.__class__.__name__,
+                filename=relpath,
+                message=e.message,
+                time_started=started,
+                time_done=done,
+                information_package_id=self.ip,
+                task_id=self.task,
+            )
             raise
 
+        Validation.objects.create(
+            passed=True,
+            validator=self.__class__.__name__,
+            filename=relpath,
+            time_started=started,
+            time_done=timezone.now(),
+            information_package_id=self.ip,
+            task_id=self.task,
+        )
         logger.info(u"Successful iso-schematron validation of {xml} against {schema}".format(xml=filepath, schema=self.context))
