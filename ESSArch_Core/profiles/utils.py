@@ -1,4 +1,7 @@
+import collections
 import os
+
+import six
 
 from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.util import find_destination
@@ -24,9 +27,20 @@ profile_types = [
     "Transformation",
 ]
 
+def _remove_leading_underscores(d):
+    new_mapping = type(d)()
+
+    for k, v in six.iteritems(d):
+        new_key = k.lstrip('_')
+        if isinstance(v, collections.Mapping):
+            new_mapping[new_key] = _remove_leading_underscores(v)
+        else:
+            new_mapping[new_key] = v
+
+    return new_mapping
+
 def fill_specification_data(data=None, sa=None, ip=None):
-    if data is None:
-        data = {}
+    data = data or {}
 
     if sa:
         data['_SA_ID'] = str(sa.pk)
@@ -129,4 +143,6 @@ def fill_specification_data(data=None, sa=None, ip=None):
     for p in Parameter.objects.iterator():
         data['_PARAMETER_%s' % p.entity.upper()] = p.value
 
+    without_underscores = _remove_leading_underscores(data)
+    data.update(without_underscores)
     return data
