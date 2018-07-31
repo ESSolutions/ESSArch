@@ -19,4 +19,5 @@ class Validation(models.Model):
     required = models.BooleanField(default=True)
     message = models.TextField(max_length=255, blank=True)
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
+    task = models.ForeignKey('WorkflowEngine.ProcessTask', on_delete=models.CASCADE, null=True, related_name='validations')
     responsible = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)

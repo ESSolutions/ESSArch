@@ -55,7 +55,7 @@ def validate_file_format(filename, fid, format_name=None, format_version=None, f
     logger.info('Successfully validated format of %s' % filename)
 
 
-def _validate_file(path, validators, ip=None, stop_at_failure=True, responsible=None):
+def _validate_file(path, validators, task=None, ip=None, stop_at_failure=True, responsible=None):
     for validator in validators:
         included = False
 
@@ -83,6 +83,7 @@ def _validate_file(path, validators, ip=None, stop_at_failure=True, responsible=
             time_started=timezone.now(),
             validator=validator.__class__.__name__,
             required=validator.required,
+            task=task,
             information_package=ip,
             responsible=responsible,
             specification={
@@ -108,7 +109,7 @@ def _validate_file(path, validators, ip=None, stop_at_failure=True, responsible=
             obj.save(update_fields=['time_done', 'passed', 'message'])
 
 
-def _validate_directory(path, validators, ip=None, stop_at_failure=True, responsible=None):
+def _validate_directory(path, validators, task=None, ip=None, stop_at_failure=True, responsible=None):
     file_validators = [v for v in validators if v.file_validator]
     dir_validators = [v for v in validators if not v.file_validator]
 
@@ -118,6 +119,7 @@ def _validate_directory(path, validators, ip=None, stop_at_failure=True, respons
             time_started=timezone.now(),
             validator=validator.__class__.__name__,
             required=validator.required,
+            task=task,
             information_package=ip,
             responsible=responsible,
         )
@@ -140,10 +142,10 @@ def _validate_directory(path, validators, ip=None, stop_at_failure=True, respons
 
     for root, dirs, files in walk(path):
         for f in files:
-            _validate_file(os.path.join(root, f), file_validators, ip=ip, stop_at_failure=stop_at_failure, responsible=responsible)
+            _validate_file(os.path.join(root, f), file_validators, task=task, ip=ip, stop_at_failure=stop_at_failure, responsible=responsible)
 
 
-def validate_path(path, validators, profile, data=None, ip=None, stop_at_failure=True, responsible=None):
+def validate_path(path, validators, profile, data=None, task=None, ip=None, stop_at_failure=True, responsible=None):
     data = data or {}
     validator_instances = []
 
@@ -165,14 +167,14 @@ def validate_path(path, validators, profile, data=None, ip=None, stop_at_failure
             exclude = [os.path.join(path, excluded) for excluded in specification.get('exclude', [])]
             options = specification.get('options', {})
 
-            validator_instance = validator(context=context, include=include, exclude=exclude, options=options, data=data, required=required, ip=ip, responsible=responsible)
+            validator_instance = validator(context=context, include=include, exclude=exclude, options=options, data=data, required=required, task=task, ip=ip, responsible=responsible)
             validator_instances.append(validator_instance)
 
     if os.path.isdir(path):
-        _validate_directory(path, validator_instances, ip=ip, stop_at_failure=stop_at_failure, responsible=responsible)
+        _validate_directory(path, validator_instances, task=task, ip=ip, stop_at_failure=stop_at_failure, responsible=responsible)
 
     elif os.path.isfile(path):
-        _validate_file(path, validator_instances, ip=ip, stop_at_failure=stop_at_failure, responsible=responsible)
+        _validate_file(path, validator_instances, task=task, ip=ip, stop_at_failure=stop_at_failure, responsible=responsible)
 
     else:
         raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), path)

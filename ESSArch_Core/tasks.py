@@ -390,7 +390,7 @@ class ValidateWorkarea(DBTask):
 
         try:
             validation.validate_path(workarea.path, validators, validation_profile, data=profile_data, ip=ip,
-                                     stop_at_failure=stop_at_failure, responsible=responsible)
+                                     task=self.task_id, stop_at_failure=stop_at_failure, responsible=responsible)
         except ValidationError:
             self.create_notification(ip)
         else:
@@ -427,6 +427,7 @@ class ValidateXMLFile(DBTask):
         Validates (using LXML) an XML file using a specified schema file
         """
 
+        Validation.objects.filter(task=self.task_id).delete()
         xml_filename, schema_filename = self.parse_params(xml_filename, schema_filename)
         if rootdir is None and self.ip is not None:
             ip = InformationPackage.objects.get(pk=self.ip)
@@ -434,18 +435,8 @@ class ValidateXMLFile(DBTask):
         else:
             rootdir, = self.parse_params(rootdir)
 
-        try:
-            validator = XMLSchemaValidator(context=schema_filename, options={'rootdir': rootdir})
-            validator.validate(xml_filename)
-        except Exception as e:
-            recipient = User.objects.get(pk=self.responsible).email
-            if recipient and self.ip:
-                ip = InformationPackage.objects.get(pk=self.ip)
-                subject = 'Rejected "%s"' % ip.object_identifier_value
-                body = '"%s" was rejected:\n%s' % (ip.object_identifier_value, str(e))
-                send_mail(subject, body, None, [recipient], fail_silently=False)
-
-            raise
+        validator = XMLSchemaValidator(context=schema_filename, options={'rootdir': rootdir}, ip=self.ip, task=self.task_id)
+        validator.validate(xml_filename)
         return "Success"
 
     def undo(self, xml_filename=None, schema_filename=None, rootdir=None):
@@ -464,27 +455,25 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
     event_type = 50220
     queue = 'validation'
 
-    def run(self, path, xmlfile, skip_files=None):
+    def run(self, path, xmlfile, skip_files=None, relpath=None):
+        Validation.objects.filter(task=self.task_id).delete()
         path, xmlfile, = self.parse_params(path, xmlfile)
         if skip_files is None:
             skip_files = []
         else:
             skip_files = self.parse_params(*skip_files)
 
-        if os.path.isdir(path):
-            rootdir = path
+        if relpath is not None:
+            rootdir, = self.parse_params(relpath) or path
         else:
-            rootdir = os.path.dirname(path)
+            rootdir = path
 
         ip = InformationPackage.objects.get(pk=self.ip)
-        validator = DiffCheckValidator(context=xmlfile, exclude=skip_files, options={'rootdir': rootdir}, ip=ip,
-                                       responsible=ip.responsible)
+        validator = DiffCheckValidator(context=xmlfile, exclude=skip_files, options={'rootdir': rootdir},
+                                       task=self.task_id, ip=self.ip, responsible=ip.responsible)
         validator.validate(path)
 
-    def undo(self, path, xmlfile, skip_files=None):
-        pass
-
-    def event_outcome_success(self, path, xmlfile, skip_files=None):
+    def event_outcome_success(self, path, xmlfile, skip_files=None, relpath=None):
         path, xmlfile = self.parse_params(path, xmlfile)
         return "Successfully validated logical and physical structure of {path} against {xml}".format(path=path, xml=xmlfile)
 
@@ -494,6 +483,7 @@ class CompareXMLFiles(DBTask):
     queue = 'validation'
 
     def run(self, first, second, rootdir=None):
+        Validation.objects.filter(task=self.task_id).delete()
         first, second = self.parse_params(first, second)
         ip = InformationPackage.objects.get(pk=self.ip)
         if rootdir is None:
@@ -501,7 +491,7 @@ class CompareXMLFiles(DBTask):
         else:
             rootdir, = self.parse_params(rootdir)
 
-        validator = XMLComparisonValidator(context=first, options={'rootdir': rootdir}, ip=ip,
+        validator = XMLComparisonValidator(context=first, options={'rootdir': rootdir}, task=self.task_id, ip=self.ip,
                                            responsible=ip.responsible)
         validator.validate(second)
 
