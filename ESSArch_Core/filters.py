@@ -23,10 +23,22 @@
 """
 
 import django_filters
-
-from django_filters.constants import EMPTY_VALUES
+import six
 from django_filters import rest_framework as filters
+from django_filters.constants import EMPTY_VALUES
 from django_filters.fields import IsoDateTimeField, Lookup, RangeField
+
+
+def string_to_bool(s):
+    if not isinstance(s, six.string_types):
+        return None
+
+    return {
+        '1': True,
+        '0': False,
+        'true': True,
+        'false': False,
+    }.get(s.lower(), None)
 
 
 class IsoDateTimeRangeField(RangeField):
