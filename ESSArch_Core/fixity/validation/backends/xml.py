@@ -12,7 +12,7 @@ from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.base import BaseValidator
-from ESSArch_Core.util import normalize_path
+from ESSArch_Core.util import normalize_path, win_to_posix
 
 logger = logging.getLogger('essarch.fixity.validation.xml')
 
@@ -51,7 +51,7 @@ class DiffCheckValidator(BaseValidator):
                 logical_path = os.path.join(self.rootdir, logical.path)
             else:
                 logical_path = logical.path
-            logical_path =  normalize_path(logical_path)
+            logical_path = win_to_posix(os.path.abspath(logical_path))
 
             try:
                 self.initial_deleted[logical.checksum].append(logical_path)
