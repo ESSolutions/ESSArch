@@ -383,7 +383,8 @@ class GetAgentTestCase(TestCase):
             <root></root>
         ''')
 
-        self.assertIsNone(get_agent(el))
+        with self.assertRaises(IndexError):
+            get_agent(el)
 
 
 class GetObjectPathTestCase(TestCase):
@@ -437,12 +438,11 @@ class ParseSubmitDescriptionTestCase(TestCase):
 
     def test_objid_and_create_date(self):
         self.xmlfile.write('''
-            <root OBJID="123">
+            <mets OBJID="123">
                 <metsHdr CREATEDATE="456"></metsHdr>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
 
         self.assertEqual(ip['id'], '123')
@@ -450,26 +450,22 @@ class ParseSubmitDescriptionTestCase(TestCase):
 
     def test_objid_with_prefix(self):
         self.xmlfile.write('''
-            <root OBJID="ID:123">
+            <mets OBJID="ID:123">
                 <metsHdr CREATEDATE="456"></metsHdr>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
-
         self.assertEqual(ip['id'], '123')
 
     def test_no_objid(self):
         self.xmlfile.write('''
-            <root>
+            <mets>
                 <metsHdr CREATEDATE="456"></metsHdr>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
-
         self.assertEqual(ip['id'], os.path.splitext(os.path.basename(self.xmlfile.name))[0])
 
     @mock.patch('ESSArch_Core.essxml.util.os.stat')
@@ -479,12 +475,11 @@ class ParseSubmitDescriptionTestCase(TestCase):
         mock_os_stat.return_value = mock.Mock(**{'st_size': 24})
 
         self.xmlfile.write('''
-            <root OBJID="123">
+            <mets OBJID="123">
                 <metsHdr CREATEDATE="456"></metsHdr>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
 
         self.assertEqual(ip['id'], '123')
@@ -494,64 +489,54 @@ class ParseSubmitDescriptionTestCase(TestCase):
 
     def test_information_class_in_root(self):
         self.xmlfile.write('''
-            <root INFORMATIONCLASS="123">
+            <mets INFORMATIONCLASS="123">
                 <metsHdr CREATEDATE="456"></metsHdr>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
-
         self.assertEqual(ip['information_class'], 123)
 
     def test_information_class_in_altrecordid(self):
         self.xmlfile.write('''
-            <root>
+            <mets>
                 <metsHdr CREATEDATE="456"></metsHdr>
                 <altRecordID TYPE="INFORMATIONCLASS">123</altRecordID>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
-
         self.assertEqual(ip['information_class'], 123)
 
     def test_information_class_in_root_and_altrecordid(self):
         self.xmlfile.write('''
-            <root INFORMATIONCLASS="123">
+            <mets INFORMATIONCLASS="123">
                 <metsHdr CREATEDATE="456"></metsHdr>
                 <altRecordID TYPE="INFORMATIONCLASS">456</altRecordID>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
-
         self.assertEqual(ip['information_class'], 123)
 
     def test_information_class_with_letters(self):
         self.xmlfile.write('''
-            <root INFORMATIONCLASS="class 123">
+            <mets INFORMATIONCLASS="class 123">
                 <metsHdr CREATEDATE="456"></metsHdr>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
-
         self.assertEqual(ip['information_class'], 123)
 
     def test_information_class_with_multiple_numbers(self):
         self.xmlfile.write('''
-            <root INFORMATIONCLASS="123 456">
+            <mets INFORMATIONCLASS="123 456">
                 <metsHdr CREATEDATE="456"></metsHdr>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
-
         self.assertEqual(ip['information_class'], 123)
 
 
