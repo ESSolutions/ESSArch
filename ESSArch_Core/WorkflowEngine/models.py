@@ -31,17 +31,13 @@ import uuid
 from celery import chain, group, states as celery_states
 from celery.result import EagerResult
 
-from django.conf import settings
 from django.core.cache import cache
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Case, Count, Sum, When
-from django.utils import timezone
 from django.utils.translation import ugettext as _
 
 from picklefield.fields import PickledObjectField
 
-from ESSArch_Core.util import chunks, flatten, sliceUntilAttr
 
 def create_task(name):
     """
@@ -114,6 +110,7 @@ class ProcessStep(Process):
         null=True
     )
     parallel = models.BooleanField(default=False)
+    on_error = models.ManyToManyField('ProcessTask', related_name='steps_on_errors')
 
     def get_pos(self):
         return self.parent_step_pos
@@ -190,10 +187,12 @@ class ProcessStep(Process):
         workflow = func(x.run(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x) for x in result_list)
 
         if direct:
+            on_error_tasks = self.on_error(manager='by_step_pos').all()
+            on_error_group = group(create_sub_task(t, ignore_parent_args=False) for t in on_error_tasks)
             if self.eager:
-                return workflow.apply()
+                return workflow.apply(link_error=on_error_group)
             else:
-                return workflow.apply_async()
+                return workflow.apply_async(link_error=on_error_group)
         else:
             return workflow
 
@@ -544,6 +543,7 @@ class ProcessTask(Process):
     retried = models.OneToOneField('self', on_delete=models.SET_NULL, related_name='retried_task', null=True, blank=True)
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
     log = PickledObjectField(null=True, default=None)
+    on_error = models.ManyToManyField('self')
 
     objects = models.Manager()
     by_step_pos = OrderedProcessTaskManager()
