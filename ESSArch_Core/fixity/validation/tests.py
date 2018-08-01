@@ -60,60 +60,46 @@ class ChecksumValidatorXMLTests(SimpleTestCase):
     """
 
     def setUp(self):
-        self.test_file = 'foo.txt'
-        self.xml_file = 'files.xml'
-
         self.content = 'test file'
-        with open(self.test_file, 'wb') as f:
-            f.write(self.content)
-
         md5 = hashlib.md5(self.content)
         self.checksum = md5.hexdigest()
 
-    def tearDown(self):
-        files = [self.test_file, self.xml_file]
+        self.test_file = tempfile.NamedTemporaryFile()
+        self.test_file.write(self.content)
+        self.test_file.seek(0)
 
-        for f in files:
-            try:
-                os.remove(f)
-            except OSError as exc:
-                if exc.errno != errno.ENOENT:
-                    raise
+        self.xml_file = tempfile.NamedTemporaryFile()
 
     def test_validate_against_xml_file_valid(self):
         xml_str = '<root><file CHECKSUM="{hash}" CHECKSUMTYPE="{alg}"><FLocat href="{file}"/></file></root>'.format(
-            hash=self.checksum, alg='md5', file=self.test_file)
+            hash=self.checksum, alg='md5', file=self.test_file.name)
+        self.xml_file.write(xml_str)
+        self.xml_file.seek(0)
 
-        with open(self.xml_file, 'wb') as f:
-            f.write(xml_str)
-
-        self.assertTrue(os.path.isfile(self.xml_file))
-
-        options = {'expected': self.xml_file, 'algorithm': 'md5'}
+        options = {'expected': self.xml_file.name, 'algorithm': 'md5'}
         self.validator = ChecksumValidator(context='xml_file', options=options)
-        self.validator.validate(self.test_file)
+        self.validator.validate(self.test_file.name)
 
     def test_validate_against_xml_file_invalid(self):
         xml_str = '<root><file CHECKSUM="{hash}" CHECKSUMTYPE="{alg}"><FLocat href="{file}"/></file></root>'.format(
-            hash=self.checksum + 'appended', alg='md5', file=self.test_file)
+            hash=self.checksum + 'appended', alg='md5', file=self.test_file.name)
+        self.xml_file.write(xml_str)
+        self.xml_file.seek(0)
 
-        with open(self.xml_file, 'wb') as f:
-            f.write(xml_str)
-
-        options = {'expected': self.xml_file, 'algorithm': 'md5'}
+        options = {'expected': self.xml_file.name, 'algorithm': 'md5'}
         self.validator = ChecksumValidator(context='xml_file', options=options)
 
         with self.assertRaises(ValidationError):
-            self.validator.validate(self.test_file)
+            self.validator.validate(self.test_file.name)
 
     def test_validate_against_xml_file_with_multiple_files(self):
-        test_file2 = 'bar.txt'
         content2 = 'test file 2'
-        with open(test_file2, 'wb') as f:
-            f.write(content2)
-
         md5 = hashlib.md5(content2)
         checksum2 = md5.hexdigest()
+
+        test_file2 = tempfile.NamedTemporaryFile()
+        test_file2.write(content2)
+        test_file2.seek(0)
 
         xml_str = '''
             <root>
@@ -124,19 +110,16 @@ class ChecksumValidatorXMLTests(SimpleTestCase):
                     <FLocat href="{file2}"/>
                 </file>
             </root>'''.format(
-                    hash=self.checksum, alg='md5', file=self.test_file,
-                    hash2=checksum2, file2=test_file2)
+                    hash=self.checksum, alg='md5', file=self.test_file.name,
+                    hash2=checksum2, file2=test_file2.name)
+        self.xml_file.write(xml_str)
+        self.xml_file.seek(0)
 
-        with open(self.xml_file, 'wb') as f:
-            f.write(xml_str)
-
-        self.assertTrue(os.path.isfile(self.xml_file))
-
-        options = {'expected': self.xml_file, 'algorithm': 'md5'}
+        options = {'expected': self.xml_file.name, 'algorithm': 'md5'}
         self.validator = ChecksumValidator(context='xml_file', options=options)
 
-        self.validator.validate(self.test_file)
-        self.validator.validate(test_file2)
+        self.validator.validate(self.test_file.name)
+        self.validator.validate(test_file2.name)
 
 
 class StructureValidatorTests(SimpleTestCase):
