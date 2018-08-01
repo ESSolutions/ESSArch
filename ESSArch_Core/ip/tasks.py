@@ -6,6 +6,7 @@ import tarfile
 import zipfile
 
 import requests
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from lxml import etree
 from scandir import walk
@@ -17,9 +18,12 @@ from ESSArch_Core.essxml.util import get_agents, parse_submit_description
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT
 from ESSArch_Core.profiles.utils import fill_specification_data
+from ESSArch_Core.fixity import transformation
 from ESSArch_Core.util import (creation_date, find_destination, get_event_spec,
                                get_premis_ip_object_element_spec, normalize_path,
                                timestamp_to_datetime)
+
+User = get_user_model()
 
 
 class GenerateContentMets(DBTask):
@@ -370,3 +374,14 @@ class ParseEvents(DBTask):
     def event_outcome_success(self):
         ip = InformationPackage.objects.get(pk=self.ip)
         return "Parsed events from %s" % self.get_path(ip)
+
+
+class Transform(DBTask):
+    def run(self):
+        ip = self.get_information_package()
+        profile = ip.get_profile('transformation')
+        if profile is None:
+            raise ValueError('No transformation profile found for IP')
+        profile_data = fill_specification_data(data=ip.get_profile_data('transformation'), ip=ip)
+        user = User.objects.filter(pk=self.responsible).first()
+        transformation.transform_path(ip.object_path, profile, data=profile_data, ip=ip, user=user)
