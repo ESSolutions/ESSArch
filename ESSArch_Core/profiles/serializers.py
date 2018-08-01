@@ -304,6 +304,18 @@ class ProfileSerializer(serializers.ModelSerializer):
                 'read_only': False,
                 'required': False,
             },
+            'type': {
+                'required': False,
+                'allow_blank': True,
+            },
+            'status': {
+                'required': False,
+                'allow_blank': True,
+            },
+            'label': {
+                'required': False,
+                'allow_blank': True,
+            },
             'cm_change_description': {
                 'required': False,
                 'allow_blank': True,
