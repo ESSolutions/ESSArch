@@ -8,6 +8,7 @@ import zipfile
 import requests
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.utils import timezone
 from lxml import etree
 from scandir import walk
 
@@ -18,6 +19,7 @@ from ESSArch_Core.essxml.util import get_agents, parse_submit_description
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT
 from ESSArch_Core.profiles.utils import fill_specification_data
+from ESSArch_Core.fixity.receipt import get_backend
 from ESSArch_Core.fixity import transformation
 from ESSArch_Core.util import (creation_date, find_destination, get_event_spec,
                                get_premis_ip_object_element_spec, normalize_path,
@@ -385,3 +387,15 @@ class Transform(DBTask):
         profile_data = fill_specification_data(data=ip.get_profile_data('transformation'), ip=ip)
         user = User.objects.filter(pk=self.responsible).first()
         transformation.transform_path(ip.object_path, profile, data=profile_data, ip=ip, user=user)
+
+
+class CreateReceipt(DBTask):
+    def run(self, task, backend, template, destination, outcome, short_message, message, date=None):
+        ip = self.get_information_package()
+        template, destination, outcome, short_message, message, date = self.parse_params(template, destination, outcome,
+                                                                                         short_message, message, date)
+        if date is None:
+            date = timezone.now()
+
+        backend = get_backend(backend, ip)
+        backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task)
