@@ -1,0 +1,64 @@
+{
+    "-name": "receipt",
+    "-children": [
+        {
+            "-name": "informationpackage",
+            "-attr": [
+                {
+                    "-name": "object_identifier_value",
+                    "#content": "{{OBJID}}"
+                },
+                {
+                    "-name": "label",
+                    "#content": "{{OBJLABEL}}"
+                },
+                {
+                    "-name": "id",
+                    "#content": "{{OBJUUID}}"
+                }
+            ]
+        },
+        {
+            "-name": "status",
+            "-attr": [
+                {
+                    "-name": "outcome",
+                    "#content": "{{outcome}}"
+                },
+                {
+                    "-name": "message",
+                    "#content": "{{message}}"
+                }
+            ]
+        },
+        {
+            "-name": "datetime",
+            "#content": "{{date|date:'c'}}"
+        },
+        {
+            "-name": "validations",
+            "-children": [
+                {
+                    "-name": "validation",
+                    "-foreach": "validations",
+                    "-attr": [
+                        {
+                            "-name": "passed",
+                            "#content": "{{passed | lower}}"
+                        },
+                        {
+                            "-name": "filename",
+                            "#content": "{{filename}}"
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "message",
+                            "#content": "{{message}}"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
