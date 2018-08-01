@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('WorkflowEngine', '0070_auto_20180711_1818'),
+        ('WorkflowEngine', '0001_initial'),
         ('fixity', '0005_validation_required'),
     ]
 
