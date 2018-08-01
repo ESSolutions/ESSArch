@@ -43,17 +43,18 @@ from picklefield.fields import PickledObjectField
 
 from ESSArch_Core.util import chunks, flatten, sliceUntilAttr
 
+def create_task(name):
+    """
+    Create and instantiate the task with the given name
+
+    Args:
+        name: The name of the task, including package and module
+    """
+    [module, task] = name.rsplit('.', 1)
+    return getattr(importlib.import_module(module), task)()
+
+
 class Process(models.Model):
-    def _create_task(self, name):
-        """
-        Create and instantiate the task with the given name
-
-        Args:
-            name: The name of the task, including package and module
-        """
-        [module, task] = name.rsplit('.', 1)
-        return getattr(importlib.import_module(module), task)()
-
     class Meta:
         abstract = True
 
@@ -165,6 +166,37 @@ class ProcessStep(Process):
         if self.parent_step:
             self.parent_step.clear_cache()
 
+    def run_children(self, tasks, steps, direct=True):
+        def create_sub_task(t, ignore_parent_args=True):
+            created = create_task(t.name)
+            t.params['_options'] = {
+                'args': t.args,
+                'responsible': t.responsible_id, 'ip': t.information_package_id,
+                'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
+                'result_params': t.result_params,
+            }
+            if ignore_parent_args:
+                return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
+            return created.s(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
+
+        if not tasks.exists() and not steps.exists():
+            if direct:
+                return EagerResult(self.pk, [], celery_states.SUCCESS)
+
+            return group()
+
+        func = group if self.parallel else chain
+        result_list = sorted(itertools.chain(steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
+        workflow = func(x.run(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x) for x in result_list)
+
+        if direct:
+            if self.eager:
+                return workflow.apply()
+            else:
+                return workflow.apply_async()
+        else:
+            return workflow
+
     def run(self, direct=True):
         """
         Runs the process step by first running the child steps and then the
@@ -175,42 +207,15 @@ class ProcessStep(Process):
                     true otherwise
 
         Returns:
-            The executed chain consisting of potential child steps followed by
-            tasks if called directly. The chain "non-executed" if direct is
+            The executed workflow consisting of potential child steps followed by
+            tasks if called directly. The workflow "non-executed" if direct is
             false
         """
-
-        def create_sub_task(t):
-            created = self._create_task(t.name)
-            t.params['_options'] = {
-                'args': t.args,
-                'responsible': t.responsible_id, 'ip': t.information_package_id,
-                'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
-                'result_params': t.result_params,
-            }
-            return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
-
-        func = group if self.parallel else chain
 
         child_steps = self.child_steps.all()
         tasks = self.tasks(manager='by_step_pos').all()
 
-        if not tasks.exists() and not child_steps.exists():
-            if direct:
-                return EagerResult(self.pk, [], celery_states.SUCCESS)
-
-            return group()
-
-        result_list = sorted(itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
-        workflow = func(x.run(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x) for x in result_list)
-
-        if direct:
-            if self.eager:
-                return workflow.apply()
-            else:
-                return workflow.apply_async()
-        else:
-            return workflow
+        return self.run_children(tasks, child_steps, direct)
 
     def undo(self, only_failed=False, direct=True):
         """
@@ -234,7 +239,7 @@ class ProcessStep(Process):
                 'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
                 'undo': True, 'result_params': t.result_params,
             }
-            created = self._create_task(t.name)
+            created = create_task(t.name)
             return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
 
         child_steps = self.child_steps.all()
@@ -288,7 +293,7 @@ class ProcessStep(Process):
                 'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
                 'result_params': t.result_params,
             }
-            created = self._create_task(t.name)
+            created = create_task(t.name)
             return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
 
         child_steps = self.child_steps.all()
@@ -330,34 +335,10 @@ class ProcessStep(Process):
             otherwise
         """
 
-        def create_sub_task(t):
-            created = self._create_task(t.name)
-            t.params['_options'] = {
-                'args': t.args,
-                'responsible': t.responsible_id, 'ip': t.information_package_id,
-                'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
-                'result_params': t.result_params
-            }
-            return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
-
-        func = group if self.parallel else chain
-
         child_steps = self.child_steps.filter(tasks__status=celery_states.PENDING)
         tasks = self.tasks(manager='by_step_pos').filter(undone__isnull=True, undo_type=False, status=celery_states.PENDING)
 
-        if not tasks.exists() and not child_steps.exists():
-            return EagerResult(self.pk, [], celery_states.SUCCESS)
-
-        result_list = sorted(itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
-        workflow = func(x.run(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x) for x in result_list)
-
-        if direct:
-            if self.eager:
-                return workflow.apply()
-            else:
-                return workflow.apply_async()
-        else:
-            return workflow
+        return self.run_children(tasks, child_steps, direct)
 
     @property
     def cache_lock_key(self):
@@ -595,7 +576,7 @@ class ProcessTask(Process):
         Runs the task
         """
 
-        t = self._create_task(self.name)
+        t = create_task(self.name)
 
         self.params['_options'] = {
             'responsible': self.responsible_id, 'ip':
@@ -616,7 +597,7 @@ class ProcessTask(Process):
         Undos the task
         """
 
-        t = self._create_task(self.name)
+        t = create_task(self.name)
 
         undoobj = self.create_undo_obj()
         self.params['_options'] = {
