@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
             name='ProcessStep',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(blank=True, max_length=256)),
+                ('name', models.CharField(max_length=255)),
                 ('progress', models.IntegerField(blank=True, default=0)),
                 ('type', models.IntegerField(choices=[(-1, 'Undefined'), (0, 'Success'), (1, 'Error'), (2, 'Warning')], null=True)),
                 ('user', models.CharField(max_length=45)),

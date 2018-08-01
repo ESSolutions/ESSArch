@@ -58,6 +58,8 @@ class Process(models.Model):
         abstract = True
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    hidden = models.BooleanField(editable=False, default=False, db_index=True)
     eager = models.BooleanField(default=True)
     time_created = models.DateTimeField(auto_now_add=True)
     result = PickledObjectField(null=True, default=None, editable=False)
@@ -94,7 +96,6 @@ class ProcessStep(Process):
         (9999, "Deleted"),
     )
 
-    name = models.CharField(max_length=256)
     type = models.IntegerField(null=True, choices=Type_CHOICES)
     user = models.CharField(max_length=45)
     parent_step = models.ForeignKey(
@@ -111,7 +112,6 @@ class ProcessStep(Process):
         blank=True,
         null=True
     )
-    hidden = models.BooleanField(default=False)
     parallel = models.BooleanField(default=False)
 
     def get_pos(self):
@@ -536,7 +536,6 @@ class ProcessTask(Process):
         celery_states.ALL_STATES, celery_states.ALL_STATES
     )
 
-    name = models.CharField(max_length=255)
     label = models.CharField(max_length=255, blank=True)
     status = models.CharField(
         _('state'), max_length=50, default=celery_states.PENDING,
@@ -552,7 +551,6 @@ class ProcessTask(Process):
     time_done = models.DateTimeField(_('done at'), null=True, blank=True)
     traceback = models.TextField(blank=True)
     exception = models.TextField(blank=True)
-    hidden = models.BooleanField(editable=False, default=False, db_index=True)
     meta = PickledObjectField(null=True, default=None, editable=False)
     processstep = models.ForeignKey(
         'ProcessStep', related_name='tasks', on_delete=models.CASCADE,
