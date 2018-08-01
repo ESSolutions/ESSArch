@@ -32,7 +32,7 @@ class GenerateContentMets(DBTask):
     event_type = 50600
 
     def run(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         mets_path = ip.get_content_mets_file_path()
         profile_type = ip.get_package_type_display().lower()
         profile_rel = ip.get_profile_rel(profile_type)
@@ -55,11 +55,8 @@ class GenerateContentMets(DBTask):
         ip.content_mets_digest = calculate_checksum(mets_path, algorithm=algorithm)
         ip.save()
 
-    def undo(self):
-        pass
-
     def event_outcome_success(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         return 'Generated {xml}'.format(xml=ip.content_mets_path)
 
 
@@ -67,7 +64,7 @@ class GeneratePackageMets(DBTask):
     event_type = 50600
 
     def run(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         sa = ip.submission_agreement
         if ip.package_type == InformationPackage.SIP:
             profile_type = 'submit_description'
@@ -98,11 +95,8 @@ class GeneratePackageMets(DBTask):
         ip.package_mets_digest = calculate_checksum(xmlpath, algorithm=algorithm)
         ip.save()
 
-    def undo(self):
-        pass
-
     def event_outcome_success(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         return 'Generated {xml}'.format(xml=ip.package_mets_path)
 
 
@@ -110,7 +104,7 @@ class GeneratePremis(DBTask):
     event_type = 50600
 
     def run(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         premis_path = ip.get_premis_file_path()
         premis_profile_rel = ip.get_profile_rel('preservation_metadata')
         premis_profile_data = ip.get_profile_data('preservation_metadata')
@@ -124,11 +118,8 @@ class GeneratePremis(DBTask):
         generator = XMLGenerator(files_to_create)
         generator.generate(folderToParse=ip.object_path, algorithm=algorithm)
 
-    def undo(self):
-        pass
-
     def event_outcome_success(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         return 'Generated {xml}'.format(xml=ip.get_premis_file_path())
 
 
@@ -136,7 +127,7 @@ class GenerateEventsXML(DBTask):
     event_type = 50600
 
     def run(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         xml_path = os.path.join(ip.object_path, ip.get_events_file_path())
         files_to_create = {
             xml_path: {
@@ -148,11 +139,8 @@ class GenerateEventsXML(DBTask):
         generator = XMLGenerator(files_to_create)
         generator.generate(algorithm=algorithm)
 
-    def undo(self):
-        pass
-
     def event_outcome_success(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         return 'Generated {xml}'.format(xml=ip.get_events_file_path())
 
 
@@ -160,7 +148,7 @@ class DownloadSchemas(DBTask):
     logger = logging.getLogger('essarch.core.ip.tasks.DownloadSchemas')
 
     def run(self, verify=True):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         ip_profile_type = ip.get_package_type_display().lower()
         ip_profile = ip.get_profile_rel(ip_profile_type).profile
         structure = ip.get_structure()
@@ -209,7 +197,7 @@ class DownloadSchemas(DBTask):
 
 class AddPremisIPObjectElementToEventsFile(DBTask):
     def run(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         info = {
             'FIDType': "UUID",
             'FID': ip.object_identifier_value,
@@ -225,12 +213,6 @@ class AddPremisIPObjectElementToEventsFile(DBTask):
         target = generator.find_element('premis')
         generator.insert_from_specification(target, spec, data=info, index=0)
         generator.write(xmlfile)
-        
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
-        pass
 
 
 class CreatePhysicalModel(DBTask):
@@ -258,7 +240,7 @@ class CreatePhysicalModel(DBTask):
             root: The root directory to be used
         """
 
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         data = fill_specification_data(ip=ip, sa=ip.submission_agreement)
         structure = structure or ip.get_structure()
         root = ip.object_path if not root else root
@@ -285,7 +267,7 @@ class CreatePhysicalModel(DBTask):
     
 class CreateContainer(DBTask):
     def run(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         container_format = ip.get_container_format().lower()
         tpp = ip.get_profile_rel('transfer_project').profile
         compress = tpp.specification_data.get('container_format_compression', False)
@@ -320,18 +302,15 @@ class CreateContainer(DBTask):
         shutil.rmtree(src)
         return dst
 
-    def undo(self):
-        pass
-
     def event_outcome_success(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         return "Created {path}".format(path=ip.object_path)
 
 
 class ParseSubmitDescription(DBTask):
     @transaction.atomic
     def run(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         rootdir = os.path.dirname(ip.object_path) if os.path.isfile(ip.object_path) else ip.object_path
         xml = ip.package_mets_path
         parsed = parse_submit_description(xml, rootdir)
@@ -356,7 +335,7 @@ class ParseSubmitDescription(DBTask):
         ip.save()
 
     def event_outcome_success(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         return "Parsed submit description at {}".format(ip.package_mets_path)
 
 
@@ -368,13 +347,13 @@ class ParseEvents(DBTask):
 
     @transaction.atomic
     def run(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         xmlfile = ip.open_file(self.get_path(ip), 'rb')
         events = EventIP.objects.from_premis_file(xmlfile, save=False)
         EventIP.objects.bulk_create(events, 100)
 
     def event_outcome_success(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         return "Parsed events from %s" % self.get_path(ip)
 
 
