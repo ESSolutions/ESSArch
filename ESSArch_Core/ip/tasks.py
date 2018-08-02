@@ -377,4 +377,6 @@ class CreateReceipt(DBTask):
             date = timezone.now()
 
         backend = get_backend(backend, ip)
+        if task is None:
+            task = self.task_id
         backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task)

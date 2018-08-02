@@ -13,6 +13,16 @@ logger = logging.getLogger('essarch.core.fixity.receipt.email')
 
 class EmailReceiptBackend(BaseReceiptBackend):
     def create(self, template, destination, outcome, short_message, message, date, ip=None, task=None):
+        try:
+            task_obj = ProcessTask.objects.get(pk=task)
+        except ProcessTask.DoesNotExist:
+            if task is None and destination is None:
+                raise ValueError('Destination or task must be specified')
+            task_obj = None
+        else:
+            if destination is None:
+                destination = task_obj.responsible.email
+
         logger.debug(u'Sending receipt email to {}'.format(destination))
         subject = short_message
 
@@ -20,8 +30,7 @@ class EmailReceiptBackend(BaseReceiptBackend):
         data['outcome'] = outcome
         data['message'] = message
         data['date'] = date
-        if task is not None:
-            task_obj = ProcessTask.objects.get(pk=task)
+        if task_obj is not None:
             data['task_traceback'] = task_obj.traceback
             data['task_exception'] = task_obj.exception
             data['validations'] = Validation.objects.filter(task=task).order_by('time_started')
