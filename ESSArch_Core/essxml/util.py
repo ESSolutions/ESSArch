@@ -69,6 +69,13 @@ FILE_ELEMENTS = {
         "size": "objectCharacteristics/size",
         "format": "objectCharacteristics/format/formatDesignation/formatName",
     },
+    "Bilaga": {
+        "path": ["@Lank"],
+        "pathprefix": ["file:///", "file:"],
+        "checksum": "@Checksumma",
+        "checksumtype": "@ChecksummaMetod",
+        "size": "@Storlek",
+    },
 }
 
 PTR_ELEMENTS = {
