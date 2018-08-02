@@ -11,3 +11,13 @@ def get_cached_objid(id):
         cache.set(objid_cache_name, objid, 3600 * 24)
 
     return objid
+
+
+def get_package_type(t):
+    return {
+        'sip': InformationPackage.SIP,
+        'aic': InformationPackage.AIC,
+        'aip': InformationPackage.AIP,
+        'aiu': InformationPackage.AIU,
+        'dip': InformationPackage.DIP,
+    }[t]

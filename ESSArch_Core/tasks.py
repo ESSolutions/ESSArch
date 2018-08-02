@@ -22,8 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-import cPickle
-import copy
 import errno
 import logging
 import os
@@ -35,7 +33,9 @@ import zipfile
 
 import requests
 import six
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage, send_mail
 from django.db import transaction
@@ -47,22 +47,23 @@ from lxml import etree
 from redis import StrictRedis
 from retrying import retry
 from scandir import walk
-from six.moves import urllib
+from six.moves import cPickle
 
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
-from ESSArch_Core.auth.models import Notification
-from ESSArch_Core.configuration.models import Parameter, Path
-from ESSArch_Core.essxml.Generator.xmlGenerator import (parseContent, XMLGenerator,
-                                                        findElementWithoutNamespace)
-from ESSArch_Core.essxml.util import find_files, find_pointers
+from ESSArch_Core.WorkflowEngine.util import create_workflow
+from ESSArch_Core.auth.models import Group, Notification
+from ESSArch_Core.configuration.models import Parameter
+from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, findElementWithoutNamespace
+from ESSArch_Core.essxml.util import find_files
 from ESSArch_Core.fixity import format, transformation, validation
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLComparisonValidator, XMLSchemaValidator
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
-from ESSArch_Core.ip.utils import get_cached_objid
-from ESSArch_Core.profiles.utils import fill_specification_data
+from ESSArch_Core.ip.utils import get_cached_objid, get_package_type
+from ESSArch_Core.profiles.models import Profile
+from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.exceptions import TapeDriveLockedError
 from ESSArch_Core.storage.models import StorageMedium, TapeDrive, TapeSlot
@@ -76,9 +77,7 @@ from ESSArch_Core.storage.tape import (DEFAULT_TAPE_BLOCK_SIZE,
 from ESSArch_Core.tags import (DELETION_PROCESS_QUEUE, DELETION_QUEUE,
                                INDEX_PROCESS_QUEUE, INDEX_QUEUE,
                                UPDATE_PROCESS_QUEUE, UPDATE_QUEUE)
-from ESSArch_Core.util import (convert_file, delete_content, find_destination,
-                               get_event_element_spec, get_tree_size_and_count, remove_prefix,
-                               win_to_posix)
+from ESSArch_Core.util import convert_file, get_event_element_spec, get_tree_size_and_count
 
 User = get_user_model()
 redis = StrictRedis()
@@ -1129,3 +1128,97 @@ class DeleteTags(ProcessTags):
 
     def get_id(self, data):
         return data['delete']['_id']
+
+
+class RunWorkflowProfiles(DBTask):
+    logger = logging.getLogger('essarch.core.tasks.RunWorkflowProfiles')
+
+    def is_path_stable(self, path):
+        current_size, _ = get_tree_size_and_count(path)
+        cache_key = u'path_size_{}'.format(path)
+        cached = cache.get(cache_key)
+        if cached is None or cached != current_size:
+            if cached is None:
+                self.logger.info(u'New path: {}, size: {}'.format(path, current_size))
+            else:
+                self.logger.info(u'Updated path: {}, old size: {}, new size: {}'.format(path, cached, current_size))
+            cache.set(cache_key, current_size, 60*60)
+            return False
+
+        self.logger.info(u'Stable path: {}, size: {}'.format(path, current_size))
+        cache.delete(cache_key)
+        return True
+
+    def run(self):
+        p_types = [p_type.lower().replace(' ', '_') for p_type in profile_types]
+
+        for workflow_profile in Profile.objects.filter(profile_type='workflow'):
+            sa = workflow_profile.workflow_sa.first()
+            if sa is None:
+                raise ValueError(u'No submission agreement containing {}'.format(workflow_profile))
+
+            specifications = workflow_profile.specification.get(settings.PROJECT_SHORTNAME, [])
+            if not specifications:
+                self.logger.debug(u'No workflow specified in {} for current project {}'.format(workflow_profile, settings.PROJECT_SHORTNAME))
+                continue
+
+            for spec in specifications:
+                try:
+                    username = spec['responsible']
+                except KeyError:
+                    self.logger.info(u'No user specified in {}, using system user instead'.format(workflow_profile))
+                    username = 'system'
+                responsible = User.objects.get(username=username)
+
+                try:
+                    org_name = spec['organization']
+                    org = Group.objects.get(name=org_name)
+                except KeyError:
+                    self.logger.info(u'No organization specified in {}, using current organization for user instead'.format(workflow_profile))
+                    org = responsible.user_profile.current_organization
+
+                path = spec['path']
+                tasks = spec['tasks']
+                package_type = get_package_type(spec['package_type'])
+
+                self.logger.debug(u'Creating workflow for entries in {}'.format(path))
+                for entry in os.listdir(path):
+                    subpath = os.path.join(path, entry)
+
+                    if os.path.isfile(subpath):
+                        entryname, entryext = os.path.splitext(entry)
+                        entryext = entryext[1:]
+
+                        if entryext != 'tar':
+                            continue
+
+                        xmlfile = os.path.splitext(subpath)[0] + '.xml'
+                    else:
+                        entryname = entry
+                        xmlfile = subpath + '.xml'
+
+                    objid = entryname
+                    if InformationPackage.objects.filter(object_identifier_value=objid).exists():
+                        self.logger.debug(u'Information package with object identifier value "{}" already exists'.format(objid))
+                        continue
+
+                    if not self.is_path_stable(subpath):
+                        continue
+
+                    self.logger.info(u'Creating {}'.format(objid))
+                    ip = InformationPackage(
+                        object_identifier_value=objid,
+                        object_path=subpath,
+                        package_type=package_type,
+                        submission_agreement=sa,
+                        submission_agreement_locked=True,
+                        state='Prepared',
+                        responsible=responsible,
+                        package_mets_path=xmlfile,
+                    )
+                    if ip.package_type == InformationPackage.AIP:
+                        ip.sip_objid = objid
+                    ip.save()
+                    ip.create_profile_rels(p_types, responsible)
+                    org.add_object(ip)
+                    create_workflow(tasks, ip=ip, name=spec.get('name', ''), on_error=spec.get('on_error')).run()
