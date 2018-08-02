@@ -340,7 +340,7 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None):
 
         for el in file_elements:
             file_el = XMLFileElement(el, props, rootdir=rootdir)
-            file_el.path = os.path.join(prefix, file_el.path)
+            file_el.path = win_to_posix(os.path.join(prefix, file_el.path))
 
             if file_el.path in skip_files:
                 continue
