@@ -256,7 +256,9 @@ class XMLFileElement():
             self.path = self.path.lstrip('/ ')
 
         self.checksum = get_value_from_path(el, props.get('checksum', ''))
+        self.checksum = self.checksum.lower() if self.checksum is not None else self.checksum
         self.checksum_type = get_value_from_path(el, props.get('checksumtype', ''))
+        self.checksum_type = self.checksum_type.lower() if self.checksum_type is not None else self.checksum_type
         self.size = get_value_from_path(el, props.get('size', ''))
         self.size = int(self.size) if self.size is not None else None
         self.format = get_value_from_path(el, props.get('format', ''))
