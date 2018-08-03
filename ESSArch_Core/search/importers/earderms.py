@@ -241,6 +241,8 @@ class EardErmsImporter(BaseImporter):
             'name': ['Rubrik', 'ArkivobjektID'],
             'status': 'StatusHandling',
             'handlingstyp': 'Handlingstyp',
+            'klassreferens': 'KlassReferens',
+            'arkivobjekt_id': 'ArkivobjektID',
         }
 
         for k, v in six.iteritems(data_mappings):
@@ -369,6 +371,8 @@ class EardErmsImporter(BaseImporter):
             'name': ['Arendemening', 'Rubrik', 'ArkivobjektID'],
             'status': 'StatusArande',
             'arendetyp': 'ArendeTyp',
+            'klassreferens': 'KlassReferens',
+            'arkivobjekt_id': 'ArkivobjektID',
         }
         data = self.parse_mappings(data_mappings, errand)
 
