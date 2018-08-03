@@ -69,6 +69,11 @@ class GroupMemberRole(GroupMemberRoleMixin):
 
 
 class ProxyGroup(DjangoGroup):
+    def save(self, *args, **kwargs):
+        self.essauth_group.name = self.name
+        self.essauth_group.save()
+        super(ProxyGroup, self).save(*args, **kwargs)
+
     class Meta:
         verbose_name = _('group')
         verbose_name_plural = _('groups')
