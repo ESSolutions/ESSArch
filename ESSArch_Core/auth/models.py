@@ -28,7 +28,7 @@ from django.contrib.auth.models import Group as DjangoGroup, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import python_2_unicode_compatible
-from django.db import models
+from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from groups_manager import exceptions_gm
 from groups_manager.models import GroupMixin, MemberMixin, GroupMemberMixin, GroupMemberRoleMixin, GroupType
@@ -69,10 +69,16 @@ class GroupMemberRole(GroupMemberRoleMixin):
 
 
 class ProxyGroup(DjangoGroup):
+    @transaction.atomic
     def save(self, *args, **kwargs):
-        self.essauth_group.name = self.name
-        self.essauth_group.save()
-        super(ProxyGroup, self).save(*args, **kwargs)
+        try:
+            self.essauth_group.name = self.name
+            self.essauth_group.save()
+            return super(ProxyGroup, self).save(*args, **kwargs)
+        except Group.DoesNotExist:
+            group = super(ProxyGroup, self).save(*args, **kwargs)
+            Group.objects.create(name=self.name, django_group=self)
+            return group
 
     class Meta:
         verbose_name = _('group')

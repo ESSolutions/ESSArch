@@ -151,6 +151,7 @@ class GroupInline(admin.StackedInline):
 
 
 class GroupAdmin(DjangoGroupAdmin):
+    add_form_template = 'essauth/admin/group/add_form.html'
     inlines = [GroupInline]
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):

@@ -1,0 +1,18 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block form_top %}
+  {% if not is_popup %}
+    <p>{% trans "First, enter a name and optionally some permissions. Then, you'll be able to edit more group options." %}</p>
+  {% else %}
+    <p>{% trans "Enter a name." %}</p>
+  {% endif %}
+{% endblock %}
+
+{% block inline_field_sets %}
+<div style="display: none">
+{% for inline_admin_formset in inline_admin_formsets %}
+    {% include inline_admin_formset.opts.template %}
+{% endfor %}
+</div>
+{% endblock %}
