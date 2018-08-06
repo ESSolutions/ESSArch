@@ -51,6 +51,7 @@ from six.moves import cPickle
 
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.WorkflowEngine.polling import get_backend
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 from ESSArch_Core.auth.models import Group, Notification
 from ESSArch_Core.configuration.models import Parameter
@@ -1150,75 +1151,18 @@ class RunWorkflowProfiles(DBTask):
         return True
 
     def run(self):
-        p_types = [p_type.lower().replace(' ', '_') for p_type in profile_types]
-
-        for workflow_profile in Profile.objects.filter(profile_type='workflow'):
-            sa = workflow_profile.workflow_sa.first()
-            if sa is None:
-                raise ValueError(u'No submission agreement containing {}'.format(workflow_profile))
-
-            specifications = workflow_profile.specification.get(settings.PROJECT_SHORTNAME, [])
-            if not specifications:
-                self.logger.debug(u'No workflow specified in {} for current project {}'.format(workflow_profile, settings.PROJECT_SHORTNAME))
-                continue
-
-            for spec in specifications:
+        proj = settings.PROJECT_SHORTNAME
+        pollers = getattr(settings, 'ESSARCH_WORKFLOW_POLLERS', {})
+        for name, poller in six.iteritems(pollers):
+            backend = get_backend(name)
+            poll_path = poller['path']
+            for ip in backend.poll(poll_path):
+                profile = ip.submission_agreement.profile_workflow
                 try:
-                    username = spec['responsible']
+                    spec = profile.specification[proj]
                 except KeyError:
-                    self.logger.info(u'No user specified in {}, using system user instead'.format(workflow_profile))
-                    username = 'system'
-                responsible = User.objects.get(username=username)
+                    self.logger.debug(u'No workflow specified in {} for current project {}'.format(profile, proj))
+                    continue
 
-                try:
-                    org_name = spec['organization']
-                    org = Group.objects.get(name=org_name)
-                except KeyError:
-                    self.logger.info(u'No organization specified in {}, using current organization for user instead'.format(workflow_profile))
-                    org = responsible.user_profile.current_organization
-
-                path = spec['path']
-                tasks = spec['tasks']
-                package_type = get_package_type(spec['package_type'])
-
-                self.logger.debug(u'Creating workflow for entries in {}'.format(path))
-                for entry in os.listdir(path):
-                    subpath = os.path.join(path, entry)
-
-                    if os.path.isfile(subpath):
-                        entryname, entryext = os.path.splitext(entry)
-                        entryext = entryext[1:]
-
-                        if entryext != 'tar':
-                            continue
-
-                        xmlfile = os.path.splitext(subpath)[0] + '.xml'
-                    else:
-                        entryname = entry
-                        xmlfile = subpath + '.xml'
-
-                    objid = entryname
-                    if InformationPackage.objects.filter(object_identifier_value=objid).exists():
-                        self.logger.debug(u'Information package with object identifier value "{}" already exists'.format(objid))
-                        continue
-
-                    if not self.is_path_stable(subpath):
-                        continue
-
-                    self.logger.info(u'Creating {}'.format(objid))
-                    ip = InformationPackage(
-                        object_identifier_value=objid,
-                        object_path=subpath,
-                        package_type=package_type,
-                        submission_agreement=sa,
-                        submission_agreement_locked=True,
-                        state='Prepared',
-                        responsible=responsible,
-                        package_mets_path=xmlfile,
-                    )
-                    if ip.package_type == InformationPackage.AIP:
-                        ip.sip_objid = objid
-                    ip.save()
-                    ip.create_profile_rels(p_types, responsible)
-                    org.add_object(ip)
-                    create_workflow(tasks, ip=ip, name=spec.get('name', ''), on_error=spec.get('on_error')).run()
+                workflow = create_workflow(spec['tasks'], ip=ip, name=spec.get('name', ''), on_error=spec.get('on_error'))
+                workflow.run()

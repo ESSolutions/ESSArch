@@ -38,6 +38,7 @@ import zipfile
 
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
+from django.core.cache import cache
 from django.utils.encoding import smart_text
 from django.utils.timezone import get_current_timezone
 from django.core.validators import RegexValidator
@@ -85,6 +86,29 @@ def remove_prefix(text, prefix):
     if text.startswith(prefix):
         return text[len(prefix):]
     return text
+
+
+def stable_path(path):
+    current_size, current_count = get_tree_size_and_count(path)
+    cache_size_key = u'path_size_{}'.format(path)
+    cache_count_key = u'path_count_{}'.format(path)
+    cached_size = cache.get(cache_size_key)
+    cached_count = cache.get(cache_count_key)
+
+    new = cached_size is None
+    updated_size = cached_size != current_size
+    updated_count = cached_count != current_count
+    if new or updated_size or updated_count:
+        if new:
+            logger.info(u'New path: {}, size: {}, count: {}'.format(path, current_size, current_count))
+        elif updated_size or updated_count:
+            logger.info(u'Updated path: {}, size: {} => {}, count: {} => {}'.format(path, cached_size, current_size, cached_count, current_count))
+        cache.set(cache_size_key, current_size, 60*60)
+        cache.set(cache_count_key, current_count, 60*60)
+        return False
+
+    logger.info(u'Stable path: {}, size: {}, count: {}'.format(path, current_size, current_count))
+    return True
 
 
 def get_elements_without_namespace(root, path, value=None):
