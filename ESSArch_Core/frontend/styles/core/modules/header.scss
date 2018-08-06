@@ -123,12 +123,15 @@
             display: none;
         }
     }
-}
-
-.tasks-icons > .fa {
-    margin-right: 2px;
-    margin-left: 2px;
-    cursor: pointer;
+    .fa {
+        color: #fff;
+        margin-right: 2px;
+        margin-left: 2px;
+        cursor: pointer;
+        &:hover, &:focus {
+            text-decoration: none;
+        }
+    }
 }
 
 .notification-icon {

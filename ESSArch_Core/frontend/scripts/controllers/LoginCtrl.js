@@ -23,9 +23,6 @@
 */
 
 angular.module('myApp').controller('LoginCtrl', function ($scope, $location, $window, myService, $state, $stateParams, $rootScope, djangoAuth, Validate, PermRoleStore, PermPermissionStore){
-    $scope.redirectAdmin = function () {
-        $window.location.href="/admin/";
-    }
     $scope.model = {'app': $rootScope.app, 'username':'','password':''};
     $scope.complete = false;
     $scope.login = function(formData){
