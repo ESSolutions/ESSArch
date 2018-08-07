@@ -15,5 +15,5 @@ class BaseValidator(object):
         self.ip = ip
         self.responsible = responsible
 
-    def validate(self, filepath):
+    def validate(self, filepath, expected=None):
         raise NotImplementedError('subclasses of BaseValidator must provide a validate() method')

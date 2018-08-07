@@ -61,7 +61,7 @@ class VeraPDFValidator(BaseValidator):
     ``context`` is used to specify the path of a verapdf policy file.
     """
 
-    def validate(self, filepath):
+    def validate(self, filepath, expected=None):
         logger.debug("Validating %s with VeraPDF" % filepath)
         out, err, returncode = run_verapdf(filepath, self.context)
 

@@ -190,7 +190,7 @@ class DiffCheckValidator(BaseValidator):
                 msg = u'{f} is missing from {xml}'.format(f=f, xml=self.context)
                 objs.append(self._create_obj(f, False, msg))
 
-    def validate(self, path):
+    def validate(self, path, expected=None):
         xmlfile = self.context
         objs = []
         self._reset_dicts()
@@ -237,7 +237,7 @@ class XMLComparisonValidator(DiffCheckValidator):
     def _get_size(self, input_file):
         return input_file.size
 
-    def validate(self, path):
+    def validate(self, path, expected=None):
         xmlfile = self.context
         objs = []
         self._reset_dicts()
@@ -288,7 +288,7 @@ class XMLComparisonValidator(DiffCheckValidator):
 
 
 class XMLSchemaValidator(BaseValidator):
-    def validate(self, filepath):
+    def validate(self, filepath, expected=None):
         if self.context:
             logger.debug(u'Validating schema of {xml} against {schema}'.format(xml=filepath, schema=self.context))
         else:
@@ -346,7 +346,7 @@ class XMLSchemaValidator(BaseValidator):
         logger.info(u"Successful schema validation of {xml}".format(xml=filepath))
 
 class XMLSchematronValidator(BaseValidator):
-    def validate(self, filepath):
+    def validate(self, filepath, expected=None):
         logger.debug(u'Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
 
         rootdir = self.options.get('rootdir')
@@ -403,7 +403,7 @@ class XMLSchematronValidator(BaseValidator):
         logger.info(u"Successful schematron validation of {xml} against {schema}".format(xml=filepath, schema=self.context))
 
 class XMLISOSchematronValidator(BaseValidator):
-    def validate(self, filepath):
+    def validate(self, filepath, expected=None):
         logger.debug(u'Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
         rootdir = self.options.get('rootdir')
         etree.clear_error_log()

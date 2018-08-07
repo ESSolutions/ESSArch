@@ -106,7 +106,7 @@ class StructureValidator(BaseValidator):
         if len(required_files):
             raise ValidationError('Missing {files} in {path}'.format(files=','.join(required_files), path=path))
 
-    def validate(self, filepath):
+    def validate(self, filepath, expected=None):
         root = self.options.get('tree', [])
         filepath = normalize_path(filepath)
         logger.debug("Validating structure of %s" % filepath)

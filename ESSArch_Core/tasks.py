@@ -57,9 +57,10 @@ from ESSArch_Core.auth.models import Group, Notification
 from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, findElementWithoutNamespace
 from ESSArch_Core.essxml.util import find_files
-from ESSArch_Core.fixity import format, transformation, validation
+from ESSArch_Core.fixity import transformation, validation
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
+from ESSArch_Core.fixity.validation.backends.format import FormatValidator
 from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLComparisonValidator, XMLSchemaValidator
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import get_cached_objid, get_package_type
@@ -288,14 +289,13 @@ class ValidateFiles(DBTask):
             if rootdir is None:
                 rootdir = InformationPackage.objects.values_list('object_path', flat=True).get(pk=ip)
 
-            tasks = []
-            fid = format.FormatIdentifier()
+            format_validator = FormatValidator()
 
             for f in find_files(xmlfile, rootdir):
                 filename = os.path.join(rootdir, f.path)
 
                 if validate_fileformat and f.format is not None:
-                    validation.validate_file_format(filename, fid, format_name=f.format)
+                    format_validator.validate(filename, (f.format, None, None))
 
                 if validate_integrity and f.checksum is not None and f.checksum_type is not None:
                     options = {'expected': f.checksum, 'algorithm': f.checksum_type}
@@ -311,10 +311,6 @@ class ValidateFiles(DBTask):
                             send_mail(subject, body, None, [recipient], fail_silently=False)
 
                         raise
-
-
-    def undo(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
-        pass
 
     def event_outcome_success(self, ip, xmlfile, validate_fileformat=True, validate_integrity=True, rootdir=None):
         return "Validated files in %s" % xmlfile

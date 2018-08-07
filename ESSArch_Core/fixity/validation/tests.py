@@ -12,7 +12,9 @@ from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml import Generator
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.exceptions import ValidationError
+from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
+from ESSArch_Core.fixity.validation.backends.format import FormatValidator
 from ESSArch_Core.fixity.validation.backends.structure import StructureValidator
 from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLComparisonValidator
 
@@ -123,6 +125,28 @@ class ChecksumValidatorXMLTests(SimpleTestCase):
 
 
 class StructureValidatorTests(SimpleTestCase):
+class FormatValidatorTests(TestCase):
+    def setUp(self):
+        self.content = 'test file'
+        self.test_file = tempfile.NamedTemporaryFile(suffix='.txt')
+        self.test_file.write(self.content)
+        self.test_file.seek(0)
+
+        mimetypes_path = os.path.join(os.path.dirname(Generator.__file__), 'mime.types')
+        Path.objects.create(entity="path_mimetypes_definitionfile", value=mimetypes_path)
+
+        fid = FormatIdentifier()
+        self.expected = fid.identify_file_format(self.test_file.name)
+
+    def test_validate(self):
+        self.validator = FormatValidator()
+        self.validator.validate(self.test_file.name, self.expected)
+
+        with self.assertRaises(ValidationError):
+            self.validator.validate(self.test_file.name, ('incorrect', None, None))
+
+
+class StructureValidatorTests(TestCase):
     def setUp(self):
         self.root = tempfile.mkdtemp()
         self.validator_class = StructureValidator

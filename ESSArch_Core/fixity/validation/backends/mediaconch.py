@@ -44,7 +44,7 @@ class MediaconchValidator(BaseValidator):
     ``context`` is used to specify the path of a mediaconch policy file.
     """
 
-    def validate(self, filepath):
+    def validate(self, filepath, expected=None):
         logger.debug("Validating %s with Mediaconch" % filepath)
         out, err, returncode = run_mediaconch(filepath, policy=self.context)
 
