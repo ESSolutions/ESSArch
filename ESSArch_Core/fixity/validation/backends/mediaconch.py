@@ -1,11 +1,14 @@
 import errno
 import logging
 import os
+import traceback
 from subprocess import PIPE, Popen
 
+from django.utils import timezone
 from lxml import etree
 
 from ESSArch_Core.exceptions import ValidationError
+from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 
 logger = logging.getLogger('essarch.fixity.validation.mediaconch')
@@ -46,22 +49,47 @@ class MediaconchValidator(BaseValidator):
 
     def validate(self, filepath, expected=None):
         logger.debug("Validating %s with Mediaconch" % filepath)
-        out, err, returncode = run_mediaconch(filepath, policy=self.context)
 
-        if returncode:
-            logger.warning("Mediaconch validation of %s failed, %s" % (filepath, err))
-            raise ValidationError(err)
+        val_obj = Validation.objects.create(
+            filename=filepath,
+            time_started=timezone.now(),
+            validator=self.__class__.__name__,
+            required=self.required,
+            task=self.task,
+            information_package=self.ip,
+            responsible=self.responsible,
+            specification={
+                'context': self.context,
+                'options': self.options,
+            }
+        )
 
-        parser = etree.XMLParser(remove_blank_text=True)
-        root = etree.XML(out, parser=parser)
+        passed = False
+        try:
+            out, err, returncode = run_mediaconch(filepath, policy=self.context)
 
-        passed = get_outcome(root)
-        message = etree.tostring(root, xml_declaration=True, encoding='UTF-8')
+            if returncode:
+                logger.warning("Mediaconch validation of %s failed, %s" % (filepath, err))
+                raise ValidationError(err)
 
-        if not passed:
-            logger.warning("Mediaconch validation of %s failed, %s" % (filepath, message))
-            raise ValidationError(message)
+            parser = etree.XMLParser(remove_blank_text=True)
+            root = etree.XML(out, parser=parser)
 
-        logger.info("Successful Mediaconch validation of %s" % filepath)
+            passed = get_outcome(root)
+            message = etree.tostring(root, xml_declaration=True, encoding='UTF-8')
+
+            if not passed:
+                logger.warning("Mediaconch validation of %s failed, %s" % (filepath, message))
+                raise ValidationError(message)
+        except Exception:
+            val_obj.message = traceback.format_exc()
+            raise
+        else:
+            val_obj.message = message
+            logger.info(u"Successful Mediaconch validation of %s" % filepath)
+        finally:
+            val_obj.time_done = timezone.now()
+            val_obj.passed = passed
+            val_obj.save(update_fields=['time_done', 'passed', 'message'])
 
         return message

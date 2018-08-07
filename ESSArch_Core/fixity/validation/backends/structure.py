@@ -1,11 +1,14 @@
 import logging
 import os
+import traceback
 
 import six
+from django.utils import timezone
 from glob2 import glob, iglob
 from scandir import walk
 
 from ESSArch_Core.exceptions import ValidationError
+from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 from ESSArch_Core.util import normalize_path
 
@@ -111,14 +114,40 @@ class StructureValidator(BaseValidator):
         filepath = normalize_path(filepath)
         logger.debug("Validating structure of %s" % filepath)
 
+        val_obj = Validation.objects.create(
+            filename=filepath,
+            time_started=timezone.now(),
+            validator=self.__class__.__name__,
+            required=self.required,
+            task=self.task,
+            information_package=self.ip,
+            responsible=self.responsible,
+            specification={
+                'context': self.context,
+                'options': self.options,
+            }
+        )
+
+        passed = False
         try:
             for node in root:
                 if node['type'] == 'root':
                     self.validate_folder(filepath, node)
                 elif node['type'] == 'folder':
                     self.validate_folder(os.path.join(filepath, node['name']), node)
-        except ValidationError as e:
-            logger.warning("Structure validation of %s failed, %s" % (filepath, e.message))
-            raise
 
-        logger.info("Successful structure validation of %s" % filepath)
+            passed = True
+        except Exception as e:
+            logger.warning("Structure validation of %s failed, %s" % (filepath, e.message))
+            val_obj.message = traceback.format_exc()
+            raise
+        else:
+            message = u"Successful Mediaconch validation of %s" % filepath
+            val_obj.message = message
+            logger.info(message)
+        finally:
+            val_obj.time_done = timezone.now()
+            val_obj.passed = passed
+            val_obj.save(update_fields=['time_done', 'passed', 'message'])
+
+        return message

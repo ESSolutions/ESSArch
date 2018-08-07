@@ -1,8 +1,12 @@
 import logging
+import traceback
+
+from django.utils import timezone
 
 from ESSArch_Core.essxml.util import find_file
 from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.checksum import calculate_checksum
+from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 
 logger = logging.getLogger('essarch.fixity.validation.checksum')
@@ -32,6 +36,19 @@ class ChecksumValidator(BaseValidator):
 
     def validate(self, filepath, expected=None):
         logger.debug('Validating checksum of %s' % filepath)
+        val_obj = Validation.objects.create(
+            filename=filepath,
+            time_started=timezone.now(),
+            validator=self.__class__.__name__,
+            required=self.required,
+            task=self.task,
+            information_package=self.ip,
+            responsible=self.responsible,
+            specification={
+                'context': self.context,
+                'options': self.options,
+            }
+        )
 
         expected = self.options['expected'].format(**self.data)
 
@@ -44,8 +61,20 @@ class ChecksumValidator(BaseValidator):
             xml_el, _ = find_file(filepath, xmlfile=expected)
             checksum = xml_el.checksum
 
-        actual_checksum = calculate_checksum(filepath, algorithm=self.algorithm, block_size=self.block_size)
-        if actual_checksum != checksum:
-            raise ValidationError("checksum for %s is not valid (%s != %s)" % (filepath, checksum, actual_checksum))
-
-        logger.info('Successfully validated checksum of %s' % filepath)
+        passed = False
+        try:
+            actual_checksum = calculate_checksum(filepath, algorithm=self.algorithm, block_size=self.block_size)
+            if actual_checksum != checksum:
+                raise ValidationError("checksum for %s is not valid (%s != %s)" % (filepath, checksum, actual_checksum))
+            passed = True
+        except Exception:
+            val_obj.message = traceback.format_exc()
+            raise
+        else:
+            message = u'Successfully validated checksum of %s' % filepath
+            val_obj.message = message
+            logger.info(message)
+        finally:
+            val_obj.time_done = timezone.now()
+            val_obj.passed = passed
+            val_obj.save(update_fields=['time_done', 'passed', 'message'])

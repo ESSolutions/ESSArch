@@ -2,20 +2,17 @@ import errno
 import importlib
 import logging
 import os
-import traceback
 
 from django.conf import settings
-from django.utils import timezone
 from glob2 import glob
 from scandir import walk
-
-from ESSArch_Core.fixity.models import Validation
 
 logger = logging.getLogger('essarch.fixity.validation')
 
 AVAILABLE_VALIDATORS = {
     'checksum': 'ESSArch_Core.fixity.validation.backends.checksum.ChecksumValidator',
     'diff_check': 'ESSArch_Core.fixity.validation.backends.xml.DiffCheckValidator',
+    'xml_comparison': 'ESSArch_Core.fixity.validation.backends.xml.XMLComparisonValidator',
     'format': 'ESSArch_Core.fixity.validation.backends.format.FormatValidator',
     'mediaconch': 'ESSArch_Core.fixity.validation.backends.mediaconch.MediaconchValidator',
     'structure': 'ESSArch_Core.fixity.validation.backends.structure.StructureValidator',
@@ -54,35 +51,11 @@ def _validate_file(path, validators, task=None, ip=None, stop_at_failure=True, r
         if not included:
             continue
 
-        obj = Validation.objects.create(
-            filename=path,
-            time_started=timezone.now(),
-            validator=validator.__class__.__name__,
-            required=validator.required,
-            task=task,
-            information_package=ip,
-            responsible=responsible,
-            specification={
-                'context': validator.context,
-                'options': validator.options,
-            }
-        )
-        passed = False
-
         try:
             validator.data[PATH_VARIABLE] = path
-            obj.message = validator.validate(path)
-            passed = True
         except Exception as e:
-            obj.message = traceback.format_exc()
             if stop_at_failure:
                 raise
-        finally:
-            if obj.message is None:
-                obj.message = ''
-            obj.time_done = timezone.now()
-            obj.passed = passed
-            obj.save(update_fields=['time_done', 'passed', 'message'])
 
 
 def _validate_directory(path, validators, task=None, ip=None, stop_at_failure=True, responsible=None):
@@ -90,31 +63,11 @@ def _validate_directory(path, validators, task=None, ip=None, stop_at_failure=Tr
     dir_validators = [v for v in validators if not v.file_validator]
 
     for validator in dir_validators:
-        obj = Validation.objects.create(
-            filename=path,
-            time_started=timezone.now(),
-            validator=validator.__class__.__name__,
-            required=validator.required,
-            task=task,
-            information_package=ip,
-            responsible=responsible,
-        )
-        passed = False
-
         try:
             validator.data[PATH_VARIABLE] = path
-            obj.message = validator.validate(path)
-            passed = True
         except Exception as e:
-            obj.message = traceback.format_exc()
             if stop_at_failure:
                 raise
-        finally:
-            if obj.message is None:
-                obj.message = ''
-            obj.time_done = timezone.now()
-            obj.passed = passed
-            obj.save(update_fields=['time_done', 'passed', 'message'])
 
     for root, dirs, files in walk(path):
         for f in files:
