@@ -431,24 +431,14 @@ class XMLAttribute(object):
 
 
 class XMLGenerator(object):
-    def __init__(self, filesToCreate={}, filepath=None, relpath=None):
-        parser = etree.XMLParser(remove_blank_text=True)
+    def __init__(self, filepath=None):
+        self.parser = etree.XMLParser(remove_blank_text=True)
+        self.fid = FormatIdentifier(allow_unknown_file_types=False)
 
         if filepath is not None:
-            self.tree = etree.parse(filepath, parser=parser)
+            self.tree = etree.parse(filepath, parser=self.parser)
         else:
             self.tree = None
-
-        self.relpath = relpath
-        self.toCreate = []
-
-        for fname, content in filesToCreate.iteritems():
-            self.toCreate.append({
-                'file': fname,
-                'template': content['spec'],
-                'data': content.get('data', {}),
-                'root': XMLElement(content['spec'])
-            })
 
     def find_external_dirs(self):
         dirs = []
@@ -469,13 +459,20 @@ class XMLGenerator(object):
 
         return dirs
 
-    def generate(self, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
+    def generate(self, filesToCreate, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, relpath=None, algorithm='SHA-256'):
+        self.toCreate = []
+        for fname, content in six.iteritems(filesToCreate):
+            self.toCreate.append({
+                'file': fname,
+                'template': content['spec'],
+                'data': content.get('data', {}),
+                'root': XMLElement(content['spec'])
+            })
+
         if parsed_files is None:
             parsed_files = []
 
         files = parsed_files
-
-        responsible = None
 
         # See if any profile allows unknown file types.
         # If atleast one does allow it, we allow it for all profiles.
@@ -485,13 +482,14 @@ class XMLGenerator(object):
             if allow_unknown_file_types:
                 break
 
-        fid = FormatIdentifier(allow_unknown_file_types=allow_unknown_file_types)
+        self.fid.allow_unknown_file_types = allow_unknown_file_types
 
         if folderToParse:
-            folderToParse = folderToParse.rstrip('/')
-            folderToParse = unicode(folderToParse)
+            folderToParse = six.text_type(folderToParse).rstrip('/')
 
             external = self.find_external_dirs()
+            if external:
+                external_gen = XMLGenerator()
 
             for ext_file, ext_dir, ext_spec, ext_data in external:
                 ext_sub_dirs = next(walk(os.path.join(folderToParse, ext_dir)))[1]
@@ -502,23 +500,21 @@ class XMLGenerator(object):
                     ext_info['_EXT'] = sub_dir
                     ext_info['_EXT_HREF'] = ptr_file_path
 
-                    external_gen = XMLGenerator(
-                        filesToCreate={
-                            os.path.join(folderToParse, ptr_file_path): {'spec': ext_spec, 'data': ext_info}
-                        },
-                    )
-                    external_gen.generate(os.path.join(folderToParse, ext_dir, sub_dir))
+                    external_to_create={
+                        os.path.join(folderToParse, ptr_file_path): {'spec': ext_spec, 'data': ext_info}
+                    }
+                    external_gen.generate(external_to_create, os.path.join(folderToParse, ext_dir, sub_dir))
 
                     filepath = os.path.join(folderToParse, ptr_file_path)
 
-                    fileinfo = parse_file(filepath, fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir)
+                    fileinfo = parse_file(filepath, self.fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir)
                     files.append(fileinfo)
 
             if os.path.isfile(folderToParse):
                 filepath = folderToParse
                 relpath = os.path.basename(folderToParse)
 
-                fileinfo = parse_file(filepath, fid, relpath, algorithm=algorithm)
+                fileinfo = parse_file(filepath, self.fid, relpath, algorithm=algorithm)
                 files.append(fileinfo)
 
             elif os.path.isdir(folderToParse):
@@ -529,14 +525,14 @@ class XMLGenerator(object):
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, folderToParse)
 
-                        fileinfo = parse_file(filepath, fid, relpath, algorithm=algorithm)
+                        fileinfo = parse_file(filepath, self.fid, relpath, algorithm=algorithm)
                         files.append(fileinfo)
 
         for path in extra_paths_to_parse:
             if os.path.isfile(path):
                 relpath = os.path.basename(path)
 
-                fileinfo = parse_file(path, fid, relpath, algorithm=algorithm)
+                fileinfo = parse_file(path, self.fid, relpath, algorithm=algorithm)
                 files.append(fileinfo)
 
             elif os.path.isdir(path):
@@ -547,10 +543,8 @@ class XMLGenerator(object):
                         filepath = os.path.join(root, fname)
                         relpath = os.path.relpath(filepath, path)
 
-                        fileinfo = parse_file(filepath, fid, relpath, algorithm=algorithm, rootdir=path)
+                        fileinfo = parse_file(filepath, self.fid, relpath, algorithm=algorithm, rootdir=path)
                         files.append(fileinfo)
-
-
 
         for idx, f in enumerate(self.toCreate):
             fname = f['file']
@@ -567,7 +561,7 @@ class XMLGenerator(object):
             self.write(fname)
 
             try:
-                relfilepath = os.path.relpath(fname, self.relpath)
+                relfilepath = os.path.relpath(fname, relpath)
             except:
                 try:
                     relfilepath = os.path.relpath(fname, folderToParse)
@@ -575,7 +569,7 @@ class XMLGenerator(object):
                     relfilepath = fname
 
             if idx < len(self.toCreate) - 1:
-                fileinfo = parse_file(fname, fid, relfilepath, algorithm=algorithm)
+                fileinfo = parse_file(fname, self.fid, relfilepath, algorithm=algorithm)
                 files.append(fileinfo)
 
     def write(self, filepath):

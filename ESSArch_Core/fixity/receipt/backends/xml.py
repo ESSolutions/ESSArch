@@ -24,5 +24,5 @@ class XMLReceiptBackend(BaseReceiptBackend):
             validations = Validation.objects.filter(task=task).order_by('time_started')
             data['validations'] = ValidationSerializer(validations, many=True).data
         files_to_create = {destination: {'spec': spec, 'data': data}}
-        XMLGenerator(files_to_create).generate()
+        XMLGenerator().generate(files_to_create)
         logger.info(u'XML receipt created: {}'.format(destination))

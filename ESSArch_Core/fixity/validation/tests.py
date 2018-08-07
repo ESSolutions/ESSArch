@@ -381,17 +381,21 @@ class StructureValidatorTests(SimpleTestCase):
 
 
 class DiffCheckValidatorTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        mimetypes_path = os.path.join(os.path.dirname(Generator.__file__), 'mime.types')
+        Path.objects.create(entity="path_mimetypes_definitionfile", value=mimetypes_path)
+        cls.generator = XMLGenerator()
+
+    @classmethod
+    def tearDownClass(cls):
+        Path.objects.all().delete()
+
     def setUp(self):
         self.root = os.path.dirname(os.path.realpath(__file__))
         self.datadir = os.path.join(self.root, "datadir")
         self.fname = os.path.join(self.datadir, 'test1.xml')
         self.options = {'rootdir': self.datadir}
-        mimetypes_path = os.path.join(os.path.dirname(Generator.__file__), 'mime.types')
-
-        Path.objects.create(
-            entity="path_mimetypes_definitionfile",
-            value=mimetypes_path
-        )
 
         self.filesToCreate = {
             self.fname: {
@@ -458,8 +462,7 @@ class DiffCheckValidatorTests(TestCase):
         return files
 
     def generate_xml(self):
-        generator = XMLGenerator(self.filesToCreate)
-        generator.generate(folderToParse=self.datadir)
+        self.generator.generate(self.filesToCreate, folderToParse=self.datadir)
 
     def test_validation_without_files(self):
         root = etree.fromstring('<root></root>')
@@ -768,6 +771,16 @@ class DiffCheckValidatorTests(TestCase):
 
 
 class XMLComparisonValidatorTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        mimetypes_path = os.path.join(os.path.dirname(Generator.__file__), 'mime.types')
+        Path.objects.create(entity="path_mimetypes_definitionfile", value=mimetypes_path)
+        cls.generator = XMLGenerator()
+
+    @classmethod
+    def tearDownClass(cls):
+        Path.objects.all().delete()
+
     def setUp(self):
         self.root = os.path.dirname(os.path.realpath(__file__))
         self.datadir = os.path.join(self.root, "datadir")
@@ -775,12 +788,6 @@ class XMLComparisonValidatorTests(TestCase):
         self.mets = os.path.join(self.xmldir, 'mets.xml')
         self.premis = os.path.join(self.xmldir, 'premis.xml')
         self.options = {'rootdir': self.datadir}
-        mimetypes_path = os.path.join(os.path.dirname(Generator.__file__), 'mime.types')
-
-        Path.objects.create(
-            entity="path_mimetypes_definitionfile",
-            value=mimetypes_path
-        )
 
         self.mets_spec = {
             self.mets: {
@@ -898,12 +905,10 @@ class XMLComparisonValidatorTests(TestCase):
         return files
 
     def generate_mets_xml(self):
-        generator = XMLGenerator(self.mets_spec)
-        generator.generate(folderToParse=self.datadir)
+        self.generator.generate(self.mets_spec, folderToParse=self.datadir)
 
     def generate_premis_xml(self):
-        generator = XMLGenerator(self.premis_spec)
-        generator.generate(folderToParse=self.datadir)
+        self.generator.generate(self.premis_spec, folderToParse=self.datadir)
 
     def test_validation_without_files(self):
         root = etree.fromstring('<root></root>')

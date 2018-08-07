@@ -103,9 +103,9 @@ class GenerateXML(DBTask):
         for _, v in six.iteritems(filesToCreate):
             v['data'] = fill_specification_data(v['data'], ip=ip, sa=sa)
 
-        generator = XMLGenerator(filesToCreate)
+        generator = XMLGenerator()
         generator.generate(
-            folderToParse=folderToParse, extra_paths_to_parse=extra_paths_to_parse, parsed_files=parsed_files, algorithm=algorithm,
+            filesToCreate, folderToParse=folderToParse, extra_paths_to_parse=extra_paths_to_parse, parsed_files=parsed_files, algorithm=algorithm,
         )
 
     def undo(self, filesToCreate={}, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
