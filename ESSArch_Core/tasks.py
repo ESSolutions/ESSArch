@@ -1156,7 +1156,8 @@ class RunWorkflowProfiles(DBTask):
         for name, poller in six.iteritems(pollers):
             backend = get_backend(name)
             poll_path = poller['path']
-            for ip in backend.poll(poll_path):
+            poll_sa = poller.get('sa')
+            for ip in backend.poll(poll_path, poll_sa):
                 profile = ip.submission_agreement.profile_workflow
                 try:
                     spec = profile.specification[proj]
