@@ -205,7 +205,7 @@ if __name__ == '__main__':
             "msgpack-python>=0.4.8",
             "asgi-redis>=1.4.3",
             "service-identity>=17.0.0",
-            "opf-fido>=1.3.5",
+            "opf-fido>=1.3.7",
             "soapfish>=0.6.0.dev0",
             "logfileviewer>=0.6.3",            
         ],
