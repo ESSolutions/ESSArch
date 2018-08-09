@@ -1,5 +1,6 @@
 import uuid
 
+import jsonfield
 import six
 from django.db import models, transaction
 from django.db.models import F, OuterRef, Subquery
@@ -17,6 +18,16 @@ class Structure(models.Model):
     create_date = models.DateTimeField(auto_now_add=True)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
+    specification = jsonfield.JSONField(default={})
+
+    def is_move_allowed(self, tag_structure, dst_tag_structure):
+        current_version = tag_structure.tag.current_version
+        rules = self.specification.get('rules', {}).get(current_version.type, {})
+
+        if not rules.get('movable', True):
+            return False
+
+        return True
 
     class Meta:
         get_latest_by = 'create_date'
