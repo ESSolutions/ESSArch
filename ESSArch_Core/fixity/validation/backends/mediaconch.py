@@ -21,7 +21,7 @@ def run_mediaconch(filename, reporting_element='Mediaconch', output_format='xml'
     if policy and not os.path.exists(policy):
         raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), policy)
 
-    cmd = u'mediaconch --{reporter} --Format={format} -p {policy} {filename}'.format(reporter=reporting_element,
+    cmd = u'mediaconch --{reporter} --Format={format} -p "{policy}" "{filename}"'.format(reporter=reporting_element,
                                                                                     format=output_format, policy=policy,
                                                                                     filename=filename)
     logger.debug(cmd)
