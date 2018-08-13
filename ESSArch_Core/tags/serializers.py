@@ -9,7 +9,7 @@ from ESSArch_Core.tags.models import Tag, TagVersion, Structure, StructureUnit, 
 class StructureSerializer(serializers.ModelSerializer):
     class Meta:
         model = Structure
-        fields = ('id', 'name', 'version', 'create_date', 'start_date', 'end_date',)
+        fields = ('id', 'name', 'version', 'create_date', 'start_date', 'end_date', 'specification',)
 
 
 class StructureUnitSerializer(serializers.ModelSerializer):
