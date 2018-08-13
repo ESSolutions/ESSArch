@@ -21,10 +21,10 @@ def run_verapdf(filepath, policy=None, validate=True, extract_features=False):
     if policy and not os.path.exists(policy):
         raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), policy)
 
-    policy = '--policyfile "{policy}"'.format(policy=policy) if policy else ''
+    policy = u'--policyfile "{policy}"'.format(policy=policy) if policy else ''
     extract_features = '-x' if extract_features else ''
     validate = '' if validate else '-o'
-    cmd = 'verapdf {validate} {extract_features} {policy} "{file}"'.format(validate=validate, extract_features=extract_features, policy=policy, file=filepath)
+    cmd = u'verapdf {validate} {extract_features} {policy} "{file}"'.format(validate=validate, extract_features=extract_features, policy=policy, file=filepath)
 
     logger.debug(cmd)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
