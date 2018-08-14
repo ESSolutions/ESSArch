@@ -248,7 +248,11 @@ class CreatePhysicalModel(DBTask):
         created = []
         try:
             for dirname in self.get_dirs(structure, data, root):
-                os.makedirs(dirname)
+                try:
+                    os.makedirs(dirname)
+                except OSError as e:
+                    if e.errno != errno.EEXIST:
+                        raise
                 created.append(dirname)
         except Exception:
             for dirname in created:
