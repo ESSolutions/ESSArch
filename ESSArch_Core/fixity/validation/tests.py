@@ -4,7 +4,7 @@ import os
 import shutil
 import tempfile
 
-from django.test import SimpleTestCase, TestCase
+from django.test import TestCase
 from lxml import etree
 from pyfakefs import fake_filesystem_unittest
 
@@ -19,7 +19,7 @@ from ESSArch_Core.fixity.validation.backends.structure import StructureValidator
 from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLComparisonValidator
 
 
-class ChecksumValidatorTests(fake_filesystem_unittest.TestCase):
+class ChecksumValidatorTests(TestCase, fake_filesystem_unittest.TestCase):
     def setUp(self):
         self.setUpPyfakefs()
         self.test_file = 'foo.txt'
@@ -55,7 +55,7 @@ class ChecksumValidatorTests(fake_filesystem_unittest.TestCase):
             self.validator.validate(self.test_file)
 
 
-class ChecksumValidatorXMLTests(SimpleTestCase):
+class ChecksumValidatorXMLTests(TestCase):
     """
     pyfakefs doesn't support lxml, need separate test case without pyfakefs:
     https://github.com/jmcgeheeiv/pyfakefs#compatibility
@@ -124,7 +124,6 @@ class ChecksumValidatorXMLTests(SimpleTestCase):
         self.validator.validate(test_file2.name)
 
 
-class StructureValidatorTests(SimpleTestCase):
 class FormatValidatorTests(TestCase):
     def setUp(self):
         self.content = 'test file'
