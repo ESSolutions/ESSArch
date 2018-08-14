@@ -50,7 +50,7 @@ from ESSArch_Core.util import (
 )
 
 logger = logging.getLogger('essarch.essxml.generator')
-leading_underscore_tag_re = re.compile('%s *_.*?(?=\})%s' % (re.escape('{{'), re.escape('}}')))
+leading_underscore_tag_re = re.compile('%s *_(.*?(?=\}))%s' % (re.escape('{{'), re.escape('}}')))
 
 
 def parse_content_django(content, info=None, unicode_error=False, syntax_error=False):
@@ -61,19 +61,18 @@ def parse_content_django(content, info=None, unicode_error=False, syntax_error=F
         if syntax_error:
             raise
 
-        def remove_underscore_prefix(s, d):
+        def remove_underscore_prefix(d):
             new = {}
             for k, v in six.iteritems(d):
                 if isinstance(v, dict):
-                    s, v = remove_underscore_prefix(s, v)
+                    v = remove_underscore_prefix(v)
                 if k.startswith('_'):
                     new[k[1:]] = v
-                    s = s.replace(k, k[1:])
                 else:
                     new[k] = v
-            return s, new
-        content, new_data = remove_underscore_prefix(content, info)
-        regcontent = leading_underscore_tag_re.sub('', content)
+            return new
+        new_data = remove_underscore_prefix(info)
+        regcontent = leading_underscore_tag_re.sub(r'{{\1}}', content)
         return parse_content_django(regcontent, info=new_data, syntax_error=True)
 
     try:
@@ -93,7 +92,6 @@ def parseContent(content, info=None):
     if info is None:
         info = {}
 
-    logger.debug('Parsing {content}'.format(content=content))
 
     if isinstance(content, six.string_types):
         return parse_content_django(content, info=info)

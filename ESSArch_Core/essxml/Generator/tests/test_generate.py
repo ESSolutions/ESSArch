@@ -2655,11 +2655,14 @@ class ParseContentTestCase(unittest.TestCase):
         self.assertEqual(str(dt), str(timezone.localtime(val)))
 
     def test_parse_django_template_with_leading_underscore(self):
+        contentobj = parseContent("{{_foo}} {{bar_foo}}", {"_foo": "hello", "bar_foo": "world"})
+        self.assertEqual(contentobj, 'hello world')
+
         contentobj = parseContent("hello {{_foo}}", {"_foo": "world"})
         self.assertEqual(contentobj, 'hello world')
 
         contentobj = parseContent("{{_bar}} {{_foo}}", {"bar": "hello", "_foo": "world"})
-        self.assertEqual(contentobj, ' world')
+        self.assertEqual(contentobj, 'hello world')
 
         contentobj = parseContent("{{_bar}} {{_foo}}", {"_bar": "hello", "_foo": "world", "foo": "world"})
         self.assertEqual(contentobj, 'hello world')
