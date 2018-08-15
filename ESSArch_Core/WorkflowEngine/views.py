@@ -27,6 +27,7 @@ import itertools
 import pytz
 
 from celery import states as celery_states
+from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import exceptions
@@ -119,6 +120,7 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         return ProcessTaskDetailSerializer
 
+    @transaction.atomic
     @detail_route(methods=['post'], permission_classes=[CanRetry])
     def retry(self, request, pk=None):
         obj = self.get_object()
