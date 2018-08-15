@@ -28,6 +28,7 @@ import json
 import logging
 import time
 
+import six
 from billiard.einfo import ExceptionInfo
 
 from celery import current_app, exceptions, states as celery_states, Task
@@ -139,7 +140,7 @@ class DBTask(Task):
                     transaction.commit()
                     transaction.set_autocommit(True)
 
-        for k, v in self.result_params.iteritems():
+        for k, v in six.iteritems(self.result_params):
             kwargs[k] = get_result(v, self.eager)
 
         if self.track:
