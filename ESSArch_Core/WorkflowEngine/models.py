@@ -36,6 +36,8 @@ from django.db import models
 from django.db.models import Case, Count, Sum, When
 from django.utils.translation import ugettext as _
 
+from mptt.models import MPTTModel, TreeForeignKey
+
 from picklefield.fields import PickledObjectField
 
 
@@ -65,7 +67,7 @@ class Process(models.Model):
         return self.name
 
 
-class ProcessStep(Process):
+class ProcessStep(MPTTModel, Process):
     Type_CHOICES = (
         (0, "Receive new object"),
         (5, "The object is ready to remodel"),
@@ -95,7 +97,7 @@ class ProcessStep(Process):
 
     type = models.IntegerField(null=True, choices=Type_CHOICES)
     user = models.CharField(max_length=45)
-    parent_step = models.ForeignKey(
+    parent_step = TreeForeignKey(
         'self',
         related_name='child_steps',
         on_delete=models.CASCADE,
@@ -184,7 +186,8 @@ class ProcessStep(Process):
 
         func = group if self.parallel else chain
         result_list = sorted(itertools.chain(steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
-        workflow = func(x.run(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x) for x in result_list)
+        workflow = func(y for y in (x.resume(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x) for x in result_list) if not hasattr(y, 'tasks') or len(y.tasks))
+
 
         if direct:
             on_error_tasks = self.on_error(manager='by_step_pos').all()
@@ -334,7 +337,7 @@ class ProcessStep(Process):
             otherwise
         """
 
-        child_steps = self.child_steps.filter(tasks__status=celery_states.PENDING)
+        child_steps = self.get_children()
         tasks = self.tasks(manager='by_step_pos').filter(undone__isnull=True, undo_type=False, status=celery_states.PENDING)
 
         return self.run_children(tasks, child_steps, direct)
@@ -504,6 +507,9 @@ class ProcessStep(Process):
                 self.id,
                 self.archiveobject.ObjectUUID
             )
+
+    class MPTTMeta:
+        parent_attr = 'parent_step'
 
 
 class OrderedProcessTaskManager(models.Manager):
