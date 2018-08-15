@@ -62,6 +62,7 @@ FILE_ELEMENTS = {
         "size": "@SIZE",
     },
     "object": {
+        "path_includes_root": True,
         "path": ["objectIdentifier/objectIdentifierValue", "storage/contentLocation/contentLocationValue"],
         "pathprefix": ["file:///", "file:"],
         "checksum": "objectCharacteristics/fixity/messageDigest",
@@ -250,8 +251,8 @@ class XMLFileElement():
                     self.path = no_prefix
                     break
 
-            if rootdir is not None:
-                self.path = remove_prefix(self.path, os.path.basename(rootdir))
+            if props.get('path_includes_root', False):
+                self.path = self.path.split('/', 1)[-1]
 
             self.path = self.path.lstrip('/ ')
 
