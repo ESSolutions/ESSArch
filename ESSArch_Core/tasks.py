@@ -1151,6 +1151,11 @@ class RunWorkflowProfiles(DBTask):
                 except KeyError:
                     self.logger.debug(u'No workflow specified in {} for current project {}'.format(profile, proj))
                     continue
+                except AttributeError:
+                    if profile is None:
+                        self.logger.debug(u'No workflow profile in SA')
+                        continue
+                    raise
 
                 workflow = create_workflow(spec['tasks'], ip=ip, name=spec.get('name', ''),
                                            on_error=spec.get('on_error'), context=context)
