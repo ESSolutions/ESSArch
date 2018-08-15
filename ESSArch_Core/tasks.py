@@ -1133,22 +1133,6 @@ class DeleteTags(ProcessTags):
 class RunWorkflowProfiles(DBTask):
     logger = logging.getLogger('essarch.core.tasks.RunWorkflowProfiles')
 
-    def is_path_stable(self, path):
-        current_size, _ = get_tree_size_and_count(path)
-        cache_key = u'path_size_{}'.format(path)
-        cached = cache.get(cache_key)
-        if cached is None or cached != current_size:
-            if cached is None:
-                self.logger.info(u'New path: {}, size: {}'.format(path, current_size))
-            else:
-                self.logger.info(u'Updated path: {}, old size: {}, new size: {}'.format(path, cached, current_size))
-            cache.set(cache_key, current_size, 60*60)
-            return False
-
-        self.logger.info(u'Stable path: {}, size: {}'.format(path, current_size))
-        cache.delete(cache_key)
-        return True
-
     def run(self):
         proj = settings.PROJECT_SHORTNAME
         pollers = getattr(settings, 'ESSARCH_WORKFLOW_POLLERS', {})
@@ -1156,6 +1140,10 @@ class RunWorkflowProfiles(DBTask):
             backend = get_backend(name)
             poll_path = poller['path']
             poll_sa = poller.get('sa')
+            context = {
+                'WORKFLOW_POLLER': name,
+                'WORKFLOW_POLL_PATH': poll_path
+            }
             for ip in backend.poll(poll_path, poll_sa):
                 profile = ip.submission_agreement.profile_workflow
                 try:
@@ -1164,5 +1152,15 @@ class RunWorkflowProfiles(DBTask):
                     self.logger.debug(u'No workflow specified in {} for current project {}'.format(profile, proj))
                     continue
 
-                workflow = create_workflow(spec['tasks'], ip=ip, name=spec.get('name', ''), on_error=spec.get('on_error'))
+                workflow = create_workflow(spec['tasks'], ip=ip, name=spec.get('name', ''),
+                                           on_error=spec.get('on_error'), context=context)
                 workflow.run()
+
+
+class DeletePollingSource(DBTask):
+    def run(self, backend_name, poll_path):
+        backend_name, poll_path = self.parse_params(backend_name, poll_path)
+        backend = get_backend(backend_name)
+
+        ip = self.get_information_package()
+        backend.delete_source(poll_path, ip)

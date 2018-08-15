@@ -153,13 +153,17 @@ class DBTask(Task):
 
     def _run(self, *args, **kwargs):
         lock = None
+        self.extra_data = {}
         if self.ip:
             ip = InformationPackage.objects.select_related('submission_agreement').get(pk=self.ip)
-            self.extra_data = fill_specification_data(ip=ip, sa=ip.submission_agreement)
+            self.extra_data.update(fill_specification_data(ip=ip, sa=ip.submission_agreement))
             lock = ip.get_lock()
             lock.acquire(blocking=True)
-        else:
-            self.extra_data = {}
+
+        if self.step:
+            step = ProcessStep.objects.get(pk=self.step)
+            for ancestor in step.get_ancestors(include_self=True):
+                self.extra_data.update(ancestor.context)
 
         try:
             if self.undo_type:

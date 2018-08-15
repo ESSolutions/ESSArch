@@ -28,6 +28,7 @@ import importlib
 import itertools
 import uuid
 
+import jsonfield
 from celery import chain, group, states as celery_states
 from celery.result import EagerResult
 
@@ -113,6 +114,7 @@ class ProcessStep(MPTTModel, Process):
     )
     parallel = models.BooleanField(default=False)
     on_error = models.ManyToManyField('ProcessTask', related_name='steps_on_errors')
+    context = jsonfield.JSONField(default={}, null=True)
 
     def get_pos(self):
         return self.parent_step_pos

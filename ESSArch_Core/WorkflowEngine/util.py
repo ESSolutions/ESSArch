@@ -31,7 +31,9 @@ def _create_on_error_tasks(l, ip=None, responsible=None):
 
 
 @transaction.atomic
-def _create_step(parent_step, flow, ip, responsible):
+def _create_step(parent_step, flow, ip, responsible, context=None):
+    if context is None:
+        context = {}
     for t_idx, task in enumerate(flow):
         if not task.get('if', True):
             continue
@@ -42,12 +44,13 @@ def _create_step(parent_step, flow, ip, responsible):
                 parent_step=parent_step,
                 parent_step_pos=t_idx,
                 information_package=ip,
+                context=context,
             )
 
             for on_error_task in _create_on_error_tasks(task.get('on_error', []), ip=ip, responsible=responsible):
                 child_s.on_error.add(on_error_task)
 
-            _create_step(child_s, task['children'], ip, responsible)
+            _create_step(child_s, task['children'], ip, responsible, context=context)
         else:
             args = task.get('args', [])
             params = task.get('params', {})
@@ -65,10 +68,12 @@ def _create_step(parent_step, flow, ip, responsible):
 
 
 @transaction.atomic
-def create_workflow(workflow_spec, ip=None, name='', on_error=None, eager=False):
-    root_step = ProcessStep.objects.create(name=name, eager=eager)
+def create_workflow(workflow_spec, ip=None, name='', on_error=None, eager=False, context=None):
     if on_error is None:
         on_error = []
+    if context is None:
+        context = {}
+    root_step = ProcessStep.objects.create(name=name, eager=eager, context=context)
     responsible = getattr(ip, 'responsible', None)
 
     for on_error_task in _create_on_error_tasks(on_error, ip=ip, responsible=responsible):
