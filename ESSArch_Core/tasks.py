@@ -462,7 +462,10 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
         if relpath is not None:
             rootdir, = self.parse_params(relpath) or path
         else:
-            rootdir = path
+            if os.path.isdir(path):
+                rootdir = path
+            else:
+                rootdir = os.path.dirname(path)
 
         ip = InformationPackage.objects.get(pk=self.ip)
         validator = DiffCheckValidator(context=xmlfile, exclude=skip_files, options={'rootdir': rootdir},
