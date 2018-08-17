@@ -70,6 +70,10 @@
                         {
                             "-name": "ArkivobjektID",
                             "#content": "{{ArkivobjektID}}"
+                        },
+                        {
+                            "-name": "id",
+                            "#content": "{{id}}"
                         }
                     ]
                 }

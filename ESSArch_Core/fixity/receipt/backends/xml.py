@@ -5,6 +5,7 @@ import json
 import logging
 
 from django.template.loader import get_template
+from elasticsearch_dsl import Q, Search
 from lxml import etree
 
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
@@ -34,7 +35,13 @@ class XMLReceiptBackend(BaseReceiptBackend):
                 tree = etree.parse(cts)
                 for arende in tree.xpath("//*[local-name()='ArkivobjektArende']"):
                     arende_id = arende.xpath("*[local-name()='ArkivobjektID']")[0].text
-                    data[u'ärenden'].append({'ArkivobjektID': arende_id})
+                    a_data = {'ArkivobjektID': arende_id}
+
+                    try:
+                        a_data['id'] = Search(index=['component']).filter('bool', must=[Q('term', type="Ärende"), Q('term', **{'reference_code.keyword': arende_id}), Q('term', ip=str(ip.pk))]).execute().hits[0].meta.id
+                    except KeyError:
+                        pass
+                    data[u'ärenden'].append(a_data)
 
         files_to_create = {destination: {'spec': spec, 'data': data}}
         XMLGenerator().generate(files_to_create)
