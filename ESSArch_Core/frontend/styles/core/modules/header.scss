@@ -15,9 +15,11 @@
 }
 
 .logo {
-    width: 85%;
     height: 100%;
     display: inline-block;
+    @include medium-screen-down {
+        width: 85%;
+    }
 }
 
 .page-title {
