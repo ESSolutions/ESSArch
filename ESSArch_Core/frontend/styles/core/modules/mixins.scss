@@ -1,0 +1,59 @@
+$small-width: 768px;
+$large-width: 1024px;
+
+/*
+ *  Arguments: $padding: Padding in px. default value 0
+ */
+@mixin container($padding:0) {
+    background: $container-background;
+    border-style: solid;
+    border-color: $border-color;
+    border-width: 1px;
+    box-shadow: 0px 5px 2px $shadow-color;
+    padding: $padding;
+}
+
+/*
+ * Mixin for responsive design on small screen sizes like mobile
+ */
+ @mixin small-screen {
+    @media (max-width: #{$small-width}) {
+      @content;
+    }
+  }
+
+/*
+ * Mixin for responsive design on medium screen sizes like mobile
+ */
+  @mixin medium-screen {
+    @media (min-width: #{$small-width+1}) and (max-width: #{$large-width - 1px}) {
+      @content;
+    }
+  }
+
+/*
+ * Mixin for responsive design on medium screen sizes like mobile
+ */
+ @mixin medium-screen-up {
+    @media (min-width: #{$small-width+1}) {
+      @content;
+    }
+  }
+
+/*
+ * Mixin for responsive design from medium screen sizes down like mobile
+ */
+ @mixin medium-screen-down {
+    @media (max-width: #{$large-width - 1px}) {
+      @content;
+    }
+  }
+
+  /*
+ * Mixin for responsive design on large screen sizes like mobile
+ */
+ @mixin large-screen-up {
+    @media (min-width: #{$large-width}) {
+      @content;
+    }
+  }
