@@ -59,6 +59,21 @@
                     ]
                 }
             ]
+        },
+        {
+            "-name": "ärenden",
+            "-children": [
+                {
+                    "-name": "ärende",
+                    "-foreach": "ärenden",
+                    "-attr": [
+                        {
+                            "-name": "ArkivobjektID",
+                            "#content": "{{ArkivobjektID}}"
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

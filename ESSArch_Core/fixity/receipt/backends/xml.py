@@ -1,8 +1,11 @@
+# -*- coding: utf-8 -*-
+
 import copy
 import json
 import logging
 
 from django.template.loader import get_template
+from lxml import etree
 
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.fixity.models import Validation
@@ -23,6 +26,16 @@ class XMLReceiptBackend(BaseReceiptBackend):
         if task is not None:
             validations = Validation.objects.filter(task=task).order_by('time_started')
             data['validations'] = ValidationSerializer(validations, many=True).data
+
+        data[u'ärenden'] = []
+        if ip is not None:
+            cts = ip.get_content_type_file()
+            if cts is not None:
+                tree = etree.parse(cts)
+                for arende in tree.xpath("//*[local-name()='ArkivobjektArende']"):
+                    arende_id = arende.xpath("*[local-name()='ArkivobjektID']")[0].text
+                    data[u'ärenden'].append({'ArkivobjektID': arende_id})
+
         files_to_create = {destination: {'spec': spec, 'data': data}}
         XMLGenerator().generate(files_to_create)
         logger.info(u'XML receipt created: {}'.format(destination))
