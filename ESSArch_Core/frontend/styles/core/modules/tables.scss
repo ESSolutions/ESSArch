@@ -281,3 +281,8 @@
 .column-label {
     cursor: pointer;
 }
+
+.tree-grid-row:focus {
+    background-color: $selected;
+    outline: none;
+}
