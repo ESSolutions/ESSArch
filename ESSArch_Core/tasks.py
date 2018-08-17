@@ -515,7 +515,7 @@ class UpdateIPStatus(DBTask):
             t.save()
         ip.state = status
         ip.save()
-        Notification.objects.create(message='%s %s' % (status.capitalize(), ip.object_identifier_value),
+        Notification.objects.create(message=u'{} {}'.format(status.capitalize(), ip.object_identifier_value),
                                     level=logging.INFO, user_id=self.responsible, refresh=True)
 
     def undo(self, status, prev=None):
@@ -523,7 +523,7 @@ class UpdateIPStatus(DBTask):
 
     def event_outcome_success(self, status, prev=None):
         status, = self.parse_params(status)
-        return "Updated status of %s to %s" % (get_cached_objid(str(self.ip)), status)
+        return u"Updated status of {} to {}".format(get_cached_objid(str(self.ip)), status)
 
 
 class UpdateIPPath(DBTask):

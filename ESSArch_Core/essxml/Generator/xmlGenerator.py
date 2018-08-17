@@ -277,15 +277,15 @@ class XMLElement(object):
         else:
             self.parent_pos = 0
 
-        logger.debug('Creating lxml-element for {path}'.format(path=self.get_path()))
+        logger.debug(u'Creating lxml-element for {path}'.format(path=self.get_path()))
 
         full_nsmap = nsmap.copy()
         full_nsmap.update(self.nsmap)
 
         if self.namespace:
-            self.el = etree.Element("{%s}%s" % (full_nsmap[self.namespace], self.name), nsmap=full_nsmap)
+            self.el = etree.Element(u"{{{}}}{}".format(full_nsmap[self.namespace], self.name), nsmap=full_nsmap)
         else:
-            self.el = etree.Element("%s" % self.name, nsmap=full_nsmap)
+            self.el = etree.Element(u"{}".format(self.name), nsmap=full_nsmap)
 
         self.el.text = self.parse(info)
 
@@ -299,7 +299,7 @@ class XMLElement(object):
             name, content, required = attr.parse(info, nsmap=full_nsmap)
 
             if required and not content:
-                raise ValueError("Missing value for required attribute '%s' on element '%s'" % (name, self.get_path()))
+                raise ValueError(u"Missing value for required attribute '{}' on element '{}'".format(name, self.get_path()))
             elif content:
                 self.el.set(name, content)
 
@@ -329,7 +329,7 @@ class XMLElement(object):
                             include = False
 
                     if include:
-                        logger.debug('Creating child element with additional file data: {data}'.format(data=fileinfo))
+                        logger.debug(u'Creating child element with additional file data: {data}'.format(data=fileinfo))
                         full_info = info.copy()
                         full_info.update(fileinfo)
                         child_el = child.createLXMLElement(full_info, full_nsmap, files=files, folderToParse=folderToParse, parent=self)
@@ -340,7 +340,7 @@ class XMLElement(object):
                 try:
                     foreach_el = info[child.foreach]
                 except KeyError:
-                    msg = 'Foreach key "{key}" for {el} not found in data'.format(key=child.foreach, el=child.get_path())
+                    msg = u'Foreach key "{key}" for {el} not found in data'.format(key=child.foreach, el=child.get_path())
                     logger.warning(msg)
                     continue
 
@@ -352,7 +352,7 @@ class XMLElement(object):
                 for idx, v in iterator:
                     child_info = copy.deepcopy(info)
                     child_info.update(v)
-                    child_info['{foreach}__key'.format(foreach=child.foreach)] = idx
+                    child_info[u'{foreach}__key'.format(foreach=child.foreach)] = idx
 
                     child_el = child.createLXMLElement(child_info, full_nsmap, files=files, folderToParse=folderToParse, parent=self)
                     if child_el is not None:
@@ -368,7 +368,7 @@ class XMLElement(object):
             # containing encoding information.
             # See https://stackoverflow.com/questions/15830421/xml-unicode-strings-with-encoding-declaration-are-not-supported
             if self.nestedXMLContent not in info:
-                logger.warn("Nested XML '%s' not found in data and will not be created" % self.nestedXMLContent)
+                logger.warn(u"Nested XML '{}' not found in data and will not be created".format(self.nestedXMLContent))
                 if not self.allowEmpty:
                     return None
             else:
@@ -551,7 +551,7 @@ class XMLGenerator(object):
 
             data['_XML_FILENAME'] = os.path.basename(fname)
 
-            logger.debug('Creating {f} with {d}'.format(f=fname, d=data))
+            logger.debug(u'Creating {f} with {d}'.format(f=fname, d=data))
 
             self.tree = etree.ElementTree(
                 rootEl.createLXMLElement(data, files=files, folderToParse=folderToParse)
