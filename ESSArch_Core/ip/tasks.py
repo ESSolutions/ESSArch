@@ -19,8 +19,8 @@ from ESSArch_Core.essxml.util import get_agents, parse_submit_description
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT
 from ESSArch_Core.profiles.utils import fill_specification_data
-from ESSArch_Core.fixity.receipt import get_backend
-from ESSArch_Core.fixity import transformation
+from ESSArch_Core.fixity.receipt import get_backend as get_receipt_backend
+from ESSArch_Core.fixity.transformation import get_backend as get_transformer
 from ESSArch_Core.util import (creation_date, find_destination, get_event_spec,
                                get_premis_ip_object_element_spec, normalize_path,
                                timestamp_to_datetime)
@@ -362,14 +362,13 @@ class ParseEvents(DBTask):
 
 
 class Transform(DBTask):
-    def run(self):
+    def run(self, backend, path=None):
         ip = self.get_information_package()
-        profile = ip.get_profile('transformation')
-        if profile is None:
-            raise ValueError('No transformation profile found for IP')
-        profile_data = fill_specification_data(data=ip.get_profile_data('transformation'), ip=ip)
         user = User.objects.filter(pk=self.responsible).first()
-        transformation.transform_path(ip.object_path, profile, data=profile_data, ip=ip, user=user)
+        backend = get_transformer(backend, ip, user)
+        if path is None and ip is not None:
+            path = ip.object_path
+        backend.transform(path)
 
 
 class CreateReceipt(DBTask):
@@ -380,7 +379,7 @@ class CreateReceipt(DBTask):
         if date is None:
             date = timezone.now()
 
-        backend = get_backend(backend, ip)
+        backend = get_receipt_backend(backend, ip)
         if task is None:
             task = self.task_id
         backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task)

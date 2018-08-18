@@ -1,14 +1,17 @@
 from collections import OrderedDict
 
 from django.utils.encoding import force_text
-
 from rest_framework.metadata import SimpleMetadata
-from rest_framework.serializers import RelatedField, ManyRelatedField
+
+from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
 
 
 class CustomMetadata(SimpleMetadata):
     def determine_metadata(self, request, view):
         metadata = super(CustomMetadata, self).determine_metadata(request, view)
+
+        metadata['transformers'] = AVAILABLE_TRANSFORMERS.keys()
+
         filters = OrderedDict()
         if not hasattr(view, 'filter_class'):
             # This route has no filter

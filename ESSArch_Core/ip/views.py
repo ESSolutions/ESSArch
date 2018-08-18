@@ -8,6 +8,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 import six
 
+from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
 from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
 from ESSArch_Core.ip.filters import AgentFilter, EventIPFilter
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
@@ -102,8 +103,12 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
         if ip.state.lower() in ('transforming', 'transformed'):
             raise exceptions.ParseError("\"{ip}\" already {state}".format(ip=ip.object_identifier_value, state=ip.state.lower()))
 
-        if ip.get_profile('transformation') is None:
-            raise exceptions.ParseError("IP does not have a \"transformation\" profile")
+        transformer = request.data.get('transformer')
+        if transformer is None:
+            raise exceptions.ParseError("Missing transformer parameter")
+
+        if transformer not in AVAILABLE_TRANSFORMERS:
+            raise exceptions.ParseError(u"Transformer {} not in config".format(transformer))
 
         if ip.get_profile('validation') is not None:
             for validator, successful in six.iteritems(workarea.successfully_validated):
@@ -127,7 +132,7 @@ class WorkareaEntryViewSet(viewsets.ModelViewSet):
 
         ProcessTask.objects.create(
             name="ESSArch_Core.tasks.TransformWorkarea",
-            args=[pk],
+            args=[transformer, pk],
             log=EventIP,
             processstep=step,
             processstep_pos=pos,

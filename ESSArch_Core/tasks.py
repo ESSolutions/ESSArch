@@ -35,7 +35,6 @@ import requests
 import six
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage, send_mail
 from django.db import transaction
@@ -53,19 +52,19 @@ from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.WorkflowEngine.polling import get_backend
 from ESSArch_Core.WorkflowEngine.util import create_workflow
-from ESSArch_Core.auth.models import Group, Notification
+from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, findElementWithoutNamespace
 from ESSArch_Core.essxml.util import find_files
-from ESSArch_Core.fixity import transformation, validation
+from ESSArch_Core.fixity import validation
 from ESSArch_Core.fixity.models import Validation
+from ESSArch_Core.fixity.transformation import get_backend as get_transformer
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.fixity.validation.backends.format import FormatValidator
 from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLComparisonValidator, XMLSchemaValidator
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
-from ESSArch_Core.ip.utils import get_cached_objid, get_package_type
-from ESSArch_Core.profiles.models import Profile
-from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
+from ESSArch_Core.ip.utils import get_cached_objid
+from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.exceptions import TapeDriveLockedError
 from ESSArch_Core.storage.models import StorageMedium, TapeDrive, TapeSlot
@@ -403,15 +402,12 @@ class ValidateWorkarea(DBTask):
 
 
 class TransformWorkarea(DBTask):
-    def run(self, workarea):
+    def run(self, backend, workarea):
         workarea = Workarea.objects.select_related('ip__submission_agreement').get(pk=workarea)
         ip = workarea.ip
-        sa = ip.submission_agreement
         user = User.objects.filter(pk=self.responsible).first()
-        profile = ip.get_profile('transformation')
-        profile_data = fill_specification_data(data=ip.get_profile_data('transformation'), sa=sa, ip=ip)
-        transformation.transform_path(workarea.path, profile, data=profile_data, ip=ip, user=user)
-        return "Success"
+        backend = get_transformer(backend, ip, user)
+        backend.transform(workarea.path)
 
 
 class ValidateXMLFile(DBTask):

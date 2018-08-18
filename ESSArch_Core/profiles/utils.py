@@ -24,7 +24,6 @@ profile_types = [
     "Preservation Metadata",
     "Event",
     "Validation",
-    "Transformation",
 ]
 
 def _remove_leading_underscores(d):
