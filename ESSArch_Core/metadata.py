@@ -4,6 +4,7 @@ from django.utils.encoding import force_text
 from rest_framework.metadata import SimpleMetadata
 
 from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
+from ESSArch_Core.WorkflowEngine.polling import AVAILABLE_POLLERS
 
 
 class CustomMetadata(SimpleMetadata):
@@ -11,6 +12,7 @@ class CustomMetadata(SimpleMetadata):
         metadata = super(CustomMetadata, self).determine_metadata(request, view)
 
         metadata['transformers'] = AVAILABLE_TRANSFORMERS.keys()
+        metadata['workflow_pollers'] = AVAILABLE_POLLERS.keys()
 
         filters = OrderedDict()
         if not hasattr(view, 'filter_class'):
