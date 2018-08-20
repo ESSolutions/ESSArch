@@ -43,9 +43,14 @@ angular.module('myApp').controller('LoginCtrl', function ($scope, $location, $wi
                     } else {
                         $state.go('home.info');
                     }
-                }).catch(function(data){
+                }).catch(function(response){
                     // error case
-                    $scope.error = data.data.non_field_errors[0];
+                    if(angular.isUndefined(response.status) && response.data === null) {
+                        // When server does not respond
+                        $scope.error = "No response from server";
+                    } else {
+                        $scope.error = response.data.non_field_errors[0];
+                    }
                 });
         }
     }
