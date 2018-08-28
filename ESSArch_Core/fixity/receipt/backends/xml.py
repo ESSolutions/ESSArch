@@ -38,8 +38,14 @@ class XMLReceiptBackend(BaseReceiptBackend):
                     a_data = {'ArkivobjektID': arende_id}
 
                     try:
-                        a_data['id'] = Search(index=['component']).filter('bool', must=[Q('term', type="Ärende"), Q('term', **{'reference_code.keyword': arende_id}), Q('term', ip=str(ip.pk))]).execute().hits[0].meta.id
-                    except KeyError:
+                        a_data['id'] = Search(index=['component']).filter(
+                            'bool', must=[
+                                Q('term', type=u"Ärende"),
+                                Q('term', **{'reference_code.keyword': arende_id}),
+                                Q('term', ip=str(ip.pk))
+                            ]
+                        ).execute().hits[0].meta.id
+                    except IndexError:
                         pass
                     data[u'ärenden'].append(a_data)
 
