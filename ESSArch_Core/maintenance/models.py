@@ -167,8 +167,7 @@ class AppraisalJob(MaintenanceJob):
                 with allow_join_result():
                     t, created = ProcessTask.objects.get_or_create(
                         name='workflow.tasks.CacheAIP',
-                        params={'aip': str(ip.pk)},
-                        information_package_id=str(ip.pk),
+                        information_package=ip,
                         defaults={'responsible': ip.responsible, 'eager': False}
                     )
 
@@ -355,8 +354,7 @@ class AppraisalJob(MaintenanceJob):
 
                 t = ProcessTask.objects.create(
                     name='workflow.tasks.StoreAIP',
-                    params={'aip': str(new_ip.pk)},
-                    information_package_id=str(new_ip.pk),
+                    information_package=new_ip,
                     responsible=new_ip.responsible,
                 )
 
@@ -407,8 +405,7 @@ class ConversionJob(MaintenanceJob):
                 with allow_join_result():
                     t, created = ProcessTask.objects.get_or_create(
                         name='workflow.tasks.CacheAIP',
-                        params={'aip': str(ip.pk)},
-                        information_package_id=str(ip.pk),
+                        information_package=ip,
                         defaults={'responsible': ip.responsible, 'eager': False}
                     )
 
@@ -589,8 +586,7 @@ class ConversionJob(MaintenanceJob):
 
             t = ProcessTask.objects.create(
                 name='workflow.tasks.StoreAIP',
-                params={'aip': str(new_ip.pk)},
-                information_package_id=str(new_ip.pk),
+                information_package=new_ip,
                 responsible=new_ip.responsible,
             )
 
