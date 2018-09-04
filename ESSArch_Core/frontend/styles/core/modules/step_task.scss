@@ -61,3 +61,9 @@
     background-color: rgba(244, 66, 66, 0.30);
     text-align: center;
 }
+
+.task-info-modal-head, .step-info-modal-head {
+    .refresh-icon {
+        align-self: flex-start;
+    }
+}

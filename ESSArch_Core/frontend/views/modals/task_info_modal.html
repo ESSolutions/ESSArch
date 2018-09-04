@@ -1,6 +1,8 @@
-<div class="enter-profile-name">
+<div class="enter-profile-name task-info-modal-head">
     <h3 class="modal-title" id="modal-title">{{('TASKREPORTFOR' | translate)+ ' ' +currentStepTask.label}}</h3>
-    <span ng-click="getTask(currentStepTask)" class="clickable angular-animate fa fa-refresh fa-lg" ng-class="{'fa-refresh-animate': stepTaskLoading }" uib-popover="{{'REFRESH' | translate}}"  popover-placement="left" popover-popup-delay="500" popover-append-to-body="true"></span>
+    <div class="refresh-icon">
+        <span ng-click="getTask(currentStepTask)" class="clickable angular-animate fa fa-refresh fa-lg" ng-class="{'fa-refresh-animate': stepTaskLoading }" uib-popover="{{'REFRESH' | translate}}"  popover-placement="left" popover-popup-delay="500" popover-append-to-body="true"></span>
+    </div>
 </div>
 <div class="modal-body" id="modal-body">
     <div class="step-task-info">
