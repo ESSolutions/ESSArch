@@ -47,6 +47,7 @@ TYPE_CHOICES = (
 class MaintenanceRule(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
     frequency = models.CharField(max_length=255, blank=True, default='')  # cron syntax, blank for manual only appraisal
     specification = jsonfield.JSONField(null=True, default=None)  # empty for all files in IP or all fields in tree node
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
