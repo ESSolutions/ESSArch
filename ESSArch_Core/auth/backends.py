@@ -51,3 +51,8 @@ class GroupRoleBackend(object):
             app_label, perm = perm.split('.')
         return perm in self.get_all_permissions(user_obj, obj=obj)
 
+    def has_module_perms(self, user_obj, app_label):
+        return user_obj.is_active and any(
+            perm[:perm.index('.')] == app_label
+            for perm in self.get_all_permissions(user_obj)
+        )
