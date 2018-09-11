@@ -32,5 +32,14 @@
     </div>
 </div>
 <div class="modal-footer">
+        <div class="float-left">
+                <button class="btn btn-danger" ng-click="myTreeControl.scope.taskStepUndo(currentStepTask)"
+                ng-if="checkPermission('WorkflowEngine.can_undo') && (currentStepTask.status == 'SUCCESS' || currentStepTask.status == 'FAILURE') && !currentStepTask.undone && !currentStepTask.undo_type"
+                >{{'UNDO' | translate}}</button>
+
+                <button class="btn btn-success" ng-click="myTreeControl.scope.taskStepRedo(currentStepTask)"
+                ng-if="checkPermission('WorkflowEngine.can_retry') && currentStepTask.flow_type == 'task' && currentStepTask.status == 'FAILURE'"
+                >{{'REDO' | translate}}</button>
+            </div>
     <button class="btn btn-warning" type="button" ng-click="$ctrl.cancel()" focused="true">{{'CLOSE' | translate}}</button>
 </div>
