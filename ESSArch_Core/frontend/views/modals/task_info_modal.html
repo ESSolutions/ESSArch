@@ -23,12 +23,10 @@
                 <tr>
                     <td>
                         <div style="max-height: 300px; overflow-y:auto;">
-                            <b>{{('ARGS' | translate)+':'}}</b>
+                            <b>{{('ARGS' | translate)}}:</b>
                             <table class="table">
                                 <tbody>
-                                    <tr ng-repeat="x in currentStepTask.args track by $index">
-                                        <td class="param-value">{{x}}</td>
-                                    </tr>
+                                    {{vm.getArgsString(currentStepTask.args)}}
                                 </tbody>
                             </table>
                         </div>
