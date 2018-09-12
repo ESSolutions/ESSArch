@@ -1,6 +1,6 @@
 from django.utils import timezone
-from elasticsearch_dsl import (Boolean, Date, DocType, InnerDoc, Integer, Keyword, Long,
-                               Nested, Object, Q, Text, analyzer,
+from elasticsearch_dsl import (Boolean, Date, DocType, Field, InnerDoc, Integer, Keyword, Long,
+                               MetaField, Nested, Object, Q, Text, analyzer,
                                tokenizer, token_filter)
 
 ngram_tokenizer=tokenizer('custom_ngram_tokenizer', type='ngram', min_gram=3,
@@ -134,6 +134,7 @@ class Component(VersionedDocType):
 
     class Meta:
         index = 'component'
+        date_detection = MetaField('false')
 
 
 class Archive(VersionedDocType):
@@ -147,6 +148,7 @@ class Archive(VersionedDocType):
 
     class Meta:
         index = 'archive'
+        date_detection = MetaField('false')
 
 
 class InformationPackage(VersionedDocType):
@@ -159,6 +161,7 @@ class InformationPackage(VersionedDocType):
 
     class Meta:
         index = 'information_package'
+        date_detection = MetaField('false')
 
 
 class Document(Component):
@@ -167,9 +170,14 @@ class Document(Component):
     href = Keyword()  # @href
     size = Long()
     modified = Date()
+    attachment = Field(
+        properties={
+            'date': Date()
+        })
 
     class Meta:
         index = 'document'
+        date_detection = MetaField('false')
 
 
 class Directory(VersionedDocType):
@@ -178,3 +186,4 @@ class Directory(VersionedDocType):
 
     class Meta:
         index = 'directory'
+        date_detection = MetaField('false')
