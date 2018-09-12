@@ -158,7 +158,7 @@ angular.module('myApp').controller('StateTreeCtrl', function($scope, $translate,
             if(data.time_started !== null && data.time_done !== null) {
                 var started = moment(data.time_started);
                 var done = moment(data.time_done);
-                data.duration = moment.utc(8640000).format('DD HH:mm:ss.SSS');
+                data.duration = moment.utc(done.diff(started)).format('HH:mm:ss.SSS');
             } else {
                 data.duration = null;
             }
