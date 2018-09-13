@@ -328,7 +328,7 @@ class ParseSubmitDescription(DBTask):
             parsed_policy = parsed.get('altrecordids', {}).get('POLICYID')[0]
             ip.policy = ArchivePolicy.objects.get(policy_id=parsed_policy)
 
-        ip.information_class = parsed.get('information_class', ip.policy.information_class)
+        ip.information_class = parsed.get('information_class') or ip.policy.information_class
         if ip.information_class != ip.policy.information_class:
             raise ValueError('Information class of IP and policy does not match')
 

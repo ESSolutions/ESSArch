@@ -197,7 +197,8 @@ def parse_submit_description(xmlfile, srcdir=''):
     try:
         ip['information_class'] = [int(s) for s in ip['information_class'].split() if s.isdigit()][0]
     except (KeyError, AttributeError):
-        ip['information_class'] = 0
+        if ip['information_class'] is not None:
+            raise
 
     ip['agents'] = {}
     for a in get_agents(root):
