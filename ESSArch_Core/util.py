@@ -476,7 +476,7 @@ def nested_lookup(key, document):
                 yield result
 
     if isinstance(document, dict):
-        for k, v in document.iteritems():
+        for k, v in six.iteritems(document):
             if k == key:
                 yield v
             elif isinstance(v, dict):
