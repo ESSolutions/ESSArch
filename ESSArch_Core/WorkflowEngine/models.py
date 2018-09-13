@@ -53,6 +53,21 @@ def create_task(name):
     return getattr(importlib.import_module(module), task)()
 
 
+def create_sub_task(t, step=None, ignore_parent_args=True):
+    step_id = step.id if step is not None else None
+    t.params['_options'] = {
+        'args': t.args,
+        'responsible': t.responsible_id, 'ip': t.information_package_id,
+        'step': step_id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
+        'undo': t.undo_type, 'result_params': t.result_params,
+    }
+
+    created = create_task(t.name)
+    if ignore_parent_args:
+        return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
+    return created.s(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
+
+
 class Process(models.Model):
     class Meta:
         abstract = True
@@ -168,17 +183,6 @@ class ProcessStep(MPTTModel, Process):
             self.parent_step.clear_cache()
 
     def run_children(self, tasks, steps, direct=True):
-        def create_sub_task(t, ignore_parent_args=True):
-            created = create_task(t.name)
-            t.params['_options'] = {
-                'args': t.args,
-                'responsible': t.responsible_id, 'ip': t.information_package_id,
-                'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
-                'result_params': t.result_params,
-            }
-            if ignore_parent_args:
-                return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
-            return created.s(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
 
         if not tasks.exists() and not steps.exists():
             if direct:
@@ -188,12 +192,11 @@ class ProcessStep(MPTTModel, Process):
 
         func = group if self.parallel else chain
         result_list = sorted(itertools.chain(steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
-        workflow = func(y for y in (x.resume(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x) for x in result_list) if not hasattr(y, 'tasks') or len(y.tasks))
-
+        workflow = func(y for y in (x.resume(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x, self) for x in result_list) if not hasattr(y, 'tasks') or len(y.tasks))
 
         if direct:
             on_error_tasks = self.on_error(manager='by_step_pos').all()
-            on_error_group = group(create_sub_task(t, ignore_parent_args=False) for t in on_error_tasks)
+            on_error_group = group(create_sub_task(t, self, ignore_parent_args=False) for t in on_error_tasks)
             if self.eager:
                 return workflow.apply(link_error=on_error_group)
             else:
@@ -235,17 +238,6 @@ class ProcessStep(MPTTModel, Process):
             steps, otherwise None
         """
 
-        def create_sub_task(t):
-            t = t.create_undo_obj()
-            t.params['_options'] = {
-                'args': t.args,
-                'responsible': t.responsible_id, 'ip': t.information_package_id,
-                'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
-                'undo': True, 'result_params': t.result_params,
-            }
-            created = create_task(t.name)
-            return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
-
         child_steps = self.child_steps.all()
         tasks = self.tasks(manager='by_step_pos').all()
 
@@ -266,7 +258,7 @@ class ProcessStep(MPTTModel, Process):
         func = group if self.parallel else chain
 
         result_list = sorted(itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created), reverse=True)
-        workflow = func(x.undo(only_failed=only_failed, direct=False) if isinstance(x, ProcessStep) else create_sub_task(x) for x in result_list)
+        workflow = func(x.undo(only_failed=only_failed, direct=False) if isinstance(x, ProcessStep) else create_sub_task(x.create_undo_obj(), self) for x in result_list)
 
         if direct:
             if self.eager:
@@ -289,17 +281,6 @@ class ProcessStep(MPTTModel, Process):
             none
         """
 
-        def create_sub_task(t):
-            t = t.create_retry_obj()
-            t.params['_options'] = {
-                'args': t.args,
-                'responsible': t.responsible_id, 'ip': t.information_package_id,
-                'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
-                'result_params': t.result_params,
-            }
-            created = create_task(t.name)
-            return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
-
         child_steps = self.child_steps.all()
 
         tasks = self.tasks(manager='by_step_pos').filter(
@@ -316,7 +297,7 @@ class ProcessStep(MPTTModel, Process):
         func = group if self.parallel else chain
 
         result_list = sorted(itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
-        workflow = func(x.retry(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x) for x in result_list)
+        workflow = func(x.retry(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x.create_retry_obj(), self) for x in result_list)
 
         if direct:
             if self.eager:
@@ -592,11 +573,14 @@ class ProcessTask(Process):
             'step_pos': self.processstep_pos, 'hidden': self.hidden,
         }
 
+        on_error_tasks = self.on_error(manager='by_step_pos').all()
+        on_error_group = group(create_sub_task(error_task, ignore_parent_args=False) for error_task in on_error_tasks)
+
         if self.eager:
             self.params['_options']['result_params'] = self.result_params
-            res = t.apply(args=self.args, kwargs=self.params, task_id=str(self.pk))
+            res = t.apply(args=self.args, kwargs=self.params, task_id=str(self.pk), link_error=on_error_group)
         else:
-            res = t.apply_async(args=self.args, kwargs=self.params, task_id=str(self.pk), queue=t.queue)
+            res = t.apply_async(args=self.args, kwargs=self.params, task_id=str(self.pk), link_error=on_error_group, queue=t.queue)
 
         return res
 
