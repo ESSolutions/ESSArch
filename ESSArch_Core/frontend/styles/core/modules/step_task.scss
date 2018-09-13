@@ -67,3 +67,11 @@
         align-self: flex-start;
     }
 }
+
+.param-value {
+    word-break: break-word;
+    pre {
+        overflow-x: scroll;
+        white-space: pre-wrap;
+    }
+}
