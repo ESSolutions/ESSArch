@@ -86,11 +86,17 @@ redis = StrictRedis()
 class GenerateXML(DBTask):
     event_type = 50600
 
-    def run(self, filesToCreate={}, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
+    def run(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None, parsed_files=None, algorithm='SHA-256'):
         """
         Generates the XML using the specified data and folder, and adds the XML
         to the specified files
         """
+
+        if filesToCreate is None:
+            filesToCreate = {}
+
+        if extra_paths_to_parse is None:
+            extra_paths_to_parse = []
 
         if parsed_files is None:
             parsed_files = []
