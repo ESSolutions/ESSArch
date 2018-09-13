@@ -152,7 +152,15 @@ class GroupInline(admin.StackedInline):
 
 class GroupAdmin(DjangoGroupAdmin):
     add_form_template = 'essauth/admin/group/add_form.html'
+    change_list_template = 'admin/mptt_change_list.html'
     inlines = [GroupInline]
+
+    def get_ordering(self, request):
+        """
+        Changes the default ordering for changelists to tree-order.
+        """
+        mptt_opts = Group._mptt_meta
+        return ('essauth_group__{}'.format(mptt_opts.tree_id_attr), 'essauth_group__{}'.format(mptt_opts.left_attr))
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
         if db_field.name == 'permissions':

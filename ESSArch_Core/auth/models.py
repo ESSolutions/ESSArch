@@ -80,6 +80,30 @@ class ProxyGroup(DjangoGroup):
             Group.objects.create(name=self.name, django_group=self)
             return group
 
+    @property
+    def tree_id(self):
+        return self.essauth_group.tree_id
+
+    @property
+    def rght(self):
+        return self.essauth_group.rght
+
+    @property
+    def lft(self):
+        return self.essauth_group.lft
+
+    @property
+    def level(self):
+        return self.essauth_group.level
+
+    @property
+    def parent(self):
+        return self.essauth_group.parent
+
+    @property
+    def _mptt_meta(self):
+        return Group._mptt_meta
+
     class Meta:
         verbose_name = _('group')
         verbose_name_plural = _('groups')
