@@ -330,7 +330,8 @@ class ParseSubmitDescription(DBTask):
 
         ip.information_class = parsed.get('information_class') or ip.policy.information_class
         if ip.information_class != ip.policy.information_class:
-            raise ValueError('Information class of IP and policy does not match')
+            raise ValueError('Information class in submit description ({}) and policy ({}) does not match'.format(
+                ip.information_class, ip.policy.information_class))
 
         for agent_el in get_agents(etree.parse(xml)):
             agent = Agent.objects.from_mets_element(agent_el)
