@@ -224,10 +224,10 @@ angular.module('myApp').controller('StateTreeCtrl', function($scope, $translate,
             return true;
         }
     };
-
+    $scope.myTreeControl.scope.stateLoading = false;
     //Update status view data
     $scope.statusViewUpdate = function (row) {
-        $scope.statusLoading = true;
+        $scope.myTreeControl.scope.stateLoading = true;
         var expandedNodes = [];
         if ($scope.tree_data != []) {
             expandedNodes = checkExpanded($scope.tree_data);
@@ -240,7 +240,7 @@ angular.module('myApp').controller('StateTreeCtrl', function($scope, $translate,
                     $scope.tree_data = value;
                 }
             })
-            $scope.statusLoading = false;
+        $scope.myTreeControl.scope.stateLoading = false;
         }, function (response) {
             if (response.status == 404) {
                 $scope.statusShow = false;

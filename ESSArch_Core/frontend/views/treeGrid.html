@@ -21,6 +21,12 @@
                     <div ng-if="!col.cellTemplate">{{row.branch[col.field]}}</div>
                 </td>
             </tr>
+            <tr ng-if="!tree_rows.length && !treeControl.scope.stateLoading" class="empty-table-indicator">
+                <td colspan="{{colDefinitions.length+1}}">{{'NO_RESULTS_FOUND' | translate}}</td>
+            </tr>
+            <tr ng-if="!tree_rows.length && treeControl.scope.stateLoading" class="empty-table-indicator">
+                <td class="loading-column" colspan="{{colDefinitions.length+1}}">{{'LOADING' | translate}}</td>
+            </tr>
         </tbody>
     </table>
 </div>
