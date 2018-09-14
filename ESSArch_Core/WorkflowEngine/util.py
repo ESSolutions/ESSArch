@@ -34,37 +34,44 @@ def _create_on_error_tasks(l, ip=None, responsible=None):
 def _create_step(parent_step, flow, ip, responsible, context=None):
     if context is None:
         context = {}
-    for t_idx, task in enumerate(flow):
-        if not task.get('if', True):
+    for e_idx, flow_entry in enumerate(flow):
+        if not flow_entry.get('if', True):
             continue
 
-        if task.get('step', False):
+        if flow_entry.get('step', False):
+            if len(flow_entry.get('children', [])) == 0:
+                # no child steps or tasks in step, no need to create step
+                continue
+
             child_s = ProcessStep.objects.create(
-                name=task['name'],
+                name=flow_entry['name'],
                 parent_step=parent_step,
-                parent_step_pos=t_idx,
+                parent_step_pos=e_idx,
                 information_package=ip,
                 context=context,
             )
 
-            for on_error_task in _create_on_error_tasks(task.get('on_error', []), ip=ip, responsible=responsible):
+            for on_error_task in _create_on_error_tasks(flow_entry.get('on_error', []), ip=ip, responsible=responsible):
                 child_s.on_error.add(on_error_task)
 
-            _create_step(child_s, task['children'], ip, responsible, context=context)
+            _create_step(child_s, flow_entry['children'], ip, responsible, context=context)
         else:
-            args = task.get('args', [])
-            params = task.get('params', {})
-            ProcessTask.objects.create(
-                name=task['name'],
-                label=task.get('label'),
+            args = flow_entry.get('args', [])
+            params = flow_entry.get('params', {})
+            task = ProcessTask.objects.create(
+                name=flow_entry['name'],
+                label=flow_entry.get('label'),
                 args=args,
                 params=params,
                 eager=False,
                 information_package=ip,
                 responsible=responsible,
                 processstep=parent_step,
-                processstep_pos=t_idx,
+                processstep_pos=e_idx,
             )
+
+            for on_error_task in _create_on_error_tasks(flow_entry.get('on_error', []), ip=ip, responsible=responsible):
+                task.on_error.add(on_error_task)
 
 
 @transaction.atomic
