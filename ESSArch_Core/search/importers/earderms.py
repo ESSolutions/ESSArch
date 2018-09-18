@@ -18,7 +18,7 @@ from ESSArch_Core.search.importers.base import BaseImporter
 from ESSArch_Core.tags import INDEX_QUEUE
 from ESSArch_Core.tags.documents import Archive, Component, Document, Node
 from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
-from ESSArch_Core.util import get_tree_size_and_count, normalize_path, timestamp_to_datetime
+from ESSArch_Core.util import get_tree_size_and_count, normalize_path, remove_prefix, timestamp_to_datetime
 
 logger = logging.getLogger('essarch.search.importers.EardErmsImporter')
 redis_conn = Redis()
@@ -215,6 +215,8 @@ class EardErmsImporter(BaseImporter):
         }
         data = self.parse_mappings(data_mappings, el)
         data['namn'] = el.get('Namn')
+        if data['namn'] is not None:
+            data['namn'] = remove_prefix(remove_prefix(data['namn'], "Dokument/"), "Ärende/")
         data['datatyp'] = el.get('DataTyp')
         data['format'] = el.get('Format')
         data['element'] = [self.parse_eget_element(e) for e in el.xpath('*[local-name()="EgetElement"]')]
