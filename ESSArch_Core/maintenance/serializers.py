@@ -15,6 +15,10 @@ class MaintenanceRuleSerializer(serializers.ModelSerializer):
 
         return data
 
+    def save(self, **kwargs):
+        kwargs["user"] = self.fields["user"].get_default()
+        return super(MaintenanceRuleSerializer, self).save(**kwargs)
+
     def create(self, data):
         instance = super(MaintenanceRuleSerializer, self).create(validated_data=data)
         if not instance.public:
@@ -32,6 +36,10 @@ class MaintenanceRuleSerializer(serializers.ModelSerializer):
 
 class MaintenanceJobSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+
+    def save(self, **kwargs):
+        kwargs["user"] = self.fields["user"].get_default()
+        return super(MaintenanceJobSerializer, self).save(**kwargs)
 
     class Meta:
         model = MaintenanceJob

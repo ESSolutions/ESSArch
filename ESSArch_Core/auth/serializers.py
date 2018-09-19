@@ -174,6 +174,10 @@ class UserLoggedInWriteSerializer(UserLoggedInSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
 
+    def save(self, **kwargs):
+        kwargs["user"] = self.fields["user"].get_default()
+        return super(NotificationSerializer, self).save(**kwargs)
+
     class Meta:
         model = Notification
         fields = (
