@@ -311,8 +311,8 @@ angular.module('myApp').controller('StateTreeCtrl', function($scope, $translate,
     }
 
     /**
-     * Get validation list for task
-     * @param {Object} task current task
+     * Validation pipe function for getting validations
+     * @param {Object} tableState table state
      */
     vm.getValidations = function(tableState) {
         $scope.validationsLoading = true;
