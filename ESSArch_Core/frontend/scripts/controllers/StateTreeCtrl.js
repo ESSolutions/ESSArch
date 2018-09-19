@@ -1,4 +1,4 @@
-angular.module('myApp').controller('StateTreeCtrl', function($scope, $translate, Step, Task, listViewService, appConfig, $timeout, $interval, PermPermissionStore, $q, $uibModal, $log) {
+angular.module('myApp').controller('StateTreeCtrl', function($scope, $translate, Step, Task, listViewService, appConfig, $timeout, $interval, PermPermissionStore, $q, $uibModal, $log, Notifications) {
     var vm = this;
     var stateInterval;
     $scope.myTreeControl = {};
@@ -7,7 +7,7 @@ angular.module('myApp').controller('StateTreeCtrl', function($scope, $translate,
     $scope.angular = angular;
     $scope.statusShow = false;
     $scope.eventShow = false;
-
+    vm.validations = [];
 
     vm.$onChanges = function() {
         $scope.ip = vm.ip;
@@ -164,6 +164,7 @@ angular.module('myApp').controller('StateTreeCtrl', function($scope, $translate,
             }
             $scope.currentStepTask = data;
             $scope.stepTaskLoading = false;
+            vm.getValidations(vm.validationTableState);
             return data;
         });
     }
@@ -309,6 +310,51 @@ angular.module('myApp').controller('StateTreeCtrl', function($scope, $translate,
         return ret;
     }
 
+    /**
+     * Get validation list for task
+     * @param {Object} task current task
+     */
+    vm.getValidations = function(tableState) {
+        $scope.validationsLoading = true;
+        if(vm.validations.length == 0) {
+            $scope.initLoad = true;
+        }
+        if(!angular.isUndefined(tableState)) {
+            vm.validationTableState = tableState;
+            var search = "";
+            if(tableState.search.predicateObject) {
+                var search = tableState.search.predicateObject["$"];
+            }
+            var sorting = tableState.sort.reverse ? '-' : '' + tableState.sort.predicate;
+            var pagination = tableState.pagination;
+            var start = pagination.start || 0;     // This is NOT the page number, but the index of item in the list that you want to use to display the table.
+            var number = pagination.number || vm.itemsPerPage;  // Number of entries showed per page.
+            var pageNumber = start / number + 1;
+            return Task.validations(
+                {
+                    id: $scope.currentStepTask.id,
+                    page: pageNumber,
+                    page_size: number,
+                    ordering: sorting,
+                    search: search
+                })
+                .$promise.then(function (resource) {
+                    vm.validations = resource;
+                    tableState.pagination.numberOfPages = Math.ceil(resource.$httpHeaders('Count') / number); //set the number of pages so the pagination can update
+                    $scope.validationsLoading = false;
+                    return resource;
+                }).catch(function (response) {
+                    if (response.data && response.data.detail) {
+                        Notifications.add(response.data.detail, 'error')
+                    } else if (response.status !== 500) {
+                        Notifications.add('Could not get validations', 'error')
+                    }
+                    $scope.validationsLoading = false;
+                    return response;
+                })
+        }
+    }
+
     //Modal functions
     $scope.tracebackModal = function (profiles) {
         $scope.profileToSave = profiles;
@@ -334,6 +380,7 @@ angular.module('myApp').controller('StateTreeCtrl', function($scope, $translate,
     $scope.taskInfoModal = function () {
         var modalInstance = $uibModal.open({
             animation: true,
+            size: 'lg',
             ariaLabelledBy: 'modal-title',
             ariaDescribedBy: 'modal-body',
             templateUrl: 'modals/task_info_modal.html',
@@ -353,6 +400,7 @@ angular.module('myApp').controller('StateTreeCtrl', function($scope, $translate,
     $scope.stepInfoModal = function () {
         var modalInstance = $uibModal.open({
             animation: true,
+            size: 'lg',
             ariaLabelledBy: 'modal-title',
             ariaDescribedBy: 'modal-body',
             templateUrl: 'modals/step_info_modal.html',

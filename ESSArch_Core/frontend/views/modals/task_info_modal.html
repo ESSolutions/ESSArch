@@ -60,7 +60,97 @@
             </tbody>
         </table>
         <button ng-if="currentStepTask.status == 'FAILURE'" class="btn btn-default" ng-click="tracebackModal(currentStepTask)">{{'SEETRACEBACK' | translate}}</button>
+        <div ng-show="vm.validations.length > 0" st-table="vm.validations" st-pipe="vm.getValidations">
+            <hr/>
+            <h4>{{'VALIDATIONS' | translate}}</h4>
+            <div class="search-prepare-wrapper">
+                <label for items-per-page></label>
+                <select id="items-per-page" style="margin-right: 10px;" class="form-control items-per-page" ng-model="vm.itemsPerPage" ng-options="x for x in [5,10,20,25,50]" uib-popover="{{'ITEMSPERPAGE' | translate}}" popover-placement="top-left" popover-popup-delay="500" popover-append-to-body="true"></select>
+                <input st-search="" class="form-control global-search" ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}" type="text" uib-popover="{{'GLOBALSEARCHDESC_VALIDATION' | translate}}" popover-placement="top-left" popover-popup-delay="500" popover-append-to-body="true" />
+                <div class="refresh-icon">
+                    <span ng-click="vm.getValidations(vm.validationTableState)" class="clickable angular-animate fa fa-refresh fa-lg" ng-class="{'fa-refresh-animate': validationsLoading }" uib-popover="{{'REFRESHTABLEDESC' | translate}}" popover-placement="left" popover-popup-delay="500" popover-append-to-body="true"></span>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="list-view-table table-x-overflow">
+                    <table class="table table-striped validation-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th st-sort="message">
+                                    {{'MESSAGE' | translate}}
+                                </th>
+                                <th st-sort="validator">
+                                    {{'VALIDATOR' | translate}}
+                                </th>
+                                <th st-sort="filename">
+                                    {{'FILENAME' | translate}}
+                                </th>
+                                <th st-sort="time_started" st-sort-default="true">
+                                    {{'STARTED' | translate}}
+                                </th>
+                                <th st-sort="time_done">
+                                    {{'DONE' | translate}}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="x in vm.validations" ng-class="{'failed': !x.passed && x.time_done, 'success': x.passed && x.time_done, 'running': !x.passed && x.time_done === null && x.time_started}">
+                                <td class="text-center">
+                                    <i class="fa fa-check"
+                                    ng-if="x.passed && x.time_done"
+                                    uib-popover="{{'SUCCESS' | translate}}"
+                                    popover-placement="right"
+                                    popover-append-to-body="true"
+                                    popover-popup-delay="500">
+                                    </i>
+                                    <i class="fa fa-times"
+                                    ng-if="!x.passed && x.time_done"
+                                    uib-popover="{{'FAILURE' | translate}}"
+                                    popover-placement="right"
+                                    popover-append-to-body="true"
+                                    popover-popup-delay="500">
+                                    </i>
+                                    <i class="fa fa-spinner fa-spin"
+                                    ng-if="!x.passed && x.time_done === null && x.time_started"
+                                    uib-popover="{{'RUNNING' | translate}}"
+                                    popover-placement="right"
+                                    popover-append-to-body="true"
+                                    popover-popup-delay="500">
+                                </i>
+                                </td>
+                                <td class="text-oneline-ellipsis">
+                                    {{x.message}}
+                                </td>
+                                <td class="text-oneline-ellipsis">
+                                    {{x.validator}}
+                                </td>
+                                <td class="text-oneline-ellipsis">
+                                    {{x.filename}}
+                                </td>
+                                <td class="text-oneline-ellipsis">
+                                    {{x.time_started | date:"yyyy-MM-dd HH:mm:ss.sss"}}
+                                </td>
+                                <td class="text-oneline-ellipsis">
+                                    {{x.time_done | date:"yyyy-MM-dd HH:mm:ss.sss"}}
+                                </td>
+                            </tr>
+                            <tr ng-if="!vm.validations.length && !validationsLoading" class="empty-table-indicator">
+                                <td colspan="6">{{'NO_RESULTS_FOUND' | translate}}</td>
+                            </tr>
+                            <tr ng-if="!vm.validations.length && validationsLoading" class="empty-table-indicator">
+                                <td class="loading-column" colspan="6">{{'LOADING' | translate}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <td ng-show="!initLoad">
+                    <div class="text-center" st-template="static/frontend/views/pagination.html" st-pagination="" st-items-by-page="vm.itemsPerPage" st-displayed-pages="7"></div>
+                </td>
+            </div>
+        </div>
     </div>
+
 </div>
 <div class="modal-footer">
     <div class="float-left">

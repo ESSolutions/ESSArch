@@ -75,3 +75,24 @@
         white-space: pre-wrap;
     }
 }
+
+.step-task-info {
+    .validation-table {
+        margin-bottom: 0;
+        td, th {
+            padding: 10px 5px;
+        }
+        .failed {
+            background-color: $task-validation-bg-red;
+            color: $task-validation-text-red;
+        }
+        .success {
+            background-color: $task-validation-bg-green;
+            color: $task-validation-text-green;
+        }
+        .running {
+            background-color: $task-validation-bg-yellow;
+            color: $task-validation-text-yellow;
+        }
+    }
+}

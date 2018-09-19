@@ -31,3 +31,8 @@
 .margin-top-5 {
     margin-top: 5px;
 }
+
+.text-oneline-ellipsis {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
