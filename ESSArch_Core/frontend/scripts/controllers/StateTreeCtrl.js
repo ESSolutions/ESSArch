@@ -325,7 +325,7 @@ angular.module('myApp').controller('StateTreeCtrl', function($scope, $translate,
             if(tableState.search.predicateObject) {
                 var search = tableState.search.predicateObject["$"];
             }
-            var sorting = tableState.sort.reverse ? '-' : '' + tableState.sort.predicate;
+            var sorting = (tableState.sort.reverse ? '-' : '') + tableState.sort.predicate;
             var pagination = tableState.pagination;
             var start = pagination.start || 0;     // This is NOT the page number, but the index of item in the list that you want to use to display the table.
             var number = pagination.number || vm.itemsPerPage;  // Number of entries showed per page.
