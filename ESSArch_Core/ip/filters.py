@@ -20,7 +20,7 @@ class InformationPackageFilter(filters.FilterSet):
     state = ListFilter(name='state')
     object_identifier_value = ListFilter(name='object_identifier_value')
     label = ListFilter(name='label')
-    object_size = ListFilter(name='object_size')
+    object_size = filters.RangeFilter(name='object_size')
     start_date = IsoDateTimeFromToRangeFilter()
     end_date = IsoDateTimeFromToRangeFilter()
     create_date = IsoDateTimeFromToRangeFilter()
