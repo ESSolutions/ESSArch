@@ -60,7 +60,7 @@
             </tbody>
         </table>
         <button ng-if="currentStepTask.status == 'FAILURE'" class="btn btn-default" ng-click="tracebackModal(currentStepTask)">{{'SEETRACEBACK' | translate}}</button>
-        <div ng-show="vm.validations.length > 0" st-table="vm.validations" st-pipe="vm.getValidations">
+        <div st-table="vm.validations" st-pipe="vm.getValidations">
             <hr/>
             <h4>{{'VALIDATIONS' | translate}}</h4>
             <div class="search-prepare-wrapper">
