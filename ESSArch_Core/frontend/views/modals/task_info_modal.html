@@ -96,7 +96,7 @@
                         </thead>
                         <tbody>
                             <tr ng-repeat="x in vm.validations" ng-class="{'failed': !x.passed && x.time_done, 'success': x.passed && x.time_done, 'running': !x.passed && x.time_done === null && x.time_started}">
-                                <td class="text-center">
+                                <td class="text-center pr-0">
                                     <i class="fa fa-check"
                                     ng-if="x.passed && x.time_done"
                                     uib-popover="{{'SUCCESS' | translate}}"

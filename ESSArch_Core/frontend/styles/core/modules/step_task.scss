@@ -79,9 +79,6 @@
 .step-task-info {
     .validation-table {
         margin-bottom: 0;
-        td, th {
-            padding: 10px 5px;
-        }
         .failed {
             background-color: $task-validation-bg-red;
             color: $task-validation-text-red;
