@@ -1,12 +1,10 @@
+import six
 from django_filters.rest_framework import DjangoFilterBackend
-
 from rest_framework import exceptions, filters, status, viewsets
 from rest_framework.decorators import detail_route
+from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
-
 from rest_framework_extensions.mixins import NestedViewSetMixin
-
-import six
 
 from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
 from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
@@ -29,6 +27,7 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     queryset = EventIP.objects.all()
     serializer_class = EventIPSerializer
+    permission_classes = (DjangoModelPermissions,)
     filter_class = EventIPFilter
     filter_backends = (
         filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
