@@ -1,7 +1,7 @@
 from django_filters import rest_framework as filters
 
-from ESSArch_Core.fixity.models import Validation
-from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
+from .models import Validation
+from .validation import AVAILABLE_VALIDATORS
 
 
 class ValidationFilter(filters.FilterSet):
@@ -18,5 +18,4 @@ class ValidationFilter(filters.FilterSet):
 
     class Meta:
         model = Validation
-        fields = ['filename', 'validator', 'passed', 'required', 'information_package']
-
+        fields = ['filename', 'validator', 'passed', 'required', 'time_started', 'time_done',]

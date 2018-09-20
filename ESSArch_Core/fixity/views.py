@@ -1,16 +1,11 @@
-from django.db.models import QuerySet, Min, Max, Case, Value, When, NullBooleanField, Exists, OuterRef, CharField
-
+from django.db.models import Min, Max, Exists, OuterRef
 from django_filters.rest_framework import DjangoFilterBackend
-
 from rest_framework import filters, viewsets
-from rest_framework.decorators import list_route
-from rest_framework.response import Response
-
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from ESSArch_Core.fixity.filters import ValidationFilter
-from ESSArch_Core.fixity.models import Validation
-from ESSArch_Core.fixity.serializers import ValidationSerializer, ValidationFilesSerializer
+from .filters import ValidationFilter
+from .models import Validation
+from .serializers import ValidationSerializer, ValidationFilesSerializer
 
 
 class ValidationViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
@@ -20,6 +15,7 @@ class ValidationViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
     )
     filter_class = ValidationFilter
+    search_fields = ('filename', 'message',)
 
 
 class ValidationFilesViewSet(ValidationViewSet):
