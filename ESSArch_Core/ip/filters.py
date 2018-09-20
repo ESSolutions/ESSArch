@@ -14,8 +14,8 @@ class AgentFilter(filters.FilterSet):
 
 
 class InformationPackageFilter(filters.FilterSet):
-    agents = ListFilter(name='agents__pk')
-    archivist_organization = ListFilter(method='filter_archivist_organization')
+    agents = ListFilter(name='agents__pk', label='Agent is in')
+    archivist_organization = ListFilter(label='Archivist Organization is in', method='filter_archivist_organization')
     responsible = ListFilter(name='responsible__username')
     state = ListFilter(name='state')
     object_identifier_value = ListFilter(name='object_identifier_value')
