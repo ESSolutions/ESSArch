@@ -13,7 +13,7 @@ def permission_required_or_403(perms, accept_global_perms=True):
             pk = kwargs.get('pk')
             obj = None
 
-            model = view.queryset.model
+            model = view.get_queryset().model
             if model and pk is not None:
                 obj = get_object_or_404(model, pk=pk)
 
