@@ -67,10 +67,20 @@ class OrganizationDetailSerializer(GroupSerializer):
     def get_group_members(self, obj):
         users = User.objects.filter(essauth_member__in=obj.get_members(subgroups=True))
         return UserSerializer(users, many=True).data
-        return users.values_list('id', flat=True)
 
     class Meta(GroupSerializer.Meta):
         fields = GroupSerializer.Meta.fields + ('group_members',)
+
+
+class ChangeOrganizationSerializer(serializers.Serializer):
+    organization = serializers.IntegerField()
+
+    def validate_organization(self, org_id):
+        user = self.context.get('request').user
+        try:
+            return get_organization_groups(user).get(pk=org_id)
+        except Group.DoesNotExist:
+            raise serializers.ValidationError('Invalid id')
 
 
 class UserSerializer(serializers.ModelSerializer):
