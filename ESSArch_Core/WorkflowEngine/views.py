@@ -39,7 +39,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.WorkflowEngine.filters import ProcessStepFilter, ProcessTaskFilter
 from ESSArch_Core.WorkflowEngine.models import (ProcessStep, ProcessTask,)
-from ESSArch_Core.WorkflowEngine.permissions import CanRetry
+from ESSArch_Core.WorkflowEngine.permissions import CanRetry, CanUndo
 from ESSArch_Core.WorkflowEngine.serializers import (
     ProcessStepSerializer,
     ProcessStepDetailSerializer,
@@ -135,3 +135,9 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             obj.retry()
 
         return Response({'status': 'retries task'})
+
+    @transaction.atomic
+    @detail_route(methods=['post'], permission_classes=[CanUndo])
+    def undo(self, request, pk=None):
+        self.get_object().undo()
+        return Response({'status': 'undoing task'})
