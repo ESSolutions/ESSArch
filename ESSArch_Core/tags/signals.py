@@ -1,5 +1,6 @@
 import logging
 
+import six
 from django.db.models.signals import pre_delete, post_delete, post_save
 from django.dispatch import receiver
 from elasticsearch_dsl.connections import get_connection
@@ -22,13 +23,22 @@ def queue_tag_for_index(sender, instance, created, **kwargs):
             tag.current_version = instance
             tag.save(update_fields=['current_version'])
 
+    current_structure = instance.tag.get_active_structure()
+    parent = current_structure.parent
+    if parent is not None:
+        parent = {
+            'id': six.text_type(parent.tag.current_version.pk),
+            'index': parent.tag.current_version.elastic_index,
+        }
+
     data = {
         'doc_as_upsert': True,
         'doc': {
             'reference_code': instance.reference_code,
             'name': instance.name,
             'type': instance.type,
-            'current_version': instance.tag.current_version == instance
+            'current_version': instance.tag.current_version == instance,
+            'parent': parent,
         },
     }
 
