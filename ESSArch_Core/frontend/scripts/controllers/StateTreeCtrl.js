@@ -233,13 +233,14 @@ angular.module('myApp').controller('StateTreeCtrl', function($scope, $translate,
         if ($scope.tree_data != []) {
             expandedNodes = checkExpanded($scope.tree_data);
         }
-        listViewService.getTreeData(row, expandedNodes).then(function (value) {
-            $q.all(value).then(function (values) {
+        return listViewService.getTreeData(row, expandedNodes).then(function (value) {
+            return $q.all(value).then(function (values) {
                 if ($scope.tree_data.length) {
                     $scope.tree_data = updateStepProperties($scope.tree_data, values);
                 } else {
                     $scope.tree_data = value;
                 }
+                return value;
             })
         $scope.myTreeControl.scope.stateLoading = false;
         }, function (response) {
