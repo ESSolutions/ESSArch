@@ -1,7 +1,7 @@
 import six
-from django.shortcuts import get_object_or_404
 from django.utils.functional import wraps
 from rest_framework import exceptions
+from rest_framework.generics import get_object_or_404
 
 
 def permission_required_or_403(perms, accept_global_perms=True):

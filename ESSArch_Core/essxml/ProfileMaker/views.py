@@ -27,7 +27,8 @@ from collections import OrderedDict
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect
+from rest_framework.generics import get_object_or_404
 from .models import templatePackage, extensionPackage
 from ESSArch_Core.profiles.models import Profile
 from ESSArch_Core.essxml.ProfileMaker.xsdtojson import generateJsonRes, generateExtensionRef
