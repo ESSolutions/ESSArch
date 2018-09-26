@@ -6,7 +6,7 @@ from rest_auth.views import (
 )
 
 from ESSArch_Core.auth.views import (
-    LoginView, LogoutView,
+    LoginView, LogoutView, login_services,
 )
 
 urlpatterns = [
@@ -17,6 +17,7 @@ urlpatterns = [
         name='rest_password_reset_confirm'),
     url(r'^login/$', LoginView.as_view(), name='rest_login'),
     url(r'^logout/$', LogoutView.as_view(), name='rest_logout'),
+    url(r'^services/$', login_services, name='services'),
     url(r'^user/$', UserDetailsView.as_view(), name='rest_user_details'),
     url(r'^password/change/$', PasswordChangeView.as_view(),
         name='rest_password_change'),

@@ -1,6 +1,15 @@
-angular.module('myApp').controller('LoginCtrl', function ($scope, $location, $window, myService, $state, $stateParams, $rootScope, djangoAuth, Validate, PermRoleStore, PermPermissionStore){
+angular.module('myApp').controller('LoginCtrl', function ($scope, $location, $window, $http, myService, $state, $stateParams, $rootScope, djangoAuth, Validate, PermRoleStore, PermPermissionStore){
     $scope.model = {'app': $rootScope.app, 'username':'','password':''};
     $scope.complete = false;
+    $scope.auth_services = [];
+
+    $http({
+        method: 'GET',
+        url: '/rest-auth/services/',
+    }).then(function(response) {
+        $scope.auth_services = response.data;
+    });
+
     $scope.login = function(formData){
         $scope.error = null;
         Validate.form_validation(formData,$scope.errors);

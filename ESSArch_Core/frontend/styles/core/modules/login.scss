@@ -1,4 +1,9 @@
 .login {
+    display: flex;
+    height: 100vh;
+    align-items: center;
+    justify-content: center;
+
     .login-header {
         background-color: $header-color;
         color: white;
@@ -16,14 +21,7 @@
         @include container();
         max-width: 400px;
         width: 100%;
-        height: 320px;
         background-color: #fff;
-        position: absolute;
-        top:0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        margin: auto;
     }
     input {
         font-size: 16px;
@@ -53,5 +51,47 @@
     }
     .login-box h2 {
         margin-left: 40px;
+    }
+
+    .or-container {
+        text-align: center;
+        clear: both;
+    }
+
+    .or-line {
+        margin-bottom: 0;
+        position: relative;
+        top: 21px;
+        height: 0;
+        border: 0;
+        border-top: 1px solid #c4c4c4;
+    }
+
+    .or-text {
+        display: inline-block;
+        position: relative;
+        padding: 10px;
+        background-color: #fff;
+        text-transform: lowercase;
+    }
+
+    .login-service-button {
+        display: block;
+        cursor: pointer;
+        border-radius: 3px;
+        padding: 8px 0;
+        margin-bottom: 16px;
+        border: 1px solid #c4c4c4;
+        text-align: center;
+
+        &:hover{
+            text-decoration: none;
+        }
+    }
+
+    .login-service-adfs {
+        color: #FFF;
+        background-color: #0078d7;
+        border-color: transparent;
     }
 }

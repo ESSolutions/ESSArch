@@ -49,7 +49,7 @@ from rest_auth.views import (
 )
 
 from rest_framework import exceptions, permissions, status, viewsets
-from rest_framework.decorators import list_route
+from rest_framework.decorators import api_view, permission_classes, list_route
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -137,6 +137,17 @@ class NotificationViewSet(viewsets.ModelViewSet):
     def delete(self, request, *args, **kwargs):
         self.get_queryset().delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+@permission_classes([])
+def login_services(req):
+    services = []
+
+    if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+        services.append('adfs')
+
+    return Response(services)
 
 
 class LoginView(rest_auth_LoginView):
