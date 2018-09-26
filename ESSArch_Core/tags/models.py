@@ -194,7 +194,7 @@ class TagVersion(models.Model):
         return structures
 
     def get_active_structure(self):
-        return self.tag.structures.latest()
+        return self.tag.get_active_structure()
 
     def get_root(self, structure=None):
         try:
