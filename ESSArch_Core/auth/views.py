@@ -22,6 +22,8 @@
     Email - essarch@essolutions.se
 """
 
+import logging
+
 from ESSArch_Core.auth.serializers import (
     GroupSerializer,
     GroupDetailSerializer,
@@ -39,7 +41,8 @@ from ESSArch_Core.auth.models import Group, Notification
 
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
-from django.shortcuts import reverse
+from django.http import HttpResponseRedirect
+from django.shortcuts import resolve_url
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -58,6 +61,9 @@ try:
     from djangosaml2.views import logout as saml2_logout
 except ImportError:
     pass
+
+
+logger = logging.getLogger('essarch.auth')
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -161,13 +167,14 @@ class LoginView(rest_auth_LoginView):
 
 
 class LogoutView(rest_auth_LogoutView):
-    def post(self, request):
+    def get(self, request, *args, **kwargs):
         if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
             try:
-                redirect_response = saml2_logout(request)
-                new_location = redirect_response.get('Location')
-                return Response({'redirect': new_location})
+                return saml2_logout(request)
             except AttributeError:
+                logger.debug('Failed to logout using SAML, mo active identity found')
                 pass
 
-        return super(LogoutView, self).post(request)
+        response = self.logout(request)
+        next_page = resolve_url(settings.LOGOUT_REDIRECT_URL)
+        return HttpResponseRedirect(next_page)
