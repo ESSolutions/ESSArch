@@ -3,7 +3,7 @@ import os
 
 import six
 
-from ESSArch_Core.configuration.models import Parameter
+from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.util import find_destination
 
 
@@ -140,6 +140,9 @@ def fill_specification_data(data=None, sa=None, ip=None):
 
     for p in Parameter.objects.iterator():
         data['_PARAMETER_%s' % p.entity.upper()] = p.value
+
+    for p in Path.objects.iterator():
+        data['_PATH_%s' % p.entity.upper()] = p.value
 
     without_underscores = _remove_leading_underscores(data)
     data.update(without_underscores)
