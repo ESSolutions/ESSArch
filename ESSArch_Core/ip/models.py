@@ -534,7 +534,7 @@ class InformationPackage(models.Model):
     @property
     def step_state(self):
         """
-        Gets the state of the IP based on its steps
+        Gets the state of the IP based on its tasks
 
         Args:
 
@@ -544,12 +544,11 @@ class InformationPackage(models.Model):
 
             Which is decided by five scenarios:
 
-            * If there are no steps, then PENDING.
-            * If there are steps and they are all pending,
+            * If there are tasks and they are all pending,
               then PENDING.
-            * If a step has started, then STARTED.
-            * If a step has failed, then FAILURE.
-            * If all steps have succeeded, then SUCCESS.
+            * If a task has started, then STARTED.
+            * If a task has failed, then FAILURE.
+            * If all tasks have succeeded, then SUCCESS.
 
             If the IP is an AIC, then the same algorithm is
             applied on the related IPs instead
@@ -565,26 +564,25 @@ class InformationPackage(models.Model):
                 if ip_step_state == celery_states.STARTED:
                     state = ip_step_state
                 if (ip_step_state == celery_states.PENDING and
-                            state != celery_states.STARTED):
+                        state != celery_states.STARTED):
                     state = ip_step_state
                 if ip_step_state == celery_states.FAILURE:
                     return ip_step_state
 
             return state
 
-        steps = self.steps.all()
+        tasks = self.processtask_set.filter(hidden=False)
         state = celery_states.SUCCESS
+        for task in tasks:
+            task_status = task.status
 
-        for step in steps:
-            step_status = step.status
-
-            if step_status == celery_states.STARTED:
-                state = step_status
-            if (step_status == celery_states.PENDING and
+            if task_status == celery_states.STARTED:
+                state = task_status
+            if (task_status == celery_states.PENDING and
                     state != celery_states.STARTED):
-                state = step_status
-            if step_status == celery_states.FAILURE:
-                return step_status
+                state = task_status
+            if task_status == celery_states.FAILURE:
+                return task_status
 
         return state
 
