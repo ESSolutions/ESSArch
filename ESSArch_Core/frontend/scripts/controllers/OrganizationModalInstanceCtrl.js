@@ -1,4 +1,4 @@
-angular.module('myApp').controller('OrganizationModalInstanceCtrl', function ($translate, $uibModalInstance, djangoAuth, appConfig, $http, data, $scope, Notifications, $timeout, Organization) {
+angular.module('essarch.controllers').controller('OrganizationModalInstanceCtrl', function ($translate, $uibModalInstance, djangoAuth, appConfig, $http, data, $scope, Notifications, $timeout, Organization) {
     var $ctrl = this;
     $ctrl.ip = data.ip;
     $ctrl.saving = false;

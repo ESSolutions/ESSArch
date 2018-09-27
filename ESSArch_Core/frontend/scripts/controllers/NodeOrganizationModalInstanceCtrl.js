@@ -1,4 +1,4 @@
-angular.module('myApp').controller('NodeOrganizationModalInstanceCtrl', function ($translate, $uibModalInstance, djangoAuth, appConfig, $http, data, $scope, Notifications, $timeout, Organization) {
+angular.module('essarch.controllers').controller('NodeOrganizationModalInstanceCtrl', function ($translate, $uibModalInstance, djangoAuth, appConfig, $http, data, $scope, Notifications, $timeout, Organization) {
     var $ctrl = this;
     $ctrl.node = data.node;
     $ctrl.saving = false;

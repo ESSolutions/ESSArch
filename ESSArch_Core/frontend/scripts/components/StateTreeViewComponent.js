@@ -1,4 +1,4 @@
-angular.module('myApp').component('stateTreeView', {
+angular.module('essarch.components').component('stateTreeView', {
     templateUrl: 'state_tree_view.html',
     controller: 'StateTreeCtrl',
     controllerAs: 'vm',

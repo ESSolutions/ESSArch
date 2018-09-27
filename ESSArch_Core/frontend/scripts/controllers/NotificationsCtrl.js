@@ -1,4 +1,4 @@
-angular.module('myApp').controller('NotificationsCtrl', function(appConfig, Notifications, $timeout, $interval, $scope, $rootScope, $http, $window, Messenger, $state) {
+angular.module('essarch.controllers').controller('NotificationsCtrl', function(appConfig, Notifications, $timeout, $interval, $scope, $rootScope, $http, $window, Messenger, $state) {
     var vm = this;
     vm.visible = false;
     vm.alerts = [];

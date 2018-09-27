@@ -1,4 +1,4 @@
-angular.module('myApp').controller('StepInfoModalInstanceCtrl', function ($uibModalInstance, djangoAuth, data, $http, Notifications, IP, appConfig, listViewService, $scope) {
+angular.module('essarch.controllers').controller('StepInfoModalInstanceCtrl', function ($uibModalInstance, djangoAuth, data, $http, Notifications, IP, appConfig, listViewService, $scope) {
     var $ctrl = this;
     if(data) {
         $ctrl.data = data;

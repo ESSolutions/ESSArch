@@ -1,4 +1,4 @@
-angular.module('myApp').component('notifications', {
+angular.module('essarch.components').component('notifications', {
     templateUrl: 'notifications.html',
     controller: 'NotificationsCtrl',
     controllerAs: 'vm',

@@ -1,4 +1,4 @@
-angular.module('myApp').directive('onScroll', function() {
+angular.module('essarch.directives').directive('onScroll', function() {
     return {
         restrict: 'A',
         link: function (scope, element, attrs) {

@@ -1,4 +1,4 @@
-angular.module('myApp').factory('ContextMenuBase', function ($translate) {
+angular.module('essarch.services').factory('ContextMenuBase', function ($translate) {
     var service  = {
         changeOrganization: function(callback){
             return {

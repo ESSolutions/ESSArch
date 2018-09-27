@@ -1,4 +1,4 @@
-angular.module('myApp').controller('StateTreeCtrl', function($scope, $translate, Step, Task, listViewService, appConfig, $timeout, $interval, PermPermissionStore, $q, $uibModal, $log, Notifications) {
+angular.module('essarch.controllers').controller('StateTreeCtrl', function($scope, $translate, Step, Task, listViewService, appConfig, $timeout, $interval, PermPermissionStore, $q, $uibModal, $log, Notifications) {
     var vm = this;
     var stateInterval;
     $scope.myTreeControl = {};

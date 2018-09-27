@@ -1,4 +1,4 @@
-angular.module('myApp').factory('Task', function ($resource, appConfig) {
+angular.module('essarch.services').factory('Task', function ($resource, appConfig) {
     return $resource(appConfig.djangoUrl + 'tasks/:id/:action/', { id: "@id" }, {
         get: {
             method: "GET",

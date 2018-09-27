@@ -25,7 +25,7 @@
 'use strict';
 
 describe('StateTreeCtrl', function() {
-    beforeEach(module('myApp'));
+    beforeEach(module('essarch.controllers'));
     window.onbeforeunload = jasmine.createSpy();
 
     var $controller, $scope, controller, Task, Step, listViewService;

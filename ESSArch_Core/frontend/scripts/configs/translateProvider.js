@@ -1,4 +1,4 @@
-angular.module('myApp').config(['$translateProvider', function ($translateProvider) {
+angular.module('essarch.configs').config(['$translateProvider', function ($translateProvider) {
     $translateProvider.useStaticFilesLoader({
         prefix: 'static/lang/',
         suffix: '.json'

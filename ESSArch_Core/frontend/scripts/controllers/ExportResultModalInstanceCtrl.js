@@ -1,4 +1,4 @@
-angular.module('myApp').controller('ExportResultModalInstanceCtrl', function ($translate, $uibModalInstance, djangoAuth, appConfig, $http, data, $scope, Notifications, $timeout, Search, $sce, $window) {
+angular.module('essarch.controllers').controller('ExportResultModalInstanceCtrl', function ($translate, $uibModalInstance, djangoAuth, appConfig, $http, data, $scope, Notifications, $timeout, Search, $sce, $window) {
     var $ctrl = this;
     var vm = data.vm;
     $ctrl.formats = ['pdf', 'csv'];
