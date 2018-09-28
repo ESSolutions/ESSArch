@@ -1,6 +1,6 @@
 import six
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import exceptions, filters, status, viewsets
+from rest_framework import exceptions, filters, mixins, status, viewsets
 from rest_framework.decorators import detail_route
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
@@ -39,7 +39,8 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     search_fields = ('eventOutcomeDetailNote',)
 
 
-class WorkareaEntryViewSet(viewsets.ModelViewSet):
+class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewSet):
+
     queryset = Workarea.objects.all()
     serializer_class = WorkareaSerializer
 
