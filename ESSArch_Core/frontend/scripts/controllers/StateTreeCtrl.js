@@ -235,15 +235,15 @@ angular.module('essarch.controllers').controller('StateTreeCtrl', function($scop
         }
         return listViewService.getTreeData(row, expandedNodes).then(function (value) {
             return $q.all(value).then(function (values) {
-                if ($scope.tree_data.length) {
+                if ($scope.tree_data.length && values.length) {
                     $scope.tree_data = updateStepProperties($scope.tree_data, values);
                 } else {
                     $scope.tree_data = value;
                 }
+                $scope.myTreeControl.scope.stateLoading = false;
                 return value;
             })
-        $scope.myTreeControl.scope.stateLoading = false;
-        }, function (response) {
+        }).catch(function (response) {
             if (response.status == 404) {
                 $scope.statusShow = false;
                 $timeout(function () {
