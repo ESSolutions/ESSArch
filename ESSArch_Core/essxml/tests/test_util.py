@@ -27,6 +27,7 @@ import shutil
 import tempfile
 
 import mock
+import six
 from django.test import TestCase
 from lxml import etree
 
@@ -75,7 +76,7 @@ class FindFilesTestCase(TestCase):
 
         expected = ['1.txt', '2.txt', '3.txt', '4.txt']
         found = find_files(xmlfile, rootdir=self.datadir)
-        self.assertItemsEqual([x.path for x in found], expected)
+        six.assertCountEqual(self, [x.path for x in found], expected)
 
     def test_files_mdRef_element(self):
         xmlfile = os.path.join(self.datadir, "test.xml")
@@ -151,7 +152,7 @@ class FindFilesTestCase(TestCase):
         expected = ['ext1.xml', 'ext2.xml', '1.txt', '1.pdf', '2.txt', '2.pdf']
         found = find_files(xmlfile, rootdir=self.datadir)
         self.assertEqual(len(found), len(expected))
-        self.assertItemsEqual(found, expected)
+        six.assertCountEqual(self, found, expected)
 
 
 class FindFileTestCase(TestCase):
