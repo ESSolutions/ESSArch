@@ -26,6 +26,7 @@
 import datetime
 import mock
 import os
+import re
 import shutil
 import unittest
 from collections import OrderedDict
@@ -44,7 +45,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseConten
 from ESSArch_Core.configuration.models import (
     Path,
 )
-from ESSArch_Core.util import normalize_path
+from ESSArch_Core.util import make_unicode, normalize_path
 
 
 class GenerateXMLTestCase(TestCase):
@@ -220,7 +221,7 @@ class GenerateXMLTestCase(TestCase):
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot()), "<foo/>")
+        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), "<foo/>")
 
     def test_generate_empty_element_with_hideEmptyContent(self):
         specification = {
@@ -247,7 +248,7 @@ class GenerateXMLTestCase(TestCase):
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot()), '<root>\n  <bar>baz</bar>\n</root>')
+        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), '<root>\n  <bar>baz</bar>\n</root>')
 
     def test_generate_empty_element_without_hideEmptyContent(self):
         specification = {
@@ -273,7 +274,7 @@ class GenerateXMLTestCase(TestCase):
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot()), '<root>\n  <bar>baz</bar>\n  <foo bar="baz"/>\n</root>')
+        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), '<root>\n  <bar>baz</bar>\n  <foo bar="baz"/>\n</root>')
 
     def test_generate_element_with_content_and_hideEmptyContent(self):
         specification = {
@@ -301,7 +302,7 @@ class GenerateXMLTestCase(TestCase):
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot()), '<root>\n  <bar>baz</bar>\n  <foo bar="baz">baz</foo>\n</root>')
+        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), '<root>\n  <bar>baz</bar>\n  <foo bar="baz">baz</foo>\n</root>')
 
     def test_generate_element_with_empty_child_and_hideEmptyContent(self):
         specification = {
@@ -324,7 +325,7 @@ class GenerateXMLTestCase(TestCase):
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot()), '<root/>')
+        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), '<root/>')
 
     def test_generate_element_with_foreach(self):
         specification = {
@@ -648,7 +649,7 @@ class GenerateXMLTestCase(TestCase):
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot()), '<root/>')
+        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), '<root/>')
 
     def test_generate_element_with_empty_child_with_containsFiles_and_hideEmptyContent_and_attributes(self):
         specification = {
@@ -684,7 +685,7 @@ class GenerateXMLTestCase(TestCase):
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot()), '<root/>')
+        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), '<root/>')
 
     def test_generate_element_with_empty_child_with_containsFiles_and_files_and_hideEmptyContent(self):
         specification = {
@@ -737,7 +738,7 @@ class GenerateXMLTestCase(TestCase):
 
         self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
-        self.assertEqual("<foo>bar</foo>", etree.tostring(tree.getroot()))
+        self.assertEqual("<foo>bar</foo>", etree.tostring(tree.getroot(), encoding='unicode'))
 
     def test_generate_required_element_with_content(self):
         specification = {
@@ -750,7 +751,7 @@ class GenerateXMLTestCase(TestCase):
 
         self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
-        self.assertEqual("<foo>bar</foo>", etree.tostring(tree.getroot()))
+        self.assertEqual("<foo>bar</foo>", etree.tostring(tree.getroot(), encoding='unicode'))
 
     def test_generate_empty_required_element(self):
         specification = {
@@ -791,10 +792,9 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        with self.assertRaises(ValueError) as e:
+        with six.assertRaisesRegex(self, ValueError, re.escape("Missing value for required element '/foo[0]/bar[1]/baz[2]'")):
             self.generator.generate({self.fname: {'spec': specification}})
 
-        self.assertEqual(e.exception.message, "Missing value for required element '/foo[0]/bar[1]/baz[2]'")
         self.assertFalse(os.path.exists(self.fname))
 
     def test_generate_empty_element_with_single_attribute(self):
@@ -814,7 +814,7 @@ class GenerateXMLTestCase(TestCase):
 
         self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
-        self.assertEqual('<foo bar="baz"/>', etree.tostring(tree.getroot()))
+        self.assertEqual('<foo bar="baz"/>', etree.tostring(tree.getroot(), encoding='unicode'))
 
     def test_generate_element_with_empty_attribute(self):
         specification = {
@@ -825,7 +825,7 @@ class GenerateXMLTestCase(TestCase):
 
         self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
-        self.assertEqual('<foo>baz</foo>', etree.tostring(tree.getroot()))
+        self.assertEqual('<foo>baz</foo>', etree.tostring(tree.getroot(), encoding='unicode'))
 
     def test_generate_element_with_nameless_attribute(self):
         specification = {
@@ -866,7 +866,7 @@ class GenerateXMLTestCase(TestCase):
         tree = etree.parse(self.fname)
         self.assertEqual(
             '<foo attr1="bar" attr2="baz"/>',
-            etree.tostring(tree.getroot())
+            etree.tostring(tree.getroot(), encoding='unicode')
         )
 
     def test_generate_required_attribute_with_content(self):
@@ -887,7 +887,7 @@ class GenerateXMLTestCase(TestCase):
 
         self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
-        self.assertEqual('<foo bar="baz"/>', etree.tostring(tree.getroot()))
+        self.assertEqual('<foo bar="baz"/>', etree.tostring(tree.getroot(), encoding='unicode'))
 
     def test_generate_empty_required_attribute(self):
         specification = {
@@ -938,10 +938,9 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        with self.assertRaises(ValueError) as e:
+        with six.assertRaisesRegex(self, ValueError, re.escape("Missing value for required attribute 'test' on element '/foo[0]/bar[1]/baz[2]'")):
             self.generator.generate({self.fname: {'spec': specification}})
 
-        self.assertEqual(e.exception.message, "Missing value for required attribute 'test' on element '/foo[0]/bar[1]/baz[2]'")
         self.assertFalse(os.path.exists(self.fname))
 
     def test_generate_element_with_content_and_attribute(self):
@@ -964,7 +963,7 @@ class GenerateXMLTestCase(TestCase):
         tree = etree.parse(self.fname)
         self.assertEqual(
             '<foo attr1="baz">bar</foo>',
-            etree.tostring(tree.getroot())
+            etree.tostring(tree.getroot(), encoding='unicode')
         )
 
     def test_generate_empty_element_with_attribute_using_var(self):
@@ -984,7 +983,7 @@ class GenerateXMLTestCase(TestCase):
 
         self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}})
         tree = etree.parse(self.fname)
-        self.assertEqual('<foo attr1="baz"/>', etree.tostring(tree.getroot()))
+        self.assertEqual('<foo attr1="baz"/>', etree.tostring(tree.getroot(), encoding='unicode'))
 
     def test_generate_element_with_content_using_var(self):
         specification = {
@@ -998,7 +997,7 @@ class GenerateXMLTestCase(TestCase):
 
         self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}})
         tree = etree.parse(self.fname)
-        self.assertEqual('<foo>baz</foo>', etree.tostring(tree.getroot()))
+        self.assertEqual('<foo>baz</foo>', etree.tostring(tree.getroot(), encoding='unicode'))
 
     def test_generate_element_with_nested_xml_content(self):
         specification = {
@@ -1008,7 +1007,7 @@ class GenerateXMLTestCase(TestCase):
 
         self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': '<bar>baz</bar>'}}})
         tree = etree.parse(self.fname)
-        self.assertEqual('<foo>\n  <bar>baz</bar>\n</foo>', etree.tostring(tree.getroot()))
+        self.assertEqual('<foo>\n  <bar>baz</bar>\n</foo>', etree.tostring(tree.getroot(), encoding='unicode'))
 
     def test_generate_element_with_requiredParameters_and_required_var(self):
         specification = {
@@ -1033,7 +1032,7 @@ class GenerateXMLTestCase(TestCase):
 
         self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}})
         tree = etree.parse(self.fname)
-        self.assertEqual('<root>\n  <foo>\n    <bar>baz</bar>\n  </foo>\n</root>', etree.tostring(tree.getroot()))
+        self.assertEqual('<root>\n  <foo>\n    <bar>baz</bar>\n  </foo>\n</root>', etree.tostring(tree.getroot(), encoding='unicode'))
 
     def test_generate_element_with_requiredParameters_and_no_required_var(self):
         specification = {
@@ -1059,7 +1058,7 @@ class GenerateXMLTestCase(TestCase):
 
         self.generator.generate({self.fname: {'spec': specification, 'data': {'foo': 'baz'}}})
         tree = etree.parse(self.fname)
-        self.assertEqual('<root/>', etree.tostring(tree.getroot()))
+        self.assertEqual('<root/>', etree.tostring(tree.getroot(), encoding='unicode'))
 
     def test_generate_element_with_children(self):
         specification = {
@@ -1081,7 +1080,7 @@ class GenerateXMLTestCase(TestCase):
 
         self.assertEqual(
             '<foo>\n  <bar>baz</bar>\n</foo>',
-            etree.tostring(tree.getroot())
+            etree.tostring(tree.getroot(), encoding='unicode')
         )
 
     def test_skipIfNoChildren_with_empty_child(self):
@@ -1112,7 +1111,7 @@ class GenerateXMLTestCase(TestCase):
 
         self.assertEqual(
             '<foo>\n  <second>value</second>\n</foo>',
-            etree.tostring(tree.getroot())
+            etree.tostring(tree.getroot(), encoding='unicode')
         )
 
     def test_skipIfNoChildren_with_non_empty_child(self):
@@ -1137,7 +1136,7 @@ class GenerateXMLTestCase(TestCase):
 
         self.assertEqual(
             '<foo>\n  <first>\n    <bar>value</bar>\n  </first>\n</foo>',
-            etree.tostring(tree.getroot())
+            etree.tostring(tree.getroot(), encoding='unicode')
         )
 
     def test_hide_content_if_missing_with_missing(self):
@@ -1163,7 +1162,7 @@ class GenerateXMLTestCase(TestCase):
 
         self.assertEqual(
             '<foo/>',
-            etree.tostring(tree.getroot())
+            etree.tostring(tree.getroot(), encoding='unicode')
         )
 
     def test_hide_content_if_missing_with_not_missing(self):
@@ -1189,7 +1188,7 @@ class GenerateXMLTestCase(TestCase):
 
         self.assertEqual(
             '<foo>\n  <bar>prefixvalue</bar>\n</foo>',
-            etree.tostring(tree.getroot())
+            etree.tostring(tree.getroot(), encoding='unicode')
         )
 
     def test_element_with_files(self):
@@ -2672,10 +2671,10 @@ class ParseContentTestCase(unittest.TestCase):
         foo = "åäö"
         info = {"foo": foo}
         contentobj = parseContent(content, info)
-        self.assertEqual(contentobj, six.text_type(foo, 'utf-8'))
+        self.assertEqual(contentobj, make_unicode(foo))
 
         content = [{"var": "bar"}]
-        bar = six.text_type("åäö", 'utf-8')
+        bar = make_unicode("åäö")
         info = {"bar": bar}
         contentobj = parseContent(content, info)
         self.assertEqual(contentobj, bar)
@@ -2683,7 +2682,7 @@ class ParseContentTestCase(unittest.TestCase):
         content = [{"var": "foo"}, {"var": "bar"}]
         info = {"foo": foo, "bar": bar}
         contentobj = parseContent(content, info)
-        self.assertEqual(contentobj, six.text_type(foo, 'utf-8') + bar)
+        self.assertEqual(contentobj, make_unicode(foo) + bar)
 
         # django template system
         contentobj = parseContent("{{foo}}", {"foo": "åäö"})

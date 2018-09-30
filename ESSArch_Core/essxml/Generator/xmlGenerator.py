@@ -324,7 +324,7 @@ class XMLElement(object):
                 for fileinfo in files:
                     include = True
 
-                    for key, file_filter in child.fileFilters.iteritems():
+                    for key, file_filter in six.iteritems(child.fileFilters):
                         if not re.search(file_filter, fileinfo.get(key)):
                             include = False
 
@@ -558,13 +558,12 @@ class XMLGenerator(object):
             )
             self.write(fname)
 
-            try:
+            if relpath:
                 relfilepath = os.path.relpath(fname, relpath)
-            except:
-                try:
-                    relfilepath = os.path.relpath(fname, folderToParse)
-                except:
-                    relfilepath = fname
+            elif folderToParse:
+                relfilepath = os.path.relpath(fname, folderToParse)
+            else:
+                relfilepath = fname
 
             if idx < len(self.toCreate) - 1:
                 fileinfo = parse_file(fname, self.fid, relfilepath, algorithm=algorithm)
@@ -609,7 +608,7 @@ class XMLGenerator(object):
         if data is None:
             data = {}
 
-        root_nsmap = {k: v for k, v in target.nsmap.iteritems() if k}
+        root_nsmap = {k: v for k, v in six.iteritems(target.nsmap) if k}
         el = XMLElement(spec, nsmap=root_nsmap).createLXMLElement(data)
 
         return self.insert(target, el, index=index, before=before, after=after)

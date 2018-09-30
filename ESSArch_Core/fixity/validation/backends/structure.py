@@ -48,7 +48,7 @@ class StructureValidator(BaseValidator):
 
     def in_valid_paths(self, root, path, valid_paths):
         for valid_path in [p for p in valid_paths if isinstance(p, six.string_types)]:
-            if path in map(normalize_path, glob(valid_path)):
+            if path in list(six.moves.map(normalize_path, glob(valid_path))):
                 return True
 
         for valid_path in [p for p in valid_paths if not isinstance(p, six.string_types)]:
@@ -57,7 +57,7 @@ class StructureValidator(BaseValidator):
                     found_nested_path = normalize_path(found_nested_path)
                     if found_nested_path == path:
                         # check matches
-                        matches = map(normalize_path, matches)
+                        matches = six.moves.map(normalize_path, matches)
                         for match in matches:
                             for related_path in valid_path:
                                 if related_path != found_nested_path:
@@ -75,7 +75,7 @@ class StructureValidator(BaseValidator):
     def validate_folder(self, path, node):
         valid_paths = node.get('valid_paths', [])
         allow_empty = node.get('allow_empty', True)
-        required_files = map(normalize_path, [req.format(**self.data) for req in node.get('required_files', [])])
+        required_files = list(six.moves.map(normalize_path, [req.format(**self.data) for req in node.get('required_files', [])]))
         file_count = 0
 
         for idx, valid in enumerate(valid_paths):
