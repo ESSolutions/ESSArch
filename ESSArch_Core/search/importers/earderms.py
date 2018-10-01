@@ -216,7 +216,7 @@ class EardErmsImporter(BaseImporter):
         data = self.parse_mappings(data_mappings, el)
         data['namn'] = el.get('Namn')
         if data['namn'] is not None:
-            data['namn'] = remove_prefix(remove_prefix(data['namn'], "Dokument/"), "Ärende/")
+            data['namn'] = remove_prefix(remove_prefix(data['namn'], "Dokument/"), u"Ärende/")
         data['datatyp'] = el.get('DataTyp')
         data['format'] = el.get('Format')
         data['element'] = [self.parse_eget_element(e) for e in el.xpath('*[local-name()="EgetElement"]')]
