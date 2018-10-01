@@ -8,7 +8,7 @@ from redis import StrictRedis
 from six.moves import cPickle
 
 from ESSArch_Core.tags import DELETION_QUEUE, INDEX_QUEUE, UPDATE_QUEUE
-from ESSArch_Core.tags.models import TagVersion
+from ESSArch_Core.tags.models import TagStructure, TagVersion
 
 logger = logging.getLogger('essarch.core')
 r = StrictRedis()
@@ -23,13 +23,16 @@ def queue_tag_for_index(sender, instance, created, **kwargs):
             tag.current_version = instance
             tag.save(update_fields=['current_version'])
 
-    current_structure = instance.tag.get_active_structure()
-    parent = current_structure.parent
-    if parent is not None:
-        parent = {
-            'id': six.text_type(parent.tag.current_version.pk),
-            'index': parent.tag.current_version.elastic_index,
-        }
+    try:
+        current_structure = instance.tag.get_active_structure()
+        parent = current_structure.parent
+        if parent is not None:
+            parent = {
+                'id': six.text_type(parent.tag.current_version.pk),
+                'index': parent.tag.current_version.elastic_index,
+            }
+    except TagStructure.DoesNotExist:
+        parent = None
 
     data = {
         'doc_as_upsert': True,
