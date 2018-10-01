@@ -1,4 +1,4 @@
-angular.module('essarch.controllers').controller('LanguageCtrl', function($scope, $rootScope, $cookies, $cookieStore, $translate) {
+angular.module('essarch.controllers').controller('LanguageCtrl', function($scope, $rootScope, $cookies, $translate) {
     $scope.changeLanguage = function(lang) {
         $translate.use(lang);
         moment.locale(lang);
