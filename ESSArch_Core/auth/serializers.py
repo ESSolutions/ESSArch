@@ -124,7 +124,7 @@ class UserLoggedInSerializer(UserSerializer):
         return obj.get_all_permissions()
 
     def get_organizations(self, user):
-        groups = get_organization_groups(user)
+        groups = get_organization_groups(user).order_by('name')
         serializer = GroupSerializer(data=groups, many=True)
         serializer.is_valid()
         return serializer.data
