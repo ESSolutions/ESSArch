@@ -254,7 +254,7 @@ class XMLComparisonValidator(DiffCheckValidator):
 
         skip_files = [os.path.relpath(xmlfile, self.rootdir)]
         skip_files.extend([p.path for p in find_pointers(path)])
-        skip_files = map(normalize_path, skip_files)
+        skip_files = list(map(normalize_path, skip_files))
         for f in find_files(path, rootdir=self.rootdir, skip_files=skip_files):
             if f in self.exclude:
                 continue

@@ -55,7 +55,7 @@ class ChecksumValidator(BaseValidator):
         if self.context == 'checksum_str':
             checksum = expected.lower()
         elif self.context == 'checksum_file':
-            with open(expected, 'rb') as checksum_file:
+            with open(expected, 'r') as checksum_file:
                 checksum = checksum_file.read().strip()
         elif self.context == 'xml_file':
             xml_el, _ = find_file(filepath, xmlfile=expected)

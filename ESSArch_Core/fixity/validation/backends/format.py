@@ -46,18 +46,18 @@ class FormatValidator(BaseValidator):
         passed = False
         try:
             actual_name, actual_version, actual_reg_key = self.fid.identify_file_format(filepath)
-            try:
-                if name:
-                    assert actual_name == name, "format name for %s is not valid, (%s != %s)" % (filepath, name, actual_name)
-                if version:
-                    assert actual_version == version, "format version for %s is not valid, (%s != %s)" % (filepath, version, actual_version)
-                if reg_key:
-                    assert actual_reg_key == reg_key, "format registry key for %s is not valid, (%s != %s)" % (filepath, reg_key, actual_reg_key)
-            except AssertionError as e:
-                raise ValidationError(e.message)
+            if name and name != actual_name:
+                raise ValidationError(u"format name for {} is not valid, ({} !={})"
+                                      .format(filepath, name, actual_name))
+            if version and version != actual_version:
+                raise ValidationError(u"format version for {} is not valid, ({} != {})"
+                                      .format(filepath, version, actual_version))
+            if reg_key and reg_key != actual_reg_key:
+                raise ValidationError(u"format registry key for {} is not valid, ({} != {})"
+                                      .format(filepath, reg_key, actual_reg_key))
 
             passed = True
-        except Exception:
+        except ValidationError:
             val_obj.message = traceback.format_exc()
             raise
         else:

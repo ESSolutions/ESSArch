@@ -1,9 +1,12 @@
+from __future__ import unicode_literals
+
 import errno
 import hashlib
 import os
 import shutil
 import tempfile
 
+import six
 from django.test import TestCase
 from lxml import etree
 from pyfakefs import fake_filesystem_unittest
@@ -24,10 +27,10 @@ class ChecksumValidatorTests(TestCase, fake_filesystem_unittest.TestCase):
         self.setUpPyfakefs()
         self.test_file = 'foo.txt'
         self.content = 'test file'
-        with open(self.test_file, 'wb') as f:
+        with open(self.test_file, 'w') as f:
             f.write(self.content)
 
-        md5 = hashlib.md5(self.content)
+        md5 = hashlib.md5(self.content.encode('utf-8'))
         self.checksum = md5.hexdigest()
 
     def test_validate_against_string(self):
@@ -42,7 +45,7 @@ class ChecksumValidatorTests(TestCase, fake_filesystem_unittest.TestCase):
     def test_validate_against_checksum_file(self):
         checksum_file = '%s.md5' % self.test_file
         options = {'expected': checksum_file}
-        with open(checksum_file, 'wb') as f:
+        with open(checksum_file, 'w') as f:
             f.write(self.checksum)
 
         self.validator = ChecksumValidator(context='checksum_file', options=options)
@@ -62,7 +65,7 @@ class ChecksumValidatorXMLTests(TestCase):
     """
 
     def setUp(self):
-        self.content = 'test file'
+        self.content = b'test file'
         md5 = hashlib.md5(self.content)
         self.checksum = md5.hexdigest()
 
@@ -75,6 +78,7 @@ class ChecksumValidatorXMLTests(TestCase):
     def test_validate_against_xml_file_valid(self):
         xml_str = '<root><file CHECKSUM="{hash}" CHECKSUMTYPE="{alg}"><FLocat href="{file}"/></file></root>'.format(
             hash=self.checksum, alg='md5', file=self.test_file.name)
+        xml_str = six.binary_type(xml_str.encode('utf-8'))
         self.xml_file.write(xml_str)
         self.xml_file.seek(0)
 
@@ -85,6 +89,7 @@ class ChecksumValidatorXMLTests(TestCase):
     def test_validate_against_xml_file_invalid(self):
         xml_str = '<root><file CHECKSUM="{hash}" CHECKSUMTYPE="{alg}"><FLocat href="{file}"/></file></root>'.format(
             hash=self.checksum + 'appended', alg='md5', file=self.test_file.name)
+        xml_str = six.binary_type(xml_str.encode('utf-8'))
         self.xml_file.write(xml_str)
         self.xml_file.seek(0)
 
@@ -95,7 +100,7 @@ class ChecksumValidatorXMLTests(TestCase):
             self.validator.validate(self.test_file.name)
 
     def test_validate_against_xml_file_with_multiple_files(self):
-        content2 = 'test file 2'
+        content2 = b'test file 2'
         md5 = hashlib.md5(content2)
         checksum2 = md5.hexdigest()
 
@@ -114,6 +119,7 @@ class ChecksumValidatorXMLTests(TestCase):
             </root>'''.format(
                     hash=self.checksum, alg='md5', file=self.test_file.name,
                     hash2=checksum2, file2=test_file2.name)
+        xml_str = six.binary_type(xml_str.encode('utf-8'))
         self.xml_file.write(xml_str)
         self.xml_file.seek(0)
 
@@ -126,7 +132,7 @@ class ChecksumValidatorXMLTests(TestCase):
 
 class FormatValidatorTests(TestCase):
     def setUp(self):
-        self.content = 'test file'
+        self.content = b'test file'
         self.test_file = tempfile.NamedTemporaryFile(suffix='.txt')
         self.test_file.write(self.content)
         self.test_file.seek(0)
@@ -490,7 +496,7 @@ class DiffCheckValidatorTests(TestCase):
     def test_validation_without_files(self):
         root = etree.fromstring('<root></root>')
 
-        with open(self.fname, 'w') as f:
+        with open(self.fname, 'wb') as f:
             f.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
@@ -936,9 +942,9 @@ class XMLComparisonValidatorTests(TestCase):
     def test_validation_without_files(self):
         root = etree.fromstring('<root></root>')
 
-        with open(self.mets, 'w') as f:
+        with open(self.mets, 'wb') as f:
             f.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
-        with open(self.premis, 'w') as f:
+        with open(self.premis, 'wb') as f:
             f.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
