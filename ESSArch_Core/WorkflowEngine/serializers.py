@@ -22,8 +22,8 @@
     Email - essarch@essolutions.se
 """
 
+import six
 from celery import states as celery_states
-
 from rest_framework import serializers
 
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
@@ -116,13 +116,13 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
 
     def get_params(self, obj):
         params = obj.params
-        for param, task in obj.result_params.iteritems():
+        for param, task in six.iteritems(obj.result_params):
             try:
                 params[param] = get_result(task)
             except ProcessTask.DoesNotExist:
                 params[param] = 'waiting on result from %s ...' % task
 
-        return dict((k.encode('utf-8'), v) for k, v in params.iteritems())
+        return dict((k.encode('utf-8'), v) for k, v in six.iteritems(params))
 
     def get_result(self, obj):
         return str(obj.result)

@@ -24,6 +24,7 @@
 
 from collections import OrderedDict
 
+import six
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -495,7 +496,7 @@ class add(View):
 
             schemadoc = etree.fromstring(schema_request.content)
             targetNamespace = schemadoc.get('targetNamespace')
-            nsmap = {k: v for k, v in schemadoc.nsmap.iteritems() if k and v != "http://www.w3.org/2001/XMLSchema"}
+            nsmap = {k: v for k, v in six.iteritems(schemadoc.nsmap) if k and v != "http://www.w3.org/2001/XMLSchema"}
 
             existingElements, allElements = generateJsonRes(schemadoc, root, prefix);
             existingElements["root"]["nsmap"] = nsmap
@@ -541,7 +542,7 @@ class addExtension(View):
             schema_request.raise_for_status()
 
             schemadoc = etree.fromstring(schema_request.content)
-            nsmap = {k: v for k, v in schemadoc.nsmap.iteritems() if k and v != "http://www.w3.org/2001/XMLSchema"}
+            nsmap = {k: v for k, v in six.iteritems(schemadoc.nsmap) if k and v != "http://www.w3.org/2001/XMLSchema"}
             targetNamespace = schemadoc.get('targetNamespace')
 
             extensionElements, extensionAll, attributes = generateExtensionRef(schemadoc, prefix)

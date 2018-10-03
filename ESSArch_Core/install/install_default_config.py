@@ -30,9 +30,9 @@ django.setup()
 from ESSArch_Core.configuration.models import EventType, Parameter
 
 def installDefaultConfiguration():
-    print "Installing event types..."
+    print("Installing event types...")
     installDefaultEventTypes()
-    print "Installing parameters..."
+    print("Installing parameters...")
     installDefaultParameters()
 
     return 0
@@ -114,7 +114,7 @@ def installDefaultEventTypes():
     }
 
     for key in dct:
-        print '-> %s: %s' % (key, dct[key])
+        print('-> %s: %s' % (key, dct[key]))
         EventType.objects.get_or_create(eventType=dct[key], eventDetail=key)
 
     return 0
@@ -131,7 +131,7 @@ def installDefaultParameters():
     }
 
     for key in dct:
-        print '-> %s: %s' % (key, dct[key])
+        print('-> %s: %s' % (key, dct[key]))
         Parameter.objects.get_or_create(entity=key, value=dct[key])
 
     return 0

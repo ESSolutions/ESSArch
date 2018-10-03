@@ -48,8 +48,10 @@ import uuid
 from copy import copy
 
 import jsonfield
+import six
 from django.conf import settings
 from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
 
 from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
 from ESSArch_Core.profiles.validators import validate_template
@@ -89,6 +91,7 @@ class ProfileQuerySet(models.query.QuerySet):
         return profile_set.first().profile
 
 
+@python_2_unicode_compatible
 class ProfileSA(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
@@ -104,8 +107,8 @@ class ProfileSA(models.Model):
     )
     Unlockable = models.BooleanField(default=False)
 
-    def __unicode__(self):
-        return unicode(self.id)
+    def __str__(self):
+        return six.text_type(self.id)
 
     class Meta:
         unique_together = (
@@ -113,6 +116,7 @@ class ProfileSA(models.Model):
         )
 
 
+@python_2_unicode_compatible
 class ProfileIP(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
@@ -167,8 +171,8 @@ class ProfileIP(models.Model):
 
         return data
 
-    def __unicode__(self):
-        return unicode(self.id)
+    def __str__(self):
+        return six.text_type(self.id)
 
     class Meta:
         unique_together = (
@@ -327,7 +331,7 @@ class SubmissionAgreement(models.Model):
         clone.pk = None
         clone.name = new_name
 
-        for k, v in new_data.iteritems():
+        for k, v in six.iteritems(new_data):
             setattr(clone, k, v)
 
         clone.save()

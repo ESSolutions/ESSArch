@@ -6,10 +6,12 @@ import uuid
 from datetime import timedelta
 
 import requests
+import six
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import Case, When, Value, IntegerField
 from django.db.models.functions import Cast
+from django.utils.encoding import python_2_unicode_compatible
 from picklefield.fields import PickledObjectField
 from retrying import retry
 from six.moves import urllib
@@ -156,6 +158,7 @@ class StorageMethodQueryset(models.QuerySet):
         return self.filter(containers=True)
 
 
+@python_2_unicode_compatible
 class StorageMethod(models.Model):
     """Disk, tape or CAS"""
 
@@ -179,13 +182,14 @@ class StorageMethod(models.Model):
     class Meta:
         ordering = ['name']
 
-    def __unicode__(self):
+    def __str__(self):
         if len(self.name):
             return self.name
 
-        return unicode(self.id)
+        return six.text_type(self.id)
 
 
+@python_2_unicode_compatible
 class StorageMethodTargetRelation(models.Model):
     """Relation between StorageMethod and StorageTarget"""
 
@@ -199,11 +203,11 @@ class StorageMethodTargetRelation(models.Model):
         verbose_name = 'Storage Target/Method Relation'
         ordering = ['name']
 
-    def __unicode__(self):
+    def __str__(self):
         if len(self.name):
             return self.name
 
-        return unicode(self.id)
+        return six.text_type(self.id)
 
 
 class StorageTargetQueryset(models.QuerySet):
@@ -236,6 +240,7 @@ class StorageTargetQueryset(models.QuerySet):
         ).order_by('remote', 'container_order', 'storage_type')
 
 
+@python_2_unicode_compatible
 class StorageTarget(models.Model):
     """A series of tapes or a single disk"""
 
@@ -293,11 +298,11 @@ class StorageTarget(models.Model):
         verbose_name = 'Storage Target'
         ordering = ['name']
 
-    def __unicode__(self):
+    def __str__(self):
         if len(self.name):
             return self.name
 
-        return unicode(self.id)
+        return six.text_type(self.id)
 
 
 class StorageMediumQueryset(models.QuerySet):
@@ -336,6 +341,7 @@ class StorageMediumQueryset(models.QuerySet):
         ).order_by('remote', 'container_order', 'storage_type')
 
 
+@python_2_unicode_compatible
 class StorageMedium(models.Model):
     "A single storage medium (device)"
 
@@ -394,11 +400,11 @@ class StorageMedium(models.Model):
             ("list_storageMedium", "Can list storageMedium"),
         )
 
-    def __unicode__(self):
+    def __str__(self):
         if len(self.medium_id):
             return self.medium_id
 
-        return unicode(self.id)
+        return six.text_type(self.id)
 
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
@@ -440,6 +446,7 @@ class StorageObjectQueryset(models.QuerySet):
         ).order_by('remote', 'container_order', 'storage_type')
 
 
+@python_2_unicode_compatible
 class StorageObject(models.Model):
     """The stored representation of an archive object on a storage medium"""
 
@@ -559,7 +566,7 @@ class StorageObject(models.Model):
             validator = ChecksumValidator(context='checksum_str', options=options)
             validator.validate(filename)
 
-    def __unicode__(self):
+    def __str__(self):
         try:
             medium_id = self.storage_medium.medium_id
         except ObjectDoesNotExist:
@@ -579,6 +586,7 @@ class StorageObject(models.Model):
         return False
 
 
+@python_2_unicode_compatible
 class TapeDrive(models.Model):
     STATUS_CHOICES = (
         (0, 'Inactive'),
@@ -597,9 +605,11 @@ class TapeDrive(models.Model):
     locked = models.BooleanField(default=False)
     status = models.IntegerField(choices=STATUS_CHOICES, default=20)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.device
 
+
+@python_2_unicode_compatible
 class TapeSlot(models.Model):
     STATUS_CHOICES = (
         (0, 'Inactive'),
@@ -616,17 +626,18 @@ class TapeSlot(models.Model):
     class Meta:
         unique_together = ('slot_id', 'robot')
 
-    def __unicode__(self):
-        return unicode(self.slot_id)
+    def __str__(self):
+        return six.text_type(self.slot_id)
 
 
+@python_2_unicode_compatible
 class Robot(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     label = models.CharField("Describing label for the robot", max_length=255, blank=True)
     device = models.CharField(max_length=255, unique=True)
     online = models.BooleanField(default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.label
 
 

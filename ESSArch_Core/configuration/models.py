@@ -22,9 +22,12 @@
     Email - essarch@essolutions.se
 """
 
+import six
+
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
 
 import uuid
 
@@ -150,6 +153,7 @@ class DefaultColumnVisible(models.Model):
     visible = models.BooleanField(default=True)
 
 
+@python_2_unicode_compatible
 class ArchivePolicy(models.Model):
     """Specifies how an IP should be archived"""
 
@@ -228,13 +232,13 @@ class ArchivePolicy(models.Model):
     class Meta:
         ordering = ['policy_name']
 
-    def __unicode__(self):
+    def __str__(self):
         if len(self.policy_name):
             return self.policy_name
         elif len(self.policy_id):
-            return unicode(self.policy_id)
+            return six.text_type(self.policy_id)
         else:
-            return str(self.pk)
+            return six.text_type(self.pk)
 
 
 class DefaultSorting(models.Model):
