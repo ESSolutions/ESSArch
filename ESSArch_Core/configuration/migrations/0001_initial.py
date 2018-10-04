@@ -38,8 +38,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='EventType',
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
-                ('eventType', models.IntegerField(default=0, unique=True)),
+                ('eventType', models.IntegerField(default=0, primary_key=True, serialize=False)),
                 ('eventDetail', models.CharField(max_length=255)),
             ],
             options={
