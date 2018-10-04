@@ -142,6 +142,8 @@ class Archive(VersionedDocType):
     unit_dates = Nested()  # unitdate
     desc = Text(analyzer=autocomplete_analyzer, search_analyzer='standard')
     type = Keyword()
+    archive_creator = Keyword()
+    archive_responsible = Keyword()
     institution = Keyword()
     organization = Keyword()
     organization_group = Integer()
