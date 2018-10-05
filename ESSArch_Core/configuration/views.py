@@ -24,8 +24,11 @@
 
 from _version import get_versions
 
+from django.db import connection
 from django.conf import settings
 from django.utils import timezone
+
+from sqlite3 import sqlite_version
 
 from ESSArch_Core.configuration.models import (
     Agent,
@@ -57,6 +60,27 @@ class SysInfoView(APIView):
     API endpoint that allows system info to be viewed
     """
 
+    def get_database_info(self):
+        vendor = connection.vendor
+        version = None
+
+        if vendor == 'mysql':
+            version = connection.mysql_version
+
+        if vendor == 'sqlite':
+            version = sqlite_version
+
+        if vendor == 'postgresql':
+            version = connection.pg_version
+
+        if vendor == 'oracle':
+            version = connection.oracle_full_version
+
+        if vendor == 'microsoft':
+            version = connection.sql_server_version
+
+        return {'vendor': vendor, 'version': version}
+
     def get(self, request):
         context = {}
         cwd = settings.BASE_DIR
@@ -64,7 +88,6 @@ class SysInfoView(APIView):
         # Shell commands: Name and command
         SHELL_COMMANDS = [
             ('hostname', 'hostname'),
-            ('mysql_version', 'mysql --version'),
             ('python_packages', 'pip freeze'),
         ]
 
@@ -77,6 +100,7 @@ class SysInfoView(APIView):
 
         context['version'] = get_versions()['version']
         context['time_checked'] = timezone.now()
+        context['database'] = self.get_database_info()
 
         for name, cmd in SHELL_COMMANDS:
             context[name] = run_shell_command(cmd, cwd)
