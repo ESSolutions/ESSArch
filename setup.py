@@ -127,7 +127,6 @@ if __name__ == '__main__':
         author_email='info@essolutions.se',
         url='http://www.essolutions.se',
         install_requires=[
-            "mysqlclient>=1.3.12",
             "pyodbc>=3.0.10",
             "pytz>=2017.2",
             "psutil>=3.2.1",
@@ -228,6 +227,9 @@ if __name__ == '__main__':
             "s3transfer>=0.1.13",
 
         ],
+        extras_require={
+            "mysql": ["mysqlclient==1.3.13"],
+        },
         packages=find_packages(),
         include_package_data=True,
         zip_safe=False,
