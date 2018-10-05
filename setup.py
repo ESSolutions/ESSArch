@@ -192,9 +192,6 @@ if __name__ == '__main__':
             "redis>=2.10.6",
             "django-redis>=4.9.0",
             "httpretty>=0.8.14",
-            "unoconv>=0.6",
-            "python-ldap>=2.4.45",
-            "django-auth-ldap>=1.2.16",
             "django-mptt==0.8.7",
             "drf-extensions>=0.4,<0.5",
             "drf-proxy-pagination==0.1.1",
@@ -218,8 +215,6 @@ if __name__ == '__main__':
             "opf-fido>=1.3.7",
             "soapfish>=0.6.0.dev0",
             "logfileviewer>=0.6.3",            
-            "boto3>=1.7.72",
-            "botocore>=1.10.72",
             "docutils>=0.14",
             "futures>=3.2.0",
             "jmespath>=0.9.3",
@@ -228,6 +223,9 @@ if __name__ == '__main__':
 
         ],
         extras_require={
+            "s3":  ["boto3==1.9.14"],
+            "ldap":  ["django-auth-ldap>=1.7,<1.8"],
+            "libreoffice_file_conversion":  ["unoconv>=0.8,<0.9"],
             "mysql": ["mysqlclient==1.3.13"],
         },
         packages=find_packages(),
