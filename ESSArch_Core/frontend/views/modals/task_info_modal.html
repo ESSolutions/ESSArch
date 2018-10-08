@@ -154,11 +154,11 @@
 </div>
 <div class="modal-footer">
     <div class="float-left">
-        <button class="btn btn-danger" ng-click="myTreeControl.scope.taskStepUndo(currentStepTask)"
+        <button class="btn btn-danger" ng-click="myTreeControl.scope.taskStepUndo(angular.copy(currentStepTask))"
         ng-if="checkPermission('WorkflowEngine.can_undo') && (currentStepTask.status == 'SUCCESS' || currentStepTask.status == 'FAILURE') && !currentStepTask.undone && !currentStepTask.undo_type"
         >{{'UNDO' | translate}}</button>
 
-        <button class="btn btn-success" ng-click="myTreeControl.scope.taskStepRedo(currentStepTask)"
+        <button class="btn btn-success" ng-click="myTreeControl.scope.taskStepRedo(angular.copy(currentStepTask))"
         ng-if="checkPermission('WorkflowEngine.can_retry') && currentStepTask.flow_type == 'task' && currentStepTask.status == 'FAILURE'"
         >{{'REDO' | translate}}</button>
     </div>

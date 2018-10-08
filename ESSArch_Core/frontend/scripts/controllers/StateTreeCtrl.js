@@ -1,6 +1,7 @@
 angular.module('essarch.controllers').controller('StateTreeCtrl', function($scope, $translate, Step, Task, listViewService, appConfig, $timeout, $interval, PermPermissionStore, $q, $uibModal, $log, Notifications) {
     var vm = this;
     var stateInterval;
+    $scope.angular = angular;
     $scope.myTreeControl = {};
     $scope.myTreeControl.scope = this;
     $scope.tree_data = [];
@@ -115,6 +116,11 @@ angular.module('essarch.controllers').controller('StateTreeCtrl', function($scop
     //Undo step/task
     $scope.myTreeControl.scope.taskStepUndo = function(branch) {
         branch.$undo().then(function(response) {
+            if($scope.currentStepTask.flow_type === 'task') {
+                $scope.getTask($scope.currentStepTask);
+            } else {
+                $scope.getStep($scope.currentStepTask);
+            }
             $timeout(function(){
                 $scope.statusViewUpdate($scope.ip);
             }, 1000);
@@ -125,6 +131,11 @@ angular.module('essarch.controllers').controller('StateTreeCtrl', function($scop
     //Redo step/task
     $scope.myTreeControl.scope.taskStepRedo = function(branch){
         branch.$retry().then(function(response) {
+            if($scope.currentStepTask.flow_type === 'task') {
+                $scope.getTask($scope.currentStepTask);
+            } else {
+                $scope.getStep($scope.currentStepTask);
+            }
             $timeout(function(){
                 $scope.statusViewUpdate($scope.ip);
             }, 1000);
@@ -199,14 +210,18 @@ angular.module('essarch.controllers').controller('StateTreeCtrl', function($scop
     };
 
     // build comma separated args display string
-    vm.getArgsString = function(args) {
-        return args.map(function(x) {
-            if(x === null) {
-                return 'null';
-            } else {
-                return x;
-            }
-        }).join(', ');
+    vm.getArgsString = function (args) {
+        if (!angular.isUndefined(args)) {
+            return args.map(function (x) {
+                if (x === null) {
+                    return 'null';
+                } else {
+                    return x;
+                }
+            }).join(', ');
+        } else {
+            return '';
+        }
     }
 
     $scope.checkPermission = function(permissionName) {
