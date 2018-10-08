@@ -57,6 +57,8 @@ class ProfileSASerializer(serializers.ModelSerializer):
 
 
 class ProfileIPDataSerializer(serializers.ModelSerializer):
+    data = serializers.JSONField(required=False)
+
     def validate(self, data):
         relation = data['relation']
         instance_data = data.get('data', {})
