@@ -1,5 +1,4 @@
 asgi-redis==1.4.3
-boto3==1.9.14
 celery==3.1.25
 cffi==1.11.5
 channels==1.1.8
