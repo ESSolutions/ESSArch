@@ -115,7 +115,7 @@ class Migration(migrations.Migration):
             model_name='tag',
             name='version_start_date',
         ),
-        migrations.AlterField(
+        migrations.AddField(
             model_name='tag',
             name='current_version',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='current_version_tags', to='tags.TagVersion'),

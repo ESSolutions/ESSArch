@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+import jsonfield.fields
 
 
 class Migration(migrations.Migration):
@@ -15,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='workarea',
             name='successfully_validated',
-            field=models.BooleanField(default=False),
+            field=jsonfield.fields.JSONField(default=None, null=True),
         ),
     ]

@@ -22,11 +22,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='tag',
-            name='current_version',
-            field=models.BooleanField(default=True),
-        ),
-        migrations.AddField(
-            model_name='tag',
             name='index',
             field=models.CharField(default=None, max_length=255),
         ),

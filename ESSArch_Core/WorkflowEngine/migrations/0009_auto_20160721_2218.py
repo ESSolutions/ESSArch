@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='processtask',
             name='undone',
-            field=models.BooleanField(default=False),
+            field=models.OneToOneField(blank=True, null=True, on_delete=models.SET_NULL, related_name='undone_task', to='WorkflowEngine.ProcessTask'),
         ),
         migrations.AlterField(
             model_name='processtask',
