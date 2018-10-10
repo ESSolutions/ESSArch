@@ -16,7 +16,7 @@ from six.moves import cPickle
 
 from ESSArch_Core.search.importers.base import BaseImporter
 from ESSArch_Core.tags import INDEX_QUEUE
-from ESSArch_Core.tags.documents import Archive, Component, Document, Node
+from ESSArch_Core.tags.documents import Archive, Component, File, Node
 from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
 from ESSArch_Core.util import get_tree_size_and_count, normalize_path, remove_prefix, timestamp_to_datetime
 
@@ -76,7 +76,7 @@ class EardErmsImporter(BaseImporter):
         size, _ = get_tree_size_and_count(filepath)
         modified = timestamp_to_datetime(os.stat(filepath).st_mtime)
 
-        d = Document(_id=id, name=name, type='Bilaga', archive=act.archive, desc=desc, filename=filename, href=href, extension=ext,
+        d = File(_id=id, name=name, type='Bilaga', archive=act.archive, desc=desc, filename=filename, href=href, extension=ext,
                      data=encoded_content, size=size, modified=modified, current_version=True, ip=str(ip.pk))
 
         tag = Tag(information_package=ip)

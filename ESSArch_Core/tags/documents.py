@@ -1,58 +1,15 @@
 from django.utils import timezone
-from elasticsearch_dsl import (Boolean, Date, DocType, Field, InnerDoc, Integer, Keyword, Long,
+from elasticsearch_dsl import (Boolean, Date, Document, Field, InnerDoc, Integer, Keyword, Long,
                                MetaField, Nested, Object, Q, Text, analyzer,
                                tokenizer, token_filter)
 
-ngram_tokenizer=tokenizer('custom_ngram_tokenizer', type='ngram', min_gram=3,
-                          max_gram=3)
+ngram_tokenizer = tokenizer('custom_ngram_tokenizer', type='ngram', min_gram=3,
+                            max_gram=3)
 ngram_analyzer = analyzer('custom_ngram_analyzer', tokenizer=ngram_tokenizer,
                           filter=['lowercase'])
 
 autocomplete_filter = token_filter('autocomplete_filter', type='edge_ngram', min_gram=1, max_gram=20)
 autocomplete_analyzer = analyzer('autocomplete_analyzer', filter=[autocomplete_filter, 'lowercase'], tokenizer='standard')
-
-class Tag(DocType):
-    name = Text(analyzer=ngram_analyzer, search_analyzer='standard')
-    desc = Text()
-    parents = Object()
-    reference_code = Keyword()
-    start_date = Date()
-    end_date = Date()
-
-    class Meta:
-        index = 'tags'
-
-
-class Archive(Tag):
-    class Meta:
-        index = 'tags'
-
-
-class Series(Tag):
-    class Meta:
-        index = 'tags'
-
-
-class Volume(Tag):
-    class Meta:
-        index = 'tags'
-
-class Activity(Tag):
-    class Meta:
-        index = 'tags'
-
-class ProcessGroup(Tag):
-    class Meta:
-        index = 'tags'
-
-class Process(Tag):
-    class Meta:
-        index = 'tags'
-
-class Document(Tag):
-    terms_and_condition = Keyword()
-    class Meta:
-        index = 'tags'
 
 
 class Node(InnerDoc):
@@ -66,7 +23,7 @@ class Restriction(InnerDoc):
     permissions = Keyword()
 
 
-class VersionedDocType(DocType):
+class VersionedDocType(Document):
     name = Text(analyzer=autocomplete_analyzer, search_analyzer='standard', fields={'keyword': {'type': 'keyword'}})  # unittitle
     reference_code = Text(analyzer=autocomplete_analyzer, search_analyzer='standard', fields={'keyword': {'type': 'keyword'}})
     link_id = Keyword()
@@ -132,8 +89,11 @@ class Component(VersionedDocType):
     organization = Keyword()
     ip = Keyword()
 
+    class Index:
+        name = 'component'
+        analyzers = [autocomplete_analyzer]
+
     class Meta:
-        index = 'component'
         date_detection = MetaField('false')
 
 
@@ -148,8 +108,11 @@ class Archive(VersionedDocType):
     organization = Keyword()
     organization_group = Integer()
 
+    class Index:
+        name = 'archive'
+        analyzers = [autocomplete_analyzer]
+
     class Meta:
-        index = 'archive'
         date_detection = MetaField('false')
 
 
@@ -161,24 +124,30 @@ class InformationPackage(VersionedDocType):
     institution = Keyword()
     organization = Keyword()
 
+    class Index:
+        name = 'information_package'
+        analyzers = [autocomplete_analyzer, ngram_analyzer]
+
     class Meta:
-        index = 'information_package'
         date_detection = MetaField('false')
 
 
-class Document(Component):
+class File(Component):
     filename = Keyword()
     extension = Keyword()
     href = Keyword()  # @href
     size = Long()
     modified = Date()
-    attachment = Field(
+    attachment = Object(
         properties={
             'date': Date()
         })
 
+    class Index:
+        name = 'document'
+        analyzers = [autocomplete_analyzer]
+
     class Meta:
-        index = 'document'
         date_detection = MetaField('false')
 
 
@@ -186,6 +155,9 @@ class Directory(VersionedDocType):
     ip = Keyword()
     href = Keyword()  # @href
 
+    class Index:
+        name = 'directory'
+        analyzers = [autocomplete_analyzer]
+
     class Meta:
-        index = 'directory'
         date_detection = MetaField('false')

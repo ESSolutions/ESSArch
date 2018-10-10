@@ -15,13 +15,12 @@ def setup_index(doctype):
     deploy.
     """
 
-    alias = doctype._doc_type.index
+    alias = doctype._index._name
+    print alias
     pattern = '{alias}-*'.format(alias=alias)
 
     # create an index template
-    index_template = IndexTemplate(alias, pattern)
-    # add the DocType mappings
-    index_template.doc_type(doctype)
+    index_template = doctype._index.as_template(alias, pattern)
     # upload the template into elasticsearch
     # potentially overriding the one already there
     index_template.save()
@@ -60,10 +59,10 @@ def migrate(doctype, move_data=True, update_alias=True, delete_old_index=False):
     es = get_connection()
 
     # get current index name from the alias
-    current_index = es.indices.get_alias(doctype._doc_type.index).keys()[0]
+    current_index = es.indices.get_alias(doctype._index._name).keys()[0]
 
     # construct a new index name by appending current timestamp
-    alias = doctype._doc_type.index
+    alias = doctype._index._name
     pattern = '{alias}-*'.format(alias=alias)
     next_index = get_next_index(pattern)
 

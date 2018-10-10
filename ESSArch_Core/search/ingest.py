@@ -3,7 +3,7 @@ import os
 import uuid
 
 from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.tags.documents import Directory, Document
+from ESSArch_Core.tags.documents import Directory, File
 from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
 from ESSArch_Core.util import get_tree_size_and_count, timestamp_to_datetime
 
@@ -21,7 +21,7 @@ def index_document(ip, filepath, id):
     size, _ = get_tree_size_and_count(filepath)
     modified = timestamp_to_datetime(os.stat(filepath).st_mtime)
 
-    doc = Document(_id=id, name=filename, type="document", filename=filename, extension=extension, href=href, ip=str(ip.pk),
+    doc = File(_id=id, name=filename, type="document", filename=filename, extension=extension, href=href, ip=str(ip.pk),
                    data=encoded_content, size=size, modified=modified, current_version=True)
     doc.save(pipeline='ingest_attachment')
     return doc
@@ -49,7 +49,7 @@ def index_path(ip, path, parent=None):
     :param parent: The parent of the tag
     :type parent: TagStructure
     :return: The indexed elasticsearch document
-    :rtype: Document or Directory
+    :rtype: File or Directory
     """
 
     isfile = os.path.isfile(path)
