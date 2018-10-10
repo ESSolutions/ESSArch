@@ -31,7 +31,8 @@ import time
 import six
 from billiard.einfo import ExceptionInfo
 
-from celery import current_app, exceptions, states as celery_states, Task
+from celery import current_app, exceptions, states as celery_states
+from celery.task.base import Task
 
 from ESSArch_Core.configuration.models import EventType
 
