@@ -76,9 +76,10 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
         data['data'] = filtered_data
         return data
 
-    def save(self, **kwargs):
-        kwargs["user"] = self.fields["user"].get_default()
-        return super(ProfileIPDataSerializer, self).save(**kwargs)
+    def create(self, validated_data):
+        if 'user' not in validated_data:
+            validated_data['user'] = self.context['request'].user
+        return super(ProfileIPDataSerializer, self).create(validated_data)
 
     class Meta:
         model = ProfileIPData

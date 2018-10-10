@@ -15,14 +15,13 @@ class MaintenanceRuleSerializer(serializers.ModelSerializer):
 
         return data
 
-    def save(self, **kwargs):
-        kwargs["user"] = self.fields["user"].get_default()
-        return super(MaintenanceRuleSerializer, self).save(**kwargs)
+    def create(self, validated_data):
+        if 'user' not in validated_data:
+            validated_data['user'] = self.context['request'].user
 
-    def create(self, data):
-        instance = super(MaintenanceRuleSerializer, self).create(validated_data=data)
+        instance = super(MaintenanceRuleSerializer, self).create(validated_data)
         if not instance.public:
-            org = data['user'].user_profile.current_organization
+            org = validated_data['user'].user_profile.current_organization
             org.add_object(instance)
 
         return instance
@@ -37,9 +36,10 @@ class MaintenanceRuleSerializer(serializers.ModelSerializer):
 class MaintenanceJobSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
 
-    def save(self, **kwargs):
-        kwargs["user"] = self.fields["user"].get_default()
-        return super(MaintenanceJobSerializer, self).save(**kwargs)
+    def create(self, validated_data):
+        if 'user' not in validated_data:
+            validated_data['user'] = self.context['request'].user
+        return super(MaintenanceJobSerializer, self).create(validated_data)
 
     class Meta:
         model = MaintenanceJob

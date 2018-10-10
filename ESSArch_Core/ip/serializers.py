@@ -32,9 +32,10 @@ class EventIPSerializer(serializers.HyperlinkedModelSerializer):
     eventType = serializers.PrimaryKeyRelatedField(queryset=EventType.objects.all())
     eventDetail = serializers.SlugRelatedField(slug_field='eventDetail', source='eventType', read_only=True)
 
-    def save(self, **kwargs):
-        kwargs["linkingAgentIdentifierValue"] = self.fields["linkingAgentIdentifierValue"].get_default()
-        return super(EventIPSerializer, self).save(**kwargs)
+    def create(self, validated_data):
+        if 'linkingAgentIdentifierValue' not in validated_data:
+            validated_data['linkingAgentIdentifierValue'] = self.context['request'].user
+        return super(EventIPSerializer, self).create(validated_data)
 
     class Meta:
         model = EventIP
@@ -93,9 +94,10 @@ class WorkareaSerializer(serializers.ModelSerializer):
     def get_packaged(self, obj):
         return os.path.isfile(obj.path + '.tar')
 
-    def save(self, **kwargs):
-        kwargs["user"] = self.fields["user"].get_default()
-        return super(WorkareaSerializer, self).save(**kwargs)
+    def create(self, validated_data):
+        if 'user' not in validated_data:
+            validated_data['user'] = self.context['request'].user
+        return super(WorkareaSerializer, self).create(validated_data)
 
     class Meta:
         model = Workarea

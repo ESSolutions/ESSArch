@@ -184,9 +184,10 @@ class UserLoggedInWriteSerializer(UserLoggedInSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
 
-    def save(self, **kwargs):
-        kwargs["user"] = self.fields["user"].get_default()
-        return super(NotificationSerializer, self).save(**kwargs)
+    def create(self, validated_data):
+        if 'user' not in validated_data:
+            validated_data['user'] = self.context['request'].user
+        return super(NotificationSerializer, self).create(validated_data)
 
     class Meta:
         model = Notification
