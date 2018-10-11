@@ -171,6 +171,7 @@ if __name__ == '__main__':
                 "sphinxcontrib-inlinesyntaxhighlight==0.2"],
             "s3":  ["boto3==1.9.14"],
             "ldap":  ["django-auth-ldap>=1.7,<1.8"],
+            "saml2":  ["djangosaml2>=0.17,<0.18"],
             "libreoffice_file_conversion":  ["unoconv>=0.8,<0.9"],
             "mysql": ["mysqlclient==1.3.13"],
         },
