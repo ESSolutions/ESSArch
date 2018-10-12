@@ -25,38 +25,56 @@
 from __future__ import unicode_literals
 
 import importlib
+import itertools
 import uuid
 
+import jsonfield
 from celery import chain, group, states as celery_states
 from celery.result import EagerResult
 
-from django.conf import settings
 from django.core.cache import cache
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Case, Count, Sum, When
-from django.utils import timezone
 from django.utils.translation import ugettext as _
+
+from mptt.models import MPTTModel, TreeForeignKey
 
 from picklefield.fields import PickledObjectField
 
-from ESSArch_Core.util import available_tasks, chunks, flatten, sliceUntilAttr
+
+def create_task(name):
+    """
+    Create and instantiate the task with the given name
+
+    Args:
+        name: The name of the task, including package and module
+    """
+    [module, task] = name.rsplit('.', 1)
+    return getattr(importlib.import_module(module), task)()
+
+
+def create_sub_task(t, step=None, ignore_parent_args=True):
+    step_id = step.id if step is not None else None
+    t.params['_options'] = {
+        'args': t.args,
+        'responsible': t.responsible_id, 'ip': t.information_package_id,
+        'step': step_id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
+        'undo': t.undo_type, 'result_params': t.result_params,
+    }
+
+    created = create_task(t.name)
+    if ignore_parent_args:
+        return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
+    return created.s(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
+
 
 class Process(models.Model):
-    def _create_task(self, name):
-        """
-        Create and instantiate the task with the given name
-
-        Args:
-            name: The name of the task, including package and module
-        """
-        [module, task] = name.rsplit('.', 1)
-        return getattr(importlib.import_module(module), task)()
-
     class Meta:
         abstract = True
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    hidden = models.BooleanField(editable=False, default=False, db_index=True)
     eager = models.BooleanField(default=True)
     time_created = models.DateTimeField(auto_now_add=True)
     result = PickledObjectField(null=True, default=None, editable=False)
@@ -65,7 +83,7 @@ class Process(models.Model):
         return self.name
 
 
-class ProcessStep(Process):
+class ProcessStep(MPTTModel, Process):
     Type_CHOICES = (
         (0, "Receive new object"),
         (5, "The object is ready to remodel"),
@@ -93,10 +111,9 @@ class ProcessStep(Process):
         (9999, "Deleted"),
     )
 
-    name = models.CharField(max_length=256)
     type = models.IntegerField(null=True, choices=Type_CHOICES)
     user = models.CharField(max_length=45)
-    parent_step = models.ForeignKey(
+    parent_step = TreeForeignKey(
         'self',
         related_name='child_steps',
         on_delete=models.CASCADE,
@@ -110,8 +127,12 @@ class ProcessStep(Process):
         blank=True,
         null=True
     )
-    hidden = models.BooleanField(default=False)
     parallel = models.BooleanField(default=False)
+    on_error = models.ManyToManyField('ProcessTask', related_name='steps_on_errors')
+    context = jsonfield.JSONField(default={}, null=True)
+
+    def get_pos(self):
+        return self.parent_step_pos
 
     def add_tasks(self, *tasks):
         self.clear_cache()
@@ -161,6 +182,28 @@ class ProcessStep(Process):
         if self.parent_step:
             self.parent_step.clear_cache()
 
+    def run_children(self, tasks, steps, direct=True):
+
+        if not tasks.exists() and not steps.exists():
+            if direct:
+                return EagerResult(self.pk, [], celery_states.SUCCESS)
+
+            return group()
+
+        func = group if self.parallel else chain
+        result_list = sorted(itertools.chain(steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
+        workflow = func(y for y in (x.resume(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x, self) for x in result_list) if not hasattr(y, 'tasks') or len(y.tasks))
+
+        if direct:
+            on_error_tasks = self.on_error(manager='by_step_pos').all()
+            on_error_group = group(create_sub_task(t, self, ignore_parent_args=False) for t in on_error_tasks)
+            if self.eager:
+                return workflow.apply(link_error=on_error_group)
+            else:
+                return workflow.apply_async(link_error=on_error_group)
+        else:
+            return workflow
+
     def run(self, direct=True):
         """
         Runs the process step by first running the child steps and then the
@@ -171,84 +214,15 @@ class ProcessStep(Process):
                     true otherwise
 
         Returns:
-            The executed chain consisting of potential child steps followed by
-            tasks if called directly. The chain "non-executed" if direct is
+            The executed workflow consisting of potential child steps followed by
+            tasks if called directly. The workflow "non-executed" if direct is
             false
         """
-
-        def create_sub_task(t):
-            created = self._create_task(t.name)
-            t.params['_options'] = {
-                'args': t.args,
-                'responsible': t.responsible_id, 'ip': t.information_package_id,
-                'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
-                'result_params': t.result_params,
-            }
-            return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
-
-        func = group if self.parallel else chain
 
         child_steps = self.child_steps.all()
         tasks = self.tasks(manager='by_step_pos').all()
 
-        if not tasks.exists() and not child_steps.exists():
-            if direct:
-                return EagerResult(self.pk, [], celery_states.SUCCESS)
-
-            return group()
-
-        step_canvas = func(s.run(direct=False) for s in child_steps) if child_steps else chain()
-        task_canvas = func(create_sub_task(t) for t in tasks)
-
-        if not child_steps:
-            workflow = task_canvas
-        elif not tasks:
-            workflow = step_canvas
-        else:
-            workflow = (step_canvas | task_canvas)
-
-        if direct:
-            if self.eager:
-                return workflow.apply()
-            else:
-                return workflow.apply_async()
-        else:
-            return workflow
-
-    def chunk(self, size=None, direct=True):
-        def create_options(task):
-            return {
-                'args': task.args,
-                'responsible': task.responsible_id, 'ip': task.information_package_id,
-                'step_pos': task.processstep_pos, 'hidden': task.hidden,
-                'task_id': task.pk
-            }
-
-        tasks = self.tasks.all().order_by('time_created').iterator()
-
-        try:
-            first = tasks.next()
-        except StopIteration:
-            return []
-
-        t = self._create_task(first.name)
-
-        first.params['_options'] = create_options(first)
-        params = [first.params]
-
-        for task in tasks:
-            task.params['_options'] = create_options(task)
-            params.append(task.params)
-
-        if size is None:
-            size = len(params)
-
-        res = []
-
-        for param_chunk in chunks(params, size):
-            res.append(t.apply_async(args=param_chunk, kwargs={'_options': {'chunk': True, 'step': self.pk}}, queue=t.queue).get())
-
-        return flatten(res)
+        return self.run_children(tasks, child_steps, direct)
 
     def undo(self, only_failed=False, direct=True):
         """
@@ -263,17 +237,6 @@ class ProcessStep(Process):
             AsyncResult/EagerResult if there is atleast one task or child
             steps, otherwise None
         """
-
-        def create_sub_task(t):
-            t = t.create_undo_obj()
-            t.params['_options'] = {
-                'args': t.args,
-                'responsible': t.responsible_id, 'ip': t.information_package_id,
-                'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
-                'undo': True, 'result_params': t.result_params,
-            }
-            created = self._create_task(t.name)
-            return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
 
         child_steps = self.child_steps.all()
         tasks = self.tasks(manager='by_step_pos').all()
@@ -294,15 +257,8 @@ class ProcessStep(Process):
 
         func = group if self.parallel else chain
 
-        task_canvas = func(create_sub_task(t) for t in tasks.reverse())
-        step_canvas = func(s.undo(only_failed=only_failed, direct=False) for s in child_steps.reverse())
-
-        if not child_steps:
-            workflow = task_canvas
-        elif not tasks:
-            workflow = step_canvas
-        else:
-            workflow = (task_canvas | step_canvas)
+        result_list = sorted(itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created), reverse=True)
+        workflow = func(x.undo(only_failed=only_failed, direct=False) if isinstance(x, ProcessStep) else create_sub_task(x.create_undo_obj(), self) for x in result_list)
 
         if direct:
             if self.eager:
@@ -325,17 +281,6 @@ class ProcessStep(Process):
             none
         """
 
-        def create_sub_task(t):
-            t = t.create_retry_obj()
-            t.params['_options'] = {
-                'args': t.args,
-                'responsible': t.responsible_id, 'ip': t.information_package_id,
-                'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
-                'result_params': t.result_params,
-            }
-            created = self._create_task(t.name)
-            return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
-
         child_steps = self.child_steps.all()
 
         tasks = self.tasks(manager='by_step_pos').filter(
@@ -351,15 +296,8 @@ class ProcessStep(Process):
 
         func = group if self.parallel else chain
 
-        step_canvas = func(s.retry(direct=False) for s in child_steps)
-        task_canvas = func(create_sub_task(t) for t in tasks)
-
-        if not child_steps:
-            workflow = task_canvas
-        elif not tasks:
-            workflow = step_canvas
-        else:
-            workflow = (step_canvas | task_canvas)
+        result_list = sorted(itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
+        workflow = func(x.retry(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x.create_retry_obj(), self) for x in result_list)
 
         if direct:
             if self.eager:
@@ -382,41 +320,10 @@ class ProcessStep(Process):
             otherwise
         """
 
-        def create_sub_task(t):
-            created = self._create_task(t.name)
-            t.params['_options'] = {
-                'args': t.args,
-                'responsible': t.responsible_id, 'ip': t.information_package_id,
-                'step': self.id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
-                'result_params': t.result_params
-            }
-            return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
-
-        func = group if self.parallel else chain
-
-        child_steps = self.child_steps.filter(tasks__status=celery_states.PENDING)
+        child_steps = self.get_children()
         tasks = self.tasks(manager='by_step_pos').filter(undone__isnull=True, undo_type=False, status=celery_states.PENDING)
 
-        if not tasks.exists() and not child_steps.exists():
-            return EagerResult(self.pk, [], celery_states.SUCCESS)
-
-        step_canvas = func(s.run(direct=False) for s in child_steps)
-        task_canvas = func(create_sub_task(t) for t in tasks)
-
-        if not child_steps:
-            workflow = task_canvas
-        elif not tasks:
-            workflow = step_canvas
-        else:
-            workflow = (step_canvas | task_canvas)
-
-        if direct:
-            if self.eager:
-                return workflow.apply()
-            else:
-                return workflow.apply_async()
-        else:
-            return workflow
+        return self.run_children(tasks, child_steps, direct)
 
     @property
     def cache_lock_key(self):
@@ -456,8 +363,13 @@ class ProcessStep(Process):
         with cache.lock(self.cache_lock_key, timeout=60):
             cached = cache.get(self.cache_progress_key)
 
-            if cached:
+            if cached is not None:
                 return cached
+
+            if not self.child_steps.exists() and not self.tasks.exists():
+                progress = 0
+                cache.set(self.cache_progress_key, progress)
+                return progress
 
             child_steps = self.child_steps.all()
             progress = 0
@@ -511,7 +423,7 @@ class ProcessStep(Process):
         with cache.lock(self.cache_lock_key, timeout=60):
             cached = cache.get(self.cache_status_key)
 
-            if cached:
+            if cached is not None:
                 return cached
 
             child_steps = self.child_steps.all()
@@ -519,6 +431,7 @@ class ProcessStep(Process):
             status = celery_states.SUCCESS
 
             if not child_steps.exists() and not tasks.exists():
+                status = celery_states.PENDING
                 cache.set(self.cache_status_key, status)
                 return status
 
@@ -578,6 +491,9 @@ class ProcessStep(Process):
                 self.archiveobject.ObjectUUID
             )
 
+    class MPTTMeta:
+        parent_attr = 'parent_step'
+
 
 class OrderedProcessTaskManager(models.Manager):
     def get_queryset(self):
@@ -589,7 +505,7 @@ class ProcessTask(Process):
         celery_states.ALL_STATES, celery_states.ALL_STATES
     )
 
-    name = models.CharField(max_length=255)
+    label = models.CharField(max_length=255, blank=True)
     status = models.CharField(
         _('state'), max_length=50, default=celery_states.PENDING,
         choices=TASK_STATE_CHOICES
@@ -604,7 +520,6 @@ class ProcessTask(Process):
     time_done = models.DateTimeField(_('done at'), null=True, blank=True)
     traceback = models.TextField(blank=True)
     exception = models.TextField(blank=True)
-    hidden = models.BooleanField(editable=False, default=False, db_index=True)
     meta = PickledObjectField(null=True, default=None, editable=False)
     processstep = models.ForeignKey(
         'ProcessStep', related_name='tasks', on_delete=models.CASCADE,
@@ -615,34 +530,42 @@ class ProcessTask(Process):
     undone = models.OneToOneField('self', on_delete=models.SET_NULL, related_name='undone_task', null=True, blank=True)
     undo_type = models.BooleanField(editable=False, default=False)
     retried = models.OneToOneField('self', on_delete=models.SET_NULL, related_name='retried_task', null=True, blank=True)
-    information_package = models.ForeignKey(
-        'ip.InformationPackage',
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True
-    )
+    information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
     log = PickledObjectField(null=True, default=None)
+    on_error = models.ManyToManyField('self')
 
     objects = models.Manager()
     by_step_pos = OrderedProcessTaskManager()
 
-    def clean(self):
-        """
-        Validates the task
-        """
+    def get_pos(self):
+        return self.processstep_pos
 
-        full_task_names = [k for k, v in available_tasks()]
+    def get_root_step(self):
+        if self.processstep is None:
+            return None
 
-        # Make sure that the task exists
-        if self.name not in full_task_names:
-            raise ValidationError("Task '%s' does not exist." % self.name)
+        parent = self.processstep
+        while parent.parent_step is not None:
+            parent = parent.parent_step
+
+        return parent
+
+    def reset(self):
+        self.status = celery_states.PENDING
+        self.time_started = None
+        self.time_done = None
+        self.traceback = ''
+        self.exception = ''
+        self.progress = 0
+        self.save()
+        return self
 
     def run(self):
         """
         Runs the task
         """
 
-        t = self._create_task(self.name)
+        t = create_task(self.name)
 
         self.params['_options'] = {
             'responsible': self.responsible_id, 'ip':
@@ -650,11 +573,14 @@ class ProcessTask(Process):
             'step_pos': self.processstep_pos, 'hidden': self.hidden,
         }
 
+        on_error_tasks = self.on_error(manager='by_step_pos').all()
+        on_error_group = group(create_sub_task(error_task, ignore_parent_args=False) for error_task in on_error_tasks)
+
         if self.eager:
             self.params['_options']['result_params'] = self.result_params
-            res = t.apply(args=self.args, kwargs=self.params, task_id=str(self.pk))
+            res = t.apply(args=self.args, kwargs=self.params, task_id=str(self.pk), link_error=on_error_group)
         else:
-            res = t.apply_async(args=self.args, kwargs=self.params, task_id=str(self.pk), queue=t.queue)
+            res = t.apply_async(args=self.args, kwargs=self.params, task_id=str(self.pk), link_error=on_error_group, queue=t.queue)
 
         return res
 
@@ -663,7 +589,7 @@ class ProcessTask(Process):
         Undos the task
         """
 
-        t = self._create_task(self.name)
+        t = create_task(self.name)
 
         undoobj = self.create_undo_obj()
         self.params['_options'] = {
@@ -686,22 +612,8 @@ class ProcessTask(Process):
         Retries the task
         """
 
-        t = self._create_task(self.name)
-
-        retryobj = self.create_retry_obj()
-        self.params['_options'] = {
-            'responsible': self.responsible_id, 'ip':
-            self.information_package_id, 'step': self.processstep_id,
-            'step_pos': self.processstep_pos, 'hidden': self.hidden,
-        }
-
-        if retryobj.eager:
-            retryobj.params['_options']['result_params'] = retryobj.result_params
-            res = t.apply(args=retryobj.args, kwargs=retryobj.params, task_id=str(retryobj.pk))
-        else:
-            res = t.apply_async(args=retryobj.args, kwargs=retryobj.params, task_id=str(retryobj.pk), queue=t.queue)
-
-        return res
+        self.reset()
+        return self.run()
 
     def create_undo_obj(self):
         """
@@ -716,7 +628,7 @@ class ProcessTask(Process):
             processstep_pos=self.processstep_pos,
             undo_type=True, status="PREPARED",
             information_package=self.information_package,
-            eager=self.eager,
+            eager=self.eager, responsible=self.responsible,
         )
 
         self.undone = undo_obj
@@ -731,10 +643,10 @@ class ProcessTask(Process):
         """
 
         retry_obj = ProcessTask.objects.create(
-            processstep=self.processstep, name=self.name, args=self.args,
+            processstep=self.processstep, name=self.name, label=self.label, args=self.args,
             params=self.params, result_params=self.result_params, processstep_pos=self.processstep_pos,
             status="PREPARED", information_package=self.information_package,
-            eager=self.eager
+            eager=self.eager, responsible=self.responsible,
         )
 
         self.retried = retry_obj
@@ -744,6 +656,7 @@ class ProcessTask(Process):
 
     class Meta:
         db_table = 'ProcessTask'
+        ordering = ('processstep_pos', 'time_created')
         get_latest_by = "time_created"
 
         permissions = (

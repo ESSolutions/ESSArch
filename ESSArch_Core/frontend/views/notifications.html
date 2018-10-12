@@ -1,0 +1,38 @@
+<div class="top-alert-container" ng-if="vm.visible">
+    <div class="angular-animate alert-list position-relative">
+        <span class="popup-enabled">
+            <input type="checkbox" ng-change="vm.updateEnabledStatus(vm.notificationsEnabled)" ng-model="vm.notificationsEnabled"/>
+            {{'POPUP_ENABLED' | translate}}
+        </span>
+        <div class="text-center notification-title">
+            {{'NOTIFICATIONS' | translate}}
+        </div>
+        <span class="show-sm close-notifications">
+            <a ng-click="vm.toggleAlert()">
+                {{'CLOSE' | translate}}
+            </a>
+        </span>
+        <ul on-scroll="vm.nextPage()" class="notification-table-wrapper">
+            <li ng-repeat="x in vm.alerts" class="top-alert-expand alert-list-item angular-animate">
+                <div class="indicator-text-wrapper">
+                    <div class="alert-indicator-container">
+                        <span class="alert-indicator" ng-class="x.level"></span>
+                    </div>
+                    <div class="alert-text">
+                        <div ng-if="!x.options.isHtml" class="alert-message">
+                            {{x.message}}
+                        </div>
+                        <div ng-if="x.options.isHtml" ng-bind-html="x.message" class="alert-message"/>
+                        <div class="alert-date" tooltip-placement="left" uib-tooltip="{{x.time_created | date:'yyyy-MM-dd HH:mm:ss'}}">{{x.time_created | relativeDate}}</div>
+                    </div>
+                </div>
+                <div class="remove-alert">
+                    <span ng-click="vm.removeAlert(x, $index)" class="cursor-pointer float-right">&#10005;</span>
+                </div>
+            </li>
+        </ul>
+        <div ng-if="vm.nextPageLoading" class="loading-column text-center absolute-bottom-middle">
+            {{'LOADING' | translate}}
+        </div>
+    </div>
+</div>

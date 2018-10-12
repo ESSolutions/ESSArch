@@ -32,40 +32,59 @@ from ESSArch_Core.configuration.models import (
     Path,
 )
 
+from ESSArch_Core.serializers import DynamicHyperlinkedModelSerializer
 
-class EventTypeSerializer(serializers.HyperlinkedModelSerializer):
+
+class EventTypeSerializer(DynamicHyperlinkedModelSerializer):
     class Meta:
         model = EventType
         fields = ('url', 'eventType', 'eventDetail',)
 
 
-class AgentSerializer(serializers.HyperlinkedModelSerializer):
-    id = serializers.ReadOnlyField()
+class AgentSerializer(DynamicHyperlinkedModelSerializer):
+    id = serializers.UUIDField(read_only=True)
 
     class Meta:
         model = Agent
         fields = '__all__'
 
 
-class ParameterSerializer(serializers.HyperlinkedModelSerializer):
-    id = serializers.ReadOnlyField()
+class ParameterSerializer(DynamicHyperlinkedModelSerializer):
+    id = serializers.UUIDField(read_only=True)
 
     class Meta:
         model = Parameter
         fields = '__all__'
 
 
-class PathSerializer(serializers.HyperlinkedModelSerializer):
-    id = serializers.ReadOnlyField()
+class PathSerializer(DynamicHyperlinkedModelSerializer):
+    id = serializers.UUIDField(read_only=True)
 
     class Meta:
         model = Path
         fields = '__all__'
+        extra_kwargs = {
+            'entity': {
+                'validators': [],
+            },
+        }
 
 
-class ArchivePolicySerializer(serializers.HyperlinkedModelSerializer):
-    id = serializers.ReadOnlyField()
+class ArchivePolicySerializer(DynamicHyperlinkedModelSerializer):
+    cache_storage = PathSerializer()
+    ingest_path = PathSerializer()
 
     class Meta:
         model = ArchivePolicy
-        fields = '__all__'
+        fields = (
+            "url", "id", "index", "cache_extracted_size",
+            "cache_package_size", "cache_extracted_age",
+            "cache_package_age", "policy_id", "policy_name",
+            "policy_stat", "ais_project_name", "ais_project_id",
+            "mode", "wait_for_approval", "checksum_algorithm",
+            "validate_checksum", "validate_xml", "ip_type",
+            "preingest_metadata", "ingest_metadata",
+            "information_class", "ingest_delete",
+            "receive_extract_sip", "cache_storage", "ingest_path",
+            "storage_methods",
+        )

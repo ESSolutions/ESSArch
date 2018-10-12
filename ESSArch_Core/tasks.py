@@ -23,251 +23,106 @@
 """
 
 import errno
+import logging
 import os
 import shutil
 import tarfile
-import urllib
-import uuid
+import tempfile
+import time
 import zipfile
 
 import requests
-
-from requests_toolbelt import MultipartEncoder
-
-from celery.result import allow_join_result
-
-from django.core.exceptions import ValidationError
-from django.core.mail import EmailMessage
+import six
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.core.mail import EmailMessage, send_mail
+from django.db import transaction
 from django.db.models import F
-
-from ESSArch_Core.util import (
-    alg_from_str,
-    convert_file,
-    get_tree_size_and_count,
-)
-
-from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.essxml.Generator.xmlGenerator import (
-    findElementWithoutNamespace,
-    XMLGenerator
-)
-from ESSArch_Core.essxml.util import FILE_ELEMENTS, find_files, find_pointers, validate_against_schema
-from ESSArch_Core.ip.models import EventIP, InformationPackage
-from ESSArch_Core.storage.models import StorageMedium, TapeDrive
-from ESSArch_Core.storage.tape import (
-    DEFAULT_TAPE_BLOCK_SIZE,
-
-    create_tape_label,
-    get_tape_file_number,
-    is_tape_drive_online,
-    mount_tape,
-    read_tape,
-    rewind_tape,
-    set_tape_file_number,
-    tape_empty,
-    unmount_tape,
-    verify_tape_label,
-    wait_to_come_online,
-    write_to_tape,
-)
-from ESSArch_Core.WorkflowEngine.models import (
-    ProcessStep,
-    ProcessTask,
-)
-from ESSArch_Core.WorkflowEngine.dbtask import DBTask
-from ESSArch_Core.util import (
-    creation_date,
-    find_destination,
-    get_value_from_path,
-    remove_prefix,
-    timestamp_to_datetime,
-    win_to_posix,
-)
-
-from fido.fido import Fido
+from django.utils import timezone
+from elasticsearch import helpers as es_helpers
+from elasticsearch_dsl.connections import get_connection
 from lxml import etree
+from redis import StrictRedis
+from retrying import retry
 from scandir import walk
+from six.moves import cPickle
 
+from ESSArch_Core.WorkflowEngine.dbtask import DBTask
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.WorkflowEngine.polling import get_backend
+from ESSArch_Core.WorkflowEngine.util import create_workflow
+from ESSArch_Core.auth.models import Notification
+from ESSArch_Core.configuration.models import Parameter
+from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, findElementWithoutNamespace
+from ESSArch_Core.essxml.util import find_files
+from ESSArch_Core.fixity import validation
+from ESSArch_Core.fixity.models import Validation
+from ESSArch_Core.fixity.transformation import get_backend as get_transformer
+from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
+from ESSArch_Core.fixity.validation.backends.format import FormatValidator
+from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLComparisonValidator, XMLSchemaValidator
+from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
+from ESSArch_Core.ip.utils import get_cached_objid
+from ESSArch_Core.profiles.utils import fill_specification_data
+from ESSArch_Core.storage.copy import copy_file
+from ESSArch_Core.storage.exceptions import TapeDriveLockedError
+from ESSArch_Core.storage.models import StorageMedium, TapeDrive, TapeSlot
+from ESSArch_Core.storage.tape import (DEFAULT_TAPE_BLOCK_SIZE,
+                                       create_tape_label, get_tape_file_number,
+                                       is_tape_drive_online, mount_tape,
+                                       read_tape, rewind_tape, robot_inventory,
+                                       set_tape_file_number, tape_empty,
+                                       unmount_tape, verify_tape_label,
+                                       wait_to_come_online, write_to_tape)
+from ESSArch_Core.tags import (DELETION_PROCESS_QUEUE, DELETION_QUEUE,
+                               INDEX_PROCESS_QUEUE, INDEX_QUEUE,
+                               UPDATE_PROCESS_QUEUE, UPDATE_QUEUE)
+from ESSArch_Core.util import convert_file, get_event_element_spec, get_tree_size_and_count
 
-class CalculateChecksum(DBTask):
-    queue = 'file_operation'
-
-    def run(self, filename=None, block_size=65536, algorithm='SHA-256'):
-        """
-        Calculates the checksum for the given file, one chunk at a time
-
-        Args:
-            filename: The filename to calculate checksum for
-            block_size: The size of the chunk to calculate
-            algorithm: The algorithm to use
-
-        Returns:
-            The hexadecimal digest of the checksum
-        """
-
-        hash_val = alg_from_str(algorithm)()
-
-        with open(filename, 'r') as f:
-            while True:
-                data = f.read(block_size)
-                if data:
-                    hash_val.update(data)
-                else:
-                    break
-
-        return hash_val.hexdigest()
-
-    def undo(self, filename=None, block_size=65536, algorithm='SHA-256'):
-        pass
-
-    def event_outcome_success(self, filename=None, block_size=65536, algorithm='SHA-256'):
-        return "Created checksum for %s with %s" % (filename, algorithm)
-
-
-class IdentifyFileFormat(DBTask):
-    queue = 'file_operation'
-
-    def handle_matches(self, fullname, matches, delta_t, matchtype=''):
-        if len(matches) == 0:
-            raise ValueError("No matches for %s" % fullname)
-
-        f, sigName = matches[-1]
-
-        try:
-            self.format_name = f.find('name').text
-        except AttributeError:
-            self.format_name = None
-
-        try:
-            self.format_version = f.find('version').text
-        except AttributeError:
-            self.format_version = None
-
-        try:
-            self.format_registry_key = f.find('puid').text
-        except AttributeError:
-            self.format_registry_key = None
-
-    def run(self, filename=None, fid=Fido()):
-        """
-        Identifies the format of the file using the fido library
-
-        Args:
-            filename: The filename to identify
-
-        Returns:
-            A tuple with the format name, version and registry key
-        """
-
-        self.fid = fid
-        self.fid.handle_matches = self.handle_matches
-        self.fid.identify_file(filename)
-
-        return (self.format_name, self.format_version, self.format_registry_key)
-
-    def undo(self, filename=None, fid=Fido()):
-        pass
-
-    def event_outcome_success(self, filename=None, fid=Fido()):
-        return "Identified format of %s" % filename
-
-
-class ParseFile(DBTask):
-    queue = 'file_operation'
-    hidden = True
-
-    def run(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256', rootdir=''):
-        if not relpath:
-            relpath = filepath
-
-        relpath = win_to_posix(relpath)
-
-        timestamp = creation_date(filepath)
-        createdate = timestamp_to_datetime(timestamp)
-
-        checksum_task = ProcessTask(
-            name="ESSArch_Core.tasks.CalculateChecksum",
-            params={
-                "filename": filepath,
-                "algorithm": algorithm
-            },
-            processstep_id=self.step,
-            responsible_id=self.responsible,
-            information_package_id=self.ip
-        )
-
-        fileformat_task = ProcessTask(
-            name="ESSArch_Core.tasks.IdentifyFileFormat",
-            params={
-                "filename": filepath,
-            },
-            processstep_id=self.step,
-            responsible_id=self.responsible,
-            information_package_id=self.ip
-        )
-
-        ProcessTask.objects.bulk_create([checksum_task, fileformat_task])
-
-        checksum = checksum_task.run().get()
-        self.set_progress(50, total=100)
-        (format_name, format_version, format_registry_key) = fileformat_task.run().get()
-
-        fileinfo = {
-            'FName': os.path.basename(relpath),
-            'FDir': rootdir,
-            'FChecksum': checksum,
-            'FID': str(uuid.uuid4()),
-            'daotype': "borndigital",
-            'href': relpath,
-            'FMimetype': mimetype,
-            'FCreated': createdate.isoformat(),
-            'FFormatName': format_name,
-            'FFormatVersion': format_version,
-            'FFormatRegistryKey': format_registry_key,
-            'FSize': str(os.path.getsize(filepath)),
-            'FUse': 'Datafile',
-            'FChecksumType': algorithm,
-            'FLoctype': 'URL',
-            'FLinkType': 'simple',
-            'FChecksumLib': 'hashlib',
-            'FLocationType': 'URI',
-            'FIDType': 'UUID',
-        }
-
-        return fileinfo
-
-    def undo(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256', rootdir=''):
-        return ''
-
-    def event_outcome_success(self, filepath=None, mimetype=None, relpath=None, algorithm='SHA-256', rootdir=''):
-        return "Parsed file %s" % filepath
-
+User = get_user_model()
+redis = StrictRedis()
 
 class GenerateXML(DBTask):
-    def run(self, info={}, filesToCreate={}, folderToParse=None, algorithm='SHA-256'):
+    event_type = 50600
+
+    def run(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None, parsed_files=None, algorithm='SHA-256'):
         """
         Generates the XML using the specified data and folder, and adds the XML
         to the specified files
         """
 
-        generator = XMLGenerator(
-            filesToCreate, info, self
-        )
+        if filesToCreate is None:
+            filesToCreate = {}
 
+        if extra_paths_to_parse is None:
+            extra_paths_to_parse = []
+
+        if parsed_files is None:
+            parsed_files = []
+
+        ip = InformationPackage.objects.filter(pk=self.ip).first()
+        sa = None
+        if ip is not None:
+            sa = ip.submission_agreement
+
+        for _, v in six.iteritems(filesToCreate):
+            v['data'] = fill_specification_data(v['data'], ip=ip, sa=sa)
+
+        generator = XMLGenerator()
         generator.generate(
-            folderToParse=folderToParse, algorithm=algorithm,
+            filesToCreate, folderToParse=folderToParse, extra_paths_to_parse=extra_paths_to_parse, parsed_files=parsed_files, algorithm=algorithm,
         )
 
-    def undo(self, info={}, filesToCreate={}, folderToParse=None, algorithm='SHA-256'):
-        for f, template in filesToCreate.iteritems():
+    def undo(self, filesToCreate={}, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
+        for f, template in six.iteritems(filesToCreate):
             try:
                 os.remove(f)
             except OSError as e:
                 if e.errno != errno.ENOENT:
                     raise
 
-    def event_outcome_success(self, info={}, filesToCreate={}, folderToParse=None, algorithm='SHA-256'):
+    def event_outcome_success(self, filesToCreate={}, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
         return "Generated %s" % ", ".join(filesToCreate.keys())
 
 
@@ -277,9 +132,10 @@ class InsertXML(DBTask):
     """
 
     def run(self, filename=None, elementToAppendTo=None, spec={}, info={}, index=None):
-        generator = XMLGenerator()
-
-        generator.insert(filename, elementToAppendTo, spec, info=info, index=index)
+        generator = XMLGenerator(filepath=filename)
+        target = generator.find_element(elementToAppendTo)
+        generator.insert_from_specification(target, spec, data=info, index=index)
+        generator.write(filename)
 
     def undo(self, filename=None, elementToAppendTo=None, spec={}, info={}, index=None):
         tree = etree.parse(filename)
@@ -299,239 +155,81 @@ class InsertXML(DBTask):
 
 
 class AppendEvents(DBTask):
-    def run(self, filename="", events={}):
-        generator = XMLGenerator()
-        template = {
-            "-name": "event",
-            "-min": 1,
-            "-max": 1,
-            "-allowEmpty": 1,
-            "-namespace": "premis",
-            "-children": [
-                {
-                    "-name": "eventIdentifier",
-                    "-min": 1,
-                    "-max": 1,
-                    "-allowEmpty": 1,
-                    "-namespace": "premis",
-                    "-children": [
-                        {
-                            "-name": "eventIdentifierType",
-                            "-min": 1,
-                            "-max": 1,
-                            "-namespace": "premis",
-                            "#content": [{"var": "eventIdentifierType"}]
-                        }, {
-                            "-name": "eventIdentifierValue",
-                            "-min": 1,
-                            "-max": 1,
-                            "-allowEmpty": 1,
-                            "-namespace": "premis",
-                            "#content": [{"var": "eventIdentifierValue"}]
-                        },
-                    ]
-                },
-                {
-                    "-name": "eventType",
-                    "-min": 1,
-                    "-max": 1,
-                    "-allowEmpty": 1,
-                    "-namespace": "premis",
-                    "#content": [{"var": "eventType"}]
-                },
-                {
-                    "-name": "eventDateTime",
-                    "-min": 1,
-                    "-max": 1,
-                    "-allowEmpty": 1,
-                    "-namespace": "premis",
-                    "#content": [{"var": "eventDateTime"}]
-                },
-                {
-                    "-name": "eventDetailInformation",
-                    "-namespace": "premis",
-                    "-children": [
-                        {
-                            "-name": "eventDetail",
-                            "-min": 1,
-                            "-max": 1,
-                            "-allowEmpty": 1,
-                            "-namespace": "premis",
-                            "#content": [{"var": "eventDetail"}]
-                        },
-                    ]
-                },
-                {
-                    "-name": "eventOutcomeInformation",
-                    "-min": 1,
-                    "-max": 1,
-                    "-allowEmpty": 1,
-                    "-namespace": "premis",
-                    "-children": [
-                        {
-                            "-name": "eventOutcome",
-                            "-min": 1,
-                            "-max": 1,
-                            "-allowEmpty": 1,
-                            "-namespace": "premis",
-                            "#content": [{"var": "eventOutcome"}]
-                        },
-                        {
-                            "-name": "eventOutcomeDetail",
-                            "-min": 1,
-                            "-max": 1,
-                            "-allowEmpty": 1,
-                            "-namespace": "premis",
-                            "-children": [
-                                {
-                                    "-name": "eventOutcomeDetailNote",
-                                    "-min": 1,
-                                    "-max": 1,
-                                    "-allowEmpty": 1,
-                                    "-namespace": "premis",
-                                    "#content": [{"var": "eventOutcomeDetailNote"}]
-                                },
-                            ]
-                        },
-                    ]
-                },
-                {
-                    "-name": "linkingAgentIdentifier",
-                    "-min": 1,
-                    "-max": 1,
-                    "-allowEmpty": 1,
-                    "-namespace": "premis",
-                    "-children": [
-                        {
-                            "-name": "linkingAgentIdentifierType",
-                            "-min": 1,
-                            "-max": 1,
-                            "-namespace": "premis",
-                            "#content": [{"var": "linkingAgentIdentifierType"}]
-                        },
-                        {
-                            "-name": "linkingAgentIdentifierValue",
-                            "-min": 1,
-                            "-max": 1,
-                            "-allowEmpty": 1,
-                            "-namespace": "premis",
-                            "#content": [{"var": "linkingAgentIdentifierValue"}]
-                        },
-                    ]
-                },
-                {
-                    "-name": "linkingObjectIdentifier",
-                    "-min": 1,
-                    "-max": 1,
-                    "-allowEmpty": 1,
-                    "-namespace": "premis",
-                    "-children": [
-                        {
-                            "-name": "linkingObjectIdentifierType",
-                            "-min": 1,
-                            "-max": 1,
-                            "-namespace": "premis",
-                            "#content": [{"var": "linkingObjectIdentifierType"}]
-                        },
-                        {
-                            "-name": "linkingObjectIdentifierValue",
-                            "-min": 1,
-                            "-max": 1,
-                            "-allowEmpty": 1,
-                            "-namespace": "premis",
-                            "#content": [{"var": "linkingObjectIdentifierValue"}]
-                        },
-                    ]
-                },
-            ]
-        }
+    event_type = 50610
+
+    def run(self, filename="", events=None):
+        if not filename:
+            ip = InformationPackage.objects.get(pk=self.ip)
+            filename = os.path.join(ip.object_path, ip.get_events_file_path())
+        generator = XMLGenerator(filepath=filename)
+        template = get_event_element_spec()
 
         if not events:
-            events = EventIP.objects.filter(linkingObjectIdentifierValue_id=self.ip)
+            events = EventIP.objects.filter(linkingObjectIdentifierValue=self.ip)
 
-        events = events.order_by(
-            'eventDateTime'
-        )
+        id_types = {}
 
-        for event in events:
+        for id_type in ['event', 'linking_agent', 'linking_object']:
+            entity = '%s_identifier_type' % id_type
+            id_types[id_type] = Parameter.objects.cached('entity', entity, 'value')
+
+        target = generator.find_element('premis')
+        for event in events.iterator():
+            objid = get_cached_objid(event.linkingObjectIdentifierValue)
+
             data = {
-                "eventIdentifierType": "SE/RA",
-                "eventIdentifierValue": str(event.id),
-                "eventType": str(event.eventType.eventType),
+                "eventIdentifierType": id_types['event'],
+                "eventIdentifierValue": str(event.eventIdentifierValue),
+                "eventType": str(event.eventType.code) if event.eventType.code is not None and event.eventType.code != '' else str(event.eventType.eventType),
                 "eventDateTime": str(event.eventDateTime),
                 "eventDetail": event.eventType.eventDetail,
                 "eventOutcome": str(event.eventOutcome),
                 "eventOutcomeDetailNote": event.eventOutcomeDetailNote,
-                "linkingAgentIdentifierType": "SE/RA",
-                "linkingAgentIdentifierValue": event.linkingAgentIdentifierValue.username,
-                "linkingObjectIdentifierType": "SE/RA",
-                "linkingObjectIdentifierValue": str(event.linkingObjectIdentifierValue.object_identifier_value),
+                "linkingAgentIdentifierType": id_types['linking_agent'],
+                "linkingAgentIdentifierValue": event.linkingAgentIdentifierValue,
+                "linkingAgentRole": event.linkingAgentRole,
+                "linkingObjectIdentifierType": id_types['linking_object'],
+                "linkingObjectIdentifierValue": objid,
             }
 
-            generator.insert(filename, "premis", template, data)
+            generator.insert_from_specification(target, template, data)
 
-    def undo(self, filename="", events={}):
-        tree = etree.parse(filename)
-        parent = findElementWithoutNamespace(tree, 'premis')
+        generator.write(filename)
 
-        # Remove last |events| from parent
-        for event_el in parent.findall('.//{*}event')[-len(events):]:
-            parent.remove(event_el)
-
-        tree.write(filename, pretty_print=True, xml_declaration=True, encoding='UTF-8')
-
-    def event_outcome_success(self, filename="", events={}):
+    def event_outcome_success(self, filename="", events=None):
+        if not filename:
+            ip = InformationPackage.objects.get(pk=self.ip)
+            filename = ip.get_events_file_path()
         return "Appended events to %s" % filename
 
 
-class CopySchemas(DBTask):
-    def findDestination(self, dirname, structure, path=''):
-        for content in structure:
-            if content['name'] == dirname and content['type'] == 'folder':
-                return os.path.join(path, dirname)
-            elif content['type'] == 'dir':
-                rec = self.findDestination(
-                    dirname, content['children'], os.path.join(path, content['name'])
-                )
-                if rec: return rec
+class ParseEvents(DBTask):
+    event_type = 50630
 
-    def createSrcAndDst(self, schema, root, structure):
-        src = schema['location']
-        fname = os.path.basename(src.rstrip("/"))
-        dst = os.path.join(
-            root,
-            self.findDestination(schema['preservation_location'], structure),
-            fname
-        )
+    def run(self, xmlfile, delete_file=False):
+        events = EventIP.objects.from_premis_file(xmlfile, save=False)
+        EventIP.objects.bulk_create(events, 100)
 
-        return src, dst
+        if delete_file:
+            os.remove(xmlfile)
 
-    def run(self, schema={}, root=None, structure=None):
-        """
-        Copies the schema to a specified location
-        """
-
-        src, dst = self.createSrcAndDst(schema, root, structure)
-        urllib.urlretrieve(src, dst)
-
-    def undo(self, schema={}, root=None, structure=None):
-        pass
-
-    def event_outcome_success(self, schema={}, root=None, structure=None):
-        src, dst = self.createSrcAndDst(schema, root, structure)
-        return "Copied schemas from %s to %s" % src, dst
+    def event_outcome_success(self, xmlfile, delete_file=False):
+        return "Parsed events from %s" % xmlfile
 
 
 class CreateTAR(DBTask):
-    """
-    Creates a TAR file from the specified directory
-
-    Args:
-        dirname: The directory to create a TAR from
-        tarname: The name of the tar file
-    """
+    event_type = 50400
 
     def run(self, dirname=None, tarname=None, compress=False):
+        """
+        Creates a TAR file from the specified directory
+
+        Args:
+            dirname: The directory to create a TAR from
+            tarname: The name of the tar file
+            compress: Compresses the tar if true
+        """
+
         compression = ':gz' if compress else ''
         base_dir = os.path.basename(os.path.normpath(dirname))
         with tarfile.open(tarname, 'w%s' % compression) as new_tar:
@@ -553,15 +251,18 @@ class CreateTAR(DBTask):
 
 
 class CreateZIP(DBTask):
-    """
-    Creates a ZIP file from the specified directory
-
-    Args:
-        dirname: The directory to create a ZIP from
-        zipname: The name of the zip file
-    """
+    event_type = 50410
 
     def run(self, dirname=None, zipname=None, compress=False):
+        """
+        Creates a ZIP file from the specified directory
+
+        Args:
+            dirname: The directory to create a ZIP from
+            zipname: The name of the zip file
+            compress: Compresses the zip file if true
+        """
+
         compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
         with zipfile.ZipFile(zipname, 'w', compression) as new_zip:
             for root, dirs, files in walk(dirname):
@@ -588,56 +289,33 @@ class CreateZIP(DBTask):
 
 
 class ValidateFiles(DBTask):
-    hidden = True
-    fileformat_task = "ESSArch_Core.tasks.ValidateFileFormat"
-    checksum_task = "ESSArch_Core.tasks.ValidateIntegrity"
-
     def run(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
-        step = ProcessStep.objects.create(
-            name="Validate Files",
-            parallel=True,
-            parent_step_id=self.step
-        )
-
         if any([validate_fileformat, validate_integrity]):
             if rootdir is None:
                 rootdir = InformationPackage.objects.values_list('object_path', flat=True).get(pk=ip)
 
-            tasks = []
+            format_validator = FormatValidator()
 
             for f in find_files(xmlfile, rootdir):
+                filename = os.path.join(rootdir, f.path)
+
                 if validate_fileformat and f.format is not None:
-                    tasks.append(ProcessTask(
-                        name=self.fileformat_task,
-                        params={
-                            "filename": os.path.join(rootdir, f.path),
-                            "format_name": f.format,
-                        },
-                        information_package_id=ip,
-                        responsible_id=self.responsible,
-                        processstep=step,
-                    ))
+                    format_validator.validate(filename, (f.format, None, None))
 
                 if validate_integrity and f.checksum is not None and f.checksum_type is not None:
-                    tasks.append(ProcessTask(
-                        name=self.checksum_task,
-                        params={
-                            "filename": os.path.join(rootdir, f.path),
-                            "checksum": f.checksum,
-                            "algorithm": f.checksum_type,
-                        },
-                        information_package_id=ip,
-                        responsible_id=self.responsible,
-                        processstep=step,
-                    ))
+                    options = {'expected': f.checksum, 'algorithm': f.checksum_type}
+                    validator = ChecksumValidator(context='checksum_str', options=options)
+                    try:
+                        validator.validate(filename)
+                    except Exception as e:
+                        recipient = User.objects.get(pk=self.responsible).email
+                        if recipient and self.ip:
+                            ip = InformationPackage.objects.get(pk=self.ip)
+                            subject = 'Rejected "%s"' % ip.object_identifier_value
+                            body = '"%s" was rejected:\n%s' % (ip.object_identifier_value, str(e))
+                            send_mail(subject, body, None, [recipient], fail_silently=False)
 
-            ProcessTask.objects.bulk_create(tasks)
-
-        with allow_join_result():
-            return step.run().get()
-
-    def undo(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
-        pass
+                        raise
 
     def event_outcome_success(self, ip, xmlfile, validate_fileformat=True, validate_integrity=True, rootdir=None):
         return "Validated files in %s" % xmlfile
@@ -686,42 +364,60 @@ class ValidateFileFormat(DBTask):
         )
 
 
-class ValidateIntegrity(DBTask):
+class ValidateWorkarea(DBTask):
     queue = 'validation'
 
-    def run(self, filename=None, checksum=None, block_size=65536, algorithm='SHA-256'):
-        """
-        Validates the integrity(checksum) for the given file
-        """
+    def create_notification(self, ip):
+        errcount = Validation.objects.filter(information_package=ip, passed=False, required=True).count()
 
-        task = ProcessTask.objects.values(
-            'information_package_id', 'responsible_id'
-        ).get(pk=self.request.id)
+        if errcount:
+            Notification.objects.create(message='Validation of "{ip}" failed with {errcount} error(s)'.format(ip=ip.object_identifier_value, errcount=errcount), level=logging.ERROR, user_id=self.responsible, refresh=True)
+        else:
+            Notification.objects.create(message='"{ip}" was successfully validated'.format(ip=ip.object_identifier_value), level=logging.INFO, user_id=self.responsible, refresh=True)
 
-        t = ProcessTask.objects.create(
-            name="ESSArch_Core.tasks.CalculateChecksum",
-            params={
-                "filename": filename,
-                "block_size": block_size,
-                "algorithm": algorithm
-            },
-            information_package_id=task.get('information_package_id'),
-            responsible_id=task.get('responsible_id'),
-        )
+    def run(self, workarea, validators, stop_at_failure=True):
+        workarea = Workarea.objects.get(pk=workarea)
+        workarea.successfully_validated = {}
 
-        digest = t.run().get()
+        for validator in validators:
+            workarea.successfully_validated[validator] = None
 
-        assert digest == checksum, "checksum for %s is not valid (%s != %s)" % (filename, digest, checksum)
-        return "Success"
+        workarea.save(update_fields=['successfully_validated'])
+        ip = workarea.ip
+        sa = ip.submission_agreement
+        validation_profile = ip.get_profile('validation')
+        profile_data = fill_specification_data(data=ip.get_profile_data('validation'), sa=sa, ip=ip)
+        responsible = User.objects.get(pk=self.responsible)
 
-    def undo(self, filename=None, checksum=None,  block_size=65536, algorithm='SHA-256'):
-        pass
+        try:
+            validation.validate_path(workarea.path, validators, validation_profile, data=profile_data, ip=ip,
+                                     task=self.task_id, stop_at_failure=stop_at_failure, responsible=responsible)
+        except ValidationError:
+            self.create_notification(ip)
+        else:
+            self.create_notification(ip)
+        finally:
+            validations = ip.validation_set.all()
+            failed_validators = validations.values('validator').filter(passed=False, required=True).values_list('validator', flat=True)
 
-    def event_outcome_success(self, filename=None, checksum=None, block_size=65536, algorithm='SHA-256'):
-        return "Validated integrity of %s against %s with %s" % (filename, checksum, algorithm)
+            for k, v in six.iteritems(workarea.successfully_validated):
+                class_name = validation.AVAILABLE_VALIDATORS[k].split('.')[-1]
+                workarea.successfully_validated[k] = class_name not in failed_validators
+
+            workarea.save(update_fields=['successfully_validated'])
+
+
+class TransformWorkarea(DBTask):
+    def run(self, backend, workarea):
+        workarea = Workarea.objects.select_related('ip__submission_agreement').get(pk=workarea)
+        ip = workarea.ip
+        user = User.objects.filter(pk=self.responsible).first()
+        backend = get_transformer(backend, ip, user)
+        backend.transform(workarea.path)
 
 
 class ValidateXMLFile(DBTask):
+    event_type = 50210
     queue = 'validation'
 
     def run(self, xml_filename=None, schema_filename=None, rootdir=None):
@@ -729,92 +425,136 @@ class ValidateXMLFile(DBTask):
         Validates (using LXML) an XML file using a specified schema file
         """
 
-        assert validate_against_schema(xmlfile=xml_filename, schema=schema_filename, rootdir=rootdir)
+        Validation.objects.filter(task=self.task_id).delete()
+        xml_filename, schema_filename = self.parse_params(xml_filename, schema_filename)
+        if rootdir is None and self.ip is not None:
+            ip = InformationPackage.objects.get(pk=self.ip)
+            rootdir = ip.object_path
+        else:
+            rootdir, = self.parse_params(rootdir)
+
+        validator = XMLSchemaValidator(context=schema_filename, options={'rootdir': rootdir}, ip=self.ip, task=self.task_id)
+        validator.validate(xml_filename)
         return "Success"
 
     def undo(self, xml_filename=None, schema_filename=None, rootdir=None):
         pass
 
     def event_outcome_success(self, xml_filename=None, schema_filename=None, rootdir=None):
+        xml_filename = self.parse_params(xml_filename)
         return "Validated %s against schema" % xml_filename
 
 
 class ValidateLogicalPhysicalRepresentation(DBTask):
     """
     Validates the logical and physical representation of objects.
-
-    The comparison checks if the lists contains the same elements (though not
-    the order of the elements).
-
-    See http://stackoverflow.com/a/7829388/1523238
     """
 
+    event_type = 50220
     queue = 'validation'
 
-    def run(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=""):
-        if dirname:
-            xmlrelpath = os.path.relpath(xmlfile, dirname)
-            xmlrelpath = remove_prefix(xmlrelpath, "./")
+    def run(self, path, xmlfile, skip_files=None, relpath=None):
+        Validation.objects.filter(task=self.task_id).delete()
+        path, xmlfile, = self.parse_params(path, xmlfile)
+        if skip_files is None:
+            skip_files = []
         else:
-            xmlrelpath = xmlfile
+            skip_files = self.parse_params(*skip_files)
 
-        logical_files = find_files(xmlfile, rootdir)
-        physical_files = set()
+        if relpath is not None:
+            rootdir, = self.parse_params(relpath) or path
+        else:
+            if os.path.isdir(path):
+                rootdir = path
+            else:
+                rootdir = os.path.dirname(path)
 
-        if dirname:
-            for root, dirs, filenames in walk(dirname):
-                for f in filenames:
-                    reldir = os.path.relpath(root, dirname)
-                    relfile = os.path.join(reldir, f)
-                    relfile = win_to_posix(relfile)
-                    relfile = remove_prefix(relfile, "./")
+        ip = InformationPackage.objects.get(pk=self.ip)
+        validator = DiffCheckValidator(context=xmlfile, exclude=skip_files, options={'rootdir': rootdir},
+                                       task=self.task_id, ip=self.ip, responsible=ip.responsible)
+        validator.validate(path)
 
-                    if relfile != xmlrelpath:
-                        physical_files.add(relfile)
+    def event_outcome_success(self, path, xmlfile, skip_files=None, relpath=None):
+        path, xmlfile = self.parse_params(path, xmlfile)
+        return "Successfully validated logical and physical structure of {path} against {xml}".format(path=path, xml=xmlfile)
 
-        for f in files:
-            if files_reldir:
-                if f == files_reldir:
-                    physical_files.add(os.path.basename(f))
-                    continue
 
-                f = os.path.relpath(f, files_reldir)
-            physical_files.add(f)
+class CompareXMLFiles(DBTask):
+    event_type = 50240
+    queue = 'validation'
 
-        assert logical_files == physical_files, "the logical representation differs from the physical"
-        return "Success"
+    def run(self, first, second, rootdir=None):
+        Validation.objects.filter(task=self.task_id).delete()
+        first, second = self.parse_params(first, second)
+        ip = InformationPackage.objects.get(pk=self.ip)
+        if rootdir is None:
+            rootdir = ip.object_path
+        else:
+            rootdir, = self.parse_params(rootdir)
 
-    def undo(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=''):
+        validator = XMLComparisonValidator(context=first, options={'rootdir': rootdir}, task=self.task_id, ip=self.ip,
+                                           responsible=ip.responsible)
+        validator.validate(second)
+
+    def undo(self, first, second, rootdir=None):
         pass
 
-    def event_outcome_success(self, dirname=None, files=[], files_reldir=None, xmlfile=None, rootdir=''):
-        return "Validated logical and physical structure of %s and %s" % (xmlfile, dirname)
+    def event_outcome_success(self, first, second, rootdir=None):
+        first, second = self.parse_params(first, second)
+        return "%s and %s has the same set of files" % (first, second)
 
 
 class UpdateIPStatus(DBTask):
-    def run(self, ip=None, status=None, prev=None):
-        InformationPackage.objects.filter(pk=ip).update(state=status)
-    def undo(self, ip=None, status=None, prev=None):
-        InformationPackage.objects.filter(pk=ip).update(state=prev)
+    event_type = 50500
 
-    def event_outcome_success(self, ip=None, status=None, prev=None):
-        return "Updated status of %s to %s" % (ip, status)
+    @transaction.atomic
+    def run(self, status, prev=None):
+        status, = self.parse_params(status)
+        ip = InformationPackage.objects.get(pk=self.ip)
+        if prev is None:
+            t = ProcessTask.objects.get(pk=self.task_id)
+            t.params['prev'] = ip.state
+            t.save()
+        ip.state = status
+        ip.save()
+        Notification.objects.create(message=u'{} {}'.format(status.capitalize(), ip.object_identifier_value),
+                                    level=logging.INFO, user_id=self.responsible, refresh=True)
+
+    def undo(self, status, prev=None):
+        InformationPackage.objects.filter(pk=self.ip).update(state=prev)
+
+    def event_outcome_success(self, status, prev=None):
+        status, = self.parse_params(status)
+        return u"Updated status of {} to {}".format(get_cached_objid(str(self.ip)), status)
 
 
 class UpdateIPPath(DBTask):
-    def run(self, ip=None, path=None, prev=None):
-        InformationPackage.objects.filter(pk=ip).update(object_path=path)
-    def undo(self, ip=None, path=None, prev=None):
-        InformationPackage.objects.filter(pk=ip).update(object_path=prev)
+    event_type = 50510
 
-    def event_outcome_success(self, ip=None, path=None, prev=None):
-        return "Updated path of %s to %s" % (ip, path)
+    @transaction.atomic
+    def run(self, path, prev=None):
+        path, = self.parse_params(path)
+        ip = InformationPackage.objects.get(pk=self.ip)
+        if prev is None:
+            t = ProcessTask.objects.get(pk=self.task_id)
+            t.params['prev'] = ip.object_path
+            t.save()
+        ip.object_path = path
+        ip.save()
+
+    def undo(self, status, prev=None):
+        InformationPackage.objects.filter(pk=self.ip).update(path=prev)
+
+    def event_outcome_success(self, path, prev=None):
+        path, = self.parse_params(path)
+        return "Updated path of %s to %s" % (get_cached_objid(str(self.ip)), path)
 
 
 class UpdateIPSizeAndCount(DBTask):
     queue = 'file_operation'
 
-    def run(self, ip=None):
+    def run(self):
+        ip = self.ip
         path = InformationPackage.objects.values_list('object_path', flat=True).get(pk=ip)
         size, count = get_tree_size_and_count(path)
 
@@ -824,196 +564,48 @@ class UpdateIPSizeAndCount(DBTask):
 
         return size, count
 
-    def undo(self, ip=None):
+    def undo(self):
         pass
 
-    def event_outcome_success(self, ip=None):
-        return "Updated size and count of %s" % ip
+    def event_outcome_success(self):
+        return "Updated size and count of IP"
 
 
 class DeleteFiles(DBTask):
-    def run(self, path=None):
+    event_type = 50710
+
+    def run(self, path):
+        path, = self.parse_params(path)
         try:
             shutil.rmtree(path)
         except OSError as e:
-            if e.errno == errno.ENOTDIR:
-                try:
+            if os.name == 'nt':
+                if e.errno == 267:
                     os.remove(path)
-                except:
+                elif e.errno != 3:
                     raise
 
-    def undo(self, path=None):
-        pass
+            if e.errno == errno.ENOTDIR:
+                os.remove(path)
+            elif e.errno != errno.ENOENT:
+                raise
 
-    def event_outcome_success(self, path=None):
+    def event_outcome_success(self, path):
         return "Deleted %s" % path
 
 
-class CopyChunk(DBTask):
-    def local(self, src, dst, offset, block_size=65536):
-        with open(src, 'r') as srcf, open(dst, 'a') as dstf:
-            srcf.seek(offset)
-            dstf.seek(offset)
+class CopyDir(DBTask):
+    def run(self, src, dst):
+        shutil.copytree(src, dst)
 
-            dstf.write(srcf.read(block_size))
-
-    def remote(self, src, dst, offset, file_size, requests_session, upload_id=None, block_size=65536):
-        filename = os.path.basename(src)
-
-        with open(src, 'rb') as srcf:
-            srcf.seek(offset)
-            chunk = srcf.read(block_size)
-
-        start = offset
-        end = offset + block_size - 1
-
-        if end > file_size:
-            end = file_size - 1
-
-        HTTP_CONTENT_RANGE = 'bytes %s-%s/%s' % (start, end, file_size)
-        headers = {'Content-Range': HTTP_CONTENT_RANGE}
-
-        data = {'upload_id': upload_id}
-        files = {'the_file': (filename, chunk)}
-        response = requests_session.post(dst, data=data, files=files, headers=headers)
-        response.raise_for_status()
-
-        return response.json()['upload_id']
-
-    def run(self, src, dst, offset, upload_id=None, file_size=None, requests_session=None, block_size=65536):
-        """
-        Copies the given chunk to the given destination
-
-        Args:
-            src: The file to copy
-            dst: Where the file should be copied to
-            requests_session: The session to be used
-            offset: The offset in the file
-            block_size: Size of each block to copy
-        Returns:
-            None
-        """
-
-        if requests_session is not None:
-            if file_size is None:
-                raise ValueError('file_size required on remote transfers')
-
-            return self.remote(src, dst, offset, file_size, requests_session, upload_id, block_size)
-        else:
-            self.local(src, dst, offset, block_size)
-
-    def undo(self, src, dst, offset, upload_id=None, file_size=None, requests_session=None, block_size=65536):
+    def undo(self, src, dst):
         pass
 
-    def event_outcome_success(self, src, dst, offset, upload_id, file_size=None, requests_session=None, block_size=65536):
-        return "Copied chunk at offset %s and size %s from %s to %s" % (offset, block_size, src, dst)
+    def event_outcome_success(self, src, dst):
+        return "Copied %s to %s" % (src, dst)
 
 
 class CopyFile(DBTask):
-    def local(self, src, dst, block_size=65536, step=None):
-        step = ProcessStep.objects.create(
-            name="Copy %s to %s" % (src, dst),
-            parent_step_id=step
-        )
-
-        fsize = os.stat(src).st_size
-        idx = 0
-
-        tasks = []
-
-        directory = os.path.dirname(dst)
-
-        try:
-            os.makedirs(directory)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
-
-        open(dst, 'w').close()  # remove content of destination if it exists
-
-        while idx*block_size <= fsize:
-            tasks.append(ProcessTask(
-                name="ESSArch_Core.tasks.CopyChunk",
-                args=[src, dst, idx*block_size, self.task_id],
-                params={'block_size': block_size},
-                processstep=step,
-                processstep_pos=idx,
-            ))
-            idx += 1
-
-        ProcessTask.objects.bulk_create(tasks, 1000)
-
-        step.run().get()
-
-    def remote(self, src, dst, requests_session=None, block_size=65536, step=None):
-        step = ProcessStep.objects.create(
-            name="Copy %s to %s" % (src, dst),
-            parent_step_id=step
-        )
-
-        file_size = os.stat(src).st_size
-        idx = 0
-
-        tasks = []
-
-        t = ProcessTask.objects.create(
-            name="ESSArch_Core.tasks.CopyChunk",
-            args=[src, dst, idx*block_size],
-            params={
-                'requests_session': requests_session,
-                'file_size': file_size,
-                'block_size': block_size,
-            },
-            processstep=step,
-            processstep_pos=idx,
-        )
-        upload_id = t.run().get()
-        idx += 1
-
-        while idx*block_size <= file_size:
-            tasks.append(ProcessTask(
-                name="ESSArch_Core.tasks.CopyChunk",
-                args=[src, dst, idx*block_size],
-                params={
-                    'requests_session': requests_session,
-                    'file_size': file_size,
-                    'block_size': block_size,
-                    'upload_id': upload_id,
-                },
-                processstep=step,
-                processstep_pos=idx,
-            ))
-            idx += 1
-
-        ProcessTask.objects.bulk_create(tasks, 1000)
-
-        step.resume().get()
-
-        md5 = ProcessTask.objects.create(
-            name="ESSArch_Core.tasks.CalculateChecksum",
-            params={
-                "filename": src,
-                "block_size": block_size,
-                "algorithm": 'MD5'
-            },
-            information_package_id=self.ip,
-            responsible_id=self.responsible,
-        ).run().get()
-
-        completion_url = dst.rstrip('/') + '_complete/'
-
-        m = MultipartEncoder(
-            fields={
-                'path': os.path.basename(src),
-                'upload_id': upload_id,
-                'md5': md5,
-            }
-        )
-        headers = {'Content-Type': m.content_type}
-
-        response = requests_session.post(completion_url, data=m, headers=headers)
-        response.raise_for_status()
-
     def run(self, src, dst, requests_session=None, block_size=65536):
         """
         Copies the given file to the given destination
@@ -1027,18 +619,7 @@ class CopyFile(DBTask):
             None
         """
 
-        if dst is None:
-            raise ValueError
-
-        if os.path.isdir(dst):
-            dst = os.path.join(dst, os.path.basename(src))
-
-        step = ProcessTask.objects.values_list('processstep', flat=True).get(pk=self.request.id)
-
-        if requests_session is not None:
-            self.remote(src, dst, requests_session, block_size, step)
-        else:
-            self.local(src, dst, block_size, step)
+        copy_file(src, dst, requests_session=requests_session, block_size=block_size)
 
     def undo(self, src, dst, requests_session=None, block_size=65536):
         pass
@@ -1048,13 +629,19 @@ class CopyFile(DBTask):
 
 
 class SendEmail(DBTask):
-    def run(self, sender=None, recipients=[], subject=None, body=None, attachments=[]):
-        email = EmailMessage(
-            subject,
-            body,
-            sender,
-            recipients,
-        )
+    def run(self, sender=None, recipients=None, subject=None, body=None, attachments=None):
+        sender, subject, body = self.parse_params(sender, subject, body)
+        if recipients is None:
+            recipients = []
+        else:
+            recipients = self.parse_params(*recipients)
+
+        if attachments is None:
+            attachments = []
+        else:
+            attachments = self.parse_params(*attachments)
+
+        email = EmailMessage(subject, body, sender, recipients)
 
         for a in attachments:
             email.attach_file(a)
@@ -1065,37 +652,6 @@ class SendEmail(DBTask):
         pass
 
     def event_outcome_success(self, sender=None, recipients=[], subject=None, body=None, attachments=[]):
-        pass
-
-
-class DownloadSchemas(DBTask):
-    def run(self, template=None, dirname=None, structure=[], root=""):
-        schemaPreserveLoc = template.get('-schemaPreservationLocation')
-
-        if schemaPreserveLoc and structure:
-            dirname, _ = find_destination(
-                schemaPreserveLoc, structure
-            )
-            dirname = os.path.join(root, dirname)
-
-        for schema in template.get('-schemasToPreserve', []):
-            dst = os.path.join(dirname, os.path.basename(schema))
-
-            t = ProcessTask.objects.create(
-                name="ESSArch_Core.tasks.DownloadFile",
-                params={'src': schema, 'dst': dst},
-                processstep_id=self.step,
-                processstep_pos=self.step_pos,
-                responsible_id=self.responsible,
-                information_package_id=self.ip,
-            )
-
-            t.run().get()
-
-    def undo(self, template=None, dirname=None, structure=[], root="", task=None):
-        pass
-
-    def event_outcome_success(self, template=None, dirname=None, structure=[], root="", task=None):
         pass
 
 
@@ -1116,6 +672,9 @@ class DownloadFile(DBTask):
 
 
 class MountTape(DBTask):
+    event_type = 40200
+
+    @retry(stop_max_attempt_number=5, wait_fixed=60000)
     def run(self, medium=None, drive=None, timeout=120):
         """
         Mounts tape into drive
@@ -1129,52 +688,80 @@ class MountTape(DBTask):
         slot = medium.tape_slot.slot_id
         tape_drive = TapeDrive.objects.get(pk=drive)
 
-        mount_tape(tape_drive.robot.device, slot, drive)
+        if tape_drive.locked:
+            raise TapeDriveLockedError()
 
-        wait_to_come_online(tape_drive.device, timeout)
+        tape_drive.locked = True
+        tape_drive.save(update_fields=['locked'])
 
-        if medium.format not in [100, 101]:
-            label_root = Path.objects.get(entity='label').value
-            xmlpath = os.path.join(label_root, '%s_label.xml' % medium.medium_id)
-
-            if tape_empty(tape_drive.device):
-                create_tape_label(medium, xmlpath)
-                rewind_tape(tape_drive.device)
-                write_to_tape(tape_drive.device, xmlpath)
-            else:
-                tar = tarfile.open(tape_drive.device, 'r|')
-                first_member = tar.getmembers()[0]
-
-                if first_member.name.endswith('_label.xml'):
-                    xmlstring = tar.extractfile(first_member).read()
-                    tar.close()
-                    if not verify_tape_label(medium, xmlstring):
-                        raise ValueError('Tape contains labelfile with wrong tapeid')
-                elif first_member.name == 'reuse':
-                    tar.close()
-
-                    create_tape_label(medium, xmlpath)
-                    rewind_tape(tape_drive.device)
-                    write_to_tape(tape_drive.device, xmlpath)
-                else:
-                    raise ValueError('Tape contains unknown information')
+        try:
+            mount_tape(tape_drive.robot.device, slot, tape_drive.drive_id)
+            wait_to_come_online(tape_drive.device, timeout)
+        except:
+            StorageMedium.objects.filter(pk=medium.pk).update(status=100)
+            TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
+            TapeSlot.objects.filter(slot_id=slot).update(status=100)
+            raise
 
         TapeDrive.objects.filter(pk=drive).update(
             num_of_mounts=F('num_of_mounts')+1,
+            last_change=timezone.now(),
         )
         StorageMedium.objects.filter(pk=medium.pk).update(
             num_of_mounts=F('num_of_mounts')+1,
             tape_drive_id=drive
         )
 
-    def undo(self, robot=None, slot=None, drive=None):
+        xmlfile = tempfile.NamedTemporaryFile(delete=False)
+
+        try:
+            arcname = '%s_label.xml' % medium.medium_id
+
+            if medium.format not in [100, 101]:
+                if tape_empty(tape_drive.device):
+                    create_tape_label(medium, xmlfile.name)
+                    rewind_tape(tape_drive.device)
+                    write_to_tape(tape_drive.device, xmlfile.name, arcname=arcname)
+                else:
+                    tar = tarfile.open(tape_drive.device, 'r|')
+                    first_member = tar.getmembers()[0]
+                    tar.close()
+                    rewind_tape(tape_drive.device)
+
+                    if first_member.name.endswith('_label.xml'):
+                        tar = tarfile.open(tape_drive.device, 'r|')
+                        xmlstring = tar.extractfile(first_member).read()
+                        tar.close()
+                        if not verify_tape_label(medium, xmlstring):
+                            raise ValueError('Tape contains invalid label file')
+                    elif first_member.name == 'reuse':
+                        create_tape_label(medium, xmlfile.name)
+                        rewind_tape(tape_drive.device)
+                        write_to_tape(tape_drive.device, xmlfile.name, arcname=arcname)
+                    else:
+                        raise ValueError('Tape contains unknown information')
+
+                    rewind_tape(tape_drive.device)
+        except:
+            StorageMedium.objects.filter(pk=medium.pk).update(status=100)
+            TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
+            TapeSlot.objects.filter(slot_id=slot).update(status=100)
+            raise
+        finally:
+            xmlfile.close()
+            TapeDrive.objects.filter(pk=drive).update(locked=False)
+
+    def undo(self, medium=None, drive=None, timeout=120):
         pass
 
-    def event_outcome_success(self, robot=None, slot=None, drive=None):
+    def event_outcome_success(self, medium=None, drive=None, timeout=120):
         pass
 
 
 class UnmountTape(DBTask):
+    event_type = 40100
+
+    @retry(stop_max_attempt_number=5, wait_fixed=60000)
     def run(self, drive=None):
         """
         Unmounts tape from drive into slot
@@ -1191,11 +778,27 @@ class UnmountTape(DBTask):
         slot = tape_drive.storage_medium.tape_slot
         robot = tape_drive.robot
 
-        res = unmount_tape(robot.device, slot.slot_id, tape_drive.pk)
+        if tape_drive.locked:
+            raise TapeDriveLockedError()
+
+        tape_drive.locked = True
+        tape_drive.save(update_fields=['locked'])
+
+        try:
+            res = unmount_tape(robot.device, slot.slot_id, tape_drive.drive_id)
+        except:
+            StorageMedium.objects.filter(pk=tape_drive.storage_medium.pk).update(status=100)
+            TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
+            TapeSlot.objects.filter(pk=slot.pk).update(status=100)
+            raise
 
         StorageMedium.objects.filter(pk=tape_drive.storage_medium.pk).update(
             tape_drive=None
         )
+
+        tape_drive.last_change = timezone.now()
+        tape_drive.locked = False
+        tape_drive.save(update_fields=['last_change', 'locked'])
 
         return res
 
@@ -1259,7 +862,12 @@ class ReadTape(DBTask):
         except TapeDrive.DoesNotExist:
             raise ValueError("Tape not mounted")
 
-        return read_tape(drive.device, path=path, block_size=block_size)
+        res = read_tape(drive.device, path=path, block_size=block_size)
+
+        drive.last_change = timezone.now()
+        drive.save(update_fields=['last_change'])
+
+        return res
 
     def undo(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
         pass
@@ -1269,7 +877,7 @@ class ReadTape(DBTask):
 
 
 class WriteToTape(DBTask):
-    def run(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
+    def run(self, medium, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
         """
         Writes content to a tape drive
         """
@@ -1279,12 +887,17 @@ class WriteToTape(DBTask):
         except TapeDrive.DoesNotExist:
             raise ValueError("Tape not mounted")
 
-        return write_to_tape(drive.device, path=path, block_size=block_size)
+        res = write_to_tape(drive.device, path, block_size=block_size)
 
-    def undo(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
+        drive.last_change = timezone.now()
+        drive.save(update_fields=['last_change'])
+
+        return res
+
+    def undo(self, medium, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
         pass
 
-    def event_outcome_success(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
+    def event_outcome_success(self, medium, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
         pass
 
 
@@ -1327,18 +940,234 @@ class SetTapeFileNumber(DBTask):
     def event_outcome_success(self, medium=None, num=0):
         pass
 
+
+class RobotInventory(DBTask):
+    def run(self, robot):
+        """
+        Updates the slots and drives in the robot
+
+        Args:
+            robot: Which robot to get the data from
+
+        Returns:
+            None
+        """
+
+        robot_inventory(robot)
+
+    def undo(self, robot):
+        pass
+
+    def event_outcome_success(self, robot):
+        pass
+
+
 class ConvertFile(DBTask):
-    def run(self, filepath, new_format, delete_original=True):
-        try:
-            convert_file(filepath, new_format)
-        except:
-            raise
-        else:
-            if delete_original:
-                os.remove(filepath)
+    event_type = 50750
 
-    def undo(self, filepath, new_format):
+    def run(self, path, format_map, delete_original=True):
+        self.files_count = 0
+        path, = self.parse_params(path)
+
+        if os.path.isfile(path):
+            try:
+                new_format = format_map[os.path.splitext(path)[1][1:]]
+            except KeyError:
+                return
+            else:
+                convert_file(path, new_format)
+                self.files_count += 1
+                if delete_original:
+                    os.remove(path)
+            return
+
+        for root, dirs, filenames in walk(path):
+            for fname in filenames:
+                filepath = os.path.join(root, fname)
+                try:
+                    new_format = format_map[os.path.splitext(filepath)[1][1:]]
+                except KeyError:
+                    continue
+                else:
+                    convert_file(filepath, new_format)
+                    self.files_count += 1
+                    if delete_original:
+                        os.remove(filepath)
+
+    def undo(self, path, format_map, delete_original=True):
         pass
 
-    def event_outcome_success(self, filepath, new_format):
+    def event_outcome_success(self, path, format_map, delete_original=True):
+        path, = self.parse_params(path)
+        return "Converted %s file(s) at %s" % (self.files_count, path,)
+
+
+class ClearTagProcessQueue(DBTask):
+    _clear_process_tag_queue_lua = """
+    local values = redis.call("ZREVRANGEBYSCORE", KEYS[1], ARGV[1], "-inf", "LIMIT", "0", "1000")
+    if table.getn(values) > 0 then
+        redis.call("RPUSH", KEYS[2], unpack(values))
+        redis.call("ZREM", KEYS[1], unpack(values))
+    end
+    """
+
+    _clear_process_tag_queue = redis.register_script(_clear_process_tag_queue_lua)
+
+    def run(self):
+        """
+        Deletes items older than 60 seconds from the process queue
+        and pushes them into their original queue
+        """
+
+        max_time = int(time.time()) - 60
+
+        self._clear_process_tag_queue(keys=[INDEX_PROCESS_QUEUE, INDEX_QUEUE], args=[max_time])
+        self._clear_process_tag_queue(keys=[UPDATE_PROCESS_QUEUE, UPDATE_QUEUE], args=[max_time])
+        self._clear_process_tag_queue(keys=[DELETION_PROCESS_QUEUE, DELETION_QUEUE], args=[max_time])
+
+    def undo(self):
         pass
+
+    def event_outcome_success(self):
+        pass
+
+
+class ProcessTags(DBTask):
+    id_pickles = {}
+    abstract = True
+
+    _process_tag_queue_lua = """
+    local value = redis.call("RPOP", KEYS[1])
+    if value then
+        redis.call("ZADD", KEYS[2], ARGV[1], value)
+    end
+    return value"""
+
+    _process_tag_queue = redis.register_script(_process_tag_queue_lua)
+
+    def deserialize(self, tags):
+        for tag_string in [t for t in tags if t is not None]:
+            d = cPickle.loads(tag_string)
+            self.id_pickles[str(d['_id'])] = tag_string
+            yield d
+
+    def run(self):
+        """
+        Uses a reliable queue to process the latest entries.
+
+        Entries are popped and returned from the queue while also being added
+        to the process queue. Each entry is then sent and processed by
+        elasticsearch. If elasticsearch returns a successful response
+        the entry is deleted from the process queue.
+        """
+        es = get_connection()
+        tags = []
+        for i in range(10000):
+            epoch_time = int(time.time())
+            # Pop the latest entry, add it to the process queue with the
+            # current time as score and return it
+            tags.append(self._process_tag_queue(keys=[self.redis_queue, self.redis_process_queue], args=[epoch_time]))
+
+        doctypes = self.deserialize(tags)
+
+        # Send the entries in bulk to elasticsearch
+        errors = []
+        for result in es_helpers.streaming_bulk(es, doctypes, raise_on_exception=False, raise_on_error=False):
+            ok, info = result
+            if ok:
+                _id = self.get_id(info)
+                tag_string = self.id_pickles[_id]
+                # Delete successful entries from the process queue
+                redis.zrem(self.redis_process_queue, tag_string)
+            else:
+                if info.get('delete', {}).get('status') == 404:
+                    # trying to delete already deleted doc, delete it from
+                    # the process queue
+                    _id = self.get_id(info)
+                    tag_string = self.id_pickles[_id]
+                    redis.zrem(self.redis_process_queue, tag_string)
+                else:
+                    errors.append(info)
+
+        if errors:
+            raise es_helpers.BulkIndexError('%d document(s) failed to index.' % len(errors),
+                                            errors)
+
+    def undo(self):
+        pass
+
+    def event_outcome_success(self):
+        pass
+
+
+class IndexTags(ProcessTags):
+    redis_queue = INDEX_QUEUE
+    redis_process_queue = INDEX_PROCESS_QUEUE
+
+    def deserialize(self, tags):
+        for tag_string in [t for t in tags if t is not None]:
+            d = cPickle.loads(tag_string).to_dict(include_meta=True)
+            if d['_index'] == 'document':
+                d['pipeline'] = 'ingest_attachment'
+            self.id_pickles[str(d['_id'])] = tag_string
+            yield d
+
+    def get_id(self, data):
+        return data['index']['_id']
+
+
+class UpdateTags(ProcessTags):
+    redis_queue = UPDATE_QUEUE
+    redis_process_queue = UPDATE_PROCESS_QUEUE
+
+    def get_id(self, data):
+        return data['update']['_id']
+
+
+class DeleteTags(ProcessTags):
+    redis_queue = DELETION_QUEUE
+    redis_process_queue = DELETION_PROCESS_QUEUE
+
+    def get_id(self, data):
+        return data['delete']['_id']
+
+
+class RunWorkflowProfiles(DBTask):
+    logger = logging.getLogger('essarch.core.tasks.RunWorkflowProfiles')
+
+    def run(self):
+        proj = settings.PROJECT_SHORTNAME
+        pollers = getattr(settings, 'ESSARCH_WORKFLOW_POLLERS', {})
+        for name, poller in six.iteritems(pollers):
+            backend = get_backend(name)
+            poll_path = poller['path']
+            poll_sa = poller.get('sa')
+            context = {
+                'WORKFLOW_POLLER': name,
+                'WORKFLOW_POLL_PATH': poll_path
+            }
+            for ip in backend.poll(poll_path, poll_sa):
+                profile = ip.submission_agreement.profile_workflow
+                try:
+                    spec = profile.specification[proj]
+                except KeyError:
+                    self.logger.debug(u'No workflow specified in {} for current project {}'.format(profile, proj))
+                    continue
+                except AttributeError:
+                    if profile is None:
+                        self.logger.debug(u'No workflow profile in SA')
+                        continue
+                    raise
+
+                workflow = create_workflow(spec['tasks'], ip=ip, name=spec.get('name', ''),
+                                           on_error=spec.get('on_error'), context=context)
+                workflow.run()
+
+
+class DeletePollingSource(DBTask):
+    def run(self, backend_name, poll_path):
+        backend_name, poll_path = self.parse_params(backend_name, poll_path)
+        backend = get_backend(backend_name)
+
+        ip = self.get_information_package()
+        backend.delete_source(poll_path, ip)

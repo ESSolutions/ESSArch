@@ -1,0 +1,110 @@
+.sub-menu {
+    box-shadow: 0px 5px 2px $shadow-color;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    background-color: $sub-menu;
+    color: white;
+    padding: 5px 10px 5px 10px;
+    width: 100%;
+    &:focus {
+        outline: 0;
+    }
+    p {
+        font-size: 12pt;
+    }
+    .sliding-middle-out {
+        display: inline-block;
+        position: relative;
+        padding-bottom: 3px;
+    }
+    .sliding-middle-out:after {
+        content: '';
+        display: block;
+        margin: auto;
+        height: 1px;
+        width: 0px;
+        background: transparent;
+    }
+    .chosen:hover:after {
+        width: 100%;
+        height: 1px;
+        background: white;
+    }
+    .chosen:after {
+        width: 100%;
+        height: 1px;
+        background: white;
+    }
+    @include small-screen {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+}
+
+.profile-manager-sub-menu {
+    border-style: solid;
+    border-color: $border-color;
+    border-width: 1px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    background-color: white;
+    color: black;
+    padding: 5px 10px 5px 10px;
+    width: 100%;
+    &:focus {
+        outline: 0;
+    }
+    p {
+        font-size: 12pt;
+    }
+    .sliding-middle-out {
+        display: inline-block;
+        position: relative;
+        padding-bottom: 3px;
+    }
+    .sliding-middle-out:after {
+        content: '';
+        display: block;
+        margin: auto;
+        height: 1px;
+        width: 0px;
+        background: transparent;
+    }
+    .chosen:hover:after {
+        width: 100%;
+        height: 1px;
+        background: black;
+    }
+    .chosen:after {
+        width: 100%;
+        height: 1px;
+        background: black;
+    }
+    @include small-screen {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+}
+
+.sub-menu {
+    .nav-item {
+        cursor: pointer;
+        user-select: none;
+        margin: 0 15px 0 0 !important;
+        white-space: nowrap;
+        color: inherit;
+        &:hover {
+          text-decoration: none;
+        }
+        &:focus {
+            text-decoration: none;
+            outline: 0;
+            color: #b4caf8;
+            &:after {
+                color: #b4caf8;
+            }
+        }
+    }
+}

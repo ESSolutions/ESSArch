@@ -104,257 +104,6 @@ def setUpModule():
     settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
 
-class CalculateChecksumTestCase(TransactionTestCase):
-    def setUp(self):
-        self.taskname = "ESSArch_Core.tasks.CalculateChecksum"
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, "datadir")
-
-        try:
-            os.mkdir(self.datadir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
-
-        self.fname = os.path.join(self.datadir, "file1.txt")
-
-    def tearDown(self):
-        shutil.rmtree(self.datadir)
-
-    def test_file_with_content(self):
-        with open(self.fname, "w") as f:
-            f.write('foo')
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'filename': self.fname
-            }
-        )
-
-        expected = "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
-        actual = task.run().get()
-
-        self.assertEqual(expected, actual)
-
-    def test_empty_file(self):
-        open(self.fname, "a").close()
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'filename': self.fname
-            }
-        )
-
-        expected = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-        actual = task.run().get()
-
-        self.assertEqual(expected, actual)
-
-    def test_small_block_size(self):
-        with open(self.fname, "w") as f:
-            f.write('foo')
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'filename': self.fname,
-                'block_size': 1
-            }
-        )
-
-        expected = "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
-        actual = task.run().get()
-
-        self.assertEqual(expected, actual)
-
-    def test_md5(self):
-        with open(self.fname, "w") as f:
-            f.write('foo')
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'filename': self.fname,
-                'algorithm': 'MD5'
-            }
-        )
-
-        expected = "acbd18db4cc2f85cedef654fccc4a4d8"
-        actual = task.run().get()
-
-        self.assertEqual(expected, actual)
-
-    def test_sha1(self):
-        with open(self.fname, "w") as f:
-            f.write('foo')
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'filename': self.fname,
-                'algorithm': 'SHA-1'
-            }
-        )
-
-        expected = "0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"
-        actual = task.run().get()
-
-        self.assertEqual(expected, actual)
-
-    def test_sha224(self):
-        with open(self.fname, "w") as f:
-            f.write('foo')
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'filename': self.fname,
-                'algorithm': 'SHA-224'
-            }
-        )
-
-        expected = "0808f64e60d58979fcb676c96ec938270dea42445aeefcd3a4e6f8db"
-        actual = task.run().get()
-
-        self.assertEqual(expected, actual)
-
-    def test_sha384(self):
-        with open(self.fname, "w") as f:
-            f.write('foo')
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'filename': self.fname,
-                'algorithm': 'SHA-384'
-            }
-        )
-
-        expected = "98c11ffdfdd540676b1a137cb1a22b2a70350c9a44171d6b1180c6be5cbb2ee3f79d532c8a1dd9ef2e8e08e752a3babb"
-        actual = task.run().get()
-
-        self.assertEqual(expected, actual)
-
-    def test_sha512(self):
-        with open(self.fname, "w") as f:
-            f.write('foo')
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'filename': self.fname,
-                'algorithm': 'SHA-512'
-            }
-        )
-
-        expected = "f7fbba6e0636f890e56fbbf3283e524c6fa3204ae298382d624741d0dc6638326e282c41be5e4254d8820772c5518a2c5a8c0c7f7eda19594a7eb539453e1ed7"
-        actual = task.run().get()
-
-        self.assertEqual(expected, actual)
-
-class IdentifyFileFormatTestCase(TransactionTestCase):
-    def setUp(self):
-        self.taskname = "ESSArch_Core.tasks.IdentifyFileFormat"
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, "datadir")
-
-        try:
-            os.mkdir(self.datadir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
-
-        self.fname = os.path.join(self.datadir, "file1.txt")
-
-    def tearDown(self):
-        shutil.rmtree(self.datadir)
-
-    def test_file_with_content(self):
-        with open(self.fname, "w") as f:
-            f.write('foo')
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'filename': self.fname
-            }
-        )
-
-        expected = ("Plain Text File", None, "x-fmt/111")
-        actual = task.run().get()
-
-        self.assertEqual(expected, actual)
-
-    def test_filename_with_non_english_characters(self):
-        fname = os.path.join(self.datadir, u'åäö.txt')
-
-        with open(fname, "w") as f:
-            f.write('foo')
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'filename': fname
-            }
-        )
-
-        expected = ("Plain Text File", None, "x-fmt/111")
-        actual = task.run().get()
-
-        self.assertEqual(expected, actual)
-
-    def test_empty_file_with_filename_with_non_english_characters(self):
-        fname = os.path.join(self.datadir, u'åäö.txt')
-
-        open(fname, "a").close()
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'filename': fname
-            }
-        )
-
-        expected = ("Plain Text File", None, "x-fmt/111")
-        actual = task.run().get()
-
-        self.assertEqual(expected, actual)
-
-    def test_non_existent_file_extension(self):
-        fname = os.path.join(self.datadir, 'foo.zxczxc')
-
-        with open(fname, "w") as f:
-            f.write('foo')
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'filename': fname
-            }
-        )
-
-        with self.assertRaises(ValueError):
-            task.run().get()
-
-    def test_non_existent_file_extension_with_filename_with_non_english_characters(self):
-        fname = os.path.join(self.datadir, 'åäö.zxczxc')
-
-        with open(fname, "w") as f:
-            f.write('foo')
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'filename': fname
-            }
-        )
-
-        with self.assertRaises(ValueError):
-            task.run().get()
-
-
 class GenerateXMLTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.GenerateXML"
@@ -1785,31 +1534,33 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
 
         self.filesToCreate = {
             self.fname: {
-                '-name': 'root',
-                '-children': [{
-                    '-name': 'object',
-                    '-containsFiles': True,
-                    '-filters': {'FName': '^((?!' + os.path.basename(self.fname) + ').)*$'},
-                    '-children': [
-                        {
-                            '-name': 'storage',
-                            '-children': [{
-                                '-name': 'contentLocation',
+                'data': {},
+                'spec': {
+                    '-name': 'root',
+                    '-children': [{
+                        '-name': 'object',
+                        '-containsFiles': True,
+                        '-children': [
+                            {
+                                '-name': 'storage',
                                 '-children': [{
-                                    '-name': 'contentLocationValue',
-                                    '#content': [
-                                        {
-                                            'text': 'file:///',
-                                        },
-                                        {
-                                            'var': 'href'
-                                        }
-                                    ]
+                                    '-name': 'contentLocation',
+                                    '-children': [{
+                                        '-name': 'contentLocationValue',
+                                        '#content': [
+                                            {
+                                                'text': 'file:///',
+                                            },
+                                            {
+                                                'var': 'href'
+                                            }
+                                        ]
+                                    }]
                                 }]
-                            }]
-                        }
-                    ]
-                }]
+                            }
+                        ]
+                    }]
+                }
             }
         }
 
@@ -1819,15 +1570,15 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
             if e.errno != 17:
                 raise
 
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def test_validation_without_files(self):
         root = etree.fromstring('<root></root>')
 
         with open(self.fname, 'w') as f:
             f.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
 
-    def tearDown(self):
-        shutil.rmtree(self.datadir)
-
-    def test_validation_without_files(self):
         task = ProcessTask.objects.create(
             name=self.taskname,
             params={
@@ -1895,7 +1646,7 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
             }
         )
 
-        with self.assertRaisesRegexp(AssertionError, "the logical representation differs from the physical"):
+        with self.assertRaisesRegexp(AssertionError, ".*0.txtx is only in the physical$"):
             task.run()
 
     def test_validation_with_too_many_files(self):
@@ -1928,7 +1679,7 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
             }
         )
 
-        with self.assertRaisesRegexp(AssertionError, "the logical representation differs from the physical"):
+        with self.assertRaisesRegexp(AssertionError, ".*4.txt is only in the physical$"):
             task.run()
 
     def test_validation_with_too_few_files(self):
@@ -1961,7 +1712,7 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
             }
         )
 
-        with self.assertRaisesRegexp(AssertionError, "the logical representation differs from the physical"):
+        with self.assertRaisesRegexp(AssertionError, ".*2.txt is only in the logical$"):
             task.run()
 
     def test_validation_with_file_in_wrong_folder(self):
@@ -2000,7 +1751,45 @@ class ValidateLogicalPhysicalRepresentationTestCase(TransactionTestCase):
             }
         )
 
-        with self.assertRaisesRegexp(AssertionError, "the logical representation differs from the physical"):
+        with self.assertRaisesRegexp(AssertionError, ".*new_dir/0.txt is only in the physical$"):
+            task.run()
+
+    def test_validation_with_multiple_generated_files(self):
+        num_of_files = 3
+        files = []
+
+        for i in range(num_of_files):
+            fname = os.path.join(self.datadir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('%s' % i)
+            files.append(fname)
+
+        additional_xml = os.path.join(self.datadir, 'additional_file.xml')
+        additional_xml_two = os.path.join(self.datadir, 'additional_file_two.xml')
+        self.filesToCreate[additional_xml] = self.filesToCreate[self.fname]
+        self.filesToCreate[additional_xml_two] = self.filesToCreate[self.fname]
+
+        ProcessTask.objects.create(
+            name='ESSArch_Core.tasks.GenerateXML',
+            params={
+                'filesToCreate': self.filesToCreate,
+                'folderToParse': self.datadir
+            }
+        ).run()
+
+        skip = self.filesToCreate.keys()
+        for xml_file in self.filesToCreate.keys():
+            skip.pop(0)
+            task = ProcessTask.objects.create(
+                name=self.taskname,
+                params={
+                    'dirname': self.datadir,
+                    'xmlfile': xml_file,
+                    'files_reldir': self.datadir,
+                    'skip_files': skip,
+                }
+            )
+
             task.run()
 
 
@@ -2319,250 +2108,22 @@ class DeleteFilesTestCase(TransactionTestCase):
 class CopyFileTestCase(TransactionTestCase):
     def setUp(self):
         self.taskname = "ESSArch_Core.tasks.CopyFile"
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, "datadir")
-        self.src = os.path.join(self.datadir, "src.txt")
 
-        try:
-            os.mkdir(self.datadir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
+    @mock.patch('ESSArch_Core.tasks.copy_file')
+    def test_function_called(self, mock_copy_file):
+        src = 'src.txt'
+        dst = 'dst.txt'
 
-    def tearDown(self):
-        shutil.rmtree(self.datadir)
-
-    def test_local_empty(self):
-        dst = os.path.join(self.datadir, "dst.txt")
-
-        open(self.src, 'a').close()
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'src': self.src,
-                'dst': dst
-            }
-        )
-
-        task.run()
-
-        self.assertTrue(os.path.isfile(self.src))
-        self.assertTrue(os.path.isfile(dst))
-        self.assertTrue(filecmp.cmp(self.src, dst))
-
-    def test_local_non_empty(self):
-        dst = os.path.join(self.datadir, "dst.txt")
-        content = 'foo'
-
-        with open(self.src, 'w') as f:
-            f.write(content)
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'src': self.src,
-                'dst': dst
-            }
-        )
-
-        task.run()
-
-        self.assertTrue(os.path.isfile(self.src))
-        self.assertTrue(os.path.isfile(dst))
-        self.assertTrue(filecmp.cmp(self.src, dst))
-        self.assertEqual(open(dst).read(), content)
-
-    def test_local_non_ascii_file_name(self):
-        src = os.path.join(self.datadir, u'åäö.txt')
-        dst = os.path.join(self.datadir, u'öäå.txt')
-        content = 'foo'
-
-        with open(src, 'w') as f:
-            f.write(content)
-
-        task = ProcessTask.objects.create(
+        ProcessTask.objects.create(
             name=self.taskname,
             params={
                 'src': src,
                 'dst': dst
             }
-        )
-
-        task.run()
-
-        self.assertTrue(os.path.isfile(src))
-        self.assertTrue(os.path.isfile(dst))
-        self.assertTrue(filecmp.cmp(src, dst))
-        self.assertEqual(open(dst).read(), content)
-
-    def test_local_small_block_size(self):
-        dst = os.path.join(self.datadir, "dst.txt")
-        content = 'foo'
-
-        with open(self.src, 'w') as f:
-            f.write(content)
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'src': self.src,
-                'dst': dst,
-                'block_size': 1
-            }
-        )
-
-        task.run()
-
-        self.assertTrue(os.path.isfile(self.src))
-        self.assertTrue(os.path.isfile(dst))
-        self.assertTrue(filecmp.cmp(self.src, dst))
-        self.assertEqual(open(dst).read(), content)
-
-    def test_local_dst_existing(self):
-        dst = os.path.join(self.datadir, "dst.txt")
-        content = 'foo'
-        dstcontent = 'bar'
-
-        with open(self.src, 'w') as f:
-            f.write(content)
-
-        with open(dst, 'w') as f:
-            f.write(dstcontent)
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            params={
-                'src': self.src,
-                'dst': dst,
-            }
-        )
-
-        task.run()
-
-        self.assertTrue(os.path.isfile(self.src))
-        self.assertTrue(os.path.isfile(dst))
-        self.assertTrue(filecmp.cmp(self.src, dst))
-        self.assertEqual(open(dst).read(), content)
-
-    @mock.patch('ESSArch_Core.tasks.requests.Session.post')
-    @mock.patch('ESSArch_Core.tasks.CopyChunk.run', side_effect=lambda *args, **kwargs: None)
-    def test_remote(self, mock_copy_chunk, mock_post):
-        fname = "src.txt"
-        src = os.path.join(self.datadir, fname)
-        dst = "http://remote.destination/upload"
-        session = requests.Session()
-
-        with open(src, 'w') as f:
-            f.write('foo')
-
-        task = ProcessTask.objects.create(
-            name=self.taskname,
-            args=[src, dst],
-            params={
-                'requests_session': session,
-                'block_size': 1
-            }
-        )
-        task.run().get()
-
-        calls = [
-            mock.call(src, dst, 0, file_size=3, block_size=1, requests_session=mock.ANY),
-            mock.call(src, dst, 1, file_size=3, block_size=1, requests_session=mock.ANY, upload_id=None,),
-            mock.call(src, dst, 2, file_size=3, block_size=1, requests_session=mock.ANY, upload_id=None,),
-            mock.call(src, dst, 3, file_size=3, block_size=1, requests_session=mock.ANY, upload_id=None,),
-        ]
-        mock_copy_chunk.assert_has_calls(calls)
-
-        mock_post.assert_called_once_with(
-            dst + '_complete/',
-            data=mock.ANY, headers={'Content-Type': mock.ANY},
-        )
-
-
-class CopyChunkTestCase(TransactionTestCase):
-    def setUp(self):
-        self.taskname = "ESSArch_Core.tasks.CopyChunk"
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, "datadir")
-
-        try:
-            os.mkdir(self.datadir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
-
-    def tearDown(self):
-        shutil.rmtree(self.datadir)
-
-    @mock.patch('ESSArch_Core.tasks.requests.Session.post')
-    def test_remote(self, mock_post):
-        fname = "src.txt"
-        src = os.path.join(self.datadir, fname)
-        dst = "http://remote.destination/upload"
-        session = requests.Session()
-
-        attrs = {'json.return_value': {'upload_id': uuid.uuid4().hex}}
-        mock_response = mock.Mock()
-        mock_response.configure_mock(**attrs)
-
-        mock_post.return_value = mock_response
-
-        with open(src, 'w') as f:
-            f.write('foo')
-
-        upload_id = uuid.uuid4().hex
-
-        ProcessTask.objects.create(
-            name=self.taskname,
-            args=[src, dst, 1, upload_id],
-            params={
-                'requests_session': session,
-                'block_size': 1,
-                'file_size': 3,
-            }
         ).run().get()
 
-        mock_post.assert_called_once_with(
-            dst, files={'the_file': ('src.txt', 'o')},
-            data={'upload_id': upload_id},
-            headers={'Content-Range': 'bytes 1-1/3'},
-        )
+        mock_copy_file.assert_called_once_with(src, dst, block_size=mock.ANY, requests_session=None)
 
-    @mock.patch('ESSArch_Core.tasks.requests.Session.post')
-    def test_remote_server_error(self, mock_post):
-        attrs = {'raise_for_status.side_effect': requests.exceptions.HTTPError}
-        mock_response = mock.Mock()
-        mock_response.configure_mock(**attrs)
-
-        mock_post.return_value = mock_response
-
-        fname = "src.txt"
-        src = os.path.join(self.datadir, fname)
-        dst = "http://remote.destination/upload"
-        session = requests.Session()
-
-        with open(src, 'w') as f:
-            f.write('foo')
-
-        upload_id = uuid.uuid4().hex
-
-        with self.assertRaises(requests.exceptions.HTTPError):
-            ProcessTask.objects.create(
-                name=self.taskname,
-                args=[src, dst, 1, upload_id],
-                params={
-                    'requests_session': session,
-                    'block_size': 1,
-                    'file_size': 3,
-                }
-            ).run().get()
-
-        mock_post.assert_called_once_with(
-            dst, files={'the_file': ('src.txt', 'o')},
-            data={'upload_id': upload_id},
-            headers={'Content-Range': 'bytes 1-1/3'},
-        )
 
 class SendEmailTestCase(TransactionTestCase):
     def setUp(self):
@@ -3072,10 +2633,7 @@ class WriteToTapeTestCase(TransactionTestCase):
 
         task = ProcessTask.objects.create(
             name=self.taskname,
-            params={
-                'medium': self.medium.pk,
-                'path': self.temp.name,
-            },
+            args=[self.medium.pk, self.temp.name],
         )
 
         with self.assertRaises(ValueError):
@@ -3092,10 +2650,7 @@ class WriteToTapeTestCase(TransactionTestCase):
 
         task = ProcessTask.objects.create(
             name=self.taskname,
-            params={
-                'medium': self.medium.pk,
-                'path': self.temp.name,
-            },
+            args=[self.medium.pk, self.temp.name],
         )
 
         task.run().get()

@@ -22,13 +22,12 @@
     Email - essarch@essolutions.se
 """
 
+import six
 from celery import states as celery_states
-
 from rest_framework import serializers
 
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import get_result
-from ESSArch_Core.util import available_tasks
 
 
 class ProcessStepChildrenSerializer(serializers.Serializer):
@@ -36,6 +35,7 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     flow_type = serializers.SerializerMethodField()
     name = serializers.CharField()
+    label = serializers.SerializerMethodField()
     hidden = serializers.BooleanField()
     progress = serializers.IntegerField()
     status = serializers.CharField()
@@ -43,6 +43,21 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
     step_position = serializers.SerializerMethodField()
     time_started = serializers.DateTimeField()
     time_done = serializers.DateTimeField()
+    undo_type = serializers.SerializerMethodField()
+    undone = serializers.SerializerMethodField()
+    retried = serializers.SerializerMethodField()
+
+    def get_undo_type(self, obj):
+        return getattr(obj, 'undo_type', None)
+
+    def get_undone(self, obj):
+       return getattr(obj.undone, 'pk', obj.undone)
+
+    def get_retried(self, obj):
+        try:
+            return obj.retried.pk
+        except:
+            return None
 
     def get_url(self, obj):
         flow_type = self.get_flow_type(obj)
@@ -52,6 +67,11 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
 
     def get_flow_type(self, obj):
         return 'task' if type(obj).__name__ == 'ProcessTask' else 'step'
+
+    def get_label(self, obj):
+        if type(obj).__name__ == 'ProcessTask':
+            return obj.label
+        return obj.name
 
     def get_responsible(self, obj):
         if type(obj).__name__ == 'ProcessTask':
@@ -67,9 +87,6 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
 
 
 class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
-    name = serializers.ChoiceField(
-        choices=available_tasks(),
-    )
     responsible = serializers.SlugRelatedField(
         slug_field='username', read_only=True
     )
@@ -77,14 +94,14 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ProcessTask
         fields = (
-            'url', 'id', 'name', 'status', 'progress',
-            'processstep', 'processstep_pos', 'time_started',
+            'url', 'id', 'name', 'label', 'status', 'progress',
+            'processstep', 'processstep_pos', 'time_created', 'time_started',
             'time_done', 'undone', 'undo_type', 'retried',
             'responsible', 'hidden',
         )
 
         read_only_fields = (
-            'status', 'progress', 'time_started', 'time_done', 'undone',
+            'status', 'progress', 'time_created', 'time_started', 'time_done', 'undone',
             'undo_type', 'retried', 'hidden',
         )
 
@@ -99,13 +116,13 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
 
     def get_params(self, obj):
         params = obj.params
-        for param, task in obj.result_params.iteritems():
+        for param, task in six.iteritems(obj.result_params):
             try:
                 params[param] = get_result(task)
             except ProcessTask.DoesNotExist:
                 params[param] = 'waiting on result from %s ...' % task
 
-        return dict((k.encode('utf-8'), v) for k, v in params.iteritems())
+        return dict((k.encode('utf-8'), v) for k, v in six.iteritems(params))
 
     def get_result(self, obj):
         return str(obj.result)

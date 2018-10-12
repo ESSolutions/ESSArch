@@ -73,10 +73,9 @@ class IPAdmin(admin.ModelAdmin):
     """
     Informaion Package
     """
-    list_display = ('archivist_organization', 'label', 'create_date', 'id', 'object_path', 'state')
-    search_fields = ('archivist_organization',)
+    list_display = ('label', 'create_date', 'id', 'object_path', 'state')
     readonly_fields = ('id',)
-    list_filter = ('archivist_organization', 'label')
+    list_filter = ('label',)
     #fields = ('entity', 'value')
     fieldsets = (
                 (None, {
@@ -94,10 +93,6 @@ class IPAdmin(admin.ModelAdmin):
                               'end_date',
                               'package_type',
                               'submission_agreement',
-                              'archival_institution',
-                              'archivist_organization',
-                              'archival_type',
-                              'archival_location',
                              )}),
                )
 

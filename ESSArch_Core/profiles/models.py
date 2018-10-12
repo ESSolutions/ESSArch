@@ -44,17 +44,17 @@
     Email - essarch@essolutions.se
 """
 
+import uuid
 from copy import copy
 
-from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email, URLValidator
-from django.db import models
-
 import jsonfield
-import uuid
+import six
+from django.conf import settings
+from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
 
-from ESSArch_Core.util import validate_remote_url
+from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
+from ESSArch_Core.profiles.validators import validate_template
 
 Profile_Status_CHOICES = (
     (0, 'Disabled'),
@@ -91,6 +91,7 @@ class ProfileQuerySet(models.query.QuerySet):
         return profile_set.first().profile
 
 
+@python_2_unicode_compatible
 class ProfileSA(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
@@ -102,12 +103,12 @@ class ProfileSA(models.Model):
         'SubmissionAgreement', on_delete=models.CASCADE
     )
     LockedBy = models.ForeignKey(
-        User, models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, models.SET_NULL, null=True, blank=True,
     )
     Unlockable = models.BooleanField(default=False)
 
-    def __unicode__(self):
-        return unicode(self.id)
+    def __str__(self):
+        return six.text_type(self.id)
 
     class Meta:
         unique_together = (
@@ -115,6 +116,7 @@ class ProfileSA(models.Model):
         )
 
 
+@python_2_unicode_compatible
 class ProfileIP(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
@@ -125,29 +127,83 @@ class ProfileIP(models.Model):
     ip = models.ForeignKey(
         'ip.InformationPackage', on_delete=models.CASCADE
     )
+    data = models.ForeignKey('ProfileIPData', on_delete=models.SET_NULL, null=True)
     included = models.BooleanField(default=False)
     LockedBy = models.ForeignKey(
-        User, models.SET_NULL, null=True, blank=True
+        settings.AUTH_USER_MODEL, models.SET_NULL, null=True, blank=True
     )
     Unlockable = models.BooleanField(default=False)
+
+    def clean(self):
+        data = getattr(self.data, 'data', {})
+        data = fill_specification_data(data.copy(), ip=self.ip, sa=self.ip.submission_agreement)
+        validate_template(self.profile.template, data)
+        self.profile.clean(data=data)
 
     def lock(self, user):
         self.LockedBy = user
 
+        extra_data = fill_specification_data(ip=self.ip, sa=self.ip.submission_agreement)
         for field in self.profile.template:
             if 'defaultValue' in field and field['key'] not in self.profile.specification_data.keys():
+                if field['defaultValue'] in extra_data:
+                    self.profile.specification_data[field['key']] = extra_data[field['defaultValue']]
+                    continue
+
                 self.profile.specification_data[field['key']] = field['defaultValue']
 
         self.profile.save(update_fields=['specification_data'])
         self.save()
 
-    def __unicode__(self):
-        return unicode(self.id)
+    def get_related_profile_data(self, original_keys=False):
+        data = {}
+        for field in self.profile.template:
+            if field['key'].startswith('$'):
+                profile_type, key = field['key'].split('__')
+                profile_type = profile_type[1:]
+
+                try:
+                    related_profile = ProfileIP.objects.get(ip=self.ip, profile__profile_type=profile_type)
+                except ProfileIP.DoesNotExist:
+                    continue
+                if related_profile.data is not None:
+                    data[field['key'] if original_keys else key] = related_profile.data.data.get(key)
+
+        return data
+
+    def __str__(self):
+        return six.text_type(self.id)
 
     class Meta:
         unique_together = (
             ("profile", "ip"),
         )
+
+
+class ProfileIPData(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    relation = models.ForeignKey('ProfileIP', on_delete=models.CASCADE, related_name='data_versions')
+    data = jsonfield.JSONField(default={})
+    version = models.IntegerField(default=0)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['version']
+        permissions = (
+            ('profile_management', 'Can manage profiles'),
+        )
+
+
+class ProfileIPDataTemplate(models.Model):
+    name = models.CharField(max_length=50, blank=False)
+    data = jsonfield.JSONField(default={})
+    created = models.DateTimeField(auto_now_add=True)
+    profile = models.ForeignKey('Profile', on_delete=models.CASCADE)
+
+
+    class Meta:
+        ordering = ['created']
 
 
 class SubmissionAgreement(models.Model):
@@ -158,43 +214,44 @@ class SubmissionAgreement(models.Model):
     )
 
     name = models.CharField(max_length=255)
+    published = models.BooleanField(default=False)
     type = models.CharField(max_length=255)
     status = models.CharField(max_length=255)
     label = models.CharField(max_length=255)
-    cm_version = models.CharField(max_length=255)
-    cm_release_date = models.CharField(max_length=255)
-    cm_change_authority = models.CharField(max_length=255)
-    cm_change_description = models.CharField(max_length=255)
-    cm_sections_affected = models.CharField(max_length=255)
-    producer_organization = models.CharField(max_length=255)
-    producer_main_name = models.CharField(max_length=255)
-    producer_main_address = models.CharField(max_length=255)
-    producer_main_phone = models.CharField(max_length=255)
-    producer_main_email = models.CharField(max_length=255)
-    producer_main_additional = models.CharField(max_length=255)
-    producer_individual_name = models.CharField(max_length=255)
-    producer_individual_role = models.CharField(max_length=255)
-    producer_individual_phone = models.CharField(max_length=255)
-    producer_individual_email = models.CharField(max_length=255)
-    producer_individual_additional = models.CharField(max_length=255)
-    archivist_organization = models.CharField(max_length=255)
-    archivist_main_name = models.CharField(max_length=255)
-    archivist_main_address = models.CharField(max_length=255)
-    archivist_main_phone = models.CharField(max_length=255)
-    archivist_main_email = models.CharField(max_length=255)
-    archivist_main_additional = models.CharField(max_length=255)
-    archivist_individual_name = models.CharField(max_length=255)
-    archivist_individual_role = models.CharField(max_length=255)
-    archivist_individual_phone = models.CharField(max_length=255)
-    archivist_individual_email = models.CharField(max_length=255)
-    archivist_individual_additional = models.CharField(max_length=255)
-    designated_community_description = models.CharField(max_length=255)
-    designated_community_individual_name = models.CharField(max_length=255)
-    designated_community_individual_role = models.CharField(max_length=255)
-    designated_community_individual_phone = models.CharField(max_length=255)
-    designated_community_individual_email = models.CharField(max_length=255)
+    cm_version = models.CharField(blank=True, max_length=255)
+    cm_release_date = models.CharField(blank=True, max_length=255)
+    cm_change_authority = models.CharField(blank=True, max_length=255)
+    cm_change_description = models.CharField(blank=True, max_length=255)
+    cm_sections_affected = models.CharField(blank=True, max_length=255)
+    producer_organization = models.CharField(blank=True, max_length=255)
+    producer_main_name = models.CharField(blank=True, max_length=255)
+    producer_main_address = models.CharField(blank=True, max_length=255)
+    producer_main_phone = models.CharField(blank=True, max_length=255)
+    producer_main_email = models.CharField(blank=True, max_length=255)
+    producer_main_additional = models.CharField(blank=True, max_length=255)
+    producer_individual_name = models.CharField(blank=True, max_length=255)
+    producer_individual_role = models.CharField(blank=True, max_length=255)
+    producer_individual_phone = models.CharField(blank=True, max_length=255)
+    producer_individual_email = models.CharField(blank=True, max_length=255)
+    producer_individual_additional = models.CharField(blank=True, max_length=255)
+    archivist_organization = models.CharField(blank=True, max_length=255)
+    archivist_main_name = models.CharField(blank=True, max_length=255)
+    archivist_main_address = models.CharField(blank=True, max_length=255)
+    archivist_main_phone = models.CharField(blank=True, max_length=255)
+    archivist_main_email = models.CharField(blank=True, max_length=255)
+    archivist_main_additional = models.CharField(blank=True, max_length=255)
+    archivist_individual_name = models.CharField(blank=True, max_length=255)
+    archivist_individual_role = models.CharField(blank=True, max_length=255)
+    archivist_individual_phone = models.CharField(blank=True, max_length=255)
+    archivist_individual_email = models.CharField(blank=True, max_length=255)
+    archivist_individual_additional = models.CharField(blank=True, max_length=255)
+    designated_community_description = models.CharField(blank=True, max_length=255)
+    designated_community_individual_name = models.CharField(blank=True, max_length=255)
+    designated_community_individual_role = models.CharField(blank=True, max_length=255)
+    designated_community_individual_phone = models.CharField(blank=True, max_length=255)
+    designated_community_individual_email = models.CharField(blank=True, max_length=255)
     designated_community_individual_additional = models.CharField(
-        max_length=255
+        blank=True, max_length=255
     )
 
     include_profile_transfer_project = models.BooleanField(default=False)
@@ -211,6 +268,23 @@ class SubmissionAgreement(models.Model):
     include_profile_preservation_metadata = models.BooleanField(default=False)
     include_profile_event = models.BooleanField(default=False)
 
+    profile_transfer_project = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='transfer_project_sa')
+    profile_content_type = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='content_type_sa')
+    profile_data_selection = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='data_selection_sa')
+    profile_authority_information = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='authority_information_sa')
+    profile_archival_description = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='archival_description_sa')
+    profile_import = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='import_sa')
+    profile_submit_description = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='submit_description_sa')
+    profile_sip = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='sip_sa')
+    profile_aic_description = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aic_description_sa')
+    profile_aip = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aip_sa')
+    profile_dip = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='dip_sa')
+    profile_aip_description = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aip_description_sa')
+    profile_workflow = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='workflow_sa')
+    profile_preservation_metadata = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='preservation_metadata_sa')
+    profile_event = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='event_sa')
+    profile_validation = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='validation_sa')
+
     template = jsonfield.JSONField(default=[])
 
     class Meta:
@@ -218,11 +292,15 @@ class SubmissionAgreement(models.Model):
         verbose_name = 'Submission Agreement'
         permissions = (
             ('create_new_sa_generation', 'Can create new generations of SA'),
+            ('export_sa', 'Can export SA'),
         )
 
     def __unicode__(self):
         # create a unicode representation of this object
         return '%s - %s' % (self.name, self.id)
+
+    def get_profiles(self):
+        return [getattr(self, 'profile_%s' % p_type.lower().replace(' ', '_'), None) for p_type in profile_types]
 
     def get_profile_rel(self, profile_type):
         return self.profilesa_set.filter(
@@ -253,7 +331,7 @@ class SubmissionAgreement(models.Model):
         clone.pk = None
         clone.name = new_name
 
-        for k, v in new_data.iteritems():
+        for k, v in six.iteritems(new_data):
             setattr(clone, k, v)
 
         clone.save()
@@ -263,22 +341,6 @@ class SubmissionAgreement(models.Model):
 
         return clone
 
-
-profile_types = [
-    "Transfer Project",
-    "Content Type",
-    "Data Selection",
-    "Authority Information",
-    "Archival Description",
-    "Import",
-    "Submit Description",
-    "SIP",
-    "AIP",
-    "DIP",
-    "Workflow",
-    "Preservation Metadata",
-    "Event",
-]
 
 PROFILE_TYPE_CHOICES = zip(
     [p.replace(' ', '_').lower() for p in profile_types],
@@ -297,131 +359,31 @@ class Profile(models.Model):
         choices=PROFILE_TYPE_CHOICES
     )
     name = models.CharField(max_length=255)
-    type = models.CharField(max_length=255)
-    status = models.CharField(max_length=255)
-    label = models.CharField(max_length=255)
-    cm_version = models.CharField(max_length=255)
-    cm_release_date = models.CharField(max_length=255)
-    cm_change_authority = models.CharField(max_length=255)
-    cm_change_description = models.CharField(max_length=255)
-    cm_sections_affected = models.CharField(max_length=255)
+    type = models.CharField(max_length=255, blank=True)
+    status = models.CharField(max_length=255, blank=True)
+    label = models.CharField(max_length=255, blank=True)
+    cm_version = models.CharField(max_length=255, blank=True)
+    cm_release_date = models.CharField(max_length=255, blank=True)
+    cm_change_authority = models.CharField(max_length=255, blank=True)
+    cm_change_description = models.CharField(max_length=255, blank=True)
+    cm_sections_affected = models.CharField(max_length=255, blank=True)
     schemas = jsonfield.JSONField(default={})
-    representation_info = models.CharField(max_length=255)
-    preservation_descriptive_info = models.CharField(max_length=255)
-    supplemental = models.CharField(max_length=255)
-    access_constraints = models.CharField(max_length=255)
-    datamodel_reference = models.CharField(max_length=255)
-    additional = models.CharField(max_length=255)
-    submission_method = models.CharField(max_length=255)
-    submission_schedule = models.CharField(max_length=255)
-    submission_data_inventory = models.CharField(max_length=255)
-    structure = jsonfield.JSONField(default={})
-    template = jsonfield.JSONField(default={})
+    representation_info = models.CharField(max_length=255, blank=True)
+    preservation_descriptive_info = models.CharField(max_length=255, blank=True)
+    supplemental = models.CharField(max_length=255, blank=True)
+    access_constraints = models.CharField(max_length=255, blank=True)
+    datamodel_reference = models.CharField(max_length=255, blank=True)
+    additional = models.CharField(max_length=255, blank=True)
+    submission_method = models.CharField(max_length=255, blank=True)
+    submission_schedule = models.CharField(max_length=255, blank=True)
+    submission_data_inventory = models.CharField(max_length=255, blank=True)
+    structure = jsonfield.JSONField(default=[])
+    template = jsonfield.JSONField(default=[])
     specification = jsonfield.JSONField(default={})
     specification_data = jsonfield.JSONField(default={})
 
-    def fill_specification_data(self, sa=None, ip=None):
-        data = self.specification_data
-
-        if sa:
-            data['_SA_ID'] = str(sa.pk)
-            data['_SA_NAME'] = str(sa.name)
-
-        if ip:
-            data['_OBJID'] = ip.object_identifier_value
-            data['_OBJLABEL'] = ip.label
-
-            if ip.archivist_organization:
-                data['_IP_ARCHIVIST_ORGANIZATION'] = ip.archivist_organization.name
-
-            if ip.archival_institution:
-                data['_IP_ARCHIVAL_INSTITUTION'] = ip.archival_institution.name
-
-            if ip.archival_type:
-                data['_IP_ARCHIVAL_TYPE'] = ip.archival_type.name
-
-            if ip.archival_location:
-                data['_IP_ARCHIVAL_LOCATION'] = ip.archival_location.name
-
-            try:
-                data["_PROFILE_TRANSFER_PROJECT_ID"] = str(ip.get_profile('transfer_project').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_SUBMIT_DESCRIPTION_ID"] = str(ip.get_profile('submit_description').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_SIP_ID"] = str(ip.get_profile('sip').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_AIP_ID"] = str(ip.get_profile('aip').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_DIP_ID"] = str(ip.get_profile('dip').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_CONTENT_TYPE_ID"] = str(ip.get_profile('content_type').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_AUTHORITY_INFORMATION_ID"] = str(ip.get_profile('authority_information').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_ARCHIVAL_DESCRIPTION_ID"] = str(ip.get_profile('archival_description').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_PRESERVATION_METADATA_ID"] = str(ip.get_profile('preservation_metadata').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_DATA_SELECTION_ID"] = str(ip.get_profile('data_selection').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_IMPORT_ID"] = str(ip.get_profile('import').pk)
-            except AttributeError:
-                pass
-
-            try:
-                data["_PROFILE_WORKFLOW_ID"] = str(ip.get_profile('workflow').pk)
-            except AttributeError:
-                pass
-
-        return data
-
-    def clean(self):
-        for field in self.template:
-            key = field.get('key')
-            templateOptions = field.get('templateOptions', {})
-
-            if templateOptions.get('required') and not self.get_value_for_key(key):
-                raise ValidationError("Required field (%s) can't be empty" % (field.get('key')))
-
-            if templateOptions.get('type') == 'email' and self.get_value_for_key(key):
-                validate_email(self.get_value_for_key(key))
-
-            elif templateOptions.get('type') == 'url' and 'remote' in templateOptions.keys() and self.get_value_for_key(key):
-                validate_remote_url(self.get_value_for_key(key))
-
-            elif templateOptions.get('type') == 'url' and self.get_value_for_key(key):
-                validate_url = URLValidator()
-                validate_url(self.get_value_for_key(key))
+    def clean(self, data={}):
+        validate_template(self.template, data)
 
 
     def get_value_for_key(self, key):
@@ -430,6 +392,9 @@ class Profile(models.Model):
     class Meta:
         ordering = ["name"]
         verbose_name = 'Profile'
+        permissions = (
+            ('export_profile', 'Can export profile'),
+        )
 
     def __unicode__(self):
         # create a unicode representation of this object

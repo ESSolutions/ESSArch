@@ -34,12 +34,19 @@ from setuptools.command.install import install as _install
 import sys
 from pkg_resources import require as pkg_check, DistributionNotFound, VersionConflict
 
+try:
+    input = raw_input
+except NameError:
+    pass
+
 # ESSArch_Core dependencies
 dependencies = [
   'ESSArch-EPP>=2.8.4,<=2.8.5',
-  'ESSArch-TA>=1.0.3,<=1.1.0',
-  'ESSArch-TP>=1.0.3,<=1.1.0',
+  'ESSArch-PP>=3.0.0.*,<=3.0.1.*',
+  'ESSArch-TA>=1.0.3.*,<=1.2.1.*',
+  'ESSArch-TP>=1.0.3.*,<=1.2.1.*',
 ]
+
 
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
@@ -64,7 +71,7 @@ def query_yes_no(question, default="yes"):
 
     while True:
         sys.stdout.write('\n' + question + prompt)
-        choice = raw_input().lower()
+        choice = input().lower()
         if default is not None and choice == '':
             return valid[default]
         elif choice in valid:
@@ -73,36 +80,41 @@ def query_yes_no(question, default="yes"):
             sys.stdout.write("Please respond with 'yes' or 'no' "
                              "(or 'y' or 'n').\n")
 
+
 def dependencies_check(dependencies):
     try:
         pkg_check(dependencies)
     except VersionConflict as e:
-        print 'Warning! You are trying to install a version of ESSArch_Core \
+        print ('Warning! You are trying to install a version of ESSArch_Core \
 incompatible with other software versions. If you continue, you \
-will also need to upgrade other software versions as: %s' % e
+will also need to upgrade other software versions as: %s' % e)
         if not query_yes_no('Do you want to continue with the installation?'):
-            print 'Cancel the installation...'
+            print ('Cancel the installation...')
             sys.exit(1)
     except DistributionNotFound as e:
         pass
 
+
 def _pre_install():
-    print 'Running inside _pre_install'
+    print ('Running inside _pre_install')
     dependencies_check(dependencies)
 
-def _post_install():  
-    print 'Running inside _post_install'
 
-class my_install(_install):  
+def _post_install():
+    print ('Running inside _post_install')
+
+
+class my_install(_install):
     def run(self):
-        self.execute(_pre_install, [],  
+        self.execute(_pre_install, [],
              msg="Running pre install task")
-        
+
         _install.run(self)
 
         # the second parameter, [], can be replaced with a set of parameters if _post_install needs any
-        self.execute(_post_install, [],  
+        self.execute(_post_install, [],
                      msg="Running post install task")
+
 
 if __name__ == '__main__':
     cmdclass=versioneer.get_cmdclass()
@@ -115,80 +127,54 @@ if __name__ == '__main__':
         author_email='info@essolutions.se',
         url='http://www.essolutions.se',
         install_requires=[
-            "mysqlclient>=1.3.10",
-            "pyodbc>=3.0.10",
-            "pytz>=2016.6.1",
-            "psutil>=3.2.1",
-            "billiard>=3.3.0.23",
-            "anyjson>=0.3.3",
-            "amqp>=1.4.9",
-            "kombu>=3.0.36",
-            "pycparser>=2.14",
-            "cffi>=1.2.1",
-            "six>=1.10.0",
-            "idna>=2.5",
-            "urllib3>=1.21.1",
-            "certifi>=2017.4.17",
-            "funcsigs>=1.0.2",
-            "pbr>=3.0.1",
-            "mock>=2.0.0",
-            "pyasn1>=0.1.8",
-            "enum34>=1.0.4",
-            "ipaddress>=1.0.14",
-            "cryptography>=1.0.1",
-            "pyOpenSSL>=0.15.1",
-            "pysendfile>=2.0.1",
-            "nose>=1.3.7",
-            "lxml>=3.6.4",
-            "pyftpdlib>=1.4.0",
-            "Django>=1.10.1",
-            "django-picklefield>=0.3.2",
-            "django-nested-inline>=0.3.6",
-            "argparse>=1.3.0",
-            "httplib2>=0.9.1",
-            "MarkupSafe>=0.23",
-            "Jinja2>=2.8",
-            "iso8601>=0.1.11",
-            "django.js>=0.8.1",
-            "django-eztables>=0.3.3.dev0",
-            "celery==3.1.24",
-            "django-celery>=3.2.0a1",
-            "jobtastic>=0.3.1",
-            "jsonfield>=1.0.3",
-            "requests>=2.11.1",
-            "requests-toolbelt>=0.7.0",
-            "django-cors-headers>=1.1.0",
-            "django-jsonfield>=1.0.1",
-            "python-openid>=2.2.5",
-            "oauthlib>=2.0.0",
-            "requests-oauthlib>=0.7.0",
-            "django-allauth>=0.27.0",
-            "djangorestframework>=3.6.3",
-            "django-rest-auth>=0.8.1",
-            "django-filter>=1.0.3",
-            "djangorestframework-filters>=0.8.1",
-            "django-chunked-upload>=1.1.1",
-            "jsonpickle>=0.9.3",
-            "retrying>=1.3.3",
-            "django-datatables-view>=1.13.0",
-            "olefile>=0.43",
-            "setuptools_scm>=1.15.0",
-            "pytest-runner>=2.11.1",
-            "opf-fido>=1.3.5",
-            "scandir>=1.4",
-            "natsort>=5.0.2",
-            "redis>=2.10.5",
-            "django-redis>=4.7.0",
-            "httpretty>=0.8.14",
-            "unoconv>=0.6",
-            "python-ldap>=2.4.38",
-            "django-auth-ldap>=1.2.12",
-            "django-mptt==0.8.7",
-            "drf-extensions==0.3.1",
+            "asgi-redis==1.4.3",
+            "celery==4.2.1",
+            "cffi==1.11.5",
+            "channels==1.1.8",
+            "crontab==0.22.2",
+            "django>=1.11,<1.12",
+            "django-cors-headers==2.4.0",
+            "django-filter==1.1",
+            "django-groups-manager==0.6.0",
+            "django-guardian==1.4.9",
+            "django-jsonfield==1.0.1",
+            "django-mptt==0.9.1",
+            "django-nested-inline==0.3.7",
+            "django-picklefield==1.1.0",
+            "django-redis==4.9.0",
+            "django-rest-auth[with_social]==0.9.3",
+            "djangorestframework>=3.8,<3.9",
+            "drf-dynamic-fields==0.3.0",
+            "drf-extensions>=0.4,<0.5",
             "drf-proxy-pagination==0.1.1",
-            "logfileviewer>=0.6.3",
-            "soapfish>=0.6.0.dev0",
+            "elasticsearch-dsl==6.2.1",
+            "glob2==0.6",
+            "httpretty==0.9.5",
+            "jsonpickle==1.0",
+            "lxml>=4.2,<4.3",
+            "mock==2.0.0",
+            "natsort==5.4.1",
+            "opf-fido==1.3.7",
+            "pyfakefs==3.4.3",
+            "redis==2.10.6",
+            "requests==2.19.1",
+            "requests_toolbelt==0.8.0",
+            "retrying==1.3.3",
+            "scandir==1.9.0",
+            "six==1.10.0",
+            "weasyprint==0.42.3",
         ],
+        extras_require={
+            "docs": ["sphinx==1.8.1", "sphinx-intl==0.9.11",
+                "sphinx-rtd-theme==0.4.1", "sphinxcontrib-httpdomain==1.7.0",
+                "sphinxcontrib-httpexample==0.9.1",
+                "sphinxcontrib-inlinesyntaxhighlight==0.2"],
+            "s3":  ["boto3==1.9.14"],
+            "ldap":  ["django-auth-ldap>=1.7,<1.8"],
+            "saml2":  ["djangosaml2>=0.17,<0.18"],
+            "libreoffice_file_conversion":  ["unoconv>=0.8,<0.9"],
+            "mysql": ["mysqlclient==1.3.13"],
+        },
         packages=find_packages(),
         include_package_data=True,
         zip_safe=False,

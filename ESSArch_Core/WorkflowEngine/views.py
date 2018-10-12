@@ -26,8 +26,11 @@ import datetime
 import itertools
 import pytz
 
+from celery import states as celery_states
+from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 
+from rest_framework import exceptions
 from rest_framework.decorators import detail_route
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -35,16 +38,8 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.WorkflowEngine.filters import ProcessStepFilter, ProcessTaskFilter
-from ESSArch_Core.WorkflowEngine.models import (
-    ProcessStep,
-    ProcessTask,
-)
-
-from ESSArch_Core.WorkflowEngine.permissions import (
-    CanUndo,
-    CanRetry,
-)
-
+from ESSArch_Core.WorkflowEngine.models import (ProcessStep, ProcessTask,)
+from ESSArch_Core.WorkflowEngine.permissions import CanRetry, CanUndo
 from ESSArch_Core.WorkflowEngine.serializers import (
     ProcessStepSerializer,
     ProcessStepDetailSerializer,
@@ -60,25 +55,12 @@ class ProcessViewSet(GenericAPIView, viewsets.ViewSet):
     queryset = ProcessStep.objects.none()
 
     def list(self, request, parent_lookup_processstep):
-        hidden = request.query_params.get('hidden')
-
-        if hidden in ['True', 'true', True]:
-            hidden = True
-
-        elif hidden in ['False', 'false', False]:
-            hidden = False
-
         step = ProcessStep.objects.get(pk=parent_lookup_processstep)
         child_steps = step.child_steps.all()
+        child_steps = ProcessStepFilter(data=request.query_params, queryset=child_steps, request=self.request).qs
+
         tasks = step.tasks.all().select_related('responsible')
-
-        if hidden is True:
-            child_steps = child_steps.filter(hidden=True)
-            tasks = tasks.filter(hidden=True)
-        elif hidden is False:
-            child_steps = child_steps.filter(hidden=False)
-            tasks = tasks.filter(hidden=False)
-
+        tasks = ProcessTaskFilter(data=request.query_params, queryset=tasks, request=self.request).qs
 
         queryset = sorted(
             itertools.chain(child_steps, tasks),
@@ -122,31 +104,6 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
         serializers = ProcessStepSerializer(child_steps, many=True, context={'request': request})
         return Response(serializers.data)
 
-    @detail_route(methods=['post'])
-    def run(self, request, pk=None):
-        self.get_object().run()
-        return Response({'status': 'running step'})
-
-    @detail_route(methods=['post'], permission_classes=[CanUndo])
-    def undo(self, request, pk=None):
-        self.get_object().undo()
-        return Response({'status': 'undoing step'})
-
-    @detail_route(methods=['post'], url_path='undo-failed', permission_classes=[CanUndo])
-    def undo_failed(self, request, pk=None):
-        self.get_object().undo(only_failed=True)
-        return Response({'status': 'undoing failed tasks in step'})
-
-    @detail_route(methods=['post'], permission_classes=[CanRetry])
-    def retry(self, request, pk=None):
-        self.get_object().retry()
-        return Response({'status': 'retrying step'})
-
-    @detail_route(methods=['post'])
-    def resume(self, request, pk=None):
-        self.get_object().resume()
-        return Response({'status': 'resuming step'})
-
 
 class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
@@ -163,12 +120,24 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         return ProcessTaskDetailSerializer
 
+    @transaction.atomic
+    @detail_route(methods=['post'], permission_classes=[CanRetry])
+    def retry(self, request, pk=None):
+        obj = self.get_object()
+        if obj.status != celery_states.FAILURE:
+            raise exceptions.ParseError('Only failed tasks can be retried')
+
+        root = obj.get_root_step()
+        if root is not None:
+            obj.reset()
+            root.resume()
+        else:
+            obj.retry()
+
+        return Response({'status': 'retries task'})
+
+    @transaction.atomic
     @detail_route(methods=['post'], permission_classes=[CanUndo])
     def undo(self, request, pk=None):
         self.get_object().undo()
         return Response({'status': 'undoing task'})
-
-    @detail_route(methods=['post'], permission_classes=[CanRetry])
-    def retry(self, request, pk=None):
-        self.get_object().retry()
-        return Response({'status': 'retries task'})

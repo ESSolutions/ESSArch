@@ -38,7 +38,7 @@ eol_ = '\n'
 
 def dlog(string):
     if debug:
-        print string
+        print(string)
 
 
 def pretty_print(fd, level):
@@ -187,7 +187,7 @@ class xmlElement(object):
             children = []
             for child in self.children:
                 if self.tagName == "daoset":
-                    print child.tagName
+                    print(child.tagName)
 
                 r, c, a = child.listAllElements(self.tagName)
                 children = children + c
@@ -253,7 +253,7 @@ class xmlElement(object):
         """
         Method for debugging only, prints out the name of the element and all children
         """
-        print self.tagName
+        print(self.tagName)
         for child in self.children:
             child.printDebug()
 

@@ -1,0 +1,5 @@
+{% autoescape off %}{{message}}
+
+{% if validations %}Validations:
+{% for validation in validations %}[{% if validation.passed %}ok{% else %}fail{% endif %}] {{validation.filename}}: {{validation.message}}
+{% endfor %}{% endif %}{% endautoescape %}

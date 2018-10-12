@@ -25,26 +25,35 @@
     Email - essarch@essolutions.se
 """
 
+from django import forms
 from django.contrib import admin
 
-from .models import (
-    SubmissionAgreement,
-    Profile,
-    ProfileSA,
-)
+from .models import SubmissionAgreement, Profile
+from .utils import profile_types
 
+class SubmissionAgreementForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(SubmissionAgreementForm, self).__init__(*args, **kwargs)
+        for pt in [pt.lower().replace(' ', '_') for pt in profile_types]:
+            self.fields[u'profile_{}'.format(pt)].required = False
 
-class profiles_Inline(admin.TabularInline):
-    model = ProfileSA
-    extra = 0
+    class Meta:
+        model = SubmissionAgreement
+        fields = '__all__'
 
 
 class SubmissionAgreementAdmin(admin.ModelAdmin):
+    def render_change_form(self, request, context, *args, **kwargs):
+        for pt in [pt.lower().replace(' ', '_') for pt in profile_types]:
+            context['adminform'].form.fields[u'profile_{}'.format(pt)].queryset = Profile.objects.filter(profile_type=pt)
+        return super(SubmissionAgreementAdmin, self).render_change_form(request, context, args, kwargs) 
+
+
+    form = SubmissionAgreementForm
     list_display = ('name', 'type', 'status', 'label')
     search_fields = ('name', )
     readonly_fields = ('id',)
     list_filter = ('name', 'type')
-    inlines = (profiles_Inline,)
     fieldsets = (
         (None, {
             'classes': ('wide'),
@@ -89,6 +98,10 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
                 'designated_community_individual_email',
                 'designated_community_individual_additional',
             )
+        }),
+        ('Profiles', {
+            'classes': ('collapse', 'wide'),
+            'fields': tuple([u'profile_{}'.format(pt.lower().replace(' ', '_')) for pt in profile_types])
         }),
     )
 

@@ -1,0 +1,166 @@
+<div class="enter-profile-name task-info-modal-head">
+    <h3 class="modal-title" id="modal-title">{{('TASKREPORTFOR' | translate)+ ' ' +currentStepTask.label}}</h3>
+    <div class="refresh-icon">
+        <span ng-click="getTask(currentStepTask)" class="clickable angular-animate fa fa-refresh fa-lg" ng-class="{'fa-refresh-animate': stepTaskLoading }" uib-popover="{{'REFRESH' | translate}}"  popover-placement="left" popover-popup-delay="500" popover-append-to-body="true"></span>
+    </div>
+</div>
+<div class="modal-body" id="modal-body">
+    <div class="step-task-info">
+        <p ng-if="currentStepTask.name"><b style="margin: 5px; white-space: nowrap;">{{'NAME' | translate}}:</b> {{currentStepTask.name}}</p>
+        <b style="margin: 5px; white-space: nowrap;">{{'STATUS' | translate}}:</b>
+        <div ng-if="currentStepTask.status == 'SUCCESS'" class="step-state-success"><b>{{'SUCCESS' | translate}}</b></div>
+        <div ng-if="currentStepTask.status == 'FAILURE'" class="step-state-failure"><b>{{'FAILURE' | translate}}</b></div>
+        <div ng-if="currentStepTask.status != 'SUCCESS' && currentStepTask.status !='FAILURE'" class="step-state-in-progress"><b>{{'INPROGRESS' | translate}}</b></div>
+        <p style="margin: 5px;"><b>{{'CREATED' | translate}}:</b> {{currentStepTask.time_created | date:"yyyy-MM-dd HH:mm:ss.sss"}}</p>
+        <p ng-if="currentStepTask.time_started !== null || currentStepTask.time_done !== null" style="margin: 5px;"><b ng-if="currentStepTask.time_started !== null">{{'STARTED' | translate}}:</b> {{currentStepTask.time_started !== null?(currentStepTask.time_started | date:"yyyy-MM-dd HH:mm:ss.sss"):''}} <b ng-if="currentStepTask.time_done !== null">{{'DONE' | translate}}:</b> {{currentStepTask.time_done !== null?(currentStepTask.time_done | date:"yyyy-MM-dd HH:mm:ss.sss"):''}}</p>
+        <p ng-if="currentStepTask.duration !== null" style="margin: 5px;"><b>{{'DURATION' | translate}}:</b> {{currentStepTask.duration}}</p>
+        <p style="margin: 5px;"><b>{{'ID' | translate}}:</b> {{currentStepTask.id}}</p>
+        <button class="btn btn-default" clipboard text="currentStepTask.id" on-copied="$ctrl.idCopyDone()">{{'COPYID' | translate}}</button>
+        <span ng-if="$ctrl.idCopied" class="fa fa-lg fa-check traceback-copied"></span>
+        <br>
+        <table class="table" style="margin: 5px;">
+            <tbody>
+                <tr>
+                    <td>
+                        <div style="max-height: 300px; overflow-y:auto;">
+                            <b>{{('ARGS' | translate)}}:</b>
+                            <table class="table">
+                                <tbody>
+                                    {{vm.getArgsString(currentStepTask.args)}}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="max-height:300px; overflow-y:auto;">
+                            <b>{{('PARAMS' | translate)+':'}}</b>
+                            <table class="table">
+                                <tbody>
+                                    <tr ng-repeat="(key, value) in currentStepTask.params track by $index">
+                                        <td>{{key}}</td>
+                                        <td class="param-value">
+                                            <pre>{{value | json}}</pre>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+            <tbody>
+                <tr ng-if="currentStepTask.status == 'SUCCESS'">
+                    <td><b>{{('RESULT' | translate)+':'}}</b>
+                        {{currentStepTask.result}}
+                    </td>
+                </tr>
+                <tr ng-if="currentStepTask.status == 'FAILURE'">
+                    <td><b>{{('EXCEPTION' | translate)+':'}}</b>
+                        {{currentStepTask.exception}}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <button ng-if="currentStepTask.status == 'FAILURE'" class="btn btn-default" ng-click="tracebackModal(currentStepTask)">{{'SEETRACEBACK' | translate}}</button>
+        <div st-table="vm.validations" st-pipe="vm.getValidations">
+            <hr/>
+            <h4>{{'VALIDATIONS' | translate}}</h4>
+            <div class="search-prepare-wrapper">
+                <label for items-per-page></label>
+                <select id="items-per-page" style="margin-right: 10px;" class="form-control items-per-page" ng-model="vm.itemsPerPage" ng-options="x for x in [5,10,20,25,50]" uib-popover="{{'ITEMSPERPAGE' | translate}}" popover-placement="top-left" popover-popup-delay="500" popover-append-to-body="true"></select>
+                <input st-search="" class="form-control global-search" ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}" type="text" uib-popover="{{'GLOBALSEARCHDESC_VALIDATION' | translate}}" popover-placement="top-left" popover-popup-delay="500" popover-append-to-body="true" />
+                <div class="refresh-icon">
+                    <span ng-click="vm.getValidations(vm.validationTableState)" class="clickable angular-animate fa fa-refresh fa-lg" ng-class="{'fa-refresh-animate': validationsLoading }" uib-popover="{{'REFRESHTABLEDESC' | translate}}" popover-placement="left" popover-popup-delay="500" popover-append-to-body="true"></span>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="list-view-table table-x-overflow">
+                    <table class="table table-striped validation-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th st-sort="message" class="cursor-pointer">
+                                    {{'MESSAGE' | translate}}
+                                </th>
+                                <th st-sort="validator" class="cursor-pointer">
+                                    {{'VALIDATOR' | translate}}
+                                </th>
+                                <th st-sort="filename" class="cursor-pointer">
+                                    {{'FILENAME' | translate}}
+                                </th>
+                                <th st-sort="time_started" st-sort-default="true" class="cursor-pointer">
+                                    {{'STARTED' | translate}}
+                                </th>
+                                <th st-sort="time_done" class="cursor-pointer">
+                                    {{'DONE' | translate}}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="x in vm.validations" ng-class="{'failed': !x.passed && x.time_done, 'success': x.passed && x.time_done, 'running': !x.passed && x.time_done === null && x.time_started}">
+                                <td class="text-center pr-0">
+                                    <i class="fa fa-check"
+                                    ng-if="x.passed && x.time_done"
+                                    uib-popover="{{'SUCCESS' | translate}}"
+                                    popover-placement="right"
+                                    popover-append-to-body="true"
+                                    popover-popup-delay="500">
+                                    </i>
+                                    <i class="fa fa-times"
+                                    ng-if="!x.passed && x.time_done"
+                                    uib-popover="{{'FAILURE' | translate}}"
+                                    popover-placement="right"
+                                    popover-append-to-body="true"
+                                    popover-popup-delay="500">
+                                    </i>
+                                    <i class="fa fa-spinner fa-spin"
+                                    ng-if="!x.passed && x.time_done === null && x.time_started"
+                                    uib-popover="{{'RUNNING' | translate}}"
+                                    popover-placement="right"
+                                    popover-append-to-body="true"
+                                    popover-popup-delay="500">
+                                </i>
+                                </td>
+                                <td class="text-oneline-ellipsis">
+                                    {{x.message}}
+                                </td>
+                                <td class="text-oneline-ellipsis">
+                                    {{x.validator}}
+                                </td>
+                                <td class="text-oneline-ellipsis">
+                                    {{x.filename}}
+                                </td>
+                                <td class="text-oneline-ellipsis">
+                                    {{x.time_started | date:"yyyy-MM-dd HH:mm:ss.sss"}}
+                                </td>
+                                <td class="text-oneline-ellipsis">
+                                    {{x.time_done | date:"yyyy-MM-dd HH:mm:ss.sss"}}
+                                </td>
+                            </tr>
+                            <tr ng-if="!vm.validations.length && !validationsLoading" class="empty-table-indicator">
+                                <td colspan="6">{{'NO_RESULTS_FOUND' | translate}}</td>
+                            </tr>
+                            <tr ng-if="!vm.validations.length && validationsLoading" class="empty-table-indicator">
+                                <td class="loading-column" colspan="6">{{'LOADING' | translate}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <td ng-show="!initLoad">
+                    <div class="text-center" st-template="static/frontend/views/pagination.html" st-pagination="" st-items-by-page="vm.itemsPerPage" st-displayed-pages="7"></div>
+                </td>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="modal-footer">
+    <div class="float-left">
+        <button class="btn btn-danger" ng-click="myTreeControl.scope.taskStepUndo(angular.copy(currentStepTask))"
+        ng-if="checkPermission('WorkflowEngine.can_undo') && (currentStepTask.status == 'SUCCESS' || currentStepTask.status == 'FAILURE') && !currentStepTask.undone && !currentStepTask.undo_type"
+        >{{'UNDO' | translate}}</button>
+
+        <button class="btn btn-success" ng-click="myTreeControl.scope.taskStepRedo(angular.copy(currentStepTask))"
+        ng-if="checkPermission('WorkflowEngine.can_retry') && currentStepTask.flow_type == 'task' && currentStepTask.status == 'FAILURE'"
+        >{{'REDO' | translate}}</button>
+    </div>
+    <button class="btn btn-warning" type="button" ng-click="$ctrl.cancel()" focused="true">{{'CLOSE' | translate}}</button>
+</div>

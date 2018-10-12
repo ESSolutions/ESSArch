@@ -22,12 +22,15 @@
     Email - essarch@essolutions.se
 """
 
+from collections import OrderedDict
 
+import six
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404, redirect
-from models import templatePackage, extensionPackage
+from django.shortcuts import render, redirect
+from rest_framework.generics import get_object_or_404
+from .models import templatePackage, extensionPackage
 from ESSArch_Core.profiles.models import Profile
 from ESSArch_Core.essxml.ProfileMaker.xsdtojson import generateJsonRes, generateExtensionRef
 import requests
@@ -44,7 +47,7 @@ import uuid
 
 from django.views.generic import View
 from django.http import JsonResponse
-from forms import AddTemplateForm, AddExtensionForm
+from .forms import AddTemplateForm, AddExtensionForm
 
 
 def constructContent(text):
@@ -105,16 +108,17 @@ def getTrail(elementTree, element, trail=[]):
         return trail
 
 
-def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, namespace=''):
+def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, namespace='', nsmap={}):
     element = elements[currentUuid]
     el = OrderedDict()
     forms = []
     data = {}
+    nsmap.update(element.get('nsmap', {}))
     el['-name'] = element['name']
     el['-min'] = element['min']
     el['-max'] = element['max']
     el['-containsFiles'] = element.get('containsFiles')
-    el['-nsmap'] = element.get('nsmap', {})
+    el['-nsmap'] = nsmap
     el['-namespace'] = element.get('namespace')
     attributes = element['form'] + element['userForm']
     attributeList = []
@@ -165,6 +169,11 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, n
 
             forms.append(field)
             data[field['key']] = ''
+
+            try:
+                att['-namespace'], att['-name'] = att['-name'].split(':')
+            except ValueError:
+                pass
 
             attributeList.append(att)
     el['-attr'] = attributeList
@@ -487,7 +496,7 @@ class add(View):
 
             schemadoc = etree.fromstring(schema_request.content)
             targetNamespace = schemadoc.get('targetNamespace')
-            nsmap = {k: v for k, v in schemadoc.nsmap.iteritems() if k and v != "http://www.w3.org/2001/XMLSchema"}
+            nsmap = {k: v for k, v in six.iteritems(schemadoc.nsmap) if k and v != "http://www.w3.org/2001/XMLSchema"}
 
             existingElements, allElements = generateJsonRes(schemadoc, root, prefix);
             existingElements["root"]["nsmap"] = nsmap
@@ -533,7 +542,7 @@ class addExtension(View):
             schema_request.raise_for_status()
 
             schemadoc = etree.fromstring(schema_request.content)
-            nsmap = {k: v for k, v in schemadoc.nsmap.iteritems() if k and v != "http://www.w3.org/2001/XMLSchema"}
+            nsmap = {k: v for k, v in six.iteritems(schemadoc.nsmap) if k and v != "http://www.w3.org/2001/XMLSchema"}
             targetNamespace = schemadoc.get('targetNamespace')
 
             extensionElements, extensionAll, attributes = generateExtensionRef(schemadoc, prefix)

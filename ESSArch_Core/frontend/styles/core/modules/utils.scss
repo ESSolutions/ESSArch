@@ -1,0 +1,48 @@
+.cursor-pointer {
+    cursor: pointer;
+}
+.white-space-nowrap {
+    white-space: nowrap;
+}
+
+.h-100 {
+    height: 100%;
+}
+.w-100 {
+    width: 100%;
+}
+
+.mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.m-0 {
+    margin: 0 !important;
+}
+
+.ml-0, .mx-0 {
+    margin-left: 0 !important;
+}
+.mr-0, .mx-0 {
+    margin-right: 0 !important;
+}
+.pr-0 {
+    padding-right: 0 !important;
+}
+
+.align-items-end {
+    align-items: flex-end;
+}
+
+.float-left {
+    float: left;
+}
+
+.margin-top-5 {
+    margin-top: 5px;
+}
+
+.text-oneline-ellipsis {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

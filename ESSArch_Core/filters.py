@@ -23,11 +23,45 @@
 """
 
 import django_filters
+import six
+from django_filters import rest_framework as filters
+from django_filters.constants import EMPTY_VALUES
+from django_filters.fields import IsoDateTimeField, Lookup, RangeField
 
-from django_filters.fields import Lookup
+
+def string_to_bool(s):
+    if not isinstance(s, six.string_types):
+        return None
+
+    return {
+        '1': True,
+        '0': False,
+        'true': True,
+        'false': False,
+    }.get(s.lower(), None)
+
+
+class IsoDateTimeRangeField(RangeField):
+
+    def __init__(self, *args, **kwargs):
+        fields = (
+            IsoDateTimeField(),
+            IsoDateTimeField())
+        super(IsoDateTimeRangeField, self).__init__(fields, *args, **kwargs)
+
+
+class IsoDateTimeFromToRangeFilter(filters.DateTimeFromToRangeFilter):
+    field_class = IsoDateTimeRangeField
 
 
 class ListFilter(django_filters.Filter):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('lookup_expr', 'in')
+        super(ListFilter, self).__init__(*args, **kwargs)
+
     def filter(self, qs, value):
+        if value in EMPTY_VALUES:
+            return qs
+
         value_list = value.split(u',')
         return super(ListFilter, self).filter(qs, Lookup(value_list, 'in'))

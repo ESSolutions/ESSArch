@@ -1,2 +1,0 @@
-sphinx==1.5.2
-sphinxtogithub==1.1.0

@@ -35,7 +35,7 @@
                     "-children": [
                         {
                             "-name": "objectIdentifierType",
-                            "#content": [{"var": "FIDType"}],
+                            "#content": [{"var": "_PARAMETER_OBJECT_IDENTIFIER_TYPE"}],
                             "-children": []
                         },
                         {
@@ -103,7 +103,7 @@
                             "-children": [
                                 {
                                     "-name": "contentLocationType",
-                                    "#content": [{"var": "FLocationType"}],
+                                    "#content": [{"var": "_PARAMETER_CONTENT_LOCATION_TYPE"}],
                                     "-children": []
                                 },
                                 {

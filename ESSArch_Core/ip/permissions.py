@@ -54,10 +54,7 @@ class CanDeleteIP(IsResponsibleOrReadOnly):
     message = "You are not allowed to delete this IP"
 
     def has_object_permission(self, request, view, obj):
-        responsible = self.is_responsible(request, obj)
-        has_perm = request.user.has_perm('ip.delete_informationpackage')
-
-        return responsible or has_perm
+        return request.user.has_perm('ip.delete_informationpackage', obj)
 
 
 class CanUpload(IsResponsibleOrReadOnly):

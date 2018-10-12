@@ -22,18 +22,48 @@
     Email - essarch@essolutions.se
 """
 
+import logging
+
 from ESSArch_Core.auth.serializers import (
     GroupSerializer,
     GroupDetailSerializer,
+    LoginSerializer,
+    OrganizationDetailSerializer,
+    NotificationSerializer,
+    NotificationReadSerializer,
     PermissionSerializer,
     UserSerializer,
     UserLoggedInSerializer,
+    UserLoggedInWriteSerializer,
 )
 
-from django.contrib.auth.models import User, Group, Permission
-from rest_framework import viewsets
+from ESSArch_Core.auth.models import Group, Notification
+
+from django.conf import settings
+from django.contrib.auth.models import User, Permission
+from django.http import HttpResponseRedirect
+from django.shortcuts import resolve_url
+
+from django_filters.rest_framework import DjangoFilterBackend
+
+from rest_auth.views import (
+    LoginView as rest_auth_LoginView,
+    LogoutView as rest_auth_LogoutView,
+)
+
+from rest_framework import exceptions, permissions, status, viewsets
+from rest_framework.decorators import api_view, permission_classes, list_route
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+try:
+    from djangosaml2.views import logout as saml2_logout
+except ImportError:
+    pass
+
+
+logger = logging.getLogger('essarch.auth')
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -56,6 +86,18 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
         return GroupDetailSerializer
 
+class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint that allows groups to be viewed or edited.
+    """
+    queryset = Group.objects.filter(group_type__codename='organization')
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return GroupSerializer
+
+        return OrganizationDetailSerializer
+
 
 class MeView(RetrieveUpdateAPIView):
     serializer_class = UserLoggedInSerializer
@@ -64,6 +106,12 @@ class MeView(RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
 
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return UserLoggedInSerializer
+
+        return UserLoggedInWriteSerializer
+
 
 class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -71,3 +119,62 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Permission.objects.all()
     serializer_class = PermissionSerializer
+
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    queryset = Notification.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('seen',)
+
+    def get_queryset(self):
+        return self.request.user.notifications.all()
+
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return NotificationReadSerializer
+
+        return NotificationSerializer
+
+    @list_route(methods=['post'], url_path='set-all-seen')
+    def set_all_seen(self, request):
+        self.get_queryset().update(seen=True)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def delete(self, request, *args, **kwargs):
+        self.get_queryset().delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+@permission_classes([])
+def login_services(req):
+    services = []
+
+    if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+        services.append('adfs')
+
+    return Response(services)
+
+
+class LoginView(rest_auth_LoginView):
+    serializer_class = LoginSerializer
+
+    def get_response(self):
+        serializer = UserLoggedInSerializer(instance=self.user,
+                                            context={'request': self.request})
+
+        return Response(serializer.data)
+
+
+class LogoutView(rest_auth_LogoutView):
+    def get(self, request, *args, **kwargs):
+        if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+            try:
+                return saml2_logout(request)
+            except AttributeError:
+                logger.debug('Failed to logout using SAML, mo active identity found')
+                pass
+
+        response = self.logout(request)
+        next_page = resolve_url(settings.LOGOUT_REDIRECT_URL)
+        return HttpResponseRedirect(next_page)

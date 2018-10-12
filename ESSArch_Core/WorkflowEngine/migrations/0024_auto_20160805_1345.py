@@ -39,6 +39,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='processstep',
             name='name',
-            field=models.CharField(max_length=256),
+            field=models.CharField(max_length=255),
         ),
     ]

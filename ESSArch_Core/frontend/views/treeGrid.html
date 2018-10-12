@@ -1,0 +1,32 @@
+<div class="table-responsive">
+    <table class="table tree-grid">
+        <thead>
+            <tr>
+                <th><a ng-if="expandingProperty.sortable" ng-click="sortBy(expandingProperty)">{{expandingProperty.displayName || expandingProperty.field || expandingProperty}}</a><span ng-if="!expandingProperty.sortable">{{expandingProperty.displayName || expandingProperty.field || expandingProperty}}</span><i ng-if="expandingProperty.sorted" class="{{expandingProperty.sortingIcon}} pull-right"></i></th>
+                <th ng-repeat="col in colDefinitions"><a ng-if="col.sortable" ng-click="sortBy(col)">{{col.displayName || col.field}}</a><span ng-if="!col.sortable">{{col.displayName || col.field}}</span><i ng-if="col.sorted" class="{{col.sortingIcon}} pull-right"></i></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr tabindex="0" ng-repeat="row in tree_rows | searchFor:$parent.filterString:expandingProperty:colDefinitions track by row.branch.uid"
+                ng-class="['level-' + {{ row.level }} + (row.branch.selected ? ' active':''), {'empty-step': row.branch.empty}]" class="tree-grid-row"
+                ng-keydown="treeControl.scope.stateTableKeydownListener($event, row.branch)">
+                <td colspan="7" class="" ng-if="row.branch.empty">{{'EMPTY' | translate}}</td>
+                <td ng-if="!row.branch.empty">
+                    <a ng-click="user_clicks_branch(row.branch)"><i ng-class="row.tree_icon" ng-click="row.branch.expanded = !row.branch.expanded" class="indented tree-icon"></i></a>
+                    <span ng-if="expandingProperty.cellTemplate" class="indented tree-label" ng-click="on_user_click(row.branch)" compile="expandingProperty.cellTemplate"></span>
+                    <span ng-if="!expandingProperty.cellTemplate" class="indented tree-label" ng-click="on_user_click(row.branch)">{{row.branch[expandingProperty.field] || row.branch[expandingProperty]}}</span>
+                </td>
+                <td ng-if="!row.branch.empty" ng-repeat="col in colDefinitions">
+                    <div ng-if="col.cellTemplate" compile="col.cellTemplate" cell-template-scope="col.cellTemplateScope"></div>
+                    <div ng-if="!col.cellTemplate">{{row.branch[col.field]}}</div>
+                </td>
+            </tr>
+            <tr ng-if="!tree_rows.length && !treeControl.scope.stateLoading" class="empty-table-indicator">
+                <td colspan="{{colDefinitions.length+1}}">{{'NO_RESULTS_FOUND' | translate}}</td>
+            </tr>
+            <tr ng-if="!tree_rows.length && treeControl.scope.stateLoading" class="empty-table-indicator">
+                <td class="loading-column" colspan="{{colDefinitions.length+1}}">{{'LOADING' | translate}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

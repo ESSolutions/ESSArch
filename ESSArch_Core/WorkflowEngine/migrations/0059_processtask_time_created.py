@@ -9,7 +9,7 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('WorkflowEngine', '0058_auto_20170213_1917'),
+        ('WorkflowEngine', '0057_remove_processtask_attempt'),
     ]
 
     operations = [

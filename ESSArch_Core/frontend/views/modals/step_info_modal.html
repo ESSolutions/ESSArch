@@ -1,0 +1,45 @@
+<div class="enter-profile-name step-info-modal-head">
+    <h3 class="modal-title" id="modal-title">{{('STEPREPORTFOR' | translate)+ ' ' +currentStepTask.name}}</h3>
+    <div class="refresh-icon">
+        <span ng-click="getStep(currentStepTask)" class="clickable angular-animate fa fa-refresh fa-lg" ng-class="{'fa-refresh-animate': stepTaskLoading }" uib-popover="{{'REFRESH' | translate}}"  popover-placement="left" popover-popup-delay="500" popover-append-to-body="true"></span>
+    </div>
+</div>
+<div class="modal-body" id="modal-body">
+    <div class="step-task-info">
+        <b style="margin: 5px; white-space: nowrap;">{{'STATUS' | translate}}:</b>
+        <div ng-if="currentStepTask.status == 'SUCCESS'" class="step-state-success"><b>{{'SUCCESS' | translate}}</b></div>
+        <div ng-if="currentStepTask.status == 'FAILURE'" class="step-state-failure"><b>{{'FAILURE' | translate}}</b></div>
+        <div ng-if="currentStepTask.status != 'SUCCESS' && currentStepTask.status !='FAILURE'" class="step-state-in-progress"><b>{{'INPROGRESS' | translate}}</b></div>
+        <p style="margin: 5px;"><b>{{'CREATED' | translate}}:</b> {{currentStepTask.time_created | date:"yyyy-MM-dd HH:mm:ss"}}</p>
+        <p style="margin: 5px;"><b>{{'ID' | translate}}:</b> {{currentStepTask.id}}</p>
+        <p style="margin: 5px;"><b>Tasks:</b> {{currentStepTask.task_count}} ({{currentStepTask.failed_task_count}} failed)</p>
+        <br>
+        <table class="table" style="margin: 5px;">
+            <tbody>
+                <tr ng-if="currentStepTask.status == 'SUCCESS'">
+                    <td><b>{{('RESULT' | translate)+':'}}</b>
+                        {{currentStepTask.result}}
+                    </td>
+                </tr>
+                <tr ng-if="currentStepTask.status == 'FAILURE'">
+                    <td><b>{{('EXCEPTION' | translate)+':'}}</b>
+                        {{currentStepTask.exception}}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <button ng-if="currentStepTask.status == 'FAILURE'" class="btn btn-default" ng-click="tracebackModal(currentStepTask)">{{'SEETRACEBACK' | translate}}</button>
+    </div>
+</div>
+<div class="modal-footer">
+        <div class="float-left">
+                <button class="btn btn-danger" ng-click="myTreeControl.scope.taskStepUndo(currentStepTask)"
+                ng-if="checkPermission('WorkflowEngine.can_undo') && (currentStepTask.status == 'SUCCESS' || currentStepTask.status == 'FAILURE') && !currentStepTask.undone && !currentStepTask.undo_type"
+                >{{'UNDO' | translate}}</button>
+
+                <button class="btn btn-success" ng-click="myTreeControl.scope.taskStepRedo(currentStepTask)"
+                ng-if="checkPermission('WorkflowEngine.can_retry') && currentStepTask.flow_type == 'task' && currentStepTask.status == 'FAILURE'"
+                >{{'REDO' | translate}}</button>
+            </div>
+    <button class="btn btn-warning" type="button" ng-click="$ctrl.cancel()" focused="true">{{'CLOSE' | translate}}</button>
+</div>

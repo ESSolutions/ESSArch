@@ -1,0 +1,115 @@
+{
+  "-name": "event",
+  "-allowEmpty": 1,
+  "-namespace": "premis",
+  "-children": [
+    {
+      "-name": "eventIdentifier",
+      "-allowEmpty": 1,
+      "-namespace": "premis",
+      "-children": [
+        {
+          "-name": "eventIdentifierType",
+          "-namespace": "premis",
+          "#content": [{"var": "eventIdentifierType"}]
+        }, {
+          "-name": "eventIdentifierValue",
+          "-allowEmpty": 1,
+          "-namespace": "premis",
+          "#content": [{"var": "eventIdentifierValue"}]
+        }
+      ]
+    },
+    {
+      "-name": "eventType",
+      "-allowEmpty": 1,
+      "-namespace": "premis",
+      "#content": [{"var": "eventType"}]
+    },
+    {
+      "-name": "eventDateTime",
+      "-allowEmpty": 1,
+      "-namespace": "premis",
+      "#content": [{"var": "eventDateTime"}]
+    },
+    {
+      "-name": "eventDetailInformation",
+      "-namespace": "premis",
+      "-children": [
+        {
+          "-name": "eventDetail",
+          "-allowEmpty": 1,
+          "-namespace": "premis",
+          "#content": [{"var": "eventDetail"}]
+        }
+      ]
+    },
+    {
+      "-name": "eventOutcomeInformation",
+      "-allowEmpty": 1,
+      "-namespace": "premis",
+      "-children": [
+        {
+          "-name": "eventOutcome",
+          "-allowEmpty": 1,
+          "-namespace": "premis",
+          "#content": [{"var": "eventOutcome"}]
+        },
+        {
+          "-name": "eventOutcomeDetail",
+          "-allowEmpty": 1,
+          "-namespace": "premis",
+          "-children": [
+            {
+              "-name": "eventOutcomeDetailNote",
+              "-allowEmpty": 1,
+              "-namespace": "premis",
+              "#content": [{"var": "eventOutcomeDetailNote"}]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "-name": "linkingAgentIdentifier",
+      "-allowEmpty": 1,
+      "-namespace": "premis",
+      "-children": [
+        {
+          "-name": "linkingAgentIdentifierType",
+          "-namespace": "premis",
+          "#content": [{"var": "linkingAgentIdentifierType"}]
+        },
+        {
+          "-name": "linkingAgentIdentifierValue",
+          "-allowEmpty": 1,
+          "-namespace": "premis",
+          "#content": [{"var": "linkingAgentIdentifierValue"}]
+        },
+        {
+          "-name": "linkingAgentRole",
+          "-namespace": "premis",
+          "#content": [{"var": "linkingAgentRole"}]
+        }
+      ]
+    },
+    {
+      "-name": "linkingObjectIdentifier",
+      "-allowEmpty": 1,
+      "-namespace": "premis",
+      "-children": [
+        {
+          "-name": "linkingObjectIdentifierType",
+          "-namespace": "premis",
+          "#content": [{"var": "linkingObjectIdentifierType"}]
+        },
+        {
+          "-name": "linkingObjectIdentifierValue",
+          "-allowEmpty": 1,
+          "-namespace": "premis",
+          "#content": [{"var": "linkingObjectIdentifierValue"}]
+        }
+      ]
+    }
+  ]
+}

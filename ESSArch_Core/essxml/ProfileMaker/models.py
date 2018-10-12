@@ -36,12 +36,14 @@ class extensionPackage(models.Model):
     prefix = models.CharField(max_length=20)
     schemaURL = models.URLField()
     targetNamespace = models.CharField(max_length=255)
+    nsmap = jsonfield.JSONField(default={})
 
 
 class templatePackage(models.Model):
     existingElements = jsonfield.JSONField(null=True)
     # treeData = jsonfield.JSONField(null=True)
     allElements = jsonfield.JSONField(null=True)
+    structure = jsonfield.JSONField(default=[])
     # isTreeCreated = models.BooleanField(default=True)
     name = models.CharField(max_length=255, primary_key=True)
     root_element = models.CharField(max_length=55, default='')
@@ -50,6 +52,7 @@ class templatePackage(models.Model):
     prefix = models.CharField(max_length=20)
     schemaURL = models.URLField()
     targetNamespace = models.CharField(max_length=255)
+    nsmap = jsonfield.JSONField(default={})
     # generated = models.BooleanField(default=False)
     #creator         = models.CharField( max_length = 255 )
 #     archivist_organization  = models.CharField( max_length = 255 )

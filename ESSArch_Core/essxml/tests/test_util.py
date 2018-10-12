@@ -25,29 +25,16 @@
 import os
 import shutil
 import tempfile
-from collections import OrderedDict
-
-from django.test import TestCase
-
-from lxml import etree
 
 import mock
+import six
+from django.test import TestCase
+from lxml import etree
 
-from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseContent
-
-from ESSArch_Core.configuration.models import (
-    Path,
-)
-from ESSArch_Core.essxml.util import (
-    find_files,
-    get_agent,
-    get_altrecordid,
-    get_altrecordids,
-    get_objectpath,
-    parse_reference_code,
-    parse_submit_description,
-)
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.essxml.util import (find_file, find_files, get_agent,
+                                      get_altrecordid, get_altrecordids,
+                                      get_objectpath, parse_reference_code,
+                                      parse_submit_description)
 
 
 class FindFilesTestCase(TestCase):
@@ -83,12 +70,13 @@ class FindFilesTestCase(TestCase):
                 <file><FLocat href="file:///1.txt"/></file>
                 <file><FLocat href="file:2.txt"/></file>
                 <file><FLocat href="3.txt"/></file>
+                <file><FLocat xlink:href="4.txt"/></file>
             </root>
             ''')
 
-        expected = ['1.txt', '2.txt', '3.txt']
+        expected = ['1.txt', '2.txt', '3.txt', '4.txt']
         found = find_files(xmlfile, rootdir=self.datadir)
-        self.assertItemsEqual([x.path for x in found], expected)
+        six.assertCountEqual(self, [x.path for x in found], expected)
 
     def test_files_mdRef_element(self):
         xmlfile = os.path.join(self.datadir, "test.xml")
@@ -164,7 +152,73 @@ class FindFilesTestCase(TestCase):
         expected = ['ext1.xml', 'ext2.xml', '1.txt', '1.pdf', '2.txt', '2.pdf']
         found = find_files(xmlfile, rootdir=self.datadir)
         self.assertEqual(len(found), len(expected))
-        self.assertItemsEqual(found, expected)
+        six.assertCountEqual(self, found, expected)
+
+
+class FindFileTestCase(TestCase):
+    def setUp(self):
+        self.bd = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.bd, "datafiles")
+        os.mkdir(self.datadir)
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.datadir)
+        except:
+            pass
+
+    def test_files_file_element(self):
+        xmlfile = os.path.join(self.datadir, "test.xml")
+
+        with open(xmlfile, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root xmlns:xlink="http://www.w3.org/1999/xlink">
+                <file><FLocat href="file:///1.txt"/></file>
+                <file><FLocat href="file:2.txt"/></file>
+                <file><FLocat href="3.txt"/></file>
+            </root>
+            ''')
+
+        found = find_file('1.txt', xmlfile=xmlfile, rootdir=self.datadir)
+        self.assertIsNotNone(found)
+
+        found = find_file('2.txt', xmlfile=xmlfile, rootdir=self.datadir)
+        self.assertIsNotNone(found)
+
+        found = find_file('4.txt', xmlfile=xmlfile, rootdir=self.datadir)
+        self.assertIsNone(found)
+
+    def test_files_object_element(self):
+        xmlfile = os.path.join(self.datadir, "test.xml")
+
+        with open(xmlfile, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root xmlns:xlink="http://www.w3.org/1999/xlink">
+                <object>
+                    <storage>
+                        <contentLocation>
+                            <contentLocationValue>file:///1.txt</contentLocationValue>
+                        </contentLocation>
+                    </storage>
+                </object>
+                <object>
+                    <storage>
+                        <contentLocation>
+                            <contentLocationValue>file:///2.txt</contentLocationValue>
+                        </contentLocation>
+                    </storage>
+                </object>
+            </root>
+            ''')
+
+        found = find_file('1.txt', xmlfile=xmlfile, rootdir=self.datadir)
+        self.assertIsNotNone(found)
+
+        found = find_file('2.txt', xmlfile=xmlfile, rootdir=self.datadir)
+        self.assertIsNotNone(found)
+
+        found = find_file('3.txt', xmlfile=xmlfile, rootdir=self.datadir)
+        self.assertIsNone(found)
 
 
 class GetAltrecordidTestCase(TestCase):
@@ -313,7 +367,8 @@ class GetAgentTestCase(TestCase):
             <root></root>
         ''')
 
-        self.assertIsNone(get_agent(el))
+        with self.assertRaises(IndexError):
+            get_agent(el)
 
 
 class GetObjectPathTestCase(TestCase):
@@ -367,16 +422,35 @@ class ParseSubmitDescriptionTestCase(TestCase):
 
     def test_objid_and_create_date(self):
         self.xmlfile.write('''
-            <root OBJID="123">
+            <mets OBJID="123">
                 <metsHdr CREATEDATE="456"></metsHdr>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
 
         self.assertEqual(ip['id'], '123')
         self.assertEqual(ip['create_date'], '456')
+
+    def test_objid_with_prefix(self):
+        self.xmlfile.write('''
+            <mets OBJID="ID:123">
+                <metsHdr CREATEDATE="456"></metsHdr>
+            </mets>
+        ''')
+        self.xmlfile.close()
+        ip = parse_submit_description(self.xmlfile.name)
+        self.assertEqual(ip['id'], '123')
+
+    def test_no_objid(self):
+        self.xmlfile.write('''
+            <mets>
+                <metsHdr CREATEDATE="456"></metsHdr>
+            </mets>
+        ''')
+        self.xmlfile.close()
+        ip = parse_submit_description(self.xmlfile.name)
+        self.assertEqual(ip['id'], os.path.splitext(os.path.basename(self.xmlfile.name))[0])
 
     @mock.patch('ESSArch_Core.essxml.util.os.stat')
     @mock.patch('ESSArch_Core.essxml.util.get_objectpath')
@@ -385,12 +459,11 @@ class ParseSubmitDescriptionTestCase(TestCase):
         mock_os_stat.return_value = mock.Mock(**{'st_size': 24})
 
         self.xmlfile.write('''
-            <root OBJID="123">
+            <mets OBJID="123">
                 <metsHdr CREATEDATE="456"></metsHdr>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
 
         self.assertEqual(ip['id'], '123')
@@ -400,62 +473,52 @@ class ParseSubmitDescriptionTestCase(TestCase):
 
     def test_information_class_in_root(self):
         self.xmlfile.write('''
-            <root INFORMATIONCLASS="123">
+            <mets INFORMATIONCLASS="123">
                 <metsHdr CREATEDATE="456"></metsHdr>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
-
         self.assertEqual(ip['information_class'], 123)
 
     def test_information_class_in_altrecordid(self):
         self.xmlfile.write('''
-            <root>
+            <mets>
                 <metsHdr CREATEDATE="456"></metsHdr>
                 <altRecordID TYPE="INFORMATIONCLASS">123</altRecordID>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
-
         self.assertEqual(ip['information_class'], 123)
 
     def test_information_class_in_root_and_altrecordid(self):
         self.xmlfile.write('''
-            <root INFORMATIONCLASS="123">
+            <mets INFORMATIONCLASS="123">
                 <metsHdr CREATEDATE="456"></metsHdr>
                 <altRecordID TYPE="INFORMATIONCLASS">456</altRecordID>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
-
         self.assertEqual(ip['information_class'], 123)
 
     def test_information_class_with_letters(self):
         self.xmlfile.write('''
-            <root INFORMATIONCLASS="class 123">
+            <mets INFORMATIONCLASS="class 123">
                 <metsHdr CREATEDATE="456"></metsHdr>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
-
         self.assertEqual(ip['information_class'], 123)
 
     def test_information_class_with_multiple_numbers(self):
         self.xmlfile.write('''
-            <root INFORMATIONCLASS="123 456">
+            <mets INFORMATIONCLASS="123 456">
                 <metsHdr CREATEDATE="456"></metsHdr>
-            </root>
+            </mets>
         ''')
         self.xmlfile.close()
-
         ip = parse_submit_description(self.xmlfile.name)
-
         self.assertEqual(ip['information_class'], 123)

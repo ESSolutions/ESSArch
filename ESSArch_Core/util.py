@@ -25,18 +25,24 @@
 from __future__ import absolute_import
 
 import errno
-import hashlib
+import inspect
 import itertools
 import json
+import logging
 import os
 import platform
-import pyclbr
 import re
 import shutil
+import tarfile
+import zipfile
 
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.response import Response
+from django.core.cache import cache
+from django.utils.encoding import smart_text
 from django.utils.timezone import get_current_timezone
 from django.core.validators import RegexValidator
+from django.http.response import FileResponse
 
 from datetime import datetime
 
@@ -46,10 +52,27 @@ from scandir import scandir, walk
 
 from subprocess import Popen, PIPE
 
+from ESSArch_Core.fixity.format import FormatIdentifier
+
 import requests
+
+import six
 
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
+
+logger = logging.getLogger('essarch')
+
+
+def make_unicode(text):
+    try:
+        return six.text_type(text, 'utf-8')
+    except TypeError:
+        if not isinstance(text, six.string_types):
+            return six.text_type(text)
+        return text
+    except UnicodeDecodeError:
+        return six.text_type(text.decode('iso-8859-1'))
 
 
 def sliceUntilAttr(iterable, attr, val):
@@ -65,12 +88,52 @@ def remove_prefix(text, prefix):
     return text
 
 
-def get_elements_without_namespace(root, path):
-    els = path.split("/")
-    return root.xpath(".//" + "/".join(["*[local-name()='%s']" % e for e in els]))
+def stable_path(path):
+    current_size, current_count = get_tree_size_and_count(path)
+    cache_size_key = u'path_size_{}'.format(path)
+    cache_count_key = u'path_count_{}'.format(path)
+    cached_size = cache.get(cache_size_key)
+    cached_count = cache.get(cache_count_key)
+
+    new = cached_size is None
+    updated_size = cached_size != current_size
+    updated_count = cached_count != current_count
+    if new or updated_size or updated_count:
+        if new:
+            logger.info(u'New path: {}, size: {}, count: {}'.format(path, current_size, current_count))
+        elif updated_size or updated_count:
+            logger.info(u'Updated path: {}, size: {} => {}, count: {} => {}'.format(path, cached_size, current_size, cached_count, current_count))
+        cache.set(cache_size_key, current_size, 60*60)
+        cache.set(cache_count_key, current_count, 60*60)
+        return False
+
+    logger.info(u'Stable path: {}, size: {}, count: {}'.format(path, current_size, current_count))
+    return True
 
 
-def get_value_from_path(el, path):
+def get_elements_without_namespace(root, path, value=None):
+    element_path = []
+    splits = path.split("/")
+    for idx, split in enumerate(splits):
+        if "@" in split:
+            el, attr = split.split("@")
+            if value is not None:
+                split_path = '*[local-name()="{el}" and @*[local-name()="{attr}"]="{value}"]'.format(el=el, attr=attr, value=value)
+            else:
+                split_path = '*[local-name()="{el}" and @*[local-name()="{attr}"]]'.format(el=el, attr=attr)
+        else:
+            if idx == len(splits)-1 and value is not None and "@" not in path:
+                split_path = '*[local-name()="{el}" and text()="{value}"]'.format(el=split, value=value)
+            else:
+                split_path = '*[local-name()="{el}"]'.format(el=split)
+
+        element_path.append(split_path)
+
+    path_string = ".//" + "/".join(element_path)
+    return root.xpath(path_string)
+
+
+def get_value_from_path(root, path):
     """
     Gets the text or attribute from the given attribute using the given path.
 
@@ -95,47 +158,29 @@ def get_value_from_path(el, path):
     if path is None:
         return None
 
-    if "@" in path:
-        try:
-            nested, attr = path.split('@')
-            try:
-                el = get_elements_without_namespace(el, nested)[0]
-            except IndexError:
-                pass
-
-            if el is None:
-                return None
-        except (ValueError, SyntaxError):
-            attr = path[1:]
-
-        for a, val in el.attrib.iteritems():
+    if path.startswith('@'):
+        attr = path[1:]
+        for a, val in six.iteritems(root.attrib):
             if re.sub(r'{.*}', '', a) == attr:
                 return val
-    else:
+
+    try:
+        el = get_elements_without_namespace(root, path)[0]
+        if root == el:
+            return None
+    except IndexError:
+        logger.warning('{path} not found in {root}'.format(path=path, root=root.getroottree().getpath(root)))
+        return None
+
+    if "@" in path:
+        attr = path.split('@')[1]
         try:
-            el = get_elements_without_namespace(el, path)[0]
+            return el.xpath("@*[local-name()='%s'][1]" % attr)[0]
         except IndexError:
-            pass
+            logger.warning('{path} not found in {root}'.format(path=path, root=root.getroottree().getpath(root)))
+            return None
 
-        try:
-            return el.text
-        except AttributeError:
-            pass
-
-
-def available_tasks():
-    modules = ["preingest.tasks", "ESSArch_Core.WorkflowEngine.tests.tasks"]
-    tasks = []
-    for m in modules:
-        try:
-            module_tasks = pyclbr.readmodule(m)
-            tasks = tasks + zip(
-                [m+"."+t for t in module_tasks],
-                module_tasks
-            )
-        except ImportError:
-            continue
-    return tasks
+    return el.text
 
 
 def create_event(eventType, eventOutcome, eventOutcomeDetailNote, version, agent, application=None, ip=None):
@@ -155,20 +200,15 @@ def create_event(eventType, eventOutcome, eventOutcomeDetailNote, version, agent
 
     from ESSArch_Core.ip.models import EventIP
 
-    try:
-        e = EventIP.objects.create(
-            eventType=eventType, eventOutcome=eventOutcome, eventVersion=version,
-            eventOutcomeDetailNote=eventOutcomeDetailNote,
-            linkingAgentIdentifierValue=agent, linkingObjectIdentifierValue=ip,
-        )
+    e = EventIP.objects.create(
+        eventType=eventType, eventOutcome=eventOutcome, eventVersion=version,
+        eventOutcomeDetailNote=eventOutcomeDetailNote,
+        linkingAgentIdentifierValue=agent, linkingObjectIdentifierValue=ip,
+    )
 
-        if application:
-            e.eventApplication = application
-            e.save()
-
-    except:
-        print application
-        raise
+    if application:
+        e.eventApplication = application
+        e.save()
 
     return e
 
@@ -208,6 +248,43 @@ def getSchemas(doc=None, filename=None):
             })
 
     return etree.XMLSchema(root)
+
+
+def move_schema_locations_to_root(tree=None, filename=None):
+    """
+    Move all schemaLocation attributes in the document to the root element
+    """
+
+    if filename:
+        tree = etree.parse(filename)
+
+    root = tree.getroot()
+    xsi_ns = "{%s}" % root.nsmap['xsi']
+
+    # Get root schema locations
+    root_schema_locations = list(chunks(root.attrib["%sschemaLocation" % xsi_ns].split(), 2))
+
+    # Get all other schema locations
+    other_schema_locations = []
+    schema_location_elements = tree.findall(".//*[@%sschemaLocation]" % xsi_ns)
+    for el in schema_location_elements:
+        other_schema_locations += list(chunks(el.attrib["%sschemaLocation" % xsi_ns].split(), 2))
+
+        # Delete schemaLocation attribute
+        del el.attrib["%sschemaLocation" % xsi_ns]
+
+    # Append all missing schema locations to root_schema_locations
+    for schema_location in other_schema_locations:
+        if schema_location not in root_schema_locations:
+            root_schema_locations.append(schema_location)
+
+    # Convert root_schema_locations to schemaLocation attrib
+    schema_location = ' '.join(flatten(root_schema_locations))
+
+    # Update scehamLocation attrib
+    root.attrib[xsi_ns + "schemaLocation"] = schema_location
+
+    return tree
 
 
 def creation_date(path_to_file):
@@ -257,6 +334,12 @@ def get_files_and_dirs(path):
     return []
 
 
+def get_immediate_subdirectories(path):
+    """Return immediate subdirectories at a given path"""
+
+    return filter(lambda x: x.is_dir(), get_files_and_dirs(path))
+
+
 def get_tree_size_and_count(path='.'):
     """Return total size and count of files in given path and subdirs."""
 
@@ -268,9 +351,13 @@ def get_tree_size_and_count(path='.'):
 
     for dirpath, dirnames, filenames in walk(path):
         for f in filenames:
-            fp = os.path.join(dirpath, f)
-            total_size += os.path.getsize(fp)
-            count += 1
+            try:
+                fp = os.path.join(dirpath, f)
+                total_size += os.path.getsize(fp)
+                count += 1
+            except OSError as e:
+                if e.errno != errno.ENOENT:
+                    raise
 
     return total_size, count
 
@@ -279,20 +366,11 @@ def win_to_posix(path):
     return path.replace('\\', '/')
 
 
-def alg_from_str(algname):
-    valid = {
-        "MD5": hashlib.md5,
-        "SHA-1": hashlib.sha1,
-        "SHA-224": hashlib.sha224,
-        "SHA-256": hashlib.sha256,
-        "SHA-384": hashlib.sha384,
-        "SHA-512": hashlib.sha512
-    }
-
-    try:
-        return valid[algname]
-    except:
-        raise KeyError("Algorithm %s does not exist" % algname)
+def normalize_path(path):
+    sep = os.sep
+    if sep != '/':
+        return path.replace(sep, '/')
+    return path
 
 
 def mkdir_p(path):
@@ -316,11 +394,18 @@ def get_event_spec():
         return json.load(json_file)
 
 
-def truncate(text, max_len, suffix=' (truncated)'):
-    if len(text) > max_len:
-        return text[:max_len - len(suffix)] + suffix
+def get_event_element_spec():
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    fname = 'templates/PremisEventElementTemplate.json'
+    with open(os.path.join(dirname, fname)) as json_file:
+        return json.load(json_file)
 
-    return text
+
+def get_premis_ip_object_element_spec():
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    fname = 'templates/PremisIPObjectElementTemplate.json'
+    with open(os.path.join(dirname, fname)) as json_file:
+        return json.load(json_file)
 
 
 def delete_content(folder):
@@ -374,7 +459,7 @@ def parse_content_range_header(header):
 
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
-    for i in range(0, len(l), n):
+    for i in six.moves.range(0, len(l), n):
         yield l[i:i + n]
 
 
@@ -391,7 +476,7 @@ def nested_lookup(key, document):
                 yield result
 
     if isinstance(document, dict):
-        for k, v in document.iteritems():
+        for k, v in six.iteritems(document):
             if k == key:
                 yield v
             elif isinstance(v, dict):
@@ -401,6 +486,14 @@ def nested_lookup(key, document):
                 for d in v:
                     for result in nested_lookup(key, d):
                         yield result
+
+
+def mptt_to_dict(node, serializer):
+    result = serializer(instance=node).data
+    children = [mptt_to_dict(c, serializer) for c in node.get_children()]
+    if children:
+        result['children'] = children
+    return result
 
 
 def convert_file(path, new_format):
@@ -433,3 +526,145 @@ def validate_remote_url(url):
     regex = '^[a-z][a-z\d.+-]*:\/*(?:[^:@]+(?::[^@]+)?@)?(?:[^\s:/?#,]+|\[[a-f\d:]+])(?::\d+)?(?:\/[^?#]*)?(?:\?[^#]*)?(?:#.*)?,[^,]+,[^,]+$'
     validate = RegexValidator(regex, 'Enter a valid URL with credentials.')
     validate(url)
+
+
+def generate_file_response(file_obj, content_type, force_download=False, name=None):
+    response = FileResponse(file_obj, content_type=content_type)
+    response['Content-Disposition'] = 'inline; filename=%s' % os.path.basename(name or file_obj.name)
+    if force_download or content_type is None:
+        if content_type is None:
+            response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(file_obj.name)
+
+    # disable caching, required for Firefox to be able to load large files multiple times
+    # see https://bugzilla.mozilla.org/show_bug.cgi?id=1436593
+    response["Cache-Control"] = "no-cache, no-store, must-revalidate"  # HTTP 1.1.
+    response["Pragma"] = "no-cache"  # HTTP 1.0.
+    response["Expires"] = "0"  # Proxies.
+
+    return response
+
+def list_files(path, force_download=False, request=None, paginator=None):
+    if isinstance(path, list):
+        if paginator is not None:
+            paginated = paginator.paginate_queryset(path, request)
+            return paginator.get_paginated_response(paginated)
+        return Response(path)
+
+    fid = FormatIdentifier(allow_unknown_file_types=True)
+    path = path.rstrip('/ ')
+    path = smart_text(path).encode('utf-8')
+
+    if os.path.isfile(path):
+        if tarfile.is_tarfile(path):
+            with tarfile.open(path) as tar:
+                entries = []
+                for member in tar.getmembers():
+                    if not member.isfile():
+                        continue
+
+                    entries.append({
+                        "name": member.name,
+                        "type": 'file',
+                        "size": member.size,
+                        "modified": timestamp_to_datetime(member.mtime),
+                    })
+                if paginator is not None:
+                    paginated = paginator.paginate_queryset(entries, request)
+                    return paginator.get_paginated_response(paginated)
+                return Response(entries)
+
+        elif zipfile.is_zipfile(path) and os.path.splitext(path)[1] == '.zip':
+            with zipfile.ZipFile(path) as zipf:
+                entries = []
+                for member in zipf.filelist:
+                    if member.filename.endswith('/'):
+                        continue
+
+                    entries.append({
+                        "name": member.filename,
+                        "type": 'file',
+                        "size": member.file_size,
+                        "modified": datetime(*member.date_time),
+                    })
+                if paginator is not None:
+                    paginated = paginator.paginate_queryset(entries, request)
+                    return paginator.get_paginated_response(paginated)
+                return Response(entries)
+
+        content_type = fid.get_mimetype(path)
+        return generate_file_response(open(path, 'rb'), content_type, force_download)
+
+    if os.path.isdir(path):
+        entries = []
+        for entry in sorted(get_files_and_dirs(path), key=lambda x: x.name):
+            entry_type = "dir" if entry.is_dir() else "file"
+            size, _ = get_tree_size_and_count(entry.path)
+
+            entries.append(
+                {
+                    "name": os.path.basename(entry.path),
+                    "type": entry_type,
+                    "size": size,
+                    "modified": timestamp_to_datetime(entry.stat().st_mtime),
+                }
+            )
+
+        if paginator is not None and request is not None:
+            paginated = paginator.paginate_queryset(entries, request)
+            return paginator.get_paginated_response(paginated)
+
+    if len(path.split('.tar/')) == 2:
+        tar_path, tar_subpath = path.split('.tar/')
+        tar_path += '.tar'
+
+        with tarfile.open(tar_path) as tar:
+            try:
+                f = six.moves.StringIO(tar.extractfile(tar_subpath).read())
+                content_type = fid.get_mimetype(tar_subpath)
+                return generate_file_response(f, content_type, force_download, name=tar_subpath)
+            except KeyError:
+                raise NotFound
+
+    if len(path.split('.zip/')) == 2:
+        zip_path, zip_subpath = path.split('.zip/')
+        zip_path += '.zip'
+
+        with zipfile.ZipFile(zip_path) as zipf:
+            try:
+                f = six.moves.StringIO(zipf.open(zip_subpath).read())
+                content_type = fid.get_mimetype(zip_subpath)
+                return generate_file_response(f, content_type, force_download, name=zip_subpath)
+            except KeyError:
+                raise NotFound
+
+    raise NotFound
+
+
+def turn_off_auto_now(ModelClass, field_name):
+    def auto_now_off(field):
+        field.auto_now = False
+    do_to_model(ModelClass, field_name, auto_now_off)
+
+
+def turn_on_auto_now(ModelClass, field_name):
+    def auto_now_on(field):
+        field.auto_now = True
+    do_to_model(ModelClass, field_name, auto_now_on)
+
+
+def turn_off_auto_now_add(ModelClass, field_name):
+    def auto_now_add_off(field):
+        field.auto_now_add = False
+    do_to_model(ModelClass, field_name, auto_now_add_off)
+
+
+def turn_on_auto_now_add(ModelClass, field_name):
+    def auto_now_add_on(field):
+        field.auto_now_add = True
+    do_to_model(ModelClass, field_name, auto_now_add_on)
+
+
+def do_to_model(ModelClass, field_name, func):
+    field = ModelClass._meta.get_field(field_name)
+    func(field)

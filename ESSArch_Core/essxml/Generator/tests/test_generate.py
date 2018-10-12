@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
     ESSArch is an open source archiving and digital preservation system
 
@@ -22,28 +23,44 @@
     Email - essarch@essolutions.se
 """
 
+import datetime
+import mock
 import os
+import re
 import shutil
+import unittest
 from collections import OrderedDict
 
-from django.conf import settings
-from django.test import TransactionTestCase
+from django.test import TestCase
+from django.utils import dateparse, timezone
 
 from lxml import etree
 
 from scandir import walk
+
+import six
 
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseContent
 
 from ESSArch_Core.configuration.models import (
     Path,
 )
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.util import make_unicode, normalize_path
 
 
-class test_generateXML(TransactionTestCase):
+class GenerateXMLTestCase(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.bd = os.path.dirname(os.path.realpath(__file__))
+        Path.objects.create(entity="path_mimetypes_definitionfile", value=os.path.join(cls.bd, "mime.types"))
+
+        cls.generator = XMLGenerator()
+
+    @classmethod
+    def tearDownClass(cls):
+        Path.objects.all().delete()
+
     def setUp(self):
-        self.bd = os.path.dirname(os.path.realpath(__file__))
         self.xmldir = os.path.join(self.bd, "xmlfiles")
         self.datadir = os.path.join(self.bd, "datafiles")
         self.fname = os.path.join(self.xmldir, "test.xml")
@@ -55,13 +72,6 @@ class test_generateXML(TransactionTestCase):
 
         open(os.path.join(self.datadir, "record1/file1.txt"), "a").close()
         open(os.path.join(self.datadir, "record2/file2.txt"), "a").close()
-
-        Path.objects.create(
-            entity="path_mimetypes_definitionfile",
-            value=os.path.join(self.bd, "mime.types")
-        )
-
-        settings.CELERY_ALWAYS_EAGER = True
 
     def tearDown(self):
         try:
@@ -101,11 +111,7 @@ class test_generateXML(TransactionTestCase):
             "xsi:schemaLocation": "http://www.w3.org/1999/xlink schemas/xlink.xsd",
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}, info
-        )
-
-        generator.generate()
+        self.generator.generate({self.fname: {'spec': specification, 'data': info}})
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -122,11 +128,7 @@ class test_generateXML(TransactionTestCase):
         specification = {'-name': "foo"}
 
         with self.assertRaises(AssertionError):
-            generator = XMLGenerator(
-                {self.fname: specification}, {}
-            )
-
-            generator.generate()
+            self.generator.generate({self.fname: {'spec': specification}})
 
         self.assertFalse(os.path.exists(self.fname))
 
@@ -143,12 +145,7 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}, {}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         self.assertTrue(os.path.exists(self.fname))
 
     def test_generate_empty_element_with_empty_children(self):
@@ -162,11 +159,7 @@ class test_generateXML(TransactionTestCase):
         }
 
         with self.assertRaises(AssertionError):
-            generator = XMLGenerator(
-                {self.fname: specification}, {}
-            )
-
-            generator.generate()
+            self.generator.generate({self.fname: {'spec': specification}})
 
         self.assertFalse(os.path.exists(self.fname))
 
@@ -181,12 +174,7 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}, {}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         self.assertTrue(os.path.exists(self.fname))
 
     def test_generate_empty_element_with_empty_attribute(self):
@@ -203,11 +191,7 @@ class test_generateXML(TransactionTestCase):
         }
 
         with self.assertRaises(AssertionError):
-            generator = XMLGenerator(
-                {self.fname: specification}, {}
-            )
-
-            generator.generate()
+            self.generator.generate({self.fname: {'spec': specification}})
 
         self.assertFalse(os.path.exists(self.fname))
 
@@ -227,28 +211,17 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}, {}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
         self.assertEqual(len(tree.findall('.//bar')), 2)
 
     def test_generate_empty_element_with_allowEmpty(self):
         specification = {'-name': "foo", "-allowEmpty": 1}
-
-        generator = XMLGenerator(
-            {self.fname: specification}, {}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot()), "<foo/>")
+        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), "<foo/>")
 
     def test_generate_empty_element_with_hideEmptyContent(self):
         specification = {
@@ -271,16 +244,11 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}, {}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot()), '<root>\n  <bar>baz</bar>\n</root>')
+        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), '<root>\n  <bar>baz</bar>\n</root>')
 
     def test_generate_empty_element_without_hideEmptyContent(self):
         specification = {
@@ -302,16 +270,11 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}, {}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot()), '<root>\n  <bar>baz</bar>\n  <foo bar="baz"/>\n</root>')
+        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), '<root>\n  <bar>baz</bar>\n  <foo bar="baz"/>\n</root>')
 
     def test_generate_element_with_content_and_hideEmptyContent(self):
         specification = {
@@ -335,16 +298,11 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}, {}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot()), '<root>\n  <bar>baz</bar>\n  <foo bar="baz">baz</foo>\n</root>')
+        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), '<root>\n  <bar>baz</bar>\n  <foo bar="baz">baz</foo>\n</root>')
 
     def test_generate_element_with_empty_child_and_hideEmptyContent(self):
         specification = {
@@ -363,16 +321,311 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}, {}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot()), '<root/>')
+        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), '<root/>')
+
+    def test_generate_element_with_foreach(self):
+        specification = {
+            '-name': 'root',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-foreach': 'arr',
+                    '-children': [
+                        {
+                            '-name': "bar",
+                            '#content': [{'var': 'bar'}],
+                        },
+                    ]
+                }
+            ]
+        }
+
+        data = {
+            'arr': [
+                {'bar': 'first'},
+                {'bar': 'second'},
+                {'bar': 'third'},
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification, 'data': data}})
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        elements = root.xpath('//bar')
+
+        self.assertEqual(elements[0].text, 'first')
+        self.assertEqual(elements[1].text, 'second')
+        self.assertEqual(elements[2].text, 'third')
+
+    def test_generate_element_with_foreach_dict(self):
+        specification = {
+            '-name': 'root',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-foreach': 'agents',
+                    '#content': [{'var': 'agents__key'}, {'text': ': '}, {'var': 'name'}],
+                }
+            ]
+        }
+        data = {
+            'agents': OrderedDict([
+                ('archivist_organization', {'name': 'foo'}),
+                ('preservation_software', {'name': 'essarch'}),
+            ])
+        }
+
+        self.generator.generate({self.fname: {'spec': specification, 'data': data}})
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        elements = root.xpath('//foo')
+
+        self.assertEqual(len(elements), 2)
+        self.assertEqual(elements[0].text, 'archivist_organization: foo')
+        self.assertEqual(elements[1].text, 'preservation_software: essarch')
+
+    def test_generate_element_replace_existing(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '1'}]}
+                    ],
+                    '#content': [{'text': 'old'}]
+                },
+                {
+                    '-name': "foo",
+                    '-replaceExisting': ['type'],
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '1'}]}
+                    ],
+                    '#content': [{'text': 'new'}]
+                },
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        elements = root.xpath('//foo')
+
+        self.assertEqual(len(elements), 1)
+        self.assertEqual(elements[0].text, 'new')
+
+    def test_generate_element_replace_existing_multiple_attributes(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '1'}]},
+                        {'-name': 'role', '#content': [{'text': 'foo'}]}
+                    ],
+                    '#content': [{'text': 'old'}]
+                },
+                {
+                    '-name': "foo",
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '1'}]},
+                        {'-name': 'role', '#content': [{'text': 'bar'}]}
+                    ],
+                    '#content': [{'text': 'old 2'}]
+                },
+                {
+                    '-name': "foo",
+                    '-replaceExisting': ['type', 'role'],
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '1'}]},
+                        {'-name': 'role', '#content': [{'text': 'foo'}]}
+                    ],
+                    '#content': [{'text': 'new'}]
+                },
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        elements = root.xpath('//foo')
+
+        self.assertEqual(len(elements), 2)
+        self.assertEqual(elements[0].text, 'new')
+        self.assertEqual(elements[1].text, 'old 2')
+
+    def test_generate_element_replace_existing_index(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-replaceExisting': ['type'],
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '1'}]}
+                    ],
+                    '-children': [
+                        {
+                            '-name': "bar",
+                            '#content': [{'text': 'original_1'}],
+                        },
+                    ]
+                },
+                {
+                    '-name': "foo",
+                    '-replaceExisting': ['type'],
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '2'}]}
+                    ],
+                    '-children': [
+                        {
+                            '-name': "bar",
+                            '#content': [{'text': 'original_2'}],
+                        },
+                    ]
+                },
+                {
+                    '-name': "foo",
+                    '-replaceExisting': ['type'],
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '3'}]}
+                    ],
+                    '-children': [
+                        {
+                            '-name': "bar",
+                            '#content': [{'text': 'original_3'}],
+                        },
+                    ]
+                },
+                {
+                    '-name': "foo",
+                    '-replaceExisting': ['type'],
+                    '-attr': [
+                        {'-name': 'type', '#content': [{'text': '2'}]}
+                    ],
+                    '-children': [
+                        {
+                            '-name': "bar",
+                            '#content': [{'text': 'new_2'}],
+                        },
+                    ]
+                },
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        elements = root.xpath('//bar')
+
+        self.assertEqual(len(elements), 3)
+        self.assertEqual(elements[0].text, 'original_1')
+        self.assertEqual(elements[1].text, 'new_2')
+        self.assertEqual(elements[2].text, 'original_3')
+
+    def test_generate_element_replace_existing_with_foreach(self):
+        specification = {
+            '-name': 'root',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-attr': [
+                        {'-name': 'idx', '#content': [{'text': 1}]}
+                    ],
+                    '#content': [{'text': 'old'}]
+                },
+                {
+                    '-name': "foo",
+                    '-attr': [
+                        {'-name': 'idx', '#content': [{'text': 3}]}
+                    ],
+                    '#content': [{'text': 'old'}]
+                },
+                {
+                    '-name': "foo",
+                    '-replaceExisting': ['idx'],
+                    '-attr': [
+                        {'-name': 'idx', '#content': [{'var': 'idx'}]}
+                    ],
+                    '-foreach': 'arr',
+                    '#content': [{'var': 'bar'}]
+                }
+            ]
+        }
+
+        data = {
+            'arr': [
+                {'idx': 0, 'bar': 'first'},
+                {'idx': 1, 'bar': 'second'},
+                {'idx': 2, 'bar': 'third'},
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification, 'data': data}})
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        elements = root.xpath('//foo')
+
+        self.assertEqual(len(elements), 4)
+        self.assertEqual(elements[0].text, 'second')
+        self.assertEqual(elements[1].text, 'old')
+        self.assertEqual(elements[2].text, 'first')
+        self.assertEqual(elements[3].text, 'third')
+
+    def test_generate_element_ignore_existing_with_foreach(self):
+        specification = {
+            '-name': 'root',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-attr': [
+                        {'-name': 'idx', '#content': [{'text': 1}]}
+                    ],
+                    '#content': [{'text': 'old'}]
+                },
+                {
+                    '-name': "foo",
+                    '-ignoreExisting': ['idx'],
+                    '-attr': [
+                        {'-name': 'idx', '#content': [{'var': 'idx'}]}
+                    ],
+                    '-foreach': 'arr',
+                    '#content': [{'var': 'bar'}]
+                }
+            ]
+        }
+
+        data = {
+            'arr': [
+                {'idx': 0, 'bar': 'first'},
+                {'idx': 1, 'bar': 'second'},
+                {'idx': 2, 'bar': 'third'},
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification, 'data': data}})
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        elements = root.xpath('//foo')
+
+        self.assertEqual(len(elements), 3)
+        self.assertEqual(elements[0].text, 'old')
+        self.assertEqual(elements[1].text, 'first')
+        self.assertEqual(elements[2].text, 'third')
 
     def test_generate_element_with_empty_child_with_containsFiles_and_hideEmptyContent(self):
         specification = {
@@ -392,16 +645,11 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}, {}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot()), '<root/>')
+        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), '<root/>')
 
     def test_generate_element_with_empty_child_with_containsFiles_and_hideEmptyContent_and_attributes(self):
         specification = {
@@ -433,16 +681,11 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}, {}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot()), '<root/>')
+        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), '<root/>')
 
     def test_generate_element_with_empty_child_with_containsFiles_and_files_and_hideEmptyContent(self):
         specification = {
@@ -468,12 +711,7 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}, {}
-        )
-
-        generator.generate(folderToParse=self.datadir)
-
+        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
@@ -498,14 +736,9 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
-        self.assertEqual("<foo>bar</foo>", etree.tostring(tree.getroot()))
+        self.assertEqual("<foo>bar</foo>", etree.tostring(tree.getroot(), encoding='unicode'))
 
     def test_generate_required_element_with_content(self):
         specification = {
@@ -516,14 +749,9 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
-        self.assertEqual("<foo>bar</foo>", etree.tostring(tree.getroot()))
+        self.assertEqual("<foo>bar</foo>", etree.tostring(tree.getroot(), encoding='unicode'))
 
     def test_generate_empty_required_element(self):
         specification = {
@@ -531,12 +759,8 @@ class test_generateXML(TransactionTestCase):
             '-req': True,
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
         with self.assertRaises(ValueError):
-            generator.generate()
+            self.generator.generate({self.fname: {'spec': specification}})
 
         self.assertFalse(os.path.exists(self.fname))
 
@@ -568,14 +792,9 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
+        with six.assertRaisesRegex(self, ValueError, re.escape("Missing value for required element '/foo[0]/bar[1]/baz[2]'")):
+            self.generator.generate({self.fname: {'spec': specification}})
 
-        with self.assertRaises(ValueError) as e:
-            generator.generate()
-
-        self.assertEqual(e.exception.message, "Missing value for required element '/foo[0]/bar[1]/baz[2]'")
         self.assertFalse(os.path.exists(self.fname))
 
     def test_generate_empty_element_with_single_attribute(self):
@@ -593,14 +812,32 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
-        self.assertEqual('<foo bar="baz"/>', etree.tostring(tree.getroot()))
+        self.assertEqual('<foo bar="baz"/>', etree.tostring(tree.getroot(), encoding='unicode'))
+
+    def test_generate_element_with_empty_attribute(self):
+        specification = {
+            '-name': "foo",
+            "-attr": [{"-name": "bar"}],
+            '#content': [{'text': 'baz'}],
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+        tree = etree.parse(self.fname)
+        self.assertEqual('<foo>baz</foo>', etree.tostring(tree.getroot(), encoding='unicode'))
+
+    def test_generate_element_with_nameless_attribute(self):
+        specification = {
+            '-name': "foo",
+            "-attr": [{"#content": "bar"}],
+            '#content': [{'text': 'baz'}],
+        }
+
+        with self.assertRaises(ValueError):
+            self.generator.generate({self.fname: {'spec': specification}})
+
+        self.assertFalse(os.path.isfile(self.fname))
 
     def test_generate_empty_element_with_multiple_attribute(self):
         specification = {
@@ -625,16 +862,11 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
         self.assertEqual(
             '<foo attr1="bar" attr2="baz"/>',
-            etree.tostring(tree.getroot())
+            etree.tostring(tree.getroot(), encoding='unicode')
         )
 
     def test_generate_required_attribute_with_content(self):
@@ -653,14 +885,9 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
-        self.assertEqual('<foo bar="baz"/>', etree.tostring(tree.getroot()))
+        self.assertEqual('<foo bar="baz"/>', etree.tostring(tree.getroot(), encoding='unicode'))
 
     def test_generate_empty_required_attribute(self):
         specification = {
@@ -673,12 +900,8 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
         with self.assertRaises(ValueError):
-            generator.generate()
+            self.generator.generate({self.fname: {'spec': specification}})
 
         self.assertFalse(os.path.exists(self.fname))
 
@@ -715,14 +938,9 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
+        with six.assertRaisesRegex(self, ValueError, re.escape("Missing value for required attribute 'test' on element '/foo[0]/bar[1]/baz[2]'")):
+            self.generator.generate({self.fname: {'spec': specification}})
 
-        with self.assertRaises(ValueError) as e:
-            generator.generate()
-
-        self.assertEqual(e.exception.message, "Missing value for required attribute 'test' on element '/foo[0]/bar[1]/baz[2]'")
         self.assertFalse(os.path.exists(self.fname))
 
     def test_generate_element_with_content_and_attribute(self):
@@ -741,16 +959,11 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
         self.assertEqual(
             '<foo attr1="baz">bar</foo>',
-            etree.tostring(tree.getroot())
+            etree.tostring(tree.getroot(), encoding='unicode')
         )
 
     def test_generate_empty_element_with_attribute_using_var(self):
@@ -768,14 +981,9 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}, {'bar': 'baz'}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}})
         tree = etree.parse(self.fname)
-        self.assertEqual('<foo attr1="baz"/>', etree.tostring(tree.getroot()))
+        self.assertEqual('<foo attr1="baz"/>', etree.tostring(tree.getroot(), encoding='unicode'))
 
     def test_generate_element_with_content_using_var(self):
         specification = {
@@ -787,14 +995,70 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}, {'bar': 'baz'}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}})
         tree = etree.parse(self.fname)
-        self.assertEqual('<foo>baz</foo>', etree.tostring(tree.getroot()))
+        self.assertEqual('<foo>baz</foo>', etree.tostring(tree.getroot(), encoding='unicode'))
+
+    def test_generate_element_with_nested_xml_content(self):
+        specification = {
+            '-name': "foo",
+            '-nestedXMLContent': 'bar'
+        }
+
+        self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': '<bar>baz</bar>'}}})
+        tree = etree.parse(self.fname)
+        self.assertEqual('<foo>\n  <bar>baz</bar>\n</foo>', etree.tostring(tree.getroot(), encoding='unicode'))
+
+    def test_generate_element_with_requiredParameters_and_required_var(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-requiredParameters': ['bar'],
+                    '-children': [
+                        {
+                            '-name': 'bar',
+                            "#content": [
+                                {
+                                    "var": "bar"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}})
+        tree = etree.parse(self.fname)
+        self.assertEqual('<root>\n  <foo>\n    <bar>baz</bar>\n  </foo>\n</root>', etree.tostring(tree.getroot(), encoding='unicode'))
+
+    def test_generate_element_with_requiredParameters_and_no_required_var(self):
+        specification = {
+            '-name': 'root',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': "foo",
+                    '-requiredParameters': ['bar'],
+                    '-children': [
+                        {
+                            '-name': 'bar',
+                            "#content": [
+                                {
+                                    "var": "bar"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification, 'data': {'foo': 'baz'}}})
+        tree = etree.parse(self.fname)
+        self.assertEqual('<root/>', etree.tostring(tree.getroot(), encoding='unicode'))
 
     def test_generate_element_with_children(self):
         specification = {
@@ -811,17 +1075,120 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}, {'bar': 'baz'}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}})
         tree = etree.parse(self.fname)
 
         self.assertEqual(
             '<foo>\n  <bar>baz</bar>\n</foo>',
-            etree.tostring(tree.getroot())
+            etree.tostring(tree.getroot(), encoding='unicode')
+        )
+
+    def test_skipIfNoChildren_with_empty_child(self):
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'first',
+                    '-skipIfNoChildren': True,
+                    '-attr': [
+                        {'-name': 'myattr', '#content': [{'text': 'attrcontent'}]}
+                    ],
+                    '-children': [
+                        {
+                            '-name': 'bar',
+                        }
+                    ]
+                },
+                {
+                    '-name': 'second',
+                    '#content': [{'text': 'value'}]
+                }
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+        tree = etree.parse(self.fname)
+
+        self.assertEqual(
+            '<foo>\n  <second>value</second>\n</foo>',
+            etree.tostring(tree.getroot(), encoding='unicode')
+        )
+
+    def test_skipIfNoChildren_with_non_empty_child(self):
+        specification = {
+            '-name': 'foo',
+            '-children': [
+                {
+                    '-name': 'first',
+                    '-skipIfNoChildren': True,
+                    '-children': [
+                        {
+                            '-name': 'bar',
+                            '#content': [{'text': 'value'}]
+                        }
+                    ]
+                },
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+        tree = etree.parse(self.fname)
+
+        self.assertEqual(
+            '<foo>\n  <first>\n    <bar>value</bar>\n  </first>\n</foo>',
+            etree.tostring(tree.getroot(), encoding='unicode')
+        )
+
+    def test_hide_content_if_missing_with_missing(self):
+        specification = {
+            "-name": "foo",
+            "-allowEmpty": True,
+            "-children": [
+                {
+                    "-name": "bar",
+                    "#content": [
+                        {"text": "prefix"},
+                        {
+                            "var": "baz",
+                            "hide_content_if_missing": True
+                        }
+                    ]
+                }
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+        tree = etree.parse(self.fname)
+
+        self.assertEqual(
+            '<foo/>',
+            etree.tostring(tree.getroot(), encoding='unicode')
+        )
+
+    def test_hide_content_if_missing_with_not_missing(self):
+        specification = {
+            "-name": "foo",
+            "-allowEmpty": True,
+            "-children": [
+                {
+                    "-name": "bar",
+                    "#content": [
+                        {"text": "prefix"},
+                        {
+                            "var": "baz",
+                            "hide_content_if_missing": True
+                        }
+                    ]
+                }
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification, 'data': {'baz': 'value'}}})
+        tree = etree.parse(self.fname)
+
+        self.assertEqual(
+            '<foo>\n  <bar>prefixvalue</bar>\n</foo>',
+            etree.tostring(tree.getroot(), encoding='unicode')
         )
 
     def test_element_with_files(self):
@@ -860,12 +1227,7 @@ class test_generateXML(TransactionTestCase):
             ],
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate(folderToParse=self.datadir)
-
+        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
         tree = etree.parse(self.fname)
 
         num_of_files = 0
@@ -876,8 +1238,7 @@ class test_generateXML(TransactionTestCase):
                 self.assertIsNotNone(file_element)
 
                 filepath = os.path.join(root, f)
-                relpath = os.path.relpath(filepath, self.datadir)
-
+                relpath = normalize_path(os.path.relpath(filepath, self.datadir))
                 filepath_element = tree.find(
                     ".//bar[@name='%s']/baz[@href='%s']" % (f, relpath)
                 )
@@ -888,8 +1249,66 @@ class test_generateXML(TransactionTestCase):
         file_elements = tree.findall('.//bar')
         self.assertEqual(len(file_elements), num_of_files)
 
-        parse_file_tasks = ProcessTask.objects.filter(name='ESSArch_Core.tasks.ParseFile')
-        self.assertEqual(parse_file_tasks.count(), num_of_files)
+    def test_multiple_to_create_with_reference_from_second_to_first(self):
+        specification = {
+            '-name': 'foo',
+            '-allowEmpty': True,
+            '-children': [
+                {
+                    '-name': 'bar',
+                    '-containsFiles': True,
+                    '-attr': [
+                        {
+                            '-name': 'name',
+                            '#content': [{'var': 'FName'}]
+                        }
+                    ],
+                    '#content': [{'var': 'href'}]
+                }
+            ],
+        }
+
+        os.mkdir(os.path.join(self.xmldir, 'nested'))
+        first_fname = normalize_path(os.path.join(self.xmldir, 'nested', "first.xml"))
+        second_fname = normalize_path(os.path.join(self.xmldir, 'nested', "second.xml"))
+
+        self.generator.generate(
+            OrderedDict([
+                (first_fname, {'spec': specification}),
+                (second_fname, {'spec': specification})
+            ])
+        )
+
+        tree1 = etree.parse(first_fname)
+        tree2 = etree.parse(second_fname)
+
+        bars1 = tree1.findall('.//bar')
+        bars2 = tree2.findall('.//bar')
+
+        self.assertEqual(len(bars1), 0)
+        self.assertEqual(len(bars2), 1)
+
+        self.assertEqual(bars2[0].text, first_fname)
+
+        # again, but with relpath set
+        self.generator.generate(
+            OrderedDict([
+                (first_fname, {'spec': specification}),
+                (second_fname, {'spec': specification})
+            ]), relpath=self.xmldir
+        )
+
+        tree1 = etree.parse(first_fname)
+        tree2 = etree.parse(second_fname)
+
+        bars1 = tree1.findall('.//bar')
+        bars2 = tree2.findall('.//bar')
+
+        self.assertEqual(len(bars1), 0)
+        self.assertEqual(len(bars2), 1)
+
+        self.assertEqual(bars2[0].text, 'nested/first.xml')
+
 
     def test_multiple_to_create_with_files(self):
         specification = {
@@ -929,14 +1348,12 @@ class test_generateXML(TransactionTestCase):
 
         extra_fname = os.path.join(self.xmldir, "extra.xml")
 
-        generator = XMLGenerator(
+        self.generator.generate(
             OrderedDict([
-                (self.fname, specification),
-                (extra_fname, specification)
-            ])
+                (self.fname, {'spec': specification}),
+                (extra_fname, {'spec': specification})
+            ]), folderToParse=self.datadir
         )
-
-        generator.generate(folderToParse=self.datadir)
 
         tree1 = etree.parse(self.fname)
         tree2 = etree.parse(extra_fname)
@@ -945,9 +1362,6 @@ class test_generateXML(TransactionTestCase):
         bars2 = tree2.findall('.//bar')
 
         self.assertTrue(len(bars2) == len(bars1) + 1)
-
-        parse_file_tasks = ProcessTask.objects.filter(name='ESSArch_Core.tasks.ParseFile')
-        self.assertEqual(parse_file_tasks.count(), len(bars2))
 
     def test_element_with_containsFiles_without_files(self):
         specification = {
@@ -971,12 +1385,7 @@ class test_generateXML(TransactionTestCase):
             ],
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         self.assertTrue(os.path.exists(self.fname))
 
     def test_element_with_files_and_namespace(self):
@@ -1022,12 +1431,7 @@ class test_generateXML(TransactionTestCase):
             ],
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate(folderToParse=self.datadir)
-
+        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
         tree = etree.parse(self.fname)
 
         num_of_files = 0
@@ -1038,7 +1442,7 @@ class test_generateXML(TransactionTestCase):
                 self.assertIsNotNone(file_element)
 
                 filepath = os.path.join(root, f)
-                relpath = os.path.relpath(filepath, self.datadir)
+                relpath = normalize_path(os.path.relpath(filepath, self.datadir))
 
                 filepath_element = tree.find(
                     ".//{%s}bar[@name='%s']/{%s}baz[@href='%s']" % (nsmap['premis'], f, nsmap['premis'], relpath)
@@ -1087,12 +1491,7 @@ class test_generateXML(TransactionTestCase):
             ],
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate(folderToParse=self.datadir)
-
+        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
         tree = etree.parse(self.fname)
 
         num_of_files = 0
@@ -1100,7 +1499,7 @@ class test_generateXML(TransactionTestCase):
         for root, dirs, files in walk(self.datadir):
             for f in files:
                 filepath = os.path.join(root, f)
-                relpath = os.path.relpath(filepath, self.datadir)
+                relpath = normalize_path(os.path.relpath(filepath, self.datadir))
 
                 filepath_element = tree.find(
                     ".//bar[@name='%s']/baz[@href='%s']" % (f, relpath)
@@ -1130,12 +1529,7 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
         root = tree.getroot()
         a = root.find('.//a')
@@ -1158,12 +1552,7 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
         root = tree.getroot()
         a = root.find('.//a')
@@ -1190,12 +1579,7 @@ class test_generateXML(TransactionTestCase):
             ],
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate(self.datadir)
-
+        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
         tree = etree.parse(self.fname)
         root = tree.getroot()
         a = root.find('.//a')
@@ -1217,11 +1601,7 @@ class test_generateXML(TransactionTestCase):
             ],
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate(self.datadir)
+        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -1244,12 +1624,7 @@ class test_generateXML(TransactionTestCase):
             ],
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate(self.datadir)
-
+        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
         tree = etree.parse(self.fname)
         root = tree.getroot()
         a = root.find('.//a')
@@ -1271,12 +1646,7 @@ class test_generateXML(TransactionTestCase):
             ],
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate(self.datadir)
-
+        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
         tree = etree.parse(self.fname)
         root = tree.getroot()
         a = root.find('.//a')
@@ -1318,12 +1688,7 @@ class test_generateXML(TransactionTestCase):
             ],
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate(self.datadir)
-
+        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
         tree = etree.parse(self.fname)
         root = tree.getroot()
         a = root.find('.//a')
@@ -1336,6 +1701,67 @@ class test_generateXML(TransactionTestCase):
         self.assertLess(root.index(b), root.index(c))
         self.assertLess(root.index(c), root.index(d))
         self.assertLess(root.index(d), root.index(e))
+
+    def test_insert_from_xml_string(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                }
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+        append_xml = '<appended>appended text</appended>'
+
+        target = self.generator.find_element('foo')
+        for i in range(3):
+            self.generator.insert_from_xml_string(
+                target, append_xml,
+            )
+        self.generator.write(self.fname)
+
+        tree = etree.parse(self.fname)
+        appended = tree.findall('.//appended')
+
+        self.assertEqual(len(appended), 3)
+        for i in range(3):
+            self.assertEqual(appended[i].text, 'appended text')
+
+    def test_insert_from_xml_file(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                }
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+
+        append_xml = os.path.join(self.xmldir, 'append.xml')
+        append_xml_string = '<appended>appended text</appended>'
+        append_el = etree.fromstring(append_xml_string)
+        etree.ElementTree(append_el).write(append_xml, xml_declaration=True, encoding='UTF-8')
+
+        target = self.generator.find_element('foo')
+        for i in range(3):
+            self.generator.insert_from_xml_file(
+                target, append_xml,
+            )
+
+        self.generator.write(self.fname)
+
+        tree = etree.parse(self.fname)
+        appended = tree.findall('.//appended')
+
+        self.assertEqual(len(appended), 3)
+        for i in range(3):
+            self.assertEqual(appended[i].text, 'appended text')
 
     def test_insert_element_with_namespace(self):
         nsmap = {
@@ -1353,12 +1779,7 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -1372,10 +1793,12 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
+        target = self.generator.find_element('foo')
         for i in range(3):
-            generator.insert(
-                self.fname, 'foo', append_specification, {},
+            self.generator.insert_from_specification(
+                target, append_specification, {},
             )
+        self.generator.write(self.fname)
 
         tree = etree.parse(self.fname)
 
@@ -1399,12 +1822,7 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -1417,9 +1835,11 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator.insert(
-            self.fname, 'root', append_specification, {}, index=0
+        target = self.generator.find_element('root')
+        self.generator.insert_from_specification(
+            target, append_specification, {}, index=0
         )
+        self.generator.write(self.fname)
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -1428,12 +1848,7 @@ class test_generateXML(TransactionTestCase):
 
         self.assertLess(root.index(appended), root.index(foo))
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -1446,9 +1861,11 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator.insert(
-            self.fname, 'root', append_specification, {}, index=1
+        target = self.generator.find_element('root')
+        self.generator.insert_from_specification(
+            target, append_specification, {}, index=1
         )
+        self.generator.write(self.fname)
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -1456,6 +1873,205 @@ class test_generateXML(TransactionTestCase):
         appended = tree.find('.//appended')
 
         self.assertLess(root.index(foo), root.index(appended))
+
+    def test_insert_element_before_element(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'bar',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'bar',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'baz',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'baz',
+                    '-allowEmpty': "1",
+                }
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//appended'))
+
+        append_specification = {
+            '-name': 'appended',
+            '#content': [
+                {
+                    'text': 'append text'
+                }
+            ]
+        }
+
+        target = self.generator.find_element('root')
+        self.generator.insert_from_specification(
+            target, append_specification, {}, before='baz'
+        )
+        self.generator.write(self.fname)
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        appended = tree.find('.//appended')
+        self.assertEqual(root.index(appended), 4)
+
+    def test_insert_element_before_non_existing_element(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                },
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+        tree = etree.parse(self.fname)
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//appended'))
+
+        append_specification = {
+            '-name': 'appended',
+            '#content': [
+                {
+                    'text': 'append text'
+                }
+            ]
+        }
+
+        target = self.generator.find_element('root')
+        with self.assertRaises(ValueError):
+            self.generator.insert_from_specification(target, append_specification, {}, before='bar')
+
+    def test_insert_element_after_element(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'bar',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'bar',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'baz',
+                    '-allowEmpty': "1",
+                },
+                {
+                    '-name': 'baz',
+                    '-allowEmpty': "1",
+                }
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//appended'))
+
+        append_specification = {
+            '-name': 'appended',
+            '#content': [
+                {
+                    'text': 'append text'
+                }
+            ]
+        }
+
+        target = self.generator.find_element('root')
+        self.generator.insert_from_specification(
+            target, append_specification, {}, after='bar'
+        )
+        self.generator.write(self.fname)
+
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        appended = tree.find('.//appended')
+        self.assertEqual(root.index(appended), 4)
+
+    def test_insert_element_after_non_existing_element(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                },
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//appended'))
+
+        append_specification = {
+            '-name': 'appended',
+            '#content': [
+                {
+                    'text': 'append text'
+                }
+            ]
+        }
+
+        target = self.generator.find_element('root')
+        with self.assertRaises(ValueError):
+            self.generator.insert_from_specification(target, append_specification, {}, after='bar')
+
+    def test_insert_element_before_and_after_element(self):
+        specification = {
+            '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'foo',
+                    '-allowEmpty': "1",
+                }
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+        tree = etree.parse(self.fname)
+        self.assertIsNone(tree.find('.//appended'))
+
+        append_specification = {
+            '-name': 'appended',
+            '#content': [
+                {
+                    'text': 'append text'
+                }
+            ]
+        }
+
+        target = self.generator.find_element('root')
+        with self.assertRaises(ValueError):
+            self.generator.insert_from_specification(
+                target, append_specification, {}, before='foo', after="foo"
+            )
+
+        self.generator.write(self.fname)
 
     def test_insert_nested_elements_with_namespace(self):
         nsmap = {
@@ -1473,12 +2089,7 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -1503,11 +2114,13 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
+        target = self.generator.find_element('foo')
         for i in range(3):
-            generator.insert(
-                self.fname, 'foo', append_specification, {},
+            self.generator.insert_from_specification(
+                target, append_specification, {},
             )
 
+        self.generator.write(self.fname)
         tree = etree.parse(self.fname)
 
         bar = tree.find('.//{%s}bar' % nsmap.get('premis'))
@@ -1526,12 +2139,7 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -1544,9 +2152,11 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator.insert(
-            self.fname, 'foo', append_specification, {},
+        target = self.generator.find_element('foo')
+        self.generator.insert_from_specification(
+            target, append_specification, {},
         )
+        self.generator.write(self.fname)
 
         tree = etree.parse(self.fname)
 
@@ -1566,12 +2176,7 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -1589,9 +2194,11 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator.insert(
-            self.fname, 'foo', append_specification, {},
+        target = self.generator.find_element('foo')
+        self.generator.insert_from_specification(
+            target, append_specification, {},
         )
+        self.generator.write(self.fname)
 
         tree = etree.parse(self.fname)
         appended = tree.find('.//appended')
@@ -1610,12 +2217,7 @@ class test_generateXML(TransactionTestCase):
             ]
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate()
-
+        self.generator.generate({self.fname: {'spec': specification}})
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -1623,15 +2225,27 @@ class test_generateXML(TransactionTestCase):
             '-name': 'appended',
         }
 
+        target = self.generator.find_element('foo')
         with self.assertRaisesRegexp(TypeError, "Can't insert"):
-            generator.insert(
-                self.fname, 'foo', append_specification, {},
+            self.generator.insert_from_specification(
+                target, append_specification, {},
             )
+        self.generator.write(self.fname)
 
 
-class ExternalTestCase(TransactionTestCase):
+class ExternalTestCase(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.bd = os.path.dirname(os.path.realpath(__file__))
+        Path.objects.create(entity="path_mimetypes_definitionfile", value=os.path.join(cls.bd, "mime.types"))
+
+        cls.generator = XMLGenerator()
+
+    @classmethod
+    def tearDownClass(cls):
+        Path.objects.all().delete()
+
     def setUp(self):
-        self.bd = os.path.dirname(os.path.realpath(__file__))
         self.xmldir = os.path.join(self.bd, "xmlfiles")
         self.datadir = os.path.join(self.bd, "datafiles")
         self.external = os.path.join(self.datadir, "external")
@@ -1645,13 +2259,6 @@ class ExternalTestCase(TransactionTestCase):
         self.external2 = os.path.join(self.external, "external2")
         os.makedirs(self.external1)
         os.makedirs(self.external2)
-
-        Path.objects.create(
-            entity="path_mimetypes_definitionfile",
-            value=os.path.join(self.bd, "mime.types")
-        )
-
-        settings.CELERY_ALWAYS_EAGER = True
 
     def tearDown(self):
         try:
@@ -1691,12 +2298,8 @@ class ExternalTestCase(TransactionTestCase):
             },
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
 
-        generator.generate(folderToParse=self.datadir)
-
+        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
         self.assertTrue(os.path.isfile(self.fname))
 
         external1_path = os.path.join(self.external1, 'external.xml')
@@ -1760,12 +2363,7 @@ class ExternalTestCase(TransactionTestCase):
         with open(os.path.join(self.external2, "file1.pdf"), "w") as f:
             f.write('a pdf file')
 
-        generator = XMLGenerator(
-            {self.fname: specification}
-        )
-
-        generator.generate(folderToParse=self.datadir)
-
+        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
         self.assertTrue(os.path.isfile(self.fname))
 
         tree = etree.parse(self.fname)
@@ -1786,9 +2384,6 @@ class ExternalTestCase(TransactionTestCase):
 
         external2_tree = etree.parse(external2_path)
         self.assertEqual(len(external2_tree.findall(".//file[@href='file1.pdf']")), 1)
-
-        parse_file_tasks = ProcessTask.objects.filter(name='ESSArch_Core.tasks.ParseFile')
-        self.assertEqual(parse_file_tasks.count(), 4)
 
     def test_external_info(self):
         specification = {
@@ -1817,13 +2412,7 @@ class ExternalTestCase(TransactionTestCase):
             },
         }
 
-        generator = XMLGenerator(
-            {self.fname: specification},
-            {'foo': 'bar'}
-        )
-
-        generator.generate(folderToParse=self.datadir)
-
+        self.generator.generate({self.fname: {'spec': specification, 'data': {'foo': 'bar'}}}, folderToParse=self.datadir)
         self.assertTrue(os.path.isfile(self.fname))
 
         external1_path = os.path.join(self.external1, 'external.xml')
@@ -1868,11 +2457,7 @@ class ExternalTestCase(TransactionTestCase):
                 }
             },
         }
-        generator = XMLGenerator(
-            {self.fname: specification},
-            {'foo': 'bar'}
-        )
-        generator.generate(folderToParse=self.datadir)
+        self.generator.generate({self.fname: {'spec': specification, 'data': {'foo': 'bar'}}}, folderToParse=self.datadir)
 
         external1_path = os.path.join(self.external1, 'external.xml')
         external2_path = os.path.join(self.external2, 'external.xml')
@@ -1921,11 +2506,7 @@ class ExternalTestCase(TransactionTestCase):
                 }
             },
         }
-        generator = XMLGenerator(
-            {self.fname: specification},
-            {'foo': 'bar'}
-        )
-        generator.generate(folderToParse=self.datadir)
+        self.generator.generate({self.fname: {'spec': specification, 'data': {'foo': 'bar'}}}, folderToParse=self.datadir)
 
         external1_path = os.path.join(self.external1, 'external.xml')
         external2_path = os.path.join(self.external2, 'external.xml')
@@ -1937,7 +2518,7 @@ class ExternalTestCase(TransactionTestCase):
         self.assertIsNotNone(external2_tree.find('.//xsi:foo', namespaces=nsmap_ext))
 
 
-class test_parseContent(TransactionTestCase):
+class ParseContentTestCase(unittest.TestCase):
     def test_parse_content_only_text(self):
         content = [
             {
@@ -1962,6 +2543,20 @@ class test_parseContent(TransactionTestCase):
         contentobj = parseContent(content, info)
         self.assertEqual(contentobj, 'bar')
 
+    def test_parse_content_only_var_integer(self):
+        content = [
+            {
+                "var": "foo"
+            },
+        ]
+
+        info = {
+            "foo": 0
+        }
+
+        contentobj = parseContent(content, info)
+        self.assertEqual(contentobj, '0')
+
     def test_parse_content_var_and_text(self):
         content = [
             {
@@ -1981,3 +2576,125 @@ class test_parseContent(TransactionTestCase):
 
         contentobj = parseContent(content, info)
         self.assertEqual(contentobj, 'beforebarafter')
+
+    def test_parse_content_var_with_default(self):
+        content = [
+            {
+                "var": "foo", "default": "mydefault"
+            },
+        ]
+
+        info = {
+            "foo": "bar"
+        }
+
+        contentobj = parseContent(content, info)
+        self.assertEqual(contentobj, 'bar')
+
+    def test_parse_content_nested_var(self):
+        content = [{"var": "foo.bar"}]
+        info = {"foo": {"bar": "baz"}}
+
+        contentobj = parseContent(content, info)
+        self.assertEqual(contentobj, 'baz')
+
+    def test_parse_content_missing_var(self):
+        content = [{"var": "foo"}]
+        contentobj = parseContent(content, {})
+        self.assertEqual(contentobj, '')
+
+    def test_parse_content_missing_var_with_default(self):
+        content = [
+            {
+                "var": "foo", "default": "mydefault"
+            },
+        ]
+
+        contentobj = parseContent(content, {})
+        self.assertEqual(contentobj, 'mydefault')
+
+    @mock.patch('ESSArch_Core.essxml.Generator.xmlGenerator.uuid.uuid4')
+    def test_parse_content_var_generate_uuid(self, mocked):
+        val = 'the uuid'
+        mocked.return_value = val
+        content = [{"var": "_UUID"}]
+        contentobj = parseContent(content, {})
+        mocked.assert_called_once()
+        self.assertEqual(contentobj, str(val))
+
+    def test_parse_content_var_generate_current_time_isoformat(self):
+        content = [{"var": "_NOW",}]
+        contentobj = parseContent(content, {})
+        dt = dateparse.parse_datetime(contentobj)
+        iso = dt.isoformat()
+        self.assertEqual(contentobj, iso)
+        self.assertEqual(dt.utcoffset(), datetime.timedelta(0))
+
+    def test_parse_content_var_datetime_to_date(self):
+        val = timezone.now()
+        content = [{"var": "foo__DATE",}]
+        contentobj = parseContent(content, {'foo': val})
+        self.assertEqual(contentobj, val.strftime('%Y-%m-%d'))
+
+    def test_parse_content_var_datetime_to_local_timezone(self):
+        val = timezone.now()
+        content = [{"var": "foo__LOCALTIME",}]
+        contentobj = parseContent(content, {'foo': val})
+        dt = dateparse.parse_datetime(contentobj)
+        self.assertEqual(dt, timezone.localtime(val))
+
+    def test_parse_django_template(self):
+        contentobj = parseContent("hello {{foo}}", {"foo": "world"})
+        self.assertEqual(contentobj, 'hello world')
+
+        val = timezone.now()
+        content = "{% load tz %}{{foo | date:'c'}}"
+        contentobj = parseContent(content, {'foo': val})
+        dt = dateparse.parse_datetime(contentobj)
+        self.assertEqual(str(dt), str(timezone.localtime(val)))
+
+    def test_parse_django_template_with_leading_underscore(self):
+        contentobj = parseContent("{{_foo}} {{bar_foo}}", {"_foo": "hello", "bar_foo": "world"})
+        self.assertEqual(contentobj, 'hello world')
+
+        contentobj = parseContent("hello {{_foo}}", {"_foo": "world"})
+        self.assertEqual(contentobj, 'hello world')
+
+        contentobj = parseContent("{{_bar}} {{_foo}}", {"bar": "hello", "_foo": "world"})
+        self.assertEqual(contentobj, 'hello world')
+
+        contentobj = parseContent("{{_bar}} {{_foo}}", {"_bar": "hello", "_foo": "world", "foo": "world"})
+        self.assertEqual(contentobj, 'hello world')
+
+    def test_unicode(self):
+        content = [{"var": "foo"}]
+        foo = "åäö"
+        info = {"foo": foo}
+        contentobj = parseContent(content, info)
+        self.assertEqual(contentobj, make_unicode(foo))
+
+        content = [{"var": "bar"}]
+        bar = make_unicode("åäö")
+        info = {"bar": bar}
+        contentobj = parseContent(content, info)
+        self.assertEqual(contentobj, bar)
+
+        content = [{"var": "foo"}, {"var": "bar"}]
+        info = {"foo": foo, "bar": bar}
+        contentobj = parseContent(content, info)
+        self.assertEqual(contentobj, make_unicode(foo) + bar)
+
+        # django template system
+        contentobj = parseContent("{{foo}}", {"foo": "åäö"})
+        self.assertEqual(contentobj, u"åäö")
+
+    def test_iso_8859(self):
+        content = [{"var": "foo"}]
+        foo = u"åäö".encode("iso-8859-1")
+        info = {"foo": foo}
+        contentobj = parseContent(content, info)
+        self.assertEqual(contentobj, u"åäö")
+
+        # django template system
+        contentobj = parseContent("{{foo}}", info)
+        self.assertEqual(contentobj, u"åäö")

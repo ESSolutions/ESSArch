@@ -22,10 +22,32 @@
     Email - essarch@essolutions.se
 """
 
+import six
+
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
 
 import uuid
+
+
+class CachedManagerMixin:
+    def cached(self, search_key, search_value, value_column):
+        model_name = self.model.__class__.__name__.lower()
+
+        cache_name = '%s_%s' % (model_name, search_value)
+        val = cache.get(cache_name)
+
+        if val is None:
+            val = self.model.objects.values_list(value_column, flat=True).get(**{search_key: search_value})
+            cache.set(cache_name, val, 3600*24)
+
+        return val
+
+
+class ParameterManager(models.Manager, CachedManagerMixin):
+    pass
 
 
 class Parameter(models.Model):
@@ -35,6 +57,8 @@ class Parameter(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     entity = models.CharField(max_length=60, unique=True)
     value = models.CharField(max_length=70)
+
+    objects = ParameterManager()
 
     class Meta:
         ordering = ["entity"]
@@ -53,6 +77,10 @@ class Parameter(models.Model):
         }
 
 
+class PathManager(models.Manager, CachedManagerMixin):
+    pass
+
+
 class Path(models.Model):
     """
     Paths used for different operations
@@ -60,6 +88,8 @@ class Path(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     entity = models.CharField(max_length=255, unique=True)
     value = models.CharField(max_length=255)
+
+    objects = PathManager()
 
     def __unicode__(self):
         return '%s (%s)' % (self.entity, self.value)
@@ -75,6 +105,8 @@ class EventType(models.Model):
     """
     eventType = models.IntegerField(primary_key=True, default=0)
     eventDetail = models.CharField(max_length=255)
+    enabled = models.BooleanField(default=True)
+    code = models.CharField(max_length=255, blank=True, default='')
 
     class Meta:
         ordering = ["eventType"]
@@ -121,6 +153,7 @@ class DefaultColumnVisible(models.Model):
     visible = models.BooleanField(default=True)
 
 
+@python_2_unicode_compatible
 class ArchivePolicy(models.Model):
     """Specifies how an IP should be archived"""
 
@@ -129,9 +162,20 @@ class ArchivePolicy(models.Model):
         (2, 'ais'),
     )
 
+    MD5 = 0
+    SHA1 = 1
+    SHA224 = 2
+    SHA256 = 3
+    SHA384 = 4
+    SHA512 = 5
+
     CHECKSUM_ALGORITHM_CHOICES = (
-        (1, 'md5'),
-        (2, 'sha-256'),
+        (MD5, 'md5'),
+        (SHA1, 'sha-1'),
+        (SHA224, 'sha-224'),
+        (SHA256, 'sha-256'),
+        (SHA384, 'sha-384'),
+        (SHA512, 'sha-512'),
     )
 
     IP_TYPE_CHOICES = (
@@ -188,13 +232,13 @@ class ArchivePolicy(models.Model):
     class Meta:
         ordering = ['policy_name']
 
-    def __unicode__(self):
+    def __str__(self):
         if len(self.policy_name):
             return self.policy_name
         elif len(self.policy_id):
-            return unicode(self.policy_id)
+            return six.text_type(self.policy_id)
         else:
-            return str(self.pk)
+            return six.text_type(self.pk)
 
 
 class DefaultSorting(models.Model):
