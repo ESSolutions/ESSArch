@@ -20,7 +20,7 @@ from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
 from ESSArch_Core.ip.filters import AgentFilter, EventIPFilter, InformationPackageFilter
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.permissions import CanChangeSA, CanDeleteIP
-from ESSArch_Core.ip.serializers import AgentSerializer, EventIPSerializer, WorkareaSerializer
+from ESSArch_Core.ip.serializers import AgentSerializer, EventIPSerializer, InformationPackageSerializer, WorkareaSerializer
 from ESSArch_Core.profiles.models import Profile, ProfileIP
 
 
@@ -180,6 +180,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     API endpoint that allows information packages to be viewed or edited.
     """
     queryset = InformationPackage.objects.none()
+    serializer_class = InformationPackageSerializer
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,)
     ordering_fields = (
         'label', 'responsible', 'create_date', 'state',
