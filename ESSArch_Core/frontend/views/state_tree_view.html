@@ -1,15 +1,15 @@
 <div class="status-tree-grid">
-    <span style="float: right; margin-bottom: 5px;" ng-click="statusViewUpdate(ip)" class="clickable angular-animate fa fa-refresh fa-lg" ng-class="{'fa-refresh-animate': myTreeControl.scope.stateLoading }"  uib-popover="{{'REFRESHTABLEDESC' | translate}}" popover-placement="left" popover-popup-delay="500" popover-append-to-body="true"></span>
+    <span style="float: right; margin-bottom: 5px;" ng-click="statusViewUpdate(ip)" class="clickable angular-animate fas fa-sync-alt fa-lg" ng-class="{'fa-sync-alt-animate': myTreeControl.scope.stateLoading }"  uib-popover="{{'REFRESHTABLEDESC' | translate}}" popover-placement="left" popover-popup-delay="500" popover-append-to-body="true"></span>
     <tree-grid
         col-defs="col_defs"
         tree-data="tree_data"
         tree-control="myTreeControl"
         expand-on="expanding_property"
-        icon-leaf="{{branch.flow_type == 'task' ? 'fa fa-bolt':''}}"
-        icon-expand="fa fa-plus"
+        icon-leaf="{{branch.flow_type == 'task' ? 'fas fa-bolt':''}}"
+        icon-expand="fas fa-plus"
         on-click="stepTaskClick(branch)"
         on-select="stepClick(branch)"
-        icon-collapse="fa fa-minus"
+        icon-collapse="fas fa-minus"
         template-url="treeGrid.html">
     </tree-grid>
 </div>
