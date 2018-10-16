@@ -23,18 +23,14 @@
 """
 
 from django.conf.urls import url
-from views import (
+from .views import (
     create,
     edit,
     index,
     add,
     addExtension,
     generate,
-    # SubmitIPCreate,
 )
-# from views import {
-#     create,
-# }
 from . import views
 
 urlpatterns = [
