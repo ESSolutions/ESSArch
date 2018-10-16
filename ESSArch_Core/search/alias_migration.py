@@ -16,7 +16,6 @@ def setup_index(doctype):
     """
 
     alias = doctype._index._name
-    print alias
     pattern = '{alias}-*'.format(alias=alias)
 
     # create an index template
