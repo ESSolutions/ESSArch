@@ -30,8 +30,13 @@
     .type-name-column {
         display: flex;
         align-items: center;
-        .file, .dir {
+        .file {
             margin-right: 5px;
+            color: $file-color;
+        }
+        .dir {
+            margin-right: 5px;
+            color: $folder-color;
         }
     }
     table {
@@ -84,7 +89,10 @@
     vertical-align: middle !important;
 }
 .card-selected {
-    color: rgba(0, 50, 255, .9);
+    color: $selected-dark !important;
+    .file, .dir {
+        color: $selected-dark !important;
+    }
 }
 .arrow-disabled {
     color: #bcbcbc;
@@ -123,9 +131,11 @@
     }
     .file {
         text-align: center;
+        color: $file-color;
     }
     .dir {
         text-align: center;
+        color: $folder-color;
     }
     .file-extension {
         text-align: center;
@@ -137,5 +147,6 @@
         top: 15px;
         font-size: 12px;
         line-height: 1;
+        color: white;
     }
 }

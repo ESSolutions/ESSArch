@@ -20,11 +20,11 @@
 }
 
 // Refresh button
-.fa-refresh-animate.ng-animate {
+.fa-sync-alt-animate.ng-animate {
     animation: spin 0.7s infinite linear;
     -webkit-animation: spin 0.7s infinite linear;
 }
-.fa-refresh-animate-once {
+.fa-sync-alt-animate-once {
     animation: spin 0.7s;
 }
 @keyframes spin {
@@ -179,7 +179,6 @@
 }
 
 .generation-indicator, .new-version-indicator {
-    margin-left: 5px;
     display: inline-block;
     padding: 3px 5px;
     font-size: 12px;
@@ -241,7 +240,7 @@
     min-width: 21px;
     flex-grow: 1;
     align-self: center;
-    .fa-refresh {
+    .fa-sync-alt {
         float: right;
     }
 }
