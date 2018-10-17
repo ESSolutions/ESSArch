@@ -1,5 +1,7 @@
 <div class="version-info" style="width: 50%;" ng-if="sysInfo">
     <p><b>Version:</b> v{{sysInfo.version}}</p>
+    <p><b>Python:</b> {{sysInfo.python}}</p>
+    <p><b>{{'PLATFORM' | translate}}:</b> {{sysInfo.platform}}</p>
     <p><b>{{'TIME' | translate}}:</b> {{sysInfo.time_checked | date: 'yyyy-MM-dd HH:mm'}}</p>
     <p><b>{{'HOSTNAME' | translate}}:</b> {{sysInfo.hostname}}</p>
     <h4>{{'SETTINGSFLAGS' | translate}}</h4>
