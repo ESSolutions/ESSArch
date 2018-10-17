@@ -1,0 +1,23 @@
+// Remove scroll on main page when modal is open
+body.modal-open {
+    overflow: hidden;
+}
+
+body.modal-open[style] {
+    padding-right: 0px !important;
+}
+
+.modal::-webkit-scrollbar {
+    width: 0 !important;
+}
+
+.modal-heading {
+    padding: 15px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    position: relative;
+    width: 100%;
+    justify-content: space-between;
+}
