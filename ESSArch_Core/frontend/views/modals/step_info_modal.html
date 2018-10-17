@@ -1,4 +1,4 @@
-<div class="enter-profile-name step-info-modal-head">
+<div class="modal-heading step-info-modal-head">
     <h3 class="modal-title" id="modal-title">{{('STEPREPORTFOR' | translate)+ ' ' +currentStepTask.name}}</h3>
     <div class="refresh-icon">
         <span ng-click="getStep(currentStepTask)" class="clickable angular-animate fas fa-sync-alt fa-lg" ng-class="{'fa-sync-alt-animate': stepTaskLoading }" uib-popover="{{'REFRESH' | translate}}"  popover-placement="left" popover-popup-delay="500" popover-append-to-body="true"></span>
@@ -32,14 +32,14 @@
     </div>
 </div>
 <div class="modal-footer">
-        <div class="float-left">
-                <button class="btn btn-danger" ng-click="myTreeControl.scope.taskStepUndo(currentStepTask)"
-                ng-if="checkPermission('WorkflowEngine.can_undo') && (currentStepTask.status == 'SUCCESS' || currentStepTask.status == 'FAILURE') && !currentStepTask.undone && !currentStepTask.undo_type"
-                >{{'UNDO' | translate}}</button>
+    <div class="float-left">
+        <button class="btn btn-danger" ng-click="myTreeControl.scope.taskStepUndo(currentStepTask)"
+            ng-if="checkPermission('WorkflowEngine.can_undo') && (currentStepTask.status == 'SUCCESS' || currentStepTask.status == 'FAILURE') && !currentStepTask.undone && !currentStepTask.undo_type"
+            >{{'UNDO' | translate}}</button>
 
-                <button class="btn btn-success" ng-click="myTreeControl.scope.taskStepRedo(currentStepTask)"
-                ng-if="checkPermission('WorkflowEngine.can_retry') && currentStepTask.flow_type == 'task' && currentStepTask.status == 'FAILURE'"
-                >{{'REDO' | translate}}</button>
-            </div>
+        <button class="btn btn-success" ng-click="myTreeControl.scope.taskStepRedo(currentStepTask)"
+            ng-if="checkPermission('WorkflowEngine.can_retry') && currentStepTask.flow_type == 'task' && currentStepTask.status == 'FAILURE'"
+            >{{'REDO' | translate}}</button>
+    </div>
     <button class="btn btn-warning" type="button" ng-click="$ctrl.cancel()" focused="true">{{'CLOSE' | translate}}</button>
 </div>
