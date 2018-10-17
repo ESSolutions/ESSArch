@@ -28,6 +28,11 @@ from django.db import connection
 from django.conf import settings
 from django.utils import timezone
 
+try:
+    from pip._internal.operations.freeze import freeze as pip_freeze
+except ImportError:  # pip < 10.0
+    from pip.operations.freeze import freeze as pip_freeze
+
 from sqlite3 import sqlite_version
 
 from ESSArch_Core.configuration.models import (
@@ -88,7 +93,6 @@ class SysInfoView(APIView):
         # Shell commands: Name and command
         SHELL_COMMANDS = [
             ('hostname', 'hostname'),
-            ('python_packages', 'pip freeze'),
         ]
 
         # Flags in settings: Their expected  and actual values.
@@ -105,7 +109,7 @@ class SysInfoView(APIView):
         for name, cmd in SHELL_COMMANDS:
             context[name] = run_shell_command(cmd, cwd)
 
-        context['python_packages'] = context['python_packages'].split('\n')
+        context['python_packages'] = pip_freeze()
 
         context['settings_flags'] = []
         for name, expected in SETTINGS_FLAGS:
