@@ -1,14 +1,7 @@
-// Remove scroll on main page when modal is open
 body.modal-open {
-    overflow: hidden;
-}
-
-body.modal-open[style] {
-    padding-right: 0px !important;
-}
-
-.modal::-webkit-scrollbar {
-    width: 0 !important;
+    overflow: hidden; // Remove scroll on main page when modal is open
+    padding-right: 0 !important; // Prevents bootstrap from setting margin-right
+    -ms-overflow-style: none; // Remove scroll on main page when modal is open in IE
 }
 
 .modal-heading {
