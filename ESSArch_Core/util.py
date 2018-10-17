@@ -33,13 +33,13 @@ import os
 import platform
 import re
 import shutil
+import sys
 import tarfile
 import zipfile
 
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 from django.core.cache import cache
-from django.utils.encoding import smart_text
 from django.utils.timezone import get_current_timezone
 from django.core.validators import RegexValidator
 from django.http.response import FileResponse
@@ -53,8 +53,6 @@ from scandir import scandir, walk
 from subprocess import Popen, PIPE
 
 from ESSArch_Core.fixity.format import FormatIdentifier
-
-import requests
 
 import six
 
@@ -530,11 +528,23 @@ def validate_remote_url(url):
 
 def generate_file_response(file_obj, content_type, force_download=False, name=None):
     response = FileResponse(file_obj, content_type=content_type)
-    response['Content-Disposition'] = 'inline; filename=%s' % os.path.basename(name or file_obj.name)
+
+    filename = getattr(file_obj, 'name', None)
+    filename = filename if (isinstance(filename, str) and filename) else name
+    filename = os.path.basename(filename)
+
+    if filename:
+        try:
+            filename.encode('ascii')
+            file_expr = u'filename="{}"'.format(filename)
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            file_expr = u"filename*=utf-8''{}".format(six.moves.urllib.parse.quote(filename))
+
+    response['Content-Disposition'] = u'inline; {}'.format(file_expr)
     if force_download or content_type is None:
         if content_type is None:
             response['Content-Type'] = 'application/octet-stream'
-        response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(file_obj.name)
+        response['Content-Disposition'] = u'attachment; {}'.format(file_expr)
 
     # disable caching, required for Firefox to be able to load large files multiple times
     # see https://bugzilla.mozilla.org/show_bug.cgi?id=1436593
@@ -553,7 +563,6 @@ def list_files(path, force_download=False, request=None, paginator=None):
 
     fid = FormatIdentifier(allow_unknown_file_types=True)
     path = path.rstrip('/ ')
-    path = smart_text(path).encode('utf-8')
 
     if os.path.isfile(path):
         if tarfile.is_tarfile(path):
@@ -617,10 +626,12 @@ def list_files(path, force_download=False, request=None, paginator=None):
     if len(path.split('.tar/')) == 2:
         tar_path, tar_subpath = path.split('.tar/')
         tar_path += '.tar'
+        if sys.version_info <= (3, 0):
+            tar_subpath = six.binary_type(tar_subpath.encode('utf-8'))
 
         with tarfile.open(tar_path) as tar:
             try:
-                f = six.moves.StringIO(tar.extractfile(tar_subpath).read())
+                f = six.BytesIO(tar.extractfile(tar_subpath).read())
                 content_type = fid.get_mimetype(tar_subpath)
                 return generate_file_response(f, content_type, force_download, name=tar_subpath)
             except KeyError:
@@ -629,10 +640,12 @@ def list_files(path, force_download=False, request=None, paginator=None):
     if len(path.split('.zip/')) == 2:
         zip_path, zip_subpath = path.split('.zip/')
         zip_path += '.zip'
+        if sys.version_info <= (3, 0):
+            zip_subpath = six.binary_type(zip_subpath.encode('utf-8'))
 
         with zipfile.ZipFile(zip_path) as zipf:
             try:
-                f = six.moves.StringIO(zipf.open(zip_subpath).read())
+                f = six.BytesIO(zipf.extractfile(zip_subpath).read())
                 content_type = fid.get_mimetype(zip_subpath)
                 return generate_file_response(f, content_type, force_download, name=zip_subpath)
             except KeyError:
