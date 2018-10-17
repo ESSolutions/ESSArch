@@ -46,3 +46,11 @@
     white-space: nowrap;
     text-overflow: ellipsis;
 }
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+    * {
+        margin-right: 3px;
+    }
+}
