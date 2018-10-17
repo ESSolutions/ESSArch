@@ -11,6 +11,7 @@ angular.module('essarch.controllers').controller('StateTreeCtrl', function($scop
     vm.validations = [];
 
     vm.$onChanges = function() {
+        $scope.tree_data = [];
         $scope.ip = vm.ip;
         $scope.responsible = $translate.instant('RESPONSIBLE');
         $scope.label = $translate.instant('LABEL');
