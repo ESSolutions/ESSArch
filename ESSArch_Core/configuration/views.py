@@ -23,6 +23,8 @@
 """
 
 from _version import get_versions
+import platform
+import sys
 
 from django.db import connection
 from django.conf import settings
@@ -102,6 +104,8 @@ class SysInfoView(APIView):
             ('TIME_ZONE', None),
         ]
 
+        context['python'] = '.'.join(str(x) for x in sys.version_info[:3])
+        context['platform'] = platform.platform()
         context['version'] = get_versions()['version']
         context['time_checked'] = timezone.now()
         context['database'] = self.get_database_info()
