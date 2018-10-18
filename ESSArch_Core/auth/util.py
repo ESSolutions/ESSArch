@@ -59,10 +59,6 @@ def get_objects_for_user(user, klass, perms):
     if user.is_superuser:
         return qs
 
-    org = user.user_profile.current_organization
-    if org is None:
-        return qs.none()
-
     if isinstance(perms, six.string_types):
         perms = [perms]
 
@@ -83,15 +79,22 @@ def get_objects_for_user(user, klass, perms):
 
     role_ids = set()
 
-    # Because of UUIDs we have to first save the IDs in memory and then query against that list,
-    # see https://stackoverflow.com/questions/50526873/
-    if not len(set(codenames).difference(set(owned_codenames))):
-        generic_objects = GroupGenericObjects.objects.filter(content_type=ctype, group=org)
-        role_ids = set(generic_objects.values_list('object_id', flat=True))
+    org = user.user_profile.current_organization
+    if org is not None:
+        # Because of UUIDs we have to first save the IDs in
+        # memory and then query against that list, see
+        # https://stackoverflow.com/questions/50526873/
+        if not len(set(codenames).difference(set(owned_codenames))):
+            generic_objects = GroupGenericObjects.objects.filter(content_type=ctype, group=org)
+            role_ids = set(generic_objects.values_list('object_id', flat=True))
 
     groups = get_user_groups(user)
-    group_ids = set(GroupObjectPermission.objects.filter(group__essauth_group__in=groups, permission__codename__in=perms).values_list('object_pk', flat=True))
-    user_ids = set(UserObjectPermission.objects.filter(user=user, permission__codename__in=perms).values_list('object_pk', flat=True))
+    group_ids = set(GroupObjectPermission.objects.filter(group__essauth_group__in=groups,
+                                                         permission__codename__in=codenames)
+                                                 .values_list('object_pk', flat=True))
+
+    user_ids = set(UserObjectPermission.objects.filter(user=user, permission__codename__in=codenames)
+                                               .values_list('object_pk', flat=True))
 
     all_ids = role_ids | group_ids | user_ids
     return qs.filter(pk__in=all_ids)
