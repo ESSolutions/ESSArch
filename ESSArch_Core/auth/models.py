@@ -182,7 +182,7 @@ class Group(GroupMixin):
         return self.sub_essauth_group_set
 
     def add_object(self, obj):
-        if getattr(self.group_type, 'codename') != 'organization':
+        if getattr(self, 'group_type') is None or getattr(self.group_type, 'codename') != 'organization':
             raise ValueError('objects cannot be added to non-organization groups')
         return GroupGenericObjects.objects.create(group=self, content_object=obj)
 
