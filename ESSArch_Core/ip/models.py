@@ -753,7 +753,7 @@ class InformationPackage(models.Model):
                         f = tar.extractfile(path)
                     except KeyError:
                         f = tar.extractfile(os.path.join(self.object_identifier_value, path))
-                    return six.moves.StringIO(f.read())
+                    return six.BytesIO(f.read())
             except tarfile.ReadError:
                 logger.debug('Invalid tar file, trying zipfile instead')
                 try:
@@ -762,7 +762,7 @@ class InformationPackage(models.Model):
                             f = zipf.open(path)
                         except KeyError:
                             f = zipf.open(os.path.join(self.object_identifier_value, path))
-                        return six.moves.StringIO(f.read())
+                        return six.BytesIO(f.read())
                 except zipfile.BadZipfile:
                     logger.debug('Invalid zip file')
             except KeyError:
