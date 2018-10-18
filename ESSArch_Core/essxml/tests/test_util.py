@@ -421,7 +421,7 @@ class ParseSubmitDescriptionTestCase(TestCase):
         os.remove(self.xmlfile.name)
 
     def test_objid_and_create_date(self):
-        self.xmlfile.write('''
+        self.xmlfile.write(b'''
             <mets OBJID="123">
                 <metsHdr CREATEDATE="456"></metsHdr>
             </mets>
@@ -433,7 +433,7 @@ class ParseSubmitDescriptionTestCase(TestCase):
         self.assertEqual(ip['create_date'], '456')
 
     def test_objid_with_prefix(self):
-        self.xmlfile.write('''
+        self.xmlfile.write(b'''
             <mets OBJID="ID:123">
                 <metsHdr CREATEDATE="456"></metsHdr>
             </mets>
@@ -443,7 +443,7 @@ class ParseSubmitDescriptionTestCase(TestCase):
         self.assertEqual(ip['id'], '123')
 
     def test_no_objid(self):
-        self.xmlfile.write('''
+        self.xmlfile.write(b'''
             <mets>
                 <metsHdr CREATEDATE="456"></metsHdr>
             </mets>
@@ -458,7 +458,7 @@ class ParseSubmitDescriptionTestCase(TestCase):
         mock_objectpath.return_value = 'foo'
         mock_os_stat.return_value = mock.Mock(**{'st_size': 24})
 
-        self.xmlfile.write('''
+        self.xmlfile.write(b'''
             <mets OBJID="123">
                 <metsHdr CREATEDATE="456"></metsHdr>
             </mets>
@@ -472,7 +472,7 @@ class ParseSubmitDescriptionTestCase(TestCase):
         self.assertEqual(ip['object_size'], 24)
 
     def test_information_class_in_root(self):
-        self.xmlfile.write('''
+        self.xmlfile.write(b'''
             <mets INFORMATIONCLASS="123">
                 <metsHdr CREATEDATE="456"></metsHdr>
             </mets>
@@ -482,7 +482,7 @@ class ParseSubmitDescriptionTestCase(TestCase):
         self.assertEqual(ip['information_class'], 123)
 
     def test_information_class_in_altrecordid(self):
-        self.xmlfile.write('''
+        self.xmlfile.write(b'''
             <mets>
                 <metsHdr CREATEDATE="456"></metsHdr>
                 <altRecordID TYPE="INFORMATIONCLASS">123</altRecordID>
@@ -493,7 +493,7 @@ class ParseSubmitDescriptionTestCase(TestCase):
         self.assertEqual(ip['information_class'], 123)
 
     def test_information_class_in_root_and_altrecordid(self):
-        self.xmlfile.write('''
+        self.xmlfile.write(b'''
             <mets INFORMATIONCLASS="123">
                 <metsHdr CREATEDATE="456"></metsHdr>
                 <altRecordID TYPE="INFORMATIONCLASS">456</altRecordID>
@@ -504,7 +504,7 @@ class ParseSubmitDescriptionTestCase(TestCase):
         self.assertEqual(ip['information_class'], 123)
 
     def test_information_class_with_letters(self):
-        self.xmlfile.write('''
+        self.xmlfile.write(b'''
             <mets INFORMATIONCLASS="class 123">
                 <metsHdr CREATEDATE="456"></metsHdr>
             </mets>
@@ -514,7 +514,7 @@ class ParseSubmitDescriptionTestCase(TestCase):
         self.assertEqual(ip['information_class'], 123)
 
     def test_information_class_with_multiple_numbers(self):
-        self.xmlfile.write('''
+        self.xmlfile.write(b'''
             <mets INFORMATIONCLASS="123 456">
                 <metsHdr CREATEDATE="456"></metsHdr>
             </mets>
