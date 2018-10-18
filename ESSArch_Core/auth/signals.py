@@ -104,7 +104,7 @@ def notification_post_save(sender, instance, created, **kwargs):
 
 
 @receiver(m2m_changed, sender=User.groups.through)
-def set_default_organization(sender, instance, action, reverse, *args, **kwargs):
+def set_current_organization(sender, instance, action, reverse, *args, **kwargs):
 
     def set_organization(user):
         groups = get_organization_groups(user)
