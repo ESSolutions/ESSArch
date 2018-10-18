@@ -107,12 +107,9 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ProcessTaskDetailSerializer(ProcessTaskSerializer):
-    args = serializers.SerializerMethodField()
+    args = serializers.JSONField()
     params = serializers.SerializerMethodField()
     result = serializers.SerializerMethodField()
-
-    def get_args(self, obj):
-        return obj.args
 
     def get_params(self, obj):
         params = obj.params
@@ -122,7 +119,7 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
             except ProcessTask.DoesNotExist:
                 params[param] = 'waiting on result from %s ...' % task
 
-        return dict((k.encode('utf-8'), v) for k, v in six.iteritems(params))
+        return params
 
     def get_result(self, obj):
         return str(obj.result)
