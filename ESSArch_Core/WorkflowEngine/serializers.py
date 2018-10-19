@@ -107,7 +107,7 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ProcessTaskDetailSerializer(ProcessTaskSerializer):
-    args = serializers.JSONField()
+    args = serializers.JSONField(required=False)
     params = serializers.SerializerMethodField()
     result = serializers.SerializerMethodField()
 
