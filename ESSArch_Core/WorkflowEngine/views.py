@@ -33,6 +33,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import exceptions
 from rest_framework.decorators import detail_route
 from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -111,6 +112,7 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     queryset = ProcessTask.objects.select_related('responsible').all()
     serializer_class = ProcessTaskSerializer
+    permission_classes = (DjangoModelPermissions,)
     filter_backends = (DjangoFilterBackend,)
     filter_class = ProcessTaskFilter
 
