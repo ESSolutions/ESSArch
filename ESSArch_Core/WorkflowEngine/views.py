@@ -28,11 +28,13 @@ import pytz
 
 from celery import states as celery_states
 from django.db import transaction
+from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import exceptions
 from rest_framework.decorators import detail_route
 from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -47,6 +49,7 @@ from ESSArch_Core.WorkflowEngine.serializers import (
     ProcessTaskSerializer,
     ProcessTaskDetailSerializer,
 )
+from ESSArch_Core.ip.models import InformationPackage
 
 from rest_framework import viewsets
 
@@ -109,10 +112,17 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint that allows tasks to be viewed or edited.
     """
-    queryset = ProcessTask.objects.select_related('responsible').all()
+    queryset = ProcessTask.objects.none()
     serializer_class = ProcessTaskSerializer
+    permission_classes = (DjangoModelPermissions,)
     filter_backends = (DjangoFilterBackend,)
     filter_class = ProcessTaskFilter
+
+    def get_queryset(self):
+        user = self.request.user
+        ips = InformationPackage.objects.visible_to_user(user)
+        queryset = ProcessTask.objects.select_related('responsible').filter(Q(information_package__in=ips) | Q(information_package__isnull=True)).distinct()
+        return queryset
 
     def get_serializer_class(self):
         if self.action == 'list':

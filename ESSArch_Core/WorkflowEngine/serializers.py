@@ -87,6 +87,7 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
 
 
 class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
+    args = serializers.JSONField(required=False)
     responsible = serializers.SlugRelatedField(
         slug_field='username', read_only=True
     )
@@ -97,7 +98,7 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
             'url', 'id', 'name', 'label', 'status', 'progress',
             'processstep', 'processstep_pos', 'time_created', 'time_started',
             'time_done', 'undone', 'undo_type', 'retried',
-            'responsible', 'hidden',
+            'responsible', 'hidden', 'args',
         )
 
         read_only_fields = (
@@ -107,7 +108,7 @@ class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ProcessTaskDetailSerializer(ProcessTaskSerializer):
-    args = serializers.JSONField()
+    args = serializers.JSONField(required=False)
     params = serializers.SerializerMethodField()
     result = serializers.SerializerMethodField()
 
