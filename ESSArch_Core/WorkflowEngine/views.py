@@ -49,6 +49,7 @@ from ESSArch_Core.WorkflowEngine.serializers import (
     ProcessTaskSerializer,
     ProcessTaskDetailSerializer,
 )
+from ESSArch_Core.ip.models import InformationPackage
 
 from rest_framework import viewsets
 
