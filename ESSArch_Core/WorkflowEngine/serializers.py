@@ -26,6 +26,7 @@ import six
 from celery import states as celery_states
 from rest_framework import serializers
 
+from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import get_result
 
@@ -144,6 +145,13 @@ class ProcessTaskSetSerializer(ProcessTaskSerializer):
 
 
 class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
+    user = serializers.CharField(read_only=True, default=CurrentUsernameDefault())
+
+    def create(self, validated_data):
+        if 'user' not in validated_data:
+            validated_data['user'] = self.context['request'].user
+        return super(ProcessStepSerializer, self).create(validated_data)
+
     class Meta:
         model = ProcessStep
         fields = (
