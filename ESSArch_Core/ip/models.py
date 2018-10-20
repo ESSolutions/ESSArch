@@ -626,7 +626,7 @@ class InformationPackage(models.Model):
 
         return 0
 
-    def list_files(self, path):
+    def list_files(self, path=''):
         fullpath = os.path.join(self.object_path, path).rstrip('/')
         if os.path.basename(self.object_path) == path and os.path.isfile(self.object_path):
             if tarfile.is_tarfile(self.object_path):
