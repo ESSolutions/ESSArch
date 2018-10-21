@@ -278,15 +278,3 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             pip.save()
 
         return Response()
-
-    @detail_route(methods=['put'], url_path='change-profile')
-    def change_profile(self, request, pk=None):
-        ip = self.get_object()
-        new_profile = get_object_or_404(Profile, pk=request.data.get("new_profile"))
-
-        try:
-            ip.change_profile(new_profile)
-        except ValueError as e:
-            raise exceptions.ParseError(e.message)
-
-        return Response({'detail': 'Updating IP (%s) with new profile (%s)' % (ip.pk, new_profile)})
