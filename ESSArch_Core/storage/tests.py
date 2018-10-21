@@ -76,7 +76,7 @@ class CopyChunkTestCase(TestCase):
         copy_chunk_remotely(self.src, dst, 1, 3, upload_id=upload_id, requests_session=session, block_size=1)
 
         mock_post.assert_called_once_with(
-            dst, files={'the_file': ('src.txt', 'o')},
+            dst, files={'the_file': ('src.txt', b'o')},
             data={'upload_id': upload_id},
             headers={'Content-Range': 'bytes 1-1/3'},
             timeout=60,
@@ -100,7 +100,7 @@ class CopyChunkTestCase(TestCase):
             copy_chunk_remotely(self.src, dst, 1, 3, upload_id=upload_id, requests_session=session, block_size=1)
 
         mock_post.assert_called_once_with(
-            dst, files={'the_file': ('src.txt', 'o')},
+            dst, files={'the_file': ('src.txt', b'o')},
             data={'upload_id': upload_id},
             headers={'Content-Range': 'bytes 1-1/3'},
             timeout=60,
