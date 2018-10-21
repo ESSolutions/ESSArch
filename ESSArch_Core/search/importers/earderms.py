@@ -460,7 +460,7 @@ class EardErmsImporter(BaseImporter):
         if len(errands_root):
             with transaction.atomic():
                 with TagStructure.objects.disable_mptt_updates():
-                    tags, tag_versions, tag_reprs, components = itertools.izip(*self.parse_errands(ctsfile, ip, ip.object_path, archive, errands_root[0]))
+                    tags, tag_versions, tag_reprs, components = six.zip(*self.parse_errands(ctsfile, ip, ip.object_path, archive, errands_root[0]))
 
                     Tag.objects.bulk_create(reversed(tags), batch_size=1000)
                     TagVersion.objects.bulk_create(reversed(tag_versions), batch_size=1000)
