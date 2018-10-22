@@ -153,7 +153,10 @@ def findElementWithoutNamespace(tree, el_name):
 
 
 class XMLElement(object):
-    def __init__(self, template, nsmap={}):
+    def __init__(self, template, nsmap=None):
+        if nsmap is None:
+            nsmap = {}
+
         name = template.get('-name')
         try:
             self.name = name.split("#")[0]
@@ -189,7 +192,10 @@ class XMLElement(object):
     def parse(self, info):
         return parseContent(self.content, info)
 
-    def contentIsEmpty(self, info={}):
+    def contentIsEmpty(self, info=None):
+        if info is None:
+            info = {}
+
         if self.containsFiles:
             return False
 
@@ -207,10 +213,13 @@ class XMLElement(object):
 
         return True
 
-    def isEmpty(self, info={}):
+    def isEmpty(self, info=None):
         """
         Simple helper function to check if the tag sould have any contents
         """
+
+        if info is None:
+            info = {}
 
         if not self.contentIsEmpty(info):
             return False
@@ -222,7 +231,10 @@ class XMLElement(object):
 
         return True
 
-    def get_path(self, path=[]):
+    def get_path(self, path=None):
+        if path is None:
+            path = []
+
         path = '%s[%s]' % (self.name, self.parent_pos)
 
         if self.parent:
@@ -269,7 +281,13 @@ class XMLElement(object):
 
         self.el.append(new.el)
 
-    def createLXMLElement(self, info, nsmap={}, files=[], folderToParse='', parent=None):
+    def createLXMLElement(self, info, nsmap=None, files=None, folderToParse='', parent=None):
+        if nsmap is None:
+            nsmap = {}
+
+        if files is None:
+            files = []
+
         self.parent = parent
         if parent is not None:
             siblings_same_name = len(parent.el.findall(self.name))
@@ -419,7 +437,10 @@ class XMLAttribute(object):
         self.required = template.get('-req', False)
         self.content = template.get('#content')
 
-    def parse(self, info, nsmap={}):
+    def parse(self, info, nsmap=None):
+        if nsmap is None:
+            nsmap = {}
+
         name = self.name
 
         if self.namespace:
@@ -457,7 +478,7 @@ class XMLGenerator(object):
 
         return dirs
 
-    def generate(self, filesToCreate, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, relpath=None, algorithm='SHA-256'):
+    def generate(self, filesToCreate, folderToParse=None, extra_paths_to_parse=None, parsed_files=None, relpath=None, algorithm='SHA-256'):
         self.toCreate = []
         for fname, content in six.iteritems(filesToCreate):
             self.toCreate.append({
@@ -466,6 +487,9 @@ class XMLGenerator(object):
                 'data': content.get('data', {}),
                 'root': XMLElement(content['spec'])
             })
+
+        if extra_paths_to_parse is None:
+            extra_paths_to_parse = []
 
         if parsed_files is None:
             parsed_files = []

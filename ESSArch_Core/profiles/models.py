@@ -22,28 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-"""
-    ESSArch Tools - ESSArch is an Electronic Preservation Platform
-    Copyright (C) 2005-2016  ES Solutions AB
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-    Contact information:
-    Web - http://www.essolutions.se
-    Email - essarch@essolutions.se
-"""
-
 import uuid
 from copy import copy
 
@@ -138,7 +116,6 @@ class ProfileIP(models.Model):
         data = getattr(self.data, 'data', {})
         data = fill_specification_data(data.copy(), ip=self.ip, sa=self.ip.submission_agreement)
         validate_template(self.profile.template, data)
-        self.profile.clean(data=data)
 
     def lock(self, user):
         self.LockedBy = user
@@ -382,10 +359,6 @@ class Profile(models.Model):
     specification = jsonfield.JSONField(default={})
     specification_data = jsonfield.JSONField(default={})
 
-    def clean(self, data={}):
-        validate_template(self.template, data)
-
-
     def get_value_for_key(self, key):
         return self.specification_data.get(key)
 
@@ -400,7 +373,7 @@ class Profile(models.Model):
         # create a unicode representation of this object
         return '%s (%s) - %s' % (self.name, self.profile_type, self.id)
 
-    def copy(self, specification_data, new_name, structure={}):
+    def copy(self, specification_data, new_name, structure=None):
         """
         Copies the profile and updates the name and specification_data of the
         copy.
@@ -412,6 +385,9 @@ class Profile(models.Model):
         Returns:
             The new profile
         """
+
+        if structure is None:
+            structure = {}
 
         copy = Profile.objects.get(pk=self.pk)
         copy.id = None

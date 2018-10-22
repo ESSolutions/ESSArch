@@ -114,7 +114,10 @@ class GenerateXML(DBTask):
             filesToCreate, folderToParse=folderToParse, extra_paths_to_parse=extra_paths_to_parse, parsed_files=parsed_files, algorithm=algorithm,
         )
 
-    def undo(self, filesToCreate={}, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
+    def undo(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None, parsed_files=None, algorithm='SHA-256'):
+        if filesToCreate is None:
+            filesToCreate = {}
+
         for f, template in six.iteritems(filesToCreate):
             try:
                 os.remove(f)
@@ -122,7 +125,10 @@ class GenerateXML(DBTask):
                 if e.errno != errno.ENOENT:
                     raise
 
-    def event_outcome_success(self, filesToCreate={}, folderToParse=None, extra_paths_to_parse=[], parsed_files=None, algorithm='SHA-256'):
+    def event_outcome_success(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None, parsed_files=None, algorithm='SHA-256'):
+        if filesToCreate is None:
+            filesToCreate = {}
+
         return "Generated %s" % ", ".join(filesToCreate.keys())
 
 
@@ -131,13 +137,22 @@ class InsertXML(DBTask):
     Inserts XML to the specifed file
     """
 
-    def run(self, filename=None, elementToAppendTo=None, spec={}, info={}, index=None):
+    def run(self, filename=None, elementToAppendTo=None, spec=None, info=None, index=None):
+        if spec is None:
+            spec = {}
+
+        if info is None:
+            info = {}
+
         generator = XMLGenerator(filepath=filename)
         target = generator.find_element(elementToAppendTo)
         generator.insert_from_specification(target, spec, data=info, index=index)
         generator.write(filename)
 
-    def undo(self, filename=None, elementToAppendTo=None, spec={}, info={}, index=None):
+    def undo(self, filename=None, elementToAppendTo=None, spec=None, info=None, index=None):
+        if spec is None:
+            spec = {}
+
         tree = etree.parse(filename)
         parent = findElementWithoutNamespace(tree, elementToAppendTo)
 
@@ -150,7 +165,7 @@ class InsertXML(DBTask):
 
         tree.write(filename, pretty_print=True, xml_declaration=True, encoding='UTF-8')
 
-    def event_outcome_success(self, filename=None, elementToAppendTo=None, spec={}, info={}, index=None):
+    def event_outcome_success(self, filename=None, elementToAppendTo=None, spec=None, info=None, index=None):
         return "Inserted XML to element %s in %s" % (elementToAppendTo, filename)
 
 
@@ -647,12 +662,6 @@ class SendEmail(DBTask):
             email.attach_file(a)
 
         email.send()
-
-    def undo(self, sender=None, recipients=[], subject=None, body=None, attachments=[]):
-        pass
-
-    def event_outcome_success(self, sender=None, recipients=[], subject=None, body=None, attachments=[]):
-        pass
 
 
 class DownloadFile(DBTask):
