@@ -70,8 +70,11 @@ class GenerateXMLTestCase(TestCase):
         os.makedirs(os.path.join(self.datadir, "record1"))
         os.makedirs(os.path.join(self.datadir, "record2"))
 
-        open(os.path.join(self.datadir, "record1/file1.txt"), "a").close()
-        open(os.path.join(self.datadir, "record2/file2.txt"), "a").close()
+        with open(os.path.join(self.datadir, "record1/file1.txt"), 'w') as f:
+            f.write('foo')
+
+        with open(os.path.join(self.datadir, "record2/file2.txt"), 'w') as f:
+            f.write('bar')
 
     def tearDown(self):
         try:
