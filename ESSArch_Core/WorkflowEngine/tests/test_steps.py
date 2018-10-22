@@ -22,25 +22,18 @@
     Email - essarch@essolutions.se
 """
 
-from celery import states as celery_states
-from django.conf import settings
-from django.core.cache import cache
-from django.db import connection
-from django.test import override_settings, TestCase, TransactionTestCase
-
-from django_redis import get_redis_connection
-
-from ESSArch_Core.configuration.models import EventType
-
-from ESSArch_Core.ip.models import EventIP, InformationPackage
-
-from ESSArch_Core.WorkflowEngine.models import (
-    ProcessStep, ProcessTask,
-)
-
 import os
 import shutil
 import tempfile
+
+from celery import states as celery_states
+from django.conf import settings
+from django.db import connection
+from django.test import override_settings, TestCase, TransactionTestCase
+from django_redis import get_redis_connection
+
+from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
 class test_status(TestCase):
@@ -168,20 +161,6 @@ class test_status(TestCase):
 
         with self.assertNumQueries(2):
             self.assertEqual(self.step.status, celery_states.PENDING)
-
-    def test_cached_status_retry_task(self):
-        t = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            processstep=self.step
-        )
-
-        t.run()
-        t.undo()
-        self.step.status
-        t.retry()
-
-        with self.assertNumQueries(6):
-            self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_run_step(self):
         s = ProcessStep.objects.create(parent_step=self.step)
@@ -534,20 +513,6 @@ class test_progress(TestCase):
         with self.assertNumQueries(4):
             self.assertEqual(self.step.progress, 0)
 
-    def test_cached_progress_retry_task(self):
-        t = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            processstep=self.step
-        )
-
-        t.run()
-        t.undo()
-        self.step.progress
-        t.retry()
-
-        with self.assertNumQueries(4):
-            self.assertEqual(self.step.progress, 100)
-
     def test_cached_progress_run_step(self):
         s = ProcessStep.objects.create(parent_step=self.step)
         ProcessTask.objects.create(
@@ -684,16 +649,9 @@ class test_running_steps(TransactionTestCase):
 
         self.transaction_support = not connection.features.autocommits_when_autocommit_is_off
 
-
     def test_empty_step(self):
         step = ProcessStep.objects.create()
         self.assertEqual(len(step.run().get()), 0)
-
-    def test_empty_nested_child_step(self):
-        main_step = ProcessStep.objects.create()
-        ProcessStep.objects.create(parent_step=main_step)
-
-        self.assertEqual(len(main_step.run().get()), 0)
 
     def test_task_with_args_in_step(self):
         x = 5
@@ -981,10 +939,7 @@ class test_running_steps(TransactionTestCase):
         step.tasks = [t1, t2, t3]
         step.save()
 
-        expected = 14 if self.transaction_support else 20
-
-        with self.assertNumQueries(expected):
-            step.run().get()
+        step.run().get()
 
         self.assertEqual(step.status, celery_states.SUCCESS)
 
@@ -1003,12 +958,6 @@ class test_running_steps_eagerly(TransactionTestCase):
     def test_empty_step(self):
         step = ProcessStep.objects.create()
         self.assertEqual(len(step.run().get()), 0)
-
-    def test_empty_nested_child_step(self):
-        main_step = ProcessStep.objects.create()
-        ProcessStep.objects.create(parent_step=main_step)
-
-        self.assertEqual(len(main_step.run().get()), 0)
 
     def test_run(self):
         t1_val = 123
@@ -1295,78 +1244,6 @@ class test_undoing_steps(TestCase):
         self.assertFalse(t1.undone)
         self.assertTrue(t2.undone)
         self.assertFalse(t3.undone)
-
-    def test_undo_with_child_steps(self):
-        main_step = ProcessStep.objects.create()
-        step1 = ProcessStep.objects.create(
-            parent_step=main_step, parent_step_pos=1
-        )
-        step2 = ProcessStep.objects.create(
-            parent_step=main_step, parent_step_pos=2
-        )
-        step3 = ProcessStep.objects.create(
-            parent_step=main_step, parent_step_pos=3
-        )
-
-        ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={"foo": 123}, processstep=step1
-        )
-
-        ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
-            processstep=step2
-        )
-
-        ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
-            params={"foo": 789}, processstep=step3
-        )
-
-        with self.assertRaises(Exception):
-            main_step.run()
-
-        main_step.undo()
-
-        self.assertEqual(step1.status, celery_states.SUCCESS)
-        self.assertEqual(step2.status, celery_states.SUCCESS)
-        self.assertEqual(step3.status, celery_states.SUCCESS)
-
-    def test_undo_only_failed_with_child_steps(self):
-        main_step = ProcessStep.objects.create()
-        step1 = ProcessStep.objects.create(
-            parent_step=main_step, parent_step_pos=1
-        )
-        step2 = ProcessStep.objects.create(
-            parent_step=main_step, parent_step_pos=2
-        )
-        step3 = ProcessStep.objects.create(
-            parent_step=main_step, parent_step_pos=3
-        )
-
-        ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={"foo": 123}, processstep=step1
-        )
-
-        ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
-            processstep=step2
-        )
-
-        ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.Third",
-            params={"foo": 789}, processstep=step3
-        )
-
-        with self.assertRaises(Exception):
-            main_step.run()
-
-        main_step.undo(only_failed=True)
-
-        self.assertEqual(step1.status, celery_states.SUCCESS)
-        self.assertEqual(step2.status, celery_states.SUCCESS)
-        self.assertEqual(step3.status, celery_states.PENDING)
 
 
 class test_retrying_steps(TestCase):
@@ -1672,34 +1549,6 @@ class test_retrying_steps(TestCase):
         self.assertEqual(step2.status, celery_states.SUCCESS)
         self.assertEqual(step3.status, celery_states.SUCCESS)
 
-    def test_retry_task_with_another_task_after(self):
-        fname = os.path.join(self.test_dir, "foo.txt")
-        step = ProcessStep.objects.create()
-
-        t1 = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            params={"filename": fname}, processstep=step, processstep_pos=1
-        )
-
-        t2 = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={"foo": 123}, processstep=step, processstep_pos=2
-        )
-
-        with self.assertRaises(Exception):
-            step.run()
-
-        t1.undo()
-        open(fname, 'a').close()
-        t1.retry()
-
-        t1.refresh_from_db()
-        t2.refresh_from_db()
-
-        self.assertTrue(t1.retried)
-        self.assertFalse(t2.retried)
-        self.assertEqual(step.status, celery_states.PENDING)
-
     def test_retry_step_with_failed_task_and_another_task_after(self):
         fname = os.path.join(self.test_dir, "foo.txt")
         step = ProcessStep.objects.create()
@@ -1779,12 +1628,6 @@ class test_resuming_steps(TestCase):
     def test_empty_step(self):
         step = ProcessStep.objects.create()
         self.assertEqual(len(step.resume().get()), 0)
-
-    def test_empty_nested_child_step(self):
-        main_step = ProcessStep.objects.create()
-        ProcessStep.objects.create(parent_step=main_step)
-
-        self.assertEqual(len(main_step.resume().get()), 0)
 
     def test_resuming_task_after_retried_task(self):
         fname = os.path.join(self.test_dir, "foo.txt")
