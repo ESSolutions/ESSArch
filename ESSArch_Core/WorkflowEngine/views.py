@@ -36,6 +36,7 @@ from rest_framework.decorators import detail_route
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
+from rest_framework.permissions import DjangoModelPermissions
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -85,10 +86,18 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows steps to be viewed or edited.
     """
-    queryset = ProcessStep.objects.all()
+    queryset = ProcessStep.objects.none()
     serializer_class = ProcessStepSerializer
+    permission_classes = (DjangoModelPermissions,)
     filter_backends = (DjangoFilterBackend,)
     filter_class = ProcessStepFilter
+
+    def get_queryset(self):
+        user = self.request.user
+        ips = InformationPackage.objects.visible_to_user(user)
+        queryset = ProcessStep.objects.filter(
+            Q(information_package__in=ips) | Q(information_package__isnull=True)).distinct()
+        return queryset
 
     def get_serializer_class(self):
         if self.action == 'list':
