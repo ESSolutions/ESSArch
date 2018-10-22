@@ -65,7 +65,7 @@ class Add(DBTask):
 
 class Fail(DBTask):
     def run(self):
-        raise Exception
+        raise Exception('An error occurred!')
 
     def undo(self):
         pass

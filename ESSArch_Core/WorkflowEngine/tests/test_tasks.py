@@ -24,114 +24,63 @@
 
 import os
 import shutil
-import traceback
 
+import mock
 from celery import states as celery_states
-
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 
-from ESSArch_Core.configuration.models import (
-    EventType
-)
-
-from ESSArch_Core.ip.models import (
-    EventIP,
-    InformationPackage,
-)
-
-from ESSArch_Core.WorkflowEngine.models import (
-    ProcessTask,
-)
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
+from ESSArch_Core.ip.models import InformationPackage
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
-class test_running_tasks(TestCase):
+class RunTasksNonEagerlyTests(TestCase):
     def setUp(self):
         self.user = User.objects.create(username="user1")
 
-    def test_create_nonexistent_task(self):
-        """
-        Creates a task with a name that doesn't exist.
-        """
-
-        with self.assertRaises(ValidationError):
-            task = ProcessTask.objects.create(
-                name="nonexistent task",
-                responsible=self.user
-            )
-
-            task.full_clean()
-
-    def test_create_existing_task(self):
-        """
-        Creates a task with a name that does exist.
-        """
-
-        task = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            responsible=self.user
-        )
-
-        task.full_clean()
-
-    def test_run_with_args(self):
-        x = 5
-        y = 10
-
-        res = ProcessTask.objects.create(
+    @mock.patch('ESSArch_Core.tasks.DBTask.apply_async')
+    def test_run_with_args(self, apply_async):
+        t = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
-            args=[x, y],
-            information_package=InformationPackage.objects.create()
-        ).run().get()
+            args=[5, 10],
+            eager=False,
+        )
+        t.run()
 
-        self.assertEqual(res, x+y)
+        expected_options = {'responsible': None, 'ip': None, 'step': None, 'step_pos': 0, 'hidden': False}
+        apply_async.assert_called_once_with(args=[5, 10], kwargs={'_options': expected_options}, link_error=None,
+                                            queue='celery', task_id=str(t.pk))
 
-    def test_run_with_too_many_args(self):
-        x = 5
-        y = 10
+    @mock.patch('ESSArch_Core.tasks.DBTask.apply_async')
+    def test_run_with_params(self, apply_async):
+        t = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
+            params={'foo': 'bar'},
+            eager=False,
+        )
+        t.run()
 
-        with self.assertRaisesRegexp(TypeError, 'takes exactly 3 arguments'):
-            ProcessTask.objects.create(
-                name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
-                args=[x, y, 15],
-                information_package=InformationPackage.objects.create()
-            ).run()
+        expected_options = {'responsible': None, 'ip': None, 'step': None, 'step_pos': 0, 'hidden': False}
+        apply_async.assert_called_once_with(args=[], kwargs={'foo': 'bar', '_options': expected_options},
+                                            link_error=None, queue='celery', task_id=str(t.pk))
 
-    def test_run_with_wrong_params(self):
-        """
-        Runs a task with nonexistent parameters.
-        """
+    @mock.patch('ESSArch_Core.tasks.DBTask.apply_async')
+    def test_run_with_step(self, apply_async):
+        step = ProcessStep.objects.create()
+        t = ProcessTask.objects.create(
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
+            processstep=step,
+            processstep_pos=2,
+            eager=False,
+        )
+        t.run()
 
-        with self.assertRaises(TypeError):
-            task = ProcessTask.objects.create(
-                name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-                params={
-                    "bar": 123
-                },
-                information_package=InformationPackage.objects.create()
-            )
+        expected_options = {'responsible': None, 'ip': None, 'step': step.pk, 'step_pos': 2, 'hidden': False}
+        apply_async.assert_called_once_with(args=[], kwargs={'_options': expected_options},
+                                            link_error=None, queue='celery', task_id=str(t.pk))
 
-            task.run()
 
-    def test_run_with_too_many_params(self):
-        """
-        Runs a task with too many parameters.
-        """
-
-        with self.assertRaises(TypeError):
-            task = ProcessTask.objects.create(
-                name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-                params={
-                    "foo": 123,
-                    "bar": 456
-                },
-                information_package=InformationPackage.objects.create()
-            )
-
-            task.run()
-
+class OnSuccessTests(TestCase):
     def test_on_success(self):
         """
         Runs a correct task and checks if the result is saved and that the
@@ -142,108 +91,53 @@ class test_running_tasks(TestCase):
 
         task = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={
-                "foo": foo
-            },
-            information_package=InformationPackage.objects.create()
+            params={"foo": foo},
+            eager=True,
         )
 
-        with self.assertNumQueries(3):
-            task.run()
+        task.run()
 
         task.refresh_from_db()
         self.assertFalse(task.traceback)
         self.assertEqual(foo, task.result)
 
-    def test_on_success_with_event(self):
-        EventType.objects.create(eventType=1)
 
-        bar = 321
-        foo = 123
-
-        task = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
-            args=[bar],
-            params={
-                "foo": foo
-            },
-            information_package=InformationPackage.objects.create()
-        )
-
-        with self.assertNumQueries(6):
-            task.run()
-
-        task.refresh_from_db()
-        self.assertFalse(task.traceback)
-        self.assertEqual(foo, task.result)
-
-        e = EventIP.objects.get(eventApplication=task.pk)
-        self.assertEqual(e.eventOutcome, 0)
-        self.assertEqual(e.eventOutcomeDetailNote, "Task completed successfully with bar=%s and foo=%s" % (bar, foo))
-        self.assertEqual(e.eventApplication, task)
-
+class OnFailureTests(TestCase):
     def test_on_failure(self):
         """
-        Runs an incorrect task and checks if the result is empty and that the
+        Runs a failing task and checks if the result is empty and that the
         traceback is nonempty.
         """
 
-        foo = 123
         task = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
-            params={
-                "bar": foo
-            },
-            information_package=InformationPackage.objects.create()
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
+            eager=True,
         )
 
-        with self.assertNumQueries(3):
-            with self.assertRaises(TypeError):
-                task.run()
+        with self.assertRaises(Exception):
+            task.run().get()
 
         task.refresh_from_db()
-
         self.assertIsNone(task.result)
         self.assertIsNotNone(task.traceback)
-        self.assertEqual(u"TypeError: run() got an unexpected keyword argument 'bar'", task.exception)
+        self.assertEqual(u"Exception: An error occurred!", task.exception)
 
     def test_on_failure_does_not_exist(self):
         """
-        Runs a task that fails becuase an object does not exist
+        Runs a task that fails because an object does not exist
         """
 
-        task = ProcessTask.objects.create(name="ESSArch_Core.WorkflowEngine.tests.tasks.FailDoesNotExist")
-
-        with self.assertRaises(InformationPackage.DoesNotExist):
-            task.run()
-
-    def test_on_failure_with_event(self):
-        EventType.objects.create(eventType=1)
-
-        foo = 123
         task = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.WithEvent",
-            args=['bar'],
-            params={
-                "invalid": foo
-            },
-            information_package=InformationPackage.objects.create()
+            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailDoesNotExist",
+            eager=True,
         )
 
-        with self.assertNumQueries(6):
-            with self.assertRaises(TypeError):
-                task.run()
+        with self.assertRaises(InformationPackage.DoesNotExist):
+            task.run().get()
 
         task.refresh_from_db()
-
         self.assertIsNone(task.result)
         self.assertIsNotNone(task.traceback)
-        self.assertEqual(u"TypeError: run() got an unexpected keyword argument 'invalid'", task.exception)
-
-        e = EventIP.objects.get(eventApplication=task.pk)
-        self.assertEqual(e.eventOutcome, 1)
-        self.assertEqual(e.eventOutcomeDetailNote, task.traceback)
-        self.assertEqual(e.eventApplication, task)
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
@@ -278,7 +172,7 @@ class test_undoing_tasks(TestCase):
         task = ProcessTask.objects.create(name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail")
 
         with self.assertRaises(Exception):
-            task.run()
+            task.run().get()
 
         task.refresh_from_db()
         self.assertEqual(task.status, celery_states.FAILURE)
@@ -329,92 +223,6 @@ class test_retrying_tasks(TestCase):
     def tearDown(self):
         shutil.rmtree(self.datadir)
 
-    def test_retry_successful_task(self):
-        x = 2
-        y = 1
-
-        task = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
-            params={'x': x, 'y': y}
-        )
-
-        task.run()
-        task.undo()
-
-        with self.assertNumQueries(5):
-            task.retry()
-
-        task.refresh_from_db()
-
-        self.assertFalse(task.undo_type)
-        self.assertEqual(task.status, celery_states.SUCCESS)
-
-        undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Add", undo_type=True)
-        self.assertEqual(task.undone, undo_task)
-        self.assertTrue(undo_task.undo_type)
-
-        retry_task = ProcessTask.objects.get(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
-            undo_type=False, undone__isnull=True
-        )
-        self.assertIsNotNone(retry_task)
-        self.assertEqual(task.retried, retry_task)
-        self.assertIsNone(retry_task.undone)
-        self.assertFalse(retry_task.undo_type)
-        self.assertIsNone(retry_task.retried)
-        self.assertEqual(retry_task.status, celery_states.SUCCESS)
-
-    def test_retry_failed_task(self):
-        task = ProcessTask.objects.create(name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail")
-
-        with self.assertRaises(Exception):
-            task.run()
-
-        task.undo()
-
-        with self.assertRaises(Exception):
-            task.retry()
-
-        retry_task = ProcessTask.objects.get(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail",
-            undo_type=False, undone__isnull=True
-        )
-        self.assertIsNotNone(retry_task)
-        self.assertEqual(task.retried, retry_task)
-        self.assertIsNone(retry_task.undone)
-        self.assertFalse(retry_task.undo_type)
-        self.assertIsNone(retry_task.retried)
-        self.assertEqual(retry_task.status, celery_states.FAILURE)
-
-    def test_retry_failed_fixed_task(self):
-        fname = os.path.join(self.datadir, 'foo.txt')
-
-        task = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            params={"filename": fname}
-        )
-
-        with self.assertRaises(AssertionError):
-            task.run().get()
-
-        task.undo()
-
-        open(fname, 'a').close()
-
-        task.retry()
-        task.refresh_from_db()
-
-        retry_task = ProcessTask.objects.get(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.FailIfFileNotExists",
-            undo_type=False, undone__isnull=True
-        )
-        self.assertIsNotNone(retry_task)
-        self.assertEqual(task.retried, retry_task)
-        self.assertIsNone(retry_task.undone)
-        self.assertFalse(retry_task.undo_type)
-        self.assertIsNone(retry_task.retried)
-        self.assertEqual(retry_task.status, celery_states.SUCCESS)
-        self.assertEqual(task.status, celery_states.FAILURE)
 
     def test_retry_with_args(self):
         x = 2
