@@ -137,8 +137,8 @@ class StructureValidator(BaseValidator):
                     self.validate_folder(os.path.join(filepath, node['name']), node)
 
             passed = True
-        except Exception as e:
-            logger.warning("Structure validation of %s failed, %s" % (filepath, e.message))
+        except Exception:
+            logger.exception(u"Structure validation of {} failed".format(filepath))
             val_obj.message = traceback.format_exc()
             raise
         else:
