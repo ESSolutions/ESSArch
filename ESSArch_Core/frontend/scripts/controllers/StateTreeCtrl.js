@@ -379,7 +379,7 @@ angular.module('essarch.controllers').controller('StateTreeCtrl', function($scop
             animation: true,
             ariaLabelledBy: 'modal-title',
             ariaDescribedBy: 'modal-body',
-            templateUrl: 'static/frontend/views/task_traceback_modal.html',
+            templateUrl: 'modals/task_traceback_modal.html',
             scope: $scope,
             size: 'lg',
             controller: 'ModalInstanceCtrl',
