@@ -5,8 +5,11 @@ from rest_framework import exceptions
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
+from ESSArch_Core.profiles.models import Profile
 from ESSArch_Core.profiles.serializers import (
     ProfileSerializer,
+    ProfileDetailSerializer,
+    ProfileWriteSerializer,
     ProfileIPSerializerWithData,
     ProfileIPSerializerWithProfileAndData,
     ProfileIPDataSerializer,
@@ -34,6 +37,31 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
         sa = self.get_object()
         profiles = [p for p in sa.get_profiles() if p is not None]
         return Response(ProfileSerializer([p for p in profiles if p is not None], many=True).data)
+
+
+class ProfileViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows profiles to be viewed or edited.
+    """
+    queryset = Profile.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ProfileSerializer
+
+        if self.action == 'retrieve':
+            return ProfileDetailSerializer
+
+        return ProfileWriteSerializer
+
+    def get_queryset(self):
+        queryset = Profile.objects.all()
+        profile_type = self.request.query_params.get('type', None)
+
+        if profile_type is not None:
+            queryset = queryset.filter(profile_type=profile_type)
+
+        return queryset
 
 
 class ProfileIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
