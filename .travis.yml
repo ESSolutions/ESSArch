@@ -14,6 +14,8 @@ services:
 
 install:
   - pip install -e .
+  - pip uninstall -y jsonfield django-jsonfield
+  - pip install django-jsonfield
 
 before_script:
   - cd ESSArch_Core
