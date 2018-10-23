@@ -574,7 +574,10 @@ class ProcessTask(Process):
         }
 
         on_error_tasks = self.on_error(manager='by_step_pos').all()
-        on_error_group = group(create_sub_task(error_task, ignore_parent_args=False) for error_task in on_error_tasks)
+        if on_error_tasks.exists():
+            on_error_group = group(create_sub_task(error_task, ignore_parent_args=False) for error_task in on_error_tasks)
+        else:
+            on_error_group = None
 
         if self.eager:
             self.params['_options']['result_params'] = self.result_params
