@@ -20,16 +20,16 @@ class CopyChunkTestCase(TestCase):
     def setUp(self):
         self.src = 'src.txt'
         self.dst = 'dst.txt'
-        self.fs.CreateFile(self.src)
+        self.fs.create_file(self.src)
 
         with self.fake_open(self.src, 'w') as f:
             f.write('foo')
 
     def tearDown(self):
-        self.fs.RemoveFile(self.src)
+        self.fs.remove(self.src)
 
         try:
-            self.fs.RemoveFile(self.dst)
+            self.fs.remove(self.dst)
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
@@ -50,7 +50,7 @@ class CopyChunkTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.storage.copy.open', fake_open)
     def test_copy_chunk_locally(self):
-        fsize = self.fs.GetStat(self.src).st_size
+        fsize = self.fs.stat(self.src).st_size
         self.dst = "dst.txt"
 
         copy_chunk_locally(self.src, self.dst, 1, fsize, block_size=1)
@@ -111,13 +111,13 @@ class CopyChunkTestCase(TestCase):
         src = u'åäö.txt'
         dst = u'öäå.txt'
 
-        self.fs.CreateFile(src)
-        self.fs.CreateFile(dst)
+        self.fs.create_file(src)
+        self.fs.create_file(dst)
 
         with self.fake_open(src, 'w') as f:
             f.write('foo')
 
-        fsize = self.fs.GetStat(src).st_size
+        fsize = self.fs.stat(src).st_size
         copy_chunk_locally(src, dst, 1, fsize, block_size=1)
 
         with self.fake_open(dst) as dstf:
@@ -132,13 +132,13 @@ class CopyFileTestCase(TestCase):
     def setUp(self):
         self.src = 'src.txt'
         self.dst = 'dst.txt'
-        self.fs.CreateFile(self.src)
+        self.fs.create_file(self.src)
 
     def tearDown(self):
-        self.fs.RemoveFile(self.src)
+        self.fs.remove(self.src)
 
         try:
-            self.fs.RemoveFile(self.dst)
+            self.fs.remove(self.dst)
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
@@ -154,7 +154,7 @@ class CopyFileTestCase(TestCase):
     @mock.patch('ESSArch_Core.storage.copy.copy_chunk')
     def test_local_empty(self, mock_copy_chunk):
         copy_file_locally(self.src, self.dst)
-        fsize = self.fs.GetStat(self.src).st_size
+        fsize = self.fs.stat(self.src).st_size
         mock_copy_chunk.assert_called_once_with(self.src, self.dst, 0, fsize, block_size=mock.ANY)
 
     @mock.patch('ESSArch_Core.storage.copy.os', fake_os)
@@ -167,6 +167,6 @@ class CopyFileTestCase(TestCase):
 
         copy_file_locally(self.src, self.dst, block_size=1)
 
-        fsize = self.fs.GetStat(self.src).st_size
+        fsize = self.fs.stat(self.src).st_size
         calls = [mock.call(self.src, self.dst, x, fsize, block_size=1) for x in range(len(content))]
         mock_copy_chunk.assert_has_calls(calls)
