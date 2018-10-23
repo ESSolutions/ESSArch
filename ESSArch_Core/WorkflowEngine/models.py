@@ -63,7 +63,11 @@ def create_sub_task(t, step=None, ignore_parent_args=True, link_error=None):
     }
 
     created = create_task(t.name)
+
+    # For some reason, __repr__ needs to be called for the link_error
+    # signature to be called when an error occurs in a task
     repr(link_error)
+
     if ignore_parent_args:
         return created.si(*t.args, **t.params).set(task_id=str(t.pk), link_error=link_error, queue=created.queue)
     return created.s(*t.args, **t.params).set(task_id=str(t.pk), link_error=link_error, queue=created.queue)
