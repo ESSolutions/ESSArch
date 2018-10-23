@@ -53,7 +53,7 @@ def create_task(name):
     return getattr(importlib.import_module(module), task)()
 
 
-def create_sub_task(t, step=None, ignore_parent_args=True):
+def create_sub_task(t, step=None, ignore_parent_args=True, link_error=None):
     step_id = step.id if step is not None else None
     t.params['_options'] = {
         'args': t.args,
@@ -63,9 +63,10 @@ def create_sub_task(t, step=None, ignore_parent_args=True):
     }
 
     created = create_task(t.name)
+    repr(link_error)
     if ignore_parent_args:
-        return created.si(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
-    return created.s(*t.args, **t.params).set(task_id=str(t.pk), queue=created.queue)
+        return created.si(*t.args, **t.params).set(task_id=str(t.pk), link_error=link_error, queue=created.queue)
+    return created.s(*t.args, **t.params).set(task_id=str(t.pk), link_error=link_error, queue=created.queue)
 
 
 class Process(models.Model):
@@ -192,15 +193,20 @@ class ProcessStep(MPTTModel, Process):
 
         func = group if self.parallel else chain
         result_list = sorted(itertools.chain(steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
-        workflow = func(y for y in (x.resume(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x, self) for x in result_list) if not hasattr(y, 'tasks') or len(y.tasks))
+
+        on_error_tasks = self.on_error(manager='by_step_pos').all()
+        if on_error_tasks.exists():
+            on_error_group = group(create_sub_task(t, self, ignore_parent_args=False) for t in on_error_tasks)
+        else:
+            on_error_group = None
+
+        workflow = func(y for y in (x.resume(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x, self, link_error=on_error_group) for x in result_list) if not hasattr(y, 'tasks') or len(y.tasks))
 
         if direct:
-            on_error_tasks = self.on_error(manager='by_step_pos').all()
-            on_error_group = group(create_sub_task(t, self, ignore_parent_args=False) for t in on_error_tasks)
             if self.eager:
-                return workflow.apply(link_error=on_error_group)
+                return workflow.apply()
             else:
-                return workflow.apply_async(link_error=on_error_group)
+                return workflow.apply_async()
         else:
             return workflow
 
@@ -574,7 +580,10 @@ class ProcessTask(Process):
         }
 
         on_error_tasks = self.on_error(manager='by_step_pos').all()
-        on_error_group = group(create_sub_task(error_task, ignore_parent_args=False) for error_task in on_error_tasks)
+        if on_error_tasks.exists():
+            on_error_group = group(create_sub_task(error_task, ignore_parent_args=False) for error_task in on_error_tasks)
+        else:
+            on_error_group = None
 
         if self.eager:
             self.params['_options']['result_params'] = self.result_params
