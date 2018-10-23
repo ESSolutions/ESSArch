@@ -360,8 +360,13 @@ class StructureValidatorTests(TestCase):
 
         # add txt
         open(os.path.join(self.root, 'foo.txt'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, 'foo.mkv missing related file foo.mkv.md5'):
-            validator.validate(self.root)
+        try:
+            with self.assertRaisesRegexp(ValidationError, 'foo.mkv missing related file foo.mkv.md5'):
+                validator.validate(self.root)
+        except AssertionError:
+            # this is also a valid exception that might occur
+            with self.assertRaisesRegexp(ValidationError, 'foo.txt missing related file foo.pdf'):
+                validator.validate(self.root)
 
         # add mkv.md5
         open(os.path.join(self.root, 'foo.mkv.md5'), 'a').close()
@@ -389,19 +394,24 @@ class StructureValidatorTests(TestCase):
         # empty
         validator.validate(self.root)
 
+
+        # Different platforms traverse the directory in different orders, and
+        # will becuase of that generate different exception messages.  We use
+        # regex to determine that the exception message is valid
+
         # add mkv
         open(os.path.join(self.root, 'c/test.mkv'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, 'c/test.mkv missing related file c/test.mkv.md5'):
+        with self.assertRaisesRegexp(ValidationError, 'c/test\.mkv missing related file c/test.mkv.md5'):
             validator.validate(self.root)
 
         # add mkv.md5
         open(os.path.join(self.root, 'c/test.mkv.md5'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, 'c/test.mkv missing related file p/test.mp4'):
+        with self.assertRaisesRegexp(ValidationError, 'c/test\.mkv(md5)? missing related file p/test.mp4'):
             validator.validate(self.root)
 
         # add mp4
         open(os.path.join(self.root, 'p/test.mp4'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, 'c/test.mkv missing related file p/test.mp4.md5'):
+        with self.assertRaisesRegexp(ValidationError, '(c/test\.mkv(md5)?|p/test\.mp4) missing related file p/test.mp4.md5'):
             validator.validate(self.root)
 
         # add mp4.md5
