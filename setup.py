@@ -29,8 +29,8 @@ versioneer.versionfile_build = None
 versioneer.tag_prefix = '' # tags are like 1.2.0
 versioneer.parentdir_prefix = 'ESSArch_Core-'
 
-from setuptools import find_packages, setup  
-from setuptools.command.install import install as _install  
+from setuptools import find_packages, setup
+from setuptools.command.install import install as _install
 import sys
 from pkg_resources import require as pkg_check, DistributionNotFound, VersionConflict
 
@@ -173,7 +173,10 @@ if __name__ == '__main__':
             "ldap":  ["django-auth-ldap>=1.7,<1.8"],
             "saml2":  ["djangosaml2>=0.17,<0.18"],
             "libreoffice_file_conversion":  ["unoconv>=0.8,<0.9"],
+            "ms_office_file_conversion":  ["comtypes>=1.1,<1.2;platform_system=='Windows'"],
+            "mssql": ["django-pyodbc-azure==1.11.15.0"],
             "mysql": ["mysqlclient==1.3.13"],
+            "postgres": ["psycopg2==2.7.5"],
         },
         packages=find_packages(),
         include_package_data=True,
