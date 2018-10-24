@@ -1,17 +1,17 @@
-{% load static from staticfiles %}
+{% load rev %}
 <!doctype html>
 <html ng-app="essarch" ng-controller="AppCtrl as vm" ng-keydown="vm.questionMarkListener($event)">
     <head ng-controller="HeadCtrl as vm">
-        <link rel="stylesheet" type="text/css" href="{% static "frontend/styles/styles.css" %}">
+        <link rel="stylesheet" type="text/css" href="{% rev "frontend/build/styles.css" %}">
 
         <!--Polyfills -->
-        <script src="{% static "frontend/scripts/polyfills.min.js" %}"></script>
+        <script src="{% rev "frontend/build/polyfills.min.js" %}"></script>
 
         <!--Vendors -->
-        <script src="{% static "frontend/scripts/vendors.min.js" %}"></script>
+        <script src="{% rev "frontend/build/vendors.min.js" %}"></script>
 
         <!--App -->
-        <script src="{% static "frontend/scripts/scripts.min.js" %}"></script>
+        <script src="{% rev "frontend/build/scripts.min.js" %}"></script>
 
         {% verbatim %}
         <meta name="viewport" content="width=device-width, initial-scale=1">

@@ -136,6 +136,7 @@ if __name__ == '__main__':
             "django-cors-headers==2.4.0",
             "django-filter==1.1",
             "django-groups-manager==0.6.0",
+            "django-gulp-rev==0.2",
             "django-guardian==1.4.9",
             "django-jsonfield==1.0.1",
             "django-mptt==0.9.1",
