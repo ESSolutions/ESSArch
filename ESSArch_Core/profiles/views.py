@@ -1,11 +1,13 @@
 from django.db import transaction
 from django.db.models import Max, Prefetch
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_extensions.mixins import NestedViewSetMixin
-from rest_framework import exceptions
+from rest_framework import exceptions, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
+from rest_framework.permissions import DjangoModelPermissions, SAFE_METHODS
 
-from ESSArch_Core.profiles.models import Profile
+from ESSArch_Core.profiles.models import Profile, ProfileIP, ProfileIPData, ProfileIPDataTemplate, SubmissionAgreement
 from ESSArch_Core.profiles.serializers import (
     ProfileSerializer,
     ProfileDetailSerializer,
@@ -18,17 +20,13 @@ from ESSArch_Core.profiles.serializers import (
     SubmissionAgreementSerializer,
 )
 
-from ESSArch_Core.profiles.models import ProfileIP, ProfileIPData, ProfileIPDataTemplate, SubmissionAgreement
-
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import permissions, viewsets
-
 
 class SubmissionAgreementViewSet(viewsets.ModelViewSet):
     queryset = SubmissionAgreement.objects.all().prefetch_related(
         Prefetch('profilesa_set', to_attr='profiles')
     )
     serializer_class = SubmissionAgreementSerializer
+    permission_classes = (DjangoModelPermissions,)
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('published',)
 
@@ -44,6 +42,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
     API endpoint that allows profiles to be viewed or edited.
     """
     queryset = Profile.objects.all()
+    permission_classes = (DjangoModelPermissions,)
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -71,7 +70,7 @@ class ProfileIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     filter_fields = ('ip', 'profile', 'profile__profile_type')
 
     def get_serializer_class(self):
-        if self.request.method in permissions.SAFE_METHODS:
+        if self.request.method in SAFE_METHODS:
             return ProfileIPSerializerWithData
 
         return ProfileIPWriteSerializer
