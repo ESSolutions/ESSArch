@@ -24,6 +24,7 @@
 
 from _version import get_versions
 import platform
+import socket
 import sys
 
 from django.db import connection
@@ -51,10 +52,6 @@ from ESSArch_Core.configuration.serializers import (
     EventTypeSerializer,
     ParameterSerializer,
     PathSerializer,
-)
-
-from ESSArch_Core.util import (
-    run_shell_command
 )
 
 from rest_framework import viewsets
@@ -92,11 +89,6 @@ class SysInfoView(APIView):
         context = {}
         cwd = settings.BASE_DIR
 
-        # Shell commands: Name and command
-        SHELL_COMMANDS = [
-            ('hostname', 'hostname'),
-        ]
-
         # Flags in settings: Their expected  and actual values.
         SETTINGS_FLAGS = [
             ('DEBUG', False),
@@ -106,13 +98,10 @@ class SysInfoView(APIView):
 
         context['python'] = '.'.join(str(x) for x in sys.version_info[:3])
         context['platform'] = platform.platform()
+        context['hostname'] = socket.gethostname()
         context['version'] = get_versions()['version']
         context['time_checked'] = timezone.now()
         context['database'] = self.get_database_info()
-
-        for name, cmd in SHELL_COMMANDS:
-            context[name] = run_shell_command(cmd, cwd)
-
         context['python_packages'] = pip_freeze()
 
         context['settings_flags'] = []
