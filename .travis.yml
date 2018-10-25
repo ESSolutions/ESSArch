@@ -1,0 +1,24 @@
+dist: trusty
+language: python
+
+branches:
+  only:
+  - master
+
+python:
+  - 2.7
+  - 3.6
+
+services:
+  - redis
+
+install:
+  - pip install -e .
+  - pip uninstall -y jsonfield django-jsonfield
+  - pip install django-jsonfield
+
+before_script:
+  - cd ESSArch_Core
+
+script:
+  - python manage.py test -v2
