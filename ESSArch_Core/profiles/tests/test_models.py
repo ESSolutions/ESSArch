@@ -24,7 +24,6 @@
 
 from django.test import TestCase
 
-from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.profiles.models import Profile, ProfileSA, SubmissionAgreement
 
 
