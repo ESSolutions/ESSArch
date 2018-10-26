@@ -95,3 +95,13 @@
         border-color: transparent;
     }
 }
+#passwordForm {
+    .alert {
+        overflow: hidden;
+        margin-bottom: 10px;
+        margin-top: 10px;
+        min-height: 34px;
+        padding: 7px;
+        text-align: center;
+    }
+}

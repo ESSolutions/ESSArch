@@ -1,0 +1,16 @@
+<div class="edit-user">
+    <div uib-dropdown is-open="status.isopen" uib-popover="{{'USEROPTIONS' | translate}}"  popover-placement="left" popover-popup-delay="500" popover-append-to-body="true">
+        <button class="btn btn-dark dropdown-toggle" uib-dropdown-toggle>
+            <i class="fas fa-user"></i>
+            &nbsp;
+            <span class="username">{{vm.auth.username}}</span>
+            &nbsp;
+            <i class="fas fa-caret-down"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu role="menu" aria-labelledby="user-dropdown">
+            <li ng-repeat="choice in editUserOptions">
+                <a ng-click="choice.click()">{{choice.label}}</a>
+            </li>
+        </ul>
+    </div>
+</div>
