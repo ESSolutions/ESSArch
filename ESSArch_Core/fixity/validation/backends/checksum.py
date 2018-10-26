@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import logging
 import traceback
 
@@ -71,7 +73,7 @@ class ChecksumValidator(BaseValidator):
             val_obj.message = traceback.format_exc()
             raise
         else:
-            message = u'Successfully validated checksum of %s' % filepath
+            message = 'Successfully validated checksum of %s' % filepath
             val_obj.message = message
             logger.info(message)
         finally:

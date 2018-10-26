@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import errno
 import logging
 import os
@@ -21,7 +23,7 @@ def run_mediaconch(filename, reporting_element='Mediaconch', output_format='xml'
     if policy and not os.path.exists(policy):
         raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), policy)
 
-    cmd = u'mediaconch --{reporter} --Format={format} -p "{policy}" "{filename}"'.format(reporter=reporting_element,
+    cmd = 'mediaconch --{reporter} --Format={format} -p "{policy}" "{filename}"'.format(reporter=reporting_element,
                                                                                     format=output_format, policy=policy,
                                                                                     filename=filename)
     logger.debug(cmd)
@@ -86,7 +88,7 @@ class MediaconchValidator(BaseValidator):
             raise
         else:
             val_obj.message = message
-            logger.info(u"Successful Mediaconch validation of %s" % filepath)
+            logger.info("Successful Mediaconch validation of %s" % filepath)
         finally:
             val_obj.time_done = timezone.now()
             val_obj.passed = passed

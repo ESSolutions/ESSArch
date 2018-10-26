@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import logging
 import os
 import traceback
@@ -138,11 +140,11 @@ class StructureValidator(BaseValidator):
 
             passed = True
         except Exception:
-            logger.exception(u"Structure validation of {} failed".format(filepath))
+            logger.exception("Structure validation of {} failed".format(filepath))
             val_obj.message = traceback.format_exc()
             raise
         else:
-            message = u"Successful Mediaconch validation of %s" % filepath
+            message = "Successful Mediaconch validation of %s" % filepath
             val_obj.message = message
             logger.info(message)
         finally:

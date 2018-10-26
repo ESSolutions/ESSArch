@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import logging
 import traceback
 
@@ -47,13 +49,13 @@ class FormatValidator(BaseValidator):
         try:
             actual_name, actual_version, actual_reg_key = self.fid.identify_file_format(filepath)
             if name and name != actual_name:
-                raise ValidationError(u"format name for {} is not valid, ({} !={})"
+                raise ValidationError("format name for {} is not valid, ({} !={})"
                                       .format(filepath, name, actual_name))
             if version and version != actual_version:
-                raise ValidationError(u"format version for {} is not valid, ({} != {})"
+                raise ValidationError("format version for {} is not valid, ({} != {})"
                                       .format(filepath, version, actual_version))
             if reg_key and reg_key != actual_reg_key:
-                raise ValidationError(u"format registry key for {} is not valid, ({} != {})"
+                raise ValidationError("format registry key for {} is not valid, ({} != {})"
                                       .format(filepath, reg_key, actual_reg_key))
 
             passed = True
@@ -61,7 +63,7 @@ class FormatValidator(BaseValidator):
             val_obj.message = traceback.format_exc()
             raise
         else:
-            message = u'Successfully validated checksum of %s' % filepath
+            message = 'Successfully validated checksum of %s' % filepath
             val_obj.message = message
             logger.info(message)
         finally:
