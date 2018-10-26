@@ -39,7 +39,8 @@ def static_rev(path):
     """
 
     static_path = StaticNode.handle_simple(path)
-    return _create_url(path, static_path)
+    basename = os.path.basename(path)
+    return _create_url(basename, static_path)
 
 
 register = template.Library()
