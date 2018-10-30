@@ -144,7 +144,7 @@ class StructureValidator(BaseValidator):
             val_obj.message = traceback.format_exc()
             raise
         else:
-            message = "Successful Mediaconch validation of %s" % filepath
+            message = u"Successful structure validation of %s" % filepath
             val_obj.message = message
             logger.info(message)
         finally:

@@ -139,6 +139,7 @@ class DiffCheckValidator(BaseValidator):
             self.deleted.pop(oldhash, None)
             self.changed += 1
             msg = u'{f} checksum has been changed: {old} != {new}'.format(f=relpath, old=oldhash, new=newhash)
+            logger.error(msg)
             self._pop_checksum_dict(self.present, oldhash, relpath)
             self._pop_checksum_dict(self.present, newhash, relpath)
             return self._create_obj(relpath, False, msg)
@@ -148,10 +149,12 @@ class DiffCheckValidator(BaseValidator):
             self.deleted.pop(oldhash, None)
             self.changed += 1
             msg = u'{f} size has been changed: {old} != {new}'.format(f=relpath, old=oldsize, new=newsize)
+            logger.error(msg)
             return self._create_obj(relpath, False, msg)
 
         self.confirmed += 1
         msg = u'{f} confirmed in xml'.format(f=relpath)
+        logger.debug(msg)
         return self._create_obj(relpath, True, msg)
 
     def _validate_deleted_files(self, objs):
@@ -165,6 +168,7 @@ class DiffCheckValidator(BaseValidator):
                         old = deleted_hash_files.pop()
                         self.renamed += 1
                         msg = u'{old} has been renamed to {new}'.format(old=old, new=f)
+                        logger.error(msg)
                         objs.append(self._create_obj(old, False, msg))
                         present_hash_files.remove(old)
                         present_hash_files.remove(f)
@@ -173,6 +177,7 @@ class DiffCheckValidator(BaseValidator):
 
             for f in deleted_hash_files:
                 msg = u'{file} has been deleted'.format(file=f)
+                logger.error(msg)
                 objs.append(self._create_obj(f, False, msg))
                 delete_count += 1
                 present_hash_files.remove(f)
@@ -187,6 +192,7 @@ class DiffCheckValidator(BaseValidator):
             for f in present_hash_files:
                 self.added += 1
                 msg = u'{f} is missing from {xml}'.format(f=f, xml=self.context)
+                logger.error(msg)
                 objs.append(self._create_obj(f, False, msg))
 
     def validate(self, path, expected=None):
@@ -277,7 +283,7 @@ class XMLComparisonValidator(DiffCheckValidator):
         Validation.objects.bulk_create(objs, batch_size=100)
 
         if delete_count + self.added + self.changed + self.renamed > 0:
-            msg = u'Comparision of {path} against {xml} failed: {cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted'.format(
+            msg = u'Comparison of {path} against {xml} failed: {cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted'.format(
                 path=path, xml=self.context, cfmd=self.confirmed, a=self.added, c=self.changed, r=self.renamed,
                 d=delete_count)
             logger.warn(msg)
