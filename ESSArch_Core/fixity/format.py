@@ -19,7 +19,9 @@ class FormatIdentifier:
     def __init__(self, allow_unknown_file_types=False):
         self.fido = Fido(handle_matches=self.handle_matches)
         self.allow_unknown_file_types = allow_unknown_file_types
+        self.mimetypes = self._get_mimetypes()
 
+    def _get_mimetypes(self):
         mimetypes.suffix_map = {}
         mimetypes.encodings_map = {}
         mimetypes.types_map = {}
@@ -28,7 +30,7 @@ class FormatIdentifier:
             entity="path_mimetypes_definitionfile"
         ).value
         mimetypes.init(files=[mimetypes_file])
-        self.mimetypes = mimetypes.types_map
+        return mimetypes.types_map
 
     def get_mimetype(self, fname):
         file_name, file_ext = os.path.splitext(fname)
