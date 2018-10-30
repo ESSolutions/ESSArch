@@ -157,7 +157,7 @@ if __name__ == '__main__':
             "opf-fido==1.3.7",
             "pyfakefs==3.4.3",
             "redis==2.10.6",
-            "requests==2.19.1",
+            "requests==2.20.0",
             "requests_toolbelt==0.8.0",
             "retrying==1.3.3",
             "scandir==1.9.0",
