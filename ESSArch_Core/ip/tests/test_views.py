@@ -32,13 +32,8 @@ class GetAllInformationPackagesTests(TestCase):
         membership = GroupMember.objects.create(member=self.member, group=self.org)
         membership.roles.add(self.user_role)
 
-        ip1 = InformationPackage.objects.create()
-        ip2 = InformationPackage.objects.create()
-        ip3 = InformationPackage.objects.create()
-
-        self.org.add_object(ip1)
-        self.org.add_object(ip2)
-        self.org.add_object(ip3)
+        ip = InformationPackage.objects.create()
+        self.org.add_object(ip)
 
     def test_unauthenticated(self):
         response = self.client.get(self.url)
