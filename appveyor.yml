@@ -11,7 +11,12 @@ platform:
   - x64
 
 install:
-  - "%PYTHON%\\python.exe -m pip install -U pip wheel"
+  - ps: $source = "https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe"
+  - ps: $destination = "gtk3-runtime.exe"
+  - ps: Invoke-WebRequest $source -OutFile $destination
+  - ps: Start-Process -FilePath "gtk3-runtime.exe" -Wait -PassThru -ArgumentList /S
+
+  - "%PYTHON%\\python.exe -m pip install -U wheel"
   - "%PYTHON%\\python.exe -m pip install -e ."
   - "%PYTHON%\\python.exe -m pip uninstall -y jsonfield django-jsonfield"
   - "%PYTHON%\\python.exe -m pip install django-jsonfield"
