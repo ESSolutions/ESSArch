@@ -65,18 +65,19 @@ class ChecksumValidatorXMLTests(TestCase):
     """
 
     def setUp(self):
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
         self.content = b'test file'
         md5 = hashlib.md5(self.content)
         self.checksum = md5.hexdigest()
 
-        self.test_file = tempfile.NamedTemporaryFile(delete=False)
+        self.test_file = tempfile.NamedTemporaryFile(dir=self.datadir, delete=False)
         self.test_file.write(self.content)
         self.test_file.seek(0)
         self.test_file.close()
-        self.addCleanup(os.remove, self.test_file.name)
 
-        self.xml_file = tempfile.NamedTemporaryFile(delete=False)
-        self.addCleanup(os.remove, self.xml_file.name)
+        self.xml_file = tempfile.NamedTemporaryFile(dir=self.datadir, delete=False)
 
     def test_validate_against_xml_file_valid(self):
         xml_str = '<root><file CHECKSUM="{hash}" CHECKSUMTYPE="{alg}"><FLocat href="{file}"/></file></root>'.format(
@@ -109,7 +110,7 @@ class ChecksumValidatorXMLTests(TestCase):
         md5 = hashlib.md5(content2)
         checksum2 = md5.hexdigest()
 
-        test_file2 = tempfile.NamedTemporaryFile(delete=False)
+        test_file2 = tempfile.NamedTemporaryFile(dir=self.datadir, delete=False)
         test_file2.write(content2)
         test_file2.seek(0)
         test_file2.close()
