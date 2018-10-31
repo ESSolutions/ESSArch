@@ -717,7 +717,12 @@ class InformationPackage(models.Model):
             if e.errno == errno.ENOENT:
                 raise exceptions.NotFound
 
-            if e.errno != errno.EISDIR:
+            # Windows raises PermissionDenied (errno.EACCES) when trying to use
+            # open() on a directory
+            if os.name == 'nt':
+                if e.errno not in (errno.EACCES, errno.EISDIR):
+                    raise
+            elif e.errno != errno.EISDIR:
                 raise
         except IndexError:
             if force_download:
