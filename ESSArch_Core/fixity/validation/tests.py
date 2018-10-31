@@ -133,9 +133,12 @@ class ChecksumValidatorXMLTests(TestCase):
 class FormatValidatorTests(TestCase):
     def setUp(self):
         self.content = b'test file'
-        self.test_file = tempfile.NamedTemporaryFile(suffix='.txt')
+        self.test_file = tempfile.NamedTemporaryFile(suffix='.txt', delete=False)
+        self.addCleanup(os.remove, self.test_file.name)
+
         self.test_file.write(self.content)
         self.test_file.seek(0)
+        self.test_file.close()
 
         mimetypes_path = os.path.join(os.path.dirname(Generator.__file__), 'mime.types')
         Path.objects.create(entity="path_mimetypes_definitionfile", value=mimetypes_path)
