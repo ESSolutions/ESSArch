@@ -361,10 +361,12 @@ angular.module('essarch.controllers').controller('StateTreeCtrl', function($scop
                     $scope.validationsLoading = false;
                     return resource;
                 }).catch(function (response) {
-                    if (response.data && response.data.detail) {
-                        Notifications.add(response.data.detail, 'error')
-                    } else if (response.status !== 500) {
-                        Notifications.add('Could not get validations', 'error')
+                    if(![401, 403, 500, 503].includes(response.status)) {
+                        if(response.data && response.data.detail) {
+                            Notifications.add(response.data.detail, "error");
+                        } else {
+                            Notifications.add($translate('UNKNOWN_ERROR'), 'error')
+                        }
                     }
                     $scope.validationsLoading = false;
                     return response;

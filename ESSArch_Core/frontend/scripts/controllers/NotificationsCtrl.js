@@ -1,11 +1,10 @@
-angular.module('essarch.controllers').controller('NotificationsCtrl', function(appConfig, Notifications, $timeout, $interval, $scope, $rootScope, $http, $window, Messenger, $state) {
+angular.module('essarch.controllers').controller('NotificationsCtrl', function(appConfig, Notifications, $timeout, $interval, $scope, $rootScope, $http, $window, Messenger, $state, $translate) {
     var vm = this;
     vm.visible = false;
     vm.alerts = [];
     vm.frontendAlerts = [];
     vm.backendAlerts = [];
     var interval;
-    var updateInterval;
     vm.$onInit = function () {
         vm.notificationsEnabled = $rootScope.auth.notifications_enabled;
         Messenger.options = {
@@ -218,11 +217,11 @@ angular.module('essarch.controllers').controller('NotificationsCtrl', function(a
                 hideAfter: null,
                 actions: {
                     retry: {
-                        label: 'Retry',
+                        label: $translate.instant('RETRY'),
                         action: function() {
                             $http.head(appConfig.djangoUrl+"me/").then(function(response) {
                                 $rootScope.disconnected = null;
-                                $rootScope.$broadcast('reconnected', {detail: "Connection has been restored"});
+                                $rootScope.$broadcast('reconnected', {detail: $translate.instant("CONNECTION_RESTORED")});
                             }).catch(function() {
                             })
                         }
