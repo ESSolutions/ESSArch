@@ -65,15 +65,19 @@ class ChecksumValidatorXMLTests(TestCase):
     """
 
     def setUp(self):
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
         self.content = b'test file'
         md5 = hashlib.md5(self.content)
         self.checksum = md5.hexdigest()
 
-        self.test_file = tempfile.NamedTemporaryFile()
+        self.test_file = tempfile.NamedTemporaryFile(dir=self.datadir, delete=False)
         self.test_file.write(self.content)
         self.test_file.seek(0)
+        self.test_file.close()
 
-        self.xml_file = tempfile.NamedTemporaryFile()
+        self.xml_file = tempfile.NamedTemporaryFile(dir=self.datadir, delete=False)
 
     def test_validate_against_xml_file_valid(self):
         xml_str = '<root><file CHECKSUM="{hash}" CHECKSUMTYPE="{alg}"><FLocat href="{file}"/></file></root>'.format(
@@ -81,6 +85,7 @@ class ChecksumValidatorXMLTests(TestCase):
         xml_str = six.binary_type(xml_str.encode('utf-8'))
         self.xml_file.write(xml_str)
         self.xml_file.seek(0)
+        self.xml_file.close()
 
         options = {'expected': self.xml_file.name, 'algorithm': 'md5'}
         self.validator = ChecksumValidator(context='xml_file', options=options)
@@ -92,6 +97,7 @@ class ChecksumValidatorXMLTests(TestCase):
         xml_str = six.binary_type(xml_str.encode('utf-8'))
         self.xml_file.write(xml_str)
         self.xml_file.seek(0)
+        self.xml_file.close()
 
         options = {'expected': self.xml_file.name, 'algorithm': 'md5'}
         self.validator = ChecksumValidator(context='xml_file', options=options)
@@ -104,9 +110,10 @@ class ChecksumValidatorXMLTests(TestCase):
         md5 = hashlib.md5(content2)
         checksum2 = md5.hexdigest()
 
-        test_file2 = tempfile.NamedTemporaryFile()
+        test_file2 = tempfile.NamedTemporaryFile(dir=self.datadir, delete=False)
         test_file2.write(content2)
         test_file2.seek(0)
+        test_file2.close()
 
         xml_str = '''
             <root>
@@ -122,6 +129,7 @@ class ChecksumValidatorXMLTests(TestCase):
         xml_str = six.binary_type(xml_str.encode('utf-8'))
         self.xml_file.write(xml_str)
         self.xml_file.seek(0)
+        self.xml_file.close()
 
         options = {'expected': self.xml_file.name, 'algorithm': 'md5'}
         self.validator = ChecksumValidator(context='xml_file', options=options)
