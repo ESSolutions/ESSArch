@@ -1,0 +1,30 @@
+branches:
+  only:
+    - master
+
+environment:
+  matrix:
+    - PYTHON: "C:\\Python27-x64"
+    - PYTHON: "C:\\Python36-x64"
+    
+platform:
+  - x64
+
+install:
+  - "%PYTHON%\\python.exe -m pip install -U pip wheel"
+  - "%PYTHON%\\python.exe -m pip install -e ."
+  - "%PYTHON%\\python.exe -m pip uninstall -y jsonfield django-jsonfield"
+  - "%PYTHON%\\python.exe -m pip install django-jsonfield"
+  
+  - cmd: nuget install redis-64 -excludeversion
+  - cmd: redis-64\tools\redis-server.exe --service-install
+  - cmd: redis-64\tools\redis-server.exe --service-start
+
+build: off
+
+before_test:
+  - cd ESSArch_Core
+
+test_script:
+  # Put your test command here.
+  - "%PYTHON%\\python.exe manage.py test"
