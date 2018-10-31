@@ -1,26 +1,28 @@
-angular.module('essarch').config(['$httpProvider', '$windowProvider', function($httpProvider, $windowProvider) {
+angular.module('essarch').config(['$provide', '$httpProvider', '$windowProvider', function($provide, $httpProvider, $windowProvider) {
     var $window = $windowProvider.$get();
     $httpProvider.defaults.xsrfCookieName = 'csrftoken';
     $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
-    $httpProvider.interceptors.push(['$q', '$location', '$rootScope', function ($q, $location, $rootScope) {
+    $provide.factory('httpInterceptor', ['$q', '$location', '$rootScope', '$injector', function ($q, $location, $rootScope, $injector) {
         return {
             'response': function(response) {
+                var translation = $injector.get('$translate');
                 if($rootScope.disconnected) {
                     $rootScope.disconnected = false;
-                    $rootScope.$broadcast("reconnected", {detail: "Connection has been restored"});
+                    $rootScope.$broadcast("reconnected", {detail: translation.instant("CONNECTION_RESTORED")});
                 }
                 return response;
             },
             'responseError': function(response) {
+                var translation = $injector.get('$translate');
                 if(response.status == 500) {
-                    var msg = "Internal server error";
+                    var msg = translation.instant("ERROR_500");
                     if(response.data.detail) {
                         msg = response.data.detail;
                     }
                     $rootScope.$broadcast('add_notification', { message: msg, level: "error", time: null});
                 }
                 if(response.status === 503) {
-                    var msg = "Request failed, try again";
+                    var msg = translation.instant("ERROR_503");
                     if(response.data.detail) {
                         msg = response.data.detail;
                     }
@@ -32,17 +34,18 @@ angular.module('essarch').config(['$httpProvider', '$windowProvider', function($
                     }
                 }
                 if(response.status === 403) {
-                    var msg = "You do not have permission to perform this action";
+                    var msg = translation.instant("ERROR_403");
                     if(response.data.detail) {
                         msg = response.data.detail;
                     }
                     $rootScope.$broadcast('add_notification', { message: msg, level: "error", time: null});
                 }
                 if(response.status <= 0) {
-                    $rootScope.$broadcast("disconnected", {detail: "Lost connection to server"});
+                    $rootScope.$broadcast("disconnected", {detail: translation.instant("CONNECTION_LOST")});
                 }
                 return $q.reject(response);
             }
         };
     }]);
+    $httpProvider.interceptors.push('httpInterceptor');
 }])
