@@ -21,7 +21,7 @@ matrix:
       language: sh
       python: "2.7"
       before_install:
-        - choco install python2
+        - choco install python2 vcpython27 gtk-runtime
         - export PATH="/c/Python27:/c/Python27/Scripts:$PATH"
         - python -m pip install --upgrade pip wheel
 
@@ -30,6 +30,7 @@ matrix:
       python: "3.6"
       before_install:
         - choco install python3 --version 3.6.6
+        - choco install gtk-runtime
         - export PATH="/c/Python36:/c/Python36/Scripts:$PATH"
         - python -m pip install --upgrade pip wheel
 
