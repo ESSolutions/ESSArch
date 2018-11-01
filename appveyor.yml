@@ -9,6 +9,9 @@ environment:
     
 platform:
   - x64
+  
+cache:
+  - '%LOCALAPPDATA%\pip\Cache' -> appveyor.yml, setup.py
 
 install:
   - ps: $source = "https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe"
