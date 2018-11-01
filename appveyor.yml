@@ -33,4 +33,4 @@ before_test:
 test_script:
   # Put your test command here.
   - set PATH=C:\Program Files\GTK3-Runtime Win64\bin;%PATH%
-  - "%PYTHON%\\python.exe manage.py test"
+  - "%PYTHON%\\python.exe manage.py test -v2"
