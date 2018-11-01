@@ -8,10 +8,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ip', '0040_auto_20170718_1453'),
+        ('ip', '0039_auto_20170703_1032'),
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name='eventip',
+            name='eventApplication',
+            field=models.ForeignKey(null=True, on_delete=models.deletion.CASCADE, related_name='events', to='WorkflowEngine.ProcessTask'),
+        ),
         migrations.RenameField(
             model_name='eventip',
             old_name='eventApplication',

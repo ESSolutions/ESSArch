@@ -81,7 +81,7 @@ def reverse_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ip', '0024_auto_20161208_1125'),
+        ('ip', '0022_auto_20161205_2226'),
     ]
 
     operations = [
