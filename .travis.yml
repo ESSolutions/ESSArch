@@ -9,11 +9,8 @@ python:
   - 2.7
   - 3.6
 
-services:
-  - redis
-
 install:
-  - pip install -e .
+  - pip install -e .[tests]
   - pip uninstall -y jsonfield django-jsonfield
   - pip install django-jsonfield
 

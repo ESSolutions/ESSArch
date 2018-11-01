@@ -85,7 +85,7 @@ CACHES = {
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': 'redis://',
         'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'REDIS_CLIENT_CLASS': 'fakeredis.FakeRedis',
         }
     }
 }
