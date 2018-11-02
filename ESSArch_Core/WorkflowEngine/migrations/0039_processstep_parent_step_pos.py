@@ -32,7 +32,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('WorkflowEngine', '0038_auto_20160824_1115'),
+        ('WorkflowEngine', '0036_auto_20160819_1354'),
     ]
 
     operations = [
