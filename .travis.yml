@@ -6,9 +6,6 @@ branches:
   only:
   - master
 
-services:
-  - redis
-
 matrix:
   include:
     - python: "2.7"
@@ -39,7 +36,7 @@ matrix:
         - python -m pip install --upgrade pip wheel
 
 install:
-  - pip install -e .
+  - pip install -e .[tests]
   - pip uninstall -y jsonfield django-jsonfield
   - pip install django-jsonfield
 

@@ -22,13 +22,10 @@
     Email - essarch@essolutions.se
 */
 
-'use strict';
-
 describe('StateTreeCtrl', function() {
     beforeEach(module('essarch.controllers'));
-    window.onbeforeunload = jasmine.createSpy();
 
-    var $controller, $scope, controller, Task, Step, listViewService;
+    var $controller, $scope, controller, Task, Step, listViewService, ErrorResponse;
 
     beforeEach(inject(function(_$controller_){
         $controller = _$controller_;
@@ -46,16 +43,19 @@ describe('StateTreeCtrl', function() {
     listViewService = jasmine.createSpyObj('listViewService', [
         'getTreeData',
     ]);
-
+    ErrorResponse = jasmine.createSpyObj('ErrorResponse', [
+        'default',
+    ]);
     module(function ($provide) {
         $provide.value('Task', Task);
         $provide.value('Step', Step);
         $provide.value('listViewService', listViewService);
+        $provide.value('ErrorResponse', ErrorResponse);
     });
 
     beforeEach(inject(function($rootScope) {
         $scope = $rootScope.$new();
-        controller = $controller('StateTreeCtrl', { $scope: $scope, Task: Task, Step: Step, listViewService: listViewService });
+        controller = $controller('StateTreeCtrl', { $scope: $scope, Task: Task, Step: Step, listViewService: listViewService, ErrorResponse: ErrorResponse });
     }));
 
     it('controller defined', function () {
@@ -118,7 +118,6 @@ describe('StateTreeCtrl', function() {
                 var TaskPromise = {
                     validations: $q.defer()
                 };
-
                 Task.validations.and.returnValue({ $promise: TaskPromise.validations.promise });
 
                 TaskPromise.validations.resolve([
