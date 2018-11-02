@@ -6,13 +6,54 @@ branches:
   only:
   - master
 
+templates:
+  mariadb: &mariadb EXTRA_PACKAGES=mysql DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
+  mysql: &mysql EXTRA_PACKAGES=mysql DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
+  postgres: &postgres EXTRA_PACKAGES=postgres DATABASE_URL="postgres://postgres@localhost/essarch?isolation_level=read committed"
+
 matrix:
   include:
     - python: "2.7"
       dist: trusty
 
+    - python: "2.7"
+      dist: trusty
+      services:
+        - mariadb
+      env: *mariadb
+
+    - python: "2.7"
+      dist: trusty
+      services:
+        - mysql
+      env: *mysql
+
+    - python: "2.7"
+      dist: trusty
+      services:
+        - postgres
+      env: *postgres
+
     - python: "3.6"
       dist: trusty
+
+    - python: "3.6"
+      dist: trusty
+      services:
+        - mariadb
+      env: *mariadb
+
+    - python: "3.6"
+      dist: trusty
+      services:
+        - mysql
+      env: *mysql
+
+    - python: "3.6"
+      dist: trusty
+      services:
+        - postgres
+      env: *postgres
 
     - os: windows
       language: sh
@@ -22,10 +63,46 @@ matrix:
         - powershell 'Start-Process -FilePath "gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
         - choco install python3 --version 3.6.6
         - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python36:/c/Python36/Scripts:$PATH"
-        - python -m pip install --upgrade pip wheel
+
+    - os: windows
+      language: sh
+      python: "3.6"
+      services:
+        - mariadb
+      env: *mariadb
+      before_install:
+        - wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe
+        - powershell 'Start-Process -FilePath "gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
+        - choco install python3 --version 3.6.6
+        - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python36:/c/Python36/Scripts:$PATH"
+
+    - os: windows
+      language: sh
+      python: "3.6"
+      services:
+        - mysql
+      env: *mysql
+      before_install:
+        - wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe
+        - powershell 'Start-Process -FilePath "gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
+        - choco install python3 --version 3.6.6
+        - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python36:/c/Python36/Scripts:$PATH"
+
+    - os: windows
+      language: sh
+      python: "3.6"
+      services:
+        - postgres
+      env: *postgres
+      before_install:
+        - wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe
+        - powershell 'Start-Process -FilePath "gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
+        - choco install python3 --version 3.6.6
+        - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python36:/c/Python36/Scripts:$PATH"
 
 install:
-  - pip install -e .[tests]
+  - pip install --upgrade pip wheel
+  - pip install -e .[tests,$EXTRA_PACKAGES]
   - pip uninstall -y jsonfield django-jsonfield
   - pip install django-jsonfield
 
