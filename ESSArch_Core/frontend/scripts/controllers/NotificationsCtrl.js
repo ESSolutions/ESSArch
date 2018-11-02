@@ -163,8 +163,7 @@ angular.module('essarch.controllers').controller('NotificationsCtrl', function(a
      * @param time - Adds a duration to the alert
      */
 
-    vm.addAlert = function (id, message, level, time, actions) {
-        var timer = null;
+    vm.addAlert = function (id, message, level, time, options) {
         var alert = {message: message, level: level, time_created: new Date()};
         if(id) {
             alert.id = id;
@@ -173,6 +172,7 @@ angular.module('essarch.controllers').controller('NotificationsCtrl', function(a
             vm.frontendAlerts.unshift(alert);
         }
         if(vm.notificationsEnabled) {
+            var actions = (!angular.isUndefined(options.actions) && options.actions !== null) ? options.actions:null;
             var post = {
                 message: message,
                 type: level,
@@ -181,7 +181,7 @@ angular.module('essarch.controllers').controller('NotificationsCtrl', function(a
                 onClickClose: function() {
                     vm.setSeen([{id: id}]);
                 },
-                actions: actions?actions:null
+                actions: actions
             };
             Messenger().post(post);
         }
@@ -243,7 +243,7 @@ angular.module('essarch.controllers').controller('NotificationsCtrl', function(a
 
     // Listen for show/hide events
     $scope.$on('add_notification', function (event, data, actions) {
-        vm.addAlert(data.id, data.message, data.level, data.time, actions);
+        vm.addAlert(data.id, data.message, data.level, data.time, data.options);
     });
     $scope.$on('add_unseen_notification', function (event, data) {
         vm.updateUnseen(data.count);
