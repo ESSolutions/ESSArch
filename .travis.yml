@@ -7,9 +7,9 @@ branches:
   - master
 
 templates:
-  mariadb: &mariadb EXTRA_PACKAGES=mysql DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
-  mysql: &mysql EXTRA_PACKAGES=mysql DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
-  postgres: &postgres EXTRA_PACKAGES=postgres DATABASE_URL="postgres://postgres@localhost/essarch?isolation_level=read committed"
+  mariadb: &mariadb EXTRA_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
+  mysql: &mysql EXTRA_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
+  postgres: &postgres EXTRA_PACKAGES=",postgres" DATABASE_URL="postgres://postgres@localhost/essarch?isolation_level=read committed"
 
 matrix:
   include:
@@ -102,7 +102,7 @@ matrix:
 
 install:
   - pip install --upgrade pip wheel
-  - pip install -e .[tests,$EXTRA_PACKAGES]
+  - pip install -e .["tests$EXTRA_PACKAGES"]
   - pip uninstall -y jsonfield django-jsonfield
   - pip install django-jsonfield
 
