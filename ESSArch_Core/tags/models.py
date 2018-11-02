@@ -36,7 +36,7 @@ class Structure(models.Model):
 @python_2_unicode_compatible
 class StructureUnit(MPTTModel):
     structure = models.ForeignKey('tags.Structure', on_delete=models.CASCADE, null=False, related_name='units')
-    parent = TreeForeignKey('self', null=True, related_name='children', db_index=True)
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -228,7 +228,7 @@ class TagStructure(MPTTModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tag = models.ForeignKey('tags.Tag', on_delete=models.CASCADE, related_name='structures')
     structure = models.ForeignKey('tags.Structure', on_delete=models.PROTECT, null=False)
-    parent = TreeForeignKey('self', null=True, related_name='children', db_index=True)
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
 
     def create_new(self, representation):
         tree_id = self.__class__.objects._get_next_tree_id()

@@ -166,7 +166,7 @@ class Group(GroupMixin):
                                         related_name='essauth_group')
     group_members = models.ManyToManyField(Member, through='GroupMember',
                                            related_name='essauth_groups')
-    parent = TreeForeignKey('self', null=True, blank=True,
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
                             related_name='sub_%(app_label)s_%(class)s_set')
 
     @property

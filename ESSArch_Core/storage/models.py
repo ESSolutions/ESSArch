@@ -167,7 +167,7 @@ class StorageMethod(models.Model):
     status = models.BooleanField('Storage method status', default=False)
     type = models.IntegerField('Type', choices=storage_type_CHOICES, default=200)
     containers = models.BooleanField('Long-term', default=False)
-    archive_policy = models.ForeignKey('configuration.ArchivePolicy', related_name='storage_methods')
+    archive_policy = models.ForeignKey('configuration.ArchivePolicy', on_delete=models.CASCADE, related_name='storage_methods')
     targets = models.ManyToManyField('StorageTarget', through='StorageMethodTargetRelation', related_name='methods')
 
     objects = StorageMethodQueryset.as_manager()
@@ -196,8 +196,8 @@ class StorageMethodTargetRelation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField('Name', max_length=255, blank=True)
     status = models.IntegerField('Storage target status', choices=storage_target_status_CHOICES, default=0)
-    storage_target = models.ForeignKey('StorageTarget', related_name='storage_method_target_relations')
-    storage_method = models.ForeignKey('StorageMethod', related_name='storage_method_target_relations')
+    storage_target = models.ForeignKey('StorageTarget', on_delete=models.CASCADE, related_name='storage_method_target_relations')
+    storage_method = models.ForeignKey('StorageMethod', on_delete=models.CASCADE, related_name='storage_method_target_relations')
 
     class Meta:
         verbose_name = 'Storage Target/Method Relation'
@@ -361,7 +361,7 @@ class StorageMedium(models.Model):
     last_changed_external = models.DateTimeField(null=True)
 
     agent = models.CharField(max_length=255)
-    storage_target = models.ForeignKey('StorageTarget')
+    storage_target = models.ForeignKey('StorageTarget', on_delete=models.CASCADE)
     tape_slot = models.OneToOneField('TapeSlot', models.PROTECT, related_name='storage_medium', null=True, blank=True)
     tape_drive = models.OneToOneField('TapeDrive', models.PROTECT, related_name='storage_medium', null=True, blank=True)
 
@@ -458,8 +458,8 @@ class StorageObject(models.Model):
     last_changed_local = models.DateTimeField(null=True, auto_now_add=True)
     last_changed_external = models.DateTimeField(null=True)
 
-    ip = models.ForeignKey(InformationPackage, related_name='storage')
-    storage_medium = models.ForeignKey('StorageMedium', related_name='storage')
+    ip = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, related_name='storage')
+    storage_medium = models.ForeignKey('StorageMedium', on_delete=models.CASCADE, related_name='storage')
 
     objects = StorageObjectQueryset.as_manager()
 
@@ -645,7 +645,7 @@ class RobotQueue(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='robot_queue_entries')
     posted = models.DateTimeField(auto_now_add=True)
-    robot = models.OneToOneField('Robot', related_name='robot_queue', null=True)
+    robot = models.OneToOneField('Robot', on_delete=models.CASCADE, related_name='robot_queue', null=True)
     io_queue_entry = models.ForeignKey('IOQueue', models.SET_NULL, null=True)
     storage_medium = models.ForeignKey('StorageMedium', models.PROTECT)
     tape_drive = models.ForeignKey('TapeDrive', models.CASCADE, null=True)
@@ -667,11 +667,11 @@ class IOQueue(models.Model):
     status = models.IntegerField(blank=True, default=0, choices=req_status_CHOICES)
     task_id = models.CharField(max_length=36, blank=True)
     posted = models.DateTimeField(auto_now_add=True)
-    ip = models.ForeignKey(InformationPackage, null=True)
-    storage_method_target = models.ForeignKey('StorageMethodTargetRelation')
-    storage_medium = models.ForeignKey('StorageMedium', blank=True, null=True)
-    storage_object = models.ForeignKey('StorageObject', blank=True, null=True)
-    access_queue = models.ForeignKey('AccessQueue', blank=True, null=True)
+    ip = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, null=True)
+    storage_method_target = models.ForeignKey('StorageMethodTargetRelation', on_delete=models.CASCADE)
+    storage_medium = models.ForeignKey('StorageMedium', on_delete=models.CASCADE, blank=True, null=True)
+    storage_object = models.ForeignKey('StorageObject', on_delete=models.CASCADE, blank=True, null=True)
+    access_queue = models.ForeignKey('AccessQueue', on_delete=models.CASCADE, blank=True, null=True)
     remote_status = models.IntegerField(blank=True, default=0, choices=remote_status_CHOICES)
     transfer_task_id = models.CharField(max_length=36, blank=True)
     step = models.ForeignKey('WorkflowEngine.ProcessStep', on_delete=models.SET_NULL, null=True)
@@ -721,8 +721,8 @@ class AccessQueue(models.Model):
     object_identifier_value = models.CharField(max_length=255, blank=True)
     req_purpose = models.CharField(max_length=255)
     user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='access_queues')
-    ip = models.ForeignKey(InformationPackage, null=False, related_name='access_queues')
-    new_ip = models.ForeignKey(InformationPackage, null=True, related_name='access_queues_new_ip')
+    ip = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, null=False, related_name='access_queues')
+    new_ip = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, null=True, related_name='access_queues_new_ip')
     status = models.IntegerField(null=True, blank=True, default=0, choices=req_status_CHOICES)
     path = models.CharField(max_length=255)
     posted = models.DateTimeField(auto_now_add=True)

@@ -79,6 +79,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='eventip',
             name='linkingObjectIdentifierValue',
-            field=models.ForeignKey(related_name='events', to='ip.InformationPackage'),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='events', to='ip.InformationPackage'),
         ),
     ]
