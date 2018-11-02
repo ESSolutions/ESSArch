@@ -717,7 +717,12 @@ class InformationPackage(models.Model):
             if e.errno == errno.ENOENT:
                 raise exceptions.NotFound
 
-            if e.errno != errno.EISDIR:
+            # Windows raises PermissionDenied (errno.EACCES) when trying to use
+            # open() on a directory
+            if os.name == 'nt':
+                if e.errno not in (errno.EACCES, errno.EISDIR):
+                    raise
+            elif e.errno != errno.EISDIR:
                 raise
         except IndexError:
             if force_download:
@@ -752,7 +757,8 @@ class InformationPackage(models.Model):
                     try:
                         f = tar.extractfile(path)
                     except KeyError:
-                        f = tar.extractfile(os.path.join(self.object_identifier_value, path))
+                        full_path = normalize_path(os.path.join(self.object_identifier_value, path))
+                        f = tar.extractfile(full_path)
                     return six.BytesIO(f.read())
             except tarfile.ReadError:
                 logger.debug('Invalid tar file, trying zipfile instead')
@@ -761,7 +767,8 @@ class InformationPackage(models.Model):
                         try:
                             f = zipf.open(path)
                         except KeyError:
-                            f = zipf.open(os.path.join(self.object_identifier_value, path))
+                            full_path = normalize_path(os.path.join(self.object_identifier_value, path))
+                            f = zipf.open(full_path)
                         return six.BytesIO(f.read())
                 except zipfile.BadZipfile:
                     logger.debug('Invalid zip file')

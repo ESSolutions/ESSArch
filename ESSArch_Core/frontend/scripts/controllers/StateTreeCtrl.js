@@ -1,4 +1,4 @@
-angular.module('essarch.controllers').controller('StateTreeCtrl', function($scope, $translate, Step, Task, listViewService, appConfig, $timeout, $interval, PermPermissionStore, $q, $uibModal, $log, Notifications) {
+angular.module('essarch.controllers').controller('StateTreeCtrl', function($scope, $translate, Step, Task, listViewService, appConfig, $timeout, $interval, PermPermissionStore, $q, $uibModal, $log, Notifications, ErrorResponse) {
     var vm = this;
     var stateInterval;
     $scope.angular = angular;
@@ -361,11 +361,7 @@ angular.module('essarch.controllers').controller('StateTreeCtrl', function($scop
                     $scope.validationsLoading = false;
                     return resource;
                 }).catch(function (response) {
-                    if (response.data && response.data.detail) {
-                        Notifications.add(response.data.detail, 'error')
-                    } else if (response.status !== 500) {
-                        Notifications.add('Could not get validations', 'error')
-                    }
+                    ErrorResponse.default(response);
                     $scope.validationsLoading = false;
                     return response;
                 })

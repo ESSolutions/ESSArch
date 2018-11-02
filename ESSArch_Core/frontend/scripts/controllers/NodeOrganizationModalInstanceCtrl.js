@@ -1,4 +1,4 @@
-angular.module('essarch.controllers').controller('NodeOrganizationModalInstanceCtrl', function ($translate, $uibModalInstance, djangoAuth, appConfig, $http, data, $scope, Notifications, $timeout, Organization) {
+angular.module('essarch.controllers').controller('NodeOrganizationModalInstanceCtrl', function ($translate, $uibModalInstance, djangoAuth, appConfig, $http, data, $scope, Notifications, $timeout, Organization, ErrorResponse) {
     var $ctrl = this;
     $ctrl.node = data.node;
     $ctrl.saving = false;
@@ -22,11 +22,7 @@ angular.module('essarch.controllers').controller('NodeOrganizationModalInstanceC
             $ctrl.saving = false;
         }).catch(function (response) {
             $ctrl.saving = false;
-            if (response.data.detail) {
-                Notifications.add(response.data.detail, 'error');
-            } else {
-                Notifications.add('Unknown error', 'error');
-            }
+            ErrorResponse.default(response);
         })
     }
     $ctrl.cancel = function() {

@@ -494,13 +494,6 @@ class ProcessStep(MPTTModel, Process):
         ordering = ('parent_step_pos', 'time_created')
         get_latest_by = "time_created"
 
-        def __unicode__(self):
-            return '%s - %s - archiveobject:%s' % (
-                self.name,
-                self.id,
-                self.archiveobject.ObjectUUID
-            )
-
     class MPTTMeta:
         parent_attr = 'parent_step'
 

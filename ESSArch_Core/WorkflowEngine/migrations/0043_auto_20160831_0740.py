@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='processtask',
             name='processstep',
-            field=models.ForeignKey(related_name='tasks', blank=True, to='WorkflowEngine.ProcessStep', null=True),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='tasks', blank=True, to='WorkflowEngine.ProcessStep', null=True),
         ),
         migrations.AlterField(
             model_name='processtask',
