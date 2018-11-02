@@ -124,7 +124,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='StorageTargets',
+            name='StorageTarget',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('name', models.CharField(max_length=255, unique=True, verbose_name='Name')),
@@ -147,12 +147,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='storagemethodtargetrelation',
             name='storage_target',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='storage.StorageTargets'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='storage.StorageTarget'),
         ),
         migrations.AddField(
             model_name='storagemedium',
             name='storage_target',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='storage.StorageTargets'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='storage.StorageTarget'),
         ),
         migrations.AddField(
             model_name='ioqueue',
@@ -177,6 +177,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='ioqueue',
             name='storage_target',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='storage.StorageTargets'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='storage.StorageTarget'),
         ),
     ]

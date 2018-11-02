@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
                 ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
-                ('profileaip', models.ForeignKey(to='profiles.ProfileAIP')),
+                ('profileaip', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileAIP')),
             ],
             options={
                 'ordering': ['status'],
@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
                 ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
-                ('profileclassification', models.ForeignKey(to='profiles.ProfileClassification')),
+                ('profileclassification', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileClassification')),
             ],
             options={
                 'ordering': ['status'],
@@ -65,7 +65,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
                 ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
-                ('profilecontenttype', models.ForeignKey(to='profiles.ProfileContentType')),
+                ('profilecontenttype', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileContentType')),
             ],
             options={
                 'ordering': ['status'],
@@ -77,7 +77,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
                 ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
-                ('profiledataselection', models.ForeignKey(to='profiles.ProfileDataSelection')),
+                ('profiledataselection', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileDataSelection')),
             ],
             options={
                 'ordering': ['status'],
@@ -89,7 +89,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
                 ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
-                ('profiledip', models.ForeignKey(to='profiles.ProfileDIP')),
+                ('profiledip', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileDIP')),
             ],
             options={
                 'ordering': ['status'],
@@ -101,7 +101,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
                 ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
-                ('profileimport', models.ForeignKey(to='profiles.ProfileImport')),
+                ('profileimport', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileImport')),
             ],
             options={
                 'ordering': ['status'],
@@ -113,7 +113,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
                 ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
-                ('profilepreservationmetadata', models.ForeignKey(to='profiles.ProfilePreservationMetadata')),
+                ('profilepreservationmetadata', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfilePreservationMetadata')),
             ],
             options={
                 'ordering': ['status'],
@@ -125,7 +125,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
                 ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
-                ('profilesip', models.ForeignKey(to='profiles.ProfileSIP')),
+                ('profilesip', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileSIP')),
             ],
             options={
                 'ordering': ['status'],
@@ -137,7 +137,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
                 ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
-                ('profilesubmitdescription', models.ForeignKey(to='profiles.ProfileSubmitDescription')),
+                ('profilesubmitdescription', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileSubmitDescription')),
             ],
             options={
                 'ordering': ['status'],
@@ -149,7 +149,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
                 ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
-                ('profiletransferproject', models.ForeignKey(to='profiles.ProfileTransferProject')),
+                ('profiletransferproject', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileTransferProject')),
             ],
             options={
                 'ordering': ['status'],
@@ -161,7 +161,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
                 ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
-                ('profileworkflow', models.ForeignKey(to='profiles.ProfileWorkflow')),
+                ('profileworkflow', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileWorkflow')),
             ],
             options={
                 'ordering': ['status'],
@@ -259,56 +259,56 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='profileworkflowrel',
             name='submissionagreement',
-            field=models.ForeignKey(to='profiles.SubmissionAgreement'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='profiles.SubmissionAgreement'),
         ),
         migrations.AddField(
             model_name='profiletransferprojectrel',
             name='submissionagreement',
-            field=models.ForeignKey(to='profiles.SubmissionAgreement'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='profiles.SubmissionAgreement'),
         ),
         migrations.AddField(
             model_name='profilesubmitdescriptionrel',
             name='submissionagreement',
-            field=models.ForeignKey(to='profiles.SubmissionAgreement'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='profiles.SubmissionAgreement'),
         ),
         migrations.AddField(
             model_name='profilesiprel',
             name='submissionagreement',
-            field=models.ForeignKey(to='profiles.SubmissionAgreement'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='profiles.SubmissionAgreement'),
         ),
         migrations.AddField(
             model_name='profilepreservationmetadatarel',
             name='submissionagreement',
-            field=models.ForeignKey(to='profiles.SubmissionAgreement'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='profiles.SubmissionAgreement'),
         ),
         migrations.AddField(
             model_name='profileimportrel',
             name='submissionagreement',
-            field=models.ForeignKey(to='profiles.SubmissionAgreement'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='profiles.SubmissionAgreement'),
         ),
         migrations.AddField(
             model_name='profilediprel',
             name='submissionagreement',
-            field=models.ForeignKey(to='profiles.SubmissionAgreement'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='profiles.SubmissionAgreement'),
         ),
         migrations.AddField(
             model_name='profiledataselectionrel',
             name='submissionagreement',
-            field=models.ForeignKey(to='profiles.SubmissionAgreement'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='profiles.SubmissionAgreement'),
         ),
         migrations.AddField(
             model_name='profilecontenttyperel',
             name='submissionagreement',
-            field=models.ForeignKey(to='profiles.SubmissionAgreement'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='profiles.SubmissionAgreement'),
         ),
         migrations.AddField(
             model_name='profileclassificationrel',
             name='submissionagreement',
-            field=models.ForeignKey(to='profiles.SubmissionAgreement'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='profiles.SubmissionAgreement'),
         ),
         migrations.AddField(
             model_name='profileaiprel',
             name='submissionagreement',
-            field=models.ForeignKey(to='profiles.SubmissionAgreement'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='profiles.SubmissionAgreement'),
         ),
     ]

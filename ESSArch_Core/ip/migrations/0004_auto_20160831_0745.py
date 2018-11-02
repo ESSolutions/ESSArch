@@ -43,6 +43,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='informationpackage',
             name='SA',
-            field=models.ForeignKey(default=None, to='profiles.SubmissionAgreement', null=True),
+            field=models.ForeignKey(on_delete=models.CASCADE, default=None, to='profiles.SubmissionAgreement', null=True),
         ),
     ]

@@ -41,12 +41,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='ArchiveObject',
-            fields=[
-                ('ObjectUUID', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-            ],
-        ),
-        migrations.CreateModel(
             name='ProcessStep',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
@@ -58,7 +52,7 @@ class Migration(migrations.Migration):
                 ('status', models.IntegerField(blank=True, choices=[(-1, 'Undefined'), (0, 'Success'), (1, 'Error'), (2, 'Warning')], default=0)),
                 ('posted', models.DateTimeField(auto_now_add=True)),
                 ('hidden', models.BooleanField(default=False)),
-                ('archiveobject', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='WorkflowEngine.ArchiveObject')),
+                ('information_package', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='steps', to='ip.InformationPackage')),
             ],
             options={
                 'db_table': 'ProcessStep',
