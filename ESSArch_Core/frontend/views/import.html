@@ -1,0 +1,38 @@
+<div class="import">
+    <form ng-submit="vm.addProfileFromFile(vm.profileFromFile)">
+        <label class="btn btn-success" tabindex="0" ng-enter="vm.triggerProfileUpload()">
+            {{'IMPORT_PROFILE_FROM_FILE' | translate}}&nbsp;<i class="fas fa-upload"></i>
+            <input id="profile-upload" type="file" style="display: none;" fileread="vm.profileFromFile">
+        </label>
+    </form>
+    <br/>
+    <form name="saForm" ng-submit="vm.addSaFromFile(vm.saFromFile)">
+        <label class="btn btn-success" tabindex="0" ng-enter="vm.triggerSaUpload()">
+        {{'IMPORT_SA_FROM_FILE' | translate}}&nbsp;<i class="fas fa-upload"></i>
+            <input id="sa-upload" type="file" style="display: none;" fileread="vm.saFromFile">
+        </label>
+    </form>
+    <hr/>
+    <form name="vm.importSaForm"  ng-submit="vm.getSaProfiles()">
+        <label>
+            {{ "IMPORT_URL" | translate }}
+        </label>
+        <input class="form-control" ng-model="vm.url" type="url" ng-pattern="/^https?:\/\//" required />
+        <label>
+            {{ "USERNAME" | translate }}
+        </label>
+        <input class="form-control" ng-model="vm.user.username" required />
+        <label>
+            {{ "PASSWORD" | translate }}
+        </label>
+        <input class="form-control" ng-model="vm.user.password" type="password" required />
+        <div class="alert alert-danger" ng-if="error">{{error}}</div>
+        <button ng-disabled="vm.importSaForm.$invalid" class="btn btn-info" type="submit">{{'GET_SAS' | translate }}<span ng-if="vm.loadingSas">&nbsp;<i class="fas fa-spinner fa-spin"></i></span></button>
+    </form>
+    <div ng-if="vm.select" class="select-view">
+        <form ng-submit="vm.importSa(vm.saProfile.profile)">
+            <select class="form-control" focused="true" ng-model="vm.saProfile.profile" ng-options="x as x.name for x in vm.saProfile.profiles">{{ x }}</select>
+            <button class="btn btn-primary" type="submit" ng-disabled="!vm.saProfile.profile" style="margin-top: 5px;">{{'IMPORT_SA' | translate}}<span ng-if="vm.importingSa">&nbsp;<i class="fas fa-spinner fa-spin"></i></span></button>
+        </form>
+    </div>
+</div>
