@@ -172,7 +172,7 @@ angular.module('essarch.controllers').controller('NotificationsCtrl', function(a
             vm.frontendAlerts.unshift(alert);
         }
         if(vm.notificationsEnabled) {
-            var actions = (!angular.isUndefined(options.actions) && options.actions !== null) ? options.actions:null;
+            var actions = (options && !angular.isUndefined(options.actions) && options.actions !== null) ? options.actions:null;
             var post = {
                 message: message,
                 type: level,
