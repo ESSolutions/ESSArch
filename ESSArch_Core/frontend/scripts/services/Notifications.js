@@ -52,8 +52,8 @@ angular.module('essarch.services').factory('Notifications', function ($rootScope
          * @param level - level of alert, applies a class to the alert
          * @param time - Adds a duration to the alert
          */
-        add: function(message, level, time, actions) {
-            $rootScope.$broadcast('add_notification', { message: message, level: level, time: time, actions: actions});
+        add: function(message, level, time, options) {
+            $rootScope.$broadcast('add_notification', { message: message, level: level, time: time, options: options});
         },
         /**
          * Show alert
