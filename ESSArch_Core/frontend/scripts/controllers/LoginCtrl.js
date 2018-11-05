@@ -1,6 +1,7 @@
 angular.module('essarch.controllers').controller('LoginCtrl', function ($scope, $location, $window, $http, myService, $state, $stateParams, $rootScope, djangoAuth, Validate, PermRoleStore, PermPermissionStore){
     $scope.model = {'app': $rootScope.app, 'username':'','password':''};
     $scope.complete = false;
+    $scope.loggingIn = false;
     $scope.auth_services = [];
 
     $http({
@@ -14,8 +15,10 @@ angular.module('essarch.controllers').controller('LoginCtrl', function ($scope, 
         $scope.error = null;
         Validate.form_validation(formData,$scope.errors);
         if(!formData.$invalid){
+            $scope.loggingIn = true;
             djangoAuth.login($scope.model.username, $scope.model.password)
                 .then(function(data){
+                    $scope.loggingIn = false;
                     $rootScope.auth = data;
                     $rootScope.listViewColumns = myService.generateColumns(data.ip_list_columns).activeColumns;
                     PermPermissionStore.clearStore();
@@ -28,6 +31,7 @@ angular.module('essarch.controllers').controller('LoginCtrl', function ($scope, 
                         $state.go('home.info');
                     }
                 }).catch(function(response){
+                    $scope.loggingIn = false;
                     if(angular.isUndefined(response.status) && response.data === null) {
                         // When server does not respond
                         $scope.error = "No response from server";
