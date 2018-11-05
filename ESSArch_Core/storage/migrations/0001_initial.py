@@ -17,6 +17,7 @@ class Migration(migrations.Migration):
         ('configuration', '0006_archivepolicy'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('ip', '0029_auto_20170223_1116'),
+        ('WorkflowEngine', '0001_initial'),
     ]
 
     operations = [
@@ -178,5 +179,10 @@ class Migration(migrations.Migration):
             model_name='ioqueue',
             name='storage_target',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='storage.StorageTarget'),
+        ),
+        migrations.AddField(
+            model_name='ioqueue',
+            name='step',
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='WorkflowEngine.ProcessStep'),
         ),
     ]

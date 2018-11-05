@@ -16,16 +16,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterField(
             model_name='ioqueue',
-            name='task_id',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='io_queues', to='WorkflowEngine.ProcessTask'),
-        ),
-        migrations.AlterField(
-            model_name='ioqueue',
-            name='transfer_task_id',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='io_queues_transfer', to='WorkflowEngine.ProcessTask'),
-        ),
-        migrations.AlterField(
-            model_name='ioqueue',
             name='user',
             field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='io_queues', to=settings.AUTH_USER_MODEL),
         ),
