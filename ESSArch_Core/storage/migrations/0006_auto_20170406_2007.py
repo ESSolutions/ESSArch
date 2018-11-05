@@ -46,12 +46,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TapeDrive',
             fields=[
-                ('id', models.IntegerField(primary_key=True, serialize=False)),
+                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('device', models.CharField(max_length=255, unique=True)),
                 ('idle_time', models.DurationField(default=timedelta(hours=1))),
                 ('num_of_mounts', models.IntegerField(default=0)),
                 ('io_queue_entry', models.OneToOneField(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='tape_drive', to='storage.IOQueue')),
                 ('robot', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='tape_drives', to='storage.Robot')),
+                ('last_change', models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now)),
+                ('drive_id', models.IntegerField(default=1)),
+                ('status', models.IntegerField(choices=[(0, 'Inactive'), (20, 'Write'), (100, 'FAIL')], default=20)),
+                ('locked', models.BooleanField(default=False)),
             ],
         ),
         migrations.CreateModel(
@@ -61,10 +65,16 @@ class Migration(migrations.Migration):
                 ('slot_id', models.IntegerField()),
                 ('medium_id', models.CharField(max_length=255, unique=True, verbose_name='The id for the medium, e.g. barcode')),
                 ('robot', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='tape_slots', to='storage.Robot')),
+                ('status', models.IntegerField(choices=[(0, 'Inactive'), (20, 'Write'), (100, 'FAIL')], default=20)),
             ],
         ),
         migrations.AlterUniqueTogether(
             name='tapeslot',
             unique_together=set([('slot_id', 'robot')]),
+        ),
+        migrations.AddField(
+            model_name='robotqueue',
+            name='tape_drive',
+            field=models.ForeignKey(db_constraint=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='storage.TapeDrive'),
         ),
     ]

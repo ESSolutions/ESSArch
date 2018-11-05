@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('storage', '0014_tapedrive_locked'),
+        ('storage', '0010_auto_20170411_1801'),
     ]
 
     operations = [
