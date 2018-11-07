@@ -224,9 +224,7 @@ class XMLElement(object):
         if not self.contentIsEmpty(info):
             return False
 
-        any_attribute_with_value = any(value for value in self.el.attrib.values())
-
-        if any_attribute_with_value:
+        if len(self.el.attrib.keys()):
             return False
 
         return True
@@ -318,7 +316,7 @@ class XMLElement(object):
 
             if required and not content:
                 raise ValueError(u"Missing value for required attribute '{}' on element '{}'".format(name, self.get_path()))
-            elif content:
+            elif content or attr.allow_empty:
                 self.el.set(name, content)
 
         if self.external:
@@ -436,6 +434,7 @@ class XMLAttribute(object):
         self.namespace = template.get('-namespace')
         self.required = template.get('-req', False)
         self.content = template.get('#content')
+        self.allow_empty = template.get('-allowEmpty', False)
 
     def parse(self, info, nsmap=None):
         if nsmap is None:
@@ -446,7 +445,11 @@ class XMLAttribute(object):
         if self.namespace:
             name = "{%s}%s" % (nsmap.get(self.namespace), self.name)
 
-        return name, parseContent(self.content, info), self.required
+        content = parseContent(self.content, info)
+        if content is None and self.allow_empty:
+            content = ""
+
+        return name, content, self.required
 
 
 class XMLGenerator(object):

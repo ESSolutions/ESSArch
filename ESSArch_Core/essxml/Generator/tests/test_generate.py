@@ -198,6 +198,23 @@ class GenerateXMLTestCase(TestCase):
 
         self.assertFalse(os.path.exists(self.fname))
 
+    def test_generate_empty_element_with_empty_attribute_with_allow_empty_on_attribute(self):
+        specification = {
+            '-name': 'foo',
+            '-attr': [
+                {
+                    '-name': 'bar',
+                    '#content': [{'text': ''}],
+                    '-allowEmpty': True,
+                },
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        self.assertEqual(len(root.xpath('//foo[@bar=""]')), 1)
+
     def test_generate_multiple_element_same_name_same_level(self):
         specification = {
             '-name': "foo",
