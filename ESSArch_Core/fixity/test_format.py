@@ -1,34 +1,29 @@
-import os
-import shutil
-import tempfile
-
 import mock
 from django.test import TestCase
-from rest_framework.test import APIRequestFactory
 
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.fixity.format import FormatIdentifier
-from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.util import timestamp_to_datetime
 
 
 class FormatIdentifierMimeTypeTests(TestCase):
-    def test_default_list(self):
+    @mock.patch("ESSArch_Core.fixity.format.mimetypes.init")
+    def test_default_list(self, mock_mimetypes_init):
         fid = FormatIdentifier(allow_unknown_file_types=True)
-        self.assertEqual(fid.get_mimetype('foo.txt'), 'text/plain')
-        self.assertEqual(fid.get_mimetype('foo.zxc'), 'application/octet-stream')
+        fid._init_mimetypes()
+        mock_mimetypes_init.assert_called_once_with()
 
-    def test_gzipped_file(self):
+    @mock.patch(
+        "ESSArch_Core.fixity.format.mimetypes.guess_type",
+        return_value=('application/x-tar', 'gzip'))
+    def test_gzipped_file(self, mock_mimetypes_init):
         fid = FormatIdentifier(allow_unknown_file_types=True)
         self.assertEqual(fid.get_mimetype('foo.tar.gz'), 'application/gzip')
 
-    def test_custom_list(self):
-        f = tempfile.NamedTemporaryFile(delete=False)
-        f.write(b'text/plain zxc')
-        f.seek(0)
-        f.close()
-        path = f.name
-        mimetypes_file = Path.objects.create(entity="path_mimetypes_definitionfile", value=path)
+    @mock.patch("ESSArch_Core.fixity.format.mimetypes.init")
+    def test_custom_list(self, mock_mimetypes_init):
+        mimetypes_file = Path.objects.create(
+            entity="path_mimetypes_definitionfile", value='path/to/mime.types')
         fid = FormatIdentifier(allow_unknown_file_types=True)
-        self.assertEqual(fid.get_mimetype('foo.zxc'), 'text/plain')
-        self.assertEqual(fid.get_mimetype('foo.txt'), 'application/octet-stream')
+        fid._init_mimetypes()
+        mock_mimetypes_init.assert_called_once_with(
+            files=[mimetypes_file.value])
