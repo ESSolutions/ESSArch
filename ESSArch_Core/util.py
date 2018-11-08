@@ -37,8 +37,10 @@ import sys
 import tarfile
 import zipfile
 
+import chardet
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
+from django.conf import settings
 from django.core.cache import cache
 from django.utils.timezone import get_current_timezone
 from django.core.validators import RegexValidator
@@ -525,13 +527,19 @@ def validate_remote_url(url):
     validate = RegexValidator(regex, 'Enter a valid URL with credentials.')
     validate(url)
 
+def get_charset(byte_str):
+    return chardet.detect(byte_str)['encoding'] or settings.DEFAULT_CHARSET
 
 def generate_file_response(file_obj, content_type, force_download=False, name=None):
+    charset = get_charset(file_obj.read(128))
+    file_obj.seek(0)
+
+    content_type = u'{}; charset={}'.format(content_type, charset)
     response = FileResponse(file_obj, content_type=content_type)
 
     filename = getattr(file_obj, 'name', None)
     filename = filename if (isinstance(filename, str) and filename) else name
-    filename = os.path.basename(filename)
+    filename = os.path.basename(filename) if filename is not None else name
 
     if filename:
         try:
@@ -539,12 +547,13 @@ def generate_file_response(file_obj, content_type, force_download=False, name=No
             file_expr = u'filename="{}"'.format(filename)
         except (UnicodeEncodeError, UnicodeDecodeError):
             file_expr = u"filename*=utf-8''{}".format(six.moves.urllib.parse.quote(filename))
+        response['Content-Disposition'] = u'inline; {}'.format(file_expr)
 
-    response['Content-Disposition'] = u'inline; {}'.format(file_expr)
     if force_download or content_type is None:
         if content_type is None:
             response['Content-Type'] = 'application/octet-stream'
-        response['Content-Disposition'] = u'attachment; {}'.format(file_expr)
+        if filename:
+            response['Content-Disposition'] = u'attachment; {}'.format(file_expr)
 
     # disable caching, required for Firefox to be able to load large files multiple times
     # see https://bugzilla.mozilla.org/show_bug.cgi?id=1436593
