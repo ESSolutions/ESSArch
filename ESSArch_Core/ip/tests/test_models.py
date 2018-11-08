@@ -7,12 +7,12 @@ from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 
 from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.util import timestamp_to_datetime
+from ESSArch_Core.util import normalize_path, timestamp_to_datetime
 
 
 class InformationPackageListFilesTests(TestCase):
     def setUp(self):
-        self.datadir = tempfile.mkdtemp()
+        self.datadir = normalize_path(tempfile.mkdtemp())
         self.ip = InformationPackage.objects.create(object_path=self.datadir)
 
         self.addCleanup(shutil.rmtree, self.datadir)
@@ -35,7 +35,7 @@ class InformationPackageListFilesTests(TestCase):
 
 class GetPathResponseTests(TestCase):
     def setUp(self):
-        self.datadir = tempfile.mkdtemp()
+        self.datadir = normalize_path(tempfile.mkdtemp())
         self.ip = InformationPackage.objects.create(object_path=self.datadir)
         self.request = APIRequestFactory()
 
@@ -81,3 +81,26 @@ class GetPathResponseTests(TestCase):
         mocked_file = mock_open_file.return_value
         mocked_mimetype = mock_fid.return_value.get_mimetype.return_value
         mock_gen_file_resp.assert_called_once_with(mocked_file, mocked_mimetype, force_download=False, name=relpath)
+
+
+class GetPathResponseContainerTests(TestCase):
+    def setUp(self):
+        self.file = tempfile.NamedTemporaryFile(delete=False)
+        self.file.close()
+        self.file = normalize_path(self.file.name)
+        self.ip = InformationPackage.objects.create(object_path=self.file)
+        self.request = APIRequestFactory()
+
+        self.addCleanup(os.remove, self.file)
+
+    @mock.patch('ESSArch_Core.ip.models.InformationPackage.open_file')
+    @mock.patch('ESSArch_Core.ip.models.InformationPackage.list_files')
+    @mock.patch('ESSArch_Core.ip.models.FormatIdentifier')
+    def test_list_files_in_ip_container(self, mock_fid, mock_list_files, mock_open_file):
+        path = os.path.basename(self.file)
+        response = self.ip.get_path_response(path, self.request)
+        response.close()
+
+        mocked_file = mock_open_file.return_value
+        mocked_mimetype = mock_fid.return_value.get_mimetype.return_value
+        mock_list_files.assert_called_once_with(path)
