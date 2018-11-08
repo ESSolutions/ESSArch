@@ -52,8 +52,6 @@ class GenerateXMLTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.bd = os.path.dirname(os.path.realpath(__file__))
-        Path.objects.create(entity="path_mimetypes_definitionfile", value=os.path.join(cls.bd, "mime.types"))
-
         cls.generator = XMLGenerator()
 
     @classmethod
@@ -2257,8 +2255,6 @@ class ExternalTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.bd = os.path.dirname(os.path.realpath(__file__))
-        Path.objects.create(entity="path_mimetypes_definitionfile", value=os.path.join(cls.bd, "mime.types"))
-
         cls.generator = XMLGenerator()
 
     @classmethod
