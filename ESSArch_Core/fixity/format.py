@@ -35,7 +35,7 @@ class FormatIdentifier:
             mimetypes_file = Path.objects.get(
                 entity="path_mimetypes_definitionfile"
             ).value
-            if mimetypes_file:
+            if os.path.isfile(mimetypes_file):
                 mimetypes.suffix_map = {}
                 mimetypes.encodings_map = {}
                 mimetypes.types_map = {}
