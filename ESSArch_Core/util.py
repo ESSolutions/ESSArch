@@ -528,7 +528,18 @@ def validate_remote_url(url):
     validate(url)
 
 def get_charset(byte_str):
-    return chardet.detect(byte_str)['encoding'] or settings.DEFAULT_CHARSET
+    charsets = [settings.DEFAULT_CHARSET, 'utf-8', 'windows-1252']
+    for c in sorted(set(charsets), key=charsets.index):
+        logger.debug(u'Trying to decode response in {}'.format(c))
+        try:
+            byte_str.decode(c)
+        except UnicodeDecodeError:
+            logger.exception(u'Failed to decode response in {}'.format(c))
+        else:
+            logger.info(u'Decoded response in {}'.format(c))
+            return c
+
+    return chardet.detect(byte_str)['encoding']
 
 def generate_file_response(file_obj, content_type, force_download=False, name=None):
     charset = get_charset(file_obj.read(128))
