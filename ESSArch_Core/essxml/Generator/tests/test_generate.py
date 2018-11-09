@@ -47,14 +47,7 @@ class GenerateXMLTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         super(GenerateXMLTestCase, cls).setUpClass()
-        cls.patcher = mock.patch('ESSArch_Core.essxml.Generator.xmlGenerator.FormatIdentifier._get_mimetypes')
-        cls.patcher.start()
-
         cls.generator = XMLGenerator()
-
-    @classmethod
-    def tearDownClass(cls):
-        mock.patch.stopall()
 
     def setUp(self):
         self.bd = tempfile.mkdtemp()
@@ -180,6 +173,23 @@ class GenerateXMLTestCase(TestCase):
             self.generator.generate({self.fname: {'spec': specification}})
 
         self.assertFalse(os.path.exists(self.fname))
+
+    def test_generate_empty_element_with_empty_attribute_with_allow_empty_on_attribute(self):
+        specification = {
+            '-name': 'foo',
+            '-attr': [
+                {
+                    '-name': 'bar',
+                    '#content': [{'text': ''}],
+                    '-allowEmpty': True,
+                },
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        self.assertEqual(len(root.xpath('//foo[@bar=""]')), 1)
 
     def test_generate_multiple_element_same_name_same_level(self):
         specification = {
@@ -2223,14 +2233,7 @@ class ExternalTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         super(ExternalTestCase, cls).setUpClass()
-        cls.patcher = mock.patch('ESSArch_Core.essxml.Generator.xmlGenerator.FormatIdentifier._get_mimetypes')
-        cls.patcher.start()
-
         cls.generator = XMLGenerator()
-
-    @classmethod
-    def tearDownClass(cls):
-        mock.patch.stopall()
 
     def setUp(self):
         self.bd = tempfile.mkdtemp()

@@ -148,9 +148,6 @@ class FormatValidatorTests(TestCase):
         self.test_file.seek(0)
         self.test_file.close()
 
-        mimetypes_path = os.path.join(os.path.dirname(Generator.__file__), 'mime.types')
-        Path.objects.create(entity="path_mimetypes_definitionfile", value=mimetypes_path)
-
         fid = FormatIdentifier()
         self.expected = fid.identify_file_format(self.test_file.name)
 
@@ -433,8 +430,6 @@ class StructureValidatorTests(TestCase):
 class DiffCheckValidatorTests(TestCase):
     @classmethod
     def setUpClass(cls):
-        mimetypes_path = os.path.join(os.path.dirname(Generator.__file__), 'mime.types')
-        Path.objects.create(entity="path_mimetypes_definitionfile", value=mimetypes_path)
         cls.generator = XMLGenerator()
 
     @classmethod
@@ -823,8 +818,6 @@ class DiffCheckValidatorTests(TestCase):
 class XMLComparisonValidatorTests(TestCase):
     @classmethod
     def setUpClass(cls):
-        mimetypes_path = os.path.join(os.path.dirname(Generator.__file__), 'mime.types')
-        Path.objects.create(entity="path_mimetypes_definitionfile", value=mimetypes_path)
         cls.generator = XMLGenerator()
 
     @classmethod

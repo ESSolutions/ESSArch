@@ -16,12 +16,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='storagemedium',
             name='tape_drive',
-            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='storage_medium', to='storage.TapeDrive'),
+            field=models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='storage_medium', to='storage.TapeDrive'),
         ),
         migrations.AddField(
             model_name='storagemedium',
             name='tape_slot',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.PROTECT, related_name='storage_medium', to='storage.TapeSlot'),
+            field=models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='storage_medium', to='storage.TapeSlot'),
             preserve_default=False,
         ),
     ]

@@ -202,9 +202,14 @@
 .messenger-message {
     &.message {
         margin-top: 0px !important;
+        white-space: pre-wrap;
+    }
+    .messenger-actions {
+        a {
+            text-transform: none !important;
+        }
     }
 }
-
 // Override Alert colors
 
 ul.messenger-theme-flat .messenger-message.alert-success .messenger-message-inner:before {

@@ -65,9 +65,7 @@ class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def report(self, request, pk=None):
         path = self.get_object()._get_report_directory()
         path = os.path.join(path, pk + '.pdf')
-
-        with open(path) as pdf:
-            return generate_file_response(pdf, 'application/pdf')
+        return generate_file_response(open(path, 'rb'), 'application/pdf')
 
 
 class AppraisalRuleViewSet(MaintenanceRuleViewSet):
