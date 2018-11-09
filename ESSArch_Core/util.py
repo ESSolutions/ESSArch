@@ -25,6 +25,7 @@
 from __future__ import absolute_import
 
 import errno
+import glob
 import inspect
 import itertools
 import json
@@ -49,11 +50,13 @@ from django.http.response import FileResponse
 from datetime import datetime
 
 from lxml import etree
+from natsort import natsorted
 
 from scandir import scandir, walk
 
 from subprocess import Popen, PIPE
 
+from ESSArch_Core.exceptions import NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
 
 import six
@@ -673,6 +676,16 @@ def list_files(path, force_download=False, request=None, paginator=None):
 
     raise NotFound
 
+def merge_file_chunks(path):
+    chunks = natsorted(glob.glob('%s_*' % re.sub(r'([\[\]])', '[\\1]', path)))
+    if len(chunks) == 0:
+        raise NoFileChunksFound
+
+    with open(path, 'wb') as f:
+        for chunk_file in chunks:
+            with open(chunk_file, 'rb') as cf:
+                f.write(cf.read())
+            os.remove(chunk_file)
 
 def turn_off_auto_now(ModelClass, field_name):
     def auto_now_off(field):
