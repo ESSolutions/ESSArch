@@ -81,7 +81,7 @@ class EardErmsImporter(BaseImporter):
 
         tag = Tag(information_package=ip)
         tag_version = TagVersion(pk=d.meta.id, tag=tag,
-                                 elastic_index=d.meta.index,
+                                 elastic_index=d._index._name,
                                  name=d.name, type=d.type,
                                  reference_code='')
         tag_repr = TagStructure(tag=tag, parent=parent, structure=parent.structure, tree_id=parent.tree_id, lft=0, rght=0, level=0)
@@ -334,7 +334,7 @@ class EardErmsImporter(BaseImporter):
 
             tag = Tag(information_package=ip)
             tag_version = TagVersion(pk=act.meta.id, tag=tag,
-                                     elastic_index=act.meta.index,
+                                     elastic_index=act._index._name,
                                      name=act.name, type=act.type,
                                      reference_code=act.reference_code)
             tag_repr = TagStructure(tag=tag, parent=parent, structure=parent.structure, tree_id=parent.tree_id, lft=0, rght=0, level=0)
@@ -435,7 +435,7 @@ class EardErmsImporter(BaseImporter):
             component.archive = str(archive.pk)
             tag = Tag(information_package=ip)
             tag_version = TagVersion(pk=component.meta.id, tag=tag,
-                                     elastic_index=component.meta.index,
+                                     elastic_index=component._index._name,
                                      name=component.name, type=component.type,
                                      reference_code=component.reference_code)
             parent = self.get_tag_structure(component.parent.id)
