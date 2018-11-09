@@ -233,7 +233,7 @@ class DBTask(Task):
 
         time_done = timezone.now()
         tb = einfo.traceback
-        exception = "%s: %s" % (einfo.type.__name__, einfo.exception)
+        exception = u"%s: %s" % (einfo.type.__name__, einfo.exception)
 
         try:
             ProcessTask.objects.filter(pk=task_id).update(
