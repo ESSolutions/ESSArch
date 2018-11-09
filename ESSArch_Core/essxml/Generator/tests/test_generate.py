@@ -24,7 +24,6 @@
 """
 
 import datetime
-import mock
 import os
 import re
 import shutil
