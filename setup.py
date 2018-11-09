@@ -131,6 +131,7 @@ if __name__ == '__main__':
             "celery==4.2.1",
             "cffi==1.11.5",
             "channels==1.1.8",
+            "chardet>=3.0.2,<3.1.0",
             "crontab==0.22.2",
             "django>=1.11,<1.12",
             "django-cors-headers==2.4.0",
