@@ -64,3 +64,10 @@
     display: flex;
     flex-direction: column;
 }
+
+.d-lg-none {
+    display: block;
+    @include large-screen-up {
+        display: none;
+    }
+}
