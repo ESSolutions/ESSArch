@@ -19,7 +19,6 @@ DEFAULT_MIMETYPE = 'application/octet-stream'
 
 class FormatIdentifier:
     _fido = None
-    _mimetypes = None
 
     def __init__(self, allow_unknown_file_types=False):
         self.allow_unknown_file_types = allow_unknown_file_types

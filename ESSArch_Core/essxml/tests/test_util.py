@@ -39,15 +39,11 @@ from ESSArch_Core.essxml.util import (find_file, find_files, get_agent,
 
 class FindFilesTestCase(TestCase):
     def setUp(self):
-        self.bd = os.path.dirname(os.path.realpath(__file__))
+        self.bd = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.bd)
+
         self.datadir = os.path.join(self.bd, "datafiles")
         os.mkdir(self.datadir)
-
-    def tearDown(self):
-        try:
-            shutil.rmtree(self.datadir)
-        except:
-            pass
 
     def test_empty(self):
         xmlfile = os.path.join(self.datadir, "test.xml")
@@ -157,15 +153,11 @@ class FindFilesTestCase(TestCase):
 
 class FindFileTestCase(TestCase):
     def setUp(self):
-        self.bd = os.path.dirname(os.path.realpath(__file__))
+        self.bd = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.bd)
+
         self.datadir = os.path.join(self.bd, "datafiles")
         os.mkdir(self.datadir)
-
-    def tearDown(self):
-        try:
-            shutil.rmtree(self.datadir)
-        except:
-            pass
 
     def test_files_file_element(self):
         xmlfile = os.path.join(self.datadir, "test.xml")
