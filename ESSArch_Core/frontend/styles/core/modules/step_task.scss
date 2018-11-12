@@ -3,15 +3,6 @@
     min-width: 60px;
 }
 
-.tree-grid {
-    td {
-        span {
-            text-overflow: ellipsis;
-        }
-        max-width: 350px;
-    }
-}
-
 .step-state {
     padding-top: 0 !important;
 }
@@ -46,15 +37,17 @@
     min-width: 55px;
     text-align: center;
     background-color: $step-in-progress;
-    padding: 3px 10px;
+    padding: 6px 10px;
     font-size: 9px;
-    border-radius: 5px;
+    border-radius: 0px;
     box-shadow: 0px 1px 0px rgba(0,0,0,.15);
 }
 
 .status-tree-grid {
     padding: 5px;
     margin: 5px;
+    display: flex;
+    flex-direction: column;
 }
 
 .empty-step {
@@ -97,4 +90,64 @@
 .traceback {
     max-height: 500px;
     overflow-y: auto;
+}
+
+.tree-grid {
+    overflow-x: auto;
+    width: 100%;
+}
+.tree-grid-row {
+    td {
+        span, div, .tree-label {
+            white-space: nowrap;
+        }
+    }
+}
+
+.state-tree-table-head {
+    padding-bottom: 10px;
+    padding-top: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.tree-grid  {
+    .indented {
+        position: relative;
+        left: 0 !important;
+    }
+    .level-1 td:nth-child(1) {
+        padding-left: 3px !important;
+    }
+    .level-2 td:nth-child(1) {
+        padding-left: 23px !important;
+    }
+
+    .level-3 td:nth-child(1) {
+        padding-left: 43px !important;
+    }
+
+    .level-4 td:nth-child(1) {
+        padding-left: 63px !important;
+    }
+
+    .level-5 td:nth-child(1) {
+        padding-left: 83px !important;
+    }
+
+    .level-6 td:nth-child(1) {
+        padding-left: 103px !important;
+    }
+
+    .level-7 td:nth-child(1) {
+        padding-left: 123px !important;
+    }
+
+    .level-8 td:nth-child(1) {
+        padding-left: 143px !important;
+    }
+
+    .level-9 td:nth-child(1) {
+        padding-left: 163px !important;
+    }
 }
