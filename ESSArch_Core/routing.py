@@ -1,8 +1,13 @@
-from channels.routing import route
-from ESSArch_Core.consumers import ws_add, ws_message, ws_disconnect
+from channels.auth import AuthMiddlewareStack
+from channels.routing import ProtocolTypeRouter, URLRouter
 
-channel_routing = [
-    route("websocket.connect", ws_add),
-    route("websocket.receive", ws_message),
-    route("websocket.disconnect", ws_disconnect),
-]
+import ESSArch_Core.auth.routing as essauth_routing
+
+
+application = ProtocolTypeRouter({
+    'websocket': AuthMiddlewareStack(
+        URLRouter(
+            essauth_routing.websocket_urlpatterns
+        )
+    ),
+})
