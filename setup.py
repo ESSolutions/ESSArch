@@ -165,7 +165,7 @@ if __name__ == '__main__':
             "retrying==1.3.3",
             "scandir==1.9.0",
             "six==1.10.0",
-            "weasyprint==0.42.3",
+            "weasyprint==43",
         ],
         extras_require={
             "docs": ["sphinx==1.8.1", "sphinx-intl==0.9.11",
