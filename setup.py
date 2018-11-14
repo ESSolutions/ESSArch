@@ -170,7 +170,7 @@ if __name__ == '__main__':
         extras_require={
             "docs": ["sphinx==1.8.1", "sphinx-intl==0.9.11",
                 "sphinx-rtd-theme==0.4.1", "sphinxcontrib-httpdomain==1.7.0",
-                "sphinxcontrib-httpexample==0.9.1",
+                "sphinxcontrib-httpexample==0.10.0",
                 "sphinxcontrib-inlinesyntaxhighlight==0.2"],
             "tests": ["fakeredis==0.14.0"],
             "s3":  ["boto3==1.9.14"],
