@@ -501,13 +501,26 @@ def mptt_to_dict(node, serializer):
 
 def convert_file(path, new_format):
     cmd = 'unoconv -f %s -eSelectPdfVersion=1 "%s"' % (new_format, path)
+    logger.info(cmd)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
 
     if p.returncode:
-        raise ValueError('%s, return code: %s' % (err, p.returncode))
+        msg = '%s, return code: %s' % (err, p.returncode)
+        raise ValueError(msg)
 
-    return out
+    new_path = os.path.splitext(path)[0] + '.' + new_format
+    new_path = normalize_path(new_path)
+    if not os.path.isfile(new_path):
+        raise ValueError('No file created')
+
+    if out:
+        msg = '%s, return code: %s' % (out, p.returncode)
+    else:
+        msg = 'return code: %s' % (p.returncode,)
+
+    logger.info('unoconv completed without error: %s' % (msg,))
+    return new_path
 
 def in_directory(path, directory):
     '''
