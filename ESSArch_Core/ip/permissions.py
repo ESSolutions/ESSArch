@@ -42,6 +42,16 @@ class IsResponsible(permissions.IsAuthenticated):
         return self.is_responsible(request, obj)
 
 
+class IsResponsibleOrCanSeeAllFiles(permissions.IsAuthenticated):
+    message = "You are not allowed to see files in this IP"
+
+    def is_responsible(self, request, obj):
+        return obj.responsible == request.user
+
+    def has_object_permission(self, request, view, obj):
+        return self.is_responsible(request, obj) or request.user.has_perm('ip.see_other_user_ip_files', obj)
+
+
 class IsResponsibleOrReadOnly(IsResponsible):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:

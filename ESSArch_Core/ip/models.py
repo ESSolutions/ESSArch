@@ -809,6 +809,7 @@ class InformationPackage(models.Model):
             ('delete_last_generation', 'Can delete last generation of IP'),
             ('delete_archived', 'Can delete archived IP'),
             ('see_all_in_workspaces', 'Can see all IPs workspaces'),
+            ('see_other_user_ip_files', 'Can see files in other users IPs'),
         )
 
     def __str__(self):
