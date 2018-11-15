@@ -178,6 +178,7 @@ if __name__ == '__main__':
             "saml2":  ["djangosaml2>=0.17,<0.18"],
             "libreoffice_file_conversion":  ["unoconv>=0.8,<0.9"],
             "ms_office_file_conversion":  ["comtypes>=1.1,<1.2;platform_system=='Windows'"],
+            "iis": ["wfastcgi==3.0.0"],
             "mssql": ["django-pyodbc-azure==1.11.15.0"],
             "mysql": ["mysqlclient==1.3.13"],
             "postgres": ["psycopg2==2.7.5"],
