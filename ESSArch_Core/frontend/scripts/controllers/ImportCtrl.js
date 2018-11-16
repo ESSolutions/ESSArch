@@ -69,6 +69,14 @@ angular.module('essarch.controllers').controller('ImportCtrl', function($q, $roo
             }
         }
         $q.all(promises).then(function () {
+            if(vm.types && !angular.isUndefined(vm.types)) {
+                var pattern = new RegExp("^profile_(?!(" + vm.types.join("|") + ")$)");
+                for (var key in sa) {
+                    if (pattern.test(key)) {
+                        delete sa[key];
+                    }
+                }
+            }
             SA.new(sa).$promise.then(function (resource) {
                 Notifications.add($translate.instant('SA_IMPORTED', resource), "success", 5000, {isHtml: true});
                 vm.select = false;
