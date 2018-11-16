@@ -1,5 +1,5 @@
 <div class="modal-heading step-info-modal-head">
-    <h3 class="modal-title" id="modal-title">{{('STEPREPORTFOR' | translate)+ ' ' +currentStepTask.name}}</h3>
+    <h3 class="modal-title" id="modal-title">{{currentStepTask.name}}</h3>
     <div class="refresh-icon">
         <span ng-click="getStep(currentStepTask)" class="clickable angular-animate fas fa-sync-alt fa-lg" ng-class="{'fa-sync-alt-animate': stepTaskLoading }" uib-popover="{{'REFRESH' | translate}}"  popover-placement="left" popover-popup-delay="500" popover-append-to-body="true"></span>
     </div>
@@ -18,19 +18,14 @@
         <br>
         <table class="table" style="margin: 5px;">
             <tbody>
-                <tr ng-if="currentStepTask.status == 'SUCCESS'">
-                    <td><b>{{('RESULT' | translate)+':'}}</b>
-                        {{currentStepTask.result}}
-                    </td>
-                </tr>
-                <tr ng-if="currentStepTask.status == 'FAILURE'">
-                    <td><b>{{('EXCEPTION' | translate)+':'}}</b>
+                <tr ng-if="currentStepTask.status == 'FAILURE' && currentStepTask.exception !== null && currentStepTask.exception !== ''">
+                    <td><b>{{('ERROR' | translate)+':'}}</b>
                         {{currentStepTask.exception}}
                     </td>
                 </tr>
             </tbody>
         </table>
-        <button ng-if="currentStepTask.status == 'FAILURE'" class="btn btn-default" ng-click="tracebackModal(currentStepTask)">{{'SEETRACEBACK' | translate}}</button>
+        <button ng-if="currentStepTask.status == 'FAILURE' && currentStepTask.traceback !== null && currentStepTask.traceback !== ''" class="btn btn-default" ng-click="tracebackModal(currentStepTask)">{{'SEETRACEBACK' | translate}}</button>
     </div>
 </div>
 <div class="modal-footer">
