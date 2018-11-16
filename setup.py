@@ -158,7 +158,7 @@ if __name__ == '__main__':
             "natsort==5.4.1",
             "opf-fido==1.3.7",
             "pyfakefs==3.4.3",
-            "pywin32==224;platform_system=='Windows'";
+            "pywin32==224;platform_system=='Windows'",
             "redis==2.10.6",
             "regex==2018.08.29",
             "requests==2.20.0",
