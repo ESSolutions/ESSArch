@@ -136,7 +136,7 @@ if __name__ == '__main__':
             "daphne==2.2.3",
             "django>=1.11,<1.12",
             "django-cors-headers==2.4.0",
-            "django-filter==1.1",
+            "django-filter==2.0",
             "django-groups-manager==0.6.0",
             "django-guardian==1.4.9",
             "django-jsonfield==1.0.1",
