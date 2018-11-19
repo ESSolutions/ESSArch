@@ -6,7 +6,7 @@ from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
 
 
 class AgentFilter(filters.FilterSet):
-    ip_state = ListFilter(name='information_packages__state', distinct=True)
+    ip_state = ListFilter(field_name='information_packages__state', distinct=True)
 
     class Meta:
         model = Agent
@@ -14,13 +14,13 @@ class AgentFilter(filters.FilterSet):
 
 
 class InformationPackageFilter(filters.FilterSet):
-    agents = ListFilter(name='agents__pk', label='Agent is in')
+    agents = ListFilter(field_name='agents__pk', label='Agent is in')
     archivist_organization = ListFilter(label='Archivist Organization is in', method='filter_archivist_organization')
-    responsible = ListFilter(name='responsible__username')
-    state = ListFilter(name='state')
-    object_identifier_value = ListFilter(name='object_identifier_value')
-    label = ListFilter(name='label')
-    object_size = filters.RangeFilter(name='object_size')
+    responsible = ListFilter(field_name='responsible__username')
+    state = ListFilter(field_name='state')
+    object_identifier_value = ListFilter(field_name='object_identifier_value')
+    label = ListFilter(field_name='label')
+    object_size = filters.RangeFilter(field_name='object_size')
     start_date = IsoDateTimeFromToRangeFilter()
     end_date = IsoDateTimeFromToRangeFilter()
     create_date = IsoDateTimeFromToRangeFilter()

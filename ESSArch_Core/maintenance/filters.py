@@ -19,7 +19,7 @@ class MaintenanceRuleFilter(filters.FilterSet):
 
 
 class MaintenanceJobFilter(filters.FilterSet):
-    end_date__isnull = filters.BooleanFilter(name='end_date', lookup_expr='isnull')
+    end_date__isnull = filters.BooleanFilter(field_name='end_date', lookup_expr='isnull')
 
     class Meta:
         fields = ['start_date', 'end_date', 'status']
