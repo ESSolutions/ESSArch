@@ -90,7 +90,7 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
     serializer_class = ProcessStepSerializer
     permission_classes = (DjangoModelPermissions,)
     filter_backends = (DjangoFilterBackend,)
-    filter_class = ProcessStepFilter
+    filterset_class = ProcessStepFilter
 
     def get_queryset(self):
         user = self.request.user
@@ -125,7 +125,7 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = ProcessTaskSerializer
     permission_classes = (DjangoModelPermissions,)
     filter_backends = (DjangoFilterBackend,)
-    filter_class = ProcessTaskFilter
+    filterset_class = ProcessTaskFilter
 
     def get_queryset(self):
         user = self.request.user

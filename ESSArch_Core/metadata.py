@@ -15,11 +15,11 @@ class CustomMetadata(SimpleMetadata):
         metadata['workflow_pollers'] = AVAILABLE_POLLERS.keys()
 
         filters = OrderedDict()
-        if not hasattr(view, 'filter_class'):
+        if not hasattr(view, 'filterset_class'):
             # This route has no filter
             return metadata
 
-        for filter_name, filter_type in view.filter_class.base_filters.items():
+        for filter_name, filter_type in view.filterset_class.base_filters.items():
             filter_parts = filter_name.split('__')
             filter_name = filter_parts[0]
             attrs = OrderedDict()

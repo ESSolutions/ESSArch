@@ -28,7 +28,7 @@ class AgentViewSet(viewsets.ModelViewSet):
     queryset = Agent.objects.all()
     serializer_class = AgentSerializer
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,)
-    filter_class = AgentFilter
+    filterset_class = AgentFilter
 
 
 class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -38,7 +38,7 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = EventIP.objects.all()
     serializer_class = EventIPSerializer
     permission_classes = (DjangoModelPermissions,)
-    filter_class = EventIPFilter
+    filterset_class = EventIPFilter
     filter_backends = (
         filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
     )
@@ -191,7 +191,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         'responsible__last_name', 'responsible__username', 'state',
         'submission_agreement__name', 'start_date', 'end_date',
     )
-    filter_class = InformationPackageFilter
+    filterset_class = InformationPackageFilter
 
     def get_permissions(self):
         if self.action in ['partial_update', 'update']:
