@@ -139,6 +139,10 @@ class ProcessStep(MPTTModel, Process):
     def get_pos(self):
         return self.parent_step_pos
 
+    def get_descendants_tasks(self):
+        steps = self.get_descendants(include_self=True)
+        return ProcessTask.objects.filter(processstep__in=steps)
+
     def add_tasks(self, *tasks):
         self.clear_cache()
         self.tasks.add(*tasks)
