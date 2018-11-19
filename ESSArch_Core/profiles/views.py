@@ -28,7 +28,7 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
     serializer_class = SubmissionAgreementSerializer
     permission_classes = (DjangoModelPermissions,)
     filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('published',)
+    filterset_fields = ('published',)
 
     @detail_route()
     def profiles(self, request, pk=None):
@@ -67,7 +67,7 @@ class ProfileIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = ProfileIP.objects.all()
 
     filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('ip', 'profile', 'profile__profile_type')
+    filterset_fields = ('ip', 'profile', 'profile__profile_type')
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
