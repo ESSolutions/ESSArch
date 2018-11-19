@@ -1,5 +1,5 @@
 <div class="modal-heading task-info-modal-head">
-    <h3 class="modal-title" id="modal-title">{{('TASKREPORTFOR' | translate)+ ' ' +currentStepTask.label}}</h3>
+    <h3 class="modal-title" id="modal-title">{{currentStepTask.label}}</h3>
     <div class="refresh-icon">
         <span ng-click="getTask(currentStepTask)" class="clickable angular-animate fas fa-sync-alt fa-lg" ng-class="{'fa-sync-alt-animate': stepTaskLoading }" uib-popover="{{'REFRESH' | translate}}"  popover-placement="left" popover-popup-delay="500" popover-append-to-body="true"></span>
     </div>
@@ -23,7 +23,7 @@
                 <tr>
                     <td>
                         <div style="max-height: 300px; overflow-y:auto;">
-                            <b>{{('ARGS' | translate)}}:</b>
+                            <b>{{('ARGUMENTS' | translate)}}:</b>
                             <table class="table">
                                 <tbody>
                                     {{vm.getArgsString(currentStepTask.args)}}
@@ -31,7 +31,7 @@
                             </table>
                         </div>
                         <div style="max-height:300px; overflow-y:auto;">
-                            <b>{{('PARAMS' | translate)+':'}}</b>
+                            <b>{{('PARAMETERS' | translate)+':'}}</b>
                             <table class="table">
                                 <tbody>
                                     <tr ng-repeat="(key, value) in currentStepTask.params track by $index">
@@ -52,14 +52,14 @@
                         {{currentStepTask.result}}
                     </td>
                 </tr>
-                <tr ng-if="currentStepTask.status == 'FAILURE'">
-                    <td><b>{{('EXCEPTION' | translate)+':'}}</b>
+                <tr ng-if="currentStepTask.status == 'FAILURE' && currentStepTask.exception !== null && currentStepTask.exception !== ''">
+                    <td><b>{{('ERROR' | translate)+':'}}</b>
                         {{currentStepTask.exception}}
                     </td>
                 </tr>
             </tbody>
         </table>
-        <button ng-if="currentStepTask.status == 'FAILURE'" class="btn btn-default" ng-click="tracebackModal(currentStepTask)">{{'SEETRACEBACK' | translate}}</button>
+        <button ng-if="currentStepTask.status == 'FAILURE' && currentStepTask.traceback !== null && currentStepTask.traceback !== ''" class="btn btn-default" ng-click="tracebackModal(currentStepTask)">{{'SEETRACEBACK' | translate}}</button>
         <div st-table="vm.validations" st-pipe="vm.getValidations">
             <hr/>
             <h4>{{'VALIDATIONS' | translate}}</h4>

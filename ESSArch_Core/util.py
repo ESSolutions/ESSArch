@@ -25,6 +25,7 @@
 from __future__ import absolute_import
 
 import errno
+import glob
 import inspect
 import itertools
 import json
@@ -37,8 +38,10 @@ import sys
 import tarfile
 import zipfile
 
+import chardet
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
+from django.conf import settings
 from django.core.cache import cache
 from django.utils.timezone import get_current_timezone
 from django.core.validators import RegexValidator
@@ -47,11 +50,13 @@ from django.http.response import FileResponse
 from datetime import datetime
 
 from lxml import etree
+from natsort import natsorted
 
 from scandir import scandir, walk
 
 from subprocess import Popen, PIPE
 
+from ESSArch_Core.exceptions import NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
 
 import six
@@ -496,13 +501,26 @@ def mptt_to_dict(node, serializer):
 
 def convert_file(path, new_format):
     cmd = 'unoconv -f %s -eSelectPdfVersion=1 "%s"' % (new_format, path)
+    logger.info(cmd)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
 
     if p.returncode:
-        raise ValueError('%s, return code: %s' % (err, p.returncode))
+        msg = '%s, return code: %s' % (err, p.returncode)
+        raise ValueError(msg)
 
-    return out
+    new_path = os.path.splitext(path)[0] + '.' + new_format
+    new_path = normalize_path(new_path)
+    if not os.path.isfile(new_path):
+        raise ValueError('No file created')
+
+    if out:
+        msg = '%s, return code: %s' % (out, p.returncode)
+    else:
+        msg = 'return code: %s' % (p.returncode,)
+
+    logger.info('unoconv completed without error: %s' % (msg,))
+    return new_path
 
 def in_directory(path, directory):
     '''
@@ -525,13 +543,30 @@ def validate_remote_url(url):
     validate = RegexValidator(regex, 'Enter a valid URL with credentials.')
     validate(url)
 
+def get_charset(byte_str):
+    charsets = [settings.DEFAULT_CHARSET, 'utf-8', 'windows-1252']
+    for c in sorted(set(charsets), key=charsets.index):
+        logger.debug(u'Trying to decode response in {}'.format(c))
+        try:
+            byte_str.decode(c)
+        except UnicodeDecodeError:
+            logger.exception(u'Failed to decode response in {}'.format(c))
+        else:
+            logger.info(u'Decoded response in {}'.format(c))
+            return c
+
+    return chardet.detect(byte_str)['encoding']
 
 def generate_file_response(file_obj, content_type, force_download=False, name=None):
+    charset = get_charset(file_obj.read(128))
+    file_obj.seek(0)
+
+    content_type = u'{}; charset={}'.format(content_type, charset)
     response = FileResponse(file_obj, content_type=content_type)
 
     filename = getattr(file_obj, 'name', None)
     filename = filename if (isinstance(filename, str) and filename) else name
-    filename = os.path.basename(filename)
+    filename = os.path.basename(filename) if filename is not None else name
 
     if filename:
         try:
@@ -539,12 +574,13 @@ def generate_file_response(file_obj, content_type, force_download=False, name=No
             file_expr = u'filename="{}"'.format(filename)
         except (UnicodeEncodeError, UnicodeDecodeError):
             file_expr = u"filename*=utf-8''{}".format(six.moves.urllib.parse.quote(filename))
+        response['Content-Disposition'] = u'inline; {}'.format(file_expr)
 
-    response['Content-Disposition'] = u'inline; {}'.format(file_expr)
     if force_download or content_type is None:
         if content_type is None:
             response['Content-Type'] = 'application/octet-stream'
-        response['Content-Disposition'] = u'attachment; {}'.format(file_expr)
+        if filename:
+            response['Content-Disposition'] = u'attachment; {}'.format(file_expr)
 
     # disable caching, required for Firefox to be able to load large files multiple times
     # see https://bugzilla.mozilla.org/show_bug.cgi?id=1436593
@@ -653,6 +689,16 @@ def list_files(path, force_download=False, request=None, paginator=None):
 
     raise NotFound
 
+def merge_file_chunks(path):
+    chunks = natsorted(glob.glob('%s_*' % re.sub(r'([\[\]])', '[\\1]', path)))
+    if len(chunks) == 0:
+        raise NoFileChunksFound
+
+    with open(path, 'wb') as f:
+        for chunk_file in chunks:
+            with open(chunk_file, 'rb') as cf:
+                f.write(cf.read())
+            os.remove(chunk_file)
 
 def turn_off_auto_now(ModelClass, field_name):
     def auto_now_off(field):

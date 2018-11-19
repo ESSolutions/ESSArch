@@ -707,7 +707,9 @@ class InformationPackage(models.Model):
                 raise OSError(errno.EISDIR, os.strerror(errno.EISDIR), path)
 
             if os.path.isfile(self.object_path):
-                if os.path.join(os.path.dirname(self.object_path), path.split('/', 1)[0]) == self.object_path:
+                container_path = os.path.join(os.path.dirname(self.object_path), path.split('/', 1)[0])
+                container_path = normalize_path(container_path)
+                if container_path == self.object_path:
                     path = path.split('/', 1)[1]
 
             fid = FormatIdentifier(allow_unknown_file_types=True)
@@ -807,6 +809,7 @@ class InformationPackage(models.Model):
             ('delete_last_generation', 'Can delete last generation of IP'),
             ('delete_archived', 'Can delete archived IP'),
             ('see_all_in_workspaces', 'Can see all IPs workspaces'),
+            ('see_other_user_ip_files', 'Can see files in other users IPs'),
         )
 
     def __str__(self):

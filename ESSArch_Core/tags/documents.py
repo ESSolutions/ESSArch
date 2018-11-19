@@ -34,7 +34,7 @@ class VersionedDocType(Document):
 
     def create_new_version(self, start_date=None, end_date=None, refresh=False):
         data = self.to_dict(include_meta=False)
-        data['_index'] = self.meta.index
+        data['_index'] = self._index._name
         data['start_date'] = start_date
         data['end_date'] = end_date
 
@@ -49,7 +49,7 @@ class VersionedDocType(Document):
         return new_obj
 
     def set_as_current_version(self):
-        index = self.meta.index
+        index = self._index._name
         versions = self.__class__.search(index=index).source(False).query(
             'bool', must=[Q('term', link_id=self.link_id)], must_not=[Q('term', _id=self._id)]
         ).execute()

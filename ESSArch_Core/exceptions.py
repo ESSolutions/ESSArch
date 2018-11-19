@@ -16,3 +16,7 @@ class Conflict(APIException):
     status_code = status.HTTP_409_CONFLICT
     default_detail = 'The request could not be completed due to a conflict with the target resource'
     default_code = 'conflict'
+
+
+class NoFileChunksFound(Exception):
+    pass

@@ -13,27 +13,6 @@ templates:
 
 matrix:
   include:
-    - python: "2.7"
-      dist: trusty
-
-    - python: "2.7"
-      dist: trusty
-      services:
-        - mariadb
-      env: *mariadb
-
-    - python: "2.7"
-      dist: trusty
-      services:
-        - mysql
-      env: *mysql
-
-    - python: "2.7"
-      dist: trusty
-      services:
-        - postgres
-      env: *postgres
-
     - python: "3.6"
       dist: trusty
 

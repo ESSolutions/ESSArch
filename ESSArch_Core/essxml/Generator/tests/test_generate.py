@@ -24,43 +24,34 @@
 """
 
 import datetime
-import mock
 import os
 import re
 import shutil
+import tempfile
 import unittest
 from collections import OrderedDict
 
+import mock
+import six
 from django.test import TestCase
 from django.utils import dateparse, timezone
-
 from lxml import etree
-
 from scandir import walk
 
-import six
-
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseContent
-
-from ESSArch_Core.configuration.models import (
-    Path,
-)
 from ESSArch_Core.util import make_unicode, normalize_path
 
 
 class GenerateXMLTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.bd = os.path.dirname(os.path.realpath(__file__))
-        Path.objects.create(entity="path_mimetypes_definitionfile", value=os.path.join(cls.bd, "mime.types"))
-
+        super(GenerateXMLTestCase, cls).setUpClass()
         cls.generator = XMLGenerator()
 
-    @classmethod
-    def tearDownClass(cls):
-        Path.objects.all().delete()
-
     def setUp(self):
+        self.bd = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.bd)
+
         self.xmldir = os.path.join(self.bd, "xmlfiles")
         self.datadir = os.path.join(self.bd, "datafiles")
         self.fname = os.path.join(self.xmldir, "test.xml")
@@ -75,22 +66,6 @@ class GenerateXMLTestCase(TestCase):
 
         with open(os.path.join(self.datadir, "record2/file2.txt"), 'w') as f:
             f.write('bar')
-
-    def tearDown(self):
-        try:
-            shutil.rmtree(self.xmldir)
-        except:
-            pass
-
-        try:
-            shutil.rmtree(self.datadir)
-        except:
-            pass
-
-        try:
-            os.remove(self.fname)
-        except:
-            pass
 
     def test_generate_namespaces(self):
         nsmap = {
@@ -197,6 +172,23 @@ class GenerateXMLTestCase(TestCase):
             self.generator.generate({self.fname: {'spec': specification}})
 
         self.assertFalse(os.path.exists(self.fname))
+
+    def test_generate_empty_element_with_empty_attribute_with_allow_empty_on_attribute(self):
+        specification = {
+            '-name': 'foo',
+            '-attr': [
+                {
+                    '-name': 'bar',
+                    '#content': [{'text': ''}],
+                    '-allowEmpty': True,
+                },
+            ]
+        }
+
+        self.generator.generate({self.fname: {'spec': specification}})
+        tree = etree.parse(self.fname)
+        root = tree.getroot()
+        self.assertEqual(len(root.xpath('//foo[@bar=""]')), 1)
 
     def test_generate_multiple_element_same_name_same_level(self):
         specification = {
@@ -2239,16 +2231,13 @@ class GenerateXMLTestCase(TestCase):
 class ExternalTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.bd = os.path.dirname(os.path.realpath(__file__))
-        Path.objects.create(entity="path_mimetypes_definitionfile", value=os.path.join(cls.bd, "mime.types"))
-
+        super(ExternalTestCase, cls).setUpClass()
         cls.generator = XMLGenerator()
 
-    @classmethod
-    def tearDownClass(cls):
-        Path.objects.all().delete()
-
     def setUp(self):
+        self.bd = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.bd)
+
         self.xmldir = os.path.join(self.bd, "xmlfiles")
         self.datadir = os.path.join(self.bd, "datafiles")
         self.external = os.path.join(self.datadir, "external")
@@ -2262,22 +2251,6 @@ class ExternalTestCase(TestCase):
         self.external2 = os.path.join(self.external, "external2")
         os.makedirs(self.external1)
         os.makedirs(self.external2)
-
-    def tearDown(self):
-        try:
-            shutil.rmtree(self.xmldir)
-        except:
-            pass
-
-        try:
-            shutil.rmtree(self.datadir)
-        except:
-            pass
-
-        try:
-            os.remove(self.fname)
-        except:
-            pass
 
     def test_external(self):
         specification = {

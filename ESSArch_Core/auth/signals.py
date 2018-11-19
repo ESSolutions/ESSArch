@@ -1,7 +1,8 @@
 import json
 import logging
 
-from channels import Channel
+import channels.layers
+from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as DjangoGroup
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
@@ -15,6 +16,7 @@ from ESSArch_Core.auth.models import Group, GroupMember, Member, Notification, P
 from ESSArch_Core.auth.util import get_organization_groups
 
 User = get_user_model()
+logger = logging.getLogger('essarch.auth')
 
 
 @receiver(post_save, sender=User)
@@ -30,19 +32,16 @@ def user_post_save(sender, instance, created, *args, **kwargs):
 
 @receiver(user_logged_in)
 def user_logged_in(sender, user, request, **kwargs):
-    logger = logging.getLogger('essarch.auth')
     logger.info(u"User {} successfully logged in from host: {}".format(user, request.META['REMOTE_ADDR']))
 
 
 @receiver(user_logged_out)
 def user_logged_out(sender, user, request, **kwargs):
-    logger = logging.getLogger('essarch.auth')
     logger.info(u"User {} successfully logged out from host: {}".format(user, request.META['REMOTE_ADDR']))
 
 
 @receiver(user_login_failed)
 def user_login_failed(sender, credentials, **kwargs):
-    logger = logging.getLogger('essarch.auth')
     logger.warning("Authentication failure with credentials: %s" % (repr(credentials)))
 
 
@@ -82,26 +81,16 @@ def notification_post_save(sender, instance, created, **kwargs):
     if not created:
         return
 
-    cache_name = 'notification_channel_%s' % instance.user.username
-    channels = cache.get(cache_name)
-
-    if channels is not None:
-        for channel in channels.copy():
-            c = Channel(channel)
-            try:
-                c.send({
-                    "text": json.dumps({
-                        'id': instance.id,
-                        'message': instance.message,
-                        'level': instance.get_level_display(),
-                        'unseen_count': Notification.objects.filter(user=instance.user, seen=False).count(),
-                        'refresh': instance.refresh,
-                    })
-                }, immediately=True)
-            except c.channel_layer.ChannelFull:
-                channels.discard(channel)
-                cache.set(cache_name, channels)
-
+    channel_layer = channels.layers.get_channel_layer()
+    grp = 'notifications_{}'.format(instance.user.username)
+    async_to_sync(channel_layer.group_send)(grp, {
+        'type': 'notify',
+        'id': instance.id,
+        'message': instance.message,
+        'level': instance.get_level_display(),
+        'unseen_count': Notification.objects.filter(user=instance.user, seen=False).count(),
+        'refresh': instance.refresh,
+    })
 
 @receiver(m2m_changed, sender=User.groups.through)
 def set_current_organization(sender, instance, action, reverse, *args, **kwargs):
@@ -131,8 +120,8 @@ try:
     def ldap_failed(sender, context, exception, user=None, **kwargs):
         message = '%s: %s' % (exception.message['desc'], exception.message['info'])
 
-        logger = logging.getLogger('essarch.auth.ldap')
-        logger.critical(message)
+        ldap_logger = logging.getLogger('essarch.auth.ldap')
+        ldap_logger.critical(message)
 
         if user is None or user.is_anonymous:
             return

@@ -14,35 +14,63 @@ MB = 1024*1024
 
 logger = logging.getLogger('essarch.fixity.format')
 
+DEFAULT_MIMETYPE = 'application/octet-stream'
+
 
 class FormatIdentifier:
+    _fido = None
+
     def __init__(self, allow_unknown_file_types=False):
-        self.fido = Fido(handle_matches=self.handle_matches)
         self.allow_unknown_file_types = allow_unknown_file_types
 
-        mimetypes.suffix_map = {}
-        mimetypes.encodings_map = {}
-        mimetypes.types_map = {}
-        mimetypes.common_types = {}
-        mimetypes_file = Path.objects.get(
-            entity="path_mimetypes_definitionfile"
-        ).value
-        mimetypes.init(files=[mimetypes_file])
-        self.mimetypes = mimetypes.types_map
+    @property
+    def fido(self):
+        if self._fido is None:
+            self._fido = Fido(handle_matches=self.handle_matches)
+        return self._fido
+
+    def _init_mimetypes(self):
+        try:
+            mimetypes_file = Path.objects.get(
+                entity="path_mimetypes_definitionfile"
+            ).value
+            if os.path.isfile(mimetypes_file):
+                mimetypes.suffix_map = {}
+                mimetypes.encodings_map = {}
+                mimetypes.types_map = {}
+                mimetypes.common_types = {}
+                mimetypes.init(files=[mimetypes_file])
+                return
+        except Path.DoesNotExist:
+            pass
+
+        mimetypes.init()
+        mimetypes._default_mime_types()
 
     def get_mimetype(self, fname):
+        self._init_mimetypes()
         file_name, file_ext = os.path.splitext(fname)
 
         if not file_ext:
             file_ext = file_name
 
-        try:
-            return self.mimetypes[file_ext.lower()]
-        except KeyError:
+        content_type, encoding = mimetypes.guess_type(fname)
+        if content_type is None:
             if self.allow_unknown_file_types:
-                return 'application/octet-stream'
+                return DEFAULT_MIMETYPE
 
             raise FileFormatNotAllowed("Extension of '%s' is missing from mimetypes and is not allowed" % fname)
+
+        encoding_map = {
+            'bzip2': 'application/x-bzip',
+            'gzip': 'application/gzip',
+            'xz': 'application/x-xz',
+        }
+
+        # We skip setting Content-Encoding inorder to prevent browsers from
+        # automatically uncompressing files. Instead we set the Content-Type to
+        # the encoded mimetype
+        return encoding_map.get(encoding, content_type)
 
     def handle_matches(self, fullname, matches, delta_t, matchtype=''):
         if len(matches) == 0:
