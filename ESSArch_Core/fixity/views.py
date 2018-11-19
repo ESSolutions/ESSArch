@@ -14,7 +14,7 @@ class ValidationViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     filter_backends = (
         filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
     )
-    filter_class = ValidationFilter
+    filterset_class = ValidationFilter
     search_fields = ('filename', 'message',)
 
 

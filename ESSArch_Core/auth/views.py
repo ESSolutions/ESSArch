@@ -124,7 +124,7 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
     filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('seen',)
+    filterset_fields = ('seen',)
 
     def get_queryset(self):
         return self.request.user.notifications.all()

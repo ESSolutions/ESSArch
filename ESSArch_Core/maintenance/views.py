@@ -33,7 +33,7 @@ from ESSArch_Core.util import generate_file_response
 class MaintenanceRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     permission_classes = (DjangoModelPermissions,)
     serializer_class = MaintenanceRuleSerializer
-    filter_class = MaintenanceRuleFilter
+    filterset_class = MaintenanceRuleFilter
     filter_backends = (
         filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
     )
@@ -50,7 +50,7 @@ class MaintenanceRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     permission_classes = (DjangoModelPermissions,)
     serializer_class = MaintenanceJobSerializer
-    filter_class = MaintenanceJobFilter
+    filterset_class = MaintenanceJobFilter
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
 
     @detail_route(methods=['post'])
@@ -71,13 +71,13 @@ class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 class AppraisalRuleViewSet(MaintenanceRuleViewSet):
     queryset = AppraisalRule.objects.all()
     serializer_class = AppraisalRuleSerializer
-    filter_class = AppraisalRuleFilter
+    filterset_class = AppraisalRuleFilter
 
 
 class AppraisalJobViewSet(MaintenanceJobViewSet):
     queryset = AppraisalJob.objects.all()
     serializer_class = AppraisalJobSerializer
-    filter_class = AppraisalJobFilter
+    filterset_class = AppraisalJobFilter
 
     @permission_required_or_403(['maintenance.run_appraisaljob'])
     @detail_route(methods=['post'])
@@ -117,13 +117,13 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
 class ConversionRuleViewSet(MaintenanceRuleViewSet):
     queryset = ConversionRule.objects.all()
     serializer_class = ConversionRuleSerializer
-    filter_class = ConversionRuleFilter
+    filterset_class = ConversionRuleFilter
 
 
 class ConversionJobViewSet(MaintenanceJobViewSet):
     queryset = ConversionJob.objects.all()
     serializer_class = ConversionJobSerializer
-    filter_class = ConversionJobFilter
+    filterset_class = ConversionJobFilter
 
     @detail_route(methods=['get'])
     def preview(self, request, pk=None):

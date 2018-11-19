@@ -26,7 +26,7 @@ import django_filters
 import six
 from django_filters import rest_framework as filters
 from django_filters.constants import EMPTY_VALUES
-from django_filters.fields import IsoDateTimeField, Lookup, RangeField
+from django_filters.fields import IsoDateTimeField, RangeField
 
 
 def string_to_bool(s):
@@ -64,4 +64,4 @@ class ListFilter(django_filters.Filter):
             return qs
 
         value_list = value.split(u',')
-        return super(ListFilter, self).filter(qs, Lookup(value_list, 'in'))
+        return super(ListFilter, self).filter(qs, value_list)
