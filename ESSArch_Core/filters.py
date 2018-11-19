@@ -27,6 +27,7 @@ import six
 from django_filters import rest_framework as filters
 from django_filters.constants import EMPTY_VALUES
 from django_filters.fields import IsoDateTimeField, RangeField
+from django_filters.widgets import DateRangeWidget
 
 
 def string_to_bool(s):
@@ -42,11 +43,10 @@ def string_to_bool(s):
 
 
 class IsoDateTimeRangeField(RangeField):
+    widget = DateRangeWidget
 
     def __init__(self, *args, **kwargs):
-        fields = (
-            IsoDateTimeField(),
-            IsoDateTimeField())
+        fields = (IsoDateTimeField(), IsoDateTimeField())
         super(IsoDateTimeRangeField, self).__init__(fields, *args, **kwargs)
 
 
