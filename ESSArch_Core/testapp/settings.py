@@ -3,6 +3,8 @@ import os
 import random
 import string
 
+import dj_database_url
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -72,20 +74,7 @@ GROUPS_MANAGER = {
     'USER_USERNAME_SUFFIX': '',
 }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'db.sqlite',
-    }
-}
-
-try:
-    import dj_database_url
-    db_url = os.environ.get('DATABASE_URL')
-    if db_url:
-        DATABASES['default'] = dj_database_url.parse(db_url)
-except ImportError:
-    pass
+DATABASES = {'default': dj_database_url.config(default='sqlite:///db.sqlite')}
 
 CACHES = {
     'default': {
