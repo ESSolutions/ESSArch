@@ -5,6 +5,7 @@ import json
 import logging
 
 from django.template.loader import get_template
+from django.utils import timezone
 from elasticsearch_dsl import Q, Search
 from lxml import etree
 
@@ -12,18 +13,22 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.receipt.backends.base import BaseReceiptBackend
 from ESSArch_Core.fixity.serializers import ValidationSerializer
+from ESSArch_Core.profiles.utils import fill_specification_data
 
 logger = logging.getLogger('essarch.core.fixity.receipt.xml')
 
 
 class XMLReceiptBackend(BaseReceiptBackend):
-    def create(self, template, destination, outcome, short_message, message, date, ip=None, task=None):
+    def create(self, template, destination, outcome, short_message, message, date=None, ip=None, task=None):
         logger.debug(u'Creating XML receipt: {}'.format(destination))
         spec = json.loads(get_template(template).template.source)
-        data = copy.deepcopy(self.data)
+
+        data = {}
+        if ip is not None:
+            data = fill_specification_data(data=data, ip=ip)
         data['outcome'] = outcome
         data['message'] = message
-        data['date'] = date
+        data['date'] = date or timezone.now()
         if task is not None:
             validations = Validation.objects.filter(task=task).order_by('time_started')
             data['validations'] = ValidationSerializer(validations, many=True).data
