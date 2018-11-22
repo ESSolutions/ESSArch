@@ -40,10 +40,10 @@ from django.core.mail import EmailMessage, send_mail
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
+from django_redis import get_redis_connection
 from elasticsearch import helpers as es_helpers
 from elasticsearch_dsl.connections import get_connection
 from lxml import etree
-from redis import StrictRedis
 from retrying import retry
 from scandir import walk
 from six.moves import cPickle
@@ -81,7 +81,7 @@ from ESSArch_Core.tags import (DELETION_PROCESS_QUEUE, DELETION_QUEUE,
 from ESSArch_Core.util import convert_file, get_event_element_spec, get_tree_size_and_count
 
 User = get_user_model()
-redis = StrictRedis()
+redis = get_redis_connection()
 
 class GenerateXML(DBTask):
     event_type = 50600
