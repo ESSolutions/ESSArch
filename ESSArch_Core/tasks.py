@@ -40,10 +40,10 @@ from django.core.mail import EmailMessage, send_mail
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
+from django_redis import get_redis_connection
 from elasticsearch import helpers as es_helpers
 from elasticsearch_dsl.connections import get_connection
 from lxml import etree
-from redis import StrictRedis
 from retrying import retry
 from scandir import walk
 from six.moves import cPickle
@@ -81,7 +81,7 @@ from ESSArch_Core.tags import (DELETION_PROCESS_QUEUE, DELETION_QUEUE,
 from ESSArch_Core.util import convert_file, get_event_element_spec, get_tree_size_and_count
 
 User = get_user_model()
-redis = StrictRedis()
+redis = get_redis_connection()
 
 class GenerateXML(DBTask):
     event_type = 50600
@@ -1020,8 +1020,6 @@ class ClearTagProcessQueue(DBTask):
     end
     """
 
-    _clear_process_tag_queue = redis.register_script(_clear_process_tag_queue_lua)
-
     def run(self):
         """
         Deletes items older than 60 seconds from the process queue
@@ -1029,10 +1027,11 @@ class ClearTagProcessQueue(DBTask):
         """
 
         max_time = int(time.time()) - 60
+        _clear_process_tag_queue = redis.register_script(_clear_process_tag_queue_lua)
 
-        self._clear_process_tag_queue(keys=[INDEX_PROCESS_QUEUE, INDEX_QUEUE], args=[max_time])
-        self._clear_process_tag_queue(keys=[UPDATE_PROCESS_QUEUE, UPDATE_QUEUE], args=[max_time])
-        self._clear_process_tag_queue(keys=[DELETION_PROCESS_QUEUE, DELETION_QUEUE], args=[max_time])
+        _clear_process_tag_queue(keys=[INDEX_PROCESS_QUEUE, INDEX_QUEUE], args=[max_time])
+        _clear_process_tag_queue(keys=[UPDATE_PROCESS_QUEUE, UPDATE_QUEUE], args=[max_time])
+        _clear_process_tag_queue(keys=[DELETION_PROCESS_QUEUE, DELETION_QUEUE], args=[max_time])
 
     def undo(self):
         pass
@@ -1052,8 +1051,6 @@ class ProcessTags(DBTask):
     end
     return value"""
 
-    _process_tag_queue = redis.register_script(_process_tag_queue_lua)
-
     def deserialize(self, tags):
         for tag_string in [t for t in tags if t is not None]:
             d = cPickle.loads(tag_string)
@@ -1070,12 +1067,13 @@ class ProcessTags(DBTask):
         the entry is deleted from the process queue.
         """
         es = get_connection()
+        _process_tag_queue = redis.register_script(_process_tag_queue_lua)
         tags = []
         for i in range(100):
             epoch_time = int(time.time())
             # Pop the latest entry, add it to the process queue with the
             # current time as score and return it
-            tags.append(self._process_tag_queue(keys=[self.redis_queue, self.redis_process_queue], args=[epoch_time]))
+            tags.append(_process_tag_queue(keys=[self.redis_queue, self.redis_process_queue], args=[epoch_time]))
 
         doctypes = self.deserialize(tags)
 

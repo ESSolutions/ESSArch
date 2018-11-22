@@ -10,8 +10,8 @@ import uuid
 import six
 from django.db import transaction
 from django.db.models import OuterRef, Subquery, F, Q
+from django_redis import get_redis_connection
 from lxml import etree
-from redis import Redis
 from six.moves import cPickle
 
 from ESSArch_Core.search.importers.base import BaseImporter
@@ -21,7 +21,7 @@ from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
 from ESSArch_Core.util import get_tree_size_and_count, normalize_path, remove_prefix, timestamp_to_datetime
 
 logger = logging.getLogger('essarch.search.importers.EardErmsImporter')
-redis_conn = Redis()
+redis_conn = get_redis_connection()
 
 
 class EardErmsImporter(BaseImporter):
