@@ -1020,8 +1020,6 @@ class ClearTagProcessQueue(DBTask):
     end
     """
 
-    _clear_process_tag_queue = redis.register_script(_clear_process_tag_queue_lua)
-
     def run(self):
         """
         Deletes items older than 60 seconds from the process queue
@@ -1029,10 +1027,11 @@ class ClearTagProcessQueue(DBTask):
         """
 
         max_time = int(time.time()) - 60
+        _clear_process_tag_queue = redis.register_script(_clear_process_tag_queue_lua)
 
-        self._clear_process_tag_queue(keys=[INDEX_PROCESS_QUEUE, INDEX_QUEUE], args=[max_time])
-        self._clear_process_tag_queue(keys=[UPDATE_PROCESS_QUEUE, UPDATE_QUEUE], args=[max_time])
-        self._clear_process_tag_queue(keys=[DELETION_PROCESS_QUEUE, DELETION_QUEUE], args=[max_time])
+        _clear_process_tag_queue(keys=[INDEX_PROCESS_QUEUE, INDEX_QUEUE], args=[max_time])
+        _clear_process_tag_queue(keys=[UPDATE_PROCESS_QUEUE, UPDATE_QUEUE], args=[max_time])
+        _clear_process_tag_queue(keys=[DELETION_PROCESS_QUEUE, DELETION_QUEUE], args=[max_time])
 
     def undo(self):
         pass
@@ -1052,8 +1051,6 @@ class ProcessTags(DBTask):
     end
     return value"""
 
-    _process_tag_queue = redis.register_script(_process_tag_queue_lua)
-
     def deserialize(self, tags):
         for tag_string in [t for t in tags if t is not None]:
             d = cPickle.loads(tag_string)
@@ -1070,12 +1067,13 @@ class ProcessTags(DBTask):
         the entry is deleted from the process queue.
         """
         es = get_connection()
+        _process_tag_queue = redis.register_script(_process_tag_queue_lua)
         tags = []
         for i in range(100):
             epoch_time = int(time.time())
             # Pop the latest entry, add it to the process queue with the
             # current time as score and return it
-            tags.append(self._process_tag_queue(keys=[self.redis_queue, self.redis_process_queue], args=[epoch_time]))
+            tags.append(_process_tag_queue(keys=[self.redis_queue, self.redis_process_queue], args=[epoch_time]))
 
         doctypes = self.deserialize(tags)
 
