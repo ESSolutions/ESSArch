@@ -3,46 +3,6 @@
     min-width: 60px;
 }
 
-.step-state {
-    padding-top: 0 !important;
-}
-
-.step-state-success {
-    color: white;
-    display: inline-block;
-    min-width: 55px;
-    text-align: center;
-    background-color: $step-success;
-    padding: 3px 10px;
-    font-size: 9px;
-    border-radius: 5px;
-    box-shadow: 0px 1px 0px rgba(0,0,0,.15);
-}
-
-.step-state-failure {
-    color: white;
-    display: inline-block;
-    min-width: 55px;
-    text-align: center;
-    background-color: $step-fail;
-    padding: 3px 10px;
-    font-size: 9px;
-    border-radius: 5px;
-    box-shadow: 0px 1px 0px rgba(0,0,0,.15);
-}
-
-.step-state-in-progress {
-    color: white;
-    display: inline-block;
-    min-width: 55px;
-    text-align: center;
-    background-color: $step-in-progress;
-    padding: 3px 10px;
-    font-size: 9px;
-    border-radius: 5px;
-    box-shadow: 0px 1px 0px rgba(0,0,0,.15);
-}
-
 .status-tree-grid {
     padding: 5px;
     margin: 5px;
@@ -58,6 +18,11 @@
 .task-info-modal-head, .step-info-modal-head {
     .refresh-icon {
         align-self: flex-start;
+    }
+    .modal-title {
+        @include small-screen {
+            word-break: break-word;
+        }
     }
 }
 
@@ -83,6 +48,17 @@
         .running {
             background-color: $task-validation-bg-yellow;
             color: $task-validation-text-yellow;
+        }
+    }
+    .progress {
+        width: 100%;
+    }
+    .id-button {
+        .btn {
+            @include small-screen {
+                font-size: 12px !important;
+                padding: 3px 6px;
+            }
         }
     }
 }
@@ -112,6 +88,9 @@
 }
 
 .tree-grid  {
+    td {
+        white-space: nowrap;
+    }
     .indented {
         position: relative;
         left: 0 !important;

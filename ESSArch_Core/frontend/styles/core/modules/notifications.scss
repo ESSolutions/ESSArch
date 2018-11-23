@@ -47,20 +47,20 @@
     display: block;
 
     &.error {
-        background-color: $step-fail;
+        background-color: $brand-danger;
     }
     &.success {
-        background-color: $step-success;
+        background-color: $brand-success;
     }
     &.info {
-        background-color: $step-in-progress;
+        background-color: $brand-primary;
     }
     &.warning {
-        background-color: #fde073;
+        background-color: $brand-warning;
         color: black !important;
     }
     &.critical {
-        background-color: $step-fail;
+        background-color: $brand-danger;
     }
 }
 
@@ -213,19 +213,19 @@
 // Override Alert colors
 
 ul.messenger-theme-flat .messenger-message.alert-success .messenger-message-inner:before {
-    background: $step-success !important;
+    background: $brand-success !important;
 }
 ul.messenger-theme-flat .messenger-message.alert-info .messenger-message-inner:before {
-    background: $step-in-progress !important;
+    background: $brand-primary !important;
 }
 ul.messenger-theme-flat .messenger-message.alert-warning .messenger-message-inner:before {
-    background: #fde073 !important;
+    background: $brand-warning !important;
 }
 ul.messenger-theme-flat .messenger-message.alert-error .messenger-message-inner:before {
-    background: $step-fail !important;
+    background: $brand-danger !important;
 }
 ul.messenger-theme-flat .messenger-message.alert-critical .messenger-message-inner:before {
-    background: $step-fail !important;
+    background: $brand-danger !important;
 }
 
 ul.messenger-theme-flat .messenger-message.alert-error.messenger-retry-soon .messenger-spinner .messenger-spinner-side .messenger-spinner-fill {

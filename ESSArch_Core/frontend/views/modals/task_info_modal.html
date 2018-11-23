@@ -6,19 +6,72 @@
 </div>
 <div class="modal-body" id="modal-body">
     <div class="step-task-info">
-        <p ng-if="currentStepTask.name"><b style="margin: 5px; white-space: nowrap;">{{'NAME' | translate}}:</b> {{currentStepTask.name}}</p>
-        <b style="margin: 5px; white-space: nowrap;">{{'STATUS' | translate}}:</b>
-        <div ng-if="currentStepTask.status == 'SUCCESS'" class="step-state-success"><b>{{'SUCCESS' | translate}}</b></div>
-        <div ng-if="currentStepTask.status == 'FAILURE'" class="step-state-failure"><b>{{'FAILURE' | translate}}</b></div>
-        <div ng-if="currentStepTask.status != 'SUCCESS' && currentStepTask.status !='FAILURE'" class="step-state-in-progress"><b>{{'INPROGRESS' | translate}}</b></div>
-        <p style="margin: 5px;"><b>{{'CREATED' | translate}}:</b> {{currentStepTask.time_created | date:"yyyy-MM-dd HH:mm:ss.sss"}}</p>
-        <p ng-if="currentStepTask.time_started !== null || currentStepTask.time_done !== null" style="margin: 5px;"><b ng-if="currentStepTask.time_started !== null">{{'STARTED' | translate}}:</b> {{currentStepTask.time_started !== null?(currentStepTask.time_started | date:"yyyy-MM-dd HH:mm:ss.sss"):''}} <b ng-if="currentStepTask.time_done !== null">{{'DONE' | translate}}:</b> {{currentStepTask.time_done !== null?(currentStepTask.time_done | date:"yyyy-MM-dd HH:mm:ss.sss"):''}}</p>
-        <p ng-if="currentStepTask.duration !== null" style="margin: 5px;"><b>{{'DURATION' | translate}}:</b> {{currentStepTask.duration}}</p>
-        <p style="margin: 5px;"><b>{{'ID' | translate}}:</b> {{currentStepTask.id}}</p>
-        <button class="btn btn-default" clipboard text="currentStepTask.id" on-copied="$ctrl.idCopyDone()">{{'COPYID' | translate}}</button>
-        <span ng-if="$ctrl.idCopied" class="fas fa-lg fa-check traceback-copied"></span>
+        <div class="row">
+            <div class="col-12 col-md-6" ng-if="currentStepTask.name">
+                <label>{{'NAME' | translate}}</label>
+                <p class="m-0 py-base word-break-word">{{currentStepTask.name}}</p>
+            </div>
+            <div class="col-12 col-md-6">
+                <label>{{'IDENTIFICATION' | translate}}</label>
+                <br/>
+                <div class="btn-group id-button">
+                    <button class="btn btn-default" clipboard text="currentStepTask.id" on-copied="$ctrl.idCopyDone()" uib-popover="{{'COPYID' | translate}}" popover-placement="top" popover-popup-delay="500" popover-append-to-body="true">
+                        <i class="fas" ng-class="{'fa-clipboard': !$ctrl.idCopied, 'fa-clipboard-check color-success': $ctrl.idCopied}"></i>
+                    </button>
+                    <buton class="btn btn-default" uib-popover="{{'IDENTIFICATION' | translate}}" popover-placement="top" popover-popup-delay="500" popover-append-to-body="true">
+                        {{currentStepTask.id}}
+                    </buton>
+                </div>
+            </div>
+        </div>
+        <label>
+            {{'STATUS' | translate}}
+        </label>
+        <uib-progressbar class="progress"
+                         ng-class="{'active progress-striped': currentStepTask.status == 'STARTED'}"
+                         animate="true"
+                         value="currentStepTask.progress"
+                         type="{{$ctrl.mapStepStateProgress(currentStepTask)}}"
+                         uib-popover="{{currentStepTask.status | translate}}"
+                         popover-placement="top"
+                         popover-popup-delay="500"
+                         popover-append-to-body="true">
+            <b>{{currentStepTask.progress+"%"}}</b>
+        </uib-progressbar>
+
+        <div class="row py-2">
+            <div class="col-12 col-sm-6 col-md-3">
+                <label>{{'CREATED' | translate}}</label>
+                <p>{{currentStepTask.time_created | date:"yyyy-MM-dd HH:mm:ss.sss"}}</p>
+            </div>
+            <div class="col-12 col-sm-6 col-md-3">
+                <label>
+                    {{'STARTED' | translate}}
+                </label>
+                <p>
+                    {{currentStepTask.time_started !== null?(currentStepTask.time_started | date:"yyyy-MM-dd HH:mm:ss.sss"):'-'}}
+                </p>
+            </div>
+            <div class="col-12 col-sm-6 col-md-3">
+                <label>
+                    {{'DONE' | translate}}
+                </label>
+                <p>
+                    {{currentStepTask.time_done !== null?(currentStepTask.time_done | date:"yyyy-MM-dd HH:mm:ss.sss"):'-'}}
+                </p>
+            </div>
+            <div class="col-12 col-sm-6 col-md-3">
+                <label>
+                    {{'DURATION' | translate}}
+                </label>
+                <p>
+                     {{currentStepTask.duration !== null?currentStepTask.duration:'-'}}
+                </p>
+            </div>
+        </div>
+
         <br>
-        <table class="table" style="margin: 5px;">
+        <table class="table">
             <tbody>
                 <tr>
                     <td>
