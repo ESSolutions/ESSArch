@@ -1,0 +1,11 @@
+<uib-progressbar class="progress"
+                 ng-class="{'active progress-striped': row.branch['status'] == 'STARTED'}"
+                 animate="true"
+                 value="row.branch[col.field]"
+                 type="{{treeControl.scope.mapStepStateProgress(row.branch)}}"
+                 uib-popover="{{row.branch['status'] | translate}}"
+                 popover-placement="top-left"
+                 popover-popup-delay="500"
+                 popover-append-to-body="true">
+    <b>{{row.branch[col.field]+"%"}}</b>
+</uib-progressbar>
