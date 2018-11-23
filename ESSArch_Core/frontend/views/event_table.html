@@ -69,7 +69,7 @@
         </td>
     </div>
     <div permission permission-only="'ip.add_eventip'" class="events-footer">
-        <form class="events-form" ng-submit="addEvent(ip, newEventForm.eventType, newEventForm.comment, newEventForm.eventOutcome)">
+        <form ng-if="ip.state != 'Created' && ip.state != 'Creating' && ip.state != 'Submitting' && ip.state != 'Submitted' && ip.state != 'Transferring' && ip.state != 'Transferred'" class="events-form" ng-submit="addEvent(ip, newEventForm.eventType, newEventForm.comment, newEventForm.eventOutcome)">
             <div class="form-group" style="margin-right: 5px;">
                 <label>{{'EVENTTYPE' | translate}}</label>
                 <select class="status-note form-control" ng-model="newEventForm.eventType" ng-options="x as x.eventDetail for x in vm.eventTypeCollection" ng-required="true">

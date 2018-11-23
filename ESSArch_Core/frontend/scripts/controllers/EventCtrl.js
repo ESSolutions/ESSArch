@@ -1,8 +1,28 @@
 angular.module('essarch.controllers').controller('EventCtrl', function (Resource, $scope, $rootScope, listViewService, $interval, appConfig, $cookies, $window, $translate, $http, Notifications) {
     var vm = this;
-    vm.itemsPerPage = $cookies.get('epp-events-per-page') || 10;
+
+    vm.getCookieName = function() {
+        var name;
+        switch($rootScope.app) {
+            case 'ESSArch Preservation Platform':
+                name = 'epp-events-per-page';
+                break;
+            case 'ESSArch Tools For Producer':
+                name = 'etp-events-per-page'
+                break;
+            case 'ESSArch Tools Archive':
+                name = 'eta-events-per-page'
+                break;
+            default:
+                name = 'etp-events-per-page'
+                break;
+        }
+        return name;
+    }
+
+    vm.itemsPerPage = $cookies.get(vm.getCookieName) || 10;
     $scope.updateEventsPerPage = function(items) {
-        $cookies.put('epp-events-per-page', items);
+        $cookies.put(vm.getCookieName, items);
     };
     $scope.selected = [];
     vm.displayed = [];
@@ -124,7 +144,7 @@ angular.module('essarch.controllers').controller('EventCtrl', function (Resource
             $scope.eventLoading = false;
             $scope.initLoad = false;
         }).catch(function(response) {
-            if(response.status == 404) {
+            if(response.status === 404) {
                 listViewService.checkPages("events", number, $scope.columnFilters).then(function (result) {
                     tableState.pagination.numberOfPages = result.numberOfPages;//set the number of pages so the pagination can update
                     tableState.pagination.start = (result.numberOfPages*number) - number;
