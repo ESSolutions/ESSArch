@@ -1,4 +1,4 @@
-angular.module('essarch.controllers').controller('StateTreeCtrl', function($scope, $translate, Step, Task, listViewService, appConfig, $timeout, $interval, PermPermissionStore, $q, $uibModal, $log, Notifications, ErrorResponse) {
+angular.module('essarch.controllers').controller('StateTreeCtrl', function($scope, $translate, Step, Task, listViewService, appConfig, $timeout, $interval, PermPermissionStore, $q, $uibModal, $log, Notifications, ErrorResponse, $rootScope) {
     var vm = this;
     var stateInterval;
     $scope.angular = angular;
@@ -36,15 +36,9 @@ angular.module('essarch.controllers').controller('StateTreeCtrl', function($scop
 
             },
             {
-                field: "status",
-                displayName: $scope.state,
-                cellTemplate: "<div ng-if=\"row.branch[col.field] == 'SUCCESS'\" class=\"step-state-success\"><b>{{'SUCCESS' | translate}}</b></div><div ng-if=\"row.branch[col.field] == 'FAILURE'\" class=\"step-state-failure\"><b>{{'FAILURE' | translate}}</b></div><div ng-if=\"row.branch[col.field] != 'SUCCESS' && row.branch[col.field] !='FAILURE'\" class=\"step-state-in-progress\"><b>{{'INPROGRESS' | translate}}</b></div>"
-
-            },
-            {
                 field: "progress",
                 displayName: $scope.status,
-                cellTemplate: "<uib-progressbar class=\"progress\" value=\"row.branch[col.field]\" type=\"success\"><b>{{row.branch[col.field]+\"%\"}}</b></uib-progressbar>"
+                cellTemplate: "<div ng-include src=\"'step_task_progressbar.html'\"></div>"
             }
         ];
         if($scope.checkPermission("WorkflowEngine.can_undo")) {
@@ -158,6 +152,7 @@ angular.module('essarch.controllers').controller('StateTreeCtrl', function($scop
             })
         }
     };
+    $scope.myTreeControl.scope.mapStepStateProgress = $rootScope.mapStepStateProgress;
 
     //Click on +/- on step
     $scope.stepClick = function(step) {

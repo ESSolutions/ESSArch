@@ -1,4 +1,4 @@
-angular.module('essarch.controllers').controller('StepInfoModalInstanceCtrl', function ($uibModalInstance, djangoAuth, data, $http, Notifications, IP, appConfig, listViewService, $scope) {
+angular.module('essarch.controllers').controller('StepInfoModalInstanceCtrl', function ($uibModalInstance, djangoAuth, data, $http, Notifications, IP, appConfig, listViewService, $scope, $rootScope) {
     var $ctrl = this;
     if(data) {
         $ctrl.data = data;
@@ -14,4 +14,5 @@ angular.module('essarch.controllers').controller('StepInfoModalInstanceCtrl', fu
     $ctrl.cancel = function () {
         $uibModalInstance.dismiss('cancel');
     };
+    $ctrl.mapStepStateProgress = $rootScope.mapStepStateProgress;
 })
