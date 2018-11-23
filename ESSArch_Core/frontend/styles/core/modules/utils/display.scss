@@ -1,0 +1,14 @@
+.d-lg-none {
+    display: block;
+    @include large-screen-up {
+        display: none;
+    }
+}
+
+.d-inline-block {
+    display: inline-block;
+}
+
+.d-flex {
+    display: flex;
+}
