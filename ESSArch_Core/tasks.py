@@ -83,6 +83,21 @@ from ESSArch_Core.util import convert_file, get_event_element_spec, get_tree_siz
 User = get_user_model()
 redis = get_redis_connection()
 
+CLEAR_PROCESS_TAG_QUEUE_LUA = """
+    local values = redis.call("ZREVRANGEBYSCORE", KEYS[1], ARGV[1], "-inf", "LIMIT", "0", "1000")
+    if table.getn(values) > 0 then
+        redis.call("RPUSH", KEYS[2], unpack(values))
+        redis.call("ZREM", KEYS[1], unpack(values))
+    end"""
+
+PROCESS_TAG_QUEUE_LUA = """
+    local value = redis.call("RPOP", KEYS[1])
+    if value then
+        redis.call("ZADD", KEYS[2], ARGV[1], value)
+    end
+    return value"""
+
+
 class GenerateXML(DBTask):
     event_type = 50600
 
@@ -1012,14 +1027,6 @@ class ConvertFile(DBTask):
 
 
 class ClearTagProcessQueue(DBTask):
-    _clear_process_tag_queue_lua = """
-    local values = redis.call("ZREVRANGEBYSCORE", KEYS[1], ARGV[1], "-inf", "LIMIT", "0", "1000")
-    if table.getn(values) > 0 then
-        redis.call("RPUSH", KEYS[2], unpack(values))
-        redis.call("ZREM", KEYS[1], unpack(values))
-    end
-    """
-
     def run(self):
         """
         Deletes items older than 60 seconds from the process queue
@@ -1027,7 +1034,7 @@ class ClearTagProcessQueue(DBTask):
         """
 
         max_time = int(time.time()) - 60
-        _clear_process_tag_queue = redis.register_script(_clear_process_tag_queue_lua)
+        _clear_process_tag_queue = redis.register_script(CLEAR_PROCESS_TAG_QUEUE_LUA)
 
         _clear_process_tag_queue(keys=[INDEX_PROCESS_QUEUE, INDEX_QUEUE], args=[max_time])
         _clear_process_tag_queue(keys=[UPDATE_PROCESS_QUEUE, UPDATE_QUEUE], args=[max_time])
@@ -1043,13 +1050,6 @@ class ClearTagProcessQueue(DBTask):
 class ProcessTags(DBTask):
     id_pickles = {}
     abstract = True
-
-    _process_tag_queue_lua = """
-    local value = redis.call("RPOP", KEYS[1])
-    if value then
-        redis.call("ZADD", KEYS[2], ARGV[1], value)
-    end
-    return value"""
 
     def deserialize(self, tags):
         for tag_string in [t for t in tags if t is not None]:
@@ -1067,7 +1067,7 @@ class ProcessTags(DBTask):
         the entry is deleted from the process queue.
         """
         es = get_connection()
-        _process_tag_queue = redis.register_script(_process_tag_queue_lua)
+        _process_tag_queue = redis.register_script(PROCESS_TAG_QUEUE_LUA)
         tags = []
         for i in range(100):
             epoch_time = int(time.time())
