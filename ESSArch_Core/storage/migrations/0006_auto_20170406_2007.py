@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
                 ('device', models.CharField(max_length=255, unique=True)),
                 ('idle_time', models.DurationField(default=timedelta(hours=1))),
                 ('num_of_mounts', models.IntegerField(default=0)),
-                ('io_queue_entry', models.OneToOneField(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='tape_drive', to='storage.IOQueue')),
+                ('io_queue_entry', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='tape_drive', to='storage.IOQueue')),
                 ('robot', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='tape_drives', to='storage.Robot')),
                 ('last_change', models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now)),
                 ('drive_id', models.IntegerField(default=1)),
