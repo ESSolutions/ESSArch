@@ -597,7 +597,7 @@ class TapeDrive(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     drive_id = models.IntegerField()
     device = models.CharField(max_length=255, unique=True)
-    io_queue_entry = models.OneToOneField('IOQueue', models.PROTECT, related_name='tape_drive', null=True)
+    io_queue_entry = models.OneToOneField('IOQueue', models.PROTECT, related_name='tape_drive', null=True, blank=True)
     num_of_mounts = models.IntegerField(default=0)
     idle_time = models.DurationField(default=timedelta(hours=1))
     last_change = models.DateTimeField(auto_now_add=True)
