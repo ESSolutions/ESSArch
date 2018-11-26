@@ -3,7 +3,7 @@
 }
 .d-md-none {
     @include medium-screen-up {
-        display: none;
+        display: none !important;
     }
 }
 .d-lg-none {
@@ -17,7 +17,7 @@
 }
 .d-md-inline {
     @include medium-screen-up {
-        display: inline;
+        display: inline !important;
     }
 }
 .d-inline-block {
