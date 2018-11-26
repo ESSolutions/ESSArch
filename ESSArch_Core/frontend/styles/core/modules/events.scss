@@ -4,6 +4,14 @@
     .table {
         position: relative;
         overflow-x: auto;
+        .failed {
+            background-color: $task-validation-bg-red;
+            color: $task-validation-text-red;
+        }
+        .success {
+            background-color: $task-validation-bg-green;
+            color: $task-validation-text-green;
+        }
     }
     .submit-button {
         margin-bottom: 5px;
