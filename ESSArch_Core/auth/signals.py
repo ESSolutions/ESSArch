@@ -118,10 +118,14 @@ try:
 
     @receiver(ldap_error, sender=LDAPBackend)
     def ldap_failed(sender, context, exception, user=None, **kwargs):
-        message = '%s: %s' % (exception.message['desc'], exception.message['info'])
+        exc = exception.args[0]
+        if 'info' in exc:
+            message = '%s: %s' % (exc['desc'], exc['info'])
+        else:
+            message = exc['desc']
 
         ldap_logger = logging.getLogger('essarch.auth.ldap')
-        ldap_logger.critical(message)
+        ldap_logger.critical(message, exc_info=exception)
 
         if user is None or user.is_anonymous:
             return
