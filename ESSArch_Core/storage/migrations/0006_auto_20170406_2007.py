@@ -68,6 +68,10 @@ class Migration(migrations.Migration):
                 ('status', models.IntegerField(choices=[(0, 'Inactive'), (20, 'Write'), (100, 'FAIL')], default=20)),
             ],
         ),
+        migrations.AlterModelOptions(
+            name='tapeslot',
+            options={'ordering': ('slot_id',)},
+        ),
         migrations.AlterUniqueTogether(
             name='tapeslot',
             unique_together=set([('slot_id', 'robot')]),

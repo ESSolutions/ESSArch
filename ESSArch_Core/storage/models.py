@@ -624,6 +624,7 @@ class TapeSlot(models.Model):
     status = models.IntegerField(choices=STATUS_CHOICES, default=20)
 
     class Meta:
+        ordering = ('slot_id',)
         unique_together = ('slot_id', 'robot')
 
     def __str__(self):
