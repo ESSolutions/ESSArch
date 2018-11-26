@@ -250,7 +250,7 @@
     flex-direction: row;
     font-weight: bold;
     flex-wrap: nowrap;
-    padding: 0 0 10px 0;
+    padding: 5px 0 5px 0;
     overflow-x: auto;
     .btn-info {
         margin-left: 10px;
@@ -283,4 +283,28 @@
 .tree-grid-row:focus {
     background-color: $selected;
     outline: none;
+}
+
+.title-action-button-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    @include medium-screen-up {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    .title {
+        text-align: center;
+        @include medium-screen-up {
+            text-align: left;
+        }
+    }
+    .action-button {
+        @include small-screen {
+            width: 100%;
+            .btn {
+                width: 100%;
+            }
+        }
+    }
 }
