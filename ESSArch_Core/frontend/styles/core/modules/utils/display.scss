@@ -1,10 +1,25 @@
+.d-none {
+    display: none;
+}
+.d-md-none {
+    @include medium-screen-up {
+        display: none;
+    }
+}
 .d-lg-none {
     display: block;
     @include large-screen-up {
         display: none;
     }
 }
-
+.d-inline {
+    display: inline;
+}
+.d-md-inline {
+    @include medium-screen-up {
+        display: inline;
+    }
+}
 .d-inline-block {
     display: inline-block;
 }

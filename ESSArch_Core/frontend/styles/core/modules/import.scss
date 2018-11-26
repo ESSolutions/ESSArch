@@ -1,0 +1,22 @@
+
+.import {
+    @include container(10px);
+    margin-top: 10px;
+    width:100%;
+    input {
+        width: 100%;
+        @include medium-screen {
+            width: 50%;
+        }
+        @include large-screen-up {
+            width: 33%;
+        }
+    }
+    .alert {
+        width: 33%;
+        margin-top: 10px;
+    }
+    .btn-primary {
+        margin-top: 5px;
+    }
+}
