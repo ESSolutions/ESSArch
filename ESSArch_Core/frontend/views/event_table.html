@@ -1,5 +1,12 @@
 <div class="event-view">
     <div st-table="vm.displayed" st-pipe="eventPipe" class="table-container">
+        <div class="title-action-button-row">
+            <div class="title">
+                <h4>
+                    {{'EVENTS' | translate}}
+                </h4>
+            </div>
+        </div>
         <div class="search-prepare-wrapper">
             <select tabindex="-1" class="form-control items-per-page" ng-change="updateEventsPerPage(vm.itemsPerPage)" ng-model="vm.itemsPerPage" ng-options="x for x in [5,10,20,25,50]"></select>
             <span class="fas fa-md fa-filter filter-icon" ng-class="{'blue-border': showAdvancedFilters, 'filter-active': filterActive()}" ng-click="toggleAdvancedFilters()"></span>
