@@ -616,15 +616,11 @@ class InformationPackage(models.Model):
             return progress
 
         steps = self.steps.all()
+        if steps.exists():
+            progress = sum([s.progress for s in steps])
+            return progress / steps.count()
 
-        if steps:
-            try:
-                progress = sum([s.progress for s in steps])
-                return progress / len(steps)
-            except:
-                return 0
-
-        return 0
+        return 100
 
     def list_files(self, path=''):
         fullpath = os.path.join(self.object_path, path).rstrip('/')
