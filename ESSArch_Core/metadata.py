@@ -15,7 +15,7 @@ class CustomMetadata(SimpleMetadata):
         metadata['workflow_pollers'] = AVAILABLE_POLLERS.keys()
 
         filters = OrderedDict()
-        if not hasattr(view, 'filterset_class'):
+        if not getattr(view, 'filterset_class', None):
             # This route has no filter
             return metadata
 
@@ -68,10 +68,10 @@ class CustomMetadata(SimpleMetadata):
 
         metadata['filters'] = filters
 
-        if hasattr(view, 'ordering_fields'):
+        if getattr(view, 'ordering_fields', None):
             metadata['ordering'] = view.ordering_fields
 
-        if hasattr(view, 'search_fields') and len(view.search_fields) > 1:
+        if getattr(view, 'search_fields', None) and len(view.search_fields) > 1:
             metadata['search'] = True
 
         return metadata
