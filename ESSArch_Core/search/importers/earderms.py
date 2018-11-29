@@ -10,9 +10,9 @@ import uuid
 import six
 from django.db import transaction
 from django.db.models import OuterRef, Subquery, F, Q
-from django_redis import get_redis_connection
+from elasticsearch_dsl.connections import get_connection
+from elasticsearch import helpers as es_helpers
 from lxml import etree
-from six.moves import cPickle
 
 from ESSArch_Core.search.importers.base import BaseImporter
 from ESSArch_Core.tags import INDEX_QUEUE
@@ -21,7 +21,7 @@ from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
 from ESSArch_Core.util import get_tree_size_and_count, normalize_path, remove_prefix, timestamp_to_datetime
 
 logger = logging.getLogger('essarch.search.importers.EardErmsImporter')
-redis_conn = get_redis_connection()
+es = get_connection()
 
 
 class EardErmsImporter(BaseImporter):
@@ -86,7 +86,7 @@ class EardErmsImporter(BaseImporter):
                                  reference_code='')
         tag_repr = TagStructure(tag=tag, parent=parent, structure=parent.structure, tree_id=parent.tree_id, lft=0, rght=0, level=0)
         self.indexed_files.append(filepath)
-        return tag, tag_version, tag_repr, cPickle.dumps(d)
+        return tag, tag_version, tag_repr, d.to_dict(include_meta=True)
 
     def parse_person(self, el):
         data = {}
@@ -236,7 +236,7 @@ class EardErmsImporter(BaseImporter):
         id = str(uuid.uuid4())#act.get("Systemidentifierare")
         reference_code = act.xpath("*[local-name()='ArkivobjektID']")[0].text
         unit_ids = {'id': reference_code}
-        parent = Node(id=errand._id, index=errand._index)
+        parent = Node(id=errand.meta.id, index=errand._index._name)
 
         data = {}
         data_mappings = {
@@ -342,7 +342,7 @@ class EardErmsImporter(BaseImporter):
             for doc_el in act_el.xpath("*[local-name()='Bilaga']"):
                 yield self.parse_document(xmlpath, ip, rootdir, doc_el, act, tag_repr)
 
-            yield tag, tag_version, tag_repr, cPickle.dumps(act)
+            yield tag, tag_version, tag_repr, act.to_dict(include_meta=True)
 
     def parse_errand(self, errand, archive):
         id = str(uuid.uuid4())#errand.get("Systemidentifierare")
@@ -446,7 +446,7 @@ class EardErmsImporter(BaseImporter):
                 for act in self.parse_acts(xmlpath, ip, rootdir, component, acts_root[0], tag_repr):
                     yield act
 
-            yield tag, tag_version, tag_repr, cPickle.dumps(component)
+            yield tag, tag_version, tag_repr, component.to_dict(include_meta=True)
 
     def import_content(self, ip):
         self.indexed_files = []
@@ -469,7 +469,15 @@ class EardErmsImporter(BaseImporter):
                     versions = TagVersion.objects.filter(tag=OuterRef('pk'))
                     Tag.objects.annotate(version=Subquery(versions.values('pk')[:1])).update(current_version_id=F('version'))
 
-                    redis_conn.rpush(INDEX_QUEUE, *components)
+        for ok, result in es_helpers.streaming_bulk(es, components):
+            action, result = result.popitem()
+            doc_id = result['_id']
+            doc = '/%s/%s' % (result['_index'], doc_id)
+
+            if not ok:
+                logger.error('Failed to %s document %s: %r' % (action, doc, result))
+            else:
+                logger.info('Saved document %s: %r' % (doc, result))
 
         TagStructure.objects.partial_rebuild(archive.get_active_structure().tree_id)
         return self.indexed_files
