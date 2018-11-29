@@ -84,7 +84,7 @@ class Process(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
     result = PickledObjectField(null=True, default=None, editable=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -674,5 +674,5 @@ class ProcessTask(Process):
             ('can_retry', 'Can retry tasks'),
         )
 
-        def __unicode__(self):
+        def __str__(self):
             return '%s - %s' % (self.name, self.id)

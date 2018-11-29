@@ -64,8 +64,7 @@ class Parameter(models.Model):
         ordering = ["entity"]
         verbose_name = 'Parameter'
 
-    def __unicode__(self):
-        # create a unicode representation of this object
+    def __str__(self):
         return self.entity
 
     def get_value_array(self):
@@ -91,7 +90,7 @@ class Path(models.Model):
 
     objects = PathManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s (%s)' % (self.entity, self.value)
 
     class Meta:
@@ -112,8 +111,7 @@ class EventType(models.Model):
         ordering = ["eventType"]
         verbose_name = 'Event Type'
 
-    def __unicode__(self):
-        # create a unicode representation of this object
+    def __str__(self):
         return self.eventDetail
 
     def populate_from_form(self, form):

@@ -272,7 +272,7 @@ class SubmissionAgreement(models.Model):
             ('export_sa', 'Can export SA'),
         )
 
-    def __unicode__(self):
+    def __str__(self):
         # create a unicode representation of this object
         return '%s - %s' % (self.name, self.id)
 
@@ -369,8 +369,7 @@ class Profile(models.Model):
             ('export_profile', 'Can export profile'),
         )
 
-    def __unicode__(self):
-        # create a unicode representation of this object
+    def __str__(self):
         return '%s (%s) - %s' % (self.name, self.profile_type, self.id)
 
     def copy(self, specification_data, new_name, structure=None):
