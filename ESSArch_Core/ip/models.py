@@ -941,8 +941,7 @@ class EventIP(models.Model):
         ordering = ["eventDateTime", "id"]
         verbose_name = 'Events related to IP'
 
-    def __unicode__(self):
-        # create a unicode representation of this object
+    def __str__(self):
         return '%s (%s)' % (self.eventType.eventDetail, self.id)
 
     def get_value_array(self):
