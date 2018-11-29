@@ -86,7 +86,10 @@ class EardErmsImporter(BaseImporter):
                                  reference_code='')
         tag_repr = TagStructure(tag=tag, parent=parent, structure=parent.structure, tree_id=parent.tree_id, lft=0, rght=0, level=0)
         self.indexed_files.append(filepath)
-        return tag, tag_version, tag_repr, d.to_dict(include_meta=True)
+
+        d_dict = d.to_dict(include_meta=True)
+        d_dict['pipeline'] = 'ingest_attachment'
+        return tag, tag_version, tag_repr, d_dict
 
     def parse_person(self, el):
         data = {}
