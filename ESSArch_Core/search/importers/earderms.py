@@ -27,7 +27,7 @@ es = get_connection()
 class EardErmsImporter(BaseImporter):
     def get_archive(self, ip):
         try:
-            ctsfile = ip.get_content_type_file()
+            ctsfile = ip.open_file(ip.get_content_type_file())
             tree = etree.parse(ctsfile, self.xmlparser)
             root = tree.getroot()
             archive_id = root.xpath("//*[local-name()='ArkivReferens']")[0].text
@@ -453,25 +453,36 @@ class EardErmsImporter(BaseImporter):
 
     def import_content(self, ip):
         self.indexed_files = []
-        with ip.get_content_type_file() as ctsfile:
-            tree = etree.parse(ctsfile, self.xmlparser)
-        root = tree.getroot()
-
+        xmlfile = ip.open_file(ip.get_content_type_file())
         archive = self.get_archive(ip).tag.current_version
+
+        tags, tag_versions, tag_structures, components = self.parse_eard(xmlfile, ip, ip.object_path, archive)
+        self.save_to_database(tags, tag_versions, tag_structures, archive)
+        self.save_to_elasticsearch(components)
+        return self.indexed_files
+
+    def parse_eard(self, xmlfile, ip, rootdir, archive):
+        logger.debug("Parsing XML elements...")
+        tree = etree.parse(xmlfile, self.xmlparser)
+        root = tree.getroot()
         errands_root = self.get_errands_root(root)
+        return zip(*self.parse_errands(xmlfile, ip, rootdir, archive, errands_root[0]))
 
-        if len(errands_root):
-            with transaction.atomic():
-                with TagStructure.objects.disable_mptt_updates():
-                    tags, tag_versions, tag_reprs, components = six.moves.zip(*self.parse_errands(ctsfile, ip, ip.object_path, archive, errands_root[0]))
+    def save_to_database(self, tags, tag_versions, tag_structures, archive):
+        logger.debug("Saving to Database...")
+        Tag.objects.bulk_create(tags, batch_size=100)
+        TagVersion.objects.bulk_create(tag_versions, batch_size=100)
+        with transaction.atomic():
+            with TagStructure.objects.disable_mptt_updates():
+                TagStructure.objects.bulk_create(tag_structures, batch_size=100)
+            logger.debug("Rebuilding tree...")
+            TagStructure.objects.partial_rebuild(archive.get_active_structure().tree_id)
 
-                    Tag.objects.bulk_create(reversed(tags), batch_size=1000)
-                    TagVersion.objects.bulk_create(reversed(tag_versions), batch_size=1000)
-                    TagStructure.objects.bulk_create(reversed(tag_reprs), batch_size=1000)
+        versions = TagVersion.objects.filter(tag=OuterRef('pk'))
+        Tag.objects.annotate(version=Subquery(versions.values('pk')[:1])).update(current_version_id=F('version'))
 
-                    versions = TagVersion.objects.filter(tag=OuterRef('pk'))
-                    Tag.objects.annotate(version=Subquery(versions.values('pk')[:1])).update(current_version_id=F('version'))
-
+    def save_to_elasticsearch(self, components):
+        logger.debug("Saving to Elasticsearch...")
         for ok, result in es_helpers.streaming_bulk(es, components):
             action, result = result.popitem()
             doc_id = result['_id']
@@ -481,6 +492,3 @@ class EardErmsImporter(BaseImporter):
                 logger.error('Failed to %s document %s: %r' % (action, doc, result))
             else:
                 logger.info('Saved document %s: %r' % (doc, result))
-
-        TagStructure.objects.partial_rebuild(archive.get_active_structure().tree_id)
-        return self.indexed_files

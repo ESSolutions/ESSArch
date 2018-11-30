@@ -350,8 +350,7 @@ class InformationPackage(models.Model):
         ctsdir, ctsfile = find_destination('content_type_specification', self.get_structure())
         if ctsdir is None:
             return None
-        path = parseContent(os.path.join(ctsdir, ctsfile), fill_specification_data(ip=self))
-        return self.open_file(path)
+        return parseContent(os.path.join(ctsdir, ctsfile), fill_specification_data(ip=self))
 
     def get_archive_tag(self):
         if self.tag is not None:

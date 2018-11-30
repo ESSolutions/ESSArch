@@ -37,7 +37,7 @@ class XMLReceiptBackend(BaseReceiptBackend):
         if ip is not None:
             cts = ip.get_content_type_file()
             if cts is not None:
-                tree = etree.parse(cts)
+                tree = etree.parse(ip.open_file(cts))
                 for arende in tree.xpath("//*[local-name()='ArkivobjektArende']"):
                     arende_id = arende.xpath("*[local-name()='ArkivobjektID']")[0].text
                     a_data = {'ArkivobjektID': arende_id}
