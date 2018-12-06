@@ -11,7 +11,6 @@ from ESSArch_Core.tags import DELETION_QUEUE, INDEX_QUEUE, UPDATE_QUEUE
 from ESSArch_Core.tags.models import TagStructure, TagVersion
 
 logger = logging.getLogger('essarch.core')
-r = get_redis_connection()
 
 
 @receiver(post_save, sender=TagVersion)
@@ -71,4 +70,6 @@ def queue_tag_for_deletion(sender, instance, **kwargs):
         '_type': 'doc',
         '_id': str(instance.pk),
     }
+
+    r = get_redis_connection()
     r.rpush(DELETION_QUEUE, cPickle.dumps(data))
