@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
                 ('tree_id', models.PositiveIntegerField(db_index=True, editable=False)),
                 ('level', models.PositiveIntegerField(db_index=True, editable=False)),
                 ('parent', mptt.fields.TreeForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='tags.TagStructure')),
-                ('structure', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='tags.Structure')),
+                ('structure', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='tags.Structure')),
             ],
             options={
                 'get_latest_by': 'structure__create_date',

@@ -31,6 +31,8 @@ class VersionedDocType(Document):
     index_date = Date()
     personal_identification_numbers = Keyword()
     restrictions = Nested(Restriction)
+    ip = Keyword()
+    task_id = Keyword()
 
     def create_new_version(self, start_date=None, end_date=None, refresh=False):
         data = self.to_dict(include_meta=False)
@@ -87,7 +89,6 @@ class Component(VersionedDocType):
     archive = Keyword()
     institution = Keyword()
     organization = Keyword()
-    ip = Keyword()
 
     class Index:
         name = 'component'

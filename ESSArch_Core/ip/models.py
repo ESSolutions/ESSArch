@@ -59,7 +59,7 @@ from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.profiles.models import ProfileIP, ProfileIPData, ProfileSA
 from ESSArch_Core.profiles.models import SubmissionAgreement as SA
 from ESSArch_Core.profiles.utils import fill_specification_data
-from ESSArch_Core.search.importers import get_content_type_importer
+from ESSArch_Core.search.importers import get_backend as get_importer
 from ESSArch_Core.util import find_destination, generate_file_response, get_files_and_dirs, get_tree_size_and_count, in_directory, normalize_path, timestamp_to_datetime
 
 logger = logging.getLogger('essarch.ip')
@@ -350,8 +350,7 @@ class InformationPackage(models.Model):
         ctsdir, ctsfile = find_destination('content_type_specification', self.get_structure())
         if ctsdir is None:
             return None
-        path = parseContent(os.path.join(ctsdir, ctsfile), fill_specification_data(ip=self))
-        return self.open_file(path)
+        return parseContent(os.path.join(ctsdir, ctsfile), fill_specification_data(ip=self))
 
     def get_archive_tag(self):
         if self.tag is not None:
@@ -359,8 +358,14 @@ class InformationPackage(models.Model):
 
         try:
             ct_importer_name = self.get_content_type_importer_name()
-            ct_importer = get_content_type_importer(ct_importer_name)()
-            return ct_importer.get_archive(self)
+            ct_importer = get_importer(ct_importer_name)()
+            cts_file = ip.open_file(ip.get_content_type_file())
+            tag = ct_importer.get_archive(cts_file)
+
+            if tag is None:
+                return ip.tag
+
+            return tag
         except ValueError:
             return None
 
