@@ -4,7 +4,6 @@ import jsonfield
 import six
 from django.db import models, transaction
 from django.db.models import F, OuterRef, Subquery
-from django.utils.encoding import python_2_unicode_compatible
 from elasticsearch_dsl.connections import get_connection
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -29,11 +28,13 @@ class Structure(models.Model):
 
         return True
 
+    def __str__(self):
+        return '{} {}'.format(self.name, self.version)
+
     class Meta:
         get_latest_by = 'create_date'
 
 
-@python_2_unicode_compatible
 class StructureUnit(MPTTModel):
     structure = models.ForeignKey('tags.Structure', on_delete=models.CASCADE, null=False, related_name='units')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
@@ -45,7 +46,7 @@ class StructureUnit(MPTTModel):
     end_date = models.DateTimeField(null=True)
 
     def __str__(self):
-        return u'{} {}'.format(self.reference_code, self.name)
+        return '{} {}'.format(self.reference_code, self.name)
 
     class Meta:
         unique_together = (('structure', 'reference_code'),)
@@ -55,6 +56,7 @@ class Tag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     current_version = models.ForeignKey('tags.TagVersion', on_delete=models.SET_NULL, null=True, related_name='current_version_tags')
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True, related_name='tags')
+    task = models.ForeignKey('WorkflowEngine.ProcessTask', on_delete=models.SET_NULL, null=True, related_name='tags')
 
     def get_structures(self, structure=None):
         query_filter = {}
@@ -100,6 +102,9 @@ class Tag(models.Model):
         except TagStructure.DoesNotExist:
             return True
 
+    def __str__(self):
+        return '{}'.format(self.current_version)
+
     class Meta:
         permissions = (
             ('search', 'Can search'),
@@ -119,15 +124,45 @@ class TagVersion(models.Model):
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
 
-    def to_search(self):
-        d = {
+    def to_search_doc(self):
+        try:
+            current_structure = self.tag.get_active_structure()
+            parent = current_structure.parent
+            if parent is not None:
+                parent = {
+                    'id': str(parent.tag.current_version.pk),
+                    'index': parent.tag.current_version.elastic_index,
+                }
+        except TagStructure.DoesNotExist:
+            parent = None
+
+        data = {
+            'reference_code': self.reference_code,
+            'name': self.name,
+            'type': self.type,
+            'current_version': self.tag.current_version == self,
+            'parent': parent,
+        }
+
+        if self.elastic_index != 'archive':
+            archive = self.get_root()
+            if archive is not None:
+                data['doc'] = str(archive.pk)
+
+        return data
+
+    def to_search_data(self):
+        return {
             '_id': self.pk,
             '_index': self.elastic_index,
             'current_version': self.tag.current_version==self,
+            'reference_code': self.reference_code,
             'name': self.name,
             'type': self.type,
         }
 
+    def to_search(self):
+        d = self.to_search_data()
         return VersionedDocType(**d)
 
     def from_search(self):
@@ -142,8 +177,30 @@ class TagVersion(models.Model):
         return VersionedDocType.get(index=self.elastic_index, id=str(self.pk), **kwargs)
 
     def update_search(self, data):
-        doc = self.to_search()
-        doc.update(**data)
+        doc = self.to_search_data()
+
+        if 'parent' not in data:
+            try:
+                current_structure = self.tag.get_active_structure()
+                parent = current_structure.parent
+                if parent is not None:
+                    parent = {
+                        'id': six.text_type(parent.tag.current_version.pk),
+                        'index': parent.tag.current_version.elastic_index,
+                    }
+            except TagStructure.DoesNotExist:
+                parent = None
+
+            data['parent'] = parent
+
+        doc.update(data)
+        doc['current_version'] = self.tag.current_version == self
+
+        doc.pop('_id', None)
+        doc.pop('_index', None)
+        doc = {'doc_as_upsert': True, 'doc': doc}
+        es = get_connection()
+        es.update(self.elastic_index, 'doc', str(self.pk), body=doc)
 
     def create_new(self, start_date=None, end_date=None, data=None):
         # TODO: lock this version (e.g. using Redis) to make sure no one edits
@@ -223,6 +280,9 @@ class TagVersion(models.Model):
     def is_leaf_node(self, structure=None):
         return self.tag.is_leaf_node(structure)
 
+    def __str__(self):
+        return '{} {}'.format(self.reference_code, self.name)
+
     class Meta:
         get_latest_by = 'create_date'
         ordering = ('reference_code',)
@@ -231,7 +291,8 @@ class TagVersion(models.Model):
 class TagStructure(MPTTModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tag = models.ForeignKey('tags.Tag', on_delete=models.CASCADE, related_name='structures')
-    structure = models.ForeignKey('tags.Structure', on_delete=models.PROTECT, null=False)
+    structure = models.ForeignKey('tags.Structure', on_delete=models.CASCADE, null=False)
+    structure_unit = models.ForeignKey('tags.StructureUnit', on_delete=models.CASCADE, null=True)
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
 
     def create_new(self, representation):
@@ -252,7 +313,7 @@ class TagStructure(MPTTModel):
                     new = create_copy(tag, representation)
                     new_objs.append(new)
 
-                TagStructure.objects.bulk_create(new_objs, batch_size=1000)
+                TagStructure.objects.bulk_create(new_objs, batch_size=100)
 
                 # set parent to latest representation of all nodes except self
 
@@ -272,6 +333,9 @@ class TagStructure(MPTTModel):
             TagStructure.objects.partial_rebuild(new_self.tree_id)
 
         return new_self
+
+    def __str__(self):
+        return '{} in {}'.format(self.tag, self.structure)
 
     class Meta:
         get_latest_by = 'structure__create_date'
