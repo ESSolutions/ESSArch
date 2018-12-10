@@ -76,10 +76,18 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     root = serializers.SerializerMethodField()
 
     def get_root(self, obj):
-        return obj.get_root().pk
+        root = obj.get_root()
+        if root is not None:
+            return root.pk
+
+        return None
 
     def get_structure_unit(self, obj):
-        unit = obj.get_active_structure().structure_unit
+        try:
+            unit = obj.get_active_structure().structure_unit
+        except TagStructure.DoesNotExist:
+            return None
+
         if unit is None:
             return None
 
