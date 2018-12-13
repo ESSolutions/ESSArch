@@ -615,7 +615,7 @@ class DeleteFiles(DBTask):
                 elif e.errno != 3:
                     raise
 
-            if e.errno == errno.ENOTDIR:
+            elif e.errno == errno.ENOTDIR:
                 os.remove(path)
             elif e.errno != errno.ENOENT:
                 raise
