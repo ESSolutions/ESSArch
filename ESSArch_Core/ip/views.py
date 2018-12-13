@@ -190,6 +190,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         'object_identifier_value', 'label', 'responsible__first_name',
         'responsible__last_name', 'responsible__username', 'state',
         'submission_agreement__name', 'start_date', 'end_date',
+        'aic__object_identifier_value', 'aic__label',
     )
     filterset_class = InformationPackageFilter
 
