@@ -1,7 +1,0 @@
-ESSArch_TA
-==========
-
-.. toctree::
-   :maxdepth: 4
-
-   ESSArch_TA

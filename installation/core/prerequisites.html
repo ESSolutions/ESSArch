@@ -1,0 +1,801 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Prerequisites &mdash; ESSArch Core 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Prepare Environment" href="prepare_environment.html" />
+    <link rel="prev" title="ESSArch Core" href="index.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ESSArch Core
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Installation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">ESSArch Core</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Prerequisites</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#supported-os-platforms">Supported OS platforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#os-packages">OS Packages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#installing-packages">Installing packages</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="prepare_environment.html#create-user-and-group">Create user and group</a></li>
+<li class="toctree-l4"><a class="reference internal" href="prepare_environment.html#set-password-for-arch-user">Set password for arch user</a></li>
+<li class="toctree-l4"><a class="reference internal" href="prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+<li class="toctree-l4"><a class="reference internal" href="prepare_environment.html#create-installation-directory">Create installation directory</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="install.html">Install ESSArch Core</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="install.html#ec-installation-script">EC installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="install.html#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upgrade.html">Upgrade ESSArch Core</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../etp/index.html">ESSArch Tools Producer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../etp/prerequisites.html">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../etp/prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../etp/prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../etp/install.html">Install ESSArch Tools Producer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../etp/install.html#etp-installation-script">ETP installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/install.html#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/install.html#database">Database</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/install.html#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/install.html#enable-workerprocess">Enable workerprocess</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../etp/upgrade.html">Upgrade ESSArch Tools Producer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../etp/upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/upgrade.html#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../etp/running.html">Running ESSArch Tools Producer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../etp/running.html#start-etp-server">Start ETP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/running.html#stop-etp-server">Stop ETP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/running.html#access-etp-web-user-interface">Access ETP web user interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../etp/safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../etp/safety_backup_procedures.html#configure-backup-of-mysql-mariadb">Configure backup of MySQL / MariaDB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../etp/logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../etp/logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../eta/index.html">ESSArch Tools Archive</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../eta/prerequisites.html">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../eta/prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../eta/prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../eta/install.html">Install ESSArch Tools Archive</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../eta/install.html#eta-installation-script">ETA installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../eta/install.html#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../eta/install.html#database">Database</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../eta/install.html#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../eta/install.html#enable-workerprocess">Enable workerprocess</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../eta/upgrade.html">Upgrade ESSArch Tools Archive</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../eta/upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../eta/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../eta/upgrade.html#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../eta/upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../eta/running.html">Running ESSArch Tools Archive</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../eta/running.html#start-eta-server">Start ETA server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../eta/running.html#stop-eta-server">Stop ETA server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../eta/running.html#access-eta-web-user-interface">Access ETA web user interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../eta/safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../eta/safety_backup_procedures.html#configure-backup-of-mysql-mariadb">Configure backup of MySQL / MariaDB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../eta/safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../eta/logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../eta/logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../epp/index.html">ESSArch Preservation Platform</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../epp/prerequisites.html">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../epp/prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../epp/prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../epp/install.html">Install ESSArch Preservation Platform</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../epp/install.html#epp-installation-script">EPP installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/install.html#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/install.html#database">Database</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/install.html#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/install.html#enable-workerprocess">Enable workerprocess</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../epp/upgrade.html">Upgrade ESSArch Preservation Platform</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../epp/upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/upgrade.html#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../epp/running.html">Running ESSArch Preservation Platform</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../epp/running.html#start-epp-server">Start EPP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/running.html#stop-epp-server">Stop EPP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/running.html#access-epp-web-user-interface">Access EPP web user interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../epp/safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../epp/safety_backup_procedures.html#configure-backup-of-mysql-mariadb">Configure backup of MySQL / MariaDB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../epp/logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../epp/logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../restapi/index.html">REST API</a><ul class="simple">
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ESSArch Core</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Installation</a> &raquo;</li>
+        
+          <li><a href="index.html">ESSArch Core</a> &raquo;</li>
+        
+      <li>Prerequisites</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/installation/core/prerequisites.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="prerequisites">
+<span id="core-prerequisites"></span><h1>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h1>
+<div class="admonition attention">
+<p class="first admonition-title">Attention</p>
+<p class="last">Hardware configuration for server, network and storage architecture is not
+affected in this guide. Software configurations for server operating systems
+occur preferably before the installation of ESSArch begins. The installation
+is expected to be done as user ‘root’.</p>
+</div>
+<div class="section" id="supported-os-platforms">
+<h2>Supported OS platforms<a class="headerlink" href="#supported-os-platforms" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="61%" />
+<col width="39%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><strong>OS</strong></th>
+<th class="head"><strong>Version</strong></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>CentOS / Redhat</td>
+<td>6 (x86_64)</td>
+</tr>
+<tr class="row-odd"><td>CentOS / Redhat</td>
+<td>7 (x86_64)</td>
+</tr>
+<tr class="row-even"><td>SUSE Linux Enterprise Server</td>
+<td>11 (x86_64)</td>
+</tr>
+<tr class="row-odd"><td>SUSE Linux Enterprise Server</td>
+<td>12 (x86_64)</td>
+</tr>
+<tr class="row-even"><td>Windows Server</td>
+<td>2012 R2 (x86_64)</td>
+</tr>
+<tr class="row-odd"><td>Windows Server</td>
+<td>2016 (x86_64)</td>
+</tr>
+</tbody>
+</table>
+<p>(Other Linux and Microsoft operating systems have been tested but are not yet
+fully supported, please send us a request with your needs)</p>
+</div>
+<div class="section" id="os-packages">
+<h2>OS Packages<a class="headerlink" href="#os-packages" title="Permalink to this headline">¶</a></h2>
+<p>Before installing ESSArch Core you need to verify that the following packages
+are installed on your platform</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="30%" />
+<col width="23%" />
+<col width="32%" />
+<col width="15%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><strong>Package</strong></th>
+<th class="head"><strong>Minimum version</strong></th>
+<th class="head"><strong>Verified version</strong></th>
+<th class="head"><strong>Note</strong></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>bzip2</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>bzip2-devel (libbz2-devel)</td>
+<td>1.0.5-5</td>
+<td>1.0.5-7</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>erlang **</td>
+<td>R12B-5.8</td>
+<td>R14B-04.3</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>freetds</td>
+<td>0.64</td>
+<td>0.91-2</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>freetds-devel</td>
+<td>0.64</td>
+<td>0.91-2</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>gcc</td>
+<td>4.1.2</td>
+<td>4.4.7-11</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>gcc-c++</td>
+<td>4.1.2</td>
+<td>4.4.7-11</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>gnutls</td>
+<td>1.4.1</td>
+<td>2.8.5-14</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>kernel-devel</td>
+<td>2.6.x</td>
+<td>2.6.32-504</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>libffi-devel</td>
+<td>3.0.5-3.2</td>
+<td>3.0.5-3.2</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>lzo</td>
+<td>2.03-2</td>
+<td>2.03-3.1</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>lzo-devel</td>
+<td>2.03-2</td>
+<td>2.03-3.1</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>make</td>
+<td>3.81-15</td>
+<td>3.81-20</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>mt-st</td>
+<td>1.1</td>
+<td>1.1-5</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>mtx</td>
+<td>1.2.18</td>
+<td>1.3.12-5</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>mysql/mariadb</td>
+<td>5.0.77</td>
+<td>5.1.73-3</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>mysql/mariadb-devel</td>
+<td>5.0.77</td>
+<td>5.1.73-3</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>mysql/mariadb-libs</td>
+<td>5.0.77</td>
+<td>5.1.73-3</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>mysql/mariadb-server</td>
+<td>5.0.77</td>
+<td>5.1.73-3</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>openldap</td>
+<td>2.3.43</td>
+<td>2.4.39-8</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>openldap-devel</td>
+<td>2.3.43</td>
+<td>2.4.39-8</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>openssl</td>
+<td>1.0.1</td>
+<td>1.0.1e-30</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>openssl-devel</td>
+<td>1.0.1</td>
+<td>1.0.1e-30</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>patch</td>
+<td>2.6.1-1</td>
+<td>2.6-6</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>pcre</td>
+<td>7.8</td>
+<td>7.8-6</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>pcre-devel</td>
+<td>7.8</td>
+<td>7.8-6</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>rabbitmq-server</td>
+<td>3.3.1</td>
+<td>3.3.5-28</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>readline</td>
+<td>5.1.3</td>
+<td>6.0-4</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>readline-devel</td>
+<td>5.1.3</td>
+<td>6.0-4</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>redis</td>
+<td>3.x</td>
+<td>5.0.0</td>
+<td>New in 1.1.0</td>
+</tr>
+<tr class="row-even"><td>sg3_utils</td>
+<td>1.25</td>
+<td>1.28-6</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>sg3_utils-devel</td>
+<td>1.25</td>
+<td>1.28-6</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>sg3_utils-libs</td>
+<td>1.25</td>
+<td>1.28-6</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>sqlite-devel</td>
+<td>3.6</td>
+<td>3.6.20-1</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>sysstat</td>
+<td>7.x</td>
+<td>9.0.4-27</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>unixODBC</td>
+<td>2.2.11</td>
+<td>2.2.14-14</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>unixODBC-devel</td>
+<td>2.2.11</td>
+<td>2.2.14-14</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>xz</td>
+<td>4.999.9-0.1</td>
+<td>4.999.9-0.5.beta.20091007git</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>expat-devel</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>New in 1.1.0</td>
+</tr>
+<tr class="row-odd"><td>unzip</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>New in 1.1.0</td>
+</tr>
+<tr class="row-even"><td>java</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>New in 1.1.0</td>
+</tr>
+<tr class="row-odd"><td>elasticsearch</td>
+<td>6.x</td>
+<td>&#160;</td>
+<td>New in 1.1.0</td>
+</tr>
+<tr class="row-even"><td>xmlsec1</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>New in 1.1.0</td>
+</tr>
+<tr class="row-odd"><td>xmlsec1-openssl</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>New in 1.1.0</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>** CentOS 6 require extra package: <a class="reference external" href="https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm">epel-release</a></p>
+<p>Install this epel repository before you try to install erlang package:</p>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">yum</span> <span class="n">install</span> <span class="n">epel</span><span class="o">-</span><span class="n">release</span><span class="o">-</span><span class="n">latest</span><span class="o">-</span><span class="mf">6.</span><span class="n">noarch</span><span class="o">.</span><span class="n">rpm</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>** CentOS 7 require extra package: <a class="reference external" href="https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm">epel-release</a></p>
+<p>Install this epel repository before you try to install erlang package:</p>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">yum</span> <span class="n">install</span> <span class="n">epel</span><span class="o">-</span><span class="n">release</span><span class="o">-</span><span class="n">latest</span><span class="o">-</span><span class="mf">7.</span><span class="n">noarch</span><span class="o">.</span><span class="n">rpm</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>** SLES 11 SP4 require extra package: <a class="reference external" href="http://download.opensuse.org/repositories/devel:/languages:/erlang/">erlang</a></p>
+<p>Install erlang-epmd without dependencies since it requires erlang and vice
+versa erlang requires erlang-epmd:</p>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wget</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">download</span><span class="o">.</span><span class="n">opensuse</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">repositories</span><span class="o">/</span><span class="n">devel</span><span class="p">:</span><span class="o">/</span><span class="n">languages</span><span class="p">:</span><span class="o">/</span><span class="n">erlang</span><span class="o">/</span><span class="n">SLE_11_SP4</span><span class="o">/</span><span class="n">x86_64</span><span class="o">/</span><span class="n">erlang</span><span class="o">-</span><span class="mf">18.3</span><span class="o">-</span><span class="mf">12.1</span><span class="o">.</span><span class="n">x86_64</span><span class="o">.</span><span class="n">rpm</span>
+<span class="n">wget</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">download</span><span class="o">.</span><span class="n">opensuse</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">repositories</span><span class="o">/</span><span class="n">devel</span><span class="p">:</span><span class="o">/</span><span class="n">languages</span><span class="p">:</span><span class="o">/</span><span class="n">erlang</span><span class="o">/</span><span class="n">SLE_11_SP4</span><span class="o">/</span><span class="n">x86_64</span><span class="o">/</span><span class="n">erlang</span><span class="o">-</span><span class="n">epmd</span><span class="o">-</span><span class="mf">18.3</span><span class="o">-</span><span class="mf">12.1</span><span class="o">.</span><span class="n">x86_64</span><span class="o">.</span><span class="n">rpm</span>
+<span class="n">rpm</span> <span class="o">-</span><span class="n">i</span> <span class="o">--</span><span class="n">nodeps</span> <span class="n">erlang</span><span class="o">-</span><span class="n">epmd</span><span class="o">-</span><span class="mf">18.3</span><span class="o">-</span><span class="mf">12.1</span><span class="o">.</span><span class="n">x86_64</span><span class="o">.</span><span class="n">rpm</span>
+<span class="n">rpm</span> <span class="o">-</span><span class="n">i</span> <span class="n">erlang</span><span class="o">-</span><span class="mf">18.3</span><span class="o">-</span><span class="mf">12.1</span><span class="o">.</span><span class="n">x86_64</span><span class="o">.</span><span class="n">rpm</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>** SLES 12 SP3 require extra package: erlang</p>
+<p>Install erlang and erlang-epmd:</p>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">zypper</span> <span class="n">install</span> <span class="n">erlang</span><span class="o">-</span><span class="mf">20.0</span><span class="o">.</span><span class="mi">5</span><span class="o">-</span><span class="mf">12.1</span><span class="o">.</span><span class="n">x86_64</span><span class="o">.</span><span class="n">rpm</span> <span class="n">erlang</span><span class="o">-</span><span class="n">epmd</span><span class="o">-</span><span class="mf">20.0</span><span class="o">.</span><span class="mi">5</span><span class="o">-</span><span class="mf">12.1</span><span class="o">.</span><span class="n">x86_64</span><span class="o">.</span><span class="n">rpm</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="installing-packages">
+<h2>Installing packages<a class="headerlink" href="#installing-packages" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="redis-new-in-1-1-0">
+<h3><a class="reference external" href="https://redis.io">Redis</a> (new in 1.1.0)<a class="headerlink" href="#redis-new-in-1-1-0" title="Permalink to this headline">¶</a></h3>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">CentOS 7</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Install
+$ yum install redis
+
+Start service
+$ systemctl start redis.service
+
+Start service at system boot
+$ systemctl <span class="nb">enable</span> redis.service
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">SLES 12 SP3</span><a class="headerlink" href="#id3" title="Permalink to this code">¶</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Install <span class="o">(</span>install redis after you installed ESSArch_Core<span class="o">)</span>
+$ <span class="nb">cd</span> /ESSArch/install/packages
+$ zypper install redis-sles12_sp3.rpm
+
+Create default configurations
+$ cp /etc/redis/default.conf.example /etc/redis/default.conf
+$ chown redis /etc/redis/default.conf
+
+Enable service at system boot
+$ systemctl <span class="nb">enable</span> redis@default.service
+
+Start service
+$ systemctl start redis@default.service
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="rabbitmq">
+<h3>RabbitMQ<a class="headerlink" href="#rabbitmq" title="Permalink to this headline">¶</a></h3>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-text">CentOS 7</span><a class="headerlink" href="#id4" title="Permalink to this code">¶</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Install
+$ yum install rabbitmq-server
+
+Start service
+$ systemctl start rabbitmq-server
+
+Start service at system boot
+$ systemctl <span class="nb">enable</span> rabbitmq-server
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text">SLES 12 SP3</span><a class="headerlink" href="#id5" title="Permalink to this code">¶</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Install <span class="o">(</span>install rabbitmq-server after you installed ESSArch_Core<span class="o">)</span>
+$ <span class="nb">cd</span> /ESSArch/install/packages
+$ zypper install rabbitmq-server-sles11.rpm
+
+Enable service at system boot
+$ systemctl <span class="nb">enable</span> rabbitmq-server.service
+
+Start service
+$ systemctl start rabbitmq-server
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="elasticsearch">
+<h3>Elasticsearch<a class="headerlink" href="#elasticsearch" title="Permalink to this headline">¶</a></h3>
+<div class="literal-block-wrapper docutils container" id="id6">
+<div class="code-block-caption"><span class="caption-text">CentOS 7</span><a class="headerlink" href="#id6" title="Permalink to this code">¶</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Add Elasticsearch repository
+$ sudo bash -c <span class="s1">&#39;echo &quot;[elasticsearch-6.x]</span>
+<span class="s1">name=Elasticsearch repository for 6.x packages</span>
+<span class="s1">baseurl=https://artifacts.elastic.co/packages/6.x/yum</span>
+<span class="s1">gpgcheck=1</span>
+<span class="s1">gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch</span>
+<span class="s1">enabled=1</span>
+<span class="s1">autorefresh=1</span>
+<span class="s1">type=rpm-md&quot; &gt; /etc/yum.repos.d/elasticsearch.repo&#39;</span>
+
+Install
+$ yum install elasticsearch
+$ sudo /usr/share/elasticsearch/bin/elasticsearch-plugin install -b ingest-attachment
+
+Start service
+$ systemctl start elasticsearch
+
+Start service at system boot
+$ systemctl <span class="nb">enable</span> elasticsearch
+</pre></div>
+</div>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">If you extract the contents of the installation package for <a class="reference external" href="https://github.com/ESSolutions/ESSArch_Core/releases/latest">ESSArch Core</a> and look in
+the directory folder “extra”, there is a help script to install the required
+OS packages.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="prepare_environment.html" class="btn btn-neutral float-right" title="Prepare Environment" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="ESSArch Core" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, ES Solutions.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            LANGUAGE:'en',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

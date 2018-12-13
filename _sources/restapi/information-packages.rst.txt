@@ -1,0 +1,20 @@
+.. http:get:: /information-packages/
+
+    The information packages visible to the logged in user
+
+    :query [string] agents: agent ids
+    :query [string] archivist_organization: archivist organization names
+    :query [string] state: IP states
+    :query [string] label: labels
+    :query [string] object_identifier_value: object identifier values
+    :query [string] responsible: usernames
+    :query date create_date_0: the earliest allowed create date
+    :query date create_date_1: the latest allowed create date
+    :query date entry_date_0: the earliest allowed entry date
+    :query date entry_date_1: the latest allowed entry date
+    :query int object_size_0: the lowest allowed IP size (bytes)
+    :query int object_size_1: the highest allowed IP size (bytes)
+    :query date start_date_0: the earliest allowed start date
+    :query date start_date_1: the latest allowed start date
+    :query date end_date_0: the earliest allowed end date
+    :query date end_date_1: the latest allowed end date

@@ -1,7 +1,0 @@
-ESSArch_TP
-==========
-
-.. toctree::
-   :maxdepth: 4
-
-   ESSArch_TP

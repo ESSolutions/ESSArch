@@ -1,0 +1,607 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>XML Generator &mdash; ESSArch Core 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ESSArch Core
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="installation/index.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation/core/index.html">ESSArch Core</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation/core/prerequisites.html">Prerequisites</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/prerequisites.html#supported-os-platforms">Supported OS platforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/prerequisites.html#os-packages">OS Packages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/prerequisites.html#installing-packages">Installing packages</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/core/prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/prepare_environment.html#create-user-and-group">Create user and group</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/prepare_environment.html#set-password-for-arch-user">Set password for arch user</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/prepare_environment.html#create-installation-directory">Create installation directory</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/core/install.html">Install ESSArch Core</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/install.html#ec-installation-script">EC installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/install.html#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/core/upgrade.html">Upgrade ESSArch Core</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/core/safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/core/logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation/etp/index.html">ESSArch Tools Producer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation/etp/prerequisites.html">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation/etp/prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/etp/install.html">Install ESSArch Tools Producer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/install.html#etp-installation-script">ETP installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/install.html#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/install.html#database">Database</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/install.html#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/install.html#enable-workerprocess">Enable workerprocess</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/etp/upgrade.html">Upgrade ESSArch Tools Producer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/upgrade.html#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/etp/running.html">Running ESSArch Tools Producer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/running.html#start-etp-server">Start ETP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/running.html#stop-etp-server">Stop ETP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/running.html#access-etp-web-user-interface">Access ETP web user interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/etp/safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/safety_backup_procedures.html#configure-backup-of-mysql-mariadb">Configure backup of MySQL / MariaDB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/etp/logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation/eta/index.html">ESSArch Tools Archive</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation/eta/prerequisites.html">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation/eta/prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/eta/install.html">Install ESSArch Tools Archive</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/install.html#eta-installation-script">ETA installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/install.html#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/install.html#database">Database</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/install.html#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/install.html#enable-workerprocess">Enable workerprocess</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/eta/upgrade.html">Upgrade ESSArch Tools Archive</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/upgrade.html#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/eta/running.html">Running ESSArch Tools Archive</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/running.html#start-eta-server">Start ETA server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/running.html#stop-eta-server">Stop ETA server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/running.html#access-eta-web-user-interface">Access ETA web user interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/eta/safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/safety_backup_procedures.html#configure-backup-of-mysql-mariadb">Configure backup of MySQL / MariaDB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/eta/logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation/epp/index.html">ESSArch Preservation Platform</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation/epp/prerequisites.html">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation/epp/prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/epp/install.html">Install ESSArch Preservation Platform</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/install.html#epp-installation-script">EPP installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/install.html#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/install.html#database">Database</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/install.html#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/install.html#enable-workerprocess">Enable workerprocess</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/epp/upgrade.html">Upgrade ESSArch Preservation Platform</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/upgrade.html#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/epp/running.html">Running ESSArch Preservation Platform</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/running.html#start-epp-server">Start EPP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/running.html#stop-epp-server">Stop EPP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/running.html#access-epp-web-user-interface">Access EPP web user interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/epp/safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/safety_backup_procedures.html#configure-backup-of-mysql-mariadb">Configure backup of MySQL / MariaDB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/epp/logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="restapi/index.html">REST API</a><ul class="simple">
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ESSArch Core</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>XML Generator</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/xml-generator.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="xml-generator">
+<span id="id1"></span><h1>XML Generator<a class="headerlink" href="#xml-generator" title="Permalink to this headline">¶</a></h1>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="profiles.html#profiles"><span class="std std-ref">Profiles</span></a></p>
+</div>
+<div class="section" id="xml-specification">
+<h2>XML Specification<a class="headerlink" href="#xml-specification" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="creating-an-empty-element">
+<h3>Creating an empty element<a class="headerlink" href="#creating-an-empty-element" title="Permalink to this headline">¶</a></h3>
+<p>Each XML-element is specified as a nested json object. All elements require the
+<code class="docutils literal highlight highlight-default"><span></span><span class="n">name</span></code> parameter so the most simple specification we can have is</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;-name&quot;</span><span class="p">:</span> <span class="s2">&quot;file&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>This will however generate an error since no empty elements are created by
+default and XML files without elements are invalid. We can fix this by setting
+the <code class="docutils literal highlight highlight-default"><span></span><span class="o">-</span><span class="n">allowEmpty</span></code> parameter:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;-name&quot;</span><span class="p">:</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;-allowEmpty&quot;</span><span class="p">:</span> <span class="kc">true</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Which will generate</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;file/&gt;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="xml-variables">
+<span id="id2"></span><h2>XML Variables<a class="headerlink" href="#xml-variables" title="Permalink to this headline">¶</a></h2>
+<p>XML variables are what allows us to reuse the same profile for multiple IPs
+with different values.</p>
+<p>In the specification for a XML file we can write the following to define an
+element with its text set to a variable</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;-name&quot;</span><span class="p">:</span> <span class="s2">&quot;myelement&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;#content&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="nt">&quot;var&quot;</span><span class="p">:</span> <span class="s2">&quot;myvar&quot;</span><span class="p">}]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If we create this with <code class="docutils literal highlight highlight-default"><span></span><span class="n">myvar</span> <span class="o">=</span> <span class="s2">&quot;hello world&quot;</span></code> we get the following XML</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;myelement&gt;</span>hello world<span class="nt">&lt;/myelement&gt;</span>
+</pre></div>
+</div>
+<p>We could also add a static prefix and/or suffix</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;-name&quot;</span><span class="p">:</span> <span class="s2">&quot;myelement&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;#content&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;hello &quot;</span><span class="p">},</span> <span class="p">{</span><span class="nt">&quot;var&quot;</span><span class="p">:</span> <span class="s2">&quot;myvar&quot;</span><span class="p">},</span> <span class="p">{</span><span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;, how are you?&quot;</span><span class="p">}]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Used with <code class="docutils literal highlight highlight-default"><span></span><span class="n">myvar</span> <span class="o">=</span> <span class="s2">&quot;world&quot;</span></code> we get</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;myelement&gt;</span>hello world, how are you?<span class="nt">&lt;/myelement&gt;</span>
+</pre></div>
+</div>
+<div class="section" id="reserved-xml-variables">
+<span id="id3"></span><h3>Reserved XML Variables<a class="headerlink" href="#reserved-xml-variables" title="Permalink to this headline">¶</a></h3>
+<p>This is a list of reserved variables that can be used in profiles to get more
+dynamic, automatically populated data.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="62%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_UUID</span></code></td>
+<td>Generates a new UUID</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_OBJID</span></code></td>
+<td>ID of the IP</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_OBJUUID</span></code></td>
+<td>UUID of the IP</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_OBJLABEL</span></code></td>
+<td>Label of the IP</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_OBJPATH</span></code></td>
+<td>Path of the IP</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_STARTDATE</span></code></td>
+<td>Start date of the IP</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_ENDDATE</span></code></td>
+<td>End date of the IP</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_NOW</span></code></td>
+<td>Time at generation of element</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_USER</span></code></td>
+<td>Logged in user</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_XML_FILENAME</span></code></td>
+<td>Name of XML file being generated</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_EXT</span></code></td>
+<td>The directory name for the current external XML file</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_EXT_HREF</span></code></td>
+<td>The directory path and name for the current external XML file</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_IP_CREATEDATE</span></code></td>
+<td>Timestamp of when the tar/zip-file was generated</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_IP_CONTAINER_FORMAT</span></code></td>
+<td>The container format of the IP, e.g. tar or zip</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_SA_ID</span></code></td>
+<td>The id of the Submission Agreement</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_SA_NAME</span></code></td>
+<td>The name of the Submission Agreement</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_IP_ARCHIVIST_ORGANIZATION</span></code></td>
+<td>The archivist organization of the Information Package</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_INFORMATIONCLASS</span></code></td>
+<td>The information class of the Information Package</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_POLICYUUID</span></code></td>
+<td>The policy uuid of the Information Package</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_POLICYID</span></code></td>
+<td>The policy id of the Information Package</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_POLICYNAME</span></code></td>
+<td>The policy name of the Information Package</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_PROFILE_TRANSFER_PROJECT_ID</span></code></td>
+<td>transfer project profile id</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_PROFILE_SUBMIT_DESCRIPTION_ID</span></code></td>
+<td>submit description profile id</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_PROFILE_SIP_ID</span></code></td>
+<td>sip profile id</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_PROFILE_AIP_ID</span></code></td>
+<td>aip profile id</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_PROFILE_DIP_ID</span></code></td>
+<td>dip profile id</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_PROFILE_CONTENT_TYPE_ID</span></code></td>
+<td>content type profile id</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_PROFILE_AUTHORITY_INFORMATION_ID</span></code></td>
+<td>authority information profile id</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_PROFILE_ARCHIVAL_DESCRIPTION_ID</span></code></td>
+<td>archival description profile id</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_PROFILE_PRESERVATION_METADATA_ID</span></code></td>
+<td>preservation metadata profile id</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_PROFILE_DATA_SELECTION_ID</span></code></td>
+<td>data selection profile id</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_PROFILE_IMPORT_ID</span></code></td>
+<td>import profile id</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">_PROFILE_WORKFLOW_ID</span></code></td>
+<td>workflow profile id</td>
+</tr>
+</tbody>
+</table>
+<p>In addition to the list above, all parameters can also be accessed with the
+<code class="docutils literal highlight highlight-default"><span></span><span class="n">_PARAMETER_</span><span class="p">{</span><span class="n">ENTITY</span><span class="p">}</span></code> syntax where <code class="docutils literal highlight highlight-default"><span></span><span class="p">{</span><span class="n">ENTITY</span><span class="p">}</span></code> is the name of the parameter.</p>
+</div>
+</div>
+<div class="section" id="xml-formatters">
+<h2>XML Formatters<a class="headerlink" href="#xml-formatters" title="Permalink to this headline">¶</a></h2>
+<p>XML formatters are suffixes that can be used to transform variables. They can
+be used by appending a <code class="docutils literal highlight highlight-default"><span></span><span class="n">__</span><span class="p">{</span><span class="n">FORMAT</span><span class="p">}</span></code> suffix to a variable:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;#content&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="nt">&quot;var&quot;</span><span class="p">:</span> <span class="s2">&quot;created___DATE&quot;</span><span class="p">}]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If we create this with <code class="docutils literal highlight highlight-default"><span></span><span class="n">created</span> <span class="o">=</span> <span class="s2">&quot;2018-02-05 12:30:25&quot;</span></code> we get the following XML</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;myelement&gt;</span>2018-02-05<span class="nt">&lt;/myelement&gt;</span>
+</pre></div>
+</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="40%" />
+<col width="60%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">DATE</span></code></td>
+<td>Keep only the date part of the variable</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">LOCALTIME</span></code></td>
+<td>Convert the variable to local timezone with a UTC offset</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="django-templates">
+<h2>Django Templates<a class="headerlink" href="#django-templates" title="Permalink to this headline">¶</a></h2>
+<p>In addition to the variables and formatters above we can also use the <a class="reference external" href="https://docs.djangoproject.com/en/1.11/ref/templates/">Django
+Template Engine</a> by
+using a string instead of a dictionary:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;-name&quot;</span><span class="p">:</span> <span class="s2">&quot;myelement&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;#content&quot;</span><span class="p">:</span> <span class="s2">&quot;hello {{myvar}}, how are you?&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>used with <code class="docutils literal highlight highlight-default"><span></span><span class="n">myvar</span> <span class="o">=</span> <span class="s2">&quot;world&quot;</span></code> results in</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;myelement&gt;</span>hello world, how are you?<span class="nt">&lt;/myelement&gt;</span>
+</pre></div>
+</div>
+<p>All Django tags and filters works too:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;-name&quot;</span><span class="p">:</span> <span class="s2">&quot;myelement&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;#content&quot;</span><span class="p">:</span> <span class="s2">&quot;{% load tz %}The time is now {% timezone &#39;UTC&#39; %}{% now &#39;c&#39; %}{% endtimezone %}&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;myelement&gt;</span>The time is now 2018-03-05T12:36:55.089440+00:00<span class="nt">&lt;/myelement&gt;</span>
+</pre></div>
+</div>
+<div class="section" id="template-tags">
+<h3>Template Tags<a class="headerlink" href="#template-tags" title="Permalink to this headline">¶</a></h3>
+<p>In addition to Django’s built-in tags there are the <code class="docutils literal highlight highlight-default"><span></span><span class="n">essxml</span></code> template tags
+available by using <code class="docutils literal highlight highlight-default"><span></span><span class="p">{</span><span class="o">%</span> <span class="n">load</span> <span class="n">essxml</span> <span class="o">%</span><span class="p">}</span></code></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="59%" />
+<col width="41%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="docutils literal highlight highlight-default"><span></span><span class="n">uuid4</span></code></td>
+<td>Generates a version 4 UUID</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, ES Solutions.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.0',
+            LANGUAGE:'en',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,524 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Install ESSArch Tools Archive &mdash; ESSArch Core 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Upgrade ESSArch Tools Archive" href="upgrade.html" />
+    <link rel="prev" title="Prepare Environment" href="prepare_environment.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ESSArch Core
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Installation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../core/index.html">ESSArch Core</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../core/prerequisites.html">Prerequisites</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../core/prerequisites.html#supported-os-platforms">Supported OS platforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core/prerequisites.html#os-packages">OS Packages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core/prerequisites.html#installing-packages">Installing packages</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../core/prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../core/prepare_environment.html#create-user-and-group">Create user and group</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core/prepare_environment.html#set-password-for-arch-user">Set password for arch user</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core/prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core/prepare_environment.html#create-installation-directory">Create installation directory</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../core/install.html">Install ESSArch Core</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../core/install.html#ec-installation-script">EC installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core/install.html#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../core/upgrade.html">Upgrade ESSArch Core</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../core/upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core/upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../core/safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../core/safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../core/logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../core/logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../etp/index.html">ESSArch Tools Producer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../etp/prerequisites.html">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../etp/prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../etp/prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../etp/install.html">Install ESSArch Tools Producer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../etp/install.html#etp-installation-script">ETP installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/install.html#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/install.html#database">Database</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/install.html#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/install.html#enable-workerprocess">Enable workerprocess</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../etp/upgrade.html">Upgrade ESSArch Tools Producer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../etp/upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/upgrade.html#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../etp/running.html">Running ESSArch Tools Producer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../etp/running.html#start-etp-server">Start ETP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/running.html#stop-etp-server">Stop ETP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/running.html#access-etp-web-user-interface">Access ETP web user interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../etp/safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../etp/safety_backup_procedures.html#configure-backup-of-mysql-mariadb">Configure backup of MySQL / MariaDB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../etp/safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../etp/logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../etp/logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">ESSArch Tools Archive</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="prerequisites.html">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Install ESSArch Tools Archive</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#eta-installation-script">ETA installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database">Database</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#enable-workerprocess">Enable workerprocess</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upgrade.html">Upgrade ESSArch Tools Archive</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upgrade.html#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="running.html">Running ESSArch Tools Archive</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="running.html#start-eta-server">Start ETA server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="running.html#stop-eta-server">Stop ETA server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="running.html#access-eta-web-user-interface">Access ETA web user interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="safety_backup_procedures.html#configure-backup-of-mysql-mariadb">Configure backup of MySQL / MariaDB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../epp/index.html">ESSArch Preservation Platform</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../epp/prerequisites.html">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../epp/prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../epp/prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../epp/install.html">Install ESSArch Preservation Platform</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../epp/install.html#epp-installation-script">EPP installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/install.html#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/install.html#database">Database</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/install.html#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/install.html#enable-workerprocess">Enable workerprocess</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../epp/upgrade.html">Upgrade ESSArch Preservation Platform</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../epp/upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/upgrade.html#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../epp/running.html">Running ESSArch Preservation Platform</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../epp/running.html#start-epp-server">Start EPP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/running.html#stop-epp-server">Stop EPP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/running.html#access-epp-web-user-interface">Access EPP web user interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../epp/safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../epp/safety_backup_procedures.html#configure-backup-of-mysql-mariadb">Configure backup of MySQL / MariaDB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../epp/logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../epp/logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../restapi/index.html">REST API</a><ul class="simple">
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ESSArch Core</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Installation</a> &raquo;</li>
+        
+          <li><a href="index.html">ESSArch Tools Archive</a> &raquo;</li>
+        
+      <li>Install ESSArch Tools Archive</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/installation/eta/install.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="install-essarch-tools-archive">
+<span id="eta-install"></span><h1>Install ESSArch Tools Archive<a class="headerlink" href="#install-essarch-tools-archive" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="eta-installation-script">
+<h2>ETA installation script<a class="headerlink" href="#eta-installation-script" title="Permalink to this headline">¶</a></h2>
+<p>Please download the latest installation package from <a class="reference external" href="https://github.com/ESSolutions/ESSArch_Tools_Archive/releases/latest">Github</a></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Change to user &quot;arch&quot; with the following command.</span>
+$ su - arch
+
+<span class="c1"># Extract and install the downloaded package.</span>
+<span class="o">[</span>arch@server ~<span class="o">]</span>$ tar xvf ESSArch_TA_installer-x.x.x.tar.gz
+<span class="o">[</span>arch@server ~<span class="o">]</span>$ <span class="nb">cd</span> ESSArch_TA_installer-x.x.x
+<span class="o">[</span>arch@server ~<span class="o">]</span>$ ./install
+
+<span class="c1"># The installation of ESSArch is now running and dependent on hardware</span>
+<span class="c1"># configuration, the installation may take some time. To see details of the</span>
+<span class="c1"># installation progress please start a new terminal window and run the</span>
+<span class="c1"># following command.</span>
+<span class="o">[</span>arch@server ~<span class="o">]</span>$ tail -f /ESSArch/install_eta.log
+
+<span class="c1"># When installation is finished, search in the log file /ESSArch/install_eta.log</span>
+<span class="c1"># for any unexpected errors indicating failure of installation of any modules.</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="apache-httpd-configuration">
+<h3>Apache httpd configuration<a class="headerlink" href="#apache-httpd-configuration" title="Permalink to this headline">¶</a></h3>
+<p>Edit file <code class="docutils literal highlight highlight-default"><span></span><span class="o">/</span><span class="n">ESSArch</span><span class="o">/</span><span class="n">config</span><span class="o">/</span><span class="n">httpd</span><span class="o">-</span><span class="n">eta</span><span class="o">.</span><span class="n">conf</span></code> and change the configuration entry
+for “ServerName” to same as the hostname of the ESSArch server.</p>
+<p>Add the line <code class="docutils literal highlight highlight-default"><span></span><span class="s2">&quot;Include /ESSArch/config/httpd-eta.conf&quot;</span></code> in the file
+<code class="docutils literal highlight highlight-default"><span></span><span class="o">/</span><span class="n">ESSArch</span><span class="o">/</span><span class="n">config</span><span class="o">/</span><span class="n">httpd</span><span class="o">.</span><span class="n">conf</span></code></p>
+<p>For test purpose you can use the existing configuration for SSL certificate,
+but for production environment and for maximum security we recommend generating
+your own SSL certificate or if you have your own SSL trusted certificate
+install them in the apache httpd configuration.</p>
+</div>
+<div class="section" id="collect-static-files-to-be-served-by-apache-httpd">
+<h3>Collect static files to be served by apache httpd<a class="headerlink" href="#collect-static-files-to-be-served-by-apache-httpd" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Please run the following command as user arch</span>
+<span class="o">[</span>arch@server ~<span class="o">]</span>$ python <span class="nv">$ETA</span>/manage.py collectstatic
+</pre></div>
+</div>
+</div>
+<div class="section" id="eta-configuration">
+<h3>ETA configuration<a class="headerlink" href="#eta-configuration" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal highlight highlight-default"><span></span><span class="o">/</span><span class="n">ESSArch</span><span class="o">/</span><span class="n">config</span></code> contains the configuration files for ESSArch. To change the
+configuration of ETA, create or update
+<code class="docutils literal highlight highlight-default"><span></span><span class="o">/</span><span class="n">ESSArch</span><span class="o">/</span><span class="n">config</span><span class="o">/</span><span class="n">local_eta_settings</span><span class="o">.</span><span class="n">py</span></code></p>
+</div>
+<div class="section" id="rabbitmq-virtual-host-configuration-for-eta">
+<h3>RabbitMQ virtual host configuration for ETA<a class="headerlink" href="#rabbitmq-virtual-host-configuration-for-eta" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Add virtual host to RabbitMQ as user root:
+$ rabbitmqctl add_user guest guest
+$ rabbitmqctl add_vhost eta
+$ rabbitmqctl set_permissions -p eta guest <span class="s2">&quot;.*&quot;</span> <span class="s2">&quot;.*&quot;</span> <span class="s2">&quot;.*&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="database">
+<h2>Database<a class="headerlink" href="#database" title="Permalink to this headline">¶</a></h2>
+<p>ESSArch is designed to be RDBMS-independent. However the installation package
+is prepared for MySQL/MariaDB and the following instructions assume that you
+use MySQL/MariaDB.</p>
+<div class="section" id="mysql">
+<h3>MySQL<a class="headerlink" href="#mysql" title="Permalink to this headline">¶</a></h3>
+<p>Follow the instructions below in order to create the user and tables required by ETA installation.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># To enable MySQL on CentOS 6 run the following commands as user root</span>
+$ /sbin/chkconfig mysqld on
+$ /sbin/service mysqld start
+$ /usr/bin/mysql_secure_installation
+
+<span class="c1"># The MySQL commands listed below can be run within the mysql program, which</span>
+<span class="c1"># may be invoked as follows.</span>
+$ mysql -u root -p
+
+<span class="c1"># Create the database. For example, to create a database named &quot;eta&quot;, enter.</span>
+$ mysql&gt; CREATE DATABASE eta DEFAULT CHARACTER SET utf8<span class="p">;</span>
+
+<span class="c1"># Set username, password and permissions for the database. For example, to</span>
+<span class="c1"># set the permissions for user &quot;arkiv&quot; with password &quot;password&quot; on database</span>
+<span class="c1"># &quot;eta&quot;, enter:</span>
+$ mysql&gt; GRANT ALL ON eta.* TO arkiv@localhost IDENTIFIED BY <span class="s1">&#39;password&#39;</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="mariadb">
+<h3>MariaDB<a class="headerlink" href="#mariadb" title="Permalink to this headline">¶</a></h3>
+<p>Follow the instructions below in order to create the user and tables required by ETA installation.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># To enable MariaDB on CentOS 7 run the following commands as user: root.</span>
+$ /sbin/chkconfig mariadb on
+$ /sbin/service mariadb start
+$ /usr/bin/mysql_secure_installation
+
+<span class="c1"># The MySQL commands listed below can be run within the mysql program, which</span>
+<span class="c1"># may be invoked as follows.</span>
+$ mysql -u root -p
+
+<span class="c1"># Create the database. For example, to create a database named &quot;eta&quot;, enter.</span>
+$ mysql&gt; CREATE DATABASE eta DEFAULT CHARACTER SET utf8<span class="p">;</span>
+
+<span class="c1"># Set username, password and permissions for the database. For example, to</span>
+<span class="c1"># set the permissions for user &quot;arkiv&quot; with password &quot;password&quot; on</span>
+<span class="c1"># database &quot;eta&quot;, enter:</span>
+$ mysql&gt; GRANT ALL ON eta.* TO arkiv@localhost IDENTIFIED BY <span class="s1">&#39;password&#39;</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="create-default-tables-in-database">
+<h3>Create default tables in database<a class="headerlink" href="#create-default-tables-in-database" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Please run the following command as user arch</span>
+<span class="o">[</span>arch@server ~<span class="o">]</span>$ python <span class="nv">$ETA</span>/manage.py migrate
+</pre></div>
+</div>
+</div>
+<div class="section" id="add-default-configuration-data-to-database">
+<h3>Add default configuration data to database<a class="headerlink" href="#add-default-configuration-data-to-database" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Please run the following command as user arch</span>
+<span class="o">[</span>arch@server ~<span class="o">]</span>$ python <span class="nv">$ETA</span>/install/install_default_config_eta.py
+<span class="o">[</span>arch@server ~<span class="o">]</span>$ python <span class="nv">$EC</span>/ESSArch_Core/install/install_default_config.py
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="enable-automatic-startup-at-system-boot">
+<h2>Enable automatic startup at system boot<a class="headerlink" href="#enable-automatic-startup-at-system-boot" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Login as root user and set ETA path variable</span>
+$ <span class="nb">export</span> <span class="nv">ETA_package</span><span class="o">=</span><span class="s1">&#39;ESSArch_TA_installer-1.2.0&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="enable-workerprocess">
+<h2>Enable workerprocess<a class="headerlink" href="#enable-workerprocess" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Please run the following commands as user root</span>
+$ cp /home/arch/<span class="si">${</span><span class="nv">ETA_package</span><span class="si">}</span>/extra/celerydeta.service /usr/lib/systemd/system/
+$ systemctl <span class="nb">enable</span> celerydeta.service
+$ cp /home/arch/<span class="si">${</span><span class="nv">ETA_package</span><span class="si">}</span>/extra/celerybeateta.service /usr/lib/systemd/system/
+$ systemctl <span class="nb">enable</span> celerybeateta.service
+$ cp /home/arch/<span class="si">${</span><span class="nv">ETA_package</span><span class="si">}</span>/extra/daphneeta.service /usr/lib/systemd/system/
+$ systemctl <span class="nb">enable</span> daphneeta.service
+$ cp /home/arch/<span class="si">${</span><span class="nv">ETA_package</span><span class="si">}</span>/extra/wsworkereta.service /usr/lib/systemd/system/
+$ systemctl <span class="nb">enable</span> wsworkereta.service
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="upgrade.html" class="btn btn-neutral float-right" title="Upgrade ESSArch Tools Archive" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="prepare_environment.html" class="btn btn-neutral" title="Prepare Environment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, ES Solutions.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            LANGUAGE:'en',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

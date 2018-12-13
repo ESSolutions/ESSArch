@@ -1,0 +1,474 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Profiles &mdash; ESSArch Core 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ESSArch Core
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="installation/index.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation/core/index.html">ESSArch Core</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation/core/prerequisites.html">Prerequisites</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/prerequisites.html#supported-os-platforms">Supported OS platforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/prerequisites.html#os-packages">OS Packages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/prerequisites.html#installing-packages">Installing packages</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/core/prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/prepare_environment.html#create-user-and-group">Create user and group</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/prepare_environment.html#set-password-for-arch-user">Set password for arch user</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/prepare_environment.html#create-installation-directory">Create installation directory</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/core/install.html">Install ESSArch Core</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/install.html#ec-installation-script">EC installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/install.html#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/core/upgrade.html">Upgrade ESSArch Core</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/core/safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/core/logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/core/logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation/etp/index.html">ESSArch Tools Producer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation/etp/prerequisites.html">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation/etp/prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/etp/install.html">Install ESSArch Tools Producer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/install.html#etp-installation-script">ETP installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/install.html#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/install.html#database">Database</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/install.html#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/install.html#enable-workerprocess">Enable workerprocess</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/etp/upgrade.html">Upgrade ESSArch Tools Producer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/upgrade.html#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/etp/running.html">Running ESSArch Tools Producer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/running.html#start-etp-server">Start ETP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/running.html#stop-etp-server">Stop ETP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/running.html#access-etp-web-user-interface">Access ETP web user interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/etp/safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/safety_backup_procedures.html#configure-backup-of-mysql-mariadb">Configure backup of MySQL / MariaDB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/etp/logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/etp/logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation/eta/index.html">ESSArch Tools Archive</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation/eta/prerequisites.html">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation/eta/prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/eta/install.html">Install ESSArch Tools Archive</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/install.html#eta-installation-script">ETA installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/install.html#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/install.html#database">Database</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/install.html#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/install.html#enable-workerprocess">Enable workerprocess</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/eta/upgrade.html">Upgrade ESSArch Tools Archive</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/upgrade.html#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/eta/running.html">Running ESSArch Tools Archive</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/running.html#start-eta-server">Start ETA server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/running.html#stop-eta-server">Stop ETA server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/running.html#access-eta-web-user-interface">Access ETA web user interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/eta/safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/safety_backup_procedures.html#configure-backup-of-mysql-mariadb">Configure backup of MySQL / MariaDB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/eta/logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/eta/logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation/epp/index.html">ESSArch Preservation Platform</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation/epp/prerequisites.html">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation/epp/prepare_environment.html">Prepare Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/prepare_environment.html#customize-user-environment-for-arch-user">Customize user environment for arch user</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/epp/install.html">Install ESSArch Preservation Platform</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/install.html#epp-installation-script">EPP installation script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/install.html#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/install.html#database">Database</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/install.html#enable-automatic-startup-at-system-boot">Enable automatic startup at system boot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/install.html#enable-workerprocess">Enable workerprocess</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/epp/upgrade.html">Upgrade ESSArch Preservation Platform</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/upgrade.html#stop-services">Stop services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/upgrade.html#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/upgrade.html#start-services">Start services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/epp/running.html">Running ESSArch Preservation Platform</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/running.html#start-epp-server">Start EPP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/running.html#stop-epp-server">Stop EPP server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/running.html#access-epp-web-user-interface">Access EPP web user interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/epp/safety_backup_procedures.html">Safety backup procedures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/safety_backup_procedures.html#configure-backup-of-mysql-mariadb">Configure backup of MySQL / MariaDB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/safety_backup_procedures.html#important-files-to-backup">Important files to backup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="installation/epp/logfiles.html">Logfiles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="installation/epp/logfiles.html#events-and-log-information">Events and log information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="restapi/index.html">REST API</a><ul class="simple">
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ESSArch Core</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Profiles</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/profiles.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="profiles">
+<span id="id1"></span><h1>Profiles<a class="headerlink" href="#profiles" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="validation">
+<h2>Validation<a class="headerlink" href="#validation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="specification">
+<h3>Specification<a class="headerlink" href="#specification" title="Permalink to this headline">¶</a></h3>
+<p>Each key (except those beginning with <code class="docutils literal highlight highlight-default"><span></span><span class="n">_</span></code>) in the specification specifies a
+validator that should be used.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <code class="docutils literal highlight highlight-default"><span></span><span class="n">_required</span></code> key can be used to specify a list of validators that must
+pass when executed.</p>
+</div>
+<p>Each validator key is a list of configurations of the validator that should be
+applied on different sets of files.</p>
+<ul class="simple">
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">exclude</span></code> - A list of relative paths that should be excluded from the validation</li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">include</span></code> - A list of relative paths that should be included in the validation</li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">context</span></code> - Specifies how and/or where is the correct value stored</li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">options</span></code> - A dict with validator-specific options</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">XML-variables can be used with the <code class="docutils literal highlight highlight-default"><span></span><span class="p">{</span><span class="n">VARIABLE</span><span class="p">}</span></code>-syntax in the
+configuration values. See <a class="reference internal" href="xml-generator.html#xml-variables"><span class="std std-ref">XML Variables</span></a> for more information.</p>
+</div>
+</div>
+<div class="section" id="built-in-validators">
+<h3>Built-in validators<a class="headerlink" href="#built-in-validators" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="checksumvalidator">
+<h4>ChecksumValidator<a class="headerlink" href="#checksumvalidator" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="ESSArch_Core.fixity.validation.backends.checksum.ChecksumValidator">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.fixity.validation.backends.checksum.</code><code class="descname">ChecksumValidator</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ESSArch_Core/fixity/validation/backends/checksum.html#ChecksumValidator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.fixity.validation.backends.checksum.ChecksumValidator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates the checksum of a file against the given <code class="docutils literal highlight highlight-default"><span></span><span class="n">context</span></code>.</p>
+<ul>
+<li><p class="first"><code class="docutils literal highlight highlight-default"><span></span><span class="n">context</span></code> specifies how the input is given and must be one of
+<code class="docutils literal highlight highlight-default"><span></span><span class="n">checksum_file</span></code>, <code class="docutils literal highlight highlight-default"><span></span><span class="n">checksum_str</span></code> and <code class="docutils literal highlight highlight-default"><span></span><span class="n">xml_file</span></code></p>
+</li>
+<li><p class="first"><code class="docutils literal highlight highlight-default"><span></span><span class="n">options</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">algorithm</span></code> must be one of <code class="docutils literal highlight highlight-default"><span></span><span class="n">md5</span></code>, <code class="docutils literal highlight highlight-default"><span></span><span class="n">sha</span><span class="o">-</span><span class="mi">1</span></code>, <code class="docutils literal highlight highlight-default"><span></span><span class="n">sha</span><span class="o">-</span><span class="mi">224</span></code>,
+<code class="docutils literal highlight highlight-default"><span></span><span class="n">sha</span><span class="o">-</span><span class="mi">256</span></code>, <code class="docutils literal highlight highlight-default"><span></span><span class="n">sha</span><span class="o">-</span><span class="mi">384</span></code> and <code class="docutils literal highlight highlight-default"><span></span><span class="n">sha</span><span class="o">-</span><span class="mi">512</span></code>. Defaults to <code class="docutils literal highlight highlight-default"><span></span><span class="n">md5</span></code></li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">block_size</span></code>: Defaults to 65536</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</dd></dl>
+
+</div>
+<div class="section" id="structurevalidator">
+<h4>StructureValidator<a class="headerlink" href="#structurevalidator" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="ESSArch_Core.fixity.validation.backends.structure.StructureValidator">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.fixity.validation.backends.structure.</code><code class="descname">StructureValidator</code><span class="sig-paren">(</span><em>context=None</em>, <em>include=None</em>, <em>exclude=None</em>, <em>options=None</em>, <em>data=None</em>, <em>required=True</em>, <em>task=None</em>, <em>ip=None</em>, <em>responsible=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ESSArch_Core/fixity/validation/backends/structure.html#StructureValidator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.fixity.validation.backends.structure.StructureValidator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates that the directory has all the required files and no invalid
+extensions.</p>
+<p>The <code class="docutils literal highlight highlight-default"><span></span><span class="n">tree</span></code> option specifies a set of rules for directories:</p>
+<ul>
+<li><p class="first"><code class="docutils literal highlight highlight-default"><span></span><span class="nb">type</span></code> must be either <code class="docutils literal highlight highlight-default"><span></span><span class="n">root</span></code> or <code class="docutils literal highlight highlight-default"><span></span><span class="n">folder</span></code> and is only used to
+specify if we are at the root or not. If <code class="docutils literal highlight highlight-default"><span></span><span class="n">folder</span></code> is specified then we
+also require the <code class="docutils literal highlight highlight-default"><span></span><span class="n">name</span></code> option to be specified.</p>
+</li>
+<li><p class="first"><code class="docutils literal highlight highlight-default"><span></span><span class="n">name</span></code> tells us which folder is being described</p>
+</li>
+<li><p class="first"><code class="docutils literal highlight highlight-default"><span></span><span class="n">required_files</span></code> is a list with files that must be in the directory</p>
+</li>
+<li><p class="first"><code class="docutils literal highlight highlight-default"><span></span><span class="n">valid_paths</span></code> is a list of strings and/or lists that are allowed in the
+directory. Wildcards can be specified using <code class="docutils literal highlight highlight-default"><span></span><span class="o">*</span></code>.</p>
+<p>Inner lists are used to specify valid file groups. E.g.
+<code class="docutils literal highlight highlight-default"><span></span><span class="p">[[</span><span class="s1">&#39;*.doc&#39;</span><span class="p">,</span> <span class="s1">&#39;*.pdf&#39;</span><span class="p">]]</span></code> says that for each .doc file there must be a
+.pdf file with the same name.</p>
+</li>
+</ul>
+</dd></dl>
+
+</div>
+<div class="section" id="mediaconchvalidator">
+<h4>MediaconchValidator<a class="headerlink" href="#mediaconchvalidator" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="ESSArch_Core.fixity.validation.backends.mediaconch.MediaconchValidator">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.fixity.validation.backends.mediaconch.</code><code class="descname">MediaconchValidator</code><span class="sig-paren">(</span><em>context=None</em>, <em>include=None</em>, <em>exclude=None</em>, <em>options=None</em>, <em>data=None</em>, <em>required=True</em>, <em>task=None</em>, <em>ip=None</em>, <em>responsible=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ESSArch_Core/fixity/validation/backends/mediaconch.html#MediaconchValidator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.fixity.validation.backends.mediaconch.MediaconchValidator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs mediaconch on the specified filepath and parses the output to decide
+if it passed or not.</p>
+<p><code class="docutils literal highlight highlight-default"><span></span><span class="n">context</span></code> is used to specify the path of a mediaconch policy file.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="verapdfvalidator">
+<h4>VeraPDFValidator<a class="headerlink" href="#verapdfvalidator" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="ESSArch_Core.fixity.validation.backends.verapdf.VeraPDFValidator">
+<em class="property">class </em><code class="descclassname">ESSArch_Core.fixity.validation.backends.verapdf.</code><code class="descname">VeraPDFValidator</code><span class="sig-paren">(</span><em>context=None</em>, <em>include=None</em>, <em>exclude=None</em>, <em>options=None</em>, <em>data=None</em>, <em>required=True</em>, <em>task=None</em>, <em>ip=None</em>, <em>responsible=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ESSArch_Core/fixity/validation/backends/verapdf.html#VeraPDFValidator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ESSArch_Core.fixity.validation.backends.verapdf.VeraPDFValidator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs verapdf on the specified filepath and parses the output to decide
+if it passed or not.</p>
+<p><code class="docutils literal highlight highlight-default"><span></span><span class="n">context</span></code> is used to specify the path of a verapdf policy file.</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="section" id="transformation">
+<h2>Transformation<a class="headerlink" href="#transformation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id2">
+<h3>Specification<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal highlight highlight-default"><span></span><span class="n">name</span></code> specifies which transformer in <a class="reference internal" href="configuration/settings.html#essarch-transformers"><span class="std std-ref">ESSARCH_TRANSFORMERS</span></a> that should
+be used</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, ES Solutions.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.0',
+            LANGUAGE:'en',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
