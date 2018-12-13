@@ -30,8 +30,8 @@ Move old installation
    $ mv config install install*.log pd old/
 
 
-Install new ESSArch Tools Producer
-==================================
+Install new ESSArch Preservation Platform
+=========================================
 
 .. code-block:: shell
 
@@ -62,7 +62,8 @@ Upgrade database schema
 
       SELECT table_schema, table_name, engine FROM INFORMATION_SCHEMA.TABLES where table_schema = ”epp”;
 
-   If you are not using the MyISAM storage engine then it must be specified in your configuration file::
+   If you are not using the default storage engine (currently InnoDB) then it
+   must be specified in your configuration file, e.g.::
 
       DATABASES = {
           'default': {
