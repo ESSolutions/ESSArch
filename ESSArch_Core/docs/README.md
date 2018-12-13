@@ -1,26 +1,34 @@
 # ESSArch Core Documentation
 
-## Requirements
-Install requirements using `pip install -r requirements_docs.txt` in the parent folder or run the following commands
+## Installing Requirements
+Install requirements from `docs` in `setup.py`
 
 ```
-$ pip install sphinx==1.5.2
-$ pip install sphinxtogithub==1.1.0
+$ pip install ESSArch_Core[docs]
+```
+
+## Translating documentation
+
+* Create .pot-files
 
 ```
+$ make gettext
+```
+
+* Create and/or update .po-files
+
+```
+$ sphinx-intl update -p _build/gettext -l {lang}
+```
+
+* Edit files in .po-files in `locale/{lang}/LC_MESSAGES/`
 
 ## Generating documentation
 
-Start by generating the source files
+Run the following where format is either `html` or `pdf`
 
 ```
-$ sphinx-apidoc -f -o source .. ../**/migrations
+$ make {format} LANGUAGE="{lang}"
 ```
 
-Then create the documentation files
-
-```
-$ make html
-```
-
-The output will be available in `build/html`
+The output will be available in `_build`
