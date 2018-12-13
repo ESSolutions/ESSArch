@@ -31,4 +31,4 @@ Run the following where format is either `html` or `pdf`
 $ make {format} LANGUAGE="{lang}"
 ```
 
-The output will be available in `_build/html`
+The output will be available in `_build`
