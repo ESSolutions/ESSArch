@@ -384,3 +384,17 @@ class CreateReceipt(DBTask):
         if task is None:
             task = self.task_id
         backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task)
+
+
+class DeleteInformationPackage(DBTask):
+    def run(self, from_db=False):
+        ip = self.get_information_package()
+        ip.delete_workareas()
+        ip.delete_files()
+
+        if from_db:
+            ip.delete()
+            return
+
+        ip.state = 'deleted'
+        ip.save()
