@@ -28,6 +28,7 @@ import errno
 import logging
 import math
 import os
+import shutil
 import tarfile
 import uuid
 import zipfile
@@ -696,6 +697,9 @@ class InformationPackage(models.Model):
 
         return entries
 
+    def get_path(self):
+        return self.object_path
+
     def validate_path(self, path):
         fullpath = os.path.join(self.object_path, path)
         if not in_directory(fullpath, self.object_path) and fullpath != os.path.splitext(self.object_path)[0] + '.xml':
@@ -779,6 +783,25 @@ class InformationPackage(models.Model):
                 raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(self.object_path, path))
 
         return open(os.path.join(self.object_path, path), *args, **kwargs)
+
+    def delete_files(self):
+        path = self.get_path()
+
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            no_ext = os.path.splitext(path)[0]
+            for fl in [no_ext + '.' + ext for ext in ['xml', 'tar', 'zip']]:
+                try:
+                    os.remove(fl)
+                except OSError as e:
+                    if e.errno != errno.ENOENT:
+                        raise
+
+    def delete_workareas(self):
+        for workarea in self.workareas.all():
+            workarea.delete_files()
+            workarea.delete()
 
     class Meta:
         ordering = ["generation", "-create_date"]
@@ -977,6 +1000,9 @@ class Workarea(models.Model):
     def path(self):
         area_dir = Path.objects.cached('entity', self.get_type_display() + '_workarea', 'value')
         return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value)
+
+    def get_path(self):
+        return self.path
 
     class Meta:
         permissions = (
