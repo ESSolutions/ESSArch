@@ -172,7 +172,7 @@ class TagVersion(models.Model):
     def get_doc(self):
         kwargs = {'params': {}}
         if self.elastic_index == 'document':
-            kwargs['params']['_source_exclude'] = 'data'
+            kwargs['params']['_source_exclude'] = 'attachment.content'
 
         return VersionedDocType.get(index=self.elastic_index, id=str(self.pk), **kwargs)
 
