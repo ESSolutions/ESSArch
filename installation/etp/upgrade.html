@@ -175,7 +175,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../eta/upgrade.html">Upgrade ESSArch Tools Archive</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../eta/upgrade.html#stop-services">Stop services</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../eta/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../eta/upgrade.html#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../eta/upgrade.html#install-new-essarch-tools-archive">Install new ESSArch Tools Archive</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../eta/upgrade.html#start-services">Start services</a></li>
 </ul>
 </li>
@@ -213,7 +213,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../epp/upgrade.html">Upgrade ESSArch Preservation Platform</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../epp/upgrade.html#stop-services">Stop services</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../epp/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../epp/upgrade.html#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../epp/upgrade.html#install-new-essarch-preservation-platform">Install new ESSArch Preservation Platform</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../epp/upgrade.html#start-services">Start services</a></li>
 </ul>
 </li>
@@ -359,7 +359,8 @@ found by the following command:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>SELECT table_schema, table_name, engine FROM INFORMATION_SCHEMA.TABLES where table_schema = ”etp”;
 </pre></div>
 </div>
-<p>If you are not using the MyISAM storage engine then it must be specified in your configuration file:</p>
+<p>If you are not using the default storage engine (currently InnoDB) then it
+must be specified in your configuration file, e.g.:</p>
 <div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DATABASES</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s1">&#39;ENGINE&#39;</span><span class="p">:</span> <span class="s1">&#39;django.db.backends.mysql&#39;</span><span class="p">,</span>

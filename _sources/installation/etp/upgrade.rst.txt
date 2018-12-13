@@ -61,7 +61,8 @@ Upgrade database schema
 
       SELECT table_schema, table_name, engine FROM INFORMATION_SCHEMA.TABLES where table_schema = ”etp”;
 
-   If you are not using the MyISAM storage engine then it must be specified in your configuration file::
+   If you are not using the default storage engine (currently InnoDB) then it
+   must be specified in your configuration file, e.g.::
 
       DATABASES = {
           'default': {

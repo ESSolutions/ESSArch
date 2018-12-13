@@ -175,7 +175,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../eta/upgrade.html">Upgrade ESSArch Tools Archive</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../eta/upgrade.html#stop-services">Stop services</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../eta/upgrade.html#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../eta/upgrade.html#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../eta/upgrade.html#install-new-essarch-tools-archive">Install new ESSArch Tools Archive</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../eta/upgrade.html#start-services">Start services</a></li>
 </ul>
 </li>
@@ -213,7 +213,7 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Upgrade ESSArch Preservation Platform</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#stop-services">Stop services</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#verify-that-a-backup-of-the-database-exists-at-essarch-backup">Verify that a backup of the database exists at /ESSArch/backup</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#install-new-essarch-tools-producer">Install new ESSArch Tools Producer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#install-new-essarch-preservation-platform">Install new ESSArch Preservation Platform</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#start-services">Start services</a></li>
 </ul>
 </li>
@@ -333,8 +333,8 @@ $ mv config install install*.log pd old/
 </div>
 </div>
 </div>
-<div class="section" id="install-new-essarch-tools-producer">
-<h2>Install new ESSArch Tools Producer<a class="headerlink" href="#install-new-essarch-tools-producer" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="install-new-essarch-preservation-platform">
+<h2>Install new ESSArch Preservation Platform<a class="headerlink" href="#install-new-essarch-preservation-platform" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ su - arch
 <span class="o">[</span>arch@server ~<span class="o">]</span>$ tar xvf ESSArch_PP_installer-x.x.x.tar.gz
 <span class="o">[</span>arch@server ~<span class="o">]</span>$ <span class="nb">cd</span> ESSArch_PP_installer-x.x.x
@@ -360,7 +360,8 @@ found by the following command:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>SELECT table_schema, table_name, engine FROM INFORMATION_SCHEMA.TABLES where table_schema = ”epp”;
 </pre></div>
 </div>
-<p>If you are not using the MyISAM storage engine then it must be specified in your configuration file:</p>
+<p>If you are not using the default storage engine (currently InnoDB) then it
+must be specified in your configuration file, e.g.:</p>
 <div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DATABASES</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s1">&#39;ENGINE&#39;</span><span class="p">:</span> <span class="s1">&#39;django.db.backends.mysql&#39;</span><span class="p">,</span>
