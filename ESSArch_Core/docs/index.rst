@@ -9,6 +9,7 @@ ESSArch Core
 .. toctree::
    :maxdepth: 10
 
+   installation/index
    restapi/index
 
 
