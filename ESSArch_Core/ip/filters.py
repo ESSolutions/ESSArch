@@ -42,12 +42,20 @@ class InformationPackageFilter(filters.FilterSet):
     end_date = IsoDateTimeFromToRangeFilter()
     create_date = IsoDateTimeFromToRangeFilter()
     entry_date = IsoDateTimeFromToRangeFilter()
+    package_type = MultipleCharFilter(field_name='package_type')
+    package_type_name_exclude = filters.CharFilter(field_name='Package Type Name', method='exclude_package_type_name')
+
+    def exclude_package_type_name(self, queryset, name, value):
+        for package_type_id, package_type_name in InformationPackage.PACKAGE_TYPE_CHOICES:
+            if package_type_name.lower() == value.lower():
+                return queryset.exclude(package_type=package_type_id)
+        return queryset.none()
 
     class Meta:
         model = InformationPackage
         fields = ['archivist_organization', 'state', 'responsible',
                   'create_date', 'entry_date', 'object_size', 'start_date', 'end_date',
-                  'archived', 'cached']
+                  'archived', 'cached', 'package_type', 'package_type_name_exclude']
 
 
 class EventIPFilter(filters.FilterSet):
