@@ -66,6 +66,12 @@ class CustomMetadata(SimpleMetadata):
                     for choice in queryset
                 ]
 
+            label = filter_type.label
+            if label is None:
+                label = filter_name.replace('_', ' ').title()
+
+            attrs['label'] = label
+
             # Wrap up.
             filters[filter_name] = attrs
 
