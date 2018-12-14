@@ -1005,6 +1005,7 @@ class Workarea(models.Model):
         return self.path
 
     class Meta:
+        unique_together = ('user', 'ip', 'type')
         permissions = (
             ('move_from_ingest_workarea', 'Can move IP from ingest workarea'),
             ('move_from_access_workarea', 'Can move IP from access workarea'),
