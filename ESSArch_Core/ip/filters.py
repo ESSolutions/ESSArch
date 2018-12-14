@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django_filters import rest_framework as filters
 from rest_framework import exceptions
 
-from ESSArch_Core.filters import IsoDateTimeFromToRangeFilter, ListFilter
+from ESSArch_Core.filters import IsoDateTimeFromToRangeFilter, ListFilter, MultipleCharFilter
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
 
 User = get_user_model()
@@ -36,7 +36,7 @@ class InformationPackageFilter(filters.FilterSet):
         queryset=Agent.objects.filter(role__iexact="archivist", type__iexact="organization"),
     )
     responsible = filters.ModelMultipleChoiceFilter(queryset=users)
-    state = filters.MultipleChoiceFilter(choices=states())
+    state = MultipleCharFilter()
     object_size = filters.RangeFilter()
     start_date = IsoDateTimeFromToRangeFilter()
     end_date = IsoDateTimeFromToRangeFilter()
