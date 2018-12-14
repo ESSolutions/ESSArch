@@ -25,14 +25,23 @@ class InformationPackageFilter(filters.FilterSet):
     end_date = IsoDateTimeFromToRangeFilter()
     create_date = IsoDateTimeFromToRangeFilter()
     entry_date = IsoDateTimeFromToRangeFilter()
+    package_type = ListFilter(field_name='package_type')
+    package_type_name_exclude = filters.CharFilter(field_name='Package Type Name', method='filter_package_type_name')
 
     def filter_archivist_organization(self, queryset, name, value):
         return queryset.filter(agents__role='ARCHIVIST', agents__type='ORGANIZATION', agents__name=value)
 
+    def filter_package_type_name(self, queryset, name, value):
+        for package_type_id, package_type_name in InformationPackage.PACKAGE_TYPE_CHOICES:
+            if package_type_name.lower() == value.lower():
+                return queryset.exclude(package_type=package_type_id)
+        return queryset.none()
+
     class Meta:
         model = InformationPackage
         fields = ['agents', 'archivist_organization', 'state', 'label', 'object_identifier_value', 'responsible',
-                  'create_date', 'entry_date', 'object_size', 'start_date', 'end_date']
+                  'create_date', 'entry_date', 'object_size', 'start_date', 'end_date',
+                  'archived', 'cached', 'package_type', 'package_type_name_exclude']
 
 
 class EventIPFilter(filters.FilterSet):
