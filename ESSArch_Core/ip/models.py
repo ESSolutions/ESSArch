@@ -116,6 +116,9 @@ class Agent(models.Model):
 
     objects = AgentManager()
 
+    def __str__(self):
+        return self.name
+
 
 class AgentNote(models.Model):
     agent = models.ForeignKey(Agent, on_delete=models.CASCADE, related_name='notes')

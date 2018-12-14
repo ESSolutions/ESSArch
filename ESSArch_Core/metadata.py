@@ -55,6 +55,9 @@ class CustomMetadata(SimpleMetadata):
             # Do queryset
             queryset = filter_type.extra.get('queryset', False)
             if queryset:
+                if callable(queryset):
+                    queryset = queryset(request)
+
                 attrs['choices'] = [
                     {
                         'value': force_text(choice.pk, strings_only=True),
