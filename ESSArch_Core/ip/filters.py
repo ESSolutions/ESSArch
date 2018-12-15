@@ -12,7 +12,7 @@ User = get_user_model()
 def users(request):
     org = request.user.user_profile.current_organization
     if org is None:
-        if request.user.is_superuser():
+        if request.user.is_superuser:
             return User.objects.all()
         return User.objects.filter(pk=request.user.pk)
     return User.objects.filter(essauth_member__in=org.members)
