@@ -1,0 +1,104 @@
+// TABS
+
+
+/* Default tab style */
+
+.no-tabs-available {
+    @include container(10px);
+}
+
+// .nav-tabs {
+// 	position: relative;
+// 	overflow: hidden;
+// 	margin: 0 auto;
+// 	width: 100%;
+// 	font-weight: 300;
+//     text-align: center;
+//     ul {
+//         position: relative;
+//         display: -ms-flexbox;
+//         display: -webkit-flex;
+//         display: -moz-flex;
+//         display: -ms-flex;
+//         display: flex;
+//         margin: 0 auto;
+//         padding: 0;
+//         max-width: 1200px;
+//         list-style: none;
+//         -ms-box-orient: horizontal;
+//         -ms-box-pack: center;
+//         -webkit-flex-flow: row wrap;
+//         -moz-flex-flow: row wrap;
+//         -ms-flex-flow: row wrap;
+//         flex-flow: row wrap;
+//         -webkit-justify-content: center;
+//         -moz-justify-content: center;
+//         -ms-justify-content: center;
+//         justify-content: center;
+//         li {
+//             position: relative;
+//             z-index: 1;
+//             display: block;
+//             margin: 0;
+//             text-align: center;
+//             -webkit-flex: 1;
+//             -moz-flex: 1;
+//             -ms-flex: 1;
+//             flex: 1;
+//        }
+//     }
+//     a {
+//         position: relative;
+//         display: block;
+//         overflow: hidden;
+//         text-overflow: ellipsis;
+//         white-space: nowrap;
+//         &:focus {
+//             outline: none;
+//         }
+//         span {
+//             vertical-align: middle;
+//         }
+//     }
+//     li {
+//         &.active {
+//             a {
+//                 color: #74777b;
+//             }
+//         }
+//     }
+// }
+
+// tabstyles
+
+/* Individual tab styles */
+
+/*****************************/
+/* Bar */
+/*****************************/
+
+// .tabs-style-bar {
+//     background: rgba(40,44,42,0.05);
+//     ul {
+//         border: 4px solid transparent;
+//         li  {
+//             a {
+//                 margin: 0 2px !important;
+//                 background-color: #f7f7f7;
+//                 color: #74777b;
+//                 border-radius: $border-radius-base !important;
+//                 transition: background-color 0.2s, color 0.2s;
+//                 &:hover,
+//                 &:focus {
+//                     color: $header-color !important;
+//                 }
+//             }
+//             &.active {
+//                 a {
+//                     background: $header-color !important;
+//                     color: #fff !important;
+//                 }
+//             }
+//         }
+//     }
+// }
