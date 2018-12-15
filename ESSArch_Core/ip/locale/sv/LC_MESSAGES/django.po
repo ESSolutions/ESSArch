@@ -1,0 +1,67 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-12-14 21:57+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: filters.py:36
+msgid "Archivist Organization"
+msgstr "Arkivorganisation"
+
+#: filters.py:47
+msgid "Excluded Package Type"
+msgstr "Exkluderad pakettyp"
+
+#: models.py:185
+msgid "create date"
+msgstr "skapandedatum"
+
+#: models.py:186
+msgid "state"
+msgstr "tillstånd"
+
+#: models.py:189
+msgid "object size"
+msgstr "objektstorlek"
+
+#: models.py:192
+msgid "start date"
+msgstr "startdatum"
+
+#: models.py:193
+msgid "end date"
+msgstr "slutdatum"
+
+#: models.py:216
+msgid "entry date"
+msgstr "skapandedatum (SIP)"
+
+#: models.py:219
+msgid "package type"
+msgstr "pakettyp"
+
+#: models.py:226
+msgid "cached"
+msgstr "cachad"
+
+#: models.py:227
+msgid "archived"
+msgstr "arkiverad"
+
+#: models.py:233
+msgid "responsible"
+msgstr "ansvarig"

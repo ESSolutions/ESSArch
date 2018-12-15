@@ -44,6 +44,7 @@ from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import Count, Max, Min
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from lxml import etree
 from groups_manager.utils import get_permission_name
@@ -181,15 +182,15 @@ class InformationPackage(models.Model):
     object_identifier_value = models.CharField(max_length=255, unique=True)
     label = models.CharField(max_length=255, blank=True)
     content = models.CharField(max_length=255)
-    create_date = models.DateTimeField(auto_now_add=True)
-    state = models.CharField(max_length=255)
+    create_date = models.DateTimeField(_('create date'), auto_now_add=True)
+    state = models.CharField(_('state'), max_length=255)
 
     object_path = models.CharField(max_length=255, blank=True)
-    object_size = models.BigIntegerField(default=0)
+    object_size = models.BigIntegerField(_('object size'), default=0)
     object_num_items = models.IntegerField(default=0)
 
-    start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
+    start_date = models.DateTimeField(_('start date'), null=True)
+    end_date = models.DateTimeField(_('end date'), null=True)
 
     appraisal_date = models.DateTimeField(null=True)
 
@@ -212,24 +213,24 @@ class InformationPackage(models.Model):
     linking_agent_identifier_value = models.CharField(max_length=255, blank=True)
     create_agent_identifier_value = models.CharField(max_length=255, blank=True)
 
-    entry_date = models.DateTimeField(null=True)
+    entry_date = models.DateTimeField(_('entry date'), null=True)
     entry_agent_identifier_value = models.CharField(max_length=255, blank=True)
 
-    package_type = models.IntegerField(null=True, choices=PACKAGE_TYPE_CHOICES)
+    package_type = models.IntegerField(_('package type'), null=True, choices=PACKAGE_TYPE_CHOICES)
     preservation_level_value = models.IntegerField(choices=PRESERVATION_LEVEL_VALUE_CHOICES, default=1)
 
     delivery_type = models.CharField(max_length=255, blank=True)
     information_class = models.IntegerField(null=True, choices=INFORMATION_CLASS_CHOICES)
     generation = models.IntegerField(null=True)
 
-    cached = models.BooleanField(default=False)
-    archived = models.BooleanField(default=False)
+    cached = models.BooleanField(_('cached'), default=False)
+    archived = models.BooleanField(_('archived'), default=False)
 
     last_changed_local = models.DateTimeField(null=True)
     last_changed_external = models.DateTimeField(null=True)
 
     responsible = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL,
+        'auth.User', verbose_name=_('responsible'), on_delete=models.SET_NULL,
         related_name='information_packages', null=True
     )
 

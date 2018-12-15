@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils.translation import ugettext_lazy as _
 from django_filters import rest_framework as filters
 from rest_framework import exceptions
 
@@ -32,7 +33,7 @@ class AgentFilter(filters.FilterSet):
 
 class InformationPackageFilter(filters.FilterSet):
     archivist_organization = filters.ModelMultipleChoiceFilter(
-        label="Archivist Organization",
+        label=_("Archivist Organization"),
         queryset=Agent.objects.filter(role__iexact="archivist", type__iexact="organization"),
     )
     responsible = filters.ModelMultipleChoiceFilter(queryset=users)
@@ -42,8 +43,8 @@ class InformationPackageFilter(filters.FilterSet):
     end_date = IsoDateTimeFromToRangeFilter()
     create_date = IsoDateTimeFromToRangeFilter()
     entry_date = IsoDateTimeFromToRangeFilter()
-    package_type = MultipleCharFilter(field_name='package_type')
-    package_type_name_exclude = filters.CharFilter(field_name='Package Type Name', method='exclude_package_type_name')
+    package_type = MultipleCharFilter()
+    package_type_name_exclude = filters.CharFilter(label=_("Excluded Package Type"), method='exclude_package_type_name')
 
     def exclude_package_type_name(self, queryset, name, value):
         for package_type_id, package_type_name in InformationPackage.PACKAGE_TYPE_CHOICES:
