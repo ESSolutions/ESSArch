@@ -93,7 +93,7 @@
                 <label>{{'COMMENT' | translate}}</label>
                 <textarea ng-enter="addEvent(ip, newEventForm.eventType, newEventForm.comment, newEventForm.eventOutcome)" maxlength="255" class="signature form-control" ng-model="newEventForm.comment" ng-required="true" id="signature"></textarea>
             </div>
-            <button type="submit" class="btn btn-info submit-button">{{'ADDEVENT' | translate}}</button>
+            <button type="submit" class="btn btn-primary submit-button">{{'ADDEVENT' | translate}}</button>
         </form>
     </div>
     <div uib-alert ng-if="addEventAlert" style="width:50%; float:right; margin-right: 10px;" ng-class="'alert-' + (addEventAlert.type || 'warning')" close="closeAlert()">{{addEventAlert.msg | translate}}</div>

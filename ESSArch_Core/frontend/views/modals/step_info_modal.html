@@ -66,5 +66,5 @@
             ng-if="checkPermission('WorkflowEngine.can_retry') && currentStepTask.flow_type == 'task' && currentStepTask.status == 'FAILURE'"
             >{{'REDO' | translate}}</button>
     </div>
-    <button class="btn btn-warning" type="button" ng-click="$ctrl.cancel()" focused="true">{{'CLOSE' | translate}}</button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()" focused="true">{{'CLOSE' | translate}}</button>
 </div>
