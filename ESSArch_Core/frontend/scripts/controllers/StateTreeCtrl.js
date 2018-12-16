@@ -255,13 +255,7 @@ angular.module('essarch.controllers').controller('StateTreeCtrl', function($scop
                 return value;
             })
         }).catch(function (response) {
-            if (response.status == 404) {
-                $scope.statusShow = false;
-                $timeout(function () {
-                    $scope.getListViewData();
-                    updateListViewConditional();
-                }, 1000);
-            }
+            ErrorResponse.default(response);
         });
     };
 
