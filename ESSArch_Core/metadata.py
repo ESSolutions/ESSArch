@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from django_filters.utils import label_for_filter
 from django.utils.encoding import force_text
 from rest_framework.metadata import SimpleMetadata
 
@@ -19,6 +20,7 @@ class CustomMetadata(SimpleMetadata):
             # This route has no filter
             return metadata
 
+        model = view.filterset_class.Meta.model
         for filter_name, filter_type in view.filterset_class.base_filters.items():
             filter_parts = filter_name.split('__')
             filter_name = filter_parts[0]
@@ -55,6 +57,9 @@ class CustomMetadata(SimpleMetadata):
             # Do queryset
             queryset = filter_type.extra.get('queryset', False)
             if queryset:
+                if callable(queryset):
+                    queryset = queryset(request)
+
                 attrs['choices'] = [
                     {
                         'value': force_text(choice.pk, strings_only=True),
@@ -62,6 +67,15 @@ class CustomMetadata(SimpleMetadata):
                     }
                     for choice in queryset
                 ]
+
+            label = filter_type.label
+            if label is None:
+                if model is not None:
+                    label = label_for_filter(model, filter_type.field_name, filter_type.lookup_expr, filter_type.exclude)
+                else:
+                    label = filter_name.replace('_', ' ').title()
+
+            attrs['label'] = label
 
             # Wrap up.
             filters[filter_name] = attrs

@@ -1,8 +1,26 @@
+from django.contrib.auth import get_user_model
+from django.utils.translation import ugettext_lazy as _
 from django_filters import rest_framework as filters
 from rest_framework import exceptions
 
-from ESSArch_Core.filters import IsoDateTimeFromToRangeFilter, ListFilter
+from ESSArch_Core.filters import IsoDateTimeFromToRangeFilter, ListFilter, MultipleCharFilter
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
+
+User = get_user_model()
+
+
+def users(request):
+    org = request.user.user_profile.current_organization
+    if org is None:
+        if request.user.is_superuser:
+            return User.objects.all()
+        return User.objects.filter(pk=request.user.pk)
+    return User.objects.filter(essauth_member__in=org.members)
+
+
+def states():
+    result = InformationPackage.objects.order_by().values_list('state', flat=True).distinct()
+    return [(state, state.capitalize()) for state in result]
 
 
 class AgentFilter(filters.FilterSet):
@@ -14,24 +32,21 @@ class AgentFilter(filters.FilterSet):
 
 
 class InformationPackageFilter(filters.FilterSet):
-    agents = ListFilter(field_name='agents__pk', label='Agent is in')
-    archivist_organization = ListFilter(label='Archivist Organization is in', method='filter_archivist_organization')
-    responsible = ListFilter(field_name='responsible__username')
-    state = ListFilter(field_name='state')
-    object_identifier_value = ListFilter(field_name='object_identifier_value')
-    label = ListFilter(field_name='label')
-    object_size = filters.RangeFilter(field_name='object_size')
+    archivist_organization = filters.ModelMultipleChoiceFilter(
+        label=_("Archivist Organization"),
+        queryset=Agent.objects.filter(role__iexact="archivist", type__iexact="organization"),
+    )
+    responsible = filters.ModelMultipleChoiceFilter(queryset=users)
+    state = MultipleCharFilter()
+    object_size = filters.RangeFilter()
     start_date = IsoDateTimeFromToRangeFilter()
     end_date = IsoDateTimeFromToRangeFilter()
     create_date = IsoDateTimeFromToRangeFilter()
     entry_date = IsoDateTimeFromToRangeFilter()
-    package_type = ListFilter(field_name='package_type')
-    package_type_name_exclude = filters.CharFilter(field_name='Package Type Name', method='filter_package_type_name')
+    package_type = MultipleCharFilter()
+    package_type_name_exclude = filters.CharFilter(label=_("Excluded Package Type"), method='exclude_package_type_name')
 
-    def filter_archivist_organization(self, queryset, name, value):
-        return queryset.filter(agents__role='ARCHIVIST', agents__type='ORGANIZATION', agents__name=value)
-
-    def filter_package_type_name(self, queryset, name, value):
+    def exclude_package_type_name(self, queryset, name, value):
         for package_type_id, package_type_name in InformationPackage.PACKAGE_TYPE_CHOICES:
             if package_type_name.lower() == value.lower():
                 return queryset.exclude(package_type=package_type_id)
@@ -39,7 +54,7 @@ class InformationPackageFilter(filters.FilterSet):
 
     class Meta:
         model = InformationPackage
-        fields = ['agents', 'archivist_organization', 'state', 'label', 'object_identifier_value', 'responsible',
+        fields = ['archivist_organization', 'state', 'responsible',
                   'create_date', 'entry_date', 'object_size', 'start_date', 'end_date',
                   'archived', 'cached', 'package_type', 'package_type_name_exclude']
 

@@ -87,12 +87,16 @@ class WorkareaSerializer(serializers.ModelSerializer):
     extracted = serializers.SerializerMethodField()
     packaged = serializers.SerializerMethodField()
     user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+    type_name = serializers.SerializerMethodField()
 
     def get_extracted(self, obj):
         return os.path.isdir(obj.path)
 
     def get_packaged(self, obj):
         return os.path.isfile(obj.path + '.tar')
+
+    def get_type_name(self, obj):
+        return obj.get_type_display()
 
     def create(self, validated_data):
         if 'user' not in validated_data:
@@ -102,6 +106,6 @@ class WorkareaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Workarea
         fields = (
-            'id', 'user', 'ip', 'read_only', 'type',
+            'id', 'user', 'ip', 'read_only', 'type', 'type_name',
             'extracted', 'packaged', 'successfully_validated',
         )

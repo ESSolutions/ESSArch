@@ -17,7 +17,10 @@
                         </formly-form>
                     </div>
                 </form>
-                <button class="btn btn-default" style="float: right;margin-top: 5px;" ng-click="submitAdvancedFilters()">{{'APPLY' | translate}}</button>
+                <div class="pt-base flex-row justify-content-end">
+                    <button class="btn btn-success" ng-click="submitAdvancedFilters()">{{'APPLY' | translate}}</button>
+                    <button class="btn btn-danger" type="button" ng-click="vm.clearFilters()">{{'CLEAR' | translate}}</button>
+                </div>
             </div>
             <div class="global-search">
                 <input id="event-search-input" st-search="" class="form-control" ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}" type="text"

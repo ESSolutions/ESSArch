@@ -249,6 +249,12 @@ angular.module('essarch.controllers').controller('EventCtrl', function (Resource
          }
     }
 
+    vm.clearFilters = function() {
+        vm.setupForm();
+        $scope.submitAdvancedFilters();
+    }
+
+
     $scope.clearSearch = function() {
         delete $scope.tableState.search.predicateObject;
         $('#event-search-input')[0].value = "";
