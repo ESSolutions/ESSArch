@@ -143,6 +143,8 @@ class EardErmsImporter(BaseImporter):
         }
 
     def parse_extra_id(self, el):
+        if el.text is None:
+            return None
         return {
             'typ': el.get('ExtraIDTyp'),
             'id': el.text
@@ -289,7 +291,9 @@ class EardErmsImporter(BaseImporter):
 
         data['extra_ids'] = []
         for extra_id in act.xpath("*[local-name()='ExtraID']"):
-            data['extra_ids'].append(self.parse_extra_id(extra_id))
+            parsed = self.parse_extra_id(extra_id)
+            if parsed is not None:
+                data['extra_ids'].append(parsed)
 
         try:
             data['gallring'] = self.parse_gallring(act.xpath("*[local-name()='Gallring']")[0])
