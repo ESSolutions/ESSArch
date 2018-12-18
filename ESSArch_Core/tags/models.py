@@ -41,6 +41,7 @@ class StructureUnit(MPTTModel):
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    comment = models.TextField(blank=True)
     reference_code = models.CharField(max_length=255)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
