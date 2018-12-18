@@ -1,0 +1,87 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-12-17 11:15+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: admin.py:94
+msgid "Personal info"
+msgstr ""
+
+#: admin.py:95
+msgid "Permissions"
+msgstr ""
+
+#: admin.py:97
+msgid "Important dates"
+msgstr ""
+
+#: models.py:108
+msgid "group"
+msgstr ""
+
+#: models.py:109
+msgid "groups"
+msgstr ""
+
+#: models.py:116
+msgid "user"
+msgstr ""
+
+#: models.py:117
+msgid "users"
+msgstr ""
+
+#: models.py:124
+msgid "permission"
+msgstr ""
+
+#: models.py:125
+msgid "permissions"
+msgstr ""
+
+#: serializers.py:228
+msgid "User account is disabled"
+msgstr ""
+
+#: serializers.py:231
+msgid "Invalid username or password"
+msgstr "Felaktigt användarnamn eller lösenord"
+
+#: serializers.py:240
+msgid "E-mail is not verified."
+msgstr ""
+
+#: templates/essauth/admin/group/add_form.html:6
+msgid ""
+"First, enter a name and optionally some permissions. Then, you'll be able to "
+"edit more group options."
+msgstr ""
+
+#: templates/essauth/admin/group/add_form.html:8
+msgid "Enter a name."
+msgstr ""
+
+#: templates/essauth/admin/user/add_form.html:6
+msgid ""
+"First, enter a username and password. Then, you'll be able to edit more user "
+"options."
+msgstr ""
+
+#: templates/essauth/admin/user/add_form.html:8
+msgid "Enter a username and password."
+msgstr ""
