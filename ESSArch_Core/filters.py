@@ -49,6 +49,11 @@ class IsoDateTimeFromToRangeFilter(filters.DateTimeFromToRangeFilter):
 class MultipleCharFilter(filters.MultipleChoiceFilter):
     field_class = MultipleTextField
 
+    def filter(self, qs, value):
+        if isinstance(value, list):
+            value = [v for v in value if v not in EMPTY_VALUES]
+        return super().filter(qs, value)
+
 
 class ListFilter(django_filters.Filter):
     def __init__(self, *args, **kwargs):
