@@ -56,13 +56,14 @@ class CustomMetadata(SimpleMetadata):
 
             # Do queryset
             queryset = filter_type.extra.get('queryset', False)
+            to_field = filter_type.extra.get('to_field_name', 'pk')
             if queryset:
                 if callable(queryset):
                     queryset = queryset(request)
 
                 attrs['choices'] = [
                     {
-                        'value': force_text(choice.pk, strings_only=True),
+                        'value': force_text(getattr(choice, to_field), strings_only=True),
                         'display_name': force_text(choice, strings_only=True)
                     }
                     for choice in queryset

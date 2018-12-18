@@ -36,7 +36,7 @@ class InformationPackageFilter(filters.FilterSet):
         label=_("Archivist Organization"),
         queryset=Agent.objects.filter(role__iexact="archivist", type__iexact="organization"),
     )
-    responsible = filters.ModelMultipleChoiceFilter(queryset=users)
+    responsible = filters.ModelMultipleChoiceFilter(field_name="responsible__username", to_field_name="username", queryset=users)
     state = MultipleCharFilter()
     object_size = filters.RangeFilter()
     start_date = IsoDateTimeFromToRangeFilter()
