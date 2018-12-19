@@ -1,0 +1,82 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-12-19 14:48+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: templates/maintenance/appraisal_report.html:63
+msgid "Appraisal Report"
+msgstr "Gallringsrapport"
+
+#: templates/maintenance/appraisal_report.html:64
+msgid "Appraisal Rule"
+msgstr "Gallringsregel"
+
+#: templates/maintenance/appraisal_report.html:66
+msgid "Appraisal Rule Creator"
+msgstr "Skapare av gallringsregel"
+
+#: templates/maintenance/appraisal_report.html:69
+msgid "Appraisal Job"
+msgstr "Gallringsjobb"
+
+#: templates/maintenance/appraisal_report.html:71
+msgid "Appraisal Job Creator"
+msgstr "Skapare av gallringsjobb"
+
+#: templates/maintenance/appraisal_report.html:79
+msgid "Document"
+msgstr "Dokument"
+
+#: templates/maintenance/appraisal_report.html:80
+#: templates/maintenance/conversion_report.html:75
+msgid "IP"
+msgstr ""
+
+#: templates/maintenance/appraisal_report.html:81
+#: templates/maintenance/conversion_report.html:77
+msgid "Start date"
+msgstr "Startdatum"
+
+#: templates/maintenance/appraisal_report.html:82
+#: templates/maintenance/conversion_report.html:78
+msgid "End date"
+msgstr "Slutdatum"
+
+#: templates/maintenance/conversion_report.html:63
+msgid "Conversion Report"
+msgstr "Konverteringsrapport"
+
+#: templates/maintenance/conversion_report.html:64
+msgid "Conversion Rule"
+msgstr "Konverteringsregel"
+
+#: templates/maintenance/conversion_report.html:66
+msgid "Conversion Job"
+msgstr "Konverteringsjobb"
+
+#: templates/maintenance/conversion_report.html:73
+msgid "Old document"
+msgstr "Gammalt dokument"
+
+#: templates/maintenance/conversion_report.html:74
+msgid "New document"
+msgstr "Nytt dokument"
+
+#: templates/maintenance/conversion_report.html:76
+msgid "Tool"
+msgstr "Verktyg"
