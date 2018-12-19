@@ -15,22 +15,22 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='archivepolicy',
             name='cache_extracted_age',
-            field=models.IntegerField(null=True, verbose_name=b'Maximum age (days) of extracted package before deletion from cache'),
+            field=models.IntegerField(null=True, verbose_name='Maximum age (days) of extracted package before deletion from cache'),
         ),
         migrations.AddField(
             model_name='archivepolicy',
             name='cache_extracted_size',
-            field=models.BigIntegerField(null=True, verbose_name=b'Maximum size (bytes) of extracted package before deletion from cache'),
+            field=models.BigIntegerField(null=True, verbose_name='Maximum size (bytes) of extracted package before deletion from cache'),
         ),
         migrations.AddField(
             model_name='archivepolicy',
             name='cache_package_age',
-            field=models.IntegerField(null=True, verbose_name=b'Maximum age (days) of package before deletion from cache'),
+            field=models.IntegerField(null=True, verbose_name='Maximum age (days) of package before deletion from cache'),
         ),
         migrations.AddField(
             model_name='archivepolicy',
             name='cache_package_size',
-            field=models.BigIntegerField(null=True, verbose_name=b'Maximum size (bytes) of package before deletion from cache'),
+            field=models.BigIntegerField(null=True, verbose_name='Maximum size (bytes) of package before deletion from cache'),
         ),
         migrations.AddField(
             model_name='archivepolicy',
@@ -40,6 +40,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='archivepolicy',
             name='wait_for_approval',
-            field=models.BooleanField(default=True, verbose_name=b'Wait for approval'),
+            field=models.BooleanField(default=True, verbose_name='Wait for approval'),
         ),
     ]

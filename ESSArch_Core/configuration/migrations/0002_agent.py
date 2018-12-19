@@ -41,12 +41,13 @@ class Migration(migrations.Migration):
             name='Agent',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('agentType', models.CharField(max_length=60, unique=True)),
-                ('agentDetail', models.CharField(max_length=70)),
+                ('agentType', models.CharField(max_length=60, unique=True, verbose_name='agent type')),
+                ('agentDetail', models.CharField(max_length=70, verbose_name='agent detail')),
             ],
             options={
                 'ordering': ['agentType'],
-                'verbose_name': 'Agent',
+                'verbose_name': 'agent',
+                'verbose_name_plural': 'agents',
             },
         ),
     ]

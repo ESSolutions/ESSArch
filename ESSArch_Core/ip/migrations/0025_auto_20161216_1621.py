@@ -94,6 +94,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='informationpackage',
             name='Responsible',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='information_packages', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='information_packages', to=settings.AUTH_USER_MODEL, verbose_name='responsible'),
         ),
     ]

@@ -50,7 +50,7 @@ class GroupMemberInline(NestedTabularInline):
     fields = ['group', 'member', 'expiration_date', 'roles']
     model = GroupMember
     extra = 0
-    verbose_name_plural = 'Group settings'
+    verbose_name_plural = _('group settings')
 
     def has_add_permission(self, request):
         return False
@@ -72,7 +72,7 @@ class MemberInline(NestedStackedInlineWithoutHeader):
     fieldsets = (
         (None, {
             'fields': [],
-            'description': "Groups added above appears here when saving"
+            'description': _("Groups added above appears here when saving")
         }),
     )
 
@@ -95,7 +95,7 @@ class UserAdmin(DjangoUserAdmin, NestedModelAdmin):
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
                                        'user_permissions')}),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
-        ('Groups', {'fields': ('groups',)})
+        (_('Groups'), {'fields': ('groups',)})
     )
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):

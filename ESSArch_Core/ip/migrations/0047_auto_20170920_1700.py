@@ -34,7 +34,7 @@ def usernameToId(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ip', '0046_auto_20170919_1248'),
+        ('ip', '0045_auto_20170831_0023'),
     ]
 
     operations = [

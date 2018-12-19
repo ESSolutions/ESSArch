@@ -1,0 +1,71 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-12-19 11:30+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: apps.py:7
+msgid "Configuration"
+msgstr "Konfiguration"
+
+#: models.py:59 models.py:90
+msgid "entity"
+msgstr "entitet"
+
+#: models.py:60 models.py:91
+msgid "value"
+msgstr "värde"
+
+#: models.py:66
+msgid "parameter"
+msgstr "parameter"
+
+#: models.py:67
+msgid "parameters"
+msgstr "parametrar"
+
+#: models.py:100
+msgid "path"
+msgstr "sökväg"
+
+#: models.py:101
+msgid "paths"
+msgstr "sökvägar"
+
+#: models.py:141
+msgid "agent type"
+msgstr ""
+
+#: models.py:142
+msgid "agent detail"
+msgstr ""
+
+#: models.py:146
+msgid "agent"
+msgstr "agent"
+
+#: models.py:147
+msgid "agents"
+msgstr "agenter"
+
+#: models.py:238
+msgid "archive policy"
+msgstr "arkivpolicy"
+
+#: models.py:239
+msgid "archive policies"
+msgstr "arkivpolicyer"

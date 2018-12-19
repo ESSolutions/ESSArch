@@ -51,9 +51,9 @@ class GroupGenericObjects(models.Model):
 
 @python_2_unicode_compatible
 class GroupMemberRole(GroupMemberRoleMixin):
-    codename = models.CharField(unique=True, max_length=255)
-    label = models.SlugField(blank=True, max_length=255)
-    permissions = models.ManyToManyField(Permission, related_name='roles')
+    codename = models.CharField(_('codename'), unique=True, max_length=255)
+    label = models.SlugField(_('label'), blank=True, max_length=255)
+    permissions = models.ManyToManyField(Permission, related_name='roles', verbose_name=_('permissions'))
 
     def __str__(self):
         return self.label
@@ -64,8 +64,8 @@ class GroupMemberRole(GroupMemberRoleMixin):
         super(GroupMemberRole, self).save(*args, **kwargs)
 
     class Meta:
-        verbose_name = 'Role'
-        verbose_name_plural = 'Roles'
+        verbose_name = _('role')
+        verbose_name_plural = _('roles')
 
 
 class ProxyGroup(DjangoGroup):
@@ -154,20 +154,22 @@ class Member(MemberMixin):
 
 class GroupType(GroupType):
     class Meta:
+        verbose_name = _('group type')
+        verbose_name_plural = _('group types')
         proxy = True
         default_permissions = []
 
 
 class Group(GroupMixin):
     group_type = models.ForeignKey(GroupType, null=True, on_delete=models.SET_NULL,
-                                   related_name='essauth_groups')
+                                   related_name='essauth_groups', verbose_name=_('group type'))
 
     django_group = models.OneToOneField(DjangoGroup, null=False, on_delete=models.CASCADE,
                                         related_name='essauth_group')
     group_members = models.ManyToManyField(Member, through='GroupMember',
                                            related_name='essauth_groups')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
-                            related_name='sub_%(app_label)s_%(class)s_set')
+                            related_name='sub_%(app_label)s_%(class)s_set', verbose_name=_('parent'))
 
     @property
     def member_model(self):
@@ -235,10 +237,10 @@ class Group(GroupMixin):
 
 
 class GroupMember(GroupMemberMixin):
-    group = models.ForeignKey(Group, related_name='group_membership', on_delete=models.CASCADE)
-    member = models.ForeignKey(Member, related_name='group_membership', on_delete=models.CASCADE)
-    roles = models.ManyToManyField(GroupMemberRole, related_name='group_memberships')
-    expiration_date = models.DateTimeField(null=True, default=None)
+    group = models.ForeignKey(Group, related_name='group_membership', on_delete=models.CASCADE, verbose_name=_('group'))
+    member = models.ForeignKey(Member, related_name='group_membership', on_delete=models.CASCADE, verbose_name=_('member'))
+    roles = models.ManyToManyField(GroupMemberRole, related_name='group_memberships', verbose_name=_('roles'))
+    expiration_date = models.DateTimeField(_('expiration date'), null=True, default=None)
 
     class Meta(GroupMemberMixin.Meta):
         unique_together = ('group', 'member')

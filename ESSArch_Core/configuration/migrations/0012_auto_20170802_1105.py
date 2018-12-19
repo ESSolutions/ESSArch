@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='archivepolicy',
             name='checksum_algorithm',
-            field=models.IntegerField(choices=[(0, b'md5'), (1, b'sha-1'), (2, b'sha-224'), (3, b'sha-256'), (4, b'sha-384'), (5, b'sha-512')], default=1, verbose_name=b'Checksum algorithm'),
+            field=models.IntegerField(choices=[(0, 'md5'), (1, 'sha-1'), (2, 'sha-224'), (3, 'sha-256'), (4, 'sha-384'), (5, 'sha-512')], default=1, verbose_name='Checksum algorithm'),
         ),
     ]

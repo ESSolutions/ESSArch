@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('read_only', models.BooleanField(default=True)),
-                ('type', models.IntegerField(choices=[(0, b'Ingest'), (1, b'Access')], default=0)),
+                ('type', models.IntegerField(choices=[(0, 'ingest'), (1, 'access')], default=0)),
                 ('ip', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='workareas', to='ip.InformationPackage')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],

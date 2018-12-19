@@ -15,11 +15,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='informationpackage',
             name='archived',
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(default=False, verbose_name='archived'),
         ),
         migrations.AddField(
             model_name='informationpackage',
             name='cached',
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(default=False, verbose_name='cached'),
         ),
     ]

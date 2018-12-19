@@ -20,6 +20,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='informationpackage',
             name='object_size',
-            field=models.BigIntegerField(default=0),
+            field=models.BigIntegerField(default=0, verbose_name='object size'),
         ),
     ]

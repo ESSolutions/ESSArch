@@ -74,11 +74,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='informationpackage',
             name='Enddate',
-            field=models.DateTimeField(),
+            field=models.DateTimeField(null=True, verbose_name='end date'),
         ),
         migrations.AlterField(
             model_name='informationpackage',
             name='Startdate',
-            field=models.DateTimeField(),
+            field=models.DateTimeField(null=True, verbose_name='start date'),
         ),
     ]

@@ -35,7 +35,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ip', '0015_auto_20160915_0913'),
+        ('ip', '0014_auto_20160913_1557'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('profiles', '0018_auto_20161104_1624'),
     ]

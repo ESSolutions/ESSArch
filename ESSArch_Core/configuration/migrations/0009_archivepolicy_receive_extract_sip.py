@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='archivepolicy',
             name='receive_extract_sip',
-            field=models.BooleanField(default=False, verbose_name=b'Extract SIP on receive'),
+            field=models.BooleanField(default=False, verbose_name='Extract SIP on receive'),
         ),
     ]

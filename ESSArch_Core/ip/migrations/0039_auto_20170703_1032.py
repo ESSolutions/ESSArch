@@ -15,11 +15,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='informationpackage',
             name='message_digest_algorithm',
-            field=models.IntegerField(choices=[(0, b'MD5'), (1, b'SHA-1'), (2, b'SHA-224'), (3, b'SHA-256'), (4, b'SHA-384'), (5, b'SHA-512')], null=True),
+            field=models.IntegerField(choices=[(0, 'MD5'), (1, 'SHA-1'), (2, 'SHA-224'), (3, 'SHA-256'), (4, 'SHA-384'), (5, 'SHA-512')], null=True),
         ),
         migrations.AlterField(
             model_name='informationpackagemetadata',
             name='message_digest_algorithm',
-            field=models.IntegerField(choices=[(0, b'MD5'), (1, b'SHA-1'), (2, b'SHA-224'), (3, b'SHA-256'), (4, b'SHA-384'), (5, b'SHA-512')], null=True),
+            field=models.IntegerField(choices=[(0, 'MD5'), (1, 'SHA-1'), (2, 'SHA-224'), (3, 'SHA-256'), (4, 'SHA-384'), (5, 'SHA-512')], null=True),
         ),
     ]
