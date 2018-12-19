@@ -28,6 +28,7 @@ from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.translation import ugettext_lazy as _
 
 import uuid
 
@@ -55,14 +56,15 @@ class Parameter(models.Model):
     Parameters for configuration options
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    entity = models.CharField(max_length=60, unique=True)
-    value = models.CharField(max_length=70)
+    entity = models.CharField(_('entity'), max_length=60, unique=True)
+    value = models.CharField(_('value'), max_length=70)
 
     objects = ParameterManager()
 
     class Meta:
         ordering = ["entity"]
-        verbose_name = 'Parameter'
+        verbose_name = _('parameter')
+        verbose_name_plural = _('parameters')
 
     def __str__(self):
         return self.entity
@@ -85,8 +87,8 @@ class Path(models.Model):
     Paths used for different operations
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    entity = models.CharField(max_length=255, unique=True)
-    value = models.CharField(max_length=255)
+    entity = models.CharField(_('entity'), max_length=255, unique=True)
+    value = models.CharField(_('value'), max_length=255)
 
     objects = PathManager()
 
@@ -95,7 +97,8 @@ class Path(models.Model):
 
     class Meta:
         ordering = ["entity"]
-        verbose_name = 'Path'
+        verbose_name = _('path')
+        verbose_name_plural = _('paths')
 
 
 class EventType(models.Model):
@@ -135,12 +138,13 @@ class Agent(models.Model):
     Agents used for different operations
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    agentType = models.CharField(max_length=60, unique=True)
-    agentDetail = models.CharField(max_length=70)
+    agentType = models.CharField(_('agent type'), max_length=60, unique=True)
+    agentDetail = models.CharField(_('agent detail'), max_length=70)
 
     class Meta:
         ordering = ["agentType"]
-        verbose_name = 'Agent'
+        verbose_name = _('agent')
+        verbose_name_plural = _('agents')
 
 
 class DefaultColumnVisible(models.Model):
@@ -229,6 +233,8 @@ class ArchivePolicy(models.Model):
 
     class Meta:
         ordering = ['policy_name']
+        verbose_name = _('archive policy')
+        verbose_name_plural = _('archive policies')
 
     def __str__(self):
         if len(self.policy_name):

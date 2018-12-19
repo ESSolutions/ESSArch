@@ -30,6 +30,7 @@ import six
 from django.conf import settings
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.translation import ugettext_lazy as _
 
 from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
 from ESSArch_Core.profiles.validators import validate_template
@@ -266,7 +267,8 @@ class SubmissionAgreement(models.Model):
 
     class Meta:
         ordering = ["name"]
-        verbose_name = 'Submission Agreement'
+        verbose_name = _('submission agreement')
+        verbose_name_plural = _('submission agreements')
         permissions = (
             ('create_new_sa_generation', 'Can create new generations of SA'),
             ('export_sa', 'Can export SA'),
@@ -364,7 +366,8 @@ class Profile(models.Model):
 
     class Meta:
         ordering = ["name"]
-        verbose_name = 'Profile'
+        verbose_name = _('profile')
+        verbose_name_plural = _('profiles')
         permissions = (
             ('export_profile', 'Can export profile'),
         )

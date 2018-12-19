@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-17 11:15+0100\n"
+"POT-Creation-Date: 2018-12-19 11:10+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: admin.py:53
+msgid "group settings"
+msgstr "gruppinställningar"
+
+#: admin.py:75
+msgid "Groups added above appears here when saving"
+msgstr "Grupper tillagda ovan visas här efter de har sparats"
 
 #: admin.py:94
 msgid "Personal info"
@@ -30,7 +38,35 @@ msgstr ""
 msgid "Important dates"
 msgstr ""
 
-#: models.py:108
+#: admin.py:98
+msgid "Groups"
+msgstr "Grupper"
+
+#: apps.py:6
+msgid "Authentication and Authorization"
+msgstr ""
+
+#: models.py:54
+msgid "codename"
+msgstr "kodnamn"
+
+#: models.py:55
+msgid "label"
+msgstr "etikett"
+
+#: models.py:56 models.py:125
+msgid "permissions"
+msgstr ""
+
+#: models.py:67
+msgid "role"
+msgstr "roll"
+
+#: models.py:68 models.py:242
+msgid "roles"
+msgstr "roller"
+
+#: models.py:108 models.py:240
 msgid "group"
 msgstr ""
 
@@ -50,9 +86,25 @@ msgstr ""
 msgid "permission"
 msgstr ""
 
-#: models.py:125
-msgid "permissions"
+#: models.py:157 models.py:165
+msgid "group type"
+msgstr "grupptyp"
+
+#: models.py:158
+msgid "group types"
+msgstr "grupptyper"
+
+#: models.py:172
+msgid "parent"
 msgstr ""
+
+#: models.py:241
+msgid "member"
+msgstr ""
+
+#: models.py:243
+msgid "expiration date"
+msgstr "utgångsdatum"
 
 #: serializers.py:228
 msgid "User account is disabled"
