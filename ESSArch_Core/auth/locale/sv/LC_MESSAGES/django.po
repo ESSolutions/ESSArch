@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-19 11:10+0100\n"
+"POT-Creation-Date: 2018-12-19 15:42+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -62,25 +62,25 @@ msgstr ""
 msgid "role"
 msgstr "roll"
 
-#: models.py:68 models.py:242
+#: models.py:68 models.py:244
 msgid "roles"
 msgstr "roller"
 
-#: models.py:108 models.py:240
+#: models.py:108 models.py:233 models.py:242
 msgid "group"
-msgstr ""
+msgstr "grupp"
 
-#: models.py:109
+#: models.py:109 models.py:234
 msgid "groups"
-msgstr ""
+msgstr "grupper"
 
 #: models.py:116
 msgid "user"
-msgstr ""
+msgstr "användare"
 
 #: models.py:117
 msgid "users"
-msgstr ""
+msgstr "användare"
 
 #: models.py:124
 msgid "permission"
@@ -96,19 +96,19 @@ msgstr "grupptyper"
 
 #: models.py:172
 msgid "parent"
-msgstr ""
+msgstr "överordnad"
 
-#: models.py:241
+#: models.py:243
 msgid "member"
 msgstr ""
 
-#: models.py:243
+#: models.py:245
 msgid "expiration date"
 msgstr "utgångsdatum"
 
 #: serializers.py:228
 msgid "User account is disabled"
-msgstr ""
+msgstr "Användaren är inaktiverad"
 
 #: serializers.py:231
 msgid "Invalid username or password"
@@ -116,17 +116,19 @@ msgstr "Felaktigt användarnamn eller lösenord"
 
 #: serializers.py:240
 msgid "E-mail is not verified."
-msgstr ""
+msgstr "E-postadressen är inte verifierad"
 
 #: templates/essauth/admin/group/add_form.html:6
 msgid ""
 "First, enter a name and optionally some permissions. Then, you'll be able to "
 "edit more group options."
 msgstr ""
+"Ange först ett namn och eventuella rättigheter. Efter det kommer du att få "
+"fler gruppalternativ."
 
 #: templates/essauth/admin/group/add_form.html:8
 msgid "Enter a name."
-msgstr ""
+msgstr "Ange ett namn."
 
 #: templates/essauth/admin/user/add_form.html:6
 msgid ""

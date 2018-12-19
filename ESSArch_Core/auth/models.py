@@ -230,6 +230,8 @@ class Group(GroupMixin):
     class Meta(GroupMixin.Meta):
         abstract = False
         default_permissions = []
+        verbose_name = _('group')
+        verbose_name_plural = _('groups')
 
     class MPTTMeta:
         level_attr = 'level'
