@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('profiles', '0021_auto_20161107_1813'),
-        ('ip', '0015_auto_20160915_0913'),
+        ('ip', '0014_auto_20160913_1557'),
     ]
 
     operations = [

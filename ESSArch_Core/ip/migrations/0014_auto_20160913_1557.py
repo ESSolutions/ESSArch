@@ -39,6 +39,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='informationpackage',
             name='CreateDate',
-            field=models.DateTimeField(auto_now_add=True),
+            field=models.DateTimeField(auto_now_add=True, verbose_name='create date'),
         ),
     ]

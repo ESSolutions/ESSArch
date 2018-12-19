@@ -14,10 +14,10 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='profile',
-            options={'ordering': ['name'], 'permissions': (('export_profile', 'Can export profile'),), 'verbose_name': 'Profile'},
+            options={'ordering': ['name'], 'permissions': (('export_profile', 'Can export profile'),), 'verbose_name': 'profile', 'verbose_name_plural': 'profiles'},
         ),
         migrations.AlterModelOptions(
             name='submissionagreement',
-            options={'ordering': ['name'], 'permissions': (('create_new_sa_generation', 'Can create new generations of SA'), ('export_sa', 'Can export SA')), 'verbose_name': 'Submission Agreement'},
+            options={'ordering': ['name'], 'permissions': (('create_new_sa_generation', 'Can create new generations of SA'), ('export_sa', 'Can export SA')), 'verbose_name': 'submission agreement', 'verbose_name_plural': 'submission agreements'},
         ),
     ]

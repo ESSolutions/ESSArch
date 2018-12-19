@@ -15,11 +15,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='path',
             name='entity',
-            field=models.CharField(max_length=255, unique=True),
+            field=models.CharField(max_length=255, unique=True, verbose_name='entity'),
         ),
         migrations.AlterField(
             model_name='path',
             name='value',
-            field=models.CharField(max_length=255),
+            field=models.CharField(max_length=255, verbose_name='value'),
         ),
     ]

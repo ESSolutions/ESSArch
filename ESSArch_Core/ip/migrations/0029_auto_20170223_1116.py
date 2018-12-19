@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
                 ('server_url', models.CharField(blank=True, max_length=255)),
                 ('local_path', models.CharField(blank=True, max_length=255)),
                 ('blob', models.TextField(blank=True)),
-                ('message_digest_algorithm', models.IntegerField(choices=[(b'MD5', b'MD5'), (b'SHA-1', b'SHA-1'), (b'SHA-224', b'SHA-224'), (b'SHA-256', b'SHA-256'), (b'SHA-384', b'SHA-384'), (b'SHA-512', b'SHA-512')], null=True)),
+                ('message_digest_algorithm', models.IntegerField(choices=[('MD5', 'MD5'), ('SHA-1', 'SHA-1'), ('SHA-224', 'SHA-224'), ('SHA-256', 'SHA-256'), ('SHA-384', 'SHA-384'), ('SHA-512', 'SHA-512')], null=True)),
                 ('message_digest', models.CharField(blank=True, max_length=128)),
                 ('last_changed_local', models.DateTimeField(null=True)),
                 ('last_changed_external', models.DateTimeField(null=True)),
@@ -87,7 +87,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='informationpackage',
             name='entry_date',
-            field=models.DateTimeField(null=True),
+            field=models.DateTimeField(null=True, verbose_name='entry date'),
         ),
         migrations.AddField(
             model_name='informationpackage',
@@ -97,7 +97,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='informationpackage',
             name='information_class',
-            field=models.IntegerField(choices=[(0, b'0'), (1, b'1'), (2, b'2'), (3, b'3'), (4, b'4')], null=True),
+            field=models.IntegerField(choices=[(0, '0'), (1, '1'), (2, '2'), (3, '3'), (4, '4')], null=True),
         ),
         migrations.AddField(
             model_name='informationpackage',
@@ -122,12 +122,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='informationpackage',
             name='message_digest_algorithm',
-            field=models.IntegerField(choices=[(b'MD5', b'MD5'), (b'SHA-1', b'SHA-1'), (b'SHA-224', b'SHA-224'), (b'SHA-256', b'SHA-256'), (b'SHA-384', b'SHA-384'), (b'SHA-512', b'SHA-512')], null=True),
+            field=models.IntegerField(choices=[('MD5', 'MD5'), ('SHA-1', 'SHA-1'), ('SHA-224', 'SHA-224'), ('SHA-256', 'SHA-256'), ('SHA-384', 'SHA-384'), ('SHA-512', 'SHA-512')], null=True),
         ),
         migrations.AddField(
             model_name='informationpackage',
             name='package_type',
-            field=models.IntegerField(choices=[(0, b'SIP'), (1, b'AIC'), (2, b'AIP'), (3, b'AIU'), (4, b'DIP')], null=True),
+            field=models.IntegerField(choices=[(0, 'SIP'), (1, 'AIC'), (2, 'AIP'), (3, 'AIU'), (4, 'DIP')], null=True, verbose_name='package type'),
         ),
         migrations.RunPython(after_package_type, reverse),
         migrations.AddField(
@@ -138,7 +138,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='informationpackage',
             name='preservation_level_value',
-            field=models.IntegerField(choices=[(1, b'full')], default=1),
+            field=models.IntegerField(choices=[(1, 'full')], default=1),
         ),
         migrations.AlterField(
             model_name='informationpackage',

@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
                 ('task', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='events', to='WorkflowEngine.ProcessTask')),
                 ('application', models.CharField(max_length=255)),
                 ('eventVersion', models.CharField(max_length=255)),
-                ('eventOutcome', models.IntegerField(choices=[(0, b'Success'), (1, b'Failure')], default=None, null=True)),
+                ('eventOutcome', models.IntegerField(choices=[(0, 'Success'), (1, 'Failure')], default=None, null=True)),
                 ('eventOutcomeDetailNote', models.CharField(max_length=1024)),
                 ('linkingAgentIdentifierValue', models.CharField(max_length=255, blank=True)),
                 ('linkingObjectIdentifierValue', models.CharField(max_length=255, blank=True)),

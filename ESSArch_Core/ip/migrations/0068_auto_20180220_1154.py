@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='informationpackage',
             name='content_mets_digest_algorithm',
-            field=models.IntegerField(choices=[(0, b'MD5'), (1, b'SHA-1'), (2, b'SHA-224'), (3, b'SHA-256'), (4, b'SHA-384'), (5, b'SHA-512')], null=True),
+            field=models.IntegerField(choices=[(0, 'MD5'), (1, 'SHA-1'), (2, 'SHA-224'), (3, 'SHA-256'), (4, 'SHA-384'), (5, 'SHA-512')], null=True),
         ),
         migrations.AddField(
             model_name='informationpackage',
@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='informationpackage',
             name='package_mets_digest_algorithm',
-            field=models.IntegerField(choices=[(0, b'MD5'), (1, b'SHA-1'), (2, b'SHA-224'), (3, b'SHA-256'), (4, b'SHA-384'), (5, b'SHA-512')], null=True),
+            field=models.IntegerField(choices=[(0, 'MD5'), (1, 'SHA-1'), (2, 'SHA-224'), (3, 'SHA-256'), (4, 'SHA-384'), (5, 'SHA-512')], null=True),
         ),
         migrations.AddField(
             model_name='informationpackage',

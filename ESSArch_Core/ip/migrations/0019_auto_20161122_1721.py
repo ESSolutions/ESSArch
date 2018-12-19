@@ -48,6 +48,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='eventip',
             name='eventOutcome',
-            field=models.IntegerField(choices=[(0, b'Success'), (1, b'Fail')], default=None, null=True),
+            field=models.IntegerField(choices=[(0, 'Success'), (1, 'Fail')], default=None, null=True),
         ),
     ]

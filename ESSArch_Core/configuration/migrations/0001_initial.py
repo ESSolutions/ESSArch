@@ -50,24 +50,26 @@ class Migration(migrations.Migration):
             name='Parameter',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
-                ('entity', models.CharField(unique=True, max_length=60)),
-                ('value', models.CharField(max_length=70)),
+                ('entity', models.CharField(unique=True, max_length=60, verbose_name='entity')),
+                ('value', models.CharField(max_length=70, verbose_name='value')),
             ],
             options={
                 'ordering': ['entity'],
-                'verbose_name': 'Parameter',
+                'verbose_name': 'parameter',
+                'verbose_name_plural': 'parameters',
             },
         ),
         migrations.CreateModel(
             name='Path',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
-                ('entity', models.CharField(unique=True, max_length=60)),
-                ('value', models.CharField(max_length=70)),
+                ('entity', models.CharField(unique=True, max_length=60, verbose_name='entity')),
+                ('value', models.CharField(max_length=70, verbose_name='value')),
             ],
             options={
                 'ordering': ['entity'],
-                'verbose_name': 'Path',
+                'verbose_name': 'path',
+                'verbose_name_plural': 'paths',
             },
         ),
         migrations.CreateModel(
