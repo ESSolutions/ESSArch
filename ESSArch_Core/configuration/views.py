@@ -98,7 +98,13 @@ class SysInfoView(APIView):
         ]
 
         context['python'] = '.'.join(str(x) for x in sys.version_info[:3])
-        context['platform'] = platform.platform()
+        context['platform'] = {
+            'os': platform.system(),
+            'release': platform.release(),
+            'version': platform.version(),
+            'mac_version': platform.mac_ver(),
+            'win_version': platform.win32_ver(),
+        }
         context['hostname'] = socket.gethostname()
         context['version'] = get_versions()
         context['core_version'] = get_core_versions()

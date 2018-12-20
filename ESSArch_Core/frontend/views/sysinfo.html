@@ -1,10 +1,13 @@
-<div class="version-info" style="width: 50%;" ng-if="sysInfo">
+<div class="version-info" ng-if="sysInfo">
     <p><b>Version:</b> {{sysInfo.version.version}} - {{sysInfo.version.full}}</p>
     <p><b>ESSArch Core:</b> {{sysInfo.core_version.version}} - {{sysInfo.core_version.full}}</p>
-    <p><b>Python:</b> {{sysInfo.python}}</p>
-    <p><b>{{'PLATFORM' | translate}}:</b> {{sysInfo.platform}}</p>
-    <p><b>{{'DATABASE' | translate}}: </b> {{sysInfo.database.vendor}} {{sysInfo.database.version}}</p>
-    <p><b>{{'TIME' | translate}}:</b> {{sysInfo.time_checked | date: 'yyyy-MM-dd HH:mm'}}</p>
+
+    <div class="flex-wrap">
+        <sys-info-component style="flex-grow: 1; flex-basis: 0; margin: 2px;" name="Python" version="{{sysInfo.python}}" icon="fab fa-python"/>
+        <sys-info-component style="flex-grow: 1; flex-basis: 0; margin: 2px;" name="{{sysInfo.platform.os}}" version="{{sysInfo.platform.version}}" icon="{{sysInfo.platform.icon}}"/>
+        <sys-info-component style="flex-grow: 1; flex-basis: 0; margin: 2px;" name="{{sysInfo.database.vendor}}" version="{{sysInfo.database.version}}" icon="fas fa-database"/>
+        <sys-info-component style="flex-grow: 1; flex-basis: 0; margin: 2px;" name="{{'TIME' | translate}}" version="{{sysInfo.time_checked | date: 'yyyy-MM-dd HH:mm'}}" icon="fas fa-clock"/>
+    </div>
     <p><b>{{'HOSTNAME' | translate}}:</b> {{sysInfo.hostname}}</p>
     <h4>{{'SETTINGSFLAGS' | translate}}</h4>
     <table class="table table-striped">
