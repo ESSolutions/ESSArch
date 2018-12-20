@@ -4,7 +4,7 @@
             {{'TASKS' | translate}}
         </h4>
         <div class="refresh-icon">
-            <span style="float: right; margin-bottom: 5px;" ng-click="statusViewUpdate(ip)" class="clickable angular-animate fas fa-sync-alt fa-lg" ng-class="{'fa-sync-alt-animate': myTreeControl.scope.stateLoading }"  uib-popover="{{'REFRESHTABLEDESC' | translate}}" popover-placement="left" popover-popup-delay="500" popover-append-to-body="true"></span>
+            <span style="float: right; margin-bottom: 5px;" ng-click="statusViewUpdate(ip)" class="clickable angular-animate fas fa-sync-alt fa-lg" ng-class="{'fa-sync-alt-animate': myTreeControl.scope.stateLoading }"  uib-tooltip="{{'REFRESHTABLEDESC' | translate}}" tooltip-placement="auto left" tooltip-append-to-body="true"></span>
         </div>
     </div>
     <tree-grid

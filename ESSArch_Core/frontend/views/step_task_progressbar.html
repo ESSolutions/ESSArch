@@ -3,9 +3,8 @@
                  animate="true"
                  value="row.branch[col.field]"
                  type="{{treeControl.scope.mapStepStateProgress(row.branch)}}"
-                 uib-popover="{{row.branch['status'] | translate}}"
-                 popover-placement="top-left"
-                 popover-popup-delay="500"
-                 popover-append-to-body="true">
+                 uib-tooltip="{{row.branch['status'] | translate}}"
+                 tooltip-placement="auto top"
+                 tooltip-append-to-body="true">
     <b>{{row.branch[col.field]+"%"}}</b>
 </uib-progressbar>

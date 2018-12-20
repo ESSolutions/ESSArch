@@ -1,7 +1,7 @@
 <div class="modal-heading task-info-modal-head">
     <h3 class="modal-title" id="modal-title">{{currentStepTask.label}}</h3>
     <div class="refresh-icon">
-        <span ng-click="getTask(currentStepTask)" class="clickable angular-animate fas fa-sync-alt fa-lg" ng-class="{'fa-sync-alt-animate': stepTaskLoading }" uib-popover="{{'REFRESH' | translate}}"  popover-placement="left" popover-popup-delay="500" popover-append-to-body="true"></span>
+        <span ng-click="getTask(currentStepTask)" class="clickable angular-animate fas fa-sync-alt fa-lg" ng-class="{'fa-sync-alt-animate': stepTaskLoading }" uib-tooltip="{{'REFRESH' | translate}}"  tooltip-placement="auto left" tooltip-append-to-body="true"></span>
     </div>
 </div>
 <div class="modal-body" id="modal-body">
@@ -15,10 +15,10 @@
                 <label>{{'IDENTIFICATION' | translate}}</label>
                 <br/>
                 <div class="btn-group id-button">
-                    <button class="btn btn-default" clipboard text="currentStepTask.id" on-copied="$ctrl.idCopyDone()" uib-popover="{{'COPYID' | translate}}" popover-placement="top" popover-popup-delay="500" popover-append-to-body="true">
+                    <button class="btn btn-default" clipboard text="currentStepTask.id" on-copied="$ctrl.idCopyDone()" uib-tooltip="{{'COPYID' | translate}}" tooltip-placement="auto top" tooltip-append-to-body="true">
                         <i class="fas" ng-class="{'fa-clipboard': !$ctrl.idCopied, 'fa-clipboard-check color-success': $ctrl.idCopied}"></i>
                     </button>
-                    <buton class="btn btn-default" uib-popover="{{'IDENTIFICATION' | translate}}" popover-placement="top" popover-popup-delay="500" popover-append-to-body="true">
+                    <buton class="btn btn-default" uib-tooltip="{{'IDENTIFICATION' | translate}}" tooltip-placement="auto top" tooltip-append-to-body="true">
                         {{currentStepTask.id}}
                     </buton>
                 </div>
@@ -32,10 +32,9 @@
                          animate="true"
                          value="currentStepTask.progress"
                          type="{{$ctrl.mapStepStateProgress(currentStepTask)}}"
-                         uib-popover="{{currentStepTask.status | translate}}"
-                         popover-placement="top"
-                         popover-popup-delay="500"
-                         popover-append-to-body="true">
+                         uib-tooltip="{{currentStepTask.status | translate}}"
+                         tooltip-placement="auto top"
+                         tooltip-append-to-body="true">
             <b>{{currentStepTask.progress+"%"}}</b>
         </uib-progressbar>
 
@@ -118,10 +117,10 @@
             <h4>{{'VALIDATIONS' | translate}}</h4>
             <div class="search-prepare-wrapper">
                 <label for items-per-page></label>
-                <select id="items-per-page" style="margin-right: 10px;" class="form-control items-per-page" ng-model="vm.itemsPerPage" ng-options="x for x in [5,10,20,25,50]" uib-popover="{{'ITEMSPERPAGE' | translate}}" popover-placement="top-left" popover-popup-delay="500" popover-append-to-body="true"></select>
-                <input st-search="" class="form-control global-search" ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}" type="text" uib-popover="{{'GLOBALSEARCHDESC_VALIDATION' | translate}}" popover-placement="top-left" popover-popup-delay="500" popover-append-to-body="true" />
+                <select id="items-per-page" style="margin-right: 10px;" class="form-control items-per-page" ng-model="vm.itemsPerPage" ng-options="x for x in [5,10,20,25,50]" uib-tooltip="{{'ITEMSPERPAGE' | translate}}" tooltip-placement="auto top" tooltip-append-to-body="true"></select>
+                <input st-search="" class="form-control global-search" ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}" type="text" uib-tooltip="{{'GLOBALSEARCHDESC_VALIDATION' | translate}}" tooltip-placement="auto top" tooltip-append-to-body="true" />
                 <div class="refresh-icon">
-                    <span ng-click="vm.getValidations(vm.validationTableState)" class="clickable angular-animate fas fa-sync-alt fa-lg" ng-class="{'fa-sync-alt-animate': validationsLoading }" uib-popover="{{'REFRESHTABLEDESC' | translate}}" popover-placement="left" popover-popup-delay="500" popover-append-to-body="true"></span>
+                    <span ng-click="vm.getValidations(vm.validationTableState)" class="clickable angular-animate fas fa-sync-alt fa-lg" ng-class="{'fa-sync-alt-animate': validationsLoading }" uib-tooltip="{{'REFRESHTABLEDESC' | translate}}" tooltip-placement="auto left" tooltip-append-to-body="true"></span>
                 </div>
             </div>
             <div class="table-container">
@@ -152,24 +151,24 @@
                                 <td class="text-center pr-0">
                                     <i class="fas fa-check"
                                     ng-if="x.passed && x.time_done"
-                                    uib-popover="{{'SUCCESS' | translate}}"
-                                    popover-placement="right"
-                                    popover-append-to-body="true"
-                                    popover-popup-delay="500">
+                                    uib-tooltip="{{'SUCCESS' | translate}}"
+                                    tooltip-placement="right"
+                                    tooltip-append-to-body="true"
+                                   >
                                     </i>
                                     <i class="fas fa-times"
                                     ng-if="!x.passed && x.time_done"
-                                    uib-popover="{{'FAILURE' | translate}}"
-                                    popover-placement="right"
-                                    popover-append-to-body="true"
-                                    popover-popup-delay="500">
+                                    uib-tooltip="{{'FAILURE' | translate}}"
+                                    tooltip-placement="right"
+                                    tooltip-append-to-body="true"
+                                   >
                                     </i>
                                     <i class="fas fa-spinner fa-spin"
                                     ng-if="!x.passed && x.time_done === null && x.time_started"
-                                    uib-popover="{{'RUNNING' | translate}}"
-                                    popover-placement="right"
-                                    popover-append-to-body="true"
-                                    popover-popup-delay="500">
+                                    uib-tooltip="{{'RUNNING' | translate}}"
+                                    tooltip-placement="right"
+                                    tooltip-append-to-body="true"
+                                   >
                                 </i>
                                 </td>
                                 <td class="text-oneline-ellipsis">

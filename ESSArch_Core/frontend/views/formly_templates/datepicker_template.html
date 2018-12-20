@@ -1,8 +1,7 @@
 <label class="control-label" for="{{::id}}"
-    uib-popover="{{options.templateOptions.desc}}"
-    popover-placement="top-left"
-    popover-popup-delay="500"
-    popover-append-to-body="true">{{to.label}} {{to.required ? '*' : ''}}</label>
+    uib-tooltip="{{options.templateOptions.desc}}"
+    tooltip-placement="auto top"
+    tooltip-append-to-body="true">{{to.label}} {{to.required ? '*' : ''}}</label>
 
 <div class="dropdown" uib-dropdown dropdown-append-to-body="options.templateOptions.appendToBody && options.templateOptions.appendToBody == true" is-open="status[options.key]">
     <a class="dropdown-toggle" id="dropdown-{{options.key}}" role="button" uib-dropdown-toggle>

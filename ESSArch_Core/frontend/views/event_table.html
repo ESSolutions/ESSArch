@@ -8,8 +8,22 @@
             </div>
         </div>
         <div class="search-prepare-wrapper">
-            <select tabindex="-1" class="form-control items-per-page" ng-change="updateEventsPerPage(vm.itemsPerPage)" ng-model="vm.itemsPerPage" ng-options="x for x in [5,10,20,25,50]"></select>
-            <span class="fas fa-md fa-filter filter-icon" ng-class="{'blue-border': showAdvancedFilters, 'filter-active': filterActive()}" ng-click="toggleAdvancedFilters()"></span>
+            <select tabindex="-1"
+                    class="form-control items-per-page"
+                    ng-change="updateEventsPerPage(vm.itemsPerPage)"
+                    ng-model="vm.itemsPerPage"
+                    ng-options="x for x in [5,10,20,25,50]"
+                    uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+                    tooltip-placement="auto top"
+                    tooltip-append-to-body="true">
+            </select>
+            <span class="fas fa-md fa-filter filter-icon"
+                  ng-class="{'blue-border': showAdvancedFilters, 'filter-active': filterActive()}"
+                  ng-click="toggleAdvancedFilters()"
+                  uib-tooltip="{{'FILTERS' | translate}}"
+                  tooltip-placement="auto top"
+                  tooltip-append-to-body="true">
+            </span>
             <div ng-show="showAdvancedFilters" class="advanced-filters">
                 <form name="form1" style="position: relative;" novalidate>
                     <div class="formly-buttons-wrapper">
@@ -18,17 +32,17 @@
                     </div>
                 </form>
                 <div class="pt-base flex-row justify-content-end">
-                    <button class="btn btn-success" ng-click="submitAdvancedFilters()">{{'APPLY' | translate}}</button>
-                    <button class="btn btn-danger" type="button" ng-click="vm.clearFilters()">{{'CLEAR' | translate}}</button>
+                    <button class="btn btn-primary" ng-click="submitAdvancedFilters()">{{'APPLY' | translate}}</button>
+                    <button class="btn btn-default" type="button" ng-click="vm.clearFilters()">{{'CLEAR' | translate}}</button>
                 </div>
             </div>
             <div class="global-search">
                 <input id="event-search-input" st-search="" class="form-control" ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}" type="text"
-                uib-popover="{{'GLOBALSEARCHDESC_EVENT' | translate}}" popover-placement="top-left" popover-popup-delay="500" popover-append-to-body="true"
+                uib-tooltip="{{'GLOBALSEARCHDESC_EVENT' | translate}}" tooltip-placement="auto top" tooltip-append-to-body="true"
                 />
             </div>
             <div class="refresh-icon">
-                <span ng-click="stCtrl.pipe()" class="cursor-pointer angular-animate fas fa-sync-alt fa-lg" ng-class="{'fa-sync-alt-animate': eventLoading }" uib-popover="{{'REFRESHTABLEDESC' | translate}}" popover-placement="left" popover-popup-delay="500" popover-append-to-body="true"></span>
+                <span ng-click="stCtrl.pipe()" class="cursor-pointer angular-animate fas fa-sync-alt fa-lg" ng-class="{'fa-sync-alt-animate': eventLoading }" uib-tooltip="{{'REFRESHTABLEDESC' | translate}}" tooltip-placement="auto left" tooltip-append-to-body="true"></span>
             </div>
         </div>
         <div class="list-view-table">
@@ -47,17 +61,17 @@
                         <td class="text-center pr-0">
                             <i  class="fas fa-check"
                                 ng-if="getEventOutcome(row.eventOutcome) === 'success'"
-                                uib-popover="{{'EVENT_SUCCESS' | translate}}"
-                                popover-placement="right"
-                                popover-append-to-body="true"
-                                popover-popup-delay="500">
+                                uib-tooltip="{{'EVENT_SUCCESS' | translate}}"
+                                tooltip-placement="auto top"
+                                tooltip-append-to-body="true"
+                               >
                             </i>
                             <i  class="fas fa-times"
                                 ng-if="getEventOutcome(row.eventOutcome) === 'failure'"
-                                uib-popover="{{'EVENT_FAILURE' | translate}}"
-                                popover-placement="right"
-                                popover-append-to-body="true"
-                                popover-popup-delay="500">
+                                uib-tooltip="{{'EVENT_FAILURE' | translate}}"
+                                tooltip-placement="auto top"
+                                tooltip-append-to-body="true"
+                               >
                             </i>
                         </td>
                         <td class="white-space-nowrap">{{row.eventDetail}}</td>
