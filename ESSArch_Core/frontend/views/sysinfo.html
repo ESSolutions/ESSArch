@@ -1,28 +1,58 @@
-<div class="version-info" ng-if="sysInfo">
-    <p><b>Version:</b> {{sysInfo.version.version}} - {{sysInfo.version.full}}</p>
-    <p><b>ESSArch Core:</b> {{sysInfo.core_version.version}} - {{sysInfo.core_version.full}}</p>
+<div class="version-info pt-base" ng-if="sysInfo">
+    <div class="row m-0">
+        <div class="col-12 col-lg-6 p-0 pr-lg-base">
+            <p><b>Version:</b> {{sysInfo.version.version}} - {{sysInfo.version.full}}</p>
+            <p><b>ESSArch Core:</b> {{sysInfo.core_version.version}} - {{sysInfo.core_version.full}}</p>
 
-    <div class="flex-wrap">
-        <sys-info-component style="flex-grow: 1; flex-basis: 0; margin: 2px;" name="Python" version="{{sysInfo.python}}" icon="fab fa-python"/>
-        <sys-info-component style="flex-grow: 1; flex-basis: 0; margin: 2px;" name="{{sysInfo.platform.os}}" version="{{sysInfo.platform.version}}" icon="{{sysInfo.platform.icon}}"/>
-        <sys-info-component style="flex-grow: 1; flex-basis: 0; margin: 2px;" name="{{sysInfo.database.vendor}}" version="{{sysInfo.database.version}}" icon="fas fa-database"/>
-        <sys-info-component style="flex-grow: 1; flex-basis: 0; margin: 2px;" name="{{'TIME' | translate}}" version="{{sysInfo.time_checked | date: 'yyyy-MM-dd HH:mm'}}" icon="fas fa-clock"/>
+            <div class="flex-wrap">
+                <sys-info-component class="sys-info-component" name="Python" version="{{sysInfo.python}}" icon="fab fa-python"/>
+                <sys-info-component class="sys-info-component" name="{{sysInfo.platform.os}}" version="{{sysInfo.platform.version}}" icon="{{sysInfo.platform.icon}}"/>
+                <sys-info-component class="sys-info-component" name="{{sysInfo.database.vendor}}" version="{{sysInfo.database.version}}" icon="fas fa-database"/>
+                <sys-info-component class="sys-info-component" name="{{'TIME' | translate}}" version="{{sysInfo.time_checked | date: 'yyyy-MM-dd HH:mm'}}" icon="fas fa-clock"/>
+            </div>
+            <p><b>{{'HOSTNAME' | translate}}:</b> {{sysInfo.hostname}}</p>
+            <h4>{{'SETTINGSFLAGS' | translate}}</h4>
+            <table class="table table-striped">
+                <tbody>
+                    <tr ng-repeat="flag in sysInfo.settings_flags" ng-class="{'unexpected': flag.unexpected}">
+                        <td>
+                            {{flag.name}}
+                        </td>
+                        <td>
+                            {{flag.actual.toString().toUpperCase()}}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-12 col-lg-6 p-0 pl-lg-base" style="overflow: hidden;">
+            <p><b>{{'PYTHONPACKAGES' | translate}}: </b></p>
+            <div class="table-container table-x-overflow">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>
+                                {{'PACKAGE' | translate}}
+                            </th>
+                            <th>
+                                {{'VERSION' | translate}}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="x in sysInfo.python_packages">
+                            <td>
+                                {{x[0]}}
+                            </td>
+                            <td>
+                                {{x[1]}}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    <p><b>{{'HOSTNAME' | translate}}:</b> {{sysInfo.hostname}}</p>
-    <h4>{{'SETTINGSFLAGS' | translate}}</h4>
-    <table class="table table-striped">
-        <tbody>
-            <tr ng-repeat="flag in sysInfo.settings_flags" ng-class="{'unexpected': flag.unexpected}">
-                <td>
-                    {{flag.name}}
-                </td>
-                <td>
-                    {{flag.actual.toString().toUpperCase()}}
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <p><b>{{'PYTHONPACKAGES' | translate}}: </b> {{sysInfo.python_packages.join(' ')}}</p>
 </div>
 <div ng-if="!sysInfo" style="width: 50%;">
     <p>{{'LOADING' | translate}}...</p>

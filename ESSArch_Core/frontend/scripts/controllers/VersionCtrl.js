@@ -11,6 +11,9 @@ angular.module('essarch.controllers').controller('VersionCtrl', function($scope,
             result.platform.icon = 'fab fa-linux';
         }
 
+        result.python_packages = result.python_packages.map(function(x) {
+            return x.split('==');
+        })
         $scope.sysInfo = result;
     });
     $scope.redirectToEss = function(){
@@ -25,20 +28,17 @@ angular.module('essarch.controllers').controller('VersionCtrl', function($scope,
         $window.open("/docs/"+$translate.use()+"/user_guide/index.html", '_blank');
     }
 
-    $scope.docs = $translate.instant('DOCS');
-    $scope.sysInfo = $translate.instant('SYSTEMINFORMATION');
-    $scope.support = $translate.instant('SUPPORT');
     $scope.tabs = [
         {
-            label: $scope.docs,
+            label: $translate.instant('DOCS'),
             templateUrl: 'static/frontend/views/docs.html'
         },
         {
-            label: $scope.sysInfo,
+            label: $translate.instant('SYSTEMINFORMATION'),
             templateUrl: "sysinfo.html"
         },
         {
-            label: $scope.support,
+            label: $translate.instant('SUPPORT'),
             templateUrl: "static/frontend/views/support.html"
         }
     ];
