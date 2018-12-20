@@ -23,6 +23,7 @@
 """
 
 from _version import get_versions
+from ESSArch_Core._version import get_versions as get_core_versions
 import platform
 import socket
 import sys
@@ -99,7 +100,8 @@ class SysInfoView(APIView):
         context['python'] = '.'.join(str(x) for x in sys.version_info[:3])
         context['platform'] = platform.platform()
         context['hostname'] = socket.gethostname()
-        context['version'] = get_versions()['version']
+        context['version'] = get_versions()
+        context['core_version'] = get_core_versions()
         context['time_checked'] = timezone.now()
         context['database'] = self.get_database_info()
         context['python_packages'] = pip_freeze()
