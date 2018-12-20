@@ -80,7 +80,7 @@ class MaintenanceJob(models.Model):
             raise Path.DoesNotExist('Path %s is not configured' % entity)
 
     def _generate_report(self):
-        template = '%s_report.html' % self.MAINTENANCE_TYPE
+        template = 'maintenance/%s_report.html' % self.MAINTENANCE_TYPE
         dstdir = self._get_report_directory()
         dst = os.path.join(dstdir, '%s.pdf' % self.pk)
 
