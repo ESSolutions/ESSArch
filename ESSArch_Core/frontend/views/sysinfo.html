@@ -3,6 +3,7 @@
     <p><b>ESSArch Core:</b> {{sysInfo.core_version.version}} - {{sysInfo.core_version.full}}</p>
     <p><b>Python:</b> {{sysInfo.python}}</p>
     <p><b>{{'PLATFORM' | translate}}:</b> {{sysInfo.platform}}</p>
+    <p><b>{{'DATABASE' | translate}}: </b> {{sysInfo.database.vendor}} {{sysInfo.database.version}}</p>
     <p><b>{{'TIME' | translate}}:</b> {{sysInfo.time_checked | date: 'yyyy-MM-dd HH:mm'}}</p>
     <p><b>{{'HOSTNAME' | translate}}:</b> {{sysInfo.hostname}}</p>
     <h4>{{'SETTINGSFLAGS' | translate}}</h4>
@@ -18,8 +19,6 @@
             </tr>
         </tbody>
     </table>
-    <h4>{{'VERSIONINFORMATION' | translate}}</h4>
-    <p><b>{{'DATABASE' | translate}}: </b> {{sysInfo.database.vendor}} {{sysInfo.database.version}}</p>
     <p><b>{{'PYTHONPACKAGES' | translate}}: </b> {{sysInfo.python_packages.join(' ')}}</p>
 </div>
 <div ng-if="!sysInfo" style="width: 50%;">
