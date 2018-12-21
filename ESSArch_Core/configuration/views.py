@@ -104,6 +104,7 @@ class SysInfoView(APIView):
             'version': platform.version(),
             'mac_version': platform.mac_ver(),
             'win_version': platform.win32_ver(),
+            'linux_dist': platform.linux_distribution(),
         }
         context['hostname'] = socket.gethostname()
         context['version'] = get_versions()
