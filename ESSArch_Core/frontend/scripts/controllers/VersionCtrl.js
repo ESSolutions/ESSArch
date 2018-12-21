@@ -9,6 +9,8 @@ angular.module('essarch.controllers').controller('VersionCtrl', function($scope,
             result.platform.version = result.platform.win_version[0];
         } else {
             result.platform.icon = 'fab fa-linux';
+            result.platform.os = result.platform.linux_dist[0]
+            result.platform.version = result.platform.linux_dist[1]
         }
 
         result.python_packages = result.python_packages.map(function(x) {
