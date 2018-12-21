@@ -26,6 +26,7 @@ from __future__ import unicode_literals
 
 import importlib
 import itertools
+import logging
 import uuid
 
 import jsonfield
@@ -41,6 +42,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 
 from picklefield.fields import PickledObjectField
 
+logger = logging.getLogger('essarch.WorkflowEngine')
 
 def create_task(name):
     """
@@ -50,10 +52,12 @@ def create_task(name):
         name: The name of the task, including package and module
     """
     [module, task] = name.rsplit('.', 1)
+    logger.debug('Importing task {} from module {}'.format(module, task))
     return getattr(importlib.import_module(module), task)()
 
 
-def create_sub_task(t, step=None, ignore_parent_args=True, link_error=None):
+def create_sub_task(t, step=None, immutable=True, link_error=None):
+    logger.debug('Creating sub task')
     step_id = step.id if step is not None else None
     t.params['_options'] = {
         'args': t.args,
@@ -68,9 +72,14 @@ def create_sub_task(t, step=None, ignore_parent_args=True, link_error=None):
     # signature to be called when an error occurs in a task
     repr(link_error)
 
-    if ignore_parent_args:
-        return created.si(*t.args, **t.params).set(task_id=str(t.pk), link_error=link_error, queue=created.queue)
-    return created.s(*t.args, **t.params).set(task_id=str(t.pk), link_error=link_error, queue=created.queue)
+    if immutable:
+        res = created.si(*t.args, **t.params).set(task_id=str(t.pk), link_error=link_error, queue=created.queue)
+        logger.info('Created immutable sub task signature')
+    else:
+        res = created.s(*t.args, **t.params).set(task_id=str(t.pk), link_error=link_error, queue=created.queue)
+        logger.info('Created sub task signature')
+
+    return res
 
 
 class Process(models.Model):
@@ -204,17 +213,29 @@ class ProcessStep(MPTTModel, Process):
 
         on_error_tasks = self.on_error(manager='by_step_pos').all()
         if on_error_tasks.exists():
-            on_error_group = group(create_sub_task(t, self, ignore_parent_args=False) for t in on_error_tasks)
+            on_error_group = group(create_sub_task(t, self, immutable=False) for t in on_error_tasks)
         else:
             on_error_group = None
+
+        if direct:
+            logger.debug('Creating celery workflow')
+        else:
+            logger.debug('Creating partial celery workflow')
 
         workflow = func(y for y in (x.resume(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x, self, link_error=on_error_group) for x in result_list) if not hasattr(y, 'tasks') or len(y.tasks))
 
         if direct:
+            logger.info('Celery workflow created')
+        else:
+            logger.info('Partial celery workflow created')
+
+        if direct:
             if self.eager:
-                return workflow.apply()
+                logger.info('Running workflow eagerly')
+                return workflow.apply(link_error=on_error_group)
             else:
-                return workflow.apply_async()
+                logger.info('Running workflow non-eagerly')
+                return workflow.apply_async(link_error=on_error_group)
         else:
             return workflow
 
@@ -334,6 +355,7 @@ class ProcessStep(MPTTModel, Process):
             otherwise
         """
 
+        logger.debug('Resuming step {} ({})'.format(self.name, self.pk))
         child_steps = self.get_children()
         tasks = self.tasks(manager='by_step_pos').filter(undone__isnull=True, undo_type=False, status=celery_states.PENDING)
 
@@ -582,14 +604,16 @@ class ProcessTask(Process):
 
         on_error_tasks = self.on_error(manager='by_step_pos').all()
         if on_error_tasks.exists():
-            on_error_group = group(create_sub_task(error_task, ignore_parent_args=False) for error_task in on_error_tasks)
+            on_error_group = group(create_sub_task(error_task, immutable=False) for error_task in on_error_tasks)
         else:
             on_error_group = None
 
         if self.eager:
             self.params['_options']['result_params'] = self.result_params
+            logging.debug('Running task eagerly ({})'.format(self.pk))
             res = t.apply(args=self.args, kwargs=self.params, task_id=str(self.pk), link_error=on_error_group)
         else:
+            logging.debug('Running task non-eagerly ({})'.format(self.pk))
             res = t.apply_async(args=self.args, kwargs=self.params, task_id=str(self.pk), link_error=on_error_group, queue=t.queue)
 
         return res
@@ -611,8 +635,10 @@ class ProcessTask(Process):
 
         if undoobj.eager:
             undoobj.params['_options']['result_params'] = undoobj.result_params
+            logging.debug('Undoing task eagerly ({})'.format(self.pk))
             res = t.apply(args=undoobj.args, kwargs=undoobj.params, task_id=str(undoobj.pk))
         else:
+            logging.debug('Undoing task non-eagerly ({})'.format(self.pk))
             res = t.apply_async(args=undoobj.args, kwargs=undoobj.params, task_id=str(undoobj.pk), queue=t.queue)
 
         return res
@@ -622,6 +648,7 @@ class ProcessTask(Process):
         Retries the task
         """
 
+        logging.debug('Retrying task ({})'.format(self.pk))
         self.reset()
         return self.run()
 
