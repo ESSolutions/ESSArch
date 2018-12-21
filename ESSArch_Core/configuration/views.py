@@ -23,7 +23,6 @@
 """
 
 from _version import get_versions
-from ESSArch_Core._version import get_versions as get_core_versions
 import platform
 import socket
 import sys
@@ -39,6 +38,7 @@ except ImportError:  # pip < 10.0
 
 from sqlite3 import sqlite_version
 
+from ESSArch_Core._version import get_versions as get_core_versions
 from ESSArch_Core.configuration.models import (
     Agent,
     ArchivePolicy,
