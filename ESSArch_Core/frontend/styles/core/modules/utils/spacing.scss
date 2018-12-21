@@ -39,6 +39,18 @@
     padding-right: $padding-base-horizontal;
 }
 
+.pl-lg-base {
+    @include large-screen-up {
+        padding-left: $padding-base-horizontal !important;
+    }
+}
+
+.pr-lg-base {
+    @include large-screen-up {
+        padding-right: $padding-base-horizontal !important;
+    }
+}
+
 // Margins
 
 .m-0 {

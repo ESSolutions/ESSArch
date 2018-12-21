@@ -38,6 +38,7 @@ except ImportError:  # pip < 10.0
 
 from sqlite3 import sqlite_version
 
+from ESSArch_Core._version import get_versions as get_core_versions
 from ESSArch_Core.configuration.models import (
     Agent,
     ArchivePolicy,
@@ -97,9 +98,16 @@ class SysInfoView(APIView):
         ]
 
         context['python'] = '.'.join(str(x) for x in sys.version_info[:3])
-        context['platform'] = platform.platform()
+        context['platform'] = {
+            'os': platform.system(),
+            'release': platform.release(),
+            'version': platform.version(),
+            'mac_version': platform.mac_ver(),
+            'win_version': platform.win32_ver(),
+        }
         context['hostname'] = socket.gethostname()
-        context['version'] = get_versions()['version']
+        context['version'] = get_versions()
+        context['core_version'] = get_core_versions()
         context['time_checked'] = timezone.now()
         context['database'] = self.get_database_info()
         context['python_packages'] = pip_freeze()

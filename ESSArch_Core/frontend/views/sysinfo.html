@@ -1,25 +1,58 @@
-<div class="version-info" style="width: 50%;" ng-if="sysInfo">
-    <p><b>Version:</b> v{{sysInfo.version}}</p>
-    <p><b>Python:</b> {{sysInfo.python}}</p>
-    <p><b>{{'PLATFORM' | translate}}:</b> {{sysInfo.platform}}</p>
-    <p><b>{{'TIME' | translate}}:</b> {{sysInfo.time_checked | date: 'yyyy-MM-dd HH:mm'}}</p>
-    <p><b>{{'HOSTNAME' | translate}}:</b> {{sysInfo.hostname}}</p>
-    <h4>{{'SETTINGSFLAGS' | translate}}</h4>
-    <table class="table table-striped">
-        <tbody>
-            <tr ng-repeat="flag in sysInfo.settings_flags" ng-class="{'unexpected': flag.unexpected}">
-                <td>
-                    {{flag.name}}
-                </td>
-                <td>
-                    {{flag.actual.toString().toUpperCase()}}
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <h4>{{'VERSIONINFORMATION' | translate}}</h4>
-    <p><b>{{'DATABASE' | translate}}: </b> {{sysInfo.database.vendor}} {{sysInfo.database.version}}</p>
-    <p><b>{{'PYTHONPACKAGES' | translate}}: </b> {{sysInfo.python_packages.join(' ')}}</p>
+<div class="version-info pt-base" ng-if="sysInfo">
+    <div class="row m-0">
+        <div class="col-12 col-lg-6 p-0 pr-lg-base">
+            <p><b>{{'VERSION' | translate}}:</b> {{sysInfo.version.version}} - {{sysInfo.version.full}}</p>
+            <p><b>ESSArch Core:</b> {{sysInfo.core_version.version}} - {{sysInfo.core_version.full}}</p>
+
+            <div class="flex-wrap">
+                <sys-info-component class="sys-info-component" name="Python" version="{{sysInfo.python}}" icon="fab fa-python"/>
+                <sys-info-component class="sys-info-component" name="{{sysInfo.platform.os}}" version="{{sysInfo.platform.version}}" icon="{{sysInfo.platform.icon}}"/>
+                <sys-info-component class="sys-info-component" name="{{sysInfo.database.vendor}}" version="{{sysInfo.database.version}}" icon="fas fa-database"/>
+                <sys-info-component class="sys-info-component" name="{{'TIME' | translate}}" version="{{sysInfo.time_checked | date: 'yyyy-MM-dd HH:mm'}}" icon="fas fa-clock"/>
+            </div>
+            <p><b>{{'HOSTNAME' | translate}}:</b> {{sysInfo.hostname}}</p>
+            <h4>{{'SETTINGSFLAGS' | translate}}</h4>
+            <table class="table table-striped">
+                <tbody>
+                    <tr ng-repeat="flag in sysInfo.settings_flags" ng-class="{'unexpected': flag.unexpected}">
+                        <td>
+                            {{flag.name}}
+                        </td>
+                        <td>
+                            {{flag.actual.toString().toUpperCase()}}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-12 col-lg-6 p-0 pl-lg-base" style="overflow: hidden;">
+            <p><b>{{'PYTHONPACKAGES' | translate}}: </b></p>
+            <div class="table-container table-x-overflow">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>
+                                {{'PACKAGE' | translate}}
+                            </th>
+                            <th>
+                                {{'VERSION' | translate}}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="x in sysInfo.python_packages">
+                            <td>
+                                {{x[0]}}
+                            </td>
+                            <td>
+                                {{x[1]}}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 <div ng-if="!sysInfo" style="width: 50%;">
     <p>{{'LOADING' | translate}}...</p>
