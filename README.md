@@ -1,6 +1,6 @@
 # ESSArch Core [![Build Status](https://travis-ci.org/ESSolutions/ESSArch_Core.svg?branch=master)](https://travis-ci.org/ESSolutions/ESSArch_Core)
 
-The core component of [ESSArch Tools Producer](https://github.com/ESSolutions/ESSArch_Tools_Producer) and [ESSArch Tools Archive](https://github.com/ESSolutions/ESSArch_Tools_Archive)
+The core component of [ESSArch Tools Producer](https://github.com/ESSolutions/ESSArch_Tools_Producer), [ESSArch Tools Archive](https://github.com/ESSolutions/ESSArch_Tools_Archive) and [ESSArch Preservation Platform](https://github.com/ESSolutions/ESSArch_EPP)
 
 # Installation Guide
 
