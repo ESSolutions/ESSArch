@@ -1,5 +1,7 @@
 recursive-include * *.js *.html *.txt *.gif *.png *.css *.wsdl *.xml *.xsd *.sh *.map *.ico *.psd *.scss *.json *.swf *.po *.mo
 include versioneer.py
+include README.md
+include LICENSE
 recursive-include ESSArch_Core/config *.conf *.crt *.key
 include ESSArch_Core/config/celeryd
 recursive-include ESSArch_Core/env *.xsd *.types
