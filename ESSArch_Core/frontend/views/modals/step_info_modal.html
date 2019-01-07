@@ -18,7 +18,7 @@
                     <button class="btn btn-default" clipboard text="currentStepTask.id" on-copied="$ctrl.idCopyDone()" uib-tooltip="{{'COPYID' | translate}}" tooltip-placement="auto top" tooltip-append-to-body="true">
                         <i class="fas" ng-class="{'fa-clipboard': !$ctrl.idCopied, 'fa-clipboard-check color-success': $ctrl.idCopied}"></i>
                     </button>
-                    <buton class="btn btn-default" uib-tooltip="{{'IDENTIFICATION' | translate}}" tooltip-placement="auto top" tooltip-append-to-body="true">
+                    <button class="btn btn-default" uib-tooltip="{{'IDENTIFICATION' | translate}}" tooltip-placement="auto top" tooltip-append-to-body="true">
                         {{currentStepTask.id}}
                     </buton>
                 </div>
