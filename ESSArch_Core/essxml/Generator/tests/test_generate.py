@@ -31,7 +31,7 @@ import tempfile
 import unittest
 from collections import OrderedDict
 
-import mock
+import unittest.mock
 import six
 from django.test import TestCase
 from django.utils import dateparse, timezone

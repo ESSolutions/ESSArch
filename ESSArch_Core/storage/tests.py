@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import errno
-import mock
+import unittest.mock
 import uuid
 
 from django.test import TestCase

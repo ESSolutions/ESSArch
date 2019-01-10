@@ -1,6 +1,6 @@
 from subprocess import PIPE
 
-import mock
+import unittest.mock
 from django.test import TestCase
 
 from ESSArch_Core.util import convert_file

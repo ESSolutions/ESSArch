@@ -2,7 +2,7 @@ import os
 import shutil
 import tempfile
 
-import mock
+import unittest.mock
 from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 
