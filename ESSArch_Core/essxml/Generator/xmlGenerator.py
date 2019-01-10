@@ -38,7 +38,7 @@ from natsort import natsorted
 
 from django.utils import timezone
 
-from scandir import walk
+from os import walk
 
 import six
 

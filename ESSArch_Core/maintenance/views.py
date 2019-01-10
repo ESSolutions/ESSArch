@@ -9,7 +9,7 @@ from rest_framework.decorators import detail_route
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
-from scandir import walk
+from os import walk
 
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.util import get_objects_for_user

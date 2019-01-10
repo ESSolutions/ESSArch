@@ -5,7 +5,7 @@ import os
 import six
 from django.utils import timezone
 from lxml import etree, isoschematron
-from scandir import walk
+from os import walk
 
 from ESSArch_Core.essxml.util import find_files, find_pointers, validate_against_schema
 from ESSArch_Core.exceptions import ValidationError

@@ -52,7 +52,7 @@ from datetime import datetime
 from lxml import etree
 from natsort import natsorted
 
-from scandir import scandir, walk
+from os import scandir, walk
 
 from subprocess import Popen, PIPE
 

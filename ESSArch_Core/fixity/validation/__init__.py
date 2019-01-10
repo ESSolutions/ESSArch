@@ -5,7 +5,7 @@ import os
 
 from django.conf import settings
 from glob2 import glob
-from scandir import walk
+from os import walk
 
 logger = logging.getLogger('essarch.fixity.validation')
 
