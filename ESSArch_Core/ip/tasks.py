@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
 from lxml import etree
-from scandir import walk
+from os import walk
 
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.configuration.models import ArchivePolicy, Path

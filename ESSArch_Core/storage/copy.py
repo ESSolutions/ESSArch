@@ -5,7 +5,7 @@ import time
 
 from requests_toolbelt import MultipartEncoder
 from retrying import retry
-from scandir import walk
+from os import walk
 
 from ESSArch_Core.fixity.checksum import calculate_checksum
 

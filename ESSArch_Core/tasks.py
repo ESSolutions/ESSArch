@@ -45,7 +45,7 @@ from elasticsearch import helpers as es_helpers
 from elasticsearch_dsl.connections import get_connection
 from lxml import etree
 from retrying import retry
-from scandir import walk
+from os import walk
 from six.moves import cPickle
 
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask

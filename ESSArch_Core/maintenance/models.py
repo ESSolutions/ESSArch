@@ -17,7 +17,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from glob2 import iglob
 from lxml import etree
-from scandir import walk
+from os import walk
 from weasyprint import HTML
 
 from ESSArch_Core.WorkflowEngine.models import ProcessTask

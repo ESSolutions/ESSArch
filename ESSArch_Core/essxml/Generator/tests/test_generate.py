@@ -36,7 +36,7 @@ import six
 from django.test import TestCase
 from django.utils import dateparse, timezone
 from lxml import etree
-from scandir import walk
+from os import walk
 
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseContent
 from ESSArch_Core.util import make_unicode, normalize_path

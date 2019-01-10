@@ -28,7 +28,7 @@
 from django.contrib import admin
 import os
 
-from scandir import walk
+from os import walk
 
 # own models ets
 from .models import InformationPackage

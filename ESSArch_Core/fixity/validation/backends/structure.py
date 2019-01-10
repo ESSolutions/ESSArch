@@ -7,7 +7,7 @@ import traceback
 import six
 from django.utils import timezone
 from glob2 import glob, iglob
-from scandir import walk
+from os import walk
 
 from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.models import Validation

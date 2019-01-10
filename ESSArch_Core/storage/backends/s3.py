@@ -5,7 +5,7 @@ import os
 import boto3
 import six
 from django.conf import settings
-from scandir import walk
+from os import walk
 
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
 from ESSArch_Core.storage.models import CAS, StorageObject
