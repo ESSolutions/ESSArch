@@ -172,7 +172,6 @@ if __name__ == '__main__':
             "httpretty==0.9.5",
             "jsonpickle==1.0",
             "lxml==4.2.5",
-            "mock==2.0.0",
             "natsort==5.4.1",
             "opf-fido==1.3.7",
             "pyfakefs==3.4.3",

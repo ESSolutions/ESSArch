@@ -25,7 +25,7 @@
 import os
 import shutil
 
-import mock
+from unittest import mock
 from celery import states as celery_states
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings

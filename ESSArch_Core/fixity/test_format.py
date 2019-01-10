@@ -1,4 +1,4 @@
-import mock
+from unittest import mock
 from django.test import TestCase
 
 from ESSArch_Core.configuration.models import Path
