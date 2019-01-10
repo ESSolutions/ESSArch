@@ -116,6 +116,7 @@ class UserLoggedInSerializer(UserSerializer):
         choices=UserProfile.IP_LIST_VIEW_CHOICES, default=UserProfile.AIC, source='user_profile.ip_list_view_type'
     )
     notifications_enabled = serializers.BooleanField(source='user_profile.notifications_enabled')
+    language = serializers.CharField(source='user_profile.language')
 
     def get_url(self, obj):
         return self.context['request'].build_absolute_uri(reverse('me'))
@@ -133,6 +134,11 @@ class UserLoggedInSerializer(UserSerializer):
         profile_data = validated_data.pop('user_profile', {})
 
         user_profile = instance.user_profile
+
+        user_profile.language = profile_data.get(
+            'language',
+            user_profile.language,
+        )
 
         user_profile.current_organization = profile_data.get(
             'current_organization',
@@ -164,7 +170,7 @@ class UserLoggedInSerializer(UserSerializer):
             'organizations', 'is_staff', 'is_active', 'is_superuser', 'last_login',
             'date_joined', 'permissions', 'user_permissions',
             'ip_list_columns', 'ip_list_view_type', 'current_organization',
-            'notifications_enabled',
+            'notifications_enabled', 'language',
         )
         read_only_fields = (
             'id', 'username', 'last_login', 'date_joined', 'organizations',
