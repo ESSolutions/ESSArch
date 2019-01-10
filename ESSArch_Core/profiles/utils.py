@@ -76,9 +76,10 @@ def fill_specification_data(data=None, sa=None, ip=None):
 
         if ip.get_package_type_display() in ['SIP', 'AIP']:
             ip_profile = ip.get_profile(ip.get_package_type_display().lower())
-            premis_dir, premis_file = find_destination("preservation_description_file", ip_profile.structure)
-            if premis_dir is not None and premis_file is not None:
-                data['_PREMIS_PATH'] = os.path.join(ip.object_path, premis_dir, premis_file)
+            if ip_profile is not None:
+                premis_dir, premis_file = find_destination("preservation_description_file", ip_profile.structure)
+                if premis_dir is not None and premis_file is not None:
+                    data['_PREMIS_PATH'] = os.path.join(ip.object_path, premis_dir, premis_file)
             data['allow_unknown_file_types'] = ip.get_profile_data(ip.get_package_type_display().lower()).get('allow_unknown_file_types', False)
 
         try:
