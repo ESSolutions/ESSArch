@@ -1,14 +1,38 @@
-angular.module('essarch.controllers').controller('LanguageCtrl', function($scope, $rootScope, $cookies, $translate) {
+angular.module('essarch.controllers').controller('LanguageCtrl', function(appConfig, $scope, $rootScope, $http, $cookies, $translate) {
+    setUserLanguage = function(lang) {
+        return $http({
+            method: 'PATCH',
+            url: appConfig.djangoUrl+"me/",
+            data: {
+                language: lang
+            }
+        }).then(function(response) {
+            return response;
+        })
+    };
+
+    getUserLanguage = function(lang) {
+        return $http({
+            method: 'GET',
+            url: appConfig.djangoUrl+"me/",
+        }).then(function(response) {
+            return response.data.language;
+        });
+    };
+
     $scope.changeLanguage = function(lang) {
+        setUserLanguage(lang);
+        $scope.currentLanguage = lang;
         $translate.use(lang);
         moment.locale(lang);
     }
+
     $scope.getCurrentLanguage = function() {
-        var lang = $cookies.get('essarch_language');
-        $scope.currentLanguage = lang;
-        moment.locale(lang);
-        return lang;
+        getUserLanguage().then(function(apiLang){
+            $scope.changeLanguage(apiLang);
+        });
     }
+
     $scope.getCurrentLanguage();
 
     $scope.loadLanguages = function() {

@@ -265,6 +265,7 @@ class UserProfile(models.Model):
 
     user = models.OneToOneField(DjangoUser, on_delete=models.CASCADE, related_name='user_profile')
     current_organization = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
+    language = models.CharField(max_length=10, default='en')
     ip_list_columns = PickledObjectField(default=DEFAULT_IP_LIST_COLUMNS,)
     ip_list_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=IP,)
     notifications_enabled = models.BooleanField(default=True)
