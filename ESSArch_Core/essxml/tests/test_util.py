@@ -26,7 +26,7 @@ import os
 import shutil
 import tempfile
 
-import unittest.mock
+from unittest import mock
 import six
 from django.test import TestCase
 from lxml import etree
