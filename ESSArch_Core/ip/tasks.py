@@ -9,10 +9,12 @@ import requests
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import ugettext as _
 from lxml import etree
 from os import walk
 
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
+from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseContent
 from ESSArch_Core.essxml.util import get_agents, parse_submit_description
@@ -394,7 +396,10 @@ class DeleteInformationPackage(DBTask):
 
         if from_db:
             ip.delete()
-            return
+        else:
+            ip.state = 'deleted'
+            ip.save()
 
-        ip.state = 'deleted'
-        ip.save()
+        Notification.objects.create(message=_('%(ip)s has been deleted') % {'ip': ip.object_identifier_value},
+                                    level=logging.INFO, user_id=self.responsible, refresh=True)
+
