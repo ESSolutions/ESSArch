@@ -155,8 +155,7 @@ class test_undoing_tasks(TestCase):
         task.refresh_from_db()
         self.assertEqual(task.status, celery_states.SUCCESS)
 
-        with self.assertNumQueries(5):
-            res = task.undo()
+        res = task.undo()
         task.refresh_from_db()
         self.assertEqual(res.get(), x-y)
 
