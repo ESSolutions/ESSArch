@@ -45,7 +45,7 @@ from django.db import (
     OperationalError,
     transaction,
 )
-from django.utils import timezone
+from django.utils import timezone, translation
 
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.ip.models import EventIP, InformationPackage
@@ -151,7 +151,15 @@ class DBTask(Task):
                 time_started=timezone.now()
             )
 
-        return self._run(*args, **kwargs)
+        try:
+            user = User.objects.get(pk=self.responsible)
+            if user.user_profile is not None:
+                with translation.override(user.user_profile.language):
+                    return self._run(*args, **kwargs)
+            else:
+                return self._run(*args, **kwargs)
+        except User.DoesNotExist:
+            return self._run(*args, **kwargs)
 
     def _run(self, *args, **kwargs):
         lock = None
