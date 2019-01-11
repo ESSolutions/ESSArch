@@ -26,7 +26,9 @@ class FormatIdentifier:
     @property
     def fido(self):
         if self._fido is None:
+            logger.debug('Initiating fido')
             self._fido = Fido(handle_matches=self.handle_matches)
+            logger.info('Initiated fido')
         return self._fido
 
     def _init_mimetypes(self):
@@ -35,19 +37,26 @@ class FormatIdentifier:
                 entity="path_mimetypes_definitionfile"
             ).value
             if os.path.isfile(mimetypes_file):
+                logger.debug('Initiating mimetypes from %s' % mimetypes_file)
                 mimetypes.suffix_map = {}
                 mimetypes.encodings_map = {}
                 mimetypes.types_map = {}
                 mimetypes.common_types = {}
                 mimetypes.init(files=[mimetypes_file])
+                logger.info('Initiated mimetypes from %s' % mimetypes_file)
                 return
+            else:
+                logger.debug('Custom mimetypes file %s does not exist' % mimetypes_file)
         except Path.DoesNotExist:
-            pass
+            logger.debug('No custom mimetypes file specified')
 
+        logger.debug('Initiating default mimetypes')
         mimetypes.init()
         mimetypes._default_mime_types()
+        logger.info('Initiated default mimetypes')
 
     def get_mimetype(self, fname):
+        logger.debug('Getting mimetype for %s' % fname)
         self._init_mimetypes()
         file_name, file_ext = os.path.splitext(fname)
 
@@ -55,8 +64,11 @@ class FormatIdentifier:
             file_ext = file_name
 
         content_type, encoding = mimetypes.guess_type(fname)
+        logger.info('Guessed mimetype for %s: type: %s, encoding: %s' % (fname, content_type, encoding))
+
         if content_type is None:
             if self.allow_unknown_file_types:
+                logger.info('Got mimetype %s for %s' % (DEFAULT_MIMETYPE, fname))
                 return DEFAULT_MIMETYPE
 
             raise FileFormatNotAllowed("Extension of '%s' is missing from mimetypes and is not allowed" % fname)
@@ -70,7 +82,9 @@ class FormatIdentifier:
         # We skip setting Content-Encoding inorder to prevent browsers from
         # automatically uncompressing files. Instead we set the Content-Type to
         # the encoded mimetype
-        return encoding_map.get(encoding, content_type)
+        mtype = encoding_map.get(encoding, content_type)
+        logger.info('Got mimetype %s for %s' % (mtype, fname))
+        return mtype
 
     def handle_matches(self, fullname, matches, delta_t, matchtype=''):
         if len(matches) == 0:
