@@ -687,17 +687,24 @@ class InformationPackage(models.Model):
 
         entries = []
         for entry in sorted(get_files_and_dirs(fullpath), key=lambda x: x.name):
-            entry_type = "dir" if entry.is_dir() else "file"
-            size, _ = get_tree_size_and_count(entry.path)
+            try:
+                entry_type = "dir" if entry.is_dir() else "file"
+                size, _ = get_tree_size_and_count(entry.path)
 
-            entries.append(
-                {
-                    "name": os.path.basename(entry.path),
-                    "type": entry_type,
-                    "size": size,
-                    "modified": timestamp_to_datetime(entry.stat().st_mtime),
-                }
-            )
+                entries.append(
+                    {
+                        "name": os.path.basename(entry.path),
+                        "type": entry_type,
+                        "size": size,
+                        "modified": timestamp_to_datetime(entry.stat().st_mtime),
+                    }
+                )
+            except OSError as e:
+                # the file might be deleted (e.g. temporary upload files) while we get additional data,
+                # if they are we ignore them. If there is another error, we raise it
+
+                if e.errno != errno.ENOENT:
+                    raise
 
         return entries
 
