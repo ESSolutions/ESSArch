@@ -24,6 +24,44 @@
                     </tr>
                 </tbody>
             </table>
+
+            <h4>{{'WORKERS' | translate}}</h4>
+            <div class="table-container table-x-overflow">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>
+                            {{'NAME' | translate}}
+                        </th>
+                        <th>
+                            {{'BROKER' | translate}}
+                        </th>
+                        <th>
+                            {{'PID' | translate}}
+                        </th>
+                        <th>
+                            {{'MAX CONCURRENCY' | translate}}
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="(name, stats) in sysInfo.workers">
+                        <td>
+                            {{name}}
+                        </td>
+                        <td>
+                            {{stats.broker.hostname}}:{{stats.broker.port}}
+                        </td>
+                        <td>
+                            {{stats.pid}}
+                        </td>
+                        <td>
+                            {{stats.pool['max-concurrency']}}
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
         <div class="col-12 col-lg-6 p-0 pl-lg-base" style="overflow: hidden;">
             <p><b>{{'PYTHONPACKAGES' | translate}}: </b></p>

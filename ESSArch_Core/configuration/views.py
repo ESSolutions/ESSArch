@@ -27,6 +27,8 @@ import platform
 import socket
 import sys
 
+import celery
+
 from django.db import connection
 from django.conf import settings
 from django.utils import timezone
@@ -39,6 +41,7 @@ except ImportError:  # pip < 10.0
 from sqlite3 import sqlite_version
 
 from ESSArch_Core._version import get_versions as get_core_versions
+from ESSArch_Core.WorkflowEngine import get_workers
 from ESSArch_Core.configuration.models import (
     Agent,
     ArchivePolicy,
@@ -111,6 +114,7 @@ class SysInfoView(APIView):
         context['core_version'] = get_core_versions()
         context['time_checked'] = timezone.now()
         context['database'] = self.get_database_info()
+        context['workers'] = get_workers()
         context['python_packages'] = pip_freeze()
 
         context['settings_flags'] = []
