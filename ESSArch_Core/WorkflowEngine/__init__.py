@@ -22,4 +22,10 @@
     Email - essarch@essolutions.se
 """
 
+import celery
+
 default_app_config = 'ESSArch_Core.WorkflowEngine.apps.WorkflowEngineConfig'
+
+
+def get_workers():
+    return celery.current_app.control.inspect().stats()
