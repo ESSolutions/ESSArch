@@ -1,4 +1,4 @@
-angular.module('essarch.controllers').controller('StateTreeCtrl', function($scope, $translate, Step, Task, listViewService, appConfig, $timeout, $interval, PermPermissionStore, $q, $uibModal, $log, Notifications, ErrorResponse, $rootScope) {
+angular.module('essarch.controllers').controller('StateTreeCtrl', function($scope, $translate, Step, Task, listViewService, appConfig, $timeout, $interval, PermPermissionStore, $q, $uibModal, $log, Notifications, $rootScope) {
     var vm = this;
     var stateInterval;
     $scope.angular = angular;
@@ -254,8 +254,6 @@ angular.module('essarch.controllers').controller('StateTreeCtrl', function($scop
                 $scope.myTreeControl.scope.stateLoading = false;
                 return value;
             })
-        }).catch(function (response) {
-            ErrorResponse.default(response);
         });
     };
 
@@ -350,7 +348,6 @@ angular.module('essarch.controllers').controller('StateTreeCtrl', function($scop
                     $scope.validationsLoading = false;
                     return resource;
                 }).catch(function (response) {
-                    ErrorResponse.default(response);
                     $scope.validationsLoading = false;
                     return response;
                 })

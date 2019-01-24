@@ -1,4 +1,4 @@
-angular.module('essarch.controllers').controller('ImportCtrl', function($q, $rootScope, $scope, $http, IP, Profile, SA, Notifications, $uibModal, $translate, ErrorResponse) {
+angular.module('essarch.controllers').controller('ImportCtrl', function($q, $rootScope, $scope, $http, IP, Profile, SA, Notifications, $uibModal, $translate) {
     var vm = this;
     $scope.angular = angular;
     vm.loadingSas = false;
@@ -59,8 +59,6 @@ angular.module('essarch.controllers').controller('ImportCtrl', function($q, $roo
                         vm.importingSa = false;
                         if(response.status == 409) {
                             profileExistsModal(data);
-                        } else {
-                            ErrorResponse.default(response);
                         }
                         return response;
                     });
@@ -85,8 +83,6 @@ angular.module('essarch.controllers').controller('ImportCtrl', function($q, $roo
                 vm.importingSa = false;
                 if(response.status == 409) {
                     saProfileExistsModal(sa);
-                } else {
-                    ErrorResponse.default(response);
                 }
             })
         })
@@ -109,8 +105,6 @@ angular.module('essarch.controllers').controller('ImportCtrl', function($q, $roo
         }).catch(function(response) {
             if(response.status == 409) {
                 saProfileExistsModal(parsedSa);
-            } else {
-                ErrorResponse.default(response);
             }
         });
     }
@@ -128,8 +122,6 @@ angular.module('essarch.controllers').controller('ImportCtrl', function($q, $roo
         }).catch(function(response) {
             if(response.status == 409) {
                 profileExistsModal(parsedProfile);
-            } else {
-                ErrorResponse.default(response);
             }
             return response;
         });

@@ -25,7 +25,7 @@
 describe('StateTreeCtrl', function() {
     beforeEach(module('essarch.controllers'));
 
-    var $controller, $scope, controller, Task, Step, listViewService, ErrorResponse;
+    var $controller, $scope, controller, Task, Step, listViewService;
 
     beforeEach(inject(function(_$controller_){
         $controller = _$controller_;
@@ -43,19 +43,15 @@ describe('StateTreeCtrl', function() {
     listViewService = jasmine.createSpyObj('listViewService', [
         'getTreeData',
     ]);
-    ErrorResponse = jasmine.createSpyObj('ErrorResponse', [
-        'default',
-    ]);
     module(function ($provide) {
         $provide.value('Task', Task);
         $provide.value('Step', Step);
         $provide.value('listViewService', listViewService);
-        $provide.value('ErrorResponse', ErrorResponse);
     });
 
     beforeEach(inject(function($rootScope) {
         $scope = $rootScope.$new();
-        controller = $controller('StateTreeCtrl', { $scope: $scope, Task: Task, Step: Step, listViewService: listViewService, ErrorResponse: ErrorResponse });
+        controller = $controller('StateTreeCtrl', { $scope: $scope, Task: Task, Step: Step, listViewService: listViewService });
     }));
 
     it('controller defined', function () {
