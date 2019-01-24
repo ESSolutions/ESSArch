@@ -14,35 +14,53 @@ angular.module('essarch').config(['$provide', '$httpProvider', '$windowProvider'
             },
             'responseError': function(response) {
                 var translation = $injector.get('$translate');
-                if(response.status == 500) {
-                    var msg = translation.instant("ERROR_500");
-                    if(response.data.detail) {
-                        msg = response.data.detail;
-                    }
-                    $rootScope.$broadcast('add_notification', { message: msg, level: "error", time: null});
+                switch(response.status) {
+                    case 500:
+                        var msg = translation.instant("ERROR_500");
+                        if(response.data.detail && typeof(response.data.detail) == "string") {
+                            msg = response.data.detail;
+                        }
+                        $rootScope.$broadcast('add_notification', { message: msg, level: "error", time: null});
+                        break;
+
+                    case 503:
+                        var msg = translation.instant("ERROR_503");
+                        if(response.data.detail && typeof(response.data.detail) == "string") {
+                            msg = response.data.detail;
+                        }
+                        $rootScope.$broadcast('add_notification', { message: msg, level: "error", time: null});
+                        break;
+
+                    case 401:
+                        if(!response.config.noAuth) {
+                            if ($location.path() != '/login' && $location.path() != ''){
+                                $window.location.assign('/');
+                            }
+                        }
+                        break;
+
+                    case 403:
+                        var msg = translation.instant("ERROR_403");
+                        if(response.data.detail && typeof(response.data.detail) == "string") {
+                            msg = response.data.detail;
+                        }
+                        $rootScope.$broadcast('add_notification', { message: msg, level: "error", time: null});
+                        break;
+
+                    default:
+                        if(response.status >= 400) {
+                            var msg = translation.instant("UNKNOWN_ERROR");
+                            if(response.data.detail && typeof(response.data.detail) == "string") {
+                                msg = response.data.detail;
+                            }
+                            $rootScope.$broadcast('add_notification', { message: msg, level: "error", time: null});
+                        }
+                        if(response.status <= 0) {
+                            $rootScope.$broadcast("disconnected", {detail: translation.instant("CONNECTION_LOST")});
+                        }
+                        break;
                 }
-                if(response.status === 503) {
-                    var msg = translation.instant("ERROR_503");
-                    if(response.data.detail) {
-                        msg = response.data.detail;
-                    }
-                    $rootScope.$broadcast('add_notification', { message: msg, level: "error", time: null});
-                }
-                if(response.status === 401 && !response.config.noAuth) {
-                    if ($location.path() != '/login' && $location.path() != ''){
-                        $window.location.assign('/');
-                    }
-                }
-                if(response.status === 403) {
-                    var msg = translation.instant("ERROR_403");
-                    if(response.data.detail) {
-                        msg = response.data.detail;
-                    }
-                    $rootScope.$broadcast('add_notification', { message: msg, level: "error", time: null});
-                }
-                if(response.status <= 0) {
-                    $rootScope.$broadcast("disconnected", {detail: translation.instant("CONNECTION_LOST")});
-                }
+
                 return $q.reject(response);
             }
         };
