@@ -1,14 +1,6 @@
-=========
- Settings
-=========
-
-.. contents::
-    :local:
-
-.. _essarch_transformers:
-
-ESSARCH_TRANSFORMERS
-====================
+============
+Transformers
+============
 
 Lists available transformers where the key is how we refer to it from a profile
 and the value is a class available in the ``PYTHONPATH``::
