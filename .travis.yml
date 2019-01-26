@@ -14,9 +14,9 @@ templates:
 matrix:
   include:
     - env: LINT_CHECK
-        python: "3.6"
-        install: pip install flake8
-        script: flake8
+      python: "3.6"
+      install: pip install flake8
+      script: flake8
 
     - python: "3.6"
       dist: trusty
@@ -53,7 +53,6 @@ install:
   - pip install -e .["tests$EXTRA_PACKAGES"]
   - pip uninstall -y jsonfield django-jsonfield
   - pip install django-jsonfield
-  - pip install flake8
 
 before_script:
   - cd ESSArch_Core
