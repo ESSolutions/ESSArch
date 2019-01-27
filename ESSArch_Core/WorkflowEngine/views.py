@@ -36,7 +36,6 @@ from rest_framework.decorators import detail_route
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
-from rest_framework.permissions import DjangoModelPermissions
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
