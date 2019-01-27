@@ -85,23 +85,23 @@ def dependencies_check(dependencies):
     try:
         pkg_check(dependencies)
     except VersionConflict as e:
-        print ('Warning! You are trying to install a version of ESSArch_Core \
+        print('Warning! You are trying to install a version of ESSArch_Core \
 incompatible with other software versions. If you continue, you \
 will also need to upgrade other software versions as: %s' % e)
         if not query_yes_no('Do you want to continue with the installation?'):
-            print ('Cancel the installation...')
+            print('Cancel the installation...')
             sys.exit(1)
     except DistributionNotFound as e:
         pass
 
 
 def _pre_install():
-    print ('Running inside _pre_install')
+    print('Running inside _pre_install')
     dependencies_check(dependencies)
 
 
 def _post_install():
-    print ('Running inside _post_install')
+    print('Running inside _post_install')
 
 
 class my_install(_install):

@@ -264,7 +264,7 @@ def removeChild(request, name, uuid):
     return JsonResponse(existingElements, safe=False)
 
 
-def removeChildren(existingElements , element):
+def removeChildren(existingElements, element):
     for child in element['children']:
         removeChildren(existingElements, existingElements[child['uuid']])
         del existingElements[child['uuid']]

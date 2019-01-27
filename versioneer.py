@@ -586,13 +586,11 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose=False):
             r = ref[len(tag_prefix):]
             if verbose:
                 print("picking %s" % r)
-            return { "version": r,
-                     "full": keywords["full"].strip() }
+            return {"version": r, "full": keywords["full"].strip()}
     # no suitable tags, so we use the full revision id
     if verbose:
         print("no suitable tags, using full revision id")
-    return { "version": keywords["full"].strip(),
-             "full": keywords["full"].strip() }
+    return {"version": keywords["full"].strip(), "full": keywords["full"].strip()}
 
 
 def git_versions_from_vcs(tag_prefix, root, verbose=False):
