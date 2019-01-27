@@ -66,6 +66,7 @@ def deleteIP(modeladmin, request, queryset):
     # delete db entry
     queryset.delete()
 
+
 deleteIP.short_description = "Delete selected ip from DB and FS"
 
 
@@ -95,6 +96,7 @@ class IPAdmin(admin.ModelAdmin):
                               'submission_agreement',
                              )}),
                )
+
 
 admin.site.register(InformationPackage, IPAdmin)
 
