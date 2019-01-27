@@ -4,7 +4,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import F, Min, Q
 from django.shortcuts import _get_queryset
 from guardian.models import GroupObjectPermission, UserObjectPermission
-from guardian.shortcuts import get_perms
 
 from ESSArch_Core.auth.models import Group, GroupGenericObjects, GroupMember, GroupMemberRole
 

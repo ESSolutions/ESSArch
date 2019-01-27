@@ -24,24 +24,20 @@
 
 from __future__ import absolute_import, division, unicode_literals
 
-import json
 import logging
 import time
 
 import six
 from billiard.einfo import ExceptionInfo
 
-from celery import current_app, exceptions, states as celery_states
+from celery import exceptions, states as celery_states
 from celery.task.base import Task
-
-from ESSArch_Core.configuration.models import EventType
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 
 from django.db import (
     connection,
-    IntegrityError,
     OperationalError,
     transaction,
 )

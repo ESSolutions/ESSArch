@@ -51,7 +51,7 @@ from rest_auth.views import (
     LogoutView as rest_auth_LogoutView,
 )
 
-from rest_framework import exceptions, permissions, status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes, list_route
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated

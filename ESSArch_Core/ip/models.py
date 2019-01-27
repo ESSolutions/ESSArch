@@ -48,7 +48,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from lxml import etree
 from groups_manager.utils import get_permission_name
-from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 from guardian.shortcuts import assign_perm
 from rest_framework import exceptions
 from rest_framework.response import Response

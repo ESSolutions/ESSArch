@@ -1,9 +1,3 @@
-try:
-    from django.core.urlresolvers import reverse
-except ModuleNotFoundError:
-    # Django 2.x
-    from django.urls import reverse
-
 from django.conf import settings
 from django.shortcuts import redirect
 from django.views.static import serve

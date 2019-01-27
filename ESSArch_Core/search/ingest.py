@@ -2,7 +2,6 @@ import base64
 import os
 import uuid
 
-from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.tags.documents import Directory, File
 from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
 from ESSArch_Core.util import get_tree_size_and_count, normalize_path, timestamp_to_datetime

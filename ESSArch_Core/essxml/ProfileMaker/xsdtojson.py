@@ -29,7 +29,6 @@ import six
 
 from ESSArch_Core.essxml.Generator.xmlStructure import (
     xmlElement,
-    TYPE_ELEMENT,
     TYPE_CHOISE,
     TYPE_TO,
     TYPE_TO_CHOISE,

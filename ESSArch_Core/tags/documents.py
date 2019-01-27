@@ -1,5 +1,5 @@
 from django.utils import timezone
-from elasticsearch_dsl import (Boolean, Date, Document, Field, InnerDoc, Integer, Keyword, Long,
+from elasticsearch_dsl import (Boolean, Date, Document, InnerDoc, Integer, Keyword, Long,
                                MetaField, Nested, Object, Q, Text, analyzer,
                                tokenizer, token_filter)
 

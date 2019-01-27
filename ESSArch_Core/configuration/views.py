@@ -27,8 +27,6 @@ import platform
 import socket
 import sys
 
-import celery
-
 from django.db import connection
 from django.conf import settings
 from django.utils import timezone

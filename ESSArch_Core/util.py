@@ -26,7 +26,6 @@ from __future__ import absolute_import
 
 import errno
 import glob
-import inspect
 import itertools
 import json
 import logging

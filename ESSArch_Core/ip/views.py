@@ -1,9 +1,8 @@
 import itertools
-import os
 
 from django.db.models import Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import exceptions, filters, mixins, permissions, status, viewsets
+from rest_framework import exceptions, filters, mixins, status, viewsets
 from rest_framework.decorators import detail_route
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import DjangoModelPermissions
@@ -21,7 +20,7 @@ from ESSArch_Core.ip.filters import AgentFilter, EventIPFilter, InformationPacka
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.permissions import CanChangeSA, CanDeleteIP
 from ESSArch_Core.ip.serializers import AgentSerializer, EventIPSerializer, InformationPackageSerializer, WorkareaSerializer
-from ESSArch_Core.profiles.models import Profile, ProfileIP
+from ESSArch_Core.profiles.models import ProfileIP
 
 
 class AgentViewSet(viewsets.ModelViewSet):

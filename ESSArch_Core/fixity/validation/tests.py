@@ -12,7 +12,6 @@ from lxml import etree
 from pyfakefs import fake_filesystem_unittest
 
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.essxml import Generator
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.format import FormatIdentifier

@@ -21,7 +21,3 @@
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
-
-from django.contrib import admin
-
-# Register your models here.
