@@ -535,7 +535,7 @@ def git_get_keywords(versionfile_abs):
     # _version.py.
     keywords = {}
     try:
-        f = open(versionfile_abs,"r")
+        f = open(versionfile_abs, "r")
         for line in f.readlines():
             if line.strip().startswith("git_refnames ="):
                 mo = re.search(r'=\s*"(.*)"', line)
@@ -745,7 +745,7 @@ def get_versions(default=DEFAULT, verbose=False):
 
     ver = versions_from_file(versionfile_abs)
     if ver:
-        if verbose: print("got version from file %s %s" % (versionfile_abs,ver))
+        if verbose: print("got version from file %s %s" % (versionfile_abs, ver))
         return ver
 
     versions_from_vcs_f = vcs_function(VCS, "versions_from_vcs")

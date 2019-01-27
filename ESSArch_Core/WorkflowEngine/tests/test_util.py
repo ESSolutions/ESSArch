@@ -10,13 +10,13 @@ class CreateWorkflowTestCase(TestCase):
             {
                 "name": "foo.bar.task",
                 "label": "Foo Bar Task",
-                "args": [1,2,3],
+                "args": [1, 2, 3],
                 "params": {'a': 'b'}
             },
             {
                 "name": "foo.bar.task2",
                 "label": "Foo Bar Task2",
-                "args": [3,2,1],
+                "args": [3, 2, 1],
                 "params": {'b': 'a'}
             }
         ]
@@ -41,13 +41,13 @@ class CreateWorkflowTestCase(TestCase):
                     {
                         "name": "foo.bar.task",
                         "label": "Foo Bar Task",
-                        "args": [1,2,3],
+                        "args": [1, 2, 3],
                         "params": {'a': 'b'}
                     },
                     {
                         "name": "foo.bar.task2",
                         "label": "Foo Bar Task2",
-                        "args": [3,2,1],
+                        "args": [3, 2, 1],
                         "params": {'b': 'a'}
                     }
                 ]
@@ -76,13 +76,13 @@ class CreateWorkflowTestCase(TestCase):
             {
                 "name": "foo.bar.task",
                 "label": "Foo Bar Task",
-                "args": [1,2,3],
+                "args": [1, 2, 3],
                 "params": {'a': 'b'},
                 "on_error": [
                     {
                         "name": "foo.bar.task2",
                         "label": "Foo Bar Task2",
-                        "args": [3,2,1],
+                        "args": [3, 2, 1],
                         "params": {'b': 'a'}
                     }
                 ]
@@ -113,7 +113,7 @@ class CreateWorkflowTestCase(TestCase):
                     {
                         "name": "on_error.task",
                         "label": "On-error Task",
-                        "args": [1,2,3],
+                        "args": [1, 2, 3],
                         "params": {'a': 'b'},
                     }
                 ],
@@ -121,7 +121,7 @@ class CreateWorkflowTestCase(TestCase):
                     {
                         "name": "foo.bar.task",
                         "label": "Foo Bar Task",
-                        "args": [1,2,3],
+                        "args": [1, 2, 3],
                         "params": {'a': 'b'},
                     }
                 ]

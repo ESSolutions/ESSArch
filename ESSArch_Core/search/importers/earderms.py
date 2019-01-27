@@ -163,7 +163,7 @@ class EardErmsImporter(BaseImporter):
             'email': 'E-post',
         }
 
-        for k,v in six.iteritems(value_map):
+        for k, v in six.iteritems(value_map):
             try:
                 initiator_obj[k] = el.xpath("*/*[local-name()='Egenskap' and @Namn='%s']" % v)[0].xpath("*[local-name()='Varde']")[0].text
             except IndexError:

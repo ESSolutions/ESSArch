@@ -2599,7 +2599,7 @@ class ParseContentTestCase(unittest.TestCase):
         self.assertEqual(contentobj, str(val))
 
     def test_parse_content_var_generate_current_time_isoformat(self):
-        content = [{"var": "_NOW",}]
+        content = [{"var": "_NOW"}]
         contentobj = parseContent(content, {})
         dt = dateparse.parse_datetime(contentobj)
         iso = dt.isoformat()
@@ -2608,13 +2608,13 @@ class ParseContentTestCase(unittest.TestCase):
 
     def test_parse_content_var_datetime_to_date(self):
         val = timezone.now()
-        content = [{"var": "foo__DATE",}]
+        content = [{"var": "foo__DATE"}]
         contentobj = parseContent(content, {'foo': val})
         self.assertEqual(contentobj, val.strftime('%Y-%m-%d'))
 
     def test_parse_content_var_datetime_to_local_timezone(self):
         val = timezone.now()
-        content = [{"var": "foo__LOCALTIME",}]
+        content = [{"var": "foo__LOCALTIME"}]
         contentobj = parseContent(content, {'foo': val})
         dt = dateparse.parse_datetime(contentobj)
         self.assertEqual(dt, timezone.localtime(val))
