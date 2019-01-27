@@ -443,6 +443,7 @@ def run_shell_command(command, cwd):
         stdout = stdout.strip()
     return stdout
 
+
 def parse_content_range_header(header):
     content_range_pattern = re.compile(
         r'^bytes (?P<start>\d+)-(?P<end>\d+)/(?P<total>\d+)$'
@@ -522,6 +523,7 @@ def convert_file(path, new_format):
     logger.info('unoconv completed without error: %s' % (msg,))
     return new_path
 
+
 def in_directory(path, directory):
     '''
     Checks if path is in directory
@@ -543,6 +545,7 @@ def validate_remote_url(url):
     validate = RegexValidator(regex, 'Enter a valid URL with credentials.')
     validate(url)
 
+
 def get_charset(byte_str):
     charsets = [settings.DEFAULT_CHARSET, 'utf-8', 'windows-1252']
     for c in sorted(set(charsets), key=charsets.index):
@@ -556,6 +559,7 @@ def get_charset(byte_str):
             return c
 
     return chardet.detect(byte_str)['encoding']
+
 
 def generate_file_response(file_obj, content_type, force_download=False, name=None):
     charset = get_charset(file_obj.read(128))
@@ -589,6 +593,7 @@ def generate_file_response(file_obj, content_type, force_download=False, name=No
     response["Expires"] = "0"  # Proxies.
 
     return response
+
 
 def list_files(path, force_download=False, request=None, paginator=None):
     if isinstance(path, list):
@@ -689,6 +694,7 @@ def list_files(path, force_download=False, request=None, paginator=None):
 
     raise NotFound
 
+
 def merge_file_chunks(path):
     chunks = natsorted(glob.glob('%s_*' % re.sub(r'([\[\]])', '[\\1]', path)))
     if len(chunks) == 0:
@@ -699,6 +705,7 @@ def merge_file_chunks(path):
             with open(chunk_file, 'rb') as cf:
                 f.write(cf.read())
             os.remove(chunk_file)
+
 
 def turn_off_auto_now(ModelClass, field_name):
     def auto_now_off(field):

@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from ESSArch_Core.fixity.models import Validation
 
+
 class ValidationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Validation

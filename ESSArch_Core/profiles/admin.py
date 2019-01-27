@@ -31,6 +31,7 @@ from django.contrib import admin
 from .models import SubmissionAgreement, Profile
 from .utils import profile_types
 
+
 class SubmissionAgreementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(SubmissionAgreementForm, self).__init__(*args, **kwargs)

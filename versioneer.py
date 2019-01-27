@@ -312,6 +312,7 @@ VCS = None
 # these dictionaries contain VCS-specific tools
 LONG_VERSION_PY = {}
 
+
 def run_command(commands, args, cwd=None, verbose=False, hide_stderr=False):
     assert isinstance(commands, list)
     p = None
@@ -528,6 +529,7 @@ def get_versions(default={"version": "unknown", "full": ""}, verbose=False):
             or default)
 '''
 
+
 def git_get_keywords(versionfile_abs):
     # the code embedded in _version.py can just fetch the value of these
     # keywords. When used from setup.py, we don't want to import _version.py,
@@ -549,6 +551,7 @@ def git_get_keywords(versionfile_abs):
     except EnvironmentError:
         pass
     return keywords
+
 
 def git_versions_from_keywords(keywords, tag_prefix, verbose=False):
     if not keywords:
@@ -655,6 +658,7 @@ def do_vcs_install(manifest_in, versionfile_source, ipy):
         files.append(".gitattributes")
     run_command(GITS, ["add", "--"] + files)
 
+
 def versions_from_parentdir(parentdir_prefix, root, verbose=False):
     # Source tarballs conventionally unpack into a directory that includes
     # both the project name and a version string.
@@ -681,6 +685,7 @@ def get_versions(default={}, verbose=False):
 
 DEFAULT = {"version": "unknown", "full": "unknown"}
 
+
 def versions_from_file(filename):
     versions = {}
     try:
@@ -697,6 +702,7 @@ def versions_from_file(filename):
 
     return versions
 
+
 def write_to_version_file(filename, versions):
     with open(filename, "w") as f:
         f.write(SHORT_VERSION_PY % versions)
@@ -710,8 +716,10 @@ def get_root():
     except NameError:
         return os.path.dirname(os.path.abspath(sys.argv[0]))
 
+
 def vcs_function(vcs, suffix):
     return getattr(sys.modules[__name__], '%s_%s' % (vcs, suffix), None)
+
 
 def get_versions(default=DEFAULT, verbose=False):
     # returns dict with two keys: 'version' and 'full'
@@ -763,8 +771,10 @@ def get_versions(default=DEFAULT, verbose=False):
     if verbose: print("got version from default %s" % default)
     return default
 
+
 def get_version(verbose=False):
     return get_versions(verbose=verbose)["version"]
+
 
 class cmd_version(Command):
     description = "report generated version string"
@@ -815,6 +825,7 @@ if 'cx_Freeze' in sys.modules:  # cx_freeze enabled?
                                 "VERSIONFILE_SOURCE": versionfile_source,
                                 })
 
+
 class cmd_sdist(_sdist):
     def run(self):
         versions = get_versions(verbose=True)
@@ -838,6 +849,7 @@ from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 """
+
 
 class cmd_update_files(Command):
     description = "install/upgrade Versioneer files: __init__.py SRC/_version.py"
@@ -911,6 +923,7 @@ class cmd_update_files(Command):
         # .gitattributes to mark _version.py for export-time keyword
         # substitution.
         do_vcs_install(manifest_in, versionfile_source, ipy)
+
 
 def get_cmdclass():
     cmds = {'version': cmd_version,

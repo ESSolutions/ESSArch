@@ -126,6 +126,7 @@ def process_modules(app, what, name, obj, options, lines):
     lines += spelling_white_list
     return lines
 
+
 def setup(app):
     # Register the docstring processor with sphinx
     app.connect('autodoc-process-docstring', process_django_models)

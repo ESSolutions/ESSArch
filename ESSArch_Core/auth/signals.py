@@ -92,6 +92,7 @@ def notification_post_save(sender, instance, created, **kwargs):
         'refresh': instance.refresh,
     })
 
+
 @receiver(m2m_changed, sender=User.groups.through)
 def set_current_organization(sender, instance, action, reverse, *args, **kwargs):
 

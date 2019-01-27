@@ -61,6 +61,7 @@ class GroupDetailSerializer(GroupSerializer):
     class Meta(GroupSerializer.Meta):
         fields = GroupSerializer.Meta.fields + ('group_members',)
 
+
 class OrganizationDetailSerializer(GroupSerializer):
     group_members = serializers.SerializerMethodField()
 

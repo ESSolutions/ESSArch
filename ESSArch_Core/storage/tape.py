@@ -30,6 +30,7 @@ from ESSArch_Core.storage.models import Robot, StorageMedium, TapeDrive, TapeSlo
 DEFAULT_TAPE_BLOCK_SIZE = 20*512
 logger = logging.getLogger('essarch.storage.tape')
 
+
 @retry(stop_max_attempt_number=5, wait_fixed=60000)
 def mount_tape(robot, slot, drive):
     """

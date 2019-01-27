@@ -26,6 +26,7 @@ profile_types = [
     "Validation",
 ]
 
+
 def _remove_leading_underscores(d):
     new_mapping = type(d)()
 
@@ -37,6 +38,7 @@ def _remove_leading_underscores(d):
             new_mapping[new_key] = v
 
     return new_mapping
+
 
 def fill_specification_data(data=None, sa=None, ip=None):
     data = data or {}

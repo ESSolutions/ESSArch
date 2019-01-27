@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 
+
 class BaseStorageBackend(object):
     @contextmanager
     def open(self, storage_object, file, *args, **kwargs):

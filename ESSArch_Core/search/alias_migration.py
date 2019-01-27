@@ -8,6 +8,7 @@ from datetime import datetime
 from elasticsearch_dsl import IndexTemplate
 from elasticsearch_dsl.connections import get_connection
 
+
 def setup_index(doctype):
     """
     Create the index template in elasticsearch specifying the mappings and any

@@ -60,6 +60,7 @@ User = get_user_model()
 
 logger = logging.getLogger('essarch')
 
+
 class DBTask(Task):
     abstract = True
     args = []

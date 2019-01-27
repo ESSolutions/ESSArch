@@ -86,6 +86,7 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
         return GroupDetailSerializer
 
+
 class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.

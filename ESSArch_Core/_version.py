@@ -43,6 +43,7 @@ versionfile_source = "ESSArch_Core/_version.py"
 
 import os, sys, re, subprocess, errno
 
+
 def run_command(commands, args, cwd=None, verbose=False, hide_stderr=False):
     assert isinstance(commands, list)
     p = None
@@ -86,6 +87,7 @@ def versions_from_parentdir(parentdir_prefix, root, verbose=False):
         return None
     return {"version": dirname[len(parentdir_prefix):], "full": ""}
 
+
 def git_get_keywords(versionfile_abs):
     # the code embedded in _version.py can just fetch the value of these
     # keywords. When used from setup.py, we don't want to import _version.py,
@@ -107,6 +109,7 @@ def git_get_keywords(versionfile_abs):
     except EnvironmentError:
         pass
     return keywords
+
 
 def git_versions_from_keywords(keywords, tag_prefix, verbose=False):
     if not keywords:

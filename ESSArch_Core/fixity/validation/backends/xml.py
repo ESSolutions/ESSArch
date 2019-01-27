@@ -350,6 +350,7 @@ class XMLSchemaValidator(BaseValidator):
         )
         logger.info(u"Successful schema validation of {xml}".format(xml=filepath))
 
+
 class XMLSchematronValidator(BaseValidator):
     def validate(self, filepath, expected=None):
         logger.debug(u'Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
@@ -406,6 +407,7 @@ class XMLSchematronValidator(BaseValidator):
             task_id=self.task,
         )
         logger.info(u"Successful schematron validation of {xml} against {schema}".format(xml=filepath, schema=self.context))
+
 
 class XMLISOSchematronValidator(BaseValidator):
     def validate(self, filepath, expected=None):

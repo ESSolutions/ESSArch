@@ -44,6 +44,7 @@ from picklefield.fields import PickledObjectField
 
 logger = logging.getLogger('essarch.WorkflowEngine')
 
+
 def create_task(name):
     """
     Create and instantiate the task with the given name
