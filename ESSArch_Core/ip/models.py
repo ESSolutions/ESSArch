@@ -265,7 +265,7 @@ class InformationPackage(models.Model):
         return 'lock_ip_{}'.format(str(self.pk))
 
     def is_locked(self):
-        return cache.has_key(self.get_lock_key())
+        return self.get_lock_key() in cache
 
     def get_lock(self):
         return cache.lock(self.get_lock_key())
