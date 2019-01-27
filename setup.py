@@ -124,7 +124,7 @@ if __name__ == '__main__':
         version=versioneer.get_version(),
         description='ESSArch Core',
         long_description=open("README.md").read(),
-        long_description_content_type='text/markdown',        
+        long_description_content_type='text/markdown',
         author='Henrik Ek',
         author_email='henrik@essolutions.se',
         url='http://www.essolutions.se',
@@ -142,7 +142,7 @@ if __name__ == '__main__':
             "Programming Language :: Python",
             "Framework :: Django",
             "Topic :: System :: Archiving",
-        ],        
+        ],
         install_requires=[
             "celery==4.2.1",
             "cffi==1.11.5",
