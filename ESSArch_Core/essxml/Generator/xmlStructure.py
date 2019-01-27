@@ -286,6 +286,7 @@ class fileInfo():
     """
     A way to contain the temporary files which are created
     """
+
     def __init__(self, element, filename, arguments={}, level=0):
         self.element = element
         self.filename = filename
@@ -297,6 +298,7 @@ class fileObject():
     """
     A container class for all the files in the xml
     """
+
     def __init__(self, xmlFileName, template, fid, namespace=None):
         self.xmlFileName = xmlFileName
         self.template = template

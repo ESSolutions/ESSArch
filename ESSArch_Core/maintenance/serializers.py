@@ -69,6 +69,7 @@ class ConversionRuleSerializer(MaintenanceRuleSerializer):
         if not value:
             raise serializers.ValidationError("Specification cannot be empty")
         return value
+
     class Meta(MaintenanceRuleSerializer.Meta):
         model = ConversionRule
 

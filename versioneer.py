@@ -782,10 +782,13 @@ class cmd_version(Command):
     description = "report generated version string"
     user_options = []
     boolean_options = []
+
     def initialize_options(self):
         pass
+
     def finalize_options(self):
         pass
+
     def run(self):
         ver = get_version(verbose=True)
         print("Version is currently: %s" % ver)
@@ -859,10 +862,13 @@ class cmd_update_files(Command):
     description = "install/upgrade Versioneer files: __init__.py SRC/_version.py"
     user_options = []
     boolean_options = []
+
     def initialize_options(self):
         pass
+
     def finalize_options(self):
         pass
+
     def run(self):
         print(" creating %s" % versionfile_source)
         with open(versionfile_source, "w") as f:
