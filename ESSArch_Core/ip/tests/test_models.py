@@ -77,7 +77,7 @@ class GetPathResponseTests(TestCase):
 
         response = self.ip.get_path_response(os.path.relpath(filepath, self.datadir), self.request)
         response.close()
-        
+
         mocked_file = mock_open_file.return_value
         mocked_mimetype = mock_fid.return_value.get_mimetype.return_value
         mock_gen_file_resp.assert_called_once_with(mocked_file, mocked_mimetype, force_download=False, name=relpath)

@@ -233,7 +233,7 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
         block_size (int, optional): The block size that will be used
         arcname (str, optional): If only one path is given then arcname can be used as the
             alternative name of the file on the tape.
-        
+
     Raises:
         TypeError: If |`paths`| > 1 and `arcname` is not None
     """

@@ -63,7 +63,7 @@ class GetAuthorizedTasksTests(TestCase):
         self.user_role = GroupMemberRole.objects.create(codename='user_role')
         perms = Permission.objects.filter(codename='view_informationpackage')
         self.user_role.permissions.set(perms)
-        
+
         self.url = reverse('processtask-list')
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)

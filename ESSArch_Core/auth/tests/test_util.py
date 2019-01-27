@@ -111,7 +111,7 @@ class GetUserRolesTests(TestCase):
     def test_only_roles_from_current_organization_is_returned(self):
         grp = Group.objects.create(name="1", group_type=self.org_group_type)
         grp2 = Group.objects.create(name="2", group_type=self.org_group_type)
-        
+
         role1 = GroupMemberRole.objects.create(codename="1")
         role2 = GroupMemberRole.objects.create(codename="2")
 

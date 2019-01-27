@@ -270,7 +270,7 @@ class CreatePhysicalModel(DBTask):
     def event_outcome_success(self, *args, **kwargs):
         return "Created physical model for %s" % self.ip_objid
 
-    
+
 class CreateContainer(DBTask):
     def run(self):
         ip = self.get_information_package()
