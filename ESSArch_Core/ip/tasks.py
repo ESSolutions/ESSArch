@@ -402,4 +402,3 @@ class DeleteInformationPackage(DBTask):
 
         Notification.objects.create(message=_('%(ip)s has been deleted') % {'ip': ip.object_identifier_value},
                                     level=logging.INFO, user_id=self.responsible, refresh=True)
-

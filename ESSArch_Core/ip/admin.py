@@ -99,4 +99,3 @@ class IPAdmin(admin.ModelAdmin):
 
 
 admin.site.register(InformationPackage, IPAdmin)
-
