@@ -53,7 +53,6 @@ def fill_specification_data(data=None, sa=None, ip=None):
             data['_SA_ID'] = str(sa.pk)
             data['_SA_NAME'] = sa.name
 
-
         data['_OBJID'] = ip.object_identifier_value
         data['_OBJUUID'] = str(ip.pk)
         data['_OBJLABEL'] = ip.label

@@ -1304,7 +1304,6 @@ class GenerateXMLTestCase(TestCase):
 
         self.assertEqual(bars2[0].text, 'nested/first.xml')
 
-
     def test_multiple_to_create_with_files(self):
         specification = {
             '-name': 'foo',
@@ -2273,7 +2272,6 @@ class ExternalTestCase(TestCase):
                 }
             },
         }
-
 
         self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
         self.assertTrue(os.path.isfile(self.fname))

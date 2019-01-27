@@ -230,7 +230,6 @@ class ArchivePolicy(models.Model):
     ingest_delete = models.BooleanField('Delete SIP after success to create AIP', default=True)
     receive_extract_sip = models.BooleanField('Extract SIP on receive', default=False)
 
-
     class Meta:
         ordering = ['policy_name']
         verbose_name = _('archive policy')

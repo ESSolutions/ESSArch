@@ -411,7 +411,6 @@ class InformationPackage(models.Model):
             profile_ip.data = data_obj
             profile_ip.save()
 
-
     def get_profile_rel(self, profile_type):
         return self.profileip_set.get(
             profile__profile_type=profile_type

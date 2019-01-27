@@ -222,7 +222,6 @@ class test_retrying_tasks(TestCase):
     def tearDown(self):
         shutil.rmtree(self.datadir)
 
-
     def test_retry_with_args(self):
         x = 2
         y = 1

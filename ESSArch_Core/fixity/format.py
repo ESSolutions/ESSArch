@@ -124,7 +124,6 @@ class FormatIdentifier:
             A tuple with the format name, version and registry key
         """
 
-
         if os.name == 'nt':
             start_time = time.clock()
         else:

@@ -402,7 +402,6 @@ class StructureValidatorTests(TestCase):
         # empty
         validator.validate(self.root)
 
-
         # Different platforms traverse the directory in different orders, and
         # will becuase of that generate different exception messages.  We use
         # regex to determine that the exception message is valid

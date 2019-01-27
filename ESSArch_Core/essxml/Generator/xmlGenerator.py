@@ -92,7 +92,6 @@ def parseContent(content, info=None):
     if info is None:
         info = {}
 
-
     if isinstance(content, six.string_types):
         return parse_content_django(content, info=info)
 
@@ -305,11 +304,9 @@ class XMLElement(object):
 
         self.el.text = self.parse(info)
 
-
         for req_param in self.requiredParameters:
             if info.get(req_param) is None or len(info.get(req_param, '')) == 0:
                 return None
-
 
         for attr in self.attr:
             name, content, required = attr.parse(info, nsmap=full_nsmap)

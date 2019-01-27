@@ -95,7 +95,6 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
         context = {'archive_structure': archive}
         return StructureUnitSerializer(unit, context=context).data
 
-
     def get_is_leaf_node(self, obj):
         return obj.is_leaf_node(structure=self.context.get('structure'))
 

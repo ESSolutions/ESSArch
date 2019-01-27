@@ -826,7 +826,6 @@ class UnmountTape(DBTask):
 
         return res
 
-
     def undo(self, robot=None, slot=None, drive=None):
         pass
 

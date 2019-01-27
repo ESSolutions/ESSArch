@@ -179,7 +179,6 @@ class ProfileIPDataTemplate(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     profile = models.ForeignKey('Profile', on_delete=models.CASCADE)
 
-
     class Meta:
         ordering = ['created']
 

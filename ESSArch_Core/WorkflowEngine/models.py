@@ -659,7 +659,6 @@ class ProcessTask(Process):
         also marks this task as undone
         """
 
-
         undo_obj = ProcessTask.objects.create(
             processstep=self.processstep, name=self.name, args=self.args,
             params=self.params, result_params=self.result_params,

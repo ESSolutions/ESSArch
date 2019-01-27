@@ -385,7 +385,6 @@ class EardErmsImporter(BaseImporter):
         for relation in errand.xpath("*[local-name()='ArendeRelation']"):
             data['relationer'].append(self.parse_relation(relation))
 
-
         data['agenter'] = []
         for agent in errand.xpath("*[local-name()='Agent']"):
             data['agenter'].append(self.parse_agent(agent))

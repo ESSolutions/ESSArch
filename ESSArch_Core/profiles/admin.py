@@ -49,7 +49,6 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
             context['adminform'].form.fields[u'profile_{}'.format(pt)].queryset = Profile.objects.filter(profile_type=pt)
         return super(SubmissionAgreementAdmin, self).render_change_form(request, context, args, kwargs) 
 
-
     form = SubmissionAgreementForm
     list_display = ('name', 'type', 'status', 'label')
     search_fields = ('name', )
