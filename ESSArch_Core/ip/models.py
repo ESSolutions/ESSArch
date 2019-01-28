@@ -363,11 +363,11 @@ class InformationPackage(models.Model):
         try:
             ct_importer_name = self.get_content_type_importer_name()
             ct_importer = get_importer(ct_importer_name)()
-            cts_file = ip.open_file(ip.get_content_type_file())
+            cts_file = self.open_file(self.get_content_type_file())
             tag = ct_importer.get_archive(cts_file)
 
             if tag is None:
-                return ip.tag
+                return self.tag
 
             return tag
         except ValueError:
