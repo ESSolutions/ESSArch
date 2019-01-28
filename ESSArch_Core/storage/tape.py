@@ -48,7 +48,7 @@ def mount_tape(robot, slot, drive):
     out, err = p.communicate()
 
     if p.returncode:
-        if re.match('Drive \d+ Full \(Storage Element \d+ loaded\)', err):
+        if re.match(r'Drive \d+ Full \(Storage Element \d+ loaded\)', err):
             logger.warn('Tried to mount already mounted tape from {slot} to {drive} using {robot}'.format(slot=slot, drive=drive, robot=robot))
             raise TapeMountedError(err)
 
@@ -76,7 +76,7 @@ def unmount_tape(robot, slot, drive):
     out, err = p.communicate()
 
     if p.returncode:
-        if re.match('Data Transfer Element \d+ is Empty', err):
+        if re.match(r'Data Transfer Element \d+ is Empty', err):
             logger.warn('Tried to unmount already unmounted tape from {drive} to {slot} using {robot}'.format(drive=drive, slot=slot, robot=robot))
             raise TapeUnmountedError(err)
 
@@ -354,7 +354,7 @@ def robot_inventory(robot):
             except TapeDrive.DoesNotExist:
                 logger.warn('Drive {row} (drive_id={drive}, robot={robot}) not found in database'.format(row=row, drive=drive_id, robot=robot))
 
-        if re.match('\ *Storage Element', row):  # Find robot slots
+        if re.match(r'\ *Storage Element', row):  # Find robot slots
             if not re.search('EXPORT', row):
                 logger.debug('Found slot: {row}'.format(row=row))
                 s_el = re_word.split(row)

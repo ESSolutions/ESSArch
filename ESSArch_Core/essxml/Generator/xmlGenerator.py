@@ -50,7 +50,7 @@ from ESSArch_Core.util import (
 )
 
 logger = logging.getLogger('essarch.essxml.generator')
-leading_underscore_tag_re = re.compile('%s *_(.*?(?=\}))%s' % (re.escape('{{'), re.escape('}}')))
+leading_underscore_tag_re = re.compile(r'%s *_(.*?(?=\}))%s' % (re.escape('{{'), re.escape('}}')))
 
 
 def parse_content_django(content, info=None, unicode_error=False, syntax_error=False):

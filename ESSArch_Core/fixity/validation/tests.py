@@ -407,17 +407,17 @@ class StructureValidatorTests(TestCase):
 
         # add mkv
         open(os.path.join(self.root, 'c/test.mkv'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, 'c/test\.mkv missing related file c/test.mkv.md5'):
+        with self.assertRaisesRegexp(ValidationError, r'c/test\.mkv missing related file c/test.mkv.md5'):
             validator.validate(self.root)
 
         # add mkv.md5
         open(os.path.join(self.root, 'c/test.mkv.md5'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, 'c/test\.mkv(\.md5)? missing related file p/test.mp4'):
+        with self.assertRaisesRegexp(ValidationError, r'c/test\.mkv(\.md5)? missing related file p/test.mp4'):
             validator.validate(self.root)
 
         # add mp4
         open(os.path.join(self.root, 'p/test.mp4'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, '(c/test\.mkv(\.md5)?|p/test\.mp4) missing related file p/test.mp4.md5'):
+        with self.assertRaisesRegexp(ValidationError, r'(c/test\.mkv(\.md5)?|p/test\.mp4) missing related file p/test.mp4.md5'):
             validator.validate(self.root)
 
         # add mp4.md5
