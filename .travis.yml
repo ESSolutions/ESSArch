@@ -40,6 +40,7 @@ matrix:
       dist: trusty
       before_install: cd ESSArch_Core/frontend
       install: yarn
+      before_script:
       script: yarn lint .
 
     - os: windows
