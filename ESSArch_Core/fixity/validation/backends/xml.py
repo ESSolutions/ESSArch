@@ -222,7 +222,7 @@ class DiffCheckValidator(BaseValidator):
             msg = u'Diff-check validation of {path} against {xml} failed: {cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted'.format(
                 path=path, xml=self.context, cfmd=self.confirmed, a=self.added, c=self.changed, r=self.renamed,
                 d=delete_count)
-            logger.warn(msg)
+            logger.warning(msg)
             raise ValidationError(msg)
 
         logger.info(u"Successful diff-check validation of {path} against {xml}".format(path=path, xml=self.context))
@@ -286,7 +286,7 @@ class XMLComparisonValidator(DiffCheckValidator):
             msg = u'Comparison of {path} against {xml} failed: {cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted'.format(
                 path=path, xml=self.context, cfmd=self.confirmed, a=self.added, c=self.changed, r=self.renamed,
                 d=delete_count)
-            logger.warn(msg)
+            logger.warning(msg)
             raise ValidationError(msg)
 
         logger.info(u"Successful comparison of {path} against {xml}".format(path=path, xml=self.context))

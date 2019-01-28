@@ -44,15 +44,27 @@ def mount_tape(robot, slot, drive):
 
     cmd = 'mtx -f %s load %d %d' % (robot, slot, drive)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
-    logger.debug('Mounting tape from {slot} to {drive} using {robot}: {cmd}'.format(slot=slot, drive=drive, robot=robot, cmd=cmd))
+    logger.debug(
+        'Mounting tape from {slot} to {drive} using {robot}: {cmd}'.format(
+            slot=slot, drive=drive, robot=robot, cmd=cmd
+        )
+    )
     out, err = p.communicate()
 
     if p.returncode:
         if re.match(r'Drive \d+ Full \(Storage Element \d+ loaded\)', err):
-            logger.warn('Tried to mount already mounted tape from {slot} to {drive} using {robot}'.format(slot=slot, drive=drive, robot=robot))
+            logger.warning(
+                'Tried to mount already mounted tape from {slot} to {drive} using {robot}'.format(
+                    slot=slot, drive=drive, robot=robot
+                )
+            )
             raise TapeMountedError(err)
 
-        logger.error('Failed to mount tape from {slot} to {drive} using {robot}, err: {err}, returncode: {rcode}'.format(slot=slot, drive=drive, robot=robot, err=err, rcode=p.returncode))
+        logger.error(
+            'Failed to mount tape from {slot} to {drive} using {robot}, err: {err}, returncode: {rcode}'.format(
+                slot=slot, drive=drive, robot=robot, err=err, rcode=p.returncode
+            )
+        )
         raise RobotMountException('%s, return code: %s' % (err, p.returncode))
 
     logger.info('Mounted tape from {slot} to {drive} using {robot}'.format(slot=slot, drive=drive, robot=robot))
@@ -72,15 +84,27 @@ def unmount_tape(robot, slot, drive):
 
     cmd = 'mtx -f %s unload %d %d' % (robot, slot, drive)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
-    logger.debug('Unmounting tape from {drive} to {slot} using {robot}: {cmd}'.format(drive=drive, slot=slot, robot=robot, cmd=cmd))
+    logger.debug(
+        'Unmounting tape from {drive} to {slot} using {robot}: {cmd}'.format(
+            drive=drive, slot=slot, robot=robot, cmd=cmd
+        )
+    )
     out, err = p.communicate()
 
     if p.returncode:
         if re.match(r'Data Transfer Element \d+ is Empty', err):
-            logger.warn('Tried to unmount already unmounted tape from {drive} to {slot} using {robot}'.format(drive=drive, slot=slot, robot=robot))
+            logger.warning(
+                'Tried to unmount already unmounted tape from {drive} to {slot} using {robot}'.format(
+                    drive=drive, slot=slot, robot=robot
+                )
+            )
             raise TapeUnmountedError(err)
 
-        logger.error('Failed to unmount tape from {drive} to {slot} using {robot}, err: {err}, returncode: {rcode}'.format(drive=drive, slot=slot, robot=robot, err=err, rcode=p.returncode))
+        logger.error(
+            'Failed to unmount tape from {drive} to {slot} using {robot}, err: {err}, returncode: {rcode}'.format(
+                drive=drive, slot=slot, robot=robot, err=err, rcode=p.returncode
+            )
+        )
         raise RobotUnmountException('%s, return code: %s' % (err, p.returncode))
 
     logger.info('Unmounted tape from {drive} to {slot} using {robot}'.format(drive=drive, slot=slot, robot=robot))
@@ -98,7 +122,11 @@ def rewind_tape(drive):
     out, err = p.communicate()
 
     if p.returncode:
-        logger.error('Failed to rewind tape in {drive}, err: {err}, returncode: {rcode}'.format(drive=drive, err=err, rcode=p.returncode))
+        logger.error(
+            'Failed to rewind tape in {drive}, err: {err}, returncode: {rcode}'.format(
+                drive=drive, err=err, rcode=p.returncode
+            )
+        )
 
     if p.returncode == 1:
         raise MTInvalidOperationOrDeviceNameException(err)
@@ -126,7 +154,11 @@ def is_tape_drive_online(drive):
     out, err = p.communicate()
 
     if p.returncode:
-        logger.error('Failed to check if {drive} is online, err: {err}, returncode: {rcode}'.format(drive=drive, err=err, rcode=p.returncode))
+        logger.error(
+            'Failed to check if {drive} is online, err: {err}, returncode: {rcode}'.format(
+                drive=drive, err=err, rcode=p.returncode
+            )
+        )
         raise RobotException('%s, return code: %s' % (err, p.returncode))
 
     online = 'ONLINE' in out
@@ -219,7 +251,11 @@ def verify_tape_label(medium, xmlstring):
 
 
 def read_tape(device, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
-    logger.info('Extracting content from {device} to {path}, with block size {size}'.format(device=device, path=path, size=block_size))
+    logger.info(
+        'Extracting content from {device} to {path}, with block size {size}'.format(
+            device=device, path=path, size=block_size
+        )
+    )
     with tarfile.open(device, 'r|', bufsize=block_size) as tar:
         tar.extractall(path)
 
@@ -242,7 +278,11 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
     if isinstance(paths, six.string_types):
         paths = [paths]
 
-    logger.info('Writing {paths} to {device} with block size {size}'.format(paths=",".join(paths), device=device, size=block_size))
+    logger.info(
+        'Writing {paths} to {device} with block size {size}'.format(
+            paths=",".join(paths), device=device, size=block_size
+        )
+    )
 
     if arcname is not None and len(paths) > 1:
         raise TypeError("'arcname' is not valid when write_to_tape is called with more than one path")
@@ -327,7 +367,11 @@ def robot_inventory(robot):
     out, err = p.communicate()
 
     if p.returncode:
-        logger.error('Failed to get inventory of {robot}, err: {err}, return code: {code}'.format(robot=robot, err=err, code=p.returncode))
+        logger.error(
+            'Failed to get inventory of {robot}, err: {err}, return code: {code}'.format(
+                robot=robot, err=err, code=p.returncode
+            )
+        )
         raise RobotException('%s, return code: %s' % (err, p.returncode))
 
     robot = Robot.objects.get(device=robot)
@@ -343,16 +387,26 @@ def robot_inventory(robot):
 
             try:
                 drive = TapeDrive.objects.get(drive_id=drive_id, robot=robot)
-                logger.debug('Drive {row} (drive_id={drive}, robot={robot}) found in database'.format(row=row, drive=drive_id, robot=robot))
+                logger.debug(
+                    'Drive {row} (drive_id={drive}, robot={robot}) found in database'.format(
+                        row=row, drive=drive_id, robot=robot
+                    )
+                )
 
                 if status == 'Full':
                     slot_id = dt_el[7]
                     volume_id = dt_el[10][:6]
-                    StorageMedium.objects.filter(tape_slot__robot=robot, tape_slot__slot_id=slot_id, medium_id=volume_id).update(tape_drive=drive)
+                    StorageMedium.objects.filter(
+                        tape_slot__robot=robot, tape_slot__slot_id=slot_id, medium_id=volume_id
+                    ).update(tape_drive=drive)
                 else:
                     StorageMedium.objects.filter(tape_drive=drive).update(tape_drive=None)
             except TapeDrive.DoesNotExist:
-                logger.warn('Drive {row} (drive_id={drive}, robot={robot}) not found in database'.format(row=row, drive=drive_id, robot=robot))
+                logger.warning(
+                    'Drive {row} (drive_id={drive}, robot={robot}) not found in database'.format(
+                        row=row, drive=drive_id, robot=robot
+                    )
+                )
 
         if re.match(r'\ *Storage Element', row):  # Find robot slots
             if not re.search('EXPORT', row):
@@ -365,11 +419,21 @@ def robot_inventory(robot):
                 if status == 'Full':
                     volume_id = s_el[6][:6]
 
-                    slot, created = TapeSlot.objects.update_or_create(robot=robot, slot_id=slot_id, defaults={'medium_id': volume_id})
+                    slot, created = TapeSlot.objects.update_or_create(
+                        robot=robot, slot_id=slot_id, defaults={'medium_id': volume_id}
+                    )
                     if created:
-                        logger.debug('Created tape slot with slot_id={slot}, medium_id={medium}'.format(slot=slot_id, medium=volume_id))
+                        logger.debug(
+                            'Created tape slot with slot_id={slot}, medium_id={medium}'.format(
+                                slot=slot_id, medium=volume_id
+                            )
+                        )
                     else:
-                        logger.debug('Updated tape slot with slot_id={slot}, medium_id={medium}'.format(slot=slot_id, medium=volume_id))
+                        logger.debug(
+                            'Updated tape slot with slot_id={slot}, medium_id={medium}'.format(
+                                slot=slot_id, medium=volume_id
+                            )
+                        )
 
                     StorageMedium.objects.filter(medium_id=volume_id).update(tape_slot=slot)
                 else:

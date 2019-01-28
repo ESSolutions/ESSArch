@@ -4,15 +4,18 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.contrib.auth.admin import GroupAdmin as DjangoGroupAdmin
-from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.contrib.auth.admin import GroupAdmin as DjangoGroupAdmin, UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import Group as DjangoGroup
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
-from groups_manager.models import Group as GroupManagerGroup
-from groups_manager.models import GroupEntity, GroupMemberRole as GroupManagerGroupMemberRole, GroupType as GroupManagerGroupType
-from groups_manager.models import GroupMember as GroupManagerGroupMember
-from groups_manager.models import Member as GroupManagerMember
+from groups_manager.models import (
+    Group as GroupManagerGroup,
+    GroupEntity,
+    GroupMember as GroupManagerGroupMember,
+    GroupMemberRole as GroupManagerGroupMemberRole,
+    GroupType as GroupManagerGroupType,
+    Member as GroupManagerMember,
+)
 from nested_inline.admin import NestedModelAdmin, NestedTabularInline
 
 from ESSArch_Core.admin import NestedStackedInlineWithoutHeader
@@ -21,8 +24,14 @@ from ESSArch_Core.auth.models import (Group, GroupMember, GroupMemberRole, Group
 
 User = get_user_model()
 
-admin.site.unregister(
-    [GroupManagerMember, GroupManagerGroup, GroupManagerGroupMember, GroupEntity, GroupManagerGroupMemberRole, GroupManagerGroupType])
+admin.site.unregister([
+    GroupManagerMember,
+    GroupManagerGroup,
+    GroupManagerGroupMember,
+    GroupEntity,
+    GroupManagerGroupMemberRole,
+    GroupManagerGroupType
+])
 
 
 def filter_permissions(qs):

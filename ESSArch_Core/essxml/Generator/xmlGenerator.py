@@ -381,7 +381,9 @@ class XMLElement(object):
             # containing encoding information.
             # See https://stackoverflow.com/questions/15830421/xml-unicode-strings-with-encoding-declaration-are-not-supported
             if self.nestedXMLContent not in info:
-                logger.warn(u"Nested XML '{}' not found in data and will not be created".format(self.nestedXMLContent))
+                logger.warning(
+                    "Nested XML '{}' not found in data and will not be created".format(self.nestedXMLContent)
+                )
                 if not self.allowEmpty:
                     return None
             else:
