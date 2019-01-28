@@ -316,14 +316,12 @@ def generateExtensionRef(schemadoc, namespace):
     global groups
     global elementTypes
     schema = '{http://www.w3.org/2001/XMLSchema}'
-    thisSchema = ''
-    thisVersion = ''
 
     for key, value in six.iteritems(schemadoc.attrib):
         if key == 'targetNamespace':
-            thisSchema = value
+            pass  # handle namespace? TODO
         elif key == 'version':
-            thisVersion = value
+            pass  # handle version? TODO
         elif key == 'id':
             pass  # handle id? TODO
         elif key == 'attributeFormDefault':
@@ -384,14 +382,12 @@ def generateJsonRes(schemadoc, rootElement, namespace):
     global groups
     global elementTypes
     schema = '{http://www.w3.org/2001/XMLSchema}'
-    thisSchema = ''
-    thisVersion = ''
 
     for key, value in six.iteritems(schemadoc.attrib):
         if key == 'targetNamespace':
-            thisSchema = value
+            pass  # handle namespace? TODO
         elif key == 'version':
-            thisVersion = value
+            pass  # handle version? TODO
         elif key == 'id':
             pass  # handle id? TODO
         elif key == 'attributeFormDefault':

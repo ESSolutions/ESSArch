@@ -89,7 +89,6 @@ class SysInfoView(APIView):
 
     def get(self, request):
         context = {}
-        cwd = settings.BASE_DIR
 
         # Flags in settings: Their expected  and actual values.
         SETTINGS_FLAGS = [

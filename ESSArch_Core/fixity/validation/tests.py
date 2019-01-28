@@ -517,14 +517,14 @@ class DiffCheckValidatorTests(TestCase):
         self.validator.validate(self.datadir)
 
     def test_validation_with_unchanged_files(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_xml()
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         self.validator.validate(self.datadir)
 
     def test_validation_with_unchanged_files_multiple_times(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_xml()
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
@@ -567,7 +567,7 @@ class DiffCheckValidatorTests(TestCase):
             self.validator.validate(self.datadir)
 
     def test_validation_with_added_file(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_xml()
 
         added = os.path.join(self.datadir, 'added.txt')
@@ -605,7 +605,7 @@ class DiffCheckValidatorTests(TestCase):
             self.validator.validate(self.datadir)
 
     def test_validation_with_checksum_attribute_missing(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_xml()
 
         tree = etree.parse(self.fname)
@@ -633,7 +633,7 @@ class DiffCheckValidatorTests(TestCase):
             self.validator.validate(self.datadir)
 
     def test_validation_with_size_attribute_missing(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_xml()
 
         tree = etree.parse(self.fname)
@@ -963,7 +963,7 @@ class XMLComparisonValidatorTests(TestCase):
         self.validator.validate(self.premis)
 
     def test_validation_with_unchanged_files(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_mets_xml()
         self.generate_premis_xml()
 
@@ -971,7 +971,7 @@ class XMLComparisonValidatorTests(TestCase):
         self.validator.validate(self.premis)
 
     def test_validation_with_unchanged_files_multiple_times(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_mets_xml()
         self.generate_premis_xml()
 
@@ -1004,7 +1004,7 @@ class XMLComparisonValidatorTests(TestCase):
             self.validator.validate(self.premis)
 
     def test_validation_with_added_file(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_mets_xml()
 
         added = os.path.join(self.datadir, 'added.txt')
@@ -1045,7 +1045,7 @@ class XMLComparisonValidatorTests(TestCase):
             self.validator.validate(self.premis)
 
     def test_validation_with_checksum_attribute_missing(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_mets_xml()
         self.generate_premis_xml()
 
@@ -1075,7 +1075,7 @@ class XMLComparisonValidatorTests(TestCase):
             self.validator.validate(self.premis)
 
     def test_validation_with_size_attribute_missing(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_mets_xml()
         self.generate_premis_xml()
 

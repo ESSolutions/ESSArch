@@ -101,6 +101,6 @@ class GetPathResponseContainerTests(TestCase):
         response = self.ip.get_path_response(path, self.request)
         response.close()
 
-        mocked_file = mock_open_file.return_value
-        mocked_mimetype = mock_fid.return_value.get_mimetype.return_value
+        mock_open_file.return_value
+        mock_fid.return_value.get_mimetype.return_value
         mock_list_files.assert_called_once_with(path)

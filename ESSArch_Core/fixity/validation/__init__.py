@@ -53,7 +53,7 @@ def _validate_file(path, validators, task=None, ip=None, stop_at_failure=True, r
 
         try:
             validator.data[PATH_VARIABLE] = path
-        except Exception as e:
+        except Exception:
             if stop_at_failure:
                 raise
 
@@ -65,7 +65,7 @@ def _validate_directory(path, validators, task=None, ip=None, stop_at_failure=Tr
     for validator in dir_validators:
         try:
             validator.data[PATH_VARIABLE] = path
-        except Exception as e:
+        except Exception:
             if stop_at_failure:
                 raise
 

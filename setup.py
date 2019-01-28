@@ -93,7 +93,7 @@ will also need to upgrade other software versions as: %s' % e)
         if not query_yes_no('Do you want to continue with the installation?'):
             print('Cancel the installation...')
             sys.exit(1)
-    except DistributionNotFound as e:
+    except DistributionNotFound:
         pass
 
 

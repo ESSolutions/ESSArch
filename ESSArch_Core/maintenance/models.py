@@ -214,8 +214,6 @@ class AppraisalJob(MaintenanceJob):
                 mets_dir, mets_name = find_destination("mets_file", aip_profile.structure)
                 mets_path = os.path.join(srcdir, mets_dir, mets_name)
 
-                mets_tree = etree.parse(mets_path)
-
                 # copy files to new generation
                 shutil.copytree(srcdir, dstdir)
 
@@ -432,8 +430,6 @@ class ConversionJob(MaintenanceJob):
 
             mets_dir, mets_name = find_destination("mets_file", aip_profile.structure)
             mets_path = os.path.join(srcdir, mets_dir, mets_name)
-
-            mets_tree = etree.parse(mets_path)
 
             # copy files to new generation
             shutil.copytree(srcdir, dstdir)

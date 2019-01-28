@@ -91,7 +91,6 @@ class DBTask(Task):
 
         if self.chunk:
             res = []
-            events = []
             if not connection.features.autocommits_when_autocommit_is_off:
                 transaction.set_autocommit(False)
             try:

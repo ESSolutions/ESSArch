@@ -176,6 +176,6 @@ class LogoutView(rest_auth_LogoutView):
                 logger.debug('Failed to logout using SAML, mo active identity found')
                 pass
 
-        response = self.logout(request)
+        self.logout(request)
         next_page = resolve_url(settings.LOGOUT_REDIRECT_URL)
         return HttpResponseRedirect(next_page)
