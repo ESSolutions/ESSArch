@@ -24,30 +24,30 @@
 
 from collections import OrderedDict
 
-import six
-from django.http import HttpResponse
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from rest_framework.generics import get_object_or_404
-from .models import templatePackage, extensionPackage
-from ESSArch_Core.profiles.models import Profile
-from ESSArch_Core.essxml.ProfileMaker.xsdtojson import generateJsonRes, generateExtensionRef
-import requests
-from lxml import etree
-# file upload
-# import the logging library and get an instance of a logger
-import logging
-logger = logging.getLogger('code.exceptions')
-
-# import re
 import copy
 import json
+import logging
 import uuid
 
-from django.views.generic import View
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from django.utils.decorators import method_decorator
+from django.views.generic import View
+from lxml import etree
+from rest_framework.generics import get_object_or_404
+
+import requests
+import six
+
+from ESSArch_Core.profiles.models import Profile
+from ESSArch_Core.essxml.ProfileMaker.xsdtojson import generateJsonRes, generateExtensionRef
+
 from .forms import AddTemplateForm, AddExtensionForm
+from .models import templatePackage, extensionPackage
+
+logger = logging.getLogger('code.exceptions')
 
 
 def constructContent(text):

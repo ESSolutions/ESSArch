@@ -215,7 +215,7 @@ class NotificationReadSerializer(NotificationSerializer):
 
 
 # Import from rest_auth.app_settings must be after UserLoggedInSerializer
-from rest_auth.app_settings import LoginSerializer as rest_auth_LoginSerializer
+from rest_auth.app_settings import LoginSerializer as rest_auth_LoginSerializer  # noqa
 
 
 class LoginSerializer(rest_auth_LoginSerializer):

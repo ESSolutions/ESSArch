@@ -27,7 +27,7 @@
 import django
 django.setup()
 
-from ESSArch_Core.configuration.models import EventType, Parameter
+from ESSArch_Core.configuration.models import EventType, Parameter  # noqa
 
 
 def installDefaultConfiguration():
