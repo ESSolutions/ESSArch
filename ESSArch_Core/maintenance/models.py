@@ -16,7 +16,6 @@ from django.db import models
 from django.template.loader import render_to_string
 from django.utils import timezone
 from glob2 import iglob
-from lxml import etree
 from os import walk
 from weasyprint import HTML
 
