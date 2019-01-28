@@ -26,7 +26,7 @@ import versioneer
 versioneer.VCS = 'git'
 versioneer.versionfile_source = 'ESSArch_Core/_version.py'
 versioneer.versionfile_build = None
-versioneer.tag_prefix = '' # tags are like 1.2.0
+versioneer.tag_prefix = ''  # tags are like 1.2.0
 versioneer.parentdir_prefix = 'ESSArch_Core-'
 
 from setuptools import find_packages, setup

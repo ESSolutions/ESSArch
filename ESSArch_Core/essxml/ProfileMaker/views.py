@@ -35,7 +35,7 @@ from ESSArch_Core.profiles.models import Profile
 from ESSArch_Core.essxml.ProfileMaker.xsdtojson import generateJsonRes, generateExtensionRef
 import requests
 from lxml import etree
-#file upload
+# file upload
 # import the logging library and get an instance of a logger
 import logging
 logger = logging.getLogger('code.exceptions')
@@ -53,19 +53,19 @@ from .forms import AddTemplateForm, AddExtensionForm
 def constructContent(text):
     res = []
     i = text.find('{{')
-    if i > 0: # default text followed by variable
+    if i > 0:  # default text followed by variable
         d = {}
         d['text'] = text[0:i]
         res.append(d)
         r = constructContent(text[i:])
         for j in range(len(r)):
             res.append(r[j])
-    elif i == -1: # no variable found, only eventual default text
+    elif i == -1:  # no variable found, only eventual default text
         if len(text) > 0:
             d = {}
             d['text'] = text
             res.append(d)
-    else: # variable followed by eventual default text
+    else:  # variable followed by eventual default text
         d = {}
         v = text[i + 2:]
         i = v.find('}}')
@@ -133,7 +133,7 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, n
 
         att = OrderedDict()
 
-        if attrib['key'] in element['formData']: # if custom value has been entered
+        if attrib['key'] in element['formData']:  # if custom value has been entered
             content = constructContent(element['formData'][attrib['key']])
             att['#content'] = content
         else:
@@ -349,7 +349,7 @@ def addChild(request, name, newElementName, elementUuid):
     newElement['parent'] = elementUuid
     existingElements[newUuid] = newElement
 
-    #calculate which elements should be before
+    # calculate which elements should be before
     cb = calculateChildrenBefore(existingElements[elementUuid]['availableChildren'], newElementName)
 
     index = 0
@@ -453,7 +453,7 @@ class index(View):
     template_name = 'templateMaker/index.html'
 
     def get(self, request, *args, **kwargs):
-        objs = templatePackage.objects.all()#.values('name')
+        objs = templatePackage.objects.all()  # .values('name')
         context = {
             'templates': objs
         }

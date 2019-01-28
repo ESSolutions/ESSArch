@@ -242,7 +242,7 @@ class EardErmsImporter(BaseImporter):
         return data
 
     def parse_act(self, act, errand):
-        id = str(uuid.uuid4())#act.get("Systemidentifierare")
+        id = str(uuid.uuid4())  # act.get("Systemidentifierare")
         reference_code = act.xpath("*[local-name()='ArkivobjektID']")[0].text
         unit_ids = {'id': reference_code}
         parent = Node(id=errand.meta.id, index=errand._index._name)
@@ -355,7 +355,7 @@ class EardErmsImporter(BaseImporter):
             yield tag, tag_version, tag_repr, act.to_dict(include_meta=True)
 
     def parse_errand(self, errand, archive, ip, structure):
-        id = str(uuid.uuid4())#errand.get("Systemidentifierare")
+        id = str(uuid.uuid4())  # errand.get("Systemidentifierare")
         reference_code = errand.xpath("*[local-name()='ArkivobjektID']")[0].text
         unit_ids = {'id': reference_code}
 
