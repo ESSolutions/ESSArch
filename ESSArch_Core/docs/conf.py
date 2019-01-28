@@ -2,7 +2,7 @@
     ESSArch is an open source archiving and digital preservation system
 
     ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -153,7 +153,7 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosectionlabel', 'sphinx.ext.i
 autosectionlabel_prefix_document = True
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/2.7', None),
+    'python': ('https://docs.python.org/3.6', None),
     'sphinx': ('http://sphinx.pocoo.org/', None),
     'django': ('https://docs.djangoproject.com/en/dev/', 'https://docs.djangoproject.com/en/dev/_objects/'),
     'celery': ('https://celery.readthedocs.org/en/latest/', None),
@@ -173,7 +173,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'ESSArch Core'
-copyright = u'2017, ES Solutions'
+copyright = u'2019, ES Solutions'
 author = u'ES Solutions'
 
 # The version info for the project you're documenting, acts as replacement for
