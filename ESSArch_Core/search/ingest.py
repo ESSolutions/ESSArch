@@ -21,7 +21,7 @@ def index_document(ip, filepath, id):
     modified = timestamp_to_datetime(os.stat(filepath).st_mtime)
 
     doc = File(_id=id, name=filename, type="document", filename=filename, extension=extension, href=href, ip=str(ip.pk),
-                   data=encoded_content, size=size, modified=modified, current_version=True)
+               data=encoded_content, size=size, modified=modified, current_version=True)
     doc.save(pipeline='ingest_attachment')
     return doc
 

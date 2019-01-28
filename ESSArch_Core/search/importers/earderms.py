@@ -81,7 +81,7 @@ class EardErmsImporter(BaseImporter):
         modified = timestamp_to_datetime(os.stat(filepath).st_mtime)
 
         d = File(_id=id, name=name, type='Bilaga', archive=act.archive, desc=desc, filename=filename, href=href, extension=ext,
-                     data=encoded_content, size=size, modified=modified, current_version=True, ip=act.ip, task_id=str(self.task.pk))
+                 data=encoded_content, size=size, modified=modified, current_version=True, ip=act.ip, task_id=str(self.task.pk))
 
         tag = Tag(information_package=ip, task=self.task)
         tag_version = TagVersion(pk=d.meta.id, tag=tag,

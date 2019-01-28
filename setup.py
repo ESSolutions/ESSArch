@@ -41,10 +41,10 @@ except NameError:
 
 # ESSArch_Core dependencies
 dependencies = [
-  'ESSArch-EPP>=2.8.4,<=2.8.5',
-  'ESSArch-PP>=3.0.0.*,<=3.0.1.*',
-  'ESSArch-TA>=1.0.3.*,<=1.2.1.*',
-  'ESSArch-TP>=1.0.3.*,<=1.2.1.*',
+    'ESSArch-EPP>=2.8.4,<=2.8.5',
+    'ESSArch-PP>=3.0.0.*,<=3.0.1.*',
+    'ESSArch-TA>=1.0.3.*,<=1.2.1.*',
+    'ESSArch-TP>=1.0.3.*,<=1.2.1.*',
 ]
 
 
@@ -107,7 +107,7 @@ def _post_install():
 class my_install(_install):
     def run(self):
         self.execute(_pre_install, [],
-             msg="Running pre install task")
+                     msg="Running pre install task")
 
         _install.run(self)
 
@@ -186,9 +186,9 @@ if __name__ == '__main__':
         ],
         extras_require={
             "docs": ["sphinx==1.8.1", "sphinx-intl==0.9.11",
-                "sphinx-rtd-theme==0.4.1", "sphinxcontrib-httpdomain==1.7.0",
-                "sphinxcontrib-httpexample==0.10.0",
-                "sphinxcontrib-inlinesyntaxhighlight==0.2"],
+                     "sphinx-rtd-theme==0.4.1", "sphinxcontrib-httpdomain==1.7.0",
+                     "sphinxcontrib-httpexample==0.10.0",
+                     "sphinxcontrib-inlinesyntaxhighlight==0.2"],
             "tests": ["fakeredis==0.15.0"],
             "s3": ["boto3==1.9.14"],
             "ldap": ["django-auth-ldap==1.7.0"],

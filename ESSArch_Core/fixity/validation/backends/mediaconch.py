@@ -24,8 +24,8 @@ def run_mediaconch(filename, reporting_element='Mediaconch', output_format='xml'
         raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), policy)
 
     cmd = 'mediaconch --{reporter} --Format={format} -p "{policy}" "{filename}"'.format(reporter=reporting_element,
-                                                                                    format=output_format, policy=policy,
-                                                                                    filename=filename)
+                                                                                        format=output_format, policy=policy,
+                                                                                        filename=filename)
     logger.debug(cmd)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()

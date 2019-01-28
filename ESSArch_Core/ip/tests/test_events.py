@@ -42,7 +42,7 @@ class EventIPManagerTestCase(TestCase):
                 </premis:event>
             </premis:premis>
         '''.format(id_val=self.id_val, event_type=self.event_type.eventType,
-                    time=self.time, user=self.user, objid=self.objid,))
+                   time=self.time, user=self.user, objid=self.objid,))
 
         self.el = self.root.xpath("./*[local-name()='event']")[0]
 

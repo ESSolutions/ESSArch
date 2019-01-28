@@ -153,7 +153,7 @@ class UserLoggedInSerializer(UserSerializer):
         user_profile.ip_list_view_type = profile_data.get(
             'ip_list_view_type',
             user_profile.ip_list_view_type
-         )
+            )
 
         user_profile.notifications_enabled = profile_data.get(
             'notifications_enabled',

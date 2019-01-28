@@ -123,8 +123,8 @@ class ChecksumValidatorXMLTests(TestCase):
                     <FLocat href="{file2}"/>
                 </file>
             </root>'''.format(
-                    hash=self.checksum, alg='md5', file=self.test_file.name,
-                    hash2=checksum2, file2=test_file2.name)
+            hash=self.checksum, alg='md5', file=self.test_file.name,
+            hash2=checksum2, file2=test_file2.name)
         xml_str = six.binary_type(xml_str.encode('utf-8'))
         self.xml_file.write(xml_str)
         self.xml_file.seek(0)

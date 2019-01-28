@@ -90,7 +90,7 @@ def get_objects_for_user(user, klass, perms):
     groups = get_user_groups(user)
     group_ids = set(GroupObjectPermission.objects.filter(group__essauth_group__in=groups,
                                                          permission__codename__in=codenames)
-                                                 .values_list('object_pk', flat=True))
+                    .values_list('object_pk', flat=True))
 
     user_ids = set(UserObjectPermission.objects.filter(user=user, permission__codename__in=codenames)
                                                .values_list('object_pk', flat=True))
