@@ -205,7 +205,7 @@ def getElements(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
     res = []
     for extension in obj.extensions.all():
-        if extension.existingElements != None and len(extension.existingElements) > 0:
+        if extension.existingElements is not None and len(extension.existingElements) > 0:
             r = {}
             r['name'] = extension.namespace
             children = []
@@ -398,7 +398,7 @@ def getAttributes(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
     res = []
     for extension in obj.extensions.all():
-        if extension.allAttributes != None and len(extension.allAttributes) > 0:
+        if extension.allAttributes is not None and len(extension.allAttributes) > 0:
             r = {}
             r['name'] = extension.prefix
             children = []

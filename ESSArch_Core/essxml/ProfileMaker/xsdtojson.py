@@ -187,7 +187,7 @@ def analyze2(element, tree, usedTypes=[], minC=1, maxC=1, choise=-1):
                     analyze2(child, tree, usedTypes=usedTypes)
         else:
             att = parseAttribute(element)
-            if att != None:
+            if att is not None:
                 tree.attributes.append(att)
             else:
                 print('attribute == none')
