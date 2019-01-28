@@ -7,10 +7,13 @@ ESSArch Core
 ==================================================
 
 .. toctree::
-   :maxdepth: 10
+    :maxdepth: 10
 
-   installation/index
-   restapi/index
+    configuration/index
+    development
+    directory_structure
+    installation/index
+    restapi/index
 
 
 
