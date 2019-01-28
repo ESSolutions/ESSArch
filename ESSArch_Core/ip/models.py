@@ -277,8 +277,8 @@ class InformationPackage(models.Model):
             return True
 
         min_generation = InformationPackage.objects.filter(aic=self.aic) \
-        .exclude(workareas__read_only=False) \
-        .aggregate(Min('generation'))['generation__min']
+            .exclude(workareas__read_only=False) \
+            .aggregate(Min('generation'))['generation__min']
         return self.generation == min_generation
 
     def is_last_generation(self):
@@ -286,8 +286,8 @@ class InformationPackage(models.Model):
             return True
 
         max_generation = InformationPackage.objects.filter(aic=self.aic) \
-        .exclude(workareas__read_only=False) \
-        .aggregate(Max('generation'))['generation__max']
+            .exclude(workareas__read_only=False) \
+            .aggregate(Max('generation'))['generation__max']
         return self.generation == max_generation
 
     def change_organization(self, organization):

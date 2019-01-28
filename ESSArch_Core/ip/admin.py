@@ -89,7 +89,7 @@ class IPAdmin(admin.ModelAdmin):
                         'package_type',
                         'submission_agreement',
                     )}),
-        )
+    )
 
 
 admin.site.register(InformationPackage, IPAdmin)
