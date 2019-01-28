@@ -233,7 +233,7 @@ def removeChild(request, name, uuid):
         if child['uuid'] == uuid:
             try:
                 name = child['name'].split('#')[0]
-            except:
+            except BaseException:
                 name = child['name']
 
             deleted_name = name
@@ -247,7 +247,7 @@ def removeChild(request, name, uuid):
             try:
                 name, copy_idx = child['name'].split('#')
                 copy_idx = int(copy_idx)
-            except:
+            except BaseException:
                 name = child['name']
 
             if deleted_name == name:
@@ -357,7 +357,7 @@ def addChild(request, name, newElementName, elementUuid):
     for idx, child in enumerate(existingElements[elementUuid]['children']):
         try:
             name = child['name'].split('#')[0]
-        except:
+        except BaseException:
             name = child['name']
 
         if name == newElementName:

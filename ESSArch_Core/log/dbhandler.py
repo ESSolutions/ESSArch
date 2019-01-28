@@ -19,12 +19,12 @@ class DBHandler(Handler):
     def emit(self, record):
         try:
             EventIP = self.get_model(self.model_name)
-        except:
+        except BaseException:
             from ESSArch_Core.ip.models import EventIP
 
         try:
             EventType = self.get_model(self.event_type_model_name)
-        except:
+        except BaseException:
             from ESSArch_Core.configuration.models import EventType
 
         if getattr(record, 'event_type', None) is None:

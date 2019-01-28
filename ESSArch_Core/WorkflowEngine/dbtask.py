@@ -105,7 +105,7 @@ class DBTask(Task):
                     time_started = timezone.now()
                     try:
                         retval = self._run(*self.args, **a)
-                    except:
+                    except BaseException:
                         ProcessTask.objects.filter(pk=self.task_id).update(
                             hidden=hidden,
                             time_started=time_started,
@@ -128,7 +128,7 @@ class DBTask(Task):
                         res.append(retval)
                         if self.event_type:
                             self.create_event(self.task_id, celery_states.SUCCESS, self.args, a, retval, None)
-            except:
+            except BaseException:
                 raise
             else:
                 return res

@@ -721,7 +721,7 @@ class MountTape(DBTask):
         try:
             mount_tape(tape_drive.robot.device, slot, tape_drive.drive_id)
             wait_to_come_online(tape_drive.device, timeout)
-        except:
+        except BaseException:
             StorageMedium.objects.filter(pk=medium.pk).update(status=100)
             TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
             TapeSlot.objects.filter(slot_id=slot).update(status=100)
@@ -766,7 +766,7 @@ class MountTape(DBTask):
                         raise ValueError('Tape contains unknown information')
 
                     rewind_tape(tape_drive.device)
-        except:
+        except BaseException:
             StorageMedium.objects.filter(pk=medium.pk).update(status=100)
             TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
             TapeSlot.objects.filter(slot_id=slot).update(status=100)
@@ -810,7 +810,7 @@ class UnmountTape(DBTask):
 
         try:
             res = unmount_tape(robot.device, slot.slot_id, tape_drive.drive_id)
-        except:
+        except BaseException:
             StorageMedium.objects.filter(pk=tape_drive.storage_medium.pk).update(status=100)
             TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
             TapeSlot.objects.filter(pk=slot.pk).update(status=100)

@@ -159,7 +159,7 @@ class XMLElement(object):
         name = template.get('-name')
         try:
             self.name = name.split("#")[0]
-        except:
+        except BaseException:
             self.name = name
 
         self.nsmap = template.get('-nsmap', {})

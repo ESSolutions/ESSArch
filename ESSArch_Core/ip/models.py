@@ -457,7 +457,7 @@ class InformationPackage(models.Model):
             return self.get_profile_data('transfer_project').get(
                 'container_format', 'tar'
             )
-        except:
+        except BaseException:
             return 'tar'
 
     def get_checksum_algorithm(self):
@@ -468,7 +468,7 @@ class InformationPackage(models.Model):
                 )
             else:
                 name = self.policy.get_checksum_algorithm_display().upper()
-        except:
+        except BaseException:
             name = 'SHA-256'
 
         return name
@@ -478,7 +478,7 @@ class InformationPackage(models.Model):
             return self.get_profile_data('transfer_project').get(
                 'preservation_organization_receiver_email'
             )
-        except:
+        except BaseException:
             return None
 
     def get_structure(self):

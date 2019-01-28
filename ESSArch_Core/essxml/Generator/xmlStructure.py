@@ -77,7 +77,7 @@ class xmlElement(object):
     def __init__(self, tagName='', nsmap={}, namespace=None):
         try:
             self.tagName = tagName.split("#")[0]
-        except:
+        except BaseException:
             self.tagName = tagName
 
         self.children = []
@@ -93,7 +93,7 @@ class xmlElement(object):
         self.namespace = namespace
         try:
             self.full_namespace = nsmap.get(namespace)
-        except:
+        except BaseException:
             self.full_namespace = None
         self.completeTagName = ''
         self.containsFiles = False
