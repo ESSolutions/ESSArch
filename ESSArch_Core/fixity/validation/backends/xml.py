@@ -96,10 +96,10 @@ class DiffCheckValidator(BaseValidator):
         )
 
     def _pop_checksum_dict(self, d, checksum, filepath):
-        l = d[checksum]
-        l.remove(filepath)
+        checksum_list = d[checksum]
+        checksum_list.remove(filepath)
 
-        if not len(l):
+        if not len(checksum_list):
             d.pop(checksum)
 
     def _get_filepath(self, input_file):
