@@ -182,7 +182,7 @@ class xmlElement(object):
             element['anyElement'] = self.anyElement
             element['containsFiles'] = False
             element['parent'] = parent
-            element['children'] = [];
+            element['children'] = []
             element['namespace'] = self.namespace
             children = []
             for child in self.children:

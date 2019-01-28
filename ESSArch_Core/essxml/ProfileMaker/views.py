@@ -66,11 +66,11 @@ def constructContent(text):
             d['text'] = text
             res.append(d)
     else: # variable followed by eventual default text
-        d = {};
+        d = {}
         v = text[i + 2:]
         i = v.find('}}')
         d['var'] = v[0:i]
-        res.append(d);
+        res.append(d)
         r = constructContent(v[i + 2:])
         for j in range(len(r)):
             res.append(r[j])
@@ -238,7 +238,7 @@ def removeChild(request, name, uuid):
 
             deleted_name = name
             del parent['children'][index]
-            break;
+            break
 
         index += 1
 
@@ -498,7 +498,7 @@ class add(View):
             targetNamespace = schemadoc.get('targetNamespace')
             nsmap = {k: v for k, v in six.iteritems(schemadoc.nsmap) if k and v != "http://www.w3.org/2001/XMLSchema"}
 
-            existingElements, allElements = generateJsonRes(schemadoc, root, prefix);
+            existingElements, allElements = generateJsonRes(schemadoc, root, prefix)
             existingElements["root"]["nsmap"] = nsmap
 
             templatePackage.objects.create(

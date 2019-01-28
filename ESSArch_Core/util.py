@@ -322,7 +322,8 @@ def find_destination(use, structure, path=""):
             use, content.get('children', []), os.path.join(path, name)
         )
 
-        if dest: return dest, fname
+        if dest:
+            return dest, fname
 
     return None, None
 
