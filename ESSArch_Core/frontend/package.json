@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "eslint": "^5.12.1",
+    "eslint-plugin-angular": "^4.0.0"
+  },
+  "scripts": {
+    "lint": "eslint"
+  }
+}

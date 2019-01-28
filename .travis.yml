@@ -34,6 +34,13 @@ matrix:
         - postgres
       env: *postgres
 
+    - env: ESLINT
+      node_js: "10"
+      dist: trusty
+      before_install: cd ESSArch_Core/frontend
+      install: yarn
+      script: yarn lint .
+
     - os: windows
       language: sh
       python: "3.6"
