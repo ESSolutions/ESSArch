@@ -38,10 +38,10 @@ class DiffCheckValidator(BaseValidator):
         self.rootdir = self.options.get('rootdir')
         self.default_algorithm = self.options.get('default_algorithm', 'SHA-256')
 
-        self.initial_present     = {}  # Map checksum -> fname
-        self.initial_deleted     = {}  # Map checksum -> fname
-        self.sizes               = {}  # Map fname -> size
-        self.checksums           = {}  # Map fname -> checksum
+        self.initial_present = {}  # Map checksum -> fname
+        self.initial_deleted = {}  # Map checksum -> fname
+        self.sizes = {}  # Map fname -> size
+        self.checksums = {}  # Map fname -> checksum
         self.checksum_algorithms = {}  # Map fname -> checksum algorithm
 
         self._get_files()

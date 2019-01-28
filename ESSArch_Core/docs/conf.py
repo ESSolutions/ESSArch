@@ -86,7 +86,7 @@ def process_django_models(app, what, name, obj, options, lines):
             verbose_name = force_text(field.verbose_name).capitalize()
 
             if help_text:
-                lines.append(':param %s: %s - %s' % (field.attname, verbose_name,  help_text))
+                lines.append(':param %s: %s - %s' % (field.attname, verbose_name, help_text))
             else:
                 lines.append(':param %s: %s' % (field.attname, verbose_name))
 

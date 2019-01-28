@@ -9,7 +9,7 @@ from os import walk
 
 from ESSArch_Core.fixity.checksum import calculate_checksum
 
-MB = 1024*1024
+MB = 1024 * 1024
 
 logger = logging.getLogger('essarch.storage.copy')
 
@@ -23,7 +23,7 @@ def copy_chunk_locally(src, dst, offset, file_size, block_size=65536):
         dstf.write(srcf.read(block_size))
         time_end = time.time()
 
-        time_elapsed = time_end-time_start
+        time_elapsed = time_end - time_start
 
         start = offset
         end = offset + block_size - 1
@@ -60,7 +60,7 @@ def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id
     response = requests_session.post(dst, data=data, files=files, headers=headers, timeout=60)
     response.raise_for_status()
     response_time = response.elapsed.total_seconds()
-    request_size = (end-start) / MB
+    request_size = (end - start) / MB
     try:
         mb_per_sec = request_size / response_time
     except ZeroDivisionError:
@@ -117,8 +117,8 @@ def copy_file_locally(src, dst, block_size=65536):
 
     open(dst, 'wb').close()  # remove content of destination if it exists
 
-    while idx*block_size <= fsize:
-        copy_chunk(src, dst, idx*block_size, fsize, block_size=block_size)
+    while idx * block_size <= fsize:
+        copy_chunk(src, dst, idx * block_size, fsize, block_size=block_size)
         idx += 1
 
 
@@ -126,12 +126,12 @@ def copy_file_remotely(src, dst, requests_session=None, block_size=65536):
     file_size = os.stat(src).st_size
     idx = 0
 
-    upload_id = copy_chunk(src, dst, idx*block_size, file_size,
+    upload_id = copy_chunk(src, dst, idx * block_size, file_size,
                            requests_session=requests_session, block_size=block_size)
     idx += 1
 
-    while idx*block_size <= file_size:
-        copy_chunk(src, dst, idx*block_size, requests_session=requests_session,
+    while idx * block_size <= file_size:
+        copy_chunk(src, dst, idx * block_size, requests_session=requests_session,
                    file_size=file_size, block_size=block_size, upload_id=upload_id)
         idx += 1
 

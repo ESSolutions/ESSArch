@@ -103,7 +103,7 @@ class DBTask(Task):
 
                     self.progress = 0
                     hidden = a_options.get('hidden', False) or self.hidden
-                    time_started=timezone.now()
+                    time_started = timezone.now()
                     try:
                         retval = self._run(*self.args, **a)
                     except:
@@ -297,7 +297,7 @@ class DBTask(Task):
             self.update_state(state=celery_states.PENDING,
                               meta={'current': progress, 'total': total})
 
-        percent = (progress/total) * 100
+        percent = (progress / total) * 100
 
         if self.chunk:
             self.progress = percent

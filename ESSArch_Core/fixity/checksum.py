@@ -5,7 +5,7 @@ import logging
 import os
 import time
 
-MB = 1024*1024
+MB = 1024 * 1024
 
 logger = logging.getLogger('essarch.fixity.checksum')
 

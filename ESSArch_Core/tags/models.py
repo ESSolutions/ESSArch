@@ -157,7 +157,7 @@ class TagVersion(models.Model):
         return {
             '_id': self.pk,
             '_index': self.elastic_index,
-            'current_version': self.tag.current_version==self,
+            'current_version': self.tag.current_version == self,
             'reference_code': self.reference_code,
             'name': self.name,
             'type': self.type,

@@ -452,7 +452,7 @@ class EardErmsImporter(BaseImporter):
             yield tag, tag_version, tag_repr, component.to_dict(include_meta=True)
 
     def update_progress(self, progress):
-        self.task.progress = (progress/100) * 100
+        self.task.progress = (progress / 100) * 100
         self.task.save()
 
     def import_content(self, task, path, rootdir=None, ip=None):

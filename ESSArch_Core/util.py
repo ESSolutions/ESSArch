@@ -105,8 +105,8 @@ def stable_path(path):
             logger.info(u'New path: {}, size: {}, count: {}'.format(path, current_size, current_count))
         elif updated_size or updated_count:
             logger.info(u'Updated path: {}, size: {} => {}, count: {} => {}'.format(path, cached_size, current_size, cached_count, current_count))
-        cache.set(cache_size_key, current_size, 60*60)
-        cache.set(cache_count_key, current_count, 60*60)
+        cache.set(cache_size_key, current_size, 60 * 60)
+        cache.set(cache_count_key, current_count, 60 * 60)
         return False
 
     logger.info(u'Stable path: {}, size: {}, count: {}'.format(path, current_size, current_count))
@@ -124,7 +124,7 @@ def get_elements_without_namespace(root, path, value=None):
             else:
                 split_path = '*[local-name()="{el}" and @*[local-name()="{attr}"]]'.format(el=el, attr=attr)
         else:
-            if idx == len(splits)-1 and value is not None and "@" not in path:
+            if idx == len(splits) - 1 and value is not None and "@" not in path:
                 split_path = '*[local-name()="{el}" and text()="{value}"]'.format(el=split, value=value)
             else:
                 split_path = '*[local-name()="{el}"]'.format(el=split)

@@ -27,7 +27,7 @@ from ESSArch_Core.storage.exceptions import (
 
 from ESSArch_Core.storage.models import Robot, StorageMedium, TapeDrive, TapeSlot
 
-DEFAULT_TAPE_BLOCK_SIZE = 20*512
+DEFAULT_TAPE_BLOCK_SIZE = 20 * 512
 logger = logging.getLogger('essarch.storage.tape')
 
 

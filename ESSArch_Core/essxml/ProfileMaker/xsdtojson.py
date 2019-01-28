@@ -107,7 +107,7 @@ def analyze2(element, tree, usedTypes=[], minC=1, maxC=1, choise=-1):
                     usedTypes.append(key)
                     analyze2(elementTypes[key], tree, usedTypes=usedTypes)
                 else:
-                    print("type unknown: " +key)
+                    print("type unknown: " + key)
         else:
             t = xmlElement(element.get('name'), namespace=tree.namespace)
             t.karMin = minC

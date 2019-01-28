@@ -382,7 +382,7 @@ class StorageMedium(models.Model):
         ).order_by('content_location_value_int')
 
         if objs.count() > 3:
-            objs = [objs.first(), objs[objs.count()/2], objs.last()]
+            objs = [objs.first(), objs[objs.count() / 2], objs.last()]
 
         try:
             for obj in objs:
@@ -408,7 +408,7 @@ class StorageMedium(models.Model):
 
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
-            return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
+            return (self.last_changed_local - self.last_changed_external).total_seconds() == 0
 
         return False
 
@@ -581,7 +581,7 @@ class StorageObject(models.Model):
 
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
-            return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
+            return (self.last_changed_local - self.last_changed_external).total_seconds() == 0
 
         return False
 

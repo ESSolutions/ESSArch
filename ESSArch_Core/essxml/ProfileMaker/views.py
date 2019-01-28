@@ -67,11 +67,11 @@ def constructContent(text):
             res.append(d)
     else: # variable followed by eventual default text
         d = {};
-        v = text[i+2:]
+        v = text[i + 2:]
         i = v.find('}}')
         d['var'] = v[0:i]
         res.append(d);
-        r = constructContent(v[i+2:])
+        r = constructContent(v[i + 2:])
         for j in range(len(r)):
             res.append(r[j])
     return res
@@ -254,7 +254,7 @@ def removeChild(request, name, uuid):
                 if copy_idx and copy_idx == 1:
                     child['name'] = name
                 else:
-                    child['name'] = name + "#" + str(copy_idx-1)
+                    child['name'] = name + "#" + str(copy_idx - 1)
 
                 existingElements[child["uuid"]]["name"] = child["name"]
 
@@ -361,7 +361,7 @@ def addChild(request, name, newElementName, elementUuid):
             name = child['name']
 
         if name == newElementName:
-            index = idx+1
+            index = idx + 1
 
     if index > 0:
         newElementName += "#" + str(index)

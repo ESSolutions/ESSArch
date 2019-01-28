@@ -57,10 +57,10 @@ class Third(DBTask):
 
 class Add(DBTask):
     def run(self, x, y):
-        return x+y
+        return x + y
 
     def undo(self, x, y):
-        return x-y
+        return x - y
 
 
 class Fail(DBTask):

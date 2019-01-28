@@ -624,7 +624,7 @@ class DiffCheckValidatorTests(TestCase):
 
         tree = etree.parse(self.fname)
         file_el = tree.xpath('*[local-name()="file"]')[1]
-        file_el.attrib['SIZE'] = str(os.path.getsize(files[1])*2)
+        file_el.attrib['SIZE'] = str(os.path.getsize(files[1]) * 2)
         tree.write(self.fname, xml_declaration=True, encoding='UTF-8')
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
@@ -1066,7 +1066,7 @@ class XMLComparisonValidatorTests(TestCase):
 
         tree = etree.parse(self.premis)
         file_el = tree.xpath('*[local-name()="file"]')[1]
-        file_el.attrib['SIZE'] = str(os.path.getsize(files[1])*2)
+        file_el.attrib['SIZE'] = str(os.path.getsize(files[1]) * 2)
         tree.write(self.premis, xml_declaration=True, encoding='UTF-8')
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)

@@ -117,7 +117,7 @@ class my_install(_install):
 
 
 if __name__ == '__main__':
-    cmdclass=versioneer.get_cmdclass()
+    cmdclass = versioneer.get_cmdclass()
     cmdclass.update({'install': my_install})
     setup(
         name='ESSArch_Core',
@@ -190,11 +190,11 @@ if __name__ == '__main__':
                 "sphinxcontrib-httpexample==0.10.0",
                 "sphinxcontrib-inlinesyntaxhighlight==0.2"],
             "tests": ["fakeredis==0.15.0"],
-            "s3":  ["boto3==1.9.14"],
-            "ldap":  ["django-auth-ldap==1.7.0"],
-            "saml2":  ["djangosaml2==0.17.2"],
-            "libreoffice_file_conversion":  ["unoconv==0.8.2"],
-            "ms_office_file_conversion":  ["comtypes==1.1.7;platform_system=='Windows'"],
+            "s3": ["boto3==1.9.14"],
+            "ldap": ["django-auth-ldap==1.7.0"],
+            "saml2": ["djangosaml2==0.17.2"],
+            "libreoffice_file_conversion": ["unoconv==0.8.2"],
+            "ms_office_file_conversion": ["comtypes==1.1.7;platform_system=='Windows'"],
             "iis": ["wfastcgi==3.0.0"],
             "mssql": ["django-pyodbc-azure==1.11.15.0"],
             "mysql": ["mysqlclient==1.3.13"],

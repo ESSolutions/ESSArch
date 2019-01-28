@@ -157,7 +157,7 @@ class test_undoing_tasks(TestCase):
 
         res = task.undo()
         task.refresh_from_db()
-        self.assertEqual(res.get(), x-y)
+        self.assertEqual(res.get(), x - y)
 
         undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Add", undo_type=True)
 
@@ -200,7 +200,7 @@ class test_undoing_tasks(TestCase):
         res = task.undo()
         task.refresh_from_db()
 
-        self.assertEqual(res.get(), x-y)
+        self.assertEqual(res.get(), x - y)
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
@@ -235,4 +235,4 @@ class test_retrying_tasks(TestCase):
         task.undo()
         res = task.retry().get()
 
-        self.assertEqual(res, x+y)
+        self.assertEqual(res, x + y)

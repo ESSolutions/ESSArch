@@ -375,7 +375,7 @@ class InformationPackage(models.Model):
 
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
-            return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
+            return (self.last_changed_local - self.last_changed_external).total_seconds() == 0
 
     def new_version_in_progress(self):
         ip = self.related_ips(cached=False).filter(workareas__read_only=False).first()
@@ -616,7 +616,7 @@ class InformationPackage(models.Model):
                     )
                 )
 
-                progress += math.ceil(ip_profiles_locked.count() * ((100-progress) / sa_profiles.count()))
+                progress += math.ceil(ip_profiles_locked.count() * ((100 - progress) / sa_profiles.count()))
 
             except ZeroDivisionError:
                 pass
@@ -874,7 +874,7 @@ class InformationPackageMetadata(models.Model):
 
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
-            return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
+            return (self.last_changed_local - self.last_changed_external).total_seconds() == 0
 
 
 class EventIPManager(models.Manager):

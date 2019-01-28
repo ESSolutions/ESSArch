@@ -728,11 +728,11 @@ class MountTape(DBTask):
             raise
 
         TapeDrive.objects.filter(pk=drive).update(
-            num_of_mounts=F('num_of_mounts')+1,
+            num_of_mounts=F('num_of_mounts') + 1,
             last_change=timezone.now(),
         )
         StorageMedium.objects.filter(pk=medium.pk).update(
-            num_of_mounts=F('num_of_mounts')+1,
+            num_of_mounts=F('num_of_mounts') + 1,
             tape_drive_id=drive
         )
 

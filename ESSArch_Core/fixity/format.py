@@ -10,7 +10,7 @@ from fido.fido import Fido
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.exceptions import FileFormatNotAllowed
 
-MB = 1024*1024
+MB = 1024 * 1024
 
 logger = logging.getLogger('essarch.fixity.format')
 
