@@ -22,6 +22,12 @@
     Email - essarch@essolutions.se
 """
 
+import errno
+import os
+import re
+import subprocess
+import sys
+
 
 # This file helps to compute a version number in source trees obtained from
 # git-archive tarball (such as those provided by githubs download-from-tag
@@ -40,8 +46,6 @@ git_full = "$Format:%H$"
 tag_prefix = ""
 parentdir_prefix = "ESSArch_Core-"
 versionfile_source = "ESSArch_Core/_version.py"
-
-import os, sys, re, subprocess, errno
 
 
 def run_command(commands, args, cwd=None, verbose=False, hide_stderr=False):

@@ -296,7 +296,12 @@ domain.
 
 """
 
-import os, sys, re, subprocess, errno
+import errno
+import os
+import re
+import subprocess
+import sys
+
 from distutils.core import Command
 from distutils.command.sdist import sdist as _sdist
 from distutils.command.build import build as _build
