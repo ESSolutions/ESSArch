@@ -175,7 +175,7 @@ if __name__ == '__main__':
             "jsonpickle==1.0",
             "lxml==4.2.5",
             "natsort==5.4.1",
-            "opf-fido==1.3.7",
+            "opf-fido==1.3.12",
             "pyfakefs==3.4.3",
             "pywin32==224;platform_system=='Windows'",
             "redis==2.10.6",
@@ -183,7 +183,7 @@ if __name__ == '__main__':
             "requests==2.20.0",
             "requests_toolbelt==0.8.0",
             "retrying==1.3.3",
-            "six==1.10.0",
+            "six==1.11.0",
             "weasyprint==43",
         ],
         extras_require={
