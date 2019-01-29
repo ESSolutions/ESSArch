@@ -43,6 +43,15 @@ matrix:
         - choco install python3 --version 3.6.6
         - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python36:/c/Python36/Scripts:$PATH"
 
+    - env: PRETTIER
+      language: node_js
+      node_js: "10"
+      dist: trusty
+      before_install: cd ESSArch_Core/frontend
+      install: yarn
+      before_script:
+      script: yarn prettier --check **/*.js **/*.scss **/*.html
+
 install:
   - python -m pip install --upgrade pip wheel
   - pip install -e .["tests$EXTRA_PACKAGES"]
