@@ -59,7 +59,7 @@ def migrate(doctype, move_data=True, update_alias=True, delete_old_index=False):
     es = get_connection()
 
     # get current index name from the alias
-    current_index = es.indices.get_alias(doctype._index._name).keys()[0]
+    current_index = list(es.indices.get_alias(doctype._index._name))[0]
 
     # construct a new index name by appending current timestamp
     alias = doctype._index._name
