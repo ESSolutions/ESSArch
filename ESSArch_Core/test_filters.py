@@ -12,13 +12,13 @@ class IsoDateTimeFromToRangeFilterTests(TestCase):
     def test_filtering(self):
         tz = timezone.get_current_timezone()
         InformationPackage.objects.create(
-                entry_date=datetime.datetime(2016, 1, 1, 10, 0, tzinfo=tz))
+            entry_date=datetime.datetime(2016, 1, 1, 10, 0, tzinfo=tz))
         InformationPackage.objects.create(
-                entry_date=datetime.datetime(2016, 1, 2, 12, 45, tzinfo=tz))
+            entry_date=datetime.datetime(2016, 1, 2, 12, 45, tzinfo=tz))
         InformationPackage.objects.create(
-                entry_date=datetime.datetime(2016, 1, 3, 18, 15, tzinfo=tz))
+            entry_date=datetime.datetime(2016, 1, 3, 18, 15, tzinfo=tz))
         InformationPackage.objects.create(
-                entry_date=datetime.datetime(2016, 1, 3, 19, 30, tzinfo=tz))
+            entry_date=datetime.datetime(2016, 1, 3, 19, 30, tzinfo=tz))
 
         class F(filters.FilterSet):
             entry_date = IsoDateTimeFromToRangeFilter()

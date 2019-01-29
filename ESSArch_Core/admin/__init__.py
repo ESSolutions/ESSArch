@@ -1,5 +1,4 @@
-from nested_inline.admin import (NestedModelAdmin, NestedStackedInline,
-                                 NestedTabularInline)
+from nested_inline.admin import NestedStackedInline
 
 default_app_config = 'ESSArch_Core.admin.apps.AdminConfig'
 

@@ -51,7 +51,7 @@ from rest_auth.views import (
     LogoutView as rest_auth_LogoutView,
 )
 
-from rest_framework import exceptions, permissions, status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes, list_route
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -85,6 +85,7 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
             return GroupSerializer
 
         return GroupDetailSerializer
+
 
 class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -175,6 +176,6 @@ class LogoutView(rest_auth_LogoutView):
                 logger.debug('Failed to logout using SAML, mo active identity found')
                 pass
 
-        response = self.logout(request)
+        self.logout(request)
         next_page = resolve_url(settings.LOGOUT_REDIRECT_URL)
         return HttpResponseRedirect(next_page)

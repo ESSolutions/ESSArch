@@ -2,6 +2,7 @@ from django.core.cache import cache
 
 from .models import InformationPackage
 
+
 def get_cached_objid(id):
     objid_cache_name = 'object_identifier_value_%s' % id
     objid = cache.get(objid_cache_name)

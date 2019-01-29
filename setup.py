@@ -22,17 +22,19 @@
     Email - essarch@essolutions.se
 """
 
-import versioneer
-versioneer.VCS = 'git'
-versioneer.versionfile_source = 'ESSArch_Core/_version.py'
-versioneer.versionfile_build = None
-versioneer.tag_prefix = '' # tags are like 1.2.0
-versioneer.parentdir_prefix = 'ESSArch_Core-'
+import sys
 
 from setuptools import find_packages, setup
 from setuptools.command.install import install as _install
-import sys
 from pkg_resources import require as pkg_check, DistributionNotFound, VersionConflict
+import versioneer
+
+
+versioneer.VCS = 'git'
+versioneer.versionfile_source = 'ESSArch_Core/_version.py'
+versioneer.versionfile_build = None
+versioneer.tag_prefix = ''  # tags are like 1.2.0
+versioneer.parentdir_prefix = 'ESSArch_Core-'
 
 try:
     input = raw_input
@@ -41,10 +43,10 @@ except NameError:
 
 # ESSArch_Core dependencies
 dependencies = [
-  'ESSArch-EPP>=2.8.4,<=2.8.5',
-  'ESSArch-PP>=3.0.0.*,<=3.0.1.*',
-  'ESSArch-TA>=1.0.3.*,<=1.2.1.*',
-  'ESSArch-TP>=1.0.3.*,<=1.2.1.*',
+    'ESSArch-EPP>=2.8.4,<=2.8.5',
+    'ESSArch-PP>=3.0.0.*,<=3.0.1.*',
+    'ESSArch-TA>=1.0.3.*,<=1.2.1.*',
+    'ESSArch-TP>=1.0.3.*,<=1.2.1.*',
 ]
 
 
@@ -85,29 +87,29 @@ def dependencies_check(dependencies):
     try:
         pkg_check(dependencies)
     except VersionConflict as e:
-        print ('Warning! You are trying to install a version of ESSArch_Core \
+        print('Warning! You are trying to install a version of ESSArch_Core \
 incompatible with other software versions. If you continue, you \
 will also need to upgrade other software versions as: %s' % e)
         if not query_yes_no('Do you want to continue with the installation?'):
-            print ('Cancel the installation...')
+            print('Cancel the installation...')
             sys.exit(1)
-    except DistributionNotFound as e:
+    except DistributionNotFound:
         pass
 
 
 def _pre_install():
-    print ('Running inside _pre_install')
+    print('Running inside _pre_install')
     dependencies_check(dependencies)
 
 
 def _post_install():
-    print ('Running inside _post_install')
+    print('Running inside _post_install')
 
 
 class my_install(_install):
     def run(self):
         self.execute(_pre_install, [],
-             msg="Running pre install task")
+                     msg="Running pre install task")
 
         _install.run(self)
 
@@ -117,14 +119,14 @@ class my_install(_install):
 
 
 if __name__ == '__main__':
-    cmdclass=versioneer.get_cmdclass()
+    cmdclass = versioneer.get_cmdclass()
     cmdclass.update({'install': my_install})
     setup(
         name='ESSArch_Core',
         version=versioneer.get_version(),
         description='ESSArch Core',
         long_description=open("README.md").read(),
-        long_description_content_type='text/markdown',        
+        long_description_content_type='text/markdown',
         author='Henrik Ek',
         author_email='henrik@essolutions.se',
         url='http://www.essolutions.se',
@@ -142,7 +144,7 @@ if __name__ == '__main__':
             "Programming Language :: Python",
             "Framework :: Django",
             "Topic :: System :: Archiving",
-        ],        
+        ],
         install_requires=[
             "celery==4.2.1",
             "cffi==1.11.5",
@@ -186,15 +188,15 @@ if __name__ == '__main__':
         ],
         extras_require={
             "docs": ["sphinx==1.8.1", "sphinx-intl==0.9.11",
-                "sphinx-rtd-theme==0.4.1", "sphinxcontrib-httpdomain==1.7.0",
-                "sphinxcontrib-httpexample==0.10.0",
-                "sphinxcontrib-inlinesyntaxhighlight==0.2"],
+                     "sphinx-rtd-theme==0.4.1", "sphinxcontrib-httpdomain==1.7.0",
+                     "sphinxcontrib-httpexample==0.10.0",
+                     "sphinxcontrib-inlinesyntaxhighlight==0.2"],
             "tests": ["fakeredis==0.15.0"],
-            "s3":  ["boto3==1.9.14"],
-            "ldap":  ["django-auth-ldap==1.7.0"],
-            "saml2":  ["djangosaml2==0.17.2"],
-            "libreoffice_file_conversion":  ["unoconv==0.8.2"],
-            "ms_office_file_conversion":  ["comtypes==1.1.7;platform_system=='Windows'"],
+            "s3": ["boto3==1.9.14"],
+            "ldap": ["django-auth-ldap==1.7.0"],
+            "saml2": ["djangosaml2==0.17.2"],
+            "libreoffice_file_conversion": ["unoconv==0.8.2"],
+            "ms_office_file_conversion": ["comtypes==1.1.7;platform_system=='Windows'"],
             "iis": ["wfastcgi==3.0.0"],
             "mssql": ["django-pyodbc-azure==1.11.15.0"],
             "mysql": ["mysqlclient==1.3.13"],

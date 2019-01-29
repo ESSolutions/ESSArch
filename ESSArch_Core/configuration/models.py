@@ -42,7 +42,7 @@ class CachedManagerMixin:
 
         if val is None:
             val = self.model.objects.values_list(value_column, flat=True).get(**{search_key: search_value})
-            cache.set(cache_name, val, 3600*24)
+            cache.set(cache_name, val, 3600 * 24)
 
         return val
 
@@ -206,10 +206,18 @@ class ArchivePolicy(models.Model):
 
     index = models.BooleanField(default=True)
 
-    cache_extracted_size = models.BigIntegerField('Maximum size (bytes) of extracted package before deletion from cache', null=True)
-    cache_package_size = models.BigIntegerField('Maximum size (bytes) of package before deletion from cache', null=True)
-    cache_extracted_age = models.IntegerField('Maximum age (days) of extracted package before deletion from cache', null=True)
-    cache_package_age = models.IntegerField('Maximum age (days) of package before deletion from cache', null=True)
+    cache_extracted_size = models.BigIntegerField(
+        'Maximum size (bytes) of extracted package before deletion from cache', null=True
+    )
+    cache_package_size = models.BigIntegerField(
+        'Maximum size (bytes) of package before deletion from cache', null=True
+    )
+    cache_extracted_age = models.IntegerField(
+        'Maximum age (days) of extracted package before deletion from cache', null=True
+    )
+    cache_package_age = models.IntegerField(
+        'Maximum age (days) of package before deletion from cache', null=True
+    )
 
     policy_id = models.CharField('Policy ID', max_length=32, unique=True)
     policy_name = models.CharField('Policy Name', max_length=255)
@@ -229,7 +237,6 @@ class ArchivePolicy(models.Model):
     ingest_path = models.ForeignKey(Path, on_delete=models.PROTECT, related_name='ingest_policy')
     ingest_delete = models.BooleanField('Delete SIP after success to create AIP', default=True)
     receive_extract_sip = models.BooleanField('Extract SIP on receive', default=False)
-
 
     class Meta:
         ordering = ['policy_name']

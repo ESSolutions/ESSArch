@@ -43,6 +43,7 @@ class ParameterAdmin(admin.ModelAdmin):
 
         return self.readonly_fields
 
+
 admin.site.register(Parameter, ParameterAdmin)
 
 
@@ -60,6 +61,7 @@ class PathAdmin(admin.ModelAdmin):
 
         return self.readonly_fields
 
+
 admin.site.register(Path, PathAdmin)
 
 
@@ -69,6 +71,7 @@ class EventTypeAdmin(admin.ModelAdmin):
     """
     list_display = ('eventDetail', 'eventType')
     search_fields = ('eventDetail',)
+
 
 admin.site.register(EventType, EventTypeAdmin)
 
@@ -81,5 +84,6 @@ class AgentAdmin(admin.ModelAdmin):
     search_fields = ('agentDetail',)
     readonly_fields = ('agentDetail',)
     fields = ('agentType', 'agentDetail')
+
 
 admin.site.register(Agent, AgentAdmin)

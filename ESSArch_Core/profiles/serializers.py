@@ -145,22 +145,55 @@ class ProfileIPWriteSerializer(ProfileIPSerializer):
 class SubmissionAgreementSerializer(serializers.ModelSerializer):
     published = serializers.BooleanField(read_only=True)
 
-    profile_transfer_project = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='transfer_project'))
-    profile_content_type = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='content_type'))
-    profile_data_selection = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='data_selection'))
-    profile_authority_information = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='authority_information'))
-    profile_archival_description = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='archival_description'))
-    profile_import = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='import'))
-    profile_submit_description = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='submit_description'))
-    profile_sip = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='sip'))
-    profile_aic_description = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aic_description'))
-    profile_aip = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aip'))
-    profile_aip_description = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aip_description'))
-    profile_dip = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='dip'))
-    profile_workflow = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='workflow'))
-    profile_preservation_metadata = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='preservation_metadata'))
-    profile_event = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='event'))
-    profile_validation = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='validation'))
+    profile_transfer_project = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True,
+        queryset=Profile.objects.filter(profile_type='transfer_project')
+    )
+    profile_content_type = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='content_type')
+    )
+    profile_data_selection = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='data_selection')
+    )
+    profile_authority_information = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='authority_information')
+    )
+    profile_archival_description = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='archival_description')
+    )
+    profile_import = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='import')
+    )
+    profile_submit_description = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='submit_description')
+    )
+    profile_sip = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='sip')
+    )
+    profile_aic_description = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aic_description')
+    )
+    profile_aip = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aip')
+    )
+    profile_aip_description = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aip_description')
+    )
+    profile_dip = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='dip')
+    )
+    profile_workflow = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='workflow')
+    )
+    profile_preservation_metadata = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='preservation_metadata')
+    )
+    profile_event = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='event')
+    )
+    profile_validation = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='validation')
+    )
 
     def validate(self, data):
         if self.instance is None and SubmissionAgreement.objects.filter(pk=data.get('id')).exists():
@@ -171,74 +204,74 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubmissionAgreement
         fields = (
-                'id', 'name', 'published', 'type', 'status', 'label',
+            'id', 'name', 'published', 'type', 'status', 'label',
 
-                'cm_version',
-                'cm_release_date',
-                'cm_change_authority',
-                'cm_change_description',
-                'cm_sections_affected',
+            'cm_version',
+            'cm_release_date',
+            'cm_change_authority',
+            'cm_change_description',
+            'cm_sections_affected',
 
-                'producer_organization',
-                'producer_main_name',
-                'producer_main_address',
-                'producer_main_phone',
-                'producer_main_email',
-                'producer_main_additional',
-                'producer_individual_name',
-                'producer_individual_role',
-                'producer_individual_phone',
-                'producer_individual_email',
-                'producer_individual_additional',
+            'producer_organization',
+            'producer_main_name',
+            'producer_main_address',
+            'producer_main_phone',
+            'producer_main_email',
+            'producer_main_additional',
+            'producer_individual_name',
+            'producer_individual_role',
+            'producer_individual_phone',
+            'producer_individual_email',
+            'producer_individual_additional',
 
-                'archivist_organization',
-                'archivist_main_name',
-                'archivist_main_address',
-                'archivist_main_phone',
-                'archivist_main_email',
-                'archivist_main_additional',
-                'archivist_individual_name',
-                'archivist_individual_role',
-                'archivist_individual_phone',
-                'archivist_individual_email',
-                'archivist_individual_additional',
+            'archivist_organization',
+            'archivist_main_name',
+            'archivist_main_address',
+            'archivist_main_phone',
+            'archivist_main_email',
+            'archivist_main_additional',
+            'archivist_individual_name',
+            'archivist_individual_role',
+            'archivist_individual_phone',
+            'archivist_individual_email',
+            'archivist_individual_additional',
 
-                'designated_community_description',
-                'designated_community_individual_name',
-                'designated_community_individual_role',
-                'designated_community_individual_phone',
-                'designated_community_individual_email',
-                'designated_community_individual_additional',
+            'designated_community_description',
+            'designated_community_individual_name',
+            'designated_community_individual_role',
+            'designated_community_individual_phone',
+            'designated_community_individual_email',
+            'designated_community_individual_additional',
 
-                'information_packages',
-                'include_profile_transfer_project',
-                'include_profile_content_type',
-                'include_profile_data_selection',
-                'include_profile_authority_information',
-                'include_profile_archival_description', 'include_profile_import',
-                'include_profile_submit_description', 'include_profile_sip',
-                'include_profile_aip', 'include_profile_dip',
-                'include_profile_workflow',
-                'include_profile_preservation_metadata',
+            'information_packages',
+            'include_profile_transfer_project',
+            'include_profile_content_type',
+            'include_profile_data_selection',
+            'include_profile_authority_information',
+            'include_profile_archival_description', 'include_profile_import',
+            'include_profile_submit_description', 'include_profile_sip',
+            'include_profile_aip', 'include_profile_dip',
+            'include_profile_workflow',
+            'include_profile_preservation_metadata',
 
-                'profile_transfer_project',
-                'profile_content_type',
-                'profile_data_selection',
-                'profile_authority_information',
-                'profile_archival_description',
-                'profile_import',
-                'profile_submit_description',
-                'profile_sip',
-                'profile_aic_description',
-                'profile_aip',
-                'profile_aip_description',
-                'profile_dip',
-                'profile_workflow',
-                'profile_preservation_metadata',
-                'profile_event',
-                'profile_validation',
+            'profile_transfer_project',
+            'profile_content_type',
+            'profile_data_selection',
+            'profile_authority_information',
+            'profile_archival_description',
+            'profile_import',
+            'profile_submit_description',
+            'profile_sip',
+            'profile_aic_description',
+            'profile_aip',
+            'profile_aip_description',
+            'profile_dip',
+            'profile_workflow',
+            'profile_preservation_metadata',
+            'profile_event',
+            'profile_validation',
 
-                'template',
+            'template',
         )
 
         read_only_fields = ('information_packages',)

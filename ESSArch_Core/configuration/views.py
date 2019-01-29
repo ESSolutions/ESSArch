@@ -27,8 +27,6 @@ import platform
 import socket
 import sys
 
-import celery
-
 from django.db import connection
 from django.conf import settings
 from django.utils import timezone
@@ -91,7 +89,6 @@ class SysInfoView(APIView):
 
     def get(self, request):
         context = {}
-        cwd = settings.BASE_DIR
 
         # Flags in settings: Their expected  and actual values.
         SETTINGS_FLAGS = [

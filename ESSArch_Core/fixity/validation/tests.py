@@ -12,7 +12,6 @@ from lxml import etree
 from pyfakefs import fake_filesystem_unittest
 
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.essxml import Generator
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.format import FormatIdentifier
@@ -124,8 +123,8 @@ class ChecksumValidatorXMLTests(TestCase):
                     <FLocat href="{file2}"/>
                 </file>
             </root>'''.format(
-                    hash=self.checksum, alg='md5', file=self.test_file.name,
-                    hash2=checksum2, file2=test_file2.name)
+            hash=self.checksum, alg='md5', file=self.test_file.name,
+            hash2=checksum2, file2=test_file2.name)
         xml_str = six.binary_type(xml_str.encode('utf-8'))
         self.xml_file.write(xml_str)
         self.xml_file.seek(0)
@@ -402,24 +401,24 @@ class StructureValidatorTests(TestCase):
         # empty
         validator.validate(self.root)
 
-
         # Different platforms traverse the directory in different orders, and
         # will becuase of that generate different exception messages.  We use
         # regex to determine that the exception message is valid
 
         # add mkv
         open(os.path.join(self.root, 'c/test.mkv'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, 'c/test\.mkv missing related file c/test.mkv.md5'):
+        with self.assertRaisesRegexp(ValidationError, r'c/test\.mkv missing related file c/test.mkv.md5'):
             validator.validate(self.root)
 
         # add mkv.md5
         open(os.path.join(self.root, 'c/test.mkv.md5'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, 'c/test\.mkv(\.md5)? missing related file p/test.mp4'):
+        with self.assertRaisesRegexp(ValidationError, r'c/test\.mkv(\.md5)? missing related file p/test.mp4'):
             validator.validate(self.root)
 
         # add mp4
         open(os.path.join(self.root, 'p/test.mp4'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, '(c/test\.mkv(\.md5)?|p/test\.mp4) missing related file p/test.mp4.md5'):
+        with self.assertRaisesRegexp(
+                ValidationError, r'(c/test\.mkv(\.md5)?|p/test\.mp4) missing related file p/test.mp4.md5'):
             validator.validate(self.root)
 
         # add mp4.md5
@@ -519,14 +518,14 @@ class DiffCheckValidatorTests(TestCase):
         self.validator.validate(self.datadir)
 
     def test_validation_with_unchanged_files(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_xml()
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         self.validator.validate(self.datadir)
 
     def test_validation_with_unchanged_files_multiple_times(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_xml()
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
@@ -569,7 +568,7 @@ class DiffCheckValidatorTests(TestCase):
             self.validator.validate(self.datadir)
 
     def test_validation_with_added_file(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_xml()
 
         added = os.path.join(self.datadir, 'added.txt')
@@ -607,7 +606,7 @@ class DiffCheckValidatorTests(TestCase):
             self.validator.validate(self.datadir)
 
     def test_validation_with_checksum_attribute_missing(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_xml()
 
         tree = etree.parse(self.fname)
@@ -626,7 +625,7 @@ class DiffCheckValidatorTests(TestCase):
 
         tree = etree.parse(self.fname)
         file_el = tree.xpath('*[local-name()="file"]')[1]
-        file_el.attrib['SIZE'] = str(os.path.getsize(files[1])*2)
+        file_el.attrib['SIZE'] = str(os.path.getsize(files[1]) * 2)
         tree.write(self.fname, xml_declaration=True, encoding='UTF-8')
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
@@ -635,7 +634,7 @@ class DiffCheckValidatorTests(TestCase):
             self.validator.validate(self.datadir)
 
     def test_validation_with_size_attribute_missing(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_xml()
 
         tree = etree.parse(self.fname)
@@ -965,7 +964,7 @@ class XMLComparisonValidatorTests(TestCase):
         self.validator.validate(self.premis)
 
     def test_validation_with_unchanged_files(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_mets_xml()
         self.generate_premis_xml()
 
@@ -973,7 +972,7 @@ class XMLComparisonValidatorTests(TestCase):
         self.validator.validate(self.premis)
 
     def test_validation_with_unchanged_files_multiple_times(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_mets_xml()
         self.generate_premis_xml()
 
@@ -1006,7 +1005,7 @@ class XMLComparisonValidatorTests(TestCase):
             self.validator.validate(self.premis)
 
     def test_validation_with_added_file(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_mets_xml()
 
         added = os.path.join(self.datadir, 'added.txt')
@@ -1047,7 +1046,7 @@ class XMLComparisonValidatorTests(TestCase):
             self.validator.validate(self.premis)
 
     def test_validation_with_checksum_attribute_missing(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_mets_xml()
         self.generate_premis_xml()
 
@@ -1068,7 +1067,7 @@ class XMLComparisonValidatorTests(TestCase):
 
         tree = etree.parse(self.premis)
         file_el = tree.xpath('*[local-name()="file"]')[1]
-        file_el.attrib['SIZE'] = str(os.path.getsize(files[1])*2)
+        file_el.attrib['SIZE'] = str(os.path.getsize(files[1]) * 2)
         tree.write(self.premis, xml_declaration=True, encoding='UTF-8')
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
@@ -1077,7 +1076,7 @@ class XMLComparisonValidatorTests(TestCase):
             self.validator.validate(self.premis)
 
     def test_validation_with_size_attribute_missing(self):
-        files = self.create_files()
+        self.create_files()
         self.generate_mets_xml()
         self.generate_premis_xml()
 

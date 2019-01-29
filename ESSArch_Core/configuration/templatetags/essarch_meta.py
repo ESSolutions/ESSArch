@@ -9,9 +9,11 @@ register = template.Library()
 def essarch_version():
     return get_versions()['version']
 
+
 @register.simple_tag
 def essarch_project_name():
     return settings.PROJECT_NAME
+
 
 @register.simple_tag
 def essarch_project_shortname():

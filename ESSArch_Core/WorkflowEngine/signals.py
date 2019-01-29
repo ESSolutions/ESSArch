@@ -2,6 +2,7 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
+
 @receiver(pre_save, sender=ProcessTask)
 def task_pre_save(sender, instance, **kwargs):
     if not instance.label:

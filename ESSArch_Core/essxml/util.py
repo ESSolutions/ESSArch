@@ -320,7 +320,12 @@ def find_file(filepath, xmlfile=None, tree=None, rootdir='', prefix=''):
 
     for pointer in find_pointers(tree=tree):
         pointer_prefix = os.path.split(pointer.path)[0]
-        xml_el, el = find_file(filepath, xmlfile=os.path.join(rootdir, pointer.path), rootdir=rootdir, prefix=pointer_prefix)
+        xml_el, el = find_file(
+            filepath,
+            xmlfile=os.path.join(rootdir, pointer.path),
+            rootdir=rootdir,
+            prefix=pointer_prefix
+        )
         if xml_el is not None:
             return xml_el, el
 

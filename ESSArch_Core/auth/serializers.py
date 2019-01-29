@@ -61,6 +61,7 @@ class GroupDetailSerializer(GroupSerializer):
     class Meta(GroupSerializer.Meta):
         fields = GroupSerializer.Meta.fields + ('group_members',)
 
+
 class OrganizationDetailSerializer(GroupSerializer):
     group_members = serializers.SerializerMethodField()
 
@@ -152,7 +153,7 @@ class UserLoggedInSerializer(UserSerializer):
         user_profile.ip_list_view_type = profile_data.get(
             'ip_list_view_type',
             user_profile.ip_list_view_type
-         )
+        )
 
         user_profile.notifications_enabled = profile_data.get(
             'notifications_enabled',
@@ -214,7 +215,7 @@ class NotificationReadSerializer(NotificationSerializer):
 
 
 # Import from rest_auth.app_settings must be after UserLoggedInSerializer
-from rest_auth.app_settings import LoginSerializer as rest_auth_LoginSerializer
+from rest_auth.app_settings import LoginSerializer as rest_auth_LoginSerializer  # noqa
 
 
 class LoginSerializer(rest_auth_LoginSerializer):

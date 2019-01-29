@@ -51,7 +51,8 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
                 context=context,
             )
 
-            for on_error_task in _create_on_error_tasks(flow_entry.get('on_error', []), ip=ip, responsible=responsible):
+            on_error_tasks = _create_on_error_tasks(flow_entry.get('on_error', []), ip=ip, responsible=responsible)
+            for on_error_task in on_error_tasks:
                 child_s.on_error.add(on_error_task)
 
             _create_step(child_s, flow_entry['children'], ip, responsible, context=context)
@@ -70,7 +71,8 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
                 processstep_pos=e_idx,
             )
 
-            for on_error_task in _create_on_error_tasks(flow_entry.get('on_error', []), ip=ip, responsible=responsible):
+            on_error_tasks = _create_on_error_tasks(flow_entry.get('on_error', []), ip=ip, responsible=responsible)
+            for on_error_task in on_error_tasks:
                 task.on_error.add(on_error_task)
 
 

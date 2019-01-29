@@ -41,7 +41,11 @@ class StructureUnitSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StructureUnit
-        fields = ('id', 'parent', 'name', 'type', 'description', 'reference_code', 'start_date', 'end_date', 'is_leaf_node', 'is_unit_leaf_node', 'structure',)
+        fields = (
+            'id', 'parent', 'name', 'type', 'description',
+            'reference_code', 'start_date', 'end_date', 'is_leaf_node',
+            'is_unit_leaf_node', 'structure',
+        )
 
 
 class TagStructureSerializer(serializers.ModelSerializer):
@@ -94,7 +98,6 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
         archive = obj.get_active_structure().get_root().pk
         context = {'archive_structure': archive}
         return StructureUnitSerializer(unit, context=context).data
-
 
     def get_is_leaf_node(self, obj):
         return obj.is_leaf_node(structure=self.context.get('structure'))

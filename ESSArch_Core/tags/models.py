@@ -9,6 +9,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 
 from ESSArch_Core.tags.documents import VersionedDocType
 
+
 class Structure(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, blank=False)
@@ -55,8 +56,18 @@ class StructureUnit(MPTTModel):
 
 class Tag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    current_version = models.ForeignKey('tags.TagVersion', on_delete=models.SET_NULL, null=True, related_name='current_version_tags')
-    information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True, related_name='tags')
+    current_version = models.ForeignKey(
+        'tags.TagVersion',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='current_version_tags'
+    )
+    information_package = models.ForeignKey(
+        'ip.InformationPackage',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='tags'
+    )
     task = models.ForeignKey('WorkflowEngine.ProcessTask', on_delete=models.SET_NULL, null=True, related_name='tags')
 
     def get_structures(self, structure=None):
@@ -156,7 +167,7 @@ class TagVersion(models.Model):
         return {
             '_id': self.pk,
             '_index': self.elastic_index,
-            'current_version': self.tag.current_version==self,
+            'current_version': self.tag.current_version == self,
             'reference_code': self.reference_code,
             'name': self.name,
             'type': self.type,
@@ -168,7 +179,12 @@ class TagVersion(models.Model):
 
     def from_search(self):
         es = get_connection()
-        return es.get(index=self.elastic_index, doc_type='_all', id=str(self.pk), params={'_source_exclude': 'attachment.content'})
+        return es.get(
+            index=self.elastic_index,
+            doc_type='_all',
+            id=str(self.pk),
+            params={'_source_exclude': 'attachment.content'}
+        )
 
     def get_doc(self):
         kwargs = {'params': {}}
@@ -213,7 +229,14 @@ class TagVersion(models.Model):
             data = {}
 
         # create copies with same tag as old version
-        new = TagVersion.objects.create(tag=self.tag, type=self.type, name=self.name, elastic_index=self.elastic_index, start_date=start_date, end_date=end_date)
+        new = TagVersion.objects.create(
+            tag=self.tag,
+            type=self.type,
+            name=self.name,
+            elastic_index=self.elastic_index,
+            start_date=start_date,
+            end_date=end_date
+        )
 
         # TODO: create new copy of old elastic document updated with `data`
         doc = new.to_search()

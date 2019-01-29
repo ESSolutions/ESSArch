@@ -44,6 +44,7 @@ from picklefield.fields import PickledObjectField
 
 logger = logging.getLogger('essarch.WorkflowEngine')
 
+
 def create_task(name):
     """
     Create and instantiate the task with the given name
@@ -222,7 +223,10 @@ class ProcessStep(MPTTModel, Process):
         else:
             logger.debug('Creating partial celery workflow')
 
-        workflow = func(y for y in (x.resume(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x, self, link_error=on_error_group) for x in result_list) if not hasattr(y, 'tasks') or len(y.tasks))
+        workflow = func(
+            y for y in (x.resume(direct=False) if isinstance(x, ProcessStep) else create_sub_task(
+                x, self, link_error=on_error_group) for x in result_list
+            ) if not hasattr(y, 'tasks') or len(y.tasks))
 
         if direct:
             logger.info('Celery workflow created')
@@ -292,8 +296,14 @@ class ProcessStep(MPTTModel, Process):
 
         func = group if self.parallel else chain
 
-        result_list = sorted(itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created), reverse=True)
-        workflow = func(x.undo(only_failed=only_failed, direct=False) if isinstance(x, ProcessStep) else create_sub_task(x.create_undo_obj(), self) for x in result_list)
+        result_list = sorted(
+            itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created), reverse=True
+        )
+        workflow = func(
+            x.undo(only_failed=only_failed, direct=False) if isinstance(x, ProcessStep) else create_sub_task(
+                x.create_undo_obj(), self
+            ) for x in result_list
+        )
 
         if direct:
             if self.eager:
@@ -332,7 +342,11 @@ class ProcessStep(MPTTModel, Process):
         func = group if self.parallel else chain
 
         result_list = sorted(itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
-        workflow = func(x.retry(direct=False) if isinstance(x, ProcessStep) else create_sub_task(x.create_retry_obj(), self) for x in result_list)
+        workflow = func(
+            x.retry(direct=False) if isinstance(x, ProcessStep) else create_sub_task(
+                x.create_retry_obj(), self
+            ) for x in result_list
+        )
 
         if direct:
             if self.eager:
@@ -357,7 +371,9 @@ class ProcessStep(MPTTModel, Process):
 
         logger.debug('Resuming step {} ({})'.format(self.name, self.pk))
         child_steps = self.get_children()
-        tasks = self.tasks(manager='by_step_pos').filter(undone__isnull=True, undo_type=False, status=celery_states.PENDING)
+        tasks = self.tasks(manager='by_step_pos').filter(
+            undone__isnull=True, undo_type=False, status=celery_states.PENDING
+        )
 
         return self.run_children(tasks, child_steps, direct)
 
@@ -424,14 +440,14 @@ class ProcessStep(MPTTModel, Process):
 
             try:
                 progress += task_data['progress']
-            except:
+            except BaseException:
                 pass
 
             try:
                 res = progress / total
                 cache.set(self.cache_progress_key, res)
                 return res
-            except:
+            except BaseException:
                 cache.set(self.cache_progress_key, 0)
                 return 0
 
@@ -558,7 +574,13 @@ class ProcessTask(Process):
     progress = models.IntegerField(default=0)
     undone = models.OneToOneField('self', on_delete=models.SET_NULL, related_name='undone_task', null=True, blank=True)
     undo_type = models.BooleanField(editable=False, default=False)
-    retried = models.OneToOneField('self', on_delete=models.SET_NULL, related_name='retried_task', null=True, blank=True)
+    retried = models.OneToOneField(
+        'self',
+        on_delete=models.SET_NULL,
+        related_name='retried_task',
+        null=True,
+        blank=True
+    )
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
     log = PickledObjectField(null=True, default=None)
     on_error = models.ManyToManyField('self')
@@ -614,7 +636,13 @@ class ProcessTask(Process):
             res = t.apply(args=self.args, kwargs=self.params, task_id=str(self.pk), link_error=on_error_group)
         else:
             logging.debug('Running task non-eagerly ({})'.format(self.pk))
-            res = t.apply_async(args=self.args, kwargs=self.params, task_id=str(self.pk), link_error=on_error_group, queue=t.queue)
+            res = t.apply_async(
+                args=self.args,
+                kwargs=self.params,
+                task_id=str(self.pk),
+                link_error=on_error_group,
+                queue=t.queue
+            )
 
         return res
 
@@ -657,7 +685,6 @@ class ProcessTask(Process):
         Create a new task that will be used to undo this task,
         also marks this task as undone
         """
-
 
         undo_obj = ProcessTask.objects.create(
             processstep=self.processstep, name=self.name, args=self.args,

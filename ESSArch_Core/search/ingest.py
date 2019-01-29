@@ -2,7 +2,6 @@ import base64
 import os
 import uuid
 
-from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.tags.documents import Directory, File
 from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
 from ESSArch_Core.util import get_tree_size_and_count, normalize_path, timestamp_to_datetime
@@ -21,8 +20,10 @@ def index_document(ip, filepath, id):
     size, _ = get_tree_size_and_count(filepath)
     modified = timestamp_to_datetime(os.stat(filepath).st_mtime)
 
-    doc = File(_id=id, name=filename, type="document", filename=filename, extension=extension, href=href, ip=str(ip.pk),
-                   data=encoded_content, size=size, modified=modified, current_version=True)
+    doc = File(
+        _id=id, name=filename, type="document", filename=filename, extension=extension, href=href, ip=str(ip.pk),
+        data=encoded_content, size=size, modified=modified, current_version=True
+    )
     doc.save(pipeline='ingest_attachment')
     return doc
 

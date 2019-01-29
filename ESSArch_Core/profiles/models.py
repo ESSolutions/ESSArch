@@ -179,7 +179,6 @@ class ProfileIPDataTemplate(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     profile = models.ForeignKey('Profile', on_delete=models.CASCADE)
 
-
     class Meta:
         ordering = ['created']
 
@@ -246,22 +245,54 @@ class SubmissionAgreement(models.Model):
     include_profile_preservation_metadata = models.BooleanField(default=False)
     include_profile_event = models.BooleanField(default=False)
 
-    profile_transfer_project = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='transfer_project_sa')
-    profile_content_type = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='content_type_sa')
-    profile_data_selection = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='data_selection_sa')
-    profile_authority_information = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='authority_information_sa')
-    profile_archival_description = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='archival_description_sa')
-    profile_import = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='import_sa')
-    profile_submit_description = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='submit_description_sa')
-    profile_sip = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='sip_sa')
-    profile_aic_description = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aic_description_sa')
-    profile_aip = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aip_sa')
-    profile_dip = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='dip_sa')
-    profile_aip_description = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aip_description_sa')
-    profile_workflow = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='workflow_sa')
-    profile_preservation_metadata = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='preservation_metadata_sa')
-    profile_event = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='event_sa')
-    profile_validation = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='validation_sa')
+    profile_transfer_project = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='transfer_project_sa'
+    )
+    profile_content_type = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='content_type_sa'
+    )
+    profile_data_selection = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='data_selection_sa'
+    )
+    profile_authority_information = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='authority_information_sa'
+    )
+    profile_archival_description = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='archival_description_sa'
+    )
+    profile_import = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='import_sa'
+    )
+    profile_submit_description = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='submit_description_sa'
+    )
+    profile_sip = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='sip_sa'
+    )
+    profile_aic_description = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aic_description_sa'
+    )
+    profile_aip = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aip_sa'
+    )
+    profile_dip = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='dip_sa'
+    )
+    profile_aip_description = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aip_description_sa'
+    )
+    profile_workflow = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='workflow_sa'
+    )
+    profile_preservation_metadata = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='preservation_metadata_sa'
+    )
+    profile_event = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='event_sa'
+    )
+    profile_validation = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='validation_sa'
+    )
 
     template = jsonfield.JSONField(default=[])
 

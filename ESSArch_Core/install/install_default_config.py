@@ -27,7 +27,8 @@
 import django
 django.setup()
 
-from ESSArch_Core.configuration.models import EventType, Parameter
+from ESSArch_Core.configuration.models import EventType, Parameter  # noqa
+
 
 def installDefaultConfiguration():
     print("Installing event types...")
@@ -36,6 +37,7 @@ def installDefaultConfiguration():
     installDefaultParameters()
 
     return 0
+
 
 def installDefaultEventTypes():
     dct = {
@@ -119,6 +121,7 @@ def installDefaultEventTypes():
 
     return 0
 
+
 def installDefaultParameters():
     dct = {
         'agent_identifier_type': 'ESS',
@@ -135,6 +138,7 @@ def installDefaultParameters():
         Parameter.objects.get_or_create(entity=key, value=dct[key])
 
     return 0
+
 
 if __name__ == '__main__':
     installDefaultConfiguration()

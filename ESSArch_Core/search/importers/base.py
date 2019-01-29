@@ -1,7 +1,7 @@
 from elasticsearch_dsl import Q as ElasticQ
 from lxml import etree
 
-from ESSArch_Core.tags.documents import Archive, Component
+from ESSArch_Core.tags.documents import Component
 from ESSArch_Core.tags.models import TagVersion
 
 

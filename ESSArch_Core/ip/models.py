@@ -48,7 +48,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from lxml import etree
 from groups_manager.utils import get_permission_name
-from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 from guardian.shortcuts import assign_perm
 from rest_framework import exceptions
 from rest_framework.response import Response
@@ -62,7 +61,15 @@ from ESSArch_Core.profiles.models import ProfileIP, ProfileIPData, ProfileSA
 from ESSArch_Core.profiles.models import SubmissionAgreement as SA
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_backend as get_importer
-from ESSArch_Core.util import find_destination, generate_file_response, get_files_and_dirs, get_tree_size_and_count, in_directory, normalize_path, timestamp_to_datetime
+from ESSArch_Core.util import (
+    find_destination,
+    generate_file_response,
+    get_files_and_dirs,
+    get_tree_size_and_count,
+    in_directory,
+    normalize_path,
+    timestamp_to_datetime,
+)
 
 logger = logging.getLogger('essarch.ip')
 
@@ -99,9 +106,13 @@ class AgentManager(models.Manager):
         notes = [n.text for n in el.xpath('*[local-name()="note"]')]
 
         existing_agents_with_notes = self.model.objects.all().with_notes(notes)
-        agent, created = self.model.objects.get_or_create(role=agent_role, type=agent_type, name=name,
-                                                          pk__in=existing_agents_with_notes,
-                                                          defaults={'other_role': other_role, 'other_type': other_type})
+        agent, created = self.model.objects.get_or_create(
+            role=agent_role,
+            type=agent_type,
+            name=name,
+            pk__in=existing_agents_with_notes,
+            defaults={'other_role': other_role, 'other_type': other_type},
+        )
         if created:
             AgentNote.objects.bulk_create(AgentNote(agent=agent, note=n) for n in notes)
         return agent
@@ -234,16 +245,31 @@ class InformationPackage(models.Model):
         related_name='information_packages', null=True
     )
 
-    policy = models.ForeignKey('configuration.ArchivePolicy', on_delete=models.PROTECT, related_name='information_packages', null=True)
+    policy = models.ForeignKey(
+        'configuration.ArchivePolicy',
+        on_delete=models.PROTECT,
+        related_name='information_packages',
+        null=True,
+    )
     aic = models.ForeignKey('self', on_delete=models.PROTECT, related_name='information_packages', null=True)
 
     sip_objid = models.CharField(max_length=255)
     sip_path = models.CharField(max_length=255)
 
-    tag = models.ForeignKey('tags.TagStructure', on_delete=models.SET_NULL, related_name='information_packages', null=True)
+    tag = models.ForeignKey(
+        'tags.TagStructure',
+        on_delete=models.SET_NULL,
+        related_name='information_packages',
+        null=True,
+    )
 
-    submission_agreement = models.ForeignKey(SA, on_delete=models.PROTECT, related_name='information_packages',
-                                             default=None, null=True)
+    submission_agreement = models.ForeignKey(
+        SA,
+        on_delete=models.PROTECT,
+        related_name='information_packages',
+        default=None,
+        null=True,
+    )
     submission_agreement_locked = models.BooleanField(default=False)
     agents = models.ManyToManyField(Agent, related_name='information_packages')
 
@@ -265,7 +291,7 @@ class InformationPackage(models.Model):
         return 'lock_ip_{}'.format(str(self.pk))
 
     def is_locked(self):
-        return cache.has_key(self.get_lock_key())
+        return self.get_lock_key() in cache
 
     def get_lock(self):
         return cache.lock(self.get_lock_key())
@@ -278,8 +304,8 @@ class InformationPackage(models.Model):
             return True
 
         min_generation = InformationPackage.objects.filter(aic=self.aic) \
-                                                    .exclude(workareas__read_only=False) \
-                                                    .aggregate(Min('generation'))['generation__min']
+            .exclude(workareas__read_only=False) \
+            .aggregate(Min('generation'))['generation__min']
         return self.generation == min_generation
 
     def is_last_generation(self):
@@ -287,8 +313,8 @@ class InformationPackage(models.Model):
             return True
 
         max_generation = InformationPackage.objects.filter(aic=self.aic) \
-                                                    .exclude(workareas__read_only=False) \
-                                                    .aggregate(Max('generation'))['generation__max']
+            .exclude(workareas__read_only=False) \
+            .aggregate(Max('generation'))['generation__max']
         return self.generation == max_generation
 
     def change_organization(self, organization):
@@ -312,11 +338,13 @@ class InformationPackage(models.Model):
         new_aip.responsible = responsible
 
         with transaction.atomic():
-            max_generation = InformationPackage.objects.select_for_update().filter(aic=self.aic).aggregate(Max('generation'))['generation__max']
+            max_generation = InformationPackage.objects.select_for_update().filter(aic=self.aic).aggregate(
+                Max('generation')
+            )['generation__max']
             new_aip.generation = max_generation + 1
             new_aip.save()
 
-        new_aip.object_identifier_value = object_identifier_value if object_identifier_value is not None else str(new_aip.pk)
+        new_aip.object_identifier_value = object_identifier_value or str(new_aip.pk)
         new_aip.save(update_fields=['object_identifier_value'])
 
         for profile_ip in self.profileip_set.all():
@@ -376,7 +404,7 @@ class InformationPackage(models.Model):
 
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
-            return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
+            return (self.last_changed_local - self.last_changed_external).total_seconds() == 0
 
     def new_version_in_progress(self):
         ip = self.related_ips(cached=False).filter(workareas__read_only=False).first()
@@ -410,7 +438,6 @@ class InformationPackage(models.Model):
             data_obj = ProfileIPData.objects.create(relation=profile_ip, data=data, version=0, user=user)
             profile_ip.data = data_obj
             profile_ip.save()
-
 
     def get_profile_rel(self, profile_type):
         return self.profileip_set.get(
@@ -459,7 +486,7 @@ class InformationPackage(models.Model):
             return self.get_profile_data('transfer_project').get(
                 'container_format', 'tar'
             )
-        except:
+        except BaseException:
             return 'tar'
 
     def get_checksum_algorithm(self):
@@ -470,7 +497,7 @@ class InformationPackage(models.Model):
                 )
             else:
                 name = self.policy.get_checksum_algorithm_display().upper()
-        except:
+        except BaseException:
             name = 'SHA-256'
 
         return name
@@ -480,7 +507,7 @@ class InformationPackage(models.Model):
             return self.get_profile_data('transfer_project').get(
                 'preservation_organization_receiver_email'
             )
-        except:
+        except BaseException:
             return None
 
     def get_structure(self):
@@ -618,7 +645,7 @@ class InformationPackage(models.Model):
                     )
                 )
 
-                progress += math.ceil(ip_profiles_locked.count() * ((100-progress) / sa_profiles.count()))
+                progress += math.ceil(ip_profiles_locked.count() * ((100 - progress) / sa_profiles.count()))
 
             except ZeroDivisionError:
                 pass
@@ -730,7 +757,12 @@ class InformationPackage(models.Model):
 
             fid = FormatIdentifier(allow_unknown_file_types=True)
             content_type = fid.get_mimetype(path)
-            return generate_file_response(self.open_file(path, 'rb'), content_type, force_download=force_download, name=path)
+            return generate_file_response(
+                self.open_file(path, 'rb'),
+                content_type,
+                force_download=force_download,
+                name=path
+            )
         except (IOError, OSError) as e:
             if e.errno == errno.ENOENT:
                 raise exceptions.NotFound
@@ -746,7 +778,12 @@ class InformationPackage(models.Model):
             if force_download:
                 fid = FormatIdentifier(allow_unknown_file_types=True)
                 content_type = fid.get_mimetype(path)
-                return generate_file_response(self.open_file(self.object_path, 'rb'), content_type, force_download=force_download, name=path)
+                return generate_file_response(
+                    self.open_file(self.object_path, 'rb'),
+                    content_type,
+                    force_download=force_download,
+                    name=path
+                )
 
         entries = self.list_files(path)
         if paginator is not None:
@@ -766,7 +803,10 @@ class InformationPackage(models.Model):
 
             xmlfile = self.package_mets_path
             if not xmlfile:
-                xmlfile = os.path.join(os.path.dirname(self.object_path), u'{}.xml'.format(self.object_identifier_value))
+                xmlfile = os.path.join(
+                    os.path.dirname(self.object_path),
+                    u'{}.xml'.format(self.object_identifier_value)
+                )
             if os.path.join(os.path.dirname(self.object_path), path) == xmlfile:
                 return open(xmlfile, *args)
 
@@ -876,7 +916,7 @@ class InformationPackageMetadata(models.Model):
 
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
-            return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
+            return (self.last_changed_local - self.last_changed_external).total_seconds() == 0
 
 
 class EventIPManager(models.Manager):
@@ -904,7 +944,9 @@ class EventIPManager(models.Manager):
             'detail': el.xpath(from_path('eventDetailInformation/eventDetail'))[0].text,
             'outcome_information': {
                 'outcome': el.xpath(from_path('eventOutcomeInformation/eventOutcome'))[0].text,
-                'outcome_detail_note': el.xpath(from_path('eventOutcomeInformation/eventOutcomeDetail/eventOutcomeDetailNote'))[0].text,
+                'outcome_detail_note': el.xpath(
+                    from_path('eventOutcomeInformation/eventOutcomeDetail/eventOutcomeDetailNote')
+                )[0].text,
             },
             'linking_agent_identifier': {
                 'type': el.xpath(from_path('linkingAgentIdentifier/linkingAgentIdentifierType'))[0].text,
@@ -965,11 +1007,11 @@ class EventIP(models.Model):
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask', on_delete=models.CASCADE, null=True,
         related_name='events',
-    ) # The task that generated the event
+    )  # The task that generated the event
     application = models.CharField(max_length=255)
-    eventVersion = models.CharField(max_length=255) # The version number of the application (from versioneer)
-    eventOutcome = models.IntegerField(choices=OUTCOME_CHOICES, null=True, default=None) # Success (0) or Fail (1)
-    eventOutcomeDetailNote = models.CharField(max_length=1024) # Result or traceback from IP
+    eventVersion = models.CharField(max_length=255)  # The version number of the application (from versioneer)
+    eventOutcome = models.IntegerField(choices=OUTCOME_CHOICES, null=True, default=None)  # Success (0) or Fail (1)
+    eventOutcomeDetailNote = models.CharField(max_length=1024)  # Result or traceback from IP
     linkingAgentIdentifierValue = models.CharField(max_length=255, blank=True)
     linkingAgentRole = models.CharField(max_length=255, blank=True)
     linkingObjectIdentifierValue = models.CharField(max_length=255, blank=True)

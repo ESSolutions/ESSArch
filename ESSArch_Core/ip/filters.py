@@ -36,7 +36,11 @@ class InformationPackageFilter(filters.FilterSet):
         label=_("Archivist Organization"),
         queryset=Agent.objects.filter(role__iexact="archivist", type__iexact="organization"),
     )
-    responsible = filters.ModelMultipleChoiceFilter(field_name="responsible__username", to_field_name="username", queryset=users)
+    responsible = filters.ModelMultipleChoiceFilter(
+        field_name="responsible__username",
+        to_field_name="username",
+        queryset=users
+    )
     state = MultipleCharFilter()
     object_size = filters.RangeFilter()
     start_date = IsoDateTimeFromToRangeFilter()
@@ -44,7 +48,10 @@ class InformationPackageFilter(filters.FilterSet):
     create_date = IsoDateTimeFromToRangeFilter()
     entry_date = IsoDateTimeFromToRangeFilter()
     package_type = MultipleCharFilter()
-    package_type_name_exclude = filters.CharFilter(label=_("Excluded Package Type"), method='exclude_package_type_name')
+    package_type_name_exclude = filters.CharFilter(
+        label=_("Excluded Package Type"),
+        method='exclude_package_type_name'
+    )
 
     def exclude_package_type_name(self, queryset, name, value):
         for package_type_id, package_type_name in InformationPackage.PACKAGE_TYPE_CHOICES:

@@ -4,7 +4,6 @@ import logging
 import os
 import traceback
 
-import six
 from django.utils import timezone
 from glob2 import glob, iglob
 from os import walk
@@ -49,17 +48,17 @@ class StructureValidator(BaseValidator):
         required_files.remove(rel_file)
 
     def in_valid_paths(self, root, path, valid_paths):
-        for valid_path in [p for p in valid_paths if isinstance(p, six.string_types)]:
-            if path in list(six.moves.map(normalize_path, glob(valid_path))):
+        for valid_path in [p for p in valid_paths if isinstance(p, str)]:
+            if path in list(map(normalize_path, glob(valid_path))):
                 return True
 
-        for valid_path in [p for p in valid_paths if not isinstance(p, six.string_types)]:
+        for valid_path in [p for p in valid_paths if not isinstance(p, str)]:
             for nested_valid_path in valid_path:
                 for found_nested_path, matches in iglob(nested_valid_path, with_matches=True):
                     found_nested_path = normalize_path(found_nested_path)
                     if found_nested_path == path:
                         # check matches
-                        matches = six.moves.map(normalize_path, matches)
+                        matches = map(normalize_path, matches)
                         for match in matches:
                             for related_path in valid_path:
                                 if related_path != found_nested_path:
@@ -68,7 +67,9 @@ class StructureValidator(BaseValidator):
                                     if not os.path.isfile(related_path):
                                         rel_path = normalize_path(os.path.relpath(path, root))
                                         rel_related_path = normalize_path(os.path.relpath(related_path, root))
-                                        raise ValidationError('{file} missing related file {related}'.format(file=rel_path, related=rel_related_path))
+                                        raise ValidationError('{file} missing related file {related}'.format(
+                                            file=rel_path, related=rel_related_path
+                                        ))
 
                         return True
 
@@ -77,11 +78,11 @@ class StructureValidator(BaseValidator):
     def validate_folder(self, path, node):
         valid_paths = node.get('valid_paths', [])
         allow_empty = node.get('allow_empty', True)
-        required_files = list(six.moves.map(normalize_path, [req.format(**self.data) for req in node.get('required_files', [])]))
+        required_files = list(map(normalize_path, [req.format(**self.data) for req in node.get('required_files', [])]))
         file_count = 0
 
         for idx, valid in enumerate(valid_paths):
-            if isinstance(valid, six.string_types):
+            if isinstance(valid, str):
                 valid_paths[idx] = normalize_path(os.path.join(path, valid).format(**self.data))
             else:
                 for nested_idx, nested_valid in enumerate(valid):

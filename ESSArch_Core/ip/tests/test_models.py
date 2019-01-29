@@ -20,17 +20,41 @@ class InformationPackageListFilesTests(TestCase):
     def test_list_file(self):
         fd, path = tempfile.mkstemp(dir=self.datadir)
         os.close(fd)
-        self.assertEqual(self.ip.list_files(), [{'type': 'file', 'name': os.path.basename(path), 'size': 0, 'modified': timestamp_to_datetime(os.stat(path).st_mtime)}])
+        self.assertEqual(
+            self.ip.list_files(),
+            [{
+                'type': 'file',
+                'name': os.path.basename(path),
+                'size': 0,
+                'modified': timestamp_to_datetime(os.stat(path).st_mtime)
+            }]
+        )
 
     def test_list_folder(self):
         path = tempfile.mkdtemp(dir=self.datadir)
-        self.assertEqual(self.ip.list_files(), [{'type': 'dir', 'name': os.path.basename(path), 'size': 0, 'modified': timestamp_to_datetime(os.stat(path).st_mtime)}])
+        self.assertEqual(
+            self.ip.list_files(),
+            [{
+                'type': 'dir',
+                'name': os.path.basename(path),
+                'size': 0,
+                'modified': timestamp_to_datetime(os.stat(path).st_mtime)
+            }]
+        )
 
     def test_list_folder_content(self):
         path = tempfile.mkdtemp(dir=self.datadir)
         fd, filepath = tempfile.mkstemp(dir=path)
         os.close(fd)
-        self.assertEqual(self.ip.list_files(path=path), [{'type': 'file', 'name': os.path.basename(filepath), 'size': os.stat(filepath).st_size, 'modified': timestamp_to_datetime(os.stat(filepath).st_mtime)}])
+        self.assertEqual(
+            self.ip.list_files(path=path),
+            [{
+                'type': 'file',
+                'name': os.path.basename(filepath),
+                'size': os.stat(filepath).st_size,
+                'modified': timestamp_to_datetime(os.stat(filepath).st_mtime)
+            }]
+        )
 
 
 class GetPathResponseTests(TestCase):
@@ -77,7 +101,7 @@ class GetPathResponseTests(TestCase):
 
         response = self.ip.get_path_response(os.path.relpath(filepath, self.datadir), self.request)
         response.close()
-        
+
         mocked_file = mock_open_file.return_value
         mocked_mimetype = mock_fid.return_value.get_mimetype.return_value
         mock_gen_file_resp.assert_called_once_with(mocked_file, mocked_mimetype, force_download=False, name=relpath)
@@ -101,6 +125,6 @@ class GetPathResponseContainerTests(TestCase):
         response = self.ip.get_path_response(path, self.request)
         response.close()
 
-        mocked_file = mock_open_file.return_value
-        mocked_mimetype = mock_fid.return_value.get_mimetype.return_value
+        mock_open_file.return_value
+        mock_fid.return_value.get_mimetype.return_value
         mock_list_files.assert_called_once_with(path)

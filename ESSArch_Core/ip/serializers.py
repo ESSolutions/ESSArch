@@ -40,10 +40,10 @@ class EventIPSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = EventIP
         fields = (
-                'url', 'id', 'eventType', 'eventDateTime', 'eventDetail',
-                'eventVersion', 'eventOutcome',
-                'eventOutcomeDetailNote', 'linkingAgentIdentifierValue',
-                'linkingAgentRole', 'information_package',
+            'url', 'id', 'eventType', 'eventDateTime', 'eventDetail',
+            'eventVersion', 'eventOutcome',
+            'eventOutcomeDetailNote', 'linkingAgentIdentifierValue',
+            'linkingAgentRole', 'information_package',
         )
         extra_kwargs = {
             'eventVersion': {

@@ -31,6 +31,7 @@ from django.contrib import admin
 from .models import SubmissionAgreement, Profile
 from .utils import profile_types
 
+
 class SubmissionAgreementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(SubmissionAgreementForm, self).__init__(*args, **kwargs)
@@ -45,9 +46,9 @@ class SubmissionAgreementForm(forms.ModelForm):
 class SubmissionAgreementAdmin(admin.ModelAdmin):
     def render_change_form(self, request, context, *args, **kwargs):
         for pt in [pt.lower().replace(' ', '_') for pt in profile_types]:
-            context['adminform'].form.fields[u'profile_{}'.format(pt)].queryset = Profile.objects.filter(profile_type=pt)
-        return super(SubmissionAgreementAdmin, self).render_change_form(request, context, args, kwargs) 
-
+            qs = Profile.objects.filter(profile_type=pt)
+            context['adminform'].form.fields[u'profile_{}'.format(pt)].queryset = qs
+        return super(SubmissionAgreementAdmin, self).render_change_form(request, context, args, kwargs)
 
     form = SubmissionAgreementForm
     list_display = ('name', 'type', 'status', 'label')

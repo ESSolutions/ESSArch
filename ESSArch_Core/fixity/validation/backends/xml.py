@@ -38,10 +38,10 @@ class DiffCheckValidator(BaseValidator):
         self.rootdir = self.options.get('rootdir')
         self.default_algorithm = self.options.get('default_algorithm', 'SHA-256')
 
-        self.initial_present     = {}  # Map checksum -> fname
-        self.initial_deleted     = {}  # Map checksum -> fname
-        self.sizes               = {}  # Map fname -> size
-        self.checksums           = {}  # Map fname -> checksum
+        self.initial_present = {}  # Map checksum -> fname
+        self.initial_deleted = {}  # Map checksum -> fname
+        self.sizes = {}  # Map fname -> size
+        self.checksums = {}  # Map fname -> checksum
         self.checksum_algorithms = {}  # Map fname -> checksum algorithm
 
         self._get_files()
@@ -96,10 +96,10 @@ class DiffCheckValidator(BaseValidator):
         )
 
     def _pop_checksum_dict(self, d, checksum, filepath):
-        l = d[checksum]
-        l.remove(filepath)
+        checksum_list = d[checksum]
+        checksum_list.remove(filepath)
 
-        if not len(l):
+        if not len(checksum_list):
             d.pop(checksum)
 
     def _get_filepath(self, input_file):
@@ -219,10 +219,11 @@ class DiffCheckValidator(BaseValidator):
         Validation.objects.bulk_create(objs, batch_size=100)
 
         if delete_count + self.added + self.changed + self.renamed > 0:
-            msg = u'Diff-check validation of {path} against {xml} failed: {cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted'.format(
+            msg = ('Diff-check validation of {path} against {xml} failed: '
+                   '{cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted').format(
                 path=path, xml=self.context, cfmd=self.confirmed, a=self.added, c=self.changed, r=self.renamed,
                 d=delete_count)
-            logger.warn(msg)
+            logger.warning(msg)
             raise ValidationError(msg)
 
         logger.info(u"Successful diff-check validation of {path} against {xml}".format(path=path, xml=self.context))
@@ -283,10 +284,11 @@ class XMLComparisonValidator(DiffCheckValidator):
         Validation.objects.bulk_create(objs, batch_size=100)
 
         if delete_count + self.added + self.changed + self.renamed > 0:
-            msg = u'Comparison of {path} against {xml} failed: {cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted'.format(
+            msg = ('Comparison of {path} against {xml} failed: '
+                   '{cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted').format(
                 path=path, xml=self.context, cfmd=self.confirmed, a=self.added, c=self.changed, r=self.renamed,
                 d=delete_count)
-            logger.warn(msg)
+            logger.warning(msg)
             raise ValidationError(msg)
 
         logger.info(u"Successful comparison of {path} against {xml}".format(path=path, xml=self.context))
@@ -350,6 +352,7 @@ class XMLSchemaValidator(BaseValidator):
         )
         logger.info(u"Successful schema validation of {xml}".format(xml=filepath))
 
+
 class XMLSchematronValidator(BaseValidator):
     def validate(self, filepath, expected=None):
         logger.debug(u'Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
@@ -363,7 +366,11 @@ class XMLSchematronValidator(BaseValidator):
             schematron = etree.Schematron(sct_doc)
             schematron.assertValid(etree.parse(filepath))
         except etree.DocumentInvalid as e:
-            logger.exception(u'Schematron validation of {xml} against {schema} failed'.format(xml=filepath, schema=self.context))
+            logger.exception(
+                'Schematron validation of {xml} against {schema} failed'.format(
+                    xml=filepath, schema=self.context
+                )
+            )
             done = timezone.now()
             validation_objs = []
             for error in e.error_log:
@@ -382,7 +389,11 @@ class XMLSchematronValidator(BaseValidator):
             Validation.objects.bulk_create(validation_objs, 100)
             raise
         except Exception as e:
-            logger.exception(u'Unknown error during schematron validation of {xml} against {schema}'.format(xml=filepath, schema=self.context))
+            logger.exception(
+                'Unknown error during schematron validation of {xml} against {schema}'.format(
+                    xml=filepath, schema=self.context
+                )
+            )
             done = timezone.now()
             Validation.objects.create(
                 passed=False,
@@ -405,7 +416,12 @@ class XMLSchematronValidator(BaseValidator):
             information_package_id=self.ip,
             task_id=self.task,
         )
-        logger.info(u"Successful schematron validation of {xml} against {schema}".format(xml=filepath, schema=self.context))
+        logger.info(
+            "Successful schematron validation of {xml} against {schema}".format(
+                xml=filepath, schema=self.context
+            )
+        )
+
 
 class XMLISOSchematronValidator(BaseValidator):
     def validate(self, filepath, expected=None):
@@ -419,7 +435,11 @@ class XMLISOSchematronValidator(BaseValidator):
             schematron = isoschematron.Schematron(sct_doc)
             schematron.assertValid(etree.parse(filepath))
         except etree.DocumentInvalid as e:
-            logger.exception(u'ISO-Schematron validation of {xml} against {schema} failed'.format(xml=filepath, schema=self.context))
+            logger.exception(
+                'ISO-Schematron validation of {xml} against {schema} failed'.format(
+                    xml=filepath, schema=self.context
+                )
+            )
             done = timezone.now()
             validation_objs = []
             for error in e.error_log:
@@ -438,7 +458,11 @@ class XMLISOSchematronValidator(BaseValidator):
             Validation.objects.bulk_create(validation_objs, 100)
             raise
         except Exception as e:
-            logger.exception(u'Unknown error during iso-schematron validation of {xml} against {schema}'.format(xml=filepath, schema=self.context))
+            logger.exception(
+                'Unknown error during iso-schematron validation of {xml} against {schema}'.format(
+                    xml=filepath, schema=self.context
+                )
+            )
             done = timezone.now()
             Validation.objects.create(
                 passed=False,
@@ -461,4 +485,8 @@ class XMLISOSchematronValidator(BaseValidator):
             information_package_id=self.ip,
             task_id=self.task,
         )
-        logger.info(u"Successful iso-schematron validation of {xml} against {schema}".format(xml=filepath, schema=self.context))
+        logger.info(
+            "Successful iso-schematron validation of {xml} against {schema}".format(
+                xml=filepath, schema=self.context
+            )
+        )
