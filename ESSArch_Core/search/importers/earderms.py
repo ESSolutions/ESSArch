@@ -31,7 +31,9 @@ class EardErmsImporter(BaseImporter):
             archive_id = root.xpath("//*[local-name()='ArkivReferens']")[0].text
 
             try:
-                return TagVersion.objects.get(Q(Q(name=archive_id) | Q(reference_code=archive_id)), elastic_index='archive')
+                return TagVersion.objects.get(
+                    Q(Q(name=archive_id) | Q(reference_code=archive_id)), elastic_index='archive'
+                )
             except TagVersion.DoesNotExist:
                 logger.exception(u'"{}" not found'.format(archive_id))
                 raise
@@ -46,7 +48,9 @@ class EardErmsImporter(BaseImporter):
     def get_component(self, reference, archive):
         archive_tree_id = archive.get_active_structure().tree_id
         try:
-            return TagVersion.objects.get(Q(Q(name=reference) | Q(reference_code=reference)), tag__structures__tree_id=archive_tree_id)
+            return TagVersion.objects.get(
+                Q(Q(name=reference) | Q(reference_code=reference)), tag__structures__tree_id=archive_tree_id
+            )
         except TagVersion.DoesNotExist:
             logger.exception(u'"{}" not found'.format(reference))
             raise
@@ -80,15 +84,37 @@ class EardErmsImporter(BaseImporter):
         size, _ = get_tree_size_and_count(filepath)
         modified = timestamp_to_datetime(os.stat(filepath).st_mtime)
 
-        d = File(_id=id, name=name, type='Bilaga', archive=act.archive, desc=desc, filename=filename, href=href, extension=ext,
-                 data=encoded_content, size=size, modified=modified, current_version=True, ip=act.ip, task_id=str(self.task.pk))
+        d = File(
+            _id=id,
+            name=name,
+            type='Bilaga',
+            archive=act.archive,
+            desc=desc,
+            filename=filename,
+            href=href,
+            extension=ext,
+            data=encoded_content,
+            size=size,
+            modified=modified,
+            current_version=True,
+            ip=act.ip,
+            task_id=str(self.task.pk),
+        )
 
         tag = Tag(information_package=ip, task=self.task)
         tag_version = TagVersion(pk=d.meta.id, tag=tag,
                                  elastic_index=d._index._name,
                                  name=d.name, type=d.type,
                                  reference_code='')
-        tag_repr = TagStructure(tag=tag, parent=parent, structure=parent.structure, tree_id=parent.tree_id, lft=0, rght=0, level=0)
+        tag_repr = TagStructure(
+            tag=tag,
+            parent=parent,
+            structure=parent.structure,
+            tree_id=parent.tree_id,
+            lft=0,
+            rght=0,
+            level=0,
+        )
         self.indexed_files.append(filepath)
 
         d_dict = d.to_dict(include_meta=True)
@@ -165,7 +191,9 @@ class EardErmsImporter(BaseImporter):
 
         for k, v in six.iteritems(value_map):
             try:
-                initiator_obj[k] = el.xpath("*/*[local-name()='Egenskap' and @Namn='%s']" % v)[0].xpath("*[local-name()='Varde']")[0].text
+                initiator_obj[k] = el.xpath(
+                    "*/*[local-name()='Egenskap' and @Namn='%s']" % v
+                )[0].xpath("*[local-name()='Varde']")[0].text
             except IndexError:
                 pass
 
@@ -320,7 +348,18 @@ class EardErmsImporter(BaseImporter):
                 continue
 
         data.update(dates)
-        return Component(_id=id, current_version=True, unit_ids=unit_ids, task_id=str(self.task.pk), parent=parent, type='Handling', reference_code=reference_code, archive=errand.archive, ip=errand.ip, **data)
+        return Component(
+            _id=id,
+            current_version=True,
+            unit_ids=unit_ids,
+            task_id=str(self.task.pk),
+            parent=parent,
+            type='Handling',
+            reference_code=reference_code,
+            archive=errand.archive,
+            ip=errand.ip,
+            **data
+        )
 
     def parse_mappings(self, mappings, el):
         data = {}
@@ -347,7 +386,15 @@ class EardErmsImporter(BaseImporter):
                                      elastic_index=act._index._name,
                                      name=act.name, type=act.type,
                                      reference_code=act.reference_code)
-            tag_repr = TagStructure(tag=tag, parent=parent, structure=parent.structure, tree_id=parent.tree_id, lft=0, rght=0, level=0)
+            tag_repr = TagStructure(
+                tag=tag,
+                parent=parent,
+                structure=parent.structure,
+                tree_id=parent.tree_id,
+                lft=0,
+                rght=0,
+                level=0
+            )
 
             for doc_el in act_el.xpath("*[local-name()='Bilaga']"):
                 yield self.parse_document(xmlpath, ip, rootdir, doc_el, act, tag_repr)
@@ -427,7 +474,18 @@ class EardErmsImporter(BaseImporter):
 
             ip_id = None
 
-        return Component(_id=id, current_version=True, unit_ids=unit_ids, structure_unit=str(structure_unit.pk), type=u'Ärende', reference_code=reference_code, archive=str(archive.pk), ip=ip_id, task_id=str(self.task.pk), **data), structure_unit
+        return Component(
+            _id=id,
+            current_version=True,
+            unit_ids=unit_ids,
+            structure_unit=str(structure_unit.pk),
+            type=u'Ärende',
+            reference_code=reference_code,
+            archive=str(archive.pk),
+            ip=ip_id,
+            task_id=str(self.task.pk),
+            **data
+        ), structure_unit
 
     def get_tag_structure(self, tag_version_id):
         return TagStructure.objects.filter(tag__versions__pk=tag_version_id).latest()
@@ -442,7 +500,16 @@ class EardErmsImporter(BaseImporter):
                                      elastic_index=component._index._name,
                                      name=component.name, type=component.type,
                                      reference_code=component.reference_code)
-            tag_repr = TagStructure(tag=tag, structure_unit=structure_unit, structure=structure, parent=archive_structure, tree_id=archive_structure.tree_id, lft=0, rght=0, level=0)
+            tag_repr = TagStructure(
+                tag=tag,
+                structure_unit=structure_unit,
+                structure=structure,
+                parent=archive_structure,
+                tree_id=archive_structure.tree_id,
+                lft=0,
+                rght=0,
+                level=0,
+            )
 
             acts_root = self.get_acts_root(errand)
             if len(acts_root):

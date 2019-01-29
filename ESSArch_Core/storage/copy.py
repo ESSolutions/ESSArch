@@ -35,7 +35,11 @@ def copy_chunk_locally(src, dst, offset, file_size, block_size=65536):
         except ZeroDivisionError:
             mb_per_sec = chunk_size
 
-        logger.info('Copied chunk bytes %s - %s / %s from %s to %s at %s MB/Sec (%s sec)' % (start, end, file_size, src, dst, mb_per_sec, time_elapsed))
+        logger.info(
+            'Copied chunk bytes %s - %s / %s from %s to %s at %s MB/Sec (%s sec)' % (
+                start, end, file_size, src, dst, mb_per_sec, time_elapsed
+            )
+        )
 
 
 def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id=None, block_size=65536):
@@ -66,7 +70,11 @@ def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id
     except ZeroDivisionError:
         mb_per_sec = request_size
 
-    logger.info('Copied chunk bytes %s - %s / %s from %s to %s at %s MB/Sec (%s sec)' % (start, end, file_size, src, dst, mb_per_sec, response_time))
+    logger.info(
+        'Copied chunk bytes %s - %s / %s from %s to %s at %s MB/Sec (%s sec)' % (
+            start, end, file_size, src, dst, mb_per_sec, response_time
+        )
+    )
 
     return response.json()['upload_id']
 

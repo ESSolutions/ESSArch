@@ -71,7 +71,14 @@ def _validate_directory(path, validators, task=None, ip=None, stop_at_failure=Tr
 
     for root, dirs, files in walk(path):
         for f in files:
-            _validate_file(os.path.join(root, f), file_validators, task=task, ip=ip, stop_at_failure=stop_at_failure, responsible=responsible)
+            _validate_file(
+                os.path.join(root, f),
+                file_validators,
+                task=task,
+                ip=ip,
+                stop_at_failure=stop_at_failure,
+                responsible=responsible
+            )
 
 
 def validate_path(path, validators, profile, data=None, task=None, ip=None, stop_at_failure=True, responsible=None):
@@ -96,14 +103,38 @@ def validate_path(path, validators, profile, data=None, task=None, ip=None, stop
             exclude = [os.path.join(path, excluded) for excluded in specification.get('exclude', [])]
             options = specification.get('options', {})
 
-            validator_instance = validator(context=context, include=include, exclude=exclude, options=options, data=data, required=required, task=task, ip=ip, responsible=responsible)
+            validator_instance = validator(
+                context=context,
+                include=include,
+                exclude=exclude,
+                options=options,
+                data=data,
+                required=required,
+                task=task,
+                ip=ip,
+                responsible=responsible
+            )
             validator_instances.append(validator_instance)
 
     if os.path.isdir(path):
-        _validate_directory(path, validator_instances, task=task, ip=ip, stop_at_failure=stop_at_failure, responsible=responsible)
+        _validate_directory(
+            path,
+            validator_instances,
+            task=task,
+            ip=ip,
+            stop_at_failure=stop_at_failure,
+            responsible=responsible
+        )
 
     elif os.path.isfile(path):
-        _validate_file(path, validator_instances, task=task, ip=ip, stop_at_failure=stop_at_failure, responsible=responsible)
+        _validate_file(
+            path,
+            validator_instances,
+            task=task,
+            ip=ip,
+            stop_at_failure=stop_at_failure,
+            responsible=responsible
+        )
 
     else:
         raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), path)

@@ -104,7 +104,11 @@ def stable_path(path):
         if new:
             logger.info(u'New path: {}, size: {}, count: {}'.format(path, current_size, current_count))
         elif updated_size or updated_count:
-            logger.info(u'Updated path: {}, size: {} => {}, count: {} => {}'.format(path, cached_size, current_size, cached_count, current_count))
+            logger.info(
+                'Updated path: {}, size: {} => {}, count: {} => {}'.format(
+                    path, cached_size, current_size, cached_count, current_count
+                )
+            )
         cache.set(cache_size_key, current_size, 60 * 60)
         cache.set(cache_count_key, current_count, 60 * 60)
         return False
@@ -120,7 +124,9 @@ def get_elements_without_namespace(root, path, value=None):
         if "@" in split:
             el, attr = split.split("@")
             if value is not None:
-                split_path = '*[local-name()="{el}" and @*[local-name()="{attr}"]="{value}"]'.format(el=el, attr=attr, value=value)
+                split_path = '*[local-name()="{el}" and @*[local-name()="{attr}"]="{value}"]'.format(
+                    el=el, attr=attr, value=value
+                )
             else:
                 split_path = '*[local-name()="{el}" and @*[local-name()="{attr}"]]'.format(el=el, attr=attr)
         else:
@@ -541,7 +547,9 @@ def in_directory(path, directory):
 
 
 def validate_remote_url(url):
-    regex = r'^[a-z][a-z\d.+-]*:\/*(?:[^:@]+(?::[^@]+)?@)?(?:[^\s:/?#,]+|\[[a-f\d:]+])(?::\d+)?(?:\/[^?#]*)?(?:\?[^#]*)?(?:#.*)?,[^,]+,[^,]+$'
+    regex = (r'''
+        ^[a-z][a-z\d.+-]*:\/*(?:[^:@]+(?::[^@]+)?@)?(?:[^\s:/?#,]+|\[[a-f\d:]+])
+        (?::\d+)?(?:\/[^?#]*)?(?:\?[^#]*)?(?:#.*)?,[^,]+,[^,]+$''')
     validate = RegexValidator(regex, 'Enter a valid URL with credentials.')
     validate(url)
 

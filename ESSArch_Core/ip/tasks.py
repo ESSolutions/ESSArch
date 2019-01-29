@@ -73,7 +73,11 @@ class GeneratePackageMets(DBTask):
         elif ip.package_type == InformationPackage.AIP:
             profile_type = 'aip_description'
         else:
-            raise ValueError('Cannot create package mets for IP of type {package_type}'.format(package_type=ip.package_type))
+            raise ValueError(
+                'Cannot create package mets for IP of type {package_type}'.format(
+                    package_type=ip.package_type
+                )
+            )
         profile_rel = ip.get_profile_rel(profile_type)
         profile_data = ip.get_profile_data(profile_type)
         xmlpath = os.path.splitext(ip.object_path)[0] + '.xml'
@@ -377,8 +381,9 @@ class Transform(DBTask):
 class CreateReceipt(DBTask):
     def run(self, task, backend, template, destination, outcome, short_message, message, date=None):
         ip = self.get_information_package()
-        template, destination, outcome, short_message, message, date = self.parse_params(template, destination, outcome,
-                                                                                         short_message, message, date)
+        template, destination, outcome, short_message, message, date = self.parse_params(
+            template, destination, outcome, short_message, message, date
+        )
         if date is None:
             date = timezone.now()
 

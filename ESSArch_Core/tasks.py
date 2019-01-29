@@ -101,7 +101,8 @@ PROCESS_TAG_QUEUE_LUA = """
 class GenerateXML(DBTask):
     event_type = 50600
 
-    def run(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None, parsed_files=None, algorithm='SHA-256'):
+    def run(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None,
+            parsed_files=None, algorithm='SHA-256'):
         """
         Generates the XML using the specified data and folder, and adds the XML
         to the specified files
@@ -126,10 +127,13 @@ class GenerateXML(DBTask):
 
         generator = XMLGenerator()
         generator.generate(
-            filesToCreate, folderToParse=folderToParse, extra_paths_to_parse=extra_paths_to_parse, parsed_files=parsed_files, algorithm=algorithm,
+            filesToCreate, folderToParse=folderToParse, extra_paths_to_parse=extra_paths_to_parse,
+            parsed_files=parsed_files, algorithm=algorithm,
         )
 
-    def undo(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None, parsed_files=None, algorithm='SHA-256'):
+    def undo(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None,
+             parsed_files=None, algorithm='SHA-256'):
+
         if filesToCreate is None:
             filesToCreate = {}
 
@@ -140,7 +144,9 @@ class GenerateXML(DBTask):
                 if e.errno != errno.ENOENT:
                     raise
 
-    def event_outcome_success(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None, parsed_files=None, algorithm='SHA-256'):
+    def event_outcome_success(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None,
+                              parsed_files=None, algorithm='SHA-256'):
+
         if filesToCreate is None:
             filesToCreate = {}
 
@@ -210,7 +216,9 @@ class AppendEvents(DBTask):
             data = {
                 "eventIdentifierType": id_types['event'],
                 "eventIdentifierValue": str(event.eventIdentifierValue),
-                "eventType": str(event.eventType.code) if event.eventType.code is not None and event.eventType.code != '' else str(event.eventType.eventType),
+                "eventType": (
+                    str(event.eventType.code) if event.eventType.code is not None and
+                    event.eventType.code != '' else str(event.eventType.eventType)),
                 "eventDateTime": str(event.eventDateTime),
                 "eventDetail": event.eventType.eventDetail,
                 "eventOutcome": str(event.eventOutcome),
@@ -375,13 +383,17 @@ class ValidateFileFormat(DBTask):
         actual_format_name, actual_format_version, actual_format_registry_key = t.run().get()
 
         if format_name:
-            assert actual_format_name == format_name, "format name for %s is not valid, (%s != %s)" % (filename, format_name, actual_format_name)
+            assert actual_format_name == format_name, (
+                "format name for %s is not valid, (%s != %s)" % filename, format_name, actual_format_name
+            )
 
         if format_version:
             assert actual_format_version == format_version, "format version for %s is not valid" % filename
 
         if format_registry_key:
-            assert actual_format_registry_key == format_registry_key, "format registry key for %s is not valid" % filename
+            assert actual_format_registry_key == format_registry_key, (
+                "format registry key for %s is not valid" % filename
+            )
 
         return "Success"
 
@@ -401,9 +413,23 @@ class ValidateWorkarea(DBTask):
         errcount = Validation.objects.filter(information_package=ip, passed=False, required=True).count()
 
         if errcount:
-            Notification.objects.create(message='Validation of "{ip}" failed with {errcount} error(s)'.format(ip=ip.object_identifier_value, errcount=errcount), level=logging.ERROR, user_id=self.responsible, refresh=True)
+            Notification.objects.create(
+                message='Validation of "{ip}" failed with {errcount} error(s)'.format(
+                    ip=ip.object_identifier_value, errcount=errcount
+                ),
+                level=logging.ERROR,
+                user_id=self.responsible,
+                refresh=True
+            )
         else:
-            Notification.objects.create(message='"{ip}" was successfully validated'.format(ip=ip.object_identifier_value), level=logging.INFO, user_id=self.responsible, refresh=True)
+            Notification.objects.create(
+                message='"{ip}" was successfully validated'.format(
+                    ip=ip.object_identifier_value
+                ),
+                level=logging.INFO,
+                user_id=self.responsible,
+                refresh=True
+            )
 
     def run(self, workarea, validators, stop_at_failure=True):
         workarea = Workarea.objects.get(pk=workarea)
@@ -428,7 +454,9 @@ class ValidateWorkarea(DBTask):
             self.create_notification(ip)
         finally:
             validations = ip.validation_set.all()
-            failed_validators = validations.values('validator').filter(passed=False, required=True).values_list('validator', flat=True)
+            failed_validators = validations.values('validator').filter(
+                passed=False, required=True
+            ).values_list('validator', flat=True)
 
             for k, v in six.iteritems(workarea.successfully_validated):
                 class_name = validation.AVAILABLE_VALIDATORS[k].split('.')[-1]
@@ -463,7 +491,12 @@ class ValidateXMLFile(DBTask):
         else:
             rootdir, = self.parse_params(rootdir)
 
-        validator = XMLSchemaValidator(context=schema_filename, options={'rootdir': rootdir}, ip=self.ip, task=self.task_id)
+        validator = XMLSchemaValidator(
+            context=schema_filename,
+            options={'rootdir': rootdir},
+            ip=self.ip,
+            task=self.task_id
+        )
         validator.validate(xml_filename)
         return "Success"
 
@@ -506,7 +539,9 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 
     def event_outcome_success(self, path, xmlfile, skip_files=None, relpath=None):
         path, xmlfile = self.parse_params(path, xmlfile)
-        return "Successfully validated logical and physical structure of {path} against {xml}".format(path=path, xml=xmlfile)
+        return "Successfully validated logical and physical structure of {path} against {xml}".format(
+            path=path, xml=xmlfile
+        )
 
 
 class CompareXMLFiles(DBTask):

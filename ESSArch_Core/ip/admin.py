@@ -56,7 +56,12 @@ def deleteIP(modeladmin, request, queryset):
                     os.rmdir(obj.directory)
                     break
 
-            modeladmin.message_user(request, "Successfully deleted archivist organization '%s's archive '%s' in database and in directory '%s'" % (obj.archivist_organization, obj.label, obj.directory))
+            modeladmin.message_user(
+                request,
+                "Successfully deleted archivist organization '%s's archive '%s' in database and in directory '%s'" % (
+                    obj.archivist_organization, obj.label, obj.directory
+                )
+            )
 
     # delete db entry
     queryset.delete()

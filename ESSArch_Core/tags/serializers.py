@@ -41,7 +41,11 @@ class StructureUnitSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StructureUnit
-        fields = ('id', 'parent', 'name', 'type', 'description', 'reference_code', 'start_date', 'end_date', 'is_leaf_node', 'is_unit_leaf_node', 'structure',)
+        fields = (
+            'id', 'parent', 'name', 'type', 'description',
+            'reference_code', 'start_date', 'end_date', 'is_leaf_node',
+            'is_unit_leaf_node', 'structure',
+        )
 
 
 class TagStructureSerializer(serializers.ModelSerializer):

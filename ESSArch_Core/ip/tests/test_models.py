@@ -20,17 +20,41 @@ class InformationPackageListFilesTests(TestCase):
     def test_list_file(self):
         fd, path = tempfile.mkstemp(dir=self.datadir)
         os.close(fd)
-        self.assertEqual(self.ip.list_files(), [{'type': 'file', 'name': os.path.basename(path), 'size': 0, 'modified': timestamp_to_datetime(os.stat(path).st_mtime)}])
+        self.assertEqual(
+            self.ip.list_files(),
+            [{
+                'type': 'file',
+                'name': os.path.basename(path),
+                'size': 0,
+                'modified': timestamp_to_datetime(os.stat(path).st_mtime)
+            }]
+        )
 
     def test_list_folder(self):
         path = tempfile.mkdtemp(dir=self.datadir)
-        self.assertEqual(self.ip.list_files(), [{'type': 'dir', 'name': os.path.basename(path), 'size': 0, 'modified': timestamp_to_datetime(os.stat(path).st_mtime)}])
+        self.assertEqual(
+            self.ip.list_files(),
+            [{
+                'type': 'dir',
+                'name': os.path.basename(path),
+                'size': 0,
+                'modified': timestamp_to_datetime(os.stat(path).st_mtime)
+            }]
+        )
 
     def test_list_folder_content(self):
         path = tempfile.mkdtemp(dir=self.datadir)
         fd, filepath = tempfile.mkstemp(dir=path)
         os.close(fd)
-        self.assertEqual(self.ip.list_files(path=path), [{'type': 'file', 'name': os.path.basename(filepath), 'size': os.stat(filepath).st_size, 'modified': timestamp_to_datetime(os.stat(filepath).st_mtime)}])
+        self.assertEqual(
+            self.ip.list_files(path=path),
+            [{
+                'type': 'file',
+                'name': os.path.basename(filepath),
+                'size': os.stat(filepath).st_size,
+                'modified': timestamp_to_datetime(os.stat(filepath).st_mtime)
+            }]
+        )
 
 
 class GetPathResponseTests(TestCase):

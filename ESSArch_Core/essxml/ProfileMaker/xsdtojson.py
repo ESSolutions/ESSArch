@@ -436,4 +436,6 @@ def generateJsonRes(schemadoc, rootElement, namespace):
                     return existingElements, allElements
 
     # root element not found
-    raise ValueError({'rootElement': 'Root must be in %s' % [c.get('name') for c in schemadoc.iterfind(schema + 'element')]})
+    raise ValueError({
+        'rootElement': 'Root must be in %s' % [c.get('name') for c in schemadoc.iterfind(schema + 'element')]
+    })

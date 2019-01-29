@@ -19,7 +19,12 @@ from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
 from ESSArch_Core.ip.filters import AgentFilter, EventIPFilter, InformationPackageFilter
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.permissions import CanChangeSA, CanDeleteIP
-from ESSArch_Core.ip.serializers import AgentSerializer, EventIPSerializer, InformationPackageSerializer, WorkareaSerializer
+from ESSArch_Core.ip.serializers import (
+    AgentSerializer,
+    EventIPSerializer,
+    InformationPackageSerializer,
+    WorkareaSerializer
+)
 from ESSArch_Core.profiles.models import ProfileIP
 
 
@@ -73,7 +78,9 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
             raise exceptions.ParseError("IP does not have a \"validation\" profile")
 
         if ProcessTask.objects.filter(information_package=ip, name=task_name, time_done__isnull=True).exists():
-            raise exceptions.ParseError('"{objid}" is already being validated'.format(objid=ip.object_identifier_value))
+            raise exceptions.ParseError(
+                '"{objid}" is already being validated'.format(objid=ip.object_identifier_value)
+            )
 
         ip.validation_set.all().delete()
 
@@ -110,7 +117,9 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
         ip = workarea.ip
 
         if ip.state.lower() in ('transforming', 'transformed'):
-            raise exceptions.ParseError("\"{ip}\" already {state}".format(ip=ip.object_identifier_value, state=ip.state.lower()))
+            raise exceptions.ParseError(
+                "\"{ip}\" already {state}".format(ip=ip.object_identifier_value, state=ip.state.lower())
+            )
 
         transformer = request.data.get('transformer')
         if transformer is None:
@@ -122,7 +131,11 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
         if ip.get_profile('validation') is not None:
             for validator, successful in six.iteritems(workarea.successfully_validated):
                 if successful is not True:
-                    raise exceptions.ParseError("\"{ip}\" hasn't been successfully validated with \"{validator}\"".format(ip=ip.object_identifier_value, validator=validator))
+                    raise exceptions.ParseError(
+                        "\"{ip}\" hasn't been successfully validated with \"{validator}\"".format(
+                            ip=ip.object_identifier_value, validator=validator
+                        )
+                    )
 
         step = ProcessStep.objects.create(name="Transform", eager=False, information_package=ip)
         pos = 0

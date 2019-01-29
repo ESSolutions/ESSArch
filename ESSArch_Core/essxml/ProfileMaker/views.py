@@ -181,7 +181,9 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, n
     el['-children'] = []
 
     for child in element['children']:
-        e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=containsFiles, namespace=namespace)
+        e, f, d = generateElement(
+            elements, child['uuid'], takenNames, containsFiles=containsFiles, namespace=namespace
+        )
         if e:
             el['-children'].append(e)
             for field in f:

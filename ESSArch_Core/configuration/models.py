@@ -206,10 +206,18 @@ class ArchivePolicy(models.Model):
 
     index = models.BooleanField(default=True)
 
-    cache_extracted_size = models.BigIntegerField('Maximum size (bytes) of extracted package before deletion from cache', null=True)
-    cache_package_size = models.BigIntegerField('Maximum size (bytes) of package before deletion from cache', null=True)
-    cache_extracted_age = models.IntegerField('Maximum age (days) of extracted package before deletion from cache', null=True)
-    cache_package_age = models.IntegerField('Maximum age (days) of package before deletion from cache', null=True)
+    cache_extracted_size = models.BigIntegerField(
+        'Maximum size (bytes) of extracted package before deletion from cache', null=True
+    )
+    cache_package_size = models.BigIntegerField(
+        'Maximum size (bytes) of package before deletion from cache', null=True
+    )
+    cache_extracted_age = models.IntegerField(
+        'Maximum age (days) of extracted package before deletion from cache', null=True
+    )
+    cache_package_age = models.IntegerField(
+        'Maximum age (days) of package before deletion from cache', null=True
+    )
 
     policy_id = models.CharField('Policy ID', max_length=32, unique=True)
     policy_name = models.CharField('Policy Name', max_length=255)

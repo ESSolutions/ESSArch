@@ -220,7 +220,13 @@ class DBTask(Task):
         except User.DoesNotExist:
             agent = None
 
-        extra = {'event_type': self.event_type, 'object': self.ip, 'agent': agent, 'task': self.task_id, 'outcome': outcome}
+        extra = {
+            'event_type': self.event_type,
+            'object': self.ip,
+            'agent': agent,
+            'task': self.task_id,
+            'outcome': outcome
+        }
         logger.log(level, outcome_detail_note, extra=extra)
 
     def failure(self, exc, task_id, args, kwargs, einfo):

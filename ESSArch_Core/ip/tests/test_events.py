@@ -14,7 +14,12 @@ class EventIPManagerTestCase(TestCase):
         self.objid = 'foo'
 
         self.root = etree.fromstring('''
-            <premis:premis xmlns:premis="http://www.loc.gov/premis/v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="3.0" xsi:schemaLocation="http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/premis.xsd">
+            <premis:premis
+                xmlns:premis="http://www.loc.gov/premis/v3"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                version="3.0"
+                xsi:schemaLocation="http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/premis.xsd"
+            >
                 <premis:event>
                   <premis:eventIdentifier>
                     <premis:eventIdentifierType>ESS</premis:eventIdentifierType>

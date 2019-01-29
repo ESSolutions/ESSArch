@@ -417,7 +417,8 @@ class StructureValidatorTests(TestCase):
 
         # add mp4
         open(os.path.join(self.root, 'p/test.mp4'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, r'(c/test\.mkv(\.md5)?|p/test\.mp4) missing related file p/test.mp4.md5'):
+        with self.assertRaisesRegexp(
+                ValidationError, r'(c/test\.mkv(\.md5)?|p/test\.mp4) missing related file p/test.mp4.md5'):
             validator.validate(self.root)
 
         # add mp4.md5

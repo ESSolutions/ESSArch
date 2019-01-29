@@ -148,6 +148,10 @@ class FormatIdentifier:
             mb_per_sec = size_mb
 
         file_format = (self.format_name, self.format_version, self.format_registry_key)
-        logger.info("Identified the format of %s at %s MB/Sec (%s sec): %s" % (filename, mb_per_sec, time_elapsed, file_format))
+        logger.info(
+            "Identified the format of %s at %s MB/Sec (%s sec): %s" % (
+                filename, mb_per_sec, time_elapsed, file_format
+            )
+        )
 
         return file_format

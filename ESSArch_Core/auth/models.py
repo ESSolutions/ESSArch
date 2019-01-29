@@ -238,8 +238,18 @@ class Group(GroupMixin):
 
 
 class GroupMember(GroupMemberMixin):
-    group = models.ForeignKey(Group, related_name='group_membership', on_delete=models.CASCADE, verbose_name=_('group'))
-    member = models.ForeignKey(Member, related_name='group_membership', on_delete=models.CASCADE, verbose_name=_('member'))
+    group = models.ForeignKey(
+        Group,
+        related_name='group_membership',
+        on_delete=models.CASCADE,
+        verbose_name=_('group'),
+    )
+    member = models.ForeignKey(
+        Member,
+        related_name='group_membership',
+        on_delete=models.CASCADE,
+        verbose_name=_('member'),
+    )
     roles = models.ManyToManyField(GroupMemberRole, related_name='group_memberships', verbose_name=_('roles'))
     expiration_date = models.DateTimeField(_('expiration date'), null=True, default=None)
 

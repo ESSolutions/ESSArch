@@ -81,7 +81,9 @@ def fill_specification_data(data=None, sa=None, ip=None):
                 premis_dir, premis_file = find_destination("preservation_description_file", ip_profile.structure)
                 if premis_dir is not None and premis_file is not None:
                     data['_PREMIS_PATH'] = os.path.join(ip.object_path, premis_dir, premis_file)
-            data['allow_unknown_file_types'] = ip.get_profile_data(ip.get_package_type_display().lower()).get('allow_unknown_file_types', False)
+            data['allow_unknown_file_types'] = ip.get_profile_data(
+                ip.get_package_type_display().lower()
+            ).get('allow_unknown_file_types', False)
 
         try:
             # do we have a transfer project profile?
@@ -132,7 +134,10 @@ def fill_specification_data(data=None, sa=None, ip=None):
             agent_key = '{role}_{type}'.format(role=a.role.upper(), type=a.type.upper())
             data['_AGENTS'][agent_key] = agent
 
-        profile_ids = zip([x.lower().replace(' ', '_') for x in profile_types], ["_PROFILE_" + x.upper().replace(' ', '_') + "_ID" for x in profile_types])
+        profile_ids = zip(
+            [x.lower().replace(' ', '_') for x in profile_types],
+            ["_PROFILE_" + x.upper().replace(' ', '_') + "_ID" for x in profile_types]
+        )
 
         for (profile_type, key) in profile_ids:
             try:
