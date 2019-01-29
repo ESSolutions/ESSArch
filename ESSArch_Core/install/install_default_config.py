@@ -117,7 +117,7 @@ def installDefaultEventTypes():
 
     for key in dct:
         print('-> %s: %s' % (key, dct[key]))
-        EventType.objects.get_or_create(eventType=dct[key], eventDetail=key)
+        EventType.objects.get_or_create(eventType=dct[key], defaults={'eventDetail': key})
 
     return 0
 
@@ -135,7 +135,7 @@ def installDefaultParameters():
 
     for key in dct:
         print('-> %s: %s' % (key, dct[key]))
-        Parameter.objects.get_or_create(entity=key, value=dct[key])
+        Parameter.objects.get_or_create(entity=key, defaults={'value': dct[key]})
 
     return 0
 
