@@ -27,9 +27,12 @@ import platform
 import socket
 import sys
 
+from celery import current_app
 from django.db import connection
 from django.conf import settings
 from django.utils import timezone
+from django_redis import get_redis_connection
+from elasticsearch_dsl.connections import get_connection as get_es_connection
 
 try:
     from pip._internal.operations.freeze import freeze as pip_freeze
@@ -61,31 +64,44 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 
+def get_database_info():
+    vendor = connection.vendor
+    version = None
+
+    if vendor == 'mysql':
+        version = connection.mysql_version
+
+    if vendor == 'sqlite':
+        version = sqlite_version
+
+    if vendor == 'postgresql':
+        version = connection.pg_version
+
+    if vendor == 'oracle':
+        version = connection.oracle_full_version
+
+    if vendor == 'microsoft':
+        version = connection.sql_server_version
+
+    return {'vendor': vendor, 'version': version}
+
+
+def get_elasticsearch_info():
+    return get_es_connection().info()
+
+
+def get_redis_info():
+    return get_redis_connection().info()
+
+
+def get_rabbitmq_info():
+    return current_app.connection().connection.server_properties
+
+
 class SysInfoView(APIView):
     """
     API endpoint that allows system info to be viewed
     """
-
-    def get_database_info(self):
-        vendor = connection.vendor
-        version = None
-
-        if vendor == 'mysql':
-            version = connection.mysql_version
-
-        if vendor == 'sqlite':
-            version = sqlite_version
-
-        if vendor == 'postgresql':
-            version = connection.pg_version
-
-        if vendor == 'oracle':
-            version = connection.oracle_full_version
-
-        if vendor == 'microsoft':
-            version = connection.sql_server_version
-
-        return {'vendor': vendor, 'version': version}
 
     def get(self, request):
         context = {}
@@ -110,7 +126,15 @@ class SysInfoView(APIView):
         context['version'] = get_versions()
         context['core_version'] = get_core_versions()
         context['time_checked'] = timezone.now()
-        context['database'] = self.get_database_info()
+        context['database'] = get_database_info()
+
+        try:
+            context['elasticsearch'] = get_elasticsearch_info()
+        except KeyError:
+            pass
+
+        context['redis'] = get_redis_info()
+        context['rabbitmq'] = get_rabbitmq_info()
         context['workers'] = get_workers()
         context['python_packages'] = pip_freeze()
 
