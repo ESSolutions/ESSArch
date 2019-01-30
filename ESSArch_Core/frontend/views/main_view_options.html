@@ -10,10 +10,10 @@
     <div class="main-page-selects">
         <div ng-controller="OrganizationCtrl" class="organization-select">
             <label>
-                {{'ORGANIZATION' | translate}}
+                {{'ORGANIZATION.ORGANIZATION' | translate}}
             </label>
             <select tabindex="-1" class="form-control" ng-model="currentOrganization" ng-disabled="availableOrganizations.length === 0" ng-change="changeOrganization(); updateListView()" ng-options="x as x.name for x in availableOrganizations track by x.id">
-                <option ng-hide="availableOrganizations.length > 0" selected value="">{{'NO_ORGANIZATIONS' | translate}}</option>
+                <option ng-hide="availableOrganizations.length > 0" selected value="">{{'ORGANIZATION.NO_ORGANIZATIONS' | translate}}</option>
             </select>
         </div>
         <div ng-controller="LanguageCtrl" class="language-select">

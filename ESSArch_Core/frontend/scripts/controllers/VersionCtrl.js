@@ -36,11 +36,11 @@ angular.module('essarch.controllers').controller('VersionCtrl', function($scope,
             templateUrl: 'static/frontend/views/docs.html'
         },
         {
-            label: $translate.instant('SYSTEMINFORMATION'),
+            label: $translate.instant('SYSINFO.SYSTEMINFORMATION'),
             templateUrl: "sysinfo.html"
         },
         {
-            label: $translate.instant('SUPPORT'),
+            label: $translate.instant('SYSINFO.SUPPORT'),
             templateUrl: "static/frontend/views/support.html"
         }
     ];

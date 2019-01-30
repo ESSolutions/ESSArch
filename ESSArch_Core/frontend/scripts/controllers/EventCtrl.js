@@ -28,8 +28,8 @@ angular.module('essarch.controllers').controller('EventCtrl', function (Resource
     vm.displayed = [];
     $scope.addEventAlert = null;
     $scope.alerts = {
-        addEventError: { type: 'danger', msg: 'ERROR_MESSAGE' },
-        addEventSuccess: { type: 'success', msg: 'EVENT_ADDED' }
+        addEventError: { type: 'danger', msg: 'EVENT.ERROR_MESSAGE' },
+        addEventSuccess: { type: 'success', msg: 'EVENT.EVENT_ADDED' }
     };
     vm.$onInit = function() {
         $scope.ip = vm.ip;
@@ -107,9 +107,9 @@ angular.module('essarch.controllers').controller('EventCtrl', function (Resource
                 eventOutcome: "",
                 comment: ""
             };
-            Notifications.add($translate.instant('EVENT_ADDED'), "success");
+            Notifications.add($translate.instant('EVENT.EVENT_ADDED'), "success");
         }).catch(function error() {
-            Notifications.add($translate.instant('ERROR_MESSAGE'), "error");
+            Notifications.add($translate.instant('EVENT.ERROR_MESSAGE'), "error");
         });
     }
     var eventInterval;
