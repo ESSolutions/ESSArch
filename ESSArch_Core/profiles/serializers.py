@@ -95,6 +95,8 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
 
 
 class ProfileIPDataTemplateSerializer(serializers.ModelSerializer):
+    data = serializers.JSONField(required=False)
+
     class Meta:
         model = ProfileIPDataTemplate
         fields = ('id', 'name', 'data', 'created', 'profile')
@@ -195,6 +197,8 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
         default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='validation')
     )
 
+    template = serializers.JSONField(required=False)
+
     def validate(self, data):
         if self.instance is None and SubmissionAgreement.objects.filter(pk=data.get('id')).exists():
             raise Conflict('Submission agreement already exists')
@@ -287,6 +291,8 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     specification_data = serializers.SerializerMethodField()
     template = serializers.SerializerMethodField()
+    schemas = serializers.JSONField(required=False)
+    structure = serializers.JSONField(required=False)
 
     def get_specification_data(self, obj):
         data = obj.specification_data
@@ -414,6 +420,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class ProfileDetailSerializer(ProfileSerializer):
+    specification = serializers.JSONField(required=False)
+
     class Meta:
         model = ProfileSerializer.Meta.model
         fields = ProfileSerializer.Meta.fields + (

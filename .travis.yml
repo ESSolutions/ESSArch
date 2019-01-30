@@ -51,8 +51,6 @@ matrix:
 install:
   - python -m pip install --upgrade pip wheel
   - pip install -e .["tests$EXTRA_PACKAGES"]
-  - pip uninstall -y jsonfield django-jsonfield
-  - pip install django-jsonfield
 
 before_script:
   - cd ESSArch_Core

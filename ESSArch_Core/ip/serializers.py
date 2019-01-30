@@ -88,6 +88,7 @@ class WorkareaSerializer(serializers.ModelSerializer):
     packaged = serializers.SerializerMethodField()
     user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
     type_name = serializers.SerializerMethodField()
+    successfully_validated = serializers.JSONField(required=False, allow_null=True)
 
     def get_extracted(self, obj):
         return os.path.isdir(obj.path)
