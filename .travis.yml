@@ -13,9 +13,9 @@ templates:
 
 matrix:
   include:
-    - env: LINT_CHECK
+    - env: FLAKE8
       python: "3.6"
-      install: pip install flake8
+      install: pip install flake8==3.7.1
       script: flake8
 
     - python: "3.6"
