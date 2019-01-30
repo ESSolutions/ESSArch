@@ -61,7 +61,7 @@
             </div>
             <div class="col-12 col-sm-6 col-md-3">
                 <label>
-                    {{'DURATION' | translate}}
+                    {{'STATE_TREE.DURATION' | translate}}
                 </label>
                 <p>
                      {{currentStepTask.duration !== null?currentStepTask.duration:'-'}}
@@ -75,7 +75,7 @@
                 <tr>
                     <td>
                         <div style="max-height: 300px; overflow-y:auto;">
-                            <b>{{('ARGUMENTS' | translate)}}:</b>
+                            <b>{{('STATE_TREE.ARGUMENTS' | translate)}}:</b>
                             <table class="table">
                                 <tbody>
                                     {{vm.getArgsString(currentStepTask.args)}}
@@ -105,7 +105,7 @@
                     </td>
                 </tr>
                 <tr ng-if="currentStepTask.status == 'FAILURE' && currentStepTask.exception !== null && currentStepTask.exception !== ''">
-                    <td><b>{{('ERROR' | translate)+':'}}</b>
+                    <td><b>{{('ERROR.ERROR' | translate)+':'}}</b>
                         {{currentStepTask.exception}}
                     </td>
                 </tr>
@@ -114,7 +114,7 @@
         <button ng-if="currentStepTask.status == 'FAILURE' && currentStepTask.traceback !== null && currentStepTask.traceback !== ''" class="btn btn-default" ng-click="tracebackModal(currentStepTask)">{{'SEETRACEBACK' | translate}}</button>
         <div st-table="vm.validations" st-pipe="vm.getValidations">
             <hr/>
-            <h4>{{'VALIDATIONS' | translate}}</h4>
+            <h4>{{'STATE_TREE.VALIDATIONS' | translate}}</h4>
             <div class="search-prepare-wrapper">
                 <label for items-per-page></label>
                 <select id="items-per-page" style="margin-right: 10px;" class="form-control items-per-page" ng-model="vm.itemsPerPage" ng-options="x for x in [5,10,20,25,50]" uib-tooltip="{{'ITEMSPERPAGE' | translate}}" tooltip-placement="auto top" tooltip-append-to-body="true"></select>
@@ -165,7 +165,7 @@
                                     </i>
                                     <i class="fas fa-spinner fa-spin"
                                     ng-if="!x.passed && x.time_done === null && x.time_started"
-                                    uib-tooltip="{{'RUNNING' | translate}}"
+                                    uib-tooltip="{{'STATE_TREE.RUNNING' | translate}}"
                                     tooltip-placement="right"
                                     tooltip-append-to-body="true"
                                    >

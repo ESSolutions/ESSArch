@@ -17,7 +17,7 @@ angular.module('essarch.controllers').controller('OrganizationModalInstanceCtrl'
                 organization: $ctrl.organization
             }
         }).then(function (response) {
-            Notifications.add($translate.instant('ORGANIZATION_CHANGED'), 'success');
+            Notifications.add($translate.instant('ORGANIZATION.ORGANIZATION_CHANGED'), 'success');
             $uibModalInstance.close("changed");
             $ctrl.saving = false;
         }).catch(function (response) {

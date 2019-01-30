@@ -12,11 +12,11 @@ angular.module('essarch.controllers').controller('UserDropdownCtrl', function ($
 
         optionsAuth = [
             {
-                label: $translate.instant('USER_SETTINGS'),
+                label: $translate.instant('USER_SETTINGS.USER_SETTINGS'),
                 click: function(){$state.go("home.userSettings");}
             },
             {
-                label: $translate.instant('CHANGEPASSWORD'),
+                label: $translate.instant('CHANGE_PASSWORD'),
                 click: function(){$scope.changePasswordModal();}
             },
             {
