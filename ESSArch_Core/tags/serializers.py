@@ -7,6 +7,8 @@ from ESSArch_Core.tags.models import Tag, TagVersion, Structure, StructureUnit, 
 
 
 class StructureSerializer(serializers.ModelSerializer):
+    specification = serializers.JSONField(default={})
+
     class Meta:
         model = Structure
         fields = ('id', 'name', 'version', 'create_date', 'start_date', 'end_date', 'specification',)

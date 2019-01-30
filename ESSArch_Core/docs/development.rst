@@ -41,16 +41,6 @@ dependencies:
     $ cd ESSArch_Core
     $ pip install -e .
 
-
-Because of a naming clash between jsonfield_ and django-jsonfield_ we also need
-to do the following whenever we do an installation which includes
-django-groups-manager_
-
-.. code-block:: bash
-
-    $ pip uninstall -y jsonfield django-jsonfield
-    $ pip install django-jsonfield
-
 ESSArch Core also contains a number of extra dependencies depending on the
 needs of the target environment. These are listed in the ``extras_require``
 section of the ``setup.py`` file at the root of the directory and are installed
