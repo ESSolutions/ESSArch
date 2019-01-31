@@ -10,9 +10,6 @@ overrides:
     options:
       singleQuote: false
       parser: "angular"
-  - files: "*.js"
-    options:
-      parser: "angular"
   - files: "*.scss"
     options:
       parser: "scss"
