@@ -6,7 +6,6 @@ import logging
 import os
 import uuid
 
-import six
 from django.db import transaction
 from django.db.models import OuterRef, Subquery, F, Q
 from elasticsearch_dsl.connections import get_connection
@@ -137,7 +136,7 @@ class EardErmsImporter(BaseImporter):
             'skyddad_identitet': 'SkyddadIdentitet',
         }
 
-        for k, v in six.iteritems(data_mappings):
+        for k, v in data_mappings.items():
             try:
                 data[k] = el.xpath("*[local-name()='{el}']".format(el=v))[0].text
             except IndexError:
@@ -154,7 +153,7 @@ class EardErmsImporter(BaseImporter):
             'organisation': 'Organisationsnamn',
         }
 
-        for k, v in six.iteritems(data_mappings):
+        for k, v in data_mappings.items():
             try:
                 data[k] = el.xpath("*[local-name()='{el}']".format(el=v))[0].text
             except IndexError:
@@ -189,7 +188,7 @@ class EardErmsImporter(BaseImporter):
             'email': 'E-post',
         }
 
-        for k, v in six.iteritems(value_map):
+        for k, v in value_map.items():
             try:
                 initiator_obj[k] = el.xpath(
                     "*/*[local-name()='Egenskap' and @Namn='%s']" % v
@@ -207,7 +206,7 @@ class EardErmsImporter(BaseImporter):
             'upphor': 'RestriktionsDatum',
         }
 
-        for k, v in six.iteritems(data_mappings):
+        for k, v in data_mappings.items():
             try:
                 data[k] = el.xpath("*[local-name()='{el}']".format(el=v))[0].text
             except IndexError:
@@ -221,7 +220,7 @@ class EardErmsImporter(BaseImporter):
         else:
             typ = annan_typ
 
-        data['typ'] = six.text_type(typ)
+        data['typ'] = str(typ)
         return data
 
     def parse_gallring(self, el):
@@ -284,7 +283,7 @@ class EardErmsImporter(BaseImporter):
             'arkivobjekt_id': 'ArkivobjektID',
         }
 
-        for k, v in six.iteritems(data_mappings):
+        for k, v in data_mappings.items():
             if not isinstance(v, list):
                 v = [v]
             found = False
@@ -341,7 +340,7 @@ class EardErmsImporter(BaseImporter):
         }
         dates = {}
 
-        for k, v in six.iteritems(date_mappings):
+        for k, v in date_mappings.items():
             try:
                 dates[k] = act.xpath("*[local-name()='{el}']".format(el=v))[0].text
             except IndexError:
@@ -363,7 +362,7 @@ class EardErmsImporter(BaseImporter):
 
     def parse_mappings(self, mappings, el):
         data = {}
-        for k, v in six.iteritems(mappings):
+        for k, v in mappings.items():
             if not isinstance(v, list):
                 v = [v]
             found = False

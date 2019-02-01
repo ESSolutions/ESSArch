@@ -1,9 +1,9 @@
 import errno
+import io
 import logging
 import os
 
 import boto3
-import six
 from django.conf import settings
 from os import walk
 
@@ -26,7 +26,7 @@ class S3StorageBackend(BaseStorageBackend):
         raise NotImplementedError
 
     def open(self, storage_object, file, *args, **kwargs):
-        data = six.moves.StringIO()
+        data = io.StringIO()
         bucket_name, key = storage_object.content_location_value.split('/', 1)
         key = os.path.join(key, file)
         bucket = s3.Bucket(bucket_name)
@@ -63,7 +63,7 @@ class S3StorageBackend(BaseStorageBackend):
             return dst
 
     def write(self, src, ip, storage_method, storage_medium, block_size=65536):
-        if isinstance(src, six.string_types):
+        if isinstance(src, str):
             src = [src]
         dst = storage_medium.storage_target.target
         logger.debug('Writing {src} to {dst}'.format(src=', '.join(src), dst=dst))

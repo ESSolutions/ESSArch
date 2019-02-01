@@ -23,7 +23,6 @@
 """
 
 import django_filters
-import six
 from django_filters import rest_framework as filters
 from django_filters.constants import EMPTY_VALUES
 
@@ -31,7 +30,7 @@ from ESSArch_Core.forms.fields import IsoDateTimeRangeField, MultipleTextField
 
 
 def string_to_bool(s):
-    if not isinstance(s, six.string_types):
+    if not isinstance(s, str):
         return None
 
     return {

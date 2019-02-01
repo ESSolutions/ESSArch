@@ -40,8 +40,6 @@ from django.utils import timezone
 
 from os import walk
 
-import six
-
 from ESSArch_Core.essxml.util import parse_file
 from ESSArch_Core.fixity.format import FormatIdentifier
 
@@ -63,7 +61,7 @@ def parse_content_django(content, info=None, unicode_error=False, syntax_error=F
 
         def remove_underscore_prefix(d):
             new = {}
-            for k, v in six.iteritems(d):
+            for k, v in d.items():
                 if isinstance(v, dict):
                     v = remove_underscore_prefix(v)
                 if k.startswith('_'):
@@ -80,7 +78,7 @@ def parse_content_django(content, info=None, unicode_error=False, syntax_error=F
     except DjangoUnicodeDecodeError:
         if unicode_error:
             raise
-        for k, v in six.iteritems(info):
+        for k, v in info.items():
             info[k] = make_unicode(v)
         return parse_content_django(content, info=info, unicode_error=True)
 
@@ -92,7 +90,7 @@ def parseContent(content, info=None):
     if info is None:
         info = {}
 
-    if isinstance(content, six.string_types):
+    if isinstance(content, str):
         return parse_content_django(content, info=info)
 
     def get_nested_val(dct, key):
@@ -341,7 +339,7 @@ class XMLElement(object):
                 for fileinfo in files:
                     include = True
 
-                    for key, file_filter in six.iteritems(child.fileFilters):
+                    for key, file_filter in child.fileFilters.items():
                         if not re.search(file_filter, fileinfo.get(key)):
                             include = False
 
@@ -370,7 +368,7 @@ class XMLElement(object):
                     continue
 
                 try:
-                    iterator = six.iteritems(foreach_el)
+                    iterator = foreach_el.items()
                 except AttributeError:
                     iterator = enumerate(foreach_el)
 
@@ -413,7 +411,7 @@ class XMLElement(object):
                 if not self.allowEmpty:
                     return None
             else:
-                nested_xml = six.binary_type(bytearray(info[self.nestedXMLContent], encoding='utf-8'))
+                nested_xml = bytes(bytearray(info[self.nestedXMLContent], encoding='utf-8'))
                 parser = etree.XMLParser(remove_blank_text=True)
                 self.el.append(etree.fromstring(nested_xml, parser=parser))
 
@@ -510,7 +508,7 @@ class XMLGenerator(object):
                  parsed_files=None, relpath=None, algorithm='SHA-256'):
 
         self.toCreate = []
-        for fname, content in six.iteritems(filesToCreate):
+        for fname, content in filesToCreate.items():
             self.toCreate.append({
                 'file': fname,
                 'template': content['spec'],
@@ -537,7 +535,7 @@ class XMLGenerator(object):
         self.fid.allow_unknown_file_types = allow_unknown_file_types
 
         if folderToParse:
-            folderToParse = six.text_type(folderToParse).rstrip('/')
+            folderToParse = str(folderToParse).rstrip('/')
 
             external = self.find_external_dirs()
             if external:
@@ -662,7 +660,7 @@ class XMLGenerator(object):
         if data is None:
             data = {}
 
-        root_nsmap = {k: v for k, v in six.iteritems(target.nsmap) if k}
+        root_nsmap = {k: v for k, v in target.nsmap.items() if k}
         el = XMLElement(spec, nsmap=root_nsmap).createLXMLElement(data)
 
         return self.insert(target, el, index=index, before=before, after=after)

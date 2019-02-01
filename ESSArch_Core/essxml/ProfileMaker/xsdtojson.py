@@ -25,8 +25,6 @@
 import copy
 from collections import OrderedDict
 
-import six
-
 from ESSArch_Core.essxml.Generator.xmlStructure import (
     xmlElement,
     TYPE_CHOISE,
@@ -317,7 +315,7 @@ def generateExtensionRef(schemadoc, namespace):
     global elementTypes
     schema = '{http://www.w3.org/2001/XMLSchema}'
 
-    for key, value in six.iteritems(schemadoc.attrib):
+    for key, value in schemadoc.attrib.items():
         if key == 'targetNamespace':
             pass  # handle namespace? TODO
         elif key == 'version':
@@ -383,7 +381,7 @@ def generateJsonRes(schemadoc, rootElement, namespace):
     global elementTypes
     schema = '{http://www.w3.org/2001/XMLSchema}'
 
-    for key, value in six.iteritems(schemadoc.attrib):
+    for key, value in schemadoc.attrib.items():
         if key == 'targetNamespace':
             pass  # handle namespace? TODO
         elif key == 'version':

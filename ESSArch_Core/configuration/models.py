@@ -22,8 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-import six
-
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import models
@@ -247,9 +245,9 @@ class ArchivePolicy(models.Model):
         if len(self.policy_name):
             return self.policy_name
         elif len(self.policy_id):
-            return six.text_type(self.policy_id)
+            return str(self.policy_id)
         else:
-            return six.text_type(self.pk)
+            return str(self.pk)
 
 
 class DefaultSorting(models.Model):

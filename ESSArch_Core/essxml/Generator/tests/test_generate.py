@@ -32,7 +32,6 @@ import unittest
 from collections import OrderedDict
 
 from unittest import mock
-import six
 from django.test import TestCase
 from django.utils import dateparse, timezone
 from lxml import etree
@@ -793,7 +792,7 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        with six.assertRaisesRegex(self, ValueError, re.escape(
+        with self.assertRaisesRegex(ValueError, re.escape(
                 "Missing value for required element '/foo[0]/bar[1]/baz[2]'")):
 
             self.generator.generate({self.fname: {'spec': specification}})
@@ -941,7 +940,7 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        with six.assertRaisesRegex(self, ValueError, re.escape(
+        with self.assertRaisesRegex(ValueError, re.escape(
                 "Missing value for required attribute 'test' on element '/foo[0]/bar[1]/baz[2]'")):
 
             self.generator.generate({self.fname: {'spec': specification}})

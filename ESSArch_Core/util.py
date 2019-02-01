@@ -26,6 +26,7 @@ from __future__ import absolute_import
 
 import errno
 import glob
+import io
 import itertools
 import json
 import logging
@@ -36,6 +37,7 @@ import shutil
 import sys
 import tarfile
 import zipfile
+from urllib.parse import quote
 
 import chardet
 from rest_framework.exceptions import NotFound, ValidationError
@@ -58,8 +60,6 @@ from subprocess import Popen, PIPE
 from ESSArch_Core.exceptions import NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
 
-import six
-
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
 
@@ -68,13 +68,13 @@ logger = logging.getLogger('essarch')
 
 def make_unicode(text):
     try:
-        return six.text_type(text, 'utf-8')
+        return str(text, 'utf-8')
     except TypeError:
-        if not isinstance(text, six.string_types):
-            return six.text_type(text)
+        if not isinstance(text, str):
+            return str(text)
         return text
     except UnicodeDecodeError:
-        return six.text_type(text.decode('iso-8859-1'))
+        return str(text.decode('iso-8859-1'))
 
 
 def sliceUntilAttr(iterable, attr, val):
@@ -168,7 +168,7 @@ def get_value_from_path(root, path):
 
     if path.startswith('@'):
         attr = path[1:]
-        for a, val in six.iteritems(root.attrib):
+        for a, val in root.attrib.items():
             if re.sub(r'{.*}', '', a) == attr:
                 return val
 
@@ -469,7 +469,7 @@ def parse_content_range_header(header):
 
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
-    for i in six.moves.range(0, len(l), n):
+    for i in range(0, len(l), n):
         yield l[i:i + n]
 
 
@@ -486,7 +486,7 @@ def nested_lookup(key, document):
                 yield result
 
     if isinstance(document, dict):
-        for k, v in six.iteritems(document):
+        for k, v in document.items():
             if k == key:
                 yield v
             elif isinstance(v, dict):
@@ -585,7 +585,7 @@ def generate_file_response(file_obj, content_type, force_download=False, name=No
             filename.encode('ascii')
             file_expr = u'filename="{}"'.format(filename)
         except (UnicodeEncodeError, UnicodeDecodeError):
-            file_expr = u"filename*=utf-8''{}".format(six.moves.urllib.parse.quote(filename))
+            file_expr = u"filename*=utf-8''{}".format(quote(filename))
         response['Content-Disposition'] = u'inline; {}'.format(file_expr)
 
     if force_download or content_type is None:
@@ -676,11 +676,11 @@ def list_files(path, force_download=False, request=None, paginator=None):
         tar_path, tar_subpath = path.split('.tar/')
         tar_path += '.tar'
         if sys.version_info <= (3, 0):
-            tar_subpath = six.binary_type(tar_subpath.encode('utf-8'))
+            tar_subpath = bytes(tar_subpath.encode('utf-8'))
 
         with tarfile.open(tar_path) as tar:
             try:
-                f = six.BytesIO(tar.extractfile(tar_subpath).read())
+                f = io.BytesIO(tar.extractfile(tar_subpath).read())
                 content_type = fid.get_mimetype(tar_subpath)
                 return generate_file_response(f, content_type, force_download, name=tar_subpath)
             except KeyError:
@@ -690,11 +690,11 @@ def list_files(path, force_download=False, request=None, paginator=None):
         zip_path, zip_subpath = path.split('.zip/')
         zip_path += '.zip'
         if sys.version_info <= (3, 0):
-            zip_subpath = six.binary_type(zip_subpath.encode('utf-8'))
+            zip_subpath = bytes(zip_subpath.encode('utf-8'))
 
         with zipfile.ZipFile(zip_path) as zipf:
             try:
-                f = six.BytesIO(zipf.extractfile(zip_subpath).read())
+                f = io.BytesIO(zipf.extractfile(zip_subpath).read())
                 content_type = fid.get_mimetype(zip_subpath)
                 return generate_file_response(f, content_type, force_download, name=zip_subpath)
             except KeyError:

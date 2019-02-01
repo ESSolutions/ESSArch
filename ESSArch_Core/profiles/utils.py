@@ -1,8 +1,6 @@
 import collections
 import os
 
-import six
-
 from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.util import find_destination
 
@@ -30,7 +28,7 @@ profile_types = [
 def _remove_leading_underscores(d):
     new_mapping = type(d)()
 
-    for k, v in six.iteritems(d):
+    for k, v in d.items():
         new_key = k.lstrip('_')
         if isinstance(v, collections.Mapping):
             new_mapping[new_key] = _remove_leading_underscores(v)

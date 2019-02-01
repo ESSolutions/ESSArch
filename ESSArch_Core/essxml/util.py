@@ -27,7 +27,6 @@ from __future__ import absolute_import
 import os
 import uuid
 
-import six
 from lxml import etree
 
 from ESSArch_Core.fixity import checksum
@@ -235,7 +234,7 @@ class XMLFileElement():
         if self.path is None:
             self.paths = props.get('path', [''])
 
-            if isinstance(self.paths, six.string_types):
+            if isinstance(self.paths, str):
                 self.paths = [self.paths]
 
             for path in self.paths:
@@ -271,7 +270,7 @@ class XMLFileElement():
         string, we assume its a path and compares it as is
         '''
 
-        if isinstance(other, six.string_types):
+        if isinstance(other, str):
             return self.path == other
 
         return self.path == other.path
@@ -287,7 +286,7 @@ def find_pointers(xmlfile=None, tree=None):
     if xmlfile is not None:
         tree = etree.ElementTree(file=xmlfile)
 
-    for elname, props in six.iteritems(PTR_ELEMENTS):
+    for elname, props in PTR_ELEMENTS.items():
         for ptr in tree.xpath('.//*[local-name()="%s"]' % elname):
             yield XMLFileElement(ptr, props)
 
@@ -301,12 +300,12 @@ def find_file(filepath, xmlfile=None, tree=None, rootdir='', prefix=''):
 
     root = tree.getroot()
 
-    for elname, props in six.iteritems(FILE_ELEMENTS):
+    for elname, props in FILE_ELEMENTS.items():
         for prefix in props.get('pathprefix', []) + ['']:
             fullpath = prefix + filepath
 
             props_paths = props.get('path')
-            if isinstance(props_paths, six.string_types):
+            if isinstance(props_paths, str):
                 props_paths = [props_paths]
 
             for props_path in props_paths:
@@ -337,7 +336,7 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None):
     if skip_files is None:
         skip_files = []
 
-    for elname, props in six.iteritems(FILE_ELEMENTS):
+    for elname, props in FILE_ELEMENTS.items():
         file_elements = doc.xpath('.//*[local-name()="%s"]' % elname)
 
         # Remove first object in premis file if it is a "fake" entry describing the tar
@@ -408,7 +407,7 @@ def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir='', pro
         fileinfo['FFormatVersion'] = format_version
         fileinfo['FFormatRegistryKey'] = format_registry_key
 
-    for key, value in six.iteritems(provided_data):
+    for key, value in provided_data.items():
         fileinfo[key] = value
 
     return fileinfo

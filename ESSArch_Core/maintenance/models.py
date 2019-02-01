@@ -8,7 +8,6 @@ import uuid
 from collections import OrderedDict
 
 import jsonfield
-import six
 from celery import states as celery_states
 from celery.result import allow_join_result
 from django.contrib.auth import get_user_model
@@ -443,7 +442,7 @@ class ConversionJob(MaintenanceJob):
             shutil.copytree(srcdir, dstdir)
 
             # convert files specified in rule
-            for pattern, spec in six.iteritems(self.rule.specification):
+            for pattern, spec in self.rule.specification.items():
                 target = spec['target']
                 tool = spec['tool']
 

@@ -25,6 +25,7 @@
 import errno
 import logging
 import os
+import pickle
 import shutil
 import tarfile
 import tempfile
@@ -32,7 +33,6 @@ import time
 import zipfile
 
 import requests
-import six
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -46,7 +46,6 @@ from elasticsearch_dsl.connections import get_connection
 from lxml import etree
 from retrying import retry
 from os import walk
-from six.moves import cPickle
 
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
@@ -122,7 +121,7 @@ class GenerateXML(DBTask):
         if ip is not None:
             sa = ip.submission_agreement
 
-        for _, v in six.iteritems(filesToCreate):
+        for _, v in filesToCreate.items():
             v['data'] = fill_specification_data(v['data'], ip=ip, sa=sa)
 
         generator = XMLGenerator()
@@ -137,7 +136,7 @@ class GenerateXML(DBTask):
         if filesToCreate is None:
             filesToCreate = {}
 
-        for f, template in six.iteritems(filesToCreate):
+        for f, template in filesToCreate.items():
             try:
                 os.remove(f)
             except OSError as e:
@@ -458,7 +457,7 @@ class ValidateWorkarea(DBTask):
                 passed=False, required=True
             ).values_list('validator', flat=True)
 
-            for k, v in six.iteritems(workarea.successfully_validated):
+            for k, v in workarea.successfully_validated.items():
                 class_name = validation.AVAILABLE_VALIDATORS[k].split('.')[-1]
                 workarea.successfully_validated[k] = class_name not in failed_validators
 
@@ -1087,7 +1086,7 @@ class ProcessTags(DBTask):
 
     def deserialize(self, tags):
         for tag_string in [t for t in tags if t is not None]:
-            d = cPickle.loads(tag_string)
+            d = pickle.loads(tag_string)
             self.id_pickles[str(d['_id'])] = tag_string
             yield d
 
@@ -1147,7 +1146,7 @@ class IndexTags(ProcessTags):
 
     def deserialize(self, tags):
         for tag_string in [t for t in tags if t is not None]:
-            d = cPickle.loads(tag_string).to_dict(include_meta=True)
+            d = pickle.loads(tag_string).to_dict(include_meta=True)
             if d['_index'] == 'document':
                 d['pipeline'] = 'ingest_attachment'
             self.id_pickles[str(d['_id'])] = tag_string
@@ -1179,7 +1178,7 @@ class RunWorkflowProfiles(DBTask):
     def run(self):
         proj = settings.PROJECT_SHORTNAME
         pollers = getattr(settings, 'ESSARCH_WORKFLOW_POLLERS', {})
-        for name, poller in six.iteritems(pollers):
+        for name, poller in pollers.items():
             backend = get_backend(name)
             poll_path = poller['path']
             poll_sa = poller.get('sa')

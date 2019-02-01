@@ -22,7 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-import six
 from rest_framework import serializers
 
 from ESSArch_Core.exceptions import Conflict
@@ -68,7 +67,7 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
 
         filtered_data = {}
         extra_data = fill_specification_data(ip=relation.ip, sa=relation.ip.submission_agreement)
-        for k, v in six.iteritems(instance_data):
+        for k, v in instance_data.items():
             if k not in extra_data:
                 filtered_data[k] = v
 

@@ -1,4 +1,3 @@
-import six
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -165,7 +164,7 @@ class GetUserRolesTests(TestCase):
 
         self.user.user_profile.current_organization = grp3
         self.user.user_profile.save()
-        six.assertCountEqual(self, list(get_user_roles(self.user).values_list('codename', flat=True)), ['1', '2', '3'])
+        self.assertCountEqual(list(get_user_roles(self.user).values_list('codename', flat=True)), ['1', '2', '3'])
 
 
 class GetObjectsForUserTests(TestCase):

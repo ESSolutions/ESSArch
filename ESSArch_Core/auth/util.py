@@ -1,4 +1,3 @@
-import six
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import F, Min, Q
@@ -58,7 +57,7 @@ def get_objects_for_user(user, klass, perms):
     if user.is_superuser:
         return qs
 
-    if isinstance(perms, six.string_types):
+    if isinstance(perms, str):
         perms = [perms]
 
     codenames = set()
