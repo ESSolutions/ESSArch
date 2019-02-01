@@ -42,15 +42,10 @@ def deleteIP(modeladmin, request, queryset):
     if queryset.count():
         # delete files and directorys
         for obj in queryset:
-            #ip_creator = "%s" % obj.creator
             for root, dirs, files in walk(obj.directory, topdown=False):
                 for name in files:
-                    #f = os.path.join(root, name)
-                    #modeladmin.message_user(request, "filename '%s'" % (f))
                     os.remove(os.path.join(root, name))
                 for name in dirs:
-                    #d = os.path.join(root, name)
-                    #modeladmin.message_user(request, "dirname '%s'" % (d))
                     while True:
                         if not os.listdir(os.path.join(root, name)):
                             os.rmdir(os.path.join(root, name))
@@ -61,10 +56,16 @@ def deleteIP(modeladmin, request, queryset):
                     os.rmdir(obj.directory)
                     break
 
-            modeladmin.message_user(request, "Successfully deleted archivist organization '%s's archive '%s' in database and in directory '%s'" % (obj.archivist_organization, obj.label, obj.directory))
+            modeladmin.message_user(
+                request,
+                "Successfully deleted archivist organization '%s's archive '%s' in database and in directory '%s'" % (
+                    obj.archivist_organization, obj.label, obj.directory
+                )
+            )
 
     # delete db entry
     queryset.delete()
+
 
 deleteIP.short_description = "Delete selected ip from DB and FS"
 
@@ -76,25 +77,24 @@ class IPAdmin(admin.ModelAdmin):
     list_display = ('label', 'create_date', 'id', 'object_path', 'state')
     readonly_fields = ('id',)
     list_filter = ('label',)
-    #fields = ('entity', 'value')
     fieldsets = (
                 (None, {
-                   'classes': ('wide'),
-                   'fields': (
-                              'id',
-                              'label',
-                              'content',
-                              'responsible',
-                              'create_date',
-                              'state',
-                              'status',
-                              'object_path',
-                              'start_date',
-                              'end_date',
-                              'package_type',
-                              'submission_agreement',
-                             )}),
-               )
+                    'classes': ('wide'),
+                    'fields': (
+                        'id',
+                        'label',
+                        'content',
+                        'responsible',
+                        'create_date',
+                        'state',
+                        'status',
+                        'object_path',
+                        'start_date',
+                        'end_date',
+                        'package_type',
+                        'submission_agreement',
+                    )}),
+    )
+
 
 admin.site.register(InformationPackage, IPAdmin)
-

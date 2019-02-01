@@ -1,7 +1,4 @@
-from django.db.models import F
-
 from django_filters import rest_framework as filters
-from django_filters.widgets import BooleanWidget
 
 from ESSArch_Core.tags.models import StructureUnit, Tag
 
@@ -11,7 +8,7 @@ class StructureUnitFilter(filters.FilterSet):
 
     class Meta:
         model = StructureUnit
-        fields = ['has_parent',]
+        fields = ['has_parent']
 
 
 class TagFilter(filters.FilterSet):

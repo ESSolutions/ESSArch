@@ -72,7 +72,12 @@ class CustomMetadata(SimpleMetadata):
             label = filter_type.label
             if label is None:
                 if model is not None:
-                    label = label_for_filter(model, filter_type.field_name, filter_type.lookup_expr, filter_type.exclude)
+                    label = label_for_filter(
+                        model,
+                        filter_type.field_name,
+                        filter_type.lookup_expr,
+                        filter_type.exclude
+                    )
                 else:
                     label = filter_name.replace('_', ' ').title()
 

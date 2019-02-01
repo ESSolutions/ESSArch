@@ -210,4 +210,3 @@ class WorkareaEntryViewSetTestCase(TestCase):
             aip.refresh_from_db()
         except InformationPackage.DoesNotExist:
             self.fail("IP should not be deleted when other users read only workarea is deleted")
-

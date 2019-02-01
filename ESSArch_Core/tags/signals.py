@@ -1,14 +1,9 @@
 import logging
 
-import six
-from django.db.models.signals import pre_delete, post_delete, post_save
+from django.db.models.signals import pre_delete, post_save
 from django.dispatch import receiver
-from django_redis import get_redis_connection
-from elasticsearch_dsl.connections import get_connection
-from six.moves import cPickle
 
-from ESSArch_Core.tags import DELETION_QUEUE, INDEX_QUEUE, UPDATE_QUEUE
-from ESSArch_Core.tags.models import TagStructure, TagVersion
+from ESSArch_Core.tags.models import TagVersion
 
 logger = logging.getLogger('essarch.core')
 

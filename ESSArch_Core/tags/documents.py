@@ -1,5 +1,5 @@
 from django.utils import timezone
-from elasticsearch_dsl import (Boolean, Date, Document, Field, InnerDoc, Integer, Keyword, Long,
+from elasticsearch_dsl import (Boolean, Date, Document, InnerDoc, Integer, Keyword, Long,
                                MetaField, Nested, Object, Q, Text, analyzer,
                                tokenizer, token_filter)
 
@@ -9,7 +9,11 @@ ngram_analyzer = analyzer('custom_ngram_analyzer', tokenizer=ngram_tokenizer,
                           filter=['lowercase'])
 
 autocomplete_filter = token_filter('autocomplete_filter', type='edge_ngram', min_gram=1, max_gram=20)
-autocomplete_analyzer = analyzer('autocomplete_analyzer', filter=[autocomplete_filter, 'lowercase'], tokenizer='standard')
+autocomplete_analyzer = analyzer(
+    'autocomplete_analyzer',
+    filter=[autocomplete_filter, 'lowercase'],
+    tokenizer='standard'
+)
 
 
 class Node(InnerDoc):
@@ -24,8 +28,16 @@ class Restriction(InnerDoc):
 
 
 class VersionedDocType(Document):
-    name = Text(analyzer=autocomplete_analyzer, search_analyzer='standard', fields={'keyword': {'type': 'keyword'}})  # unittitle
-    reference_code = Text(analyzer=autocomplete_analyzer, search_analyzer='standard', fields={'keyword': {'type': 'keyword'}})
+    name = Text(
+        analyzer=autocomplete_analyzer,
+        search_analyzer='standard',
+        fields={'keyword': {'type': 'keyword'}}
+    )  # unittitle
+    reference_code = Text(
+        analyzer=autocomplete_analyzer,
+        search_analyzer='standard',
+        fields={'keyword': {'type': 'keyword'}}
+    )
     link_id = Keyword()
     current_version = Boolean()
     index_date = Date()
@@ -119,7 +131,11 @@ class Archive(VersionedDocType):
 
 class InformationPackage(VersionedDocType):
     id = Keyword()  # @id
-    object_identifier_value = Text(analyzer=ngram_analyzer, search_analyzer='standard', fields={'keyword': {'type': 'keyword'}})
+    object_identifier_value = Text(
+        analyzer=ngram_analyzer,
+        search_analyzer='standard',
+        fields={'keyword': {'type': 'keyword'}}
+    )
     start_date = Date()
     end_date = Date()
     institution = Keyword()

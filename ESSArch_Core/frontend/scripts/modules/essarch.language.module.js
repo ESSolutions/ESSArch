@@ -1,8 +1,6 @@
-angular.module('essarch.configs').config(['$translateProvider', function ($translateProvider) {
-    $translateProvider.useStaticFilesLoader({
-        prefix: 'static/lang/',
-        suffix: '.json'
-    });
+angular.module('essarch.language', [
+    'pascalprecht.translate',
+]).config(['$translateProvider', function ($translateProvider) {
     $translateProvider.storageKey('essarch_language');
     $translateProvider.useCookieStorage();
     $translateProvider.useSanitizeValueStrategy("escape");

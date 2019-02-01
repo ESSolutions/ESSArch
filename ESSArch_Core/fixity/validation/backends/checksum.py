@@ -67,7 +67,9 @@ class ChecksumValidator(BaseValidator):
         try:
             actual_checksum = calculate_checksum(filepath, algorithm=self.algorithm, block_size=self.block_size)
             if actual_checksum != checksum:
-                raise ValidationError("checksum for %s is not valid (%s != %s)" % (filepath, checksum, actual_checksum))
+                raise ValidationError("checksum for %s is not valid (%s != %s)" % (
+                    filepath, checksum, actual_checksum
+                ))
             passed = True
         except Exception:
             val_obj.message = traceback.format_exc()

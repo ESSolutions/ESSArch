@@ -9,9 +9,12 @@
                 <sys-info-component class="sys-info-component" name="{{sysInfo.platform.os}}" version="{{sysInfo.platform.version}}" icon="{{sysInfo.platform.icon}}"/>
                 <sys-info-component class="sys-info-component" name="{{sysInfo.database.vendor}}" version="{{sysInfo.database.version}}" icon="fas fa-database"/>
                 <sys-info-component class="sys-info-component" name="{{'TIME' | translate}}" version="{{sysInfo.time_checked | date: 'yyyy-MM-dd HH:mm'}}" icon="fas fa-clock"/>
+                <sys-info-component class="sys-info-component" name="RabbitMQ" version="{{sysInfo.rabbitmq.version}}"/>
+                <sys-info-component class="sys-info-component" name="Redis" version="{{sysInfo.redis.redis_version}}"/>
+                <sys-info-component ng-if="sysInfo.elasticsearch" class="sys-info-component" name="Elasticsearch" version="{{sysInfo.elasticsearch.version.number}}"/>
             </div>
-            <p><b>{{'HOSTNAME' | translate}}:</b> {{sysInfo.hostname}}</p>
-            <h4>{{'SETTINGSFLAGS' | translate}}</h4>
+            <p><b>{{'SYSINFO.HOSTNAME' | translate}}:</b> {{sysInfo.hostname}}</p>
+            <h4>{{'SYSINFO.SETTINGSFLAGS' | translate}}</h4>
             <table class="table table-striped">
                 <tbody>
                     <tr ng-repeat="flag in sysInfo.settings_flags" ng-class="{'unexpected': flag.unexpected}">
@@ -25,7 +28,7 @@
                 </tbody>
             </table>
 
-            <h4>{{'WORKERS' | translate}}</h4>
+            <h4>{{'SYSINFO.WORKERS' | translate}}</h4>
             <div class="table-container table-x-overflow">
                 <table class="table">
                     <thead>
@@ -34,13 +37,13 @@
                             {{'NAME' | translate}}
                         </th>
                         <th>
-                            {{'BROKER' | translate}}
+                            {{'SYSINFO.BROKER' | translate}}
                         </th>
                         <th>
-                            {{'PID' | translate}}
+                            {{'SYSINFO.PID' | translate}}
                         </th>
                         <th>
-                            {{'MAX CONCURRENCY' | translate}}
+                            {{'SYSINFO.MAX_CONCURRENCY' | translate}}
                         </th>
                     </tr>
                     </thead>
@@ -64,7 +67,7 @@
             </div>
         </div>
         <div class="col-12 col-lg-6 p-0 pl-lg-base" style="overflow: hidden;">
-            <p><b>{{'PYTHONPACKAGES' | translate}}: </b></p>
+            <p><b>{{'SYSINFO.PYTHONPACKAGES' | translate}}: </b></p>
             <div class="table-container table-x-overflow">
                 <table class="table">
                     <thead>

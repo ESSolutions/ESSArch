@@ -5,7 +5,7 @@ import logging
 import os
 import time
 
-MB = 1024*1024
+MB = 1024 * 1024
 
 logger = logging.getLogger('essarch.fixity.checksum')
 
@@ -71,6 +71,10 @@ def calculate_checksum(filename, algorithm='SHA-256', block_size=65536):
         mb_per_sec = size_mb
 
     digest = hash_val.hexdigest()
-    logger.info("Calculated checksum for %s with %s at %s MB/Sec (%s sec): %s" % (filename, algorithm, mb_per_sec, time_elapsed, digest))
+    logger.info(
+        "Calculated checksum for %s with %s at %s MB/Sec (%s sec): %s" % (
+            filename, algorithm, mb_per_sec, time_elapsed, digest
+        )
+    )
 
     return digest

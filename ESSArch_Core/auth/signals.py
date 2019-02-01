@@ -1,4 +1,3 @@
-import json
 import logging
 
 import channels.layers
@@ -6,7 +5,6 @@ from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as DjangoGroup
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
-from django.core.cache import cache
 from django.db.models.signals import m2m_changed, post_delete, pre_save, post_save
 from django.dispatch import receiver
 from groups_manager.models import group_member_delete as groups_manager_group_member_delete
@@ -91,6 +89,7 @@ def notification_post_save(sender, instance, created, **kwargs):
         'unseen_count': Notification.objects.filter(user=instance.user, seen=False).count(),
         'refresh': instance.refresh,
     })
+
 
 @receiver(m2m_changed, sender=User.groups.through)
 def set_current_organization(sender, instance, action, reverse, *args, **kwargs):

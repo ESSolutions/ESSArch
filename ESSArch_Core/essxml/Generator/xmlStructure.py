@@ -65,7 +65,7 @@ class xmlAttribute(object):
         """
         Print out the attribute
         """
-        if self.value is not '':
+        if self.value != '':
             os.write(fd, ' ' + self.attrName + '="' + self.value + '"')
 
 
@@ -77,7 +77,7 @@ class xmlElement(object):
     def __init__(self, tagName='', nsmap={}, namespace=None):
         try:
             self.tagName = tagName.split("#")[0]
-        except:
+        except BaseException:
             self.tagName = tagName
 
         self.children = []
@@ -93,7 +93,7 @@ class xmlElement(object):
         self.namespace = namespace
         try:
             self.full_namespace = nsmap.get(namespace)
-        except:
+        except BaseException:
             self.full_namespace = None
         self.completeTagName = ''
         self.containsFiles = False
@@ -144,7 +144,7 @@ class xmlElement(object):
                 a.printXML(fd)
         if self.children or self.value or self.containsFiles:
             if self.printed == 0:
-                if self.value is not '':
+                if self.value != '':
                     os.write(fd, '>')
                 else:
                     os.write(fd, '>' + eol_)
@@ -153,7 +153,7 @@ class xmlElement(object):
                     if child.printXML(fd, level + 1, pretty):
                         self.printed = 1
                         return True
-                if self.value is not '':
+                if self.value != '':
                     os.write(fd, self.value)
                 else:
                     pretty_print(fd, level)
@@ -182,7 +182,7 @@ class xmlElement(object):
             element['anyElement'] = self.anyElement
             element['containsFiles'] = False
             element['parent'] = parent
-            element['children'] = [];
+            element['children'] = []
             element['namespace'] = self.namespace
             children = []
             for child in self.children:
@@ -286,6 +286,7 @@ class fileInfo():
     """
     A way to contain the temporary files which are created
     """
+
     def __init__(self, element, filename, arguments={}, level=0):
         self.element = element
         self.filename = filename
@@ -297,6 +298,7 @@ class fileObject():
     """
     A container class for all the files in the xml
     """
+
     def __init__(self, xmlFileName, template, fid, namespace=None):
         self.xmlFileName = xmlFileName
         self.template = template

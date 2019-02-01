@@ -3,7 +3,7 @@
         <div class="title-action-button-row">
             <div class="title">
                 <h4>
-                    {{'EVENTS' | translate}}
+                    {{'EVENT.EVENTS' | translate}}
                 </h4>
             </div>
         </div>
@@ -38,7 +38,7 @@
             </div>
             <div class="global-search">
                 <input id="event-search-input" st-search="" class="form-control" ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}" type="text"
-                uib-tooltip="{{'GLOBALSEARCHDESC_EVENT' | translate}}" tooltip-placement="auto top" tooltip-append-to-body="true"
+                uib-tooltip="{{'EVENT.GLOBALSEARCHDESC_EVENT' | translate}}" tooltip-placement="auto top" tooltip-append-to-body="true"
                 />
             </div>
             <div class="refresh-icon">
@@ -50,10 +50,10 @@
                 <thead>
                     <tr>
                         <th></th>
-                        <th class="cursor-pointer" st-sort="eventType">{{'EVENTTYPE' | translate}}</th>
+                        <th class="cursor-pointer" st-sort="eventType">{{'EVENT.EVENTTYPE' | translate}}</th>
                         <th class="cursor-pointer" st-sort="eventOutcomeDetailNote">{{'COMMENT' | translate}}</th>
                         <th class="cursor-pointer" st-sort="linkingAgentIdentifierValue">{{'AGENT' | translate}}</th>
-                        <th class="cursor-pointer" st-sort-default="reverse" st-sort="eventDateTime">{{'EVENTTIME' | translate}}</th>
+                        <th class="cursor-pointer" st-sort-default="reverse" st-sort="eventDateTime">{{'EVENT.EVENTTIME' | translate}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -61,14 +61,14 @@
                         <td class="text-center pr-0">
                             <i  class="fas fa-check"
                                 ng-if="getEventOutcome(row.eventOutcome) === 'success'"
-                                uib-tooltip="{{'EVENT_SUCCESS' | translate}}"
+                                uib-tooltip="{{'EVENT.EVENT_SUCCESS' | translate}}"
                                 tooltip-placement="auto top"
                                 tooltip-append-to-body="true"
                                >
                             </i>
                             <i  class="fas fa-times"
                                 ng-if="getEventOutcome(row.eventOutcome) === 'failure'"
-                                uib-tooltip="{{'EVENT_FAILURE' | translate}}"
+                                uib-tooltip="{{'EVENT.EVENT_FAILURE' | translate}}"
                                 tooltip-placement="auto top"
                                 tooltip-append-to-body="true"
                                >
@@ -110,7 +110,7 @@
                 <label>{{'COMMENT' | translate}}</label>
                 <textarea ng-enter="addEvent(ip, newEventForm.eventType, newEventForm.comment, newEventForm.eventOutcome)" maxlength="255" class="signature form-control" ng-model="newEventForm.comment" ng-required="true" id="signature"></textarea>
             </div>
-            <button type="submit" class="btn btn-primary submit-button">{{'ADDEVENT' | translate}}</button>
+            <button type="submit" class="btn btn-primary submit-button">{{'EVENT.ADDEVENT' | translate}}</button>
         </form>
     </div>
     <div uib-alert ng-if="addEventAlert" style="width:50%; float:right; margin-right: 10px;" ng-class="'alert-' + (addEventAlert.type || 'warning')" close="closeAlert()">{{addEventAlert.msg | translate}}</div>

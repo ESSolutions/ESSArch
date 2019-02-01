@@ -54,7 +54,7 @@ class templatePackage(models.Model):
     targetNamespace = models.CharField(max_length=255)
     nsmap = jsonfield.JSONField(default={})
     # generated = models.BooleanField(default=False)
-    #creator         = models.CharField( max_length = 255 )
+    # creator         = models.CharField( max_length = 255 )
 #     archivist_organization  = models.CharField( max_length = 255 )
 #     label                   = models.CharField( max_length = 255 )
 # #    startdate               = models.CharField( max_length = 255 )

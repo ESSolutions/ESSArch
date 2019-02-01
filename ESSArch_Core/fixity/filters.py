@@ -18,4 +18,4 @@ class ValidationFilter(filters.FilterSet):
 
     class Meta:
         model = Validation
-        fields = ['filename', 'validator', 'passed', 'required', 'time_started', 'time_done',]
+        fields = ['filename', 'validator', 'passed', 'required', 'time_started', 'time_done']

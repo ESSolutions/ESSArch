@@ -16,7 +16,6 @@ from django.db import models
 from django.template.loader import render_to_string
 from django.utils import timezone
 from glob2 import iglob
-from lxml import etree
 from os import walk
 from weasyprint import HTML
 
@@ -44,12 +43,17 @@ TYPE_CHOICES = (
     (METADATA, 'Metadata'),
 )
 
+
 class MaintenanceRule(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    frequency = models.CharField(max_length=255, blank=True, default='')  # cron syntax, blank for manual only appraisal
-    specification = jsonfield.JSONField(null=True, default=None)  # empty for all files in IP or all fields in tree node
+
+    # cron syntax, blank for manual only appraisal
+    frequency = models.CharField(max_length=255, blank=True, default='')
+
+    # empty for all files in IP or all fields in tree node
+    specification = jsonfield.JSONField(null=True, default=None)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     public = models.BooleanField(default=True)
 
@@ -213,8 +217,6 @@ class AppraisalJob(MaintenanceJob):
                 mets_dir, mets_name = find_destination("mets_file", aip_profile.structure)
                 mets_path = os.path.join(srcdir, mets_dir, mets_name)
 
-                mets_tree = etree.parse(mets_path)
-
                 # copy files to new generation
                 shutil.copytree(srcdir, dstdir)
 
@@ -374,7 +376,12 @@ class AppraisalJobEntry(MaintenanceJobEntry):
     job = models.ForeignKey('maintenance.AppraisalJob', on_delete=models.CASCADE, related_name='entries')
 
     # when type of rule is ARCHIVAL_OBJECT
-    ip = models.ForeignKey('ip.InformationPackage', on_delete=models.SET_NULL, null=True, related_name='appraisal_job_entries')
+    ip = models.ForeignKey(
+        'ip.InformationPackage',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='appraisal_job_entries'
+    )
     document = models.CharField(max_length=255, blank=True)
 
     # when type of rule is METADATA
@@ -431,8 +438,6 @@ class ConversionJob(MaintenanceJob):
 
             mets_dir, mets_name = find_destination("mets_file", aip_profile.structure)
             mets_path = os.path.join(srcdir, mets_dir, mets_name)
-
-            mets_tree = etree.parse(mets_path)
 
             # copy files to new generation
             shutil.copytree(srcdir, dstdir)
@@ -597,7 +602,12 @@ class ConversionJob(MaintenanceJob):
 class ConversionJobEntry(MaintenanceJobEntry):
     job = models.ForeignKey('maintenance.ConversionJob', on_delete=models.CASCADE, related_name='entries')
 
-    ip = models.ForeignKey('ip.InformationPackage', on_delete=models.SET_NULL, null=True, related_name='conversion_job_entries')
+    ip = models.ForeignKey(
+        'ip.InformationPackage',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='conversion_job_entries'
+    )
     old_document = models.CharField(max_length=255, blank=True)
     new_document = models.CharField(max_length=255, blank=True)
     tool = models.CharField(max_length=255, blank=True)

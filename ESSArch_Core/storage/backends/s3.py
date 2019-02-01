@@ -14,10 +14,9 @@ logger = logging.getLogger('essarch.storage.backends.s3')
 AWS = settings.AWS
 
 s3 = boto3.resource('s3',
-    aws_access_key_id=AWS.get('ACCESS_KEY_ID'),
-    aws_secret_access_key=AWS.get('SECRET_ACCESS_KEY'),
-    endpoint_url=AWS.get('ENDPOINT_URL')
-)
+                    aws_access_key_id=AWS.get('ACCESS_KEY_ID'),
+                    aws_secret_access_key=AWS.get('SECRET_ACCESS_KEY'),
+                    endpoint_url=AWS.get('ENDPOINT_URL'))
 
 
 class S3StorageBackend(BaseStorageBackend):

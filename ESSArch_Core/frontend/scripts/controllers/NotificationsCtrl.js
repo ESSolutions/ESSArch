@@ -221,7 +221,7 @@ angular.module('essarch.controllers').controller('NotificationsCtrl', function(a
                         action: function() {
                             $http.head(appConfig.djangoUrl+"me/").then(function(response) {
                                 $rootScope.disconnected = null;
-                                $rootScope.$broadcast('reconnected', {detail: $translate.instant("CONNECTION_RESTORED")});
+                                $rootScope.$broadcast('reconnected', {detail: $translate.instant("ERROR.CONNECTION_RESTORED")});
                             }).catch(function() {
                             })
                         }

@@ -34,7 +34,7 @@ class GetUserGroupsTests(TestCase):
     def test_multiple_groups_created_for_user(self):
         grp1 = Group.objects.create(name="1")
         grp2 = Group.objects.create(name="2")
-        grp3 = Group.objects.create(name="3")
+        Group.objects.create(name="3")
 
         grp1.add_member(self.member)
         grp2.add_member(self.member)
@@ -60,9 +60,9 @@ class GetUserGroupsTests(TestCase):
         grp1 = Group.objects.create(name="1")
         grp2 = Group.objects.create(name="2", parent=grp1)
         grp3 = Group.objects.create(name="3", parent=grp2)
-        grp4 = Group.objects.create(name="4", parent=grp3)
-        grp5 = Group.objects.create(name="5", parent=grp2)
-        grp6 = Group.objects.create(name="6", parent=grp1)
+        Group.objects.create(name="4", parent=grp3)
+        Group.objects.create(name="5", parent=grp2)
+        Group.objects.create(name="6", parent=grp1)
 
         grp2.add_member(self.member)
 
@@ -111,7 +111,7 @@ class GetUserRolesTests(TestCase):
     def test_only_roles_from_current_organization_is_returned(self):
         grp = Group.objects.create(name="1", group_type=self.org_group_type)
         grp2 = Group.objects.create(name="2", group_type=self.org_group_type)
-        
+
         role1 = GroupMemberRole.objects.create(codename="1")
         role2 = GroupMemberRole.objects.create(codename="2")
 
@@ -227,7 +227,7 @@ class GetObjectsForUserTests(TestCase):
 
         parent = Group.objects.create(name='parent')
         parent.add_member(self.member)
-        group = Group.objects.create(parent=parent)
+        Group.objects.create(parent=parent)
 
         perm_name = get_permission_name('view_informationpackage', ip)
         assign_perm(perm_name, parent.django_group, ip)

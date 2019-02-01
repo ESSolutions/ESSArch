@@ -76,7 +76,7 @@ angular.module('essarch.controllers').controller('ImportCtrl', function($q, $roo
                 }
             }
             SA.new(sa).$promise.then(function (resource) {
-                Notifications.add($translate.instant('SA_IMPORTED', resource), "success", 5000, {isHtml: true});
+                Notifications.add($translate.instant('IMPORT.SA_IMPORTED', resource), "success", 5000, {isHtml: true});
                 vm.select = false;
                 vm.importingSa = false;
             }).catch(function(response) {
@@ -100,7 +100,7 @@ angular.module('essarch.controllers').controller('ImportCtrl', function($q, $roo
             return;
         }
         SA.new(parsedSa).$promise.then(function (resource) {
-            Notifications.add($translate.instant('SA_IMPORTED', resource), "success", 5000, {isHtml: true});
+            Notifications.add($translate.instant('IMPORT.SA_IMPORTED', resource), "success", 5000, {isHtml: true});
             vm.select = false;
         }).catch(function(response) {
             if(response.status == 409) {
@@ -117,7 +117,7 @@ angular.module('essarch.controllers').controller('ImportCtrl', function($q, $roo
             return;
         }
         Profile.new(parsedProfile).$promise.then(function(resource) {
-            Notifications.add($translate.instant('PROFILE_IMPORTED', resource), "success", 5000, {isHtml: true});
+            Notifications.add($translate.instant('IMPORT.PROFILE_IMPORTED', resource), "success", 5000, {isHtml: true});
             return resource;
         }).catch(function(response) {
             if(response.status == 409) {

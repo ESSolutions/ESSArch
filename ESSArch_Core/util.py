@@ -26,7 +26,6 @@ from __future__ import absolute_import
 
 import errno
 import glob
-import inspect
 import itertools
 import json
 import logging
@@ -105,9 +104,13 @@ def stable_path(path):
         if new:
             logger.info(u'New path: {}, size: {}, count: {}'.format(path, current_size, current_count))
         elif updated_size or updated_count:
-            logger.info(u'Updated path: {}, size: {} => {}, count: {} => {}'.format(path, cached_size, current_size, cached_count, current_count))
-        cache.set(cache_size_key, current_size, 60*60)
-        cache.set(cache_count_key, current_count, 60*60)
+            logger.info(
+                'Updated path: {}, size: {} => {}, count: {} => {}'.format(
+                    path, cached_size, current_size, cached_count, current_count
+                )
+            )
+        cache.set(cache_size_key, current_size, 60 * 60)
+        cache.set(cache_count_key, current_count, 60 * 60)
         return False
 
     logger.info(u'Stable path: {}, size: {}, count: {}'.format(path, current_size, current_count))
@@ -121,11 +124,13 @@ def get_elements_without_namespace(root, path, value=None):
         if "@" in split:
             el, attr = split.split("@")
             if value is not None:
-                split_path = '*[local-name()="{el}" and @*[local-name()="{attr}"]="{value}"]'.format(el=el, attr=attr, value=value)
+                split_path = '*[local-name()="{el}" and @*[local-name()="{attr}"]="{value}"]'.format(
+                    el=el, attr=attr, value=value
+                )
             else:
                 split_path = '*[local-name()="{el}" and @*[local-name()="{attr}"]]'.format(el=el, attr=attr)
         else:
-            if idx == len(splits)-1 and value is not None and "@" not in path:
+            if idx == len(splits) - 1 and value is not None and "@" not in path:
                 split_path = '*[local-name()="{el}" and text()="{value}"]'.format(el=split, value=value)
             else:
                 split_path = '*[local-name()="{el}"]'.format(el=split)
@@ -323,7 +328,8 @@ def find_destination(use, structure, path=""):
             use, content.get('children', []), os.path.join(path, name)
         )
 
-        if dest: return dest, fname
+        if dest:
+            return dest, fname
 
     return None, None
 
@@ -443,6 +449,7 @@ def run_shell_command(command, cwd):
         stdout = stdout.strip()
     return stdout
 
+
 def parse_content_range_header(header):
     content_range_pattern = re.compile(
         r'^bytes (?P<start>\d+)-(?P<end>\d+)/(?P<total>\d+)$'
@@ -522,6 +529,7 @@ def convert_file(path, new_format):
     logger.info('unoconv completed without error: %s' % (msg,))
     return new_path
 
+
 def in_directory(path, directory):
     '''
     Checks if path is in directory
@@ -539,9 +547,12 @@ def in_directory(path, directory):
 
 
 def validate_remote_url(url):
-    regex = '^[a-z][a-z\d.+-]*:\/*(?:[^:@]+(?::[^@]+)?@)?(?:[^\s:/?#,]+|\[[a-f\d:]+])(?::\d+)?(?:\/[^?#]*)?(?:\?[^#]*)?(?:#.*)?,[^,]+,[^,]+$'
+    regex = (r'''
+        ^[a-z][a-z\d.+-]*:\/*(?:[^:@]+(?::[^@]+)?@)?(?:[^\s:/?#,]+|\[[a-f\d:]+])
+        (?::\d+)?(?:\/[^?#]*)?(?:\?[^#]*)?(?:#.*)?,[^,]+,[^,]+$''')
     validate = RegexValidator(regex, 'Enter a valid URL with credentials.')
     validate(url)
+
 
 def get_charset(byte_str):
     charsets = [settings.DEFAULT_CHARSET, 'utf-8', 'windows-1252']
@@ -556,6 +567,7 @@ def get_charset(byte_str):
             return c
 
     return chardet.detect(byte_str)['encoding']
+
 
 def generate_file_response(file_obj, content_type, force_download=False, name=None):
     charset = get_charset(file_obj.read(128))
@@ -589,6 +601,7 @@ def generate_file_response(file_obj, content_type, force_download=False, name=No
     response["Expires"] = "0"  # Proxies.
 
     return response
+
 
 def list_files(path, force_download=False, request=None, paginator=None):
     if isinstance(path, list):
@@ -689,6 +702,7 @@ def list_files(path, force_download=False, request=None, paginator=None):
 
     raise NotFound
 
+
 def merge_file_chunks(path):
     chunks = natsorted(glob.glob('%s_*' % re.sub(r'([\[\]])', '[\\1]', path)))
     if len(chunks) == 0:
@@ -699,6 +713,7 @@ def merge_file_chunks(path):
             with open(chunk_file, 'rb') as cf:
                 f.write(cf.read())
             os.remove(chunk_file)
+
 
 def turn_off_auto_now(ModelClass, field_name):
     def auto_now_off(field):

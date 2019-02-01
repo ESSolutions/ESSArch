@@ -167,7 +167,11 @@ class StorageMethod(models.Model):
     status = models.BooleanField('Storage method status', default=False)
     type = models.IntegerField('Type', choices=storage_type_CHOICES, default=200)
     containers = models.BooleanField('Long-term', default=False)
-    archive_policy = models.ForeignKey('configuration.ArchivePolicy', on_delete=models.CASCADE, related_name='storage_methods')
+    archive_policy = models.ForeignKey(
+        'configuration.ArchivePolicy',
+        on_delete=models.CASCADE,
+        related_name='storage_methods',
+    )
     targets = models.ManyToManyField('StorageTarget', through='StorageMethodTargetRelation', related_name='methods')
 
     objects = StorageMethodQueryset.as_manager()
@@ -196,8 +200,16 @@ class StorageMethodTargetRelation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField('Name', max_length=255, blank=True)
     status = models.IntegerField('Storage target status', choices=storage_target_status_CHOICES, default=0)
-    storage_target = models.ForeignKey('StorageTarget', on_delete=models.CASCADE, related_name='storage_method_target_relations')
-    storage_method = models.ForeignKey('StorageMethod', on_delete=models.CASCADE, related_name='storage_method_target_relations')
+    storage_target = models.ForeignKey(
+        'StorageTarget',
+        on_delete=models.CASCADE,
+        related_name='storage_method_target_relations',
+    )
+    storage_method = models.ForeignKey(
+        'StorageMethod',
+        on_delete=models.CASCADE,
+        related_name='storage_method_target_relations',
+    )
 
     class Meta:
         verbose_name = 'Storage Target/Method Relation'
@@ -248,7 +260,11 @@ class StorageTarget(models.Model):
     name = models.CharField('Name', max_length=255, unique=True)
     status = models.BooleanField('Storage target status', default=True)
     type = models.IntegerField('Type', choices=medium_type_CHOICES, default=200)
-    default_block_size = models.IntegerField('Default block size (tape)', choices=medium_block_size_CHOICES, default=1024)
+    default_block_size = models.IntegerField(
+        'Default block size (tape)',
+        choices=medium_block_size_CHOICES,
+        default=1024
+    )
     default_format = models.IntegerField('Default format', choices=medium_format_CHOICES, default=103)
     min_chunk_size = models.BigIntegerField('Min chunk size', choices=min_chunk_size_CHOICES, default=0)
     min_capacity_warning = models.BigIntegerField('Min capacity warning (0=Disabled)', default=0)
@@ -362,8 +378,20 @@ class StorageMedium(models.Model):
 
     agent = models.CharField(max_length=255)
     storage_target = models.ForeignKey('StorageTarget', on_delete=models.CASCADE)
-    tape_slot = models.OneToOneField('TapeSlot', models.PROTECT, related_name='storage_medium', null=True, blank=True)
-    tape_drive = models.OneToOneField('TapeDrive', models.PROTECT, related_name='storage_medium', null=True, blank=True)
+    tape_slot = models.OneToOneField(
+        'TapeSlot',
+        models.PROTECT,
+        related_name='storage_medium',
+        null=True,
+        blank=True,
+    )
+    tape_drive = models.OneToOneField(
+        'TapeDrive',
+        models.PROTECT,
+        related_name='storage_medium',
+        null=True,
+        blank=True,
+    )
 
     objects = StorageMediumQueryset.as_manager()
 
@@ -382,7 +410,7 @@ class StorageMedium(models.Model):
         ).order_by('content_location_value_int')
 
         if objs.count() > 3:
-            objs = [objs.first(), objs[objs.count()/2], objs.last()]
+            objs = [objs.first(), objs[objs.count() / 2], objs.last()]
 
         try:
             for obj in objs:
@@ -408,7 +436,7 @@ class StorageMedium(models.Model):
 
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
-            return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
+            return (self.last_changed_local - self.last_changed_external).total_seconds() == 0
 
         return False
 
@@ -581,7 +609,7 @@ class StorageObject(models.Model):
 
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
-            return (self.last_changed_local-self.last_changed_external).total_seconds() == 0
+            return (self.last_changed_local - self.last_changed_external).total_seconds() == 0
 
         return False
 
@@ -619,7 +647,13 @@ class TapeSlot(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     slot_id = models.IntegerField()
-    medium_id = models.CharField("The id for the medium, e.g. barcode", max_length=255, unique=True, blank=True, null=True)
+    medium_id = models.CharField(
+        "The id for the medium, e.g. barcode",
+        max_length=255,
+        unique=True,
+        blank=True,
+        null=True,
+    )
     robot = models.ForeignKey('Robot', models.PROTECT, related_name='tape_slots')
     status = models.IntegerField(choices=STATUS_CHOICES, default=20)
 
@@ -723,7 +757,12 @@ class AccessQueue(models.Model):
     req_purpose = models.CharField(max_length=255)
     user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='access_queues')
     ip = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, null=False, related_name='access_queues')
-    new_ip = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, null=True, related_name='access_queues_new_ip')
+    new_ip = models.ForeignKey(
+        InformationPackage,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='access_queues_new_ip'
+    )
     status = models.IntegerField(null=True, blank=True, default=0, choices=req_status_CHOICES)
     path = models.CharField(max_length=255)
     posted = models.DateTimeField(auto_now_add=True)

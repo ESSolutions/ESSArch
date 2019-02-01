@@ -13,8 +13,8 @@ def _get_mapping():
     """
 
     manifest_path = getattr(settings,
-        'DJANGO_GULP_REV_PATH',
-        os.path.join(getattr(settings, 'STATIC_ROOT', ''), 'rev-manifest.json'))
+                            'DJANGO_GULP_REV_PATH',
+                            os.path.join(getattr(settings, 'STATIC_ROOT', ''), 'rev-manifest.json'))
 
     try:
         with open(manifest_path) as manifest_file:

@@ -9,6 +9,7 @@ from ESSArch_Core.maintenance.models import (AppraisalJob, AppraisalRule,
 class MaintenanceRuleSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
     public = serializers.BooleanField(default=True)
+    specification = serializers.JSONField(allow_null=True, default=None)
 
     def validate(self, data):
         user = self.context['request'].user
@@ -69,6 +70,7 @@ class ConversionRuleSerializer(MaintenanceRuleSerializer):
         if not value:
             raise serializers.ValidationError("Specification cannot be empty")
         return value
+
     class Meta(MaintenanceRuleSerializer.Meta):
         model = ConversionRule
 

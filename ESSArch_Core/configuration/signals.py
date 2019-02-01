@@ -10,6 +10,7 @@ def event_type_post_save(sender, instance, created, **kwargs):
     cache_name = 'event_type_%s_enabled' % instance.eventType
     cache.set(cache_name, instance.enabled, 3600)
 
+
 @receiver(post_save, sender=Parameter)
 def parameter_post_save(sender, instance, created, **kwargs):
     cache_name = 'parameter_%s' % instance.entity

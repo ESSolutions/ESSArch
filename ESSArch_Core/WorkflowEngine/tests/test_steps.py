@@ -60,7 +60,7 @@ class test_status(TestCase):
         for i in range(depth):
             parent = ProcessStep.objects.create(parent_step=parent)
 
-        with self.assertNumQueries((5*depth) + 2):
+        with self.assertNumQueries((5 * depth) + 2):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status(self):
@@ -412,7 +412,7 @@ class test_progress(TestCase):
         for i in range(depth):
             parent = ProcessStep.objects.create(parent_step=parent)
 
-        with self.assertNumQueries((3*(depth+1))-1):
+        with self.assertNumQueries((3 * (depth + 1)) - 1):
             self.assertEqual(self.step.progress, 0)
 
     def test_cached_progress(self):
@@ -670,7 +670,7 @@ class test_running_steps(TransactionTestCase):
         step.run().get()
         task.refresh_from_db()
 
-        self.assertEqual(task.result, x+y)
+        self.assertEqual(task.result, x + y)
 
     def test_serialized_step(self):
         t1_val = 123
@@ -947,7 +947,7 @@ class test_running_steps(TransactionTestCase):
         t2.refresh_from_db()
         t3.refresh_from_db()
 
-        self.assertEqual(t1.result, t1_val*2)
+        self.assertEqual(t1.result, t1_val * 2)
         self.assertEqual(t2.result, t1.result + t2_val)
         self.assertEqual(t3.result, t1.result + t3_val)
 
@@ -1050,7 +1050,7 @@ class test_running_steps_eagerly(TransactionTestCase):
         t2.refresh_from_db()
         t3.refresh_from_db()
 
-        self.assertEqual(t1.result, t1_val*2)
+        self.assertEqual(t1.result, t1_val * 2)
         self.assertEqual(t2.result, t1.result + t2_val)
         self.assertEqual(t3.result, t1.result + t3_val)
 
@@ -1252,7 +1252,7 @@ class test_retrying_steps(TestCase):
 
         try:
             os.mkdir(self.test_dir)
-        except:
+        except BaseException:
             pass
 
         settings.CELERY_ALWAYS_EAGER = True
@@ -1261,7 +1261,7 @@ class test_retrying_steps(TestCase):
     def tearDown(self):
         try:
             shutil.rmtree(self.test_dir)
-        except:
+        except BaseException:
             pass
 
     def test_empty_step(self):
@@ -1613,7 +1613,7 @@ class test_resuming_steps(TestCase):
 
         try:
             os.mkdir(self.test_dir)
-        except:
+        except BaseException:
             pass
 
         settings.CELERY_ALWAYS_EAGER = True
@@ -1622,7 +1622,7 @@ class test_resuming_steps(TestCase):
     def tearDown(self):
         try:
             shutil.rmtree(self.test_dir)
-        except:
+        except BaseException:
             pass
 
     def test_empty_step(self):

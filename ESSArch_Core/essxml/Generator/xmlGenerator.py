@@ -50,7 +50,7 @@ from ESSArch_Core.util import (
 )
 
 logger = logging.getLogger('essarch.essxml.generator')
-leading_underscore_tag_re = re.compile('%s *_(.*?(?=\}))%s' % (re.escape('{{'), re.escape('}}')))
+leading_underscore_tag_re = re.compile(r'%s *_(.*?(?=\}))%s' % (re.escape('{{'), re.escape('}}')))
 
 
 def parse_content_django(content, info=None, unicode_error=False, syntax_error=False):
@@ -91,7 +91,6 @@ def parseContent(content, info=None):
 
     if info is None:
         info = {}
-
 
     if isinstance(content, six.string_types):
         return parse_content_django(content, info=info)
@@ -160,7 +159,7 @@ class XMLElement(object):
         name = template.get('-name')
         try:
             self.name = name.split("#")[0]
-        except:
+        except BaseException:
             self.name = name
 
         self.nsmap = template.get('-nsmap', {})
@@ -305,17 +304,19 @@ class XMLElement(object):
 
         self.el.text = self.parse(info)
 
-
         for req_param in self.requiredParameters:
             if info.get(req_param) is None or len(info.get(req_param, '')) == 0:
                 return None
-
 
         for attr in self.attr:
             name, content, required = attr.parse(info, nsmap=full_nsmap)
 
             if required and not content:
-                raise ValueError(u"Missing value for required attribute '{}' on element '{}'".format(name, self.get_path()))
+                raise ValueError(
+                    "Missing value for required attribute '{}' on element '{}'".format(
+                        name, self.get_path()
+                    )
+                )
             elif content or attr.allow_empty:
                 self.el.set(name, content)
 
@@ -348,7 +349,13 @@ class XMLElement(object):
                         logger.debug(u'Creating child element with additional file data: {data}'.format(data=fileinfo))
                         full_info = info.copy()
                         full_info.update(fileinfo)
-                        child_el = child.createLXMLElement(full_info, full_nsmap, files=files, folderToParse=folderToParse, parent=self)
+                        child_el = child.createLXMLElement(
+                            full_info,
+                            full_nsmap,
+                            files=files,
+                            folderToParse=folderToParse,
+                            parent=self
+                        )
                         if child_el is not None:
                             self.add_element(child)
 
@@ -356,7 +363,9 @@ class XMLElement(object):
                 try:
                     foreach_el = info[child.foreach]
                 except KeyError:
-                    msg = u'Foreach key "{key}" for {el} not found in data'.format(key=child.foreach, el=child.get_path())
+                    msg = 'Foreach key "{key}" for {el} not found in data'.format(
+                        key=child.foreach, el=child.get_path()
+                    )
                     logger.warning(msg)
                     continue
 
@@ -370,21 +379,37 @@ class XMLElement(object):
                     child_info.update(v)
                     child_info[u'{foreach}__key'.format(foreach=child.foreach)] = idx
 
-                    child_el = child.createLXMLElement(child_info, full_nsmap, files=files, folderToParse=folderToParse, parent=self)
+                    child_el = child.createLXMLElement(
+                        child_info,
+                        full_nsmap,
+                        files=files,
+                        folderToParse=folderToParse,
+                        parent=self
+                    )
                     if child_el is not None:
                         self.add_element(child)
 
             else:
-                child_el = child.createLXMLElement(info, full_nsmap, files=files, folderToParse=folderToParse, parent=self)
+                child_el = child.createLXMLElement(
+                    info,
+                    full_nsmap,
+                    files=files,
+                    folderToParse=folderToParse,
+                    parent=self
+                )
                 if child_el is not None:
                     self.add_element(child)
 
         if self.nestedXMLContent:
             # we encode the XML to get around LXML limitation with XML strings
             # containing encoding information.
-            # See https://stackoverflow.com/questions/15830421/xml-unicode-strings-with-encoding-declaration-are-not-supported
+            #
+            # See:
+            # https://stackoverflow.com/questions/15830421/xml-unicode-strings-with-encoding-declaration-are-not-supported
             if self.nestedXMLContent not in info:
-                logger.warn(u"Nested XML '{}' not found in data and will not be created".format(self.nestedXMLContent))
+                logger.warning(
+                    "Nested XML '{}' not found in data and will not be created".format(self.nestedXMLContent)
+                )
                 if not self.allowEmpty:
                     return None
             else:
@@ -481,7 +506,9 @@ class XMLGenerator(object):
 
         return dirs
 
-    def generate(self, filesToCreate, folderToParse=None, extra_paths_to_parse=None, parsed_files=None, relpath=None, algorithm='SHA-256'):
+    def generate(self, filesToCreate, folderToParse=None, extra_paths_to_parse=None,
+                 parsed_files=None, relpath=None, algorithm='SHA-256'):
+
         self.toCreate = []
         for fname, content in six.iteritems(filesToCreate):
             self.toCreate.append({
@@ -525,7 +552,7 @@ class XMLGenerator(object):
                     ext_info['_EXT'] = sub_dir
                     ext_info['_EXT_HREF'] = ptr_file_path
 
-                    external_to_create={
+                    external_to_create = {
                         os.path.join(folderToParse, ptr_file_path): {'spec': ext_spec, 'data': ext_info}
                     }
                     external_gen.generate(external_to_create, os.path.join(folderToParse, ext_dir, sub_dir))

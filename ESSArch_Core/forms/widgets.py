@@ -1,5 +1,6 @@
 from django import forms
 
+
 class MultipleTextWidget(forms.widgets.Widget):
     template_name = 'django/forms/widgets/text.html'
 

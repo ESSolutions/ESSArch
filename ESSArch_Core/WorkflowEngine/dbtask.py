@@ -24,24 +24,20 @@
 
 from __future__ import absolute_import, division, unicode_literals
 
-import json
 import logging
 import time
 
 import six
 from billiard.einfo import ExceptionInfo
 
-from celery import current_app, exceptions, states as celery_states
+from celery import exceptions, states as celery_states
 from celery.task.base import Task
-
-from ESSArch_Core.configuration.models import EventType
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 
 from django.db import (
     connection,
-    IntegrityError,
     OperationalError,
     transaction,
 )
@@ -59,6 +55,7 @@ from ESSArch_Core.WorkflowEngine.util import get_result
 User = get_user_model()
 
 logger = logging.getLogger('essarch')
+
 
 class DBTask(Task):
     abstract = True
@@ -94,7 +91,6 @@ class DBTask(Task):
 
         if self.chunk:
             res = []
-            events = []
             if not connection.features.autocommits_when_autocommit_is_off:
                 transaction.set_autocommit(False)
             try:
@@ -106,10 +102,10 @@ class DBTask(Task):
 
                     self.progress = 0
                     hidden = a_options.get('hidden', False) or self.hidden
-                    time_started=timezone.now()
+                    time_started = timezone.now()
                     try:
                         retval = self._run(*self.args, **a)
-                    except:
+                    except BaseException:
                         ProcessTask.objects.filter(pk=self.task_id).update(
                             hidden=hidden,
                             time_started=time_started,
@@ -132,7 +128,7 @@ class DBTask(Task):
                         res.append(retval)
                         if self.event_type:
                             self.create_event(self.task_id, celery_states.SUCCESS, self.args, a, retval, None)
-            except:
+            except BaseException:
                 raise
             else:
                 return res
@@ -224,9 +220,14 @@ class DBTask(Task):
         except User.DoesNotExist:
             agent = None
 
-        extra = {'event_type': self.event_type, 'object': self.ip, 'agent': agent, 'task': self.task_id, 'outcome': outcome}
+        extra = {
+            'event_type': self.event_type,
+            'object': self.ip,
+            'agent': agent,
+            'task': self.task_id,
+            'outcome': outcome
+        }
         logger.log(level, outcome_detail_note, extra=extra)
-
 
     def failure(self, exc, task_id, args, kwargs, einfo):
         '''
@@ -301,7 +302,7 @@ class DBTask(Task):
             self.update_state(state=celery_states.PENDING,
                               meta={'current': progress, 'total': total})
 
-        percent = (progress/total) * 100
+        percent = (progress / total) * 100
 
         if self.chunk:
             self.progress = percent

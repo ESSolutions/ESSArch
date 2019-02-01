@@ -24,7 +24,7 @@ class TapeStorageBackend(BaseStorageBackend):
         tape_pos = int(storage_object.content_location_value)
         medium = storage_object.storage_medium
         ip = storage_object.ip
-        block_size = medium.block_size*512
+        block_size = medium.block_size * 512
 
         # TODO: Create temp dir inside configured temp directory
         tmp_path = tempfile.mkdtemp()
@@ -67,7 +67,7 @@ class TapeStorageBackend(BaseStorageBackend):
         return new
 
     def write(self, src, ip, storage_method, storage_medium, block_size=DEFAULT_TAPE_BLOCK_SIZE):
-        block_size = storage_medium.block_size*512
+        block_size = storage_medium.block_size * 512
 
         last_written_obj = StorageObject.objects.filter(
             storage_medium=storage_medium

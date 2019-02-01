@@ -1,4 +1,3 @@
-import copy
 import logging
 
 from django.core.mail import send_mail
@@ -12,8 +11,10 @@ from ESSArch_Core.profiles.utils import fill_specification_data
 
 logger = logging.getLogger('essarch.core.fixity.receipt.email')
 
+
 class NoEmailRecipientError(Exception):
     pass
+
 
 class NoEmailSentError(Exception):
     pass

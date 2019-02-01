@@ -46,7 +46,7 @@
         <table class="table" style="margin: 5px;">
             <tbody>
                 <tr ng-if="currentStepTask.status == 'FAILURE' && currentStepTask.exception !== null && currentStepTask.exception !== ''">
-                    <td><b>{{('ERROR' | translate)+':'}}</b>
+                    <td><b>{{('ERROR.ERROR' | translate)+':'}}</b>
                         {{currentStepTask.exception}}
                     </td>
                 </tr>
