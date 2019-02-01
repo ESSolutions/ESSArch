@@ -1,29 +1,29 @@
 .d-none {
-    display: none;
+  display: none;
 }
 .d-md-none {
-    @include medium-screen-up {
-        display: none !important;
-    }
+  @include medium-screen-up {
+    display: none !important;
+  }
 }
 .d-lg-none {
-    display: block;
-    @include large-screen-up {
-        display: none;
-    }
+  display: block;
+  @include large-screen-up {
+    display: none;
+  }
 }
 .d-inline {
-    display: inline;
+  display: inline;
 }
 .d-md-inline {
-    @include medium-screen-up {
-        display: inline !important;
-    }
+  @include medium-screen-up {
+    display: inline !important;
+  }
 }
 .d-inline-block {
-    display: inline-block;
+  display: inline-block;
 }
 
 .d-flex {
-    display: flex;
+  display: flex;
 }
