@@ -1,25 +1,43 @@
 <h4>
-    {{'USER_SETTINGS.TABLE_COLUMNS' | translate}}
+  {{ "USER_SETTINGS.TABLE_COLUMNS" | translate }}
 </h4>
 <div class="column-picker">
-    <div class="flex-column">
-        <label>
-            {{'USER_SETTINGS.AVAILABLE_COLUMNS' | translate}}
-        </label>
-        <select multiple="multiple" ng-model="vm.availableColumns.chosen" ng-dblclick="moveToActive(vm.availableColumns.chosen)" ng-options="x as x.label for x in vm.availableColumns.options" size="10"></select>
-    </div>
-    <div class="buttons">
-        <button class="btn btn-default" ng-click="moveToActive(vm.availableColumns.chosen)"> <i class="fas fa-arrow-right"></i></button>
-        <button class="btn btn-default" ng-click="moveToAvailable(vm.activeColumns.chosen)"> <i class="fas fa-arrow-left"></i></button>
-    </div>
-    <div class="flex-column">
-        <label>
-            {{'USER_SETTINGS.VISIBLE_COLUMNS' | translate}}
-        </label>
-        <select multiple="multiple" ng-model="vm.activeColumns.chosen" ng-dblclick="moveToAvailable(vm.activeColumns.chosen)" ng-options="x as x.label for x in vm.activeColumns.options" size="10"></select>
-    </div>
-    <div class="buttons">
-        <button class="btn btn-default" ng-click="moveUp(vm.activeColumns.chosen)"> <i class="fas fa-arrow-up"></i></button>
-        <button class="btn btn-default" ng-click="moveDown(vm.activeColumns.chosen)"> <i class="fas fa-arrow-down"></i></button>
-    </div>
+  <div class="flex-column">
+    <label>
+      {{ "USER_SETTINGS.AVAILABLE_COLUMNS" | translate }}
+    </label>
+    <select
+      multiple="multiple"
+      ng-model="vm.availableColumns.chosen"
+      ng-dblclick="moveToActive(vm.availableColumns.chosen)"
+      ng-options="x as x.label for x in vm.availableColumns.options"
+      size="10"
+    ></select>
+  </div>
+  <div class="buttons">
+    <button class="btn btn-default" ng-click="moveToActive(vm.availableColumns.chosen)">
+      <i class="fas fa-arrow-right"></i>
+    </button>
+    <button class="btn btn-default" ng-click="moveToAvailable(vm.activeColumns.chosen)">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+  </div>
+  <div class="flex-column">
+    <label>
+      {{ "USER_SETTINGS.VISIBLE_COLUMNS" | translate }}
+    </label>
+    <select
+      multiple="multiple"
+      ng-model="vm.activeColumns.chosen"
+      ng-dblclick="moveToAvailable(vm.activeColumns.chosen)"
+      ng-options="x as x.label for x in vm.activeColumns.options"
+      size="10"
+    ></select>
+  </div>
+  <div class="buttons">
+    <button class="btn btn-default" ng-click="moveUp(vm.activeColumns.chosen)"><i class="fas fa-arrow-up"></i></button>
+    <button class="btn btn-default" ng-click="moveDown(vm.activeColumns.chosen)">
+      <i class="fas fa-arrow-down"></i>
+    </button>
+  </div>
 </div>

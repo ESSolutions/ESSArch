@@ -1,18 +1,36 @@
-<label class="control-label" for="{{::id}}"
-    uib-tooltip="{{options.templateOptions.desc}}"
-    tooltip-placement="auto top"
-    tooltip-append-to-body="true">{{to.label}} {{to.required ? '*' : ''}}</label>
+<label
+  class="control-label"
+  for="{{::id}}"
+  uib-tooltip="{{options.templateOptions.desc}}"
+  tooltip-placement="auto top"
+  tooltip-append-to-body="true"
+  >{{to.label}} {{to.required ? '*' : ''}}</label
+>
 
-<div class="dropdown" uib-dropdown dropdown-append-to-body="options.templateOptions.appendToBody && options.templateOptions.appendToBody == true" is-open="status[options.key]">
-    <a class="dropdown-toggle" id="dropdown-{{options.key}}" role="button" uib-dropdown-toggle>
-        <div class="input-group">
-            <input set-touched=options.formControl id="{{::id}}" name="{{::id}}" type="text" data-date-time-input="YYYY-MM-DD" class="form-control" data-ng-model="model[options.key]"><span class="input-group-addon"><i class="fas fa-calendar-alt"></i></span>
-        </div>
-    </a>
-    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
-        <datetimepicker
-            data-ng-model="model[options.key]"
-            ng-change="status[options.key] = false"
-            data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType: 'YYYY-MM-DDTHH:mm:ssZ'}"/>
-    </ul>
+<div
+  class="dropdown"
+  uib-dropdown
+  dropdown-append-to-body="options.templateOptions.appendToBody && options.templateOptions.appendToBody == true"
+  is-open="status[options.key]"
+>
+  <a class="dropdown-toggle" id="dropdown-{{options.key}}" role="button" uib-dropdown-toggle>
+    <div class="input-group">
+      <input
+        set-touched="options.formControl"
+        id="{{::id}}"
+        name="{{::id}}"
+        type="text"
+        data-date-time-input="YYYY-MM-DD"
+        class="form-control"
+        data-ng-model="model[options.key]"
+      /><span class="input-group-addon"><i class="fas fa-calendar-alt"></i></span>
+    </div>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
+    <datetimepicker
+      data-ng-model="model[options.key]"
+      ng-change="status[options.key] = false"
+      data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType: 'YYYY-MM-DDTHH:mm:ssZ'}"
+    />
+  </ul>
 </div>

@@ -1,132 +1,135 @@
 .step-task-pagination {
-    user-select: none;
-    min-width: 60px;
+  user-select: none;
+  min-width: 60px;
 }
 
 .status-tree-grid {
-    padding: 5px;
-    margin: 5px;
-    display: flex;
-    flex-direction: column;
+  padding: 5px;
+  margin: 5px;
+  display: flex;
+  flex-direction: column;
 }
 
 .empty-step {
-    background-color: rgba(244, 66, 66, 0.30);
-    text-align: center;
+  background-color: rgba(244, 66, 66, 0.3);
+  text-align: center;
 }
 
-.task-info-modal-head, .step-info-modal-head {
-    .refresh-icon {
-        align-self: flex-start;
+.task-info-modal-head,
+.step-info-modal-head {
+  .refresh-icon {
+    align-self: flex-start;
+  }
+  .modal-title {
+    @include small-screen {
+      word-break: break-word;
     }
-    .modal-title {
-        @include small-screen {
-            word-break: break-word;
-        }
-    }
+  }
 }
 
 .param-value {
-    word-break: break-word;
-    pre {
-        overflow-x: scroll;
-        white-space: pre-wrap;
-    }
+  word-break: break-word;
+  pre {
+    overflow-x: scroll;
+    white-space: pre-wrap;
+  }
 }
 
 .step-task-info {
-    .validation-table {
-        margin-bottom: 0;
-        .failed {
-            background-color: $task-validation-bg-red;
-            color: $task-validation-text-red;
-        }
-        .success {
-            background-color: $task-validation-bg-green;
-            color: $task-validation-text-green;
-        }
-        .running {
-            background-color: $task-validation-bg-yellow;
-            color: $task-validation-text-yellow;
-        }
+  .validation-table {
+    margin-bottom: 0;
+    .failed {
+      background-color: $task-validation-bg-red;
+      color: $task-validation-text-red;
     }
-    .progress {
-        width: 100%;
+    .success {
+      background-color: $task-validation-bg-green;
+      color: $task-validation-text-green;
     }
-    .id-button {
-        .btn {
-            @include small-screen {
-                font-size: 12px !important;
-                padding: 3px 6px;
-            }
-        }
+    .running {
+      background-color: $task-validation-bg-yellow;
+      color: $task-validation-text-yellow;
     }
+  }
+  .progress {
+    width: 100%;
+  }
+  .id-button {
+    .btn {
+      @include small-screen {
+        font-size: 12px !important;
+        padding: 3px 6px;
+      }
+    }
+  }
 }
 
 .traceback {
-    max-height: 500px;
-    overflow-y: auto;
+  max-height: 500px;
+  overflow-y: auto;
 }
 
 .tree-grid {
-    overflow-x: auto;
-    width: 100%;
+  overflow-x: auto;
+  width: 100%;
 }
 .tree-grid-row {
-    td {
-        span, div, .tree-label {
-            white-space: nowrap;
-        }
+  td {
+    span,
+    div,
+    .tree-label {
+      white-space: nowrap;
     }
+  }
 }
 
 .state-tree-table-head {
-    padding-bottom: 10px;
-    padding-top: 5px;
-    display: flex;
-    align-items: center;
+  padding-bottom: 10px;
+  padding-top: 5px;
+  display: flex;
+  align-items: center;
 }
 
-.tree-grid  {
-    td {
-        white-space: nowrap;
-    }
-    .indented {
-        position: relative;
-        left: 0 !important;
-    }
-    .level-1 td:nth-child(1) {
-        padding-left: 3px !important;
-    }
-    .level-2 td:nth-child(1) {
-        padding-left: 23px !important;
-    }
+.tree-grid {
+  td {
+    white-space: nowrap;
+  }
+  .indented {
+    position: relative;
+    left: 0 !important;
+  }
+  .level-1 td:nth-child(1) {
+    padding-left: 3px !important;
+  }
+  .level-2 td:nth-child(1) {
+    padding-left: 23px !important;
+  }
 
-    .level-3 td:nth-child(1) {
-        padding-left: 43px !important;
-    }
+  .level-3 td:nth-child(1) {
+    padding-left: 43px !important;
+  }
 
-    .level-4 td:nth-child(1) {
-        padding-left: 63px !important;
-    }
+  .level-4 td:nth-child(1) {
+    padding-left: 63px !important;
+  }
 
-    .level-5 td:nth-child(1) {
-        padding-left: 83px !important;
-    }
+  .level-5 td:nth-child(1) {
+    padding-left: 83px !important;
+  }
 
-    .level-6 td:nth-child(1) {
-        padding-left: 103px !important;
-    }
+  .level-6 td:nth-child(1) {
+    padding-left: 103px !important;
+  }
 
-    .level-7 td:nth-child(1) {
-        padding-left: 123px !important;
-    }
+  .level-7 td:nth-child(1) {
+    padding-left: 123px !important;
+  }
 
-    .level-8 td:nth-child(1) {
-        padding-left: 143px !important;
-    }
+  .level-8 td:nth-child(1) {
+    padding-left: 143px !important;
+  }
 
-    .level-9 td:nth-child(1) {
-        padding-left: 163px !important;
-    }
+  .level-9 td:nth-child(1) {
+    padding-left: 163px !important;
+  }
 }
