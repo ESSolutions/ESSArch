@@ -1,233 +1,239 @@
 .top-alert-container {
-    position: absolute;
-    z-index: 1150;
-    top: 4rem;
+  position: absolute;
+  z-index: 1150;
+  top: 4rem;
+  right: 0;
+  width: 320px;
+  max-height: 60vh;
+  min-width: 100px;
+  @include small-screen {
+    width: 100%;
+    top: 0;
     right: 0;
-    width: 320px;
-    max-height: 60vh;
-    min-width: 100px;
-    @include small-screen {
-        width: 100%;
-        top: 0;
-        right: 0;
-        left: 0;
-    }
+    left: 0;
+  }
 }
 
 .notification-title {
-    padding: .5rem;
+  padding: 0.5rem;
 }
 .notification-table-wrapper {
-    max-height: 60vh;
-    overflow-y: scroll;
-    padding-left: 0;
+  max-height: 60vh;
+  overflow-y: scroll;
+  padding-left: 0;
 }
 
 .mobile-notification {
-    margin-right: 5px;
-    .unseen-text {
-        top: -9.6px;
-    }
+  margin-right: 5px;
+  .unseen-text {
+    top: -9.6px;
+  }
 }
 
 .alert-indicator-container {
-    background-color: #f7f7f7;
-    width: 38px;
-    padding-left: 14px !important;
-    padding-right: 14px !important;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+  background-color: #f7f7f7;
+  width: 38px;
+  padding-left: 14px !important;
+  padding-right: 14px !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .alert-indicator {
-    width: 1rem;
-    height: 1rem;
-    border-radius: .5rem;
-    display: block;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.5rem;
+  display: block;
 
-    &.error {
-        background-color: $brand-danger;
-    }
-    &.success {
-        background-color: $brand-success;
-    }
-    &.info {
-        background-color: $brand-primary;
-    }
-    &.warning {
-        background-color: $brand-warning;
-        color: black !important;
-    }
-    &.critical {
-        background-color: $brand-danger;
-    }
+  &.error {
+    background-color: $brand-danger;
+  }
+  &.success {
+    background-color: $brand-success;
+  }
+  &.info {
+    background-color: $brand-primary;
+  }
+  &.warning {
+    background-color: $brand-warning;
+    color: black !important;
+  }
+  &.critical {
+    background-color: $brand-danger;
+  }
 }
 
 .remove-alert {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-right: 8px;
 }
 
-.top-alert.ng-enter, .top-alert.ng-leave {
-    -webkit-transition: .1s linear all;
-    transition: .1s linear all;
+.top-alert.ng-enter,
+.top-alert.ng-leave {
+  -webkit-transition: 0.1s linear all;
+  transition: 0.1s linear all;
 }
 
 .alert-list {
-    background-color: white;
-    color: black;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, .25);
-    padding-bottom: 2rem;
-    .alert-text {
-        padding: 2px 5px;
-        font-size: 14px;
-        overflow-x: hidden;
-        text-overflow: ellipsis;
-    }
+  background-color: white;
+  color: black;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+  padding-bottom: 2rem;
+  .alert-text {
+    padding: 2px 5px;
+    font-size: 14px;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+  }
 
-    .loading-column {
-        position: absolute;
-        bottom: .5rem;
-        left: 0;
-        right: 0;
-    }
+  .loading-column {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 0;
+    right: 0;
+  }
 }
 
 .popup-enabled {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 29px;
-    padding: 5px;
-    display: flex;
-    align-items: center;
-    font-size: 1rem;
-    input {
-        margin: 0 5px 0 0;
-    }
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 29px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  input {
+    margin: 0 5px 0 0;
+  }
 }
 .close-notifications {
-    position: absolute;
-    right: 0;
-    top: 0;
-    height: 29px;
-    padding: 5px;
-    display: flex;
-    align-items: center;
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 29px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
 }
 
 .show-sm {
-    display: none;
-    @include small-screen {
-        display: inline;
-    }
+  display: none;
+  @include small-screen {
+    display: inline;
+  }
 }
 
 .indicator-text-wrapper {
-    display: flex;
-    justify-content: flex-start;
+  display: flex;
+  justify-content: flex-start;
 }
 
 .alert-list-item {
-    &:hover {
-        background-color: #f7f7f7;
-    }
-    background-color: white;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    overflow: hidden;
-    border-top: 1px solid #dddddd;
+  &:hover {
+    background-color: #f7f7f7;
+  }
+  background-color: white;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  border-top: 1px solid #dddddd;
 }
 
 .alert-text-icons-row {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
 }
 
 .alert-date {
-    text-align: left;
-    font-size: 1rem;
+  text-align: left;
+  font-size: 1rem;
 }
 
 .notification-page {
-    @include container(5px);
-    margin-top: 10px;
+  @include container(5px);
+  margin-top: 10px;
 }
 
 /* Transitions */
 
 .top-alert.ng-enter {
-    opacity: 0;
+  opacity: 0;
 }
 .top-alert.ng-enter.ng-enter-active {
-    opacity: 1;
+  opacity: 1;
 }
 .top-alert.ng-leave {
-    opacity: 1;
+  opacity: 1;
 }
 .top-alert.ng-leave.ng-leave-active {
-    opacity: 0;
+  opacity: 0;
 }
-.alert-list.ng-enter, .alert-list.ng-leave {
-    -webkit-transition: .3s linear all;
-    transition: .3s linear all;
+.alert-list.ng-enter,
+.alert-list.ng-leave {
+  -webkit-transition: 0.3s linear all;
+  transition: 0.3s linear all;
 }
- .alert-list.ng-enter {
-   min-height: 0;
-   opacity: .7;
+.alert-list.ng-enter {
+  min-height: 0;
+  opacity: 0.7;
 }
- .alert-list.ng-enter.ng-enter-active {
-    min-height: 1px;
-    opacity: 1;
+.alert-list.ng-enter.ng-enter-active {
+  min-height: 1px;
+  opacity: 1;
 }
- .alert-list.ng-leave {
-    min-height: 1px;
-    opacity: 1;
+.alert-list.ng-leave {
+  min-height: 1px;
+  opacity: 1;
 }
- .alert-list.ng-leave.ng-leave-active {
-    min-height: 0;
-    opacity: .7;
+.alert-list.ng-leave.ng-leave-active {
+  min-height: 0;
+  opacity: 0.7;
 }
 
 // Override field validation message class
 
 .messenger-message {
-    &.message {
-        margin-top: 0px !important;
-        white-space: pre-wrap;
+  &.message {
+    margin-top: 0px !important;
+    white-space: pre-wrap;
+  }
+  .messenger-actions {
+    a {
+      text-transform: none !important;
     }
-    .messenger-actions {
-        a {
-            text-transform: none !important;
-        }
-    }
+  }
 }
 // Override Alert colors
 
 ul.messenger-theme-flat .messenger-message.alert-success .messenger-message-inner:before {
-    background: $brand-success !important;
+  background: $brand-success !important;
 }
 ul.messenger-theme-flat .messenger-message.alert-info .messenger-message-inner:before {
-    background: $brand-primary !important;
+  background: $brand-primary !important;
 }
 ul.messenger-theme-flat .messenger-message.alert-warning .messenger-message-inner:before {
-    background: $brand-warning !important;
+  background: $brand-warning !important;
 }
 ul.messenger-theme-flat .messenger-message.alert-error .messenger-message-inner:before {
-    background: $brand-danger !important;
+  background: $brand-danger !important;
 }
 ul.messenger-theme-flat .messenger-message.alert-critical .messenger-message-inner:before {
-    background: $brand-danger !important;
+  background: $brand-danger !important;
 }
 
-ul.messenger-theme-flat .messenger-message.alert-error.messenger-retry-soon .messenger-spinner .messenger-spinner-side .messenger-spinner-fill {
-    background: #dd6a45 !important;
+ul.messenger-theme-flat
+  .messenger-message.alert-error.messenger-retry-soon
+  .messenger-spinner
+  .messenger-spinner-side
+  .messenger-spinner-fill {
+  background: #dd6a45 !important;
 }

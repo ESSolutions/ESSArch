@@ -1,1 +1,1 @@
-angular.module('essarch.controllers').controller('SysInfoComponentCtrl', function($scope){});
+angular.module('essarch.controllers').controller('SysInfoComponentCtrl', function($scope) {});

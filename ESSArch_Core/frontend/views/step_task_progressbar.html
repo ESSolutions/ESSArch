@@ -1,10 +1,12 @@
-<uib-progressbar class="progress"
-                 ng-class="{'active progress-striped': row.branch['status'] == 'STARTED'}"
-                 animate="true"
-                 value="row.branch[col.field]"
-                 type="{{treeControl.scope.mapStepStateProgress(row.branch)}}"
-                 uib-tooltip="{{row.branch['status'] | translate}}"
-                 tooltip-placement="auto top"
-                 tooltip-append-to-body="true">
-    <b>{{row.branch[col.field]+"%"}}</b>
+<uib-progressbar
+  class="progress"
+  ng-class="{'active progress-striped': row.branch['status'] == 'STARTED'}"
+  animate="true"
+  value="row.branch[col.field]"
+  type="{{ treeControl.scope.mapStepStateProgress(row.branch) }}"
+  uib-tooltip="{{ row.branch['status'] | translate }}"
+  tooltip-placement="auto top"
+  tooltip-append-to-body="true"
+>
+  <b>{{ row.branch[col.field] + "%" }}</b>
 </uib-progressbar>

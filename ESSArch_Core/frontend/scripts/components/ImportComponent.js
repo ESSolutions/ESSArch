@@ -3,6 +3,6 @@ angular.module('essarch.components').component('import', {
   controller: 'ImportCtrl',
   controllerAs: 'vm',
   bindings: {
-      types: '<'
-  }
+    types: '<',
+  },
 });
