@@ -25,7 +25,7 @@ angular
 
       optionsAuth = [
         {
-          label: $translate.instant('USER_SETTINGS.USER_SETTINGS'),
+          label: $translate.instant('USERSETTINGS'),
           click: function() {
             $state.go('home.userSettings');
           },
