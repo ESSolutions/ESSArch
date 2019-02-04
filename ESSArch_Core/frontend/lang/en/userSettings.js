@@ -8,5 +8,6 @@ angular.module('essarch.language').config(function($translateProvider) {
       USER_SETTINGS: 'User settings',
       VISIBLE_COLUMNS: 'Visible columns',
     },
+    USERSETTINGS: 'User settings',
   });
 });
