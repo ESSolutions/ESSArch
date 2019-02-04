@@ -82,6 +82,31 @@
             
             
               <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../configuration/index.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../configuration/databases.html">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../configuration/redis.html">Redis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../configuration/rabbitmq.html">RabbitMQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../configuration/elasticsearch.html">Elasticsearch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../configuration/transformers.html">Transformers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../development.html">Development Environment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#getting-the-source">Getting the source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#setting-up-virtual-python-environments">Setting up virtual Python environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#installing-python-dependencies">Installing Python dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#setting-environment-variables">Setting environment variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#configuring-services">Configuring services</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#running-migrations">Running migrations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#installing-initial-data">Installing initial data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#building-the-frontend">Building the frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#starting-the-development-web-server">Starting the development web server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#starting-background-workers">Starting background workers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#starting-background-beat-processes">Starting background beat processes</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../directory_structure.html">Directory Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installation/index.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../installation/core/index.html">ESSArch Core</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../../installation/core/prerequisites.html">Prerequisites</a><ul>
@@ -234,7 +259,8 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../restapi/index.html">REST API</a><ul class="simple">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../restapi/index.html">REST API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../restapi/information-packages.html">Information Packages</a></li>
 </ul>
 </li>
 </ul>
@@ -328,7 +354,9 @@
     <span class="n">policy</span> <span class="o">=</span> <span class="s1">&#39;--policyfile &quot;</span><span class="si">{policy}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">policy</span><span class="o">=</span><span class="n">policy</span><span class="p">)</span> <span class="k">if</span> <span class="n">policy</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
     <span class="n">extract_features</span> <span class="o">=</span> <span class="s1">&#39;-x&#39;</span> <span class="k">if</span> <span class="n">extract_features</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
     <span class="n">validate</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">validate</span> <span class="k">else</span> <span class="s1">&#39;-o&#39;</span>
-    <span class="n">cmd</span> <span class="o">=</span> <span class="s1">&#39;verapdf </span><span class="si">{validate}</span><span class="s1"> </span><span class="si">{extract_features}</span><span class="s1"> </span><span class="si">{policy}</span><span class="s1"> &quot;</span><span class="si">{file}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">validate</span><span class="o">=</span><span class="n">validate</span><span class="p">,</span> <span class="n">extract_features</span><span class="o">=</span><span class="n">extract_features</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="n">policy</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="s1">&#39;verapdf </span><span class="si">{validate}</span><span class="s1"> </span><span class="si">{extract_features}</span><span class="s1"> </span><span class="si">{policy}</span><span class="s1"> &quot;</span><span class="si">{file}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">validate</span><span class="o">=</span><span class="n">validate</span><span class="p">,</span> <span class="n">extract_features</span><span class="o">=</span><span class="n">extract_features</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="n">policy</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">filepath</span>
+    <span class="p">)</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
     <span class="n">p</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">PIPE</span><span class="p">)</span>
@@ -339,17 +367,25 @@
 <span class="k">def</span> <span class="nf">get_outcome</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
     <span class="n">xpaths</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="n">xpath</span> <span class="o">=</span> <span class="s1">&#39;//*[local-name()=&quot;batchSummary&quot;]/*[local-name()=&quot;</span><span class="si">{el}</span><span class="s1">&quot; and (@*[local-name()=&quot;nonCompliant&quot;] &gt; 0 or @*[local-name()=&quot;failedJobs&quot;] &gt; 0)][1]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">el</span><span class="o">=</span><span class="s1">&#39;validationReports&#39;</span><span class="p">)</span>
+    <span class="n">xpath</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;//*[local-name()=&quot;batchSummary&quot;]</span>
+<span class="s1">                /*[local-name()=&quot;</span><span class="si">{el}</span><span class="s1">&quot; and</span>
+<span class="s1">                    (@*[local-name()=&quot;nonCompliant&quot;] &gt; 0 or @*[local-name()=&quot;failedJobs&quot;] &gt; 0)</span>
+<span class="s1">                ][1]&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">el</span><span class="o">=</span><span class="s1">&#39;validationReports&#39;</span><span class="p">)</span>
     <span class="n">xpaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xpath</span><span class="p">)</span>
 
-    <span class="n">xpath</span> <span class="o">=</span> <span class="s1">&#39;//*[local-name()=&quot;batchSummary&quot;]/*[local-name()=&quot;</span><span class="si">{el}</span><span class="s1">&quot; and @*[local-name()=&quot;failedJobs&quot;] &gt; 0][1]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">el</span><span class="o">=</span><span class="s1">&#39;featureReports&#39;</span><span class="p">)</span>
+    <span class="n">xpath</span> <span class="o">=</span> <span class="s1">&#39;//*[local-name()=&quot;batchSummary&quot;]/*[local-name()=&quot;</span><span class="si">{el}</span><span class="s1">&quot; and @*[local-name()=&quot;failedJobs&quot;] &gt; 0][1]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">el</span><span class="o">=</span><span class="s1">&#39;featureReports&#39;</span>
+    <span class="p">)</span>
     <span class="n">xpaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xpath</span><span class="p">)</span>
 
-    <span class="n">xpath</span> <span class="o">=</span> <span class="s1">&#39;//*[local-name()=&quot;batchSummary&quot;]/*[local-name()=&quot;</span><span class="si">{el}</span><span class="s1">&quot; and @*[local-name()=&quot;failedJobs&quot;] &gt; 0][1]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">el</span><span class="o">=</span><span class="s1">&#39;repairReports&#39;</span><span class="p">)</span>
+    <span class="n">xpath</span> <span class="o">=</span> <span class="s1">&#39;//*[local-name()=&quot;batchSummary&quot;]/*[local-name()=&quot;</span><span class="si">{el}</span><span class="s1">&quot; and @*[local-name()=&quot;failedJobs&quot;] &gt; 0][1]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">el</span><span class="o">=</span><span class="s1">&#39;repairReports&#39;</span>
+    <span class="p">)</span>
     <span class="n">xpaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xpath</span><span class="p">)</span>
 
-    <span class="n">xpath</span> <span class="o">=</span> <span class="s1">&#39;//*[local-name()=&quot;</span><span class="si">{el}</span><span class="s1">&quot; and @*[local-name()=&quot;</span><span class="si">{attr}</span><span class="s1">&quot;] &gt; 0][1]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">el</span><span class="o">=</span><span class="s1">&#39;policyReport&#39;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s1">&#39;failedChecks&#39;</span><span class="p">)</span>
+    <span class="n">xpath</span> <span class="o">=</span> <span class="s1">&#39;//*[local-name()=&quot;</span><span class="si">{el}</span><span class="s1">&quot; and @*[local-name()=&quot;</span><span class="si">{attr}</span><span class="s1">&quot;] &gt; 0][1]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">el</span><span class="o">=</span><span class="s1">&#39;policyReport&#39;</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s1">&#39;failedChecks&#39;</span>
+    <span class="p">)</span>
     <span class="n">xpaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xpath</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">xpath</span> <span class="ow">in</span> <span class="n">xpaths</span><span class="p">:</span>
@@ -426,7 +462,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017, ES Solutions.
+        &copy; Copyright 2019, ES Solutions.
 
     </p>
   </div>

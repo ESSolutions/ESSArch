@@ -82,6 +82,31 @@
             
             
               <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration/index.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../configuration/databases.html">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../configuration/redis.html">Redis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../configuration/rabbitmq.html">RabbitMQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../configuration/elasticsearch.html">Elasticsearch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../configuration/transformers.html">Transformers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development Environment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../development.html#getting-the-source">Getting the source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../development.html#setting-up-virtual-python-environments">Setting up virtual Python environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../development.html#installing-python-dependencies">Installing Python dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../development.html#setting-environment-variables">Setting environment variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../development.html#configuring-services">Configuring services</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../development.html#running-migrations">Running migrations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../development.html#installing-initial-data">Installing initial data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../development.html#building-the-frontend">Building the frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../development.html#starting-the-development-web-server">Starting the development web server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../development.html#starting-background-workers">Starting background workers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../development.html#starting-background-beat-processes">Starting background beat processes</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../directory_structure.html">Directory Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../installation/core/index.html">ESSArch Core</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../installation/core/prerequisites.html">Prerequisites</a><ul>
@@ -234,7 +259,8 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../restapi/index.html">REST API</a><ul class="simple">
+<li class="toctree-l1"><a class="reference internal" href="../../../restapi/index.html">REST API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../restapi/information-packages.html">Information Packages</a></li>
 </ul>
 </li>
 </ul>
@@ -312,11 +338,16 @@
 <span class="kn">from</span> <span class="nn">ESSArch_Core.configuration.models</span> <span class="k">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">ESSArch_Core.exceptions</span> <span class="k">import</span> <span class="n">FileFormatNotAllowed</span>
 
-<span class="n">MB</span> <span class="o">=</span> <span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span>
+<span class="n">MB</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;essarch.fixity.format&#39;</span><span class="p">)</span>
 
 <span class="n">DEFAULT_MIMETYPE</span> <span class="o">=</span> <span class="s1">&#39;application/octet-stream&#39;</span>
+
+<span class="n">FORMAT_FILES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;formats-v94.xml&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;format_extensions.xml&#39;</span>
+<span class="p">]</span>
 
 
 <div class="viewcode-block" id="FormatIdentifier"><a class="viewcode-back" href="../../../format-identifier.html#ESSArch_Core.fixity.format.FormatIdentifier">[docs]</a><span class="k">class</span> <span class="nc">FormatIdentifier</span><span class="p">:</span>
@@ -328,7 +359,9 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">fido</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fido</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_fido</span> <span class="o">=</span> <span class="n">Fido</span><span class="p">(</span><span class="n">handle_matches</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_matches</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Initiating fido&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fido</span> <span class="o">=</span> <span class="n">Fido</span><span class="p">(</span><span class="n">handle_matches</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_matches</span><span class="p">,</span> <span class="n">format_files</span><span class="o">=</span><span class="n">FORMAT_FILES</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Initiated fido&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fido</span>
 
     <span class="k">def</span> <span class="nf">_init_mimetypes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -337,19 +370,26 @@
                 <span class="n">entity</span><span class="o">=</span><span class="s2">&quot;path_mimetypes_definitionfile&quot;</span>
             <span class="p">)</span><span class="o">.</span><span class="n">value</span>
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">mimetypes_file</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Initiating mimetypes from </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mimetypes_file</span><span class="p">)</span>
                 <span class="n">mimetypes</span><span class="o">.</span><span class="n">suffix_map</span> <span class="o">=</span> <span class="p">{}</span>
                 <span class="n">mimetypes</span><span class="o">.</span><span class="n">encodings_map</span> <span class="o">=</span> <span class="p">{}</span>
                 <span class="n">mimetypes</span><span class="o">.</span><span class="n">types_map</span> <span class="o">=</span> <span class="p">{}</span>
                 <span class="n">mimetypes</span><span class="o">.</span><span class="n">common_types</span> <span class="o">=</span> <span class="p">{}</span>
                 <span class="n">mimetypes</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">files</span><span class="o">=</span><span class="p">[</span><span class="n">mimetypes_file</span><span class="p">])</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Initiated mimetypes from </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mimetypes_file</span><span class="p">)</span>
                 <span class="k">return</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Custom mimetypes file </span><span class="si">%s</span><span class="s1"> does not exist&#39;</span> <span class="o">%</span> <span class="n">mimetypes_file</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">Path</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
-            <span class="k">pass</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;No custom mimetypes file specified&#39;</span><span class="p">)</span>
 
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Initiating default mimetypes&#39;</span><span class="p">)</span>
         <span class="n">mimetypes</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
         <span class="n">mimetypes</span><span class="o">.</span><span class="n">_default_mime_types</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Initiated default mimetypes&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_mimetype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Getting mimetype for </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fname</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_mimetypes</span><span class="p">()</span>
         <span class="n">file_name</span><span class="p">,</span> <span class="n">file_ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
 
@@ -357,8 +397,11 @@
             <span class="n">file_ext</span> <span class="o">=</span> <span class="n">file_name</span>
 
         <span class="n">content_type</span><span class="p">,</span> <span class="n">encoding</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Guessed mimetype for </span><span class="si">%s</span><span class="s1">: type: </span><span class="si">%s</span><span class="s1">, encoding: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">content_type</span><span class="p">,</span> <span class="n">encoding</span><span class="p">))</span>
+
         <span class="k">if</span> <span class="n">content_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">allow_unknown_file_types</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Got mimetype </span><span class="si">%s</span><span class="s1"> for </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">DEFAULT_MIMETYPE</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
                 <span class="k">return</span> <span class="n">DEFAULT_MIMETYPE</span>
 
             <span class="k">raise</span> <span class="n">FileFormatNotAllowed</span><span class="p">(</span><span class="s2">&quot;Extension of &#39;</span><span class="si">%s</span><span class="s2">&#39; is missing from mimetypes and is not allowed&quot;</span> <span class="o">%</span> <span class="n">fname</span><span class="p">)</span>
@@ -372,7 +415,9 @@
         <span class="c1"># We skip setting Content-Encoding inorder to prevent browsers from</span>
         <span class="c1"># automatically uncompressing files. Instead we set the Content-Type to</span>
         <span class="c1"># the encoded mimetype</span>
-        <span class="k">return</span> <span class="n">encoding_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">encoding</span><span class="p">,</span> <span class="n">content_type</span><span class="p">)</span>
+        <span class="n">mtype</span> <span class="o">=</span> <span class="n">encoding_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">encoding</span><span class="p">,</span> <span class="n">content_type</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Got mimetype </span><span class="si">%s</span><span class="s1"> for </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mtype</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">mtype</span>
 
     <span class="k">def</span> <span class="nf">handle_matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fullname</span><span class="p">,</span> <span class="n">matches</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">,</span> <span class="n">matchtype</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -412,32 +457,35 @@
 <span class="sd">            A tuple with the format name, version and registry key</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span><span class="p">:</span>
-                <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-                <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Identifying file format of </span><span class="si">%s</span><span class="s2"> ...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filename</span><span class="p">,))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">fido</span><span class="o">.</span><span class="n">identify_file</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span><span class="p">:</span>
-                <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-                <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
         <span class="n">time_elapsed</span> <span class="o">=</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span>
         <span class="n">size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
         <span class="n">size_mb</span> <span class="o">=</span> <span class="n">size</span> <span class="o">/</span> <span class="n">MB</span>
 
         <span class="k">try</span><span class="p">:</span>
-                <span class="n">mb_per_sec</span> <span class="o">=</span> <span class="n">size_mb</span> <span class="o">/</span> <span class="n">time_elapsed</span>
+            <span class="n">mb_per_sec</span> <span class="o">=</span> <span class="n">size_mb</span> <span class="o">/</span> <span class="n">time_elapsed</span>
         <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
-                <span class="n">mb_per_sec</span> <span class="o">=</span> <span class="n">size_mb</span>
+            <span class="n">mb_per_sec</span> <span class="o">=</span> <span class="n">size_mb</span>
 
         <span class="n">file_format</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">format_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_version</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_registry_key</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Identified the format of </span><span class="si">%s</span><span class="s2"> at </span><span class="si">%s</span><span class="s2"> MB/Sec (</span><span class="si">%s</span><span class="s2"> sec): </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mb_per_sec</span><span class="p">,</span> <span class="n">time_elapsed</span><span class="p">,</span> <span class="n">file_format</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Identified the format of </span><span class="si">%s</span><span class="s2"> at </span><span class="si">%s</span><span class="s2"> MB/Sec (</span><span class="si">%s</span><span class="s2"> sec): </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">filename</span><span class="p">,</span> <span class="n">mb_per_sec</span><span class="p">,</span> <span class="n">time_elapsed</span><span class="p">,</span> <span class="n">file_format</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">file_format</span></div></div>
 </pre></div>
@@ -452,7 +500,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017, ES Solutions.
+        &copy; Copyright 2019, ES Solutions.
 
     </p>
   </div>

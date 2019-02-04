@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Introduction &mdash; ESSArch Core 1.0.0 documentation</title>
+  <title>Development Environment &mdash; ESSArch Core 1.0.0 documentation</title>
   
 
   
@@ -28,7 +28,9 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Directory Structure" href="directory_structure.html" />
+    <link rel="prev" title="Transformers" href="configuration/transformers.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -81,7 +83,7 @@
               
             
             
-              <ul>
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="configuration/index.html">Configuration</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="configuration/databases.html">Database</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration/redis.html">Redis</a></li>
@@ -90,18 +92,18 @@
 <li class="toctree-l2"><a class="reference internal" href="configuration/transformers.html">Transformers</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="development.html">Development Environment</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="development.html#getting-the-source">Getting the source</a></li>
-<li class="toctree-l2"><a class="reference internal" href="development.html#setting-up-virtual-python-environments">Setting up virtual Python environments</a></li>
-<li class="toctree-l2"><a class="reference internal" href="development.html#installing-python-dependencies">Installing Python dependencies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="development.html#setting-environment-variables">Setting environment variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="development.html#configuring-services">Configuring services</a></li>
-<li class="toctree-l2"><a class="reference internal" href="development.html#running-migrations">Running migrations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="development.html#installing-initial-data">Installing initial data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="development.html#building-the-frontend">Building the frontend</a></li>
-<li class="toctree-l2"><a class="reference internal" href="development.html#starting-the-development-web-server">Starting the development web server</a></li>
-<li class="toctree-l2"><a class="reference internal" href="development.html#starting-background-workers">Starting background workers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="development.html#starting-background-beat-processes">Starting background beat processes</a><ul class="simple">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Development Environment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#getting-the-source">Getting the source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setting-up-virtual-python-environments">Setting up virtual Python environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-python-dependencies">Installing Python dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setting-environment-variables">Setting environment variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuring-services">Configuring services</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-migrations">Running migrations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-initial-data">Installing initial data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-the-frontend">Building the frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#starting-the-development-web-server">Starting the development web server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#starting-background-workers">Starting background workers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#starting-background-beat-processes">Starting background beat processes</a><ul class="simple">
 </ul>
 </li>
 </ul>
@@ -308,13 +310,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Introduction</li>
+      <li>Development Environment</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/introduction.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/development.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -327,25 +329,149 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="introduction">
-<span id="id1"></span><h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<p>ESSArch is an open source archival solution compliant to the OAIS ISO-standard.
-ESSArch consist of software components that provide functionality
-for Pre-Ingest, Ingest, Preservation, Access, Data Management,
-Administration and Management.
-ESSArch has been developed together with the National Archives of Sweden
-and Norway.
-Every software component of ESSArch can be used individually and also be easily
-integrated together to provide overall functionality for producers,
-archivists and consumers.
-ESSArch consist of ETP, ETA and EPP, each individually created to provide
-tools for long-term digital preservation.</p>
-<p>ESSArch Tools for Producer (ETP) is used to prepare IPs,
-to create SIPs and to submit SIPs to archival institution</p>
-<p>ESSArch Tools for Archivists (ETA) is used to receive
-SIPs and to prepare SIPs for ingest into the preservation platform</p>
-<p>ESSArch Preservation Platform (EPP) is used to ingest SIPs,
-perform SIP2AIP, store AIPs in different archival storage according to storage methods, provide search and access functionality for consumers</p>
+  <div class="section" id="development-environment">
+<span id="id1"></span><h1>Development Environment<a class="headerlink" href="#development-environment" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="getting-the-source">
+<h2>Getting the source<a class="headerlink" href="#getting-the-source" title="Permalink to this headline">¶</a></h2>
+<p>To get started, clone the repositories:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/ESSolutions/ESSArch_Core
+$ git clone https://github.com/ESSolutions/ESSArch_Tools_Producer
+$ git clone https://github.com/ESSolutions/ESSArch_Tools_Archive
+$ git clone https://github.com/ESSolutions/ESSArch_EPP
+</pre></div>
+</div>
+</div>
+<div class="section" id="setting-up-virtual-python-environments">
+<h2>Setting up virtual Python environments<a class="headerlink" href="#setting-up-virtual-python-environments" title="Permalink to this headline">¶</a></h2>
+<p>You will need Python 3.6 along with <code class="docutils literal highlight highlight-default"><span></span><span class="n">pip</span></code>, which is what the backend of
+ESSArch is built on. It is recommended to have ESSArch in its own virtual
+python environment. Taking it even further, one might also have one virtual
+environment for each ESSArch application.</p>
+<p>Creating and managing virtual environments can be done with the <a class="reference external" href="https://virtualenv.pypa.io/">virtualenv</a>
+Python package or using more advanced tools such as <a class="reference external" href="https://github.com/pyenv/pyenv/">pyenv</a> or <a class="reference external" href="https://docs.pipenv.org/">pipenv</a>.</p>
+</div>
+<div class="section" id="installing-python-dependencies">
+<h2>Installing Python dependencies<a class="headerlink" href="#installing-python-dependencies" title="Permalink to this headline">¶</a></h2>
+<p>Inside each virtual environment you then need to install the Python
+dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span> ESSArch_Core
+$ pip install -e .
+</pre></div>
+</div>
+<p>ESSArch Core also contains a number of extra dependencies depending on the
+needs of the target environment. These are listed in the <code class="docutils literal highlight highlight-default"><span></span><span class="n">extras_require</span></code>
+section of the <code class="docutils literal highlight highlight-default"><span></span><span class="n">setup</span><span class="o">.</span><span class="n">py</span></code> file at the root of the directory and are installed
+by appending a list of extras to the command above.</p>
+<p>For example, to install the requirements for building the docs and running the
+tests:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span> ESSArch_Core
+$ pip install -e .<span class="o">[</span>docs,tests<span class="o">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="setting-environment-variables">
+<h2>Setting environment variables<a class="headerlink" href="#setting-environment-variables" title="Permalink to this headline">¶</a></h2>
+<p>Each application backend requires the path to the ESSArch Core directory along
+with the application directory to be included in the <code class="docutils literal highlight highlight-default"><span></span><span class="n">PYTHONPATH</span></code> variable.
+Each application frontend requires the <code class="docutils literal highlight highlight-default"><span></span><span class="n">ÈC_FRONTEND</span></code> variable to be set to
+the absolute path of the <code class="docutils literal highlight highlight-default"><span></span><span class="n">ESSArch_Core</span><span class="o">/</span><span class="n">frontend</span></code> directory in ESSArch Core.</p>
+<p>If you have a config and/or plugin directory, these will also have to be added
+to the <code class="docutils literal highlight highlight-default"><span></span><span class="n">PYTHONPATH</span></code> variable.</p>
+<p>Here is an example for an installation of ESSArch Tools for Producer:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">EC</span><span class="o">=</span><span class="nv">$HOME</span>/git/core
+<span class="nb">export</span> <span class="nv">EC_FRONTEND</span><span class="o">=</span><span class="nv">$EC</span>/ESSArch_Core/frontend
+<span class="nb">export</span> <span class="nv">ETP</span><span class="o">=</span><span class="nv">$HOME</span>/git/etp/ESSArch_TP
+<span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$ETP</span>:<span class="nv">$EC</span>:/ESSArch/config/:/ESSArch/plugins
+</pre></div>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">Tools such as <a class="reference external" href="https://direnv.net/">direnv</a> are recommended to automatically switch between
+environment variables while working with multiple applications.</p>
+</div>
+</div>
+<div class="section" id="configuring-services">
+<h2>Configuring services<a class="headerlink" href="#configuring-services" title="Permalink to this headline">¶</a></h2>
+<p>ESSArch requires a relational database, RabbitMQ, Redis and Elasticsearch. Each
+service can be configured in the configuration file of each application.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="configuration/index.html#configuration"><span class="std std-ref">Configuration</span></a></p>
+</div>
+</div>
+<div class="section" id="running-migrations">
+<h2>Running migrations<a class="headerlink" href="#running-migrations" title="Permalink to this headline">¶</a></h2>
+<p>All changes to the database are applied using the <cite>migrate</cite> command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python manage.py migrate
+</pre></div>
+</div>
+</div>
+<div class="section" id="installing-initial-data">
+<h2>Installing initial data<a class="headerlink" href="#installing-initial-data" title="Permalink to this headline">¶</a></h2>
+<p>Use the installation script in ESSArch Core to setup default event types and
+system parameters</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python <span class="si">${</span><span class="nv">EC</span><span class="si">}</span>/ESSArch_Core/install/install_default_config.py
+</pre></div>
+</div>
+<p>The installation script in each application adds users, paths and other
+application specific initial data.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python install/install_default_config_<span class="o">{</span>app<span class="o">}</span>.py
+</pre></div>
+</div>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">The paths created has to exist in the filesystem before being used. See
+<a class="reference internal" href="directory_structure.html#directory-structure"><span class="std std-ref">Directory Structure</span></a> for the default structure</p>
+</div>
+</div>
+<div class="section" id="building-the-frontend">
+<h2>Building the frontend<a class="headerlink" href="#building-the-frontend" title="Permalink to this headline">¶</a></h2>
+<p>To build the frontend you need <a class="reference external" href="https://nodejs.org/">Node.js</a> 8+ with <a class="reference external" href="https://yarnpkg.com/">yarn</a>, and <a class="reference external" href="https://www.npmjs.com/package/gulp-cli/">gulp-cli</a> globally
+installed:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ yarn global add gulp-cli
+</pre></div>
+</div>
+<p>For each application, install the dependencies and build the source:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span> frontend/static/frontend
+$ yarn
+$ gulp
+</pre></div>
+</div>
+</div>
+<div class="section" id="starting-the-development-web-server">
+<h2>Starting the development web server<a class="headerlink" href="#starting-the-development-web-server" title="Permalink to this headline">¶</a></h2>
+<p>To start the development web server provided by Django for the applications,
+run the following in the root of each application:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python manage.py runserver
+</pre></div>
+</div>
+<p>To run multiple applications simultaneously you need to start each on different
+ports, simply append the port to the end of the
+command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python manage.py runserver <span class="m">8000</span>
+</pre></div>
+</div>
+<p>You can now access the application from your web browser by visiting
+<a class="reference external" href="http://localhost:8000/">http://localhost:8000/</a></p>
+</div>
+<div class="section" id="starting-background-workers">
+<h2>Starting background workers<a class="headerlink" href="#starting-background-workers" title="Permalink to this headline">¶</a></h2>
+<p>Much of ESSArch is done on background workers. These needs to run in addition
+to the web server. Run the following in the root of each application:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ celery -A config worker --loglevel<span class="o">=</span>info --concurrency<span class="o">=</span><span class="m">5</span> -Ofair -Q celery,validation,file_operation,io_disk,pollers
+</pre></div>
+</div>
+</div>
+<div class="section" id="starting-background-beat-processes">
+<h2>Starting background beat processes<a class="headerlink" href="#starting-background-beat-processes" title="Permalink to this headline">¶</a></h2>
+<p>Background beat processes are also needed to run some operations continously.
+Run the following in the root of each application:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ celery -A config beat --loglevel<span class="o">=</span>info
+</pre></div>
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</div>
 </div>
 
 
@@ -353,6 +479,15 @@ perform SIP2AIP, store AIPs in different archival storage according to storage m
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="directory_structure.html" class="btn btn-neutral float-right" title="Directory Structure" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="configuration/transformers.html" class="btn btn-neutral" title="Transformers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

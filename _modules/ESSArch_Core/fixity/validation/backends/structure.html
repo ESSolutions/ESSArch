@@ -82,6 +82,31 @@
             
             
               <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../configuration/index.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../configuration/databases.html">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../configuration/redis.html">Redis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../configuration/rabbitmq.html">RabbitMQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../configuration/elasticsearch.html">Elasticsearch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../configuration/transformers.html">Transformers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../development.html">Development Environment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#getting-the-source">Getting the source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#setting-up-virtual-python-environments">Setting up virtual Python environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#installing-python-dependencies">Installing Python dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#setting-environment-variables">Setting environment variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#configuring-services">Configuring services</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#running-migrations">Running migrations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#installing-initial-data">Installing initial data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#building-the-frontend">Building the frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#starting-the-development-web-server">Starting the development web server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#starting-background-workers">Starting background workers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#starting-background-beat-processes">Starting background beat processes</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../directory_structure.html">Directory Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installation/index.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../installation/core/index.html">ESSArch Core</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../../installation/core/prerequisites.html">Prerequisites</a><ul>
@@ -234,7 +259,8 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../restapi/index.html">REST API</a><ul class="simple">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../restapi/index.html">REST API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../restapi/information-packages.html">Information Packages</a></li>
 </ul>
 </li>
 </ul>
@@ -306,10 +332,9 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 
-<span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">from</span> <span class="nn">django.utils</span> <span class="k">import</span> <span class="n">timezone</span>
 <span class="kn">from</span> <span class="nn">glob2</span> <span class="k">import</span> <span class="n">glob</span><span class="p">,</span> <span class="n">iglob</span>
-<span class="kn">from</span> <span class="nn">scandir</span> <span class="k">import</span> <span class="n">walk</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">walk</span>
 
 <span class="kn">from</span> <span class="nn">ESSArch_Core.exceptions</span> <span class="k">import</span> <span class="n">ValidationError</span>
 <span class="kn">from</span> <span class="nn">ESSArch_Core.fixity.models</span> <span class="k">import</span> <span class="n">Validation</span>
@@ -351,17 +376,17 @@
         <span class="n">required_files</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">rel_file</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">in_valid_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">valid_paths</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">valid_path</span> <span class="ow">in</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">valid_paths</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)]:</span>
-            <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">moves</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">normalize_path</span><span class="p">,</span> <span class="n">glob</span><span class="p">(</span><span class="n">valid_path</span><span class="p">))):</span>
+        <span class="k">for</span> <span class="n">valid_path</span> <span class="ow">in</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">valid_paths</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="nb">str</span><span class="p">)]:</span>
+            <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">normalize_path</span><span class="p">,</span> <span class="n">glob</span><span class="p">(</span><span class="n">valid_path</span><span class="p">))):</span>
                 <span class="k">return</span> <span class="kc">True</span>
 
-        <span class="k">for</span> <span class="n">valid_path</span> <span class="ow">in</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">valid_paths</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)]:</span>
+        <span class="k">for</span> <span class="n">valid_path</span> <span class="ow">in</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">valid_paths</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="nb">str</span><span class="p">)]:</span>
             <span class="k">for</span> <span class="n">nested_valid_path</span> <span class="ow">in</span> <span class="n">valid_path</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">found_nested_path</span><span class="p">,</span> <span class="n">matches</span> <span class="ow">in</span> <span class="n">iglob</span><span class="p">(</span><span class="n">nested_valid_path</span><span class="p">,</span> <span class="n">with_matches</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
                     <span class="n">found_nested_path</span> <span class="o">=</span> <span class="n">normalize_path</span><span class="p">(</span><span class="n">found_nested_path</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">found_nested_path</span> <span class="o">==</span> <span class="n">path</span><span class="p">:</span>
                         <span class="c1"># check matches</span>
-                        <span class="n">matches</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">moves</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">normalize_path</span><span class="p">,</span> <span class="n">matches</span><span class="p">)</span>
+                        <span class="n">matches</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">normalize_path</span><span class="p">,</span> <span class="n">matches</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
                             <span class="k">for</span> <span class="n">related_path</span> <span class="ow">in</span> <span class="n">valid_path</span><span class="p">:</span>
                                 <span class="k">if</span> <span class="n">related_path</span> <span class="o">!=</span> <span class="n">found_nested_path</span><span class="p">:</span>
@@ -370,7 +395,9 @@
                                     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">related_path</span><span class="p">):</span>
                                         <span class="n">rel_path</span> <span class="o">=</span> <span class="n">normalize_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">root</span><span class="p">))</span>
                                         <span class="n">rel_related_path</span> <span class="o">=</span> <span class="n">normalize_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">related_path</span><span class="p">,</span> <span class="n">root</span><span class="p">))</span>
-                                        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{file}</span><span class="s1"> missing related file </span><span class="si">{related}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">rel_path</span><span class="p">,</span> <span class="n">related</span><span class="o">=</span><span class="n">rel_related_path</span><span class="p">))</span>
+                                        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{file}</span><span class="s1"> missing related file </span><span class="si">{related}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                            <span class="n">file</span><span class="o">=</span><span class="n">rel_path</span><span class="p">,</span> <span class="n">related</span><span class="o">=</span><span class="n">rel_related_path</span>
+                                        <span class="p">))</span>
 
                         <span class="k">return</span> <span class="kc">True</span>
 
@@ -379,11 +406,11 @@
     <span class="k">def</span> <span class="nf">validate_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
         <span class="n">valid_paths</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;valid_paths&#39;</span><span class="p">,</span> <span class="p">[])</span>
         <span class="n">allow_empty</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;allow_empty&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="n">required_files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">moves</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">normalize_path</span><span class="p">,</span> <span class="p">[</span><span class="n">req</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="k">for</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;required_files&#39;</span><span class="p">,</span> <span class="p">[])]))</span>
+        <span class="n">required_files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">normalize_path</span><span class="p">,</span> <span class="p">[</span><span class="n">req</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="k">for</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;required_files&#39;</span><span class="p">,</span> <span class="p">[])]))</span>
         <span class="n">file_count</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">valid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">valid_paths</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">valid_paths</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">normalize_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">valid</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">nested_idx</span><span class="p">,</span> <span class="n">nested_valid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">valid</span><span class="p">):</span>
@@ -467,7 +494,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017, ES Solutions.
+        &copy; Copyright 2019, ES Solutions.
 
     </p>
   </div>

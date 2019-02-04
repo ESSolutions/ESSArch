@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Interface &mdash; ESSArch Core 1.0.0 documentation</title>
+  <title>Database &mdash; ESSArch Core 1.0.0 documentation</title>
   
 
   
@@ -28,7 +28,9 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Redis" href="redis.html" />
+    <link rel="prev" title="Configuration" href="index.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -81,13 +83,13 @@
               
             
             
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="../configuration/index.html">Configuration</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../configuration/databases.html">Database</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../configuration/redis.html">Redis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../configuration/rabbitmq.html">RabbitMQ</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../configuration/elasticsearch.html">Elasticsearch</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../configuration/transformers.html">Transformers</a></li>
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Configuration</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redis.html">Redis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rabbitmq.html">RabbitMQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elasticsearch.html">Elasticsearch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transformers.html">Transformers</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../development.html">Development Environment</a><ul>
@@ -308,13 +310,15 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>Interface</li>
+          <li><a href="index.html">Configuration</a> &raquo;</li>
+        
+      <li>Database</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/user_guide/user-interface.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/configuration/databases.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -327,73 +331,26 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="interface">
-<span id="user-interface"></span><h1>Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="list-view">
-<span id="user-interface-list-view"></span><h2>List view<a class="headerlink" href="#list-view" title="Permalink to this headline">¶</a></h2>
-<p>The list view is the table of objects that is present in most views in ESSArch.
-The objects listed in this view are always relevant to the current view, and
-filtered depending on state and permissions and provided are additional
-optional filter and sorting options.</p>
-<img alt="../_images/list_view.png" src="../_images/list_view.png" />
-<p>The list view can be filtered by clicking the filter icon, which opens
-a menu with all available filters.</p>
-<img alt="../_images/list_view_filter.png" src="../_images/list_view_filter.png" />
-<p>In ESSArch Preservation Platform (EPP) many list views includes nested IPs
-which can be expanded to see the underlying IPs. What should appear in the
-first level can be administrated in the <a class="reference internal" href="#user-settings-ip-view-type"><span class="std std-ref">user settings</span></a>.</p>
-<img alt="../_images/list_view_epp.png" src="../_images/list_view_epp.png" />
-<p>The main functionality of a view, such as preparation, creation and
-preservation, is accessed by clicking on a row in the IP list.</p>
-</div>
-<div class="section" id="state-view">
-<span id="user-interface-state-view"></span><h2>State view<a class="headerlink" href="#state-view" title="Permalink to this headline">¶</a></h2>
-<p>Clicking the <strong>State</strong> column will show all steps and tasks for an IP. This view
-has information about the progress and/or outcome of each step and task.</p>
-<img alt="../_images/list_view_state_column.png" src="../_images/list_view_state_column.png" />
-<img alt="../_images/state_view.png" src="../_images/state_view.png" />
-<p>Click on a step or a task to see more information. This is very useful if an
-error occurs because the user can access a detailed description of the error
-which will help when finding out where things went wrong.</p>
-<img alt="../_images/step_report.png" src="../_images/step_report.png" />
-<img alt="../_images/task_report.png" src="../_images/task_report.png" />
-</div>
-<div class="section" id="events-view">
-<span id="user-interface-events-view"></span><h2>Events view<a class="headerlink" href="#events-view" title="Permalink to this headline">¶</a></h2>
-<p>Clicking the <strong>Event</strong>-column will show a list of all events for an IP.  A user can add
-new events by filling out the fields and clicking <strong>Add event</strong>.</p>
-<img alt="../_images/list_view_events_column.png" src="../_images/list_view_events_column.png" />
-<img alt="../_images/events_view.png" src="../_images/events_view.png" />
-</div>
-<div class="section" id="delete-ip">
-<span id="user-interface-delete-ip"></span><h2>Delete IP<a class="headerlink" href="#delete-ip" title="Permalink to this headline">¶</a></h2>
-<p>A user with enough permissions can delete an IP by clicking the
-<strong>delete</strong>-button.</p>
-<img alt="../_images/list_view_delete_column.png" src="../_images/list_view_delete_column.png" />
-</div>
-<div class="section" id="user-settings">
-<span id="id1"></span><h2>User settings<a class="headerlink" href="#user-settings" title="Permalink to this headline">¶</a></h2>
-<p>User settings can be found by clicking the user symbol in the top right corner
-and selecting “User settings”.</p>
-<img alt="../_images/user_settings1.png" src="../_images/user_settings1.png" />
-<div class="section" id="column-picker">
-<span id="user-settings-column-picker"></span><h3>Column picker<a class="headerlink" href="#column-picker" title="Permalink to this headline">¶</a></h3>
-<p>The user can choose which columns should be shown in all the IP list views of
-ESSArch and in which order they appear.</p>
-<img alt="../_images/user_settings_column_picker.png" src="../_images/user_settings_column_picker.png" />
-</div>
-<div class="section" id="ip-view-type">
-<span id="user-settings-ip-view-type"></span><h3>IP view type<a class="headerlink" href="#ip-view-type" title="Permalink to this headline">¶</a></h3>
-<p>In ESSArch Preservation Platform (EPP) there is an additinal setting - <strong>IP
-view type</strong> that allows the user to choose what to see in the IP list view.</p>
-<blockquote>
-<div><ul class="simple">
-<li>IP - The first generation of each AIC with all other generations nested</li>
-<li>AIC - The AIC with all generations nested</li>
-</ul>
-</div></blockquote>
-<img alt="../_images/user_settings_view_type.png" src="../_images/user_settings_view_type.png" />
-</div>
+  <div class="section" id="database">
+<h1>Database<a class="headerlink" href="#database" title="Permalink to this headline">¶</a></h1>
+<p>ESSArch uses SQLite by default and can be configured to use any other database
+supported by Django or its plugins. See the <a class="reference external" href="https://docs.djangoproject.com/en/stable/ref/databases/">Django database documentation</a> for more
+information on how to configure the database.</p>
+<p>Here is an example using MySQL:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">DATABASES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;ENGINE&#39;</span><span class="p">:</span> <span class="s1">&#39;django.db.backends.mysql&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;NAME&#39;</span><span class="p">:</span> <span class="s1">&#39;etp&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;USER&#39;</span><span class="p">:</span> <span class="s1">&#39;arch&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PASSWORD&#39;</span><span class="p">:</span> <span class="s1">&#39;password&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;HOST&#39;</span><span class="p">:</span> <span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PORT&#39;</span><span class="p">:</span> <span class="s1">&#39;3306&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;OPTIONS&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;isolation_level&#39;</span><span class="p">:</span> <span class="s1">&#39;read committed&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
 </div>
 </div>
 
@@ -402,6 +359,15 @@ view type</strong> that allows the user to choose what to see in the IP list vie
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="redis.html" class="btn btn-neutral float-right" title="Redis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

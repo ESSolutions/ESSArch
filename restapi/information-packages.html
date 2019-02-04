@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>&lt;no title&gt; &mdash; ESSArch Core 1.0.0 documentation</title>
+  <title>Information Packages &mdash; ESSArch Core 1.0.0 documentation</title>
   
 
   
@@ -82,7 +82,32 @@
               
             
             
-              <ul>
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../configuration/index.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../configuration/databases.html">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration/redis.html">Redis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration/rabbitmq.html">RabbitMQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration/elasticsearch.html">Elasticsearch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration/transformers.html">Transformers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Environment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../development.html#getting-the-source">Getting the source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development.html#setting-up-virtual-python-environments">Setting up virtual Python environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development.html#installing-python-dependencies">Installing Python dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development.html#setting-environment-variables">Setting environment variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development.html#configuring-services">Configuring services</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development.html#running-migrations">Running migrations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development.html#installing-initial-data">Installing initial data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development.html#building-the-frontend">Building the frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development.html#starting-the-development-web-server">Starting the development web server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development.html#starting-background-workers">Starting background workers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development.html#starting-background-beat-processes">Starting background beat processes</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../directory_structure.html">Directory Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../installation/core/index.html">ESSArch Core</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../installation/core/prerequisites.html">Prerequisites</a><ul>
@@ -235,7 +260,8 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="index.html">REST API</a><ul class="simple">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">REST API</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Information Packages</a></li>
 </ul>
 </li>
 </ul>
@@ -285,7 +311,7 @@
         
           <li><a href="index.html">REST API</a> &raquo;</li>
         
-      <li>&lt;no title&gt;</li>
+      <li>Information Packages</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -304,39 +330,15 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <dl class="get">
+  <div class="section" id="information-packages">
+<h1>Information Packages<a class="headerlink" href="#information-packages" title="Permalink to this headline">¶</a></h1>
+<dl class="get">
 <dt id="get--information-packages-">
 <code class="descname">GET </code><code class="descname">/information-packages/</code><a class="headerlink" href="#get--information-packages-" title="Permalink to this definition">¶</a></dt>
 <dd><p>The information packages visible to the logged in user</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name" colspan="2">Query Parameters:</th></tr>
-<tr class="field-odd field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
-<li><strong>agents</strong> (<em>[string]</em>) – agent ids</li>
-<li><strong>archivist_organization</strong> (<em>[string]</em>) – archivist organization names</li>
-<li><strong>state</strong> (<em>[string]</em>) – IP states</li>
-<li><strong>label</strong> (<em>[string]</em>) – labels</li>
-<li><strong>object_identifier_value</strong> (<em>[string]</em>) – object identifier values</li>
-<li><strong>responsible</strong> (<em>[string]</em>) – usernames</li>
-<li><strong>create_date_0</strong> (<em>date</em>) – the earliest allowed create date</li>
-<li><strong>create_date_1</strong> (<em>date</em>) – the latest allowed create date</li>
-<li><strong>entry_date_0</strong> (<em>date</em>) – the earliest allowed entry date</li>
-<li><strong>entry_date_1</strong> (<em>date</em>) – the latest allowed entry date</li>
-<li><strong>object_size_0</strong> (<em>int</em>) – the lowest allowed IP size (bytes)</li>
-<li><strong>object_size_1</strong> (<em>int</em>) – the highest allowed IP size (bytes)</li>
-<li><strong>start_date_0</strong> (<em>date</em>) – the earliest allowed start date</li>
-<li><strong>start_date_1</strong> (<em>date</em>) – the latest allowed start date</li>
-<li><strong>end_date_0</strong> (<em>date</em>) – the earliest allowed end date</li>
-<li><strong>end_date_1</strong> (<em>date</em>) – the latest allowed end date</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
+</div>
 
 
            </div>
@@ -356,7 +358,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017, ES Solutions.
+        &copy; Copyright 2019, ES Solutions.
 
     </p>
   </div>

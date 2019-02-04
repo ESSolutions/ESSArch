@@ -82,6 +82,31 @@
             
             
               <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../configuration/index.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../configuration/databases.html">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../configuration/redis.html">Redis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../configuration/rabbitmq.html">RabbitMQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../configuration/elasticsearch.html">Elasticsearch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../configuration/transformers.html">Transformers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../development.html">Development Environment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#getting-the-source">Getting the source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#setting-up-virtual-python-environments">Setting up virtual Python environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#installing-python-dependencies">Installing Python dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#setting-environment-variables">Setting environment variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#configuring-services">Configuring services</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#running-migrations">Running migrations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#installing-initial-data">Installing initial data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#building-the-frontend">Building the frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#starting-the-development-web-server">Starting the development web server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#starting-background-workers">Starting background workers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../development.html#starting-background-beat-processes">Starting background beat processes</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../directory_structure.html">Directory Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installation/index.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../installation/core/index.html">ESSArch Core</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../../installation/core/prerequisites.html">Prerequisites</a><ul>
@@ -234,7 +259,8 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../restapi/index.html">REST API</a><ul class="simple">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../restapi/index.html">REST API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../restapi/information-packages.html">Information Packages</a></li>
 </ul>
 </li>
 </ul>
@@ -325,9 +351,9 @@
     <span class="k">if</span> <span class="n">policy</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">policy</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="n">errno</span><span class="o">.</span><span class="n">ENOENT</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">strerror</span><span class="p">(</span><span class="n">errno</span><span class="o">.</span><span class="n">ENOENT</span><span class="p">),</span> <span class="n">policy</span><span class="p">)</span>
 
-    <span class="n">cmd</span> <span class="o">=</span> <span class="s1">&#39;mediaconch --</span><span class="si">{reporter}</span><span class="s1"> --Format=</span><span class="si">{format}</span><span class="s1"> -p &quot;</span><span class="si">{policy}</span><span class="s1">&quot; &quot;</span><span class="si">{filename}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reporter</span><span class="o">=</span><span class="n">reporting_element</span><span class="p">,</span>
-                                                                                    <span class="nb">format</span><span class="o">=</span><span class="n">output_format</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="n">policy</span><span class="p">,</span>
-                                                                                    <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="s1">&#39;mediaconch --</span><span class="si">{reporter}</span><span class="s1"> --Format=</span><span class="si">{format}</span><span class="s1"> -p &quot;</span><span class="si">{policy}</span><span class="s1">&quot; &quot;</span><span class="si">{filename}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">reporter</span><span class="o">=</span><span class="n">reporting_element</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">output_format</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="n">policy</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span>
+    <span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
     <span class="n">p</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">PIPE</span><span class="p">)</span>
     <span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
@@ -409,7 +435,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017, ES Solutions.
+        &copy; Copyright 2019, ES Solutions.
 
     </p>
   </div>

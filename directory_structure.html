@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Introduction &mdash; ESSArch Core 1.0.0 documentation</title>
+  <title>Directory Structure &mdash; ESSArch Core 1.0.0 documentation</title>
   
 
   
@@ -28,7 +28,9 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation/index.html" />
+    <link rel="prev" title="Development Environment" href="development.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -81,7 +83,7 @@
               
             
             
-              <ul>
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="configuration/index.html">Configuration</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="configuration/databases.html">Database</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration/redis.html">Redis</a></li>
@@ -106,7 +108,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="directory_structure.html">Directory Structure</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Directory Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation/index.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="installation/core/index.html">ESSArch Core</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="installation/core/prerequisites.html">Prerequisites</a><ul>
@@ -308,13 +310,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Introduction</li>
+      <li>Directory Structure</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/introduction.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/directory_structure.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -327,25 +329,43 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="introduction">
-<span id="id1"></span><h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<p>ESSArch is an open source archival solution compliant to the OAIS ISO-standard.
-ESSArch consist of software components that provide functionality
-for Pre-Ingest, Ingest, Preservation, Access, Data Management,
-Administration and Management.
-ESSArch has been developed together with the National Archives of Sweden
-and Norway.
-Every software component of ESSArch can be used individually and also be easily
-integrated together to provide overall functionality for producers,
-archivists and consumers.
-ESSArch consist of ETP, ETA and EPP, each individually created to provide
-tools for long-term digital preservation.</p>
-<p>ESSArch Tools for Producer (ETP) is used to prepare IPs,
-to create SIPs and to submit SIPs to archival institution</p>
-<p>ESSArch Tools for Archivists (ETA) is used to receive
-SIPs and to prepare SIPs for ingest into the preservation platform</p>
-<p>ESSArch Preservation Platform (EPP) is used to ingest SIPs,
-perform SIP2AIP, store AIPs in different archival storage according to storage methods, provide search and access functionality for consumers</p>
+  <div class="section" id="directory-structure">
+<span id="id1"></span><h1>Directory Structure<a class="headerlink" href="#directory-structure" title="Permalink to this headline">¶</a></h1>
+<p>This the default structure of the data directories. Administrators can change
+these paths using the administration interface.</p>
+<div class="highlight-txt notranslate"><div class="highlight"><pre><span></span>/ESSArch/data/
+├── epp
+│   ├── access
+│   ├── cache
+│   ├── disseminations
+│   ├── ingest
+│   ├── orders
+│   ├── reports
+│   │   ├── appraisal
+│   │   └── conversion
+│   ├── temp
+│   ├── work
+│   └── workarea
+├── eta
+│   ├── reception
+│   │   └── eft
+│   ├── uip
+│   └── work
+│       └── admin
+├── etp
+│   ├── prepare
+│   ├── prepare_reception
+│   └── reception
+├── gate
+│   └── reception
+├── receipts
+│   └── xml
+├── remote
+└── store
+    ├── disk1
+    └── longterm_disk1
+</pre></div>
+</div>
 </div>
 
 
@@ -353,6 +373,15 @@ perform SIP2AIP, store AIPs in different archival storage according to storage m
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="installation/index.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="development.html" class="btn btn-neutral" title="Development Environment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>
