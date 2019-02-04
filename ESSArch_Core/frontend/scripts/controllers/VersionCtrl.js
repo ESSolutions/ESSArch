@@ -1,16 +1,7 @@
 angular
   .module('essarch.controllers')
-  .controller('VersionCtrl', function(
-    $scope,
-    myService,
-    $window,
-    $state,
-    marked,
-    $anchorScroll,
-    $location,
-    $translate
-  ) {
-    myService.getVersionInfo().then(function(result) {
+  .controller('VersionCtrl', function($scope, $window, $state, marked, $anchorScroll, $location, $translate, Sysinfo) {
+    Sysinfo.get().$promise.then(function(result) {
       if (result.platform.os == 'Darwin') {
         result.platform.os = 'macOS';
         result.platform.icon = 'fab fa-apple';
