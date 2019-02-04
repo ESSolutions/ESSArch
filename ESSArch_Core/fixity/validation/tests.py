@@ -6,7 +6,6 @@ import os
 import shutil
 import tempfile
 
-import six
 from django.test import TestCase
 from lxml import etree
 from pyfakefs import fake_filesystem_unittest
@@ -81,7 +80,7 @@ class ChecksumValidatorXMLTests(TestCase):
     def test_validate_against_xml_file_valid(self):
         xml_str = '<root><file CHECKSUM="{hash}" CHECKSUMTYPE="{alg}"><FLocat href="{file}"/></file></root>'.format(
             hash=self.checksum, alg='md5', file=self.test_file.name)
-        xml_str = six.binary_type(xml_str.encode('utf-8'))
+        xml_str = bytes(xml_str.encode('utf-8'))
         self.xml_file.write(xml_str)
         self.xml_file.seek(0)
         self.xml_file.close()
@@ -93,7 +92,7 @@ class ChecksumValidatorXMLTests(TestCase):
     def test_validate_against_xml_file_invalid(self):
         xml_str = '<root><file CHECKSUM="{hash}" CHECKSUMTYPE="{alg}"><FLocat href="{file}"/></file></root>'.format(
             hash=self.checksum + 'appended', alg='md5', file=self.test_file.name)
-        xml_str = six.binary_type(xml_str.encode('utf-8'))
+        xml_str = bytes(xml_str.encode('utf-8'))
         self.xml_file.write(xml_str)
         self.xml_file.seek(0)
         self.xml_file.close()
@@ -125,7 +124,7 @@ class ChecksumValidatorXMLTests(TestCase):
             </root>'''.format(
             hash=self.checksum, alg='md5', file=self.test_file.name,
             hash2=checksum2, file2=test_file2.name)
-        xml_str = six.binary_type(xml_str.encode('utf-8'))
+        xml_str = bytes(xml_str.encode('utf-8'))
         self.xml_file.write(xml_str)
         self.xml_file.seek(0)
         self.xml_file.close()

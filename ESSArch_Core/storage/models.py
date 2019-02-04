@@ -4,9 +4,9 @@ import errno
 import os
 import uuid
 from datetime import timedelta
+from urllib.parse import urljoin
 
 import requests
-import six
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import Case, When, Value, IntegerField
@@ -14,7 +14,6 @@ from django.db.models.functions import Cast
 from django.utils.encoding import python_2_unicode_compatible
 from picklefield.fields import PickledObjectField
 from retrying import retry
-from six.moves import urllib
 
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.configuration.models import Parameter, Path
@@ -190,7 +189,7 @@ class StorageMethod(models.Model):
         if len(self.name):
             return self.name
 
-        return six.text_type(self.id)
+        return str(self.id)
 
 
 @python_2_unicode_compatible
@@ -219,7 +218,7 @@ class StorageMethodTargetRelation(models.Model):
         if len(self.name):
             return self.name
 
-        return six.text_type(self.id)
+        return str(self.id)
 
 
 class StorageTargetQueryset(models.QuerySet):
@@ -318,7 +317,7 @@ class StorageTarget(models.Model):
         if len(self.name):
             return self.name
 
-        return six.text_type(self.id)
+        return str(self.id)
 
 
 class StorageMediumQueryset(models.QuerySet):
@@ -432,7 +431,7 @@ class StorageMedium(models.Model):
         if len(self.medium_id):
             return self.medium_id
 
-        return six.text_type(self.id)
+        return str(self.id)
 
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
@@ -662,7 +661,7 @@ class TapeSlot(models.Model):
         unique_together = ('slot_id', 'robot')
 
     def __str__(self):
-        return six.text_type(self.slot_id)
+        return str(self.slot_id)
 
 
 @python_2_unicode_compatible
@@ -726,7 +725,7 @@ class IOQueue(models.Model):
     def sync_with_master(self, data):
         master_server = self.storage_method_target.storage_target.master_server
         host, user, passw = master_server.split(',')
-        dst = urllib.parse.urljoin(host, 'api/io-queue/%s/' % self.pk)
+        dst = urljoin(host, 'api/io-queue/%s/' % self.pk)
 
         session = requests.Session()
         session.verify = False

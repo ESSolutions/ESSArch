@@ -26,7 +26,6 @@ import uuid
 from copy import copy
 
 import jsonfield
-import six
 from django.conf import settings
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
@@ -87,7 +86,7 @@ class ProfileSA(models.Model):
     Unlockable = models.BooleanField(default=False)
 
     def __str__(self):
-        return six.text_type(self.id)
+        return str(self.id)
 
     class Meta:
         unique_together = (
@@ -150,7 +149,7 @@ class ProfileIP(models.Model):
         return data
 
     def __str__(self):
-        return six.text_type(self.id)
+        return str(self.id)
 
     class Meta:
         unique_together = (
@@ -341,7 +340,7 @@ class SubmissionAgreement(models.Model):
         clone.pk = None
         clone.name = new_name
 
-        for k, v in six.iteritems(new_data):
+        for k, v in new_data.items():
             setattr(clone, k, v)
 
         clone.save()

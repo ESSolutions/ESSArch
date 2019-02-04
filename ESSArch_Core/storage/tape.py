@@ -12,8 +12,6 @@ from lxml import etree
 
 from retrying import retry
 
-import six
-
 from ESSArch_Core.storage.exceptions import (
     MTInvalidOperationOrDeviceNameException,
     MTFailedOperationException,
@@ -275,7 +273,7 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
         TypeError: If |`paths`| > 1 and `arcname` is not None
     """
 
-    if isinstance(paths, six.string_types):
+    if isinstance(paths, str):
         paths = [paths]
 
     logger.info(

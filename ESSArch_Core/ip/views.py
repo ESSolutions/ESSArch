@@ -8,7 +8,6 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
-import six
 
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.serializers import ProcessStepChildrenSerializer
@@ -129,7 +128,7 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
             raise exceptions.ParseError(u"Transformer {} not in config".format(transformer))
 
         if ip.get_profile('validation') is not None:
-            for validator, successful in six.iteritems(workarea.successfully_validated):
+            for validator, successful in workarea.successfully_validated.items():
                 if successful is not True:
                     raise exceptions.ParseError(
                         "\"{ip}\" hasn't been successfully validated with \"{validator}\"".format(

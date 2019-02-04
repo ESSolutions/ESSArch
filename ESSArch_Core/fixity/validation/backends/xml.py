@@ -2,7 +2,6 @@ import copy
 import logging
 import os
 
-import six
 from django.utils import timezone
 from lxml import etree, isoschematron
 from os import walk
@@ -159,7 +158,7 @@ class DiffCheckValidator(BaseValidator):
 
     def _validate_deleted_files(self, objs):
         delete_count = 0
-        for deleted_hash, deleted_hash_files in six.iteritems(self.deleted):
+        for deleted_hash, deleted_hash_files in self.deleted.items():
             present_hash_files = self.present.get(deleted_hash, [])
 
             for f in present_hash_files[:]:
@@ -188,7 +187,7 @@ class DiffCheckValidator(BaseValidator):
         return delete_count
 
     def _validate_present_files(self, objs):
-        for present_hash, present_hash_files in six.iteritems(self.present):
+        for present_hash, present_hash_files in self.present.items():
             for f in present_hash_files:
                 self.added += 1
                 msg = u'{f} is missing from {xml}'.format(f=f, xml=self.context)

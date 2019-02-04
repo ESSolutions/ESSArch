@@ -27,7 +27,6 @@ from __future__ import absolute_import, division, unicode_literals
 import logging
 import time
 
-import six
 from billiard.einfo import ExceptionInfo
 
 from celery import exceptions, states as celery_states
@@ -137,7 +136,7 @@ class DBTask(Task):
                     transaction.commit()
                     transaction.set_autocommit(True)
 
-        for k, v in six.iteritems(self.result_params):
+        for k, v in self.result_params.items():
             kwargs[k] = get_result(v, self.eager)
 
         if self.track:

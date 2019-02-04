@@ -22,7 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-import six
 from celery import states as celery_states
 from rest_framework import serializers
 
@@ -115,7 +114,7 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
 
     def get_params(self, obj):
         params = obj.params
-        for param, task in six.iteritems(obj.result_params):
+        for param, task in obj.result_params.items():
             try:
                 params[param] = get_result(task)
             except ProcessTask.DoesNotExist:

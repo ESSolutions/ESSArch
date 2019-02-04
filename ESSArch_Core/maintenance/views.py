@@ -1,6 +1,5 @@
 import os
 
-import six
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from glob2 import iglob
@@ -133,7 +132,7 @@ class ConversionJobViewSet(MaintenanceJobViewSet):
 
         for ip in ips:
             datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
-            for pattern, spec in six.iteritems(job.rule.specification):
+            for pattern, spec in job.rule.specification.items():
                 for path in iglob(datadir + '/' + pattern):
                     if os.path.isdir(path):
                         for root, dirs, files in walk(path):

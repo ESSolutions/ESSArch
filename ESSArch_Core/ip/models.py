@@ -25,6 +25,7 @@
 from __future__ import division
 
 import errno
+import io
 import logging
 import math
 import os
@@ -36,7 +37,6 @@ from copy import deepcopy
 from datetime import datetime
 
 import jsonfield
-import six
 from celery import states as celery_states
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -817,7 +817,7 @@ class InformationPackage(models.Model):
                     except KeyError:
                         full_path = normalize_path(os.path.join(self.object_identifier_value, path))
                         f = tar.extractfile(full_path)
-                    return six.BytesIO(f.read())
+                    return io.BytesIO(f.read())
             except tarfile.ReadError:
                 logger.debug('Invalid tar file, trying zipfile instead')
                 try:
@@ -827,7 +827,7 @@ class InformationPackage(models.Model):
                         except KeyError:
                             full_path = normalize_path(os.path.join(self.object_identifier_value, path))
                             f = zipf.open(full_path)
-                        return six.BytesIO(f.read())
+                        return io.BytesIO(f.read())
                 except zipfile.BadZipfile:
                     logger.debug('Invalid zip file')
             except KeyError:

@@ -1,7 +1,6 @@
 import uuid
 
 import jsonfield
-import six
 from django.db import models, transaction
 from django.db.models import F, OuterRef, Subquery
 from elasticsearch_dsl.connections import get_connection
@@ -202,7 +201,7 @@ class TagVersion(models.Model):
                 parent = current_structure.parent
                 if parent is not None:
                     parent = {
-                        'id': six.text_type(parent.tag.current_version.pk),
+                        'id': str(parent.tag.current_version.pk),
                         'index': parent.tag.current_version.elastic_index,
                     }
             except TagStructure.DoesNotExist:
@@ -246,7 +245,7 @@ class TagVersion(models.Model):
         new_data['current_version'] = False
         new_data.update(data)
 
-        for (key, value) in six.iteritems(new_data):
+        for (key, value) in new_data.items():
             setattr(doc, key, value)
 
         doc.save()

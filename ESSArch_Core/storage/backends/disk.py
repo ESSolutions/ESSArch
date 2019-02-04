@@ -4,8 +4,6 @@ import os
 import shutil
 import tarfile
 
-import six
-
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
 from ESSArch_Core.storage.copy import copy
 from ESSArch_Core.storage.models import DISK, StorageObject
@@ -52,7 +50,7 @@ class DiskStorageBackend(BaseStorageBackend):
             return copy(src, dst, block_size=block_size)
 
     def write(self, src, ip, storage_method, storage_medium, block_size=65536):
-        if isinstance(src, six.string_types):
+        if isinstance(src, str):
             src = [src]
         dst = storage_medium.storage_target.target
         logger.debug('Writing {src} to {dst}'.format(src=', '.join(src), dst=dst))
