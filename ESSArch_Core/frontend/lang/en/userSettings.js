@@ -4,9 +4,8 @@ angular.module('essarch.language').config(function($translateProvider) {
       AVAILABLE_COLUMNS: 'Available columns',
       TABLE_COLUMNS: 'Table columns',
       USEROPTIONS: 'User options',
-      USERSETTINGS: 'User settings',
-      USER_SETTINGS: 'User settings',
       VISIBLE_COLUMNS: 'Visible columns',
     },
+    USERSETTINGS: 'User settings',
   });
 });
