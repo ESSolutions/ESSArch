@@ -174,19 +174,13 @@ def get_value_from_path(root, path):
 
     try:
         el = get_elements_without_namespace(root, path)[0]
-        if root == el:
-            return None
     except IndexError:
         logger.warning('{path} not found in {root}'.format(path=path, root=root.getroottree().getpath(root)))
         return None
 
     if "@" in path:
         attr = path.split('@')[1]
-        try:
-            return el.xpath("@*[local-name()='%s'][1]" % attr)[0]
-        except IndexError:
-            logger.warning('{path} not found in {root}'.format(path=path, root=root.getroottree().getpath(root)))
-            return None
+        return el.xpath("@*[local-name()='%s'][1]" % attr)[0]
 
     return el.text
 
@@ -228,12 +222,7 @@ def getSchemas(doc=None, filename=None):
     """
 
     if filename:
-        try:
-            doc = etree.ElementTree(file=filename)
-        except etree.XMLSyntaxError:
-            raise
-        except IOError:
-            raise
+        doc = etree.ElementTree(file=filename)
 
     res = []
     root = doc.getroot()
