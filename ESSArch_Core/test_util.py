@@ -179,4 +179,3 @@ class GetSchemasTest(TestCase):
 
         with self.assertRaises(etree.XMLSyntaxError):
             getSchemas(filename=fp)
-
