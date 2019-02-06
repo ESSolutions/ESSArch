@@ -28,7 +28,6 @@ from copy import copy
 import jsonfield
 from django.conf import settings
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
@@ -69,7 +68,6 @@ class ProfileQuerySet(models.query.QuerySet):
         return profile_set.first().profile
 
 
-@python_2_unicode_compatible
 class ProfileSA(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
@@ -94,7 +92,6 @@ class ProfileSA(models.Model):
         )
 
 
-@python_2_unicode_compatible
 class ProfileIP(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
