@@ -6,6 +6,7 @@ from subprocess import PIPE
 from unittest import mock
 from django.test import TestCase
 from lxml import objectify, etree
+from rest_framework.exceptions import ValidationError
 
 from ESSArch_Core.util import (
     convert_file,
@@ -80,7 +81,7 @@ class GetValueFromPathTest(TestCase):
     def test_get_value_from_path_when_attribute_is_missing(self):
         xml = self.get_simple_xml()
         root_xml = objectify.fromstring(xml)
-        self.assertEqual(get_value_from_path(root_xml, "anmerkningar@onetuhoent"), None)
+        self.assertEqual(get_value_from_path(root_xml, "anmerkningar@non_existing_attr"), None)
 
 
 class GetFilesAndDirsTest(TestCase):
@@ -104,12 +105,8 @@ class ParseContentRangeHeaderTest(TestCase):
 
     def test_parse_content_range_header_with_bad_header(self):
         header = "bad header"
-        from rest_framework.exceptions import ValidationError
-
-        with self.assertRaises(ValidationError) as context:
+        with self.assertRaisesRegex(ValidationError, "Invalid Content-Range header"):
             parse_content_range_header(header)
-
-        self.assertTrue('Invalid Content-Range header' in str(context.exception))
 
 
 class FlattenTest(TestCase):
@@ -163,10 +160,8 @@ class GetSchemasTest(TestCase):
         self.assertTrue(type(schema) is etree.XMLSchema)
 
     def test_get_schema_with_no_argument_should_throw_exception(self):
-        with self.assertRaises(AttributeError) as context:
+        with self.assertRaisesRegexp(AttributeError, "'NoneType' object has no attribute 'getroot'"):
             getSchemas()
-
-        self.assertTrue("'NoneType' object has no attribute 'getroot'" in str(context.exception))
 
     def test_get_schema_from_none_existing_file_should_raise_exception(self):
         filename = "this_file_hopefully_does_not_exist"
