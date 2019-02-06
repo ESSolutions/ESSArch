@@ -130,11 +130,10 @@ class GetSchemasTest(TestCase):
     def get_simple_valid_xml(self):
         tmp_file = tempfile.TemporaryFile(dir=self.datadir)
         tmp_file.write(b'<?xml version="1.0" encoding="ISO-8859-1"?>')
-        tmp_file.write(b'<vaxml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
-                       b'xmlns="http://www.visualarkiv.se/vaxml/v6.1" '
-                       b'xsi:schemaLocation="http://www.visualarkiv.se/vaxml/v6.1 '
-                       b'http://www.visualarkiv.se/vaxml/v6.1/vaxml.xsd" created="2019-01-23T19:17:34" '
-                       b'generator="Visual Arkiv 6.2 version 6.2.0.12" countrycode="SE"></vaxml>')
+        tmp_file.write(b'<xml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+                       b'xmlns="http://www.example.com/example/v4.2" '
+                       b'xsi:schemaLocation="http://www.example.com/example/v4.2 '
+                       b'http://www.example.com/example/v4.2/example.xsd"></xml>')
         tmp_file.seek(0)
 
         return tmp_file
