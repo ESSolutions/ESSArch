@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='eventip',
             name='eventOutcome',
-            field=models.IntegerField(choices=[(10, b'debug'), (20, b'info'), (30, b'warning'), (40, b'error'), (50, b'critical')], default=None, null=True),
+            field=models.IntegerField(choices=[(10, 'debug'), (20, 'info'), (30, 'warning'), (40, 'error'), (50, 'critical')], default=None, null=True),
         ),
         migrations.RunPython(forwards_func, reverse_func),
     ]

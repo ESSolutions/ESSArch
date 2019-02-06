@@ -21,8 +21,8 @@ class Migration(migrations.Migration):
             name='Tag',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255, verbose_name=b'Name')),
-                ('desc', models.CharField(blank=True, max_length=255, verbose_name=b'Description')),
+                ('name', models.CharField(max_length=255, verbose_name='Name')),
+                ('desc', models.CharField(blank=True, max_length=255, verbose_name='Description')),
                 ('lft', models.PositiveIntegerField(db_index=True, editable=False)),
                 ('rght', models.PositiveIntegerField(db_index=True, editable=False)),
                 ('tree_id', models.PositiveIntegerField(db_index=True, editable=False)),

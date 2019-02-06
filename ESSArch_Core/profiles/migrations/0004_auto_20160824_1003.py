@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
             name='ProfileAIPRel',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
-                ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
+                ('status', models.IntegerField(default=0, verbose_name='Profile status', choices=[(0, 'Disabled'), (1, 'Enabled'), (2, 'Default')])),
                 ('profileaip', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileAIP')),
             ],
             options={
@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
             name='ProfileClassificationRel',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
-                ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
+                ('status', models.IntegerField(default=0, verbose_name='Profile status', choices=[(0, 'Disabled'), (1, 'Enabled'), (2, 'Default')])),
                 ('profileclassification', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileClassification')),
             ],
             options={
@@ -64,7 +64,7 @@ class Migration(migrations.Migration):
             name='ProfileContentTypeRel',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
-                ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
+                ('status', models.IntegerField(default=0, verbose_name='Profile status', choices=[(0, 'Disabled'), (1, 'Enabled'), (2, 'Default')])),
                 ('profilecontenttype', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileContentType')),
             ],
             options={
@@ -76,7 +76,7 @@ class Migration(migrations.Migration):
             name='ProfileDataSelectionRel',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
-                ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
+                ('status', models.IntegerField(default=0, verbose_name='Profile status', choices=[(0, 'Disabled'), (1, 'Enabled'), (2, 'Default')])),
                 ('profiledataselection', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileDataSelection')),
             ],
             options={
@@ -88,7 +88,7 @@ class Migration(migrations.Migration):
             name='ProfileDIPRel',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
-                ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
+                ('status', models.IntegerField(default=0, verbose_name='Profile status', choices=[(0, 'Disabled'), (1, 'Enabled'), (2, 'Default')])),
                 ('profiledip', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileDIP')),
             ],
             options={
@@ -100,7 +100,7 @@ class Migration(migrations.Migration):
             name='ProfileImportRel',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
-                ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
+                ('status', models.IntegerField(default=0, verbose_name='Profile status', choices=[(0, 'Disabled'), (1, 'Enabled'), (2, 'Default')])),
                 ('profileimport', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileImport')),
             ],
             options={
@@ -112,7 +112,7 @@ class Migration(migrations.Migration):
             name='ProfilePreservationMetadataRel',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
-                ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
+                ('status', models.IntegerField(default=0, verbose_name='Profile status', choices=[(0, 'Disabled'), (1, 'Enabled'), (2, 'Default')])),
                 ('profilepreservationmetadata', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfilePreservationMetadata')),
             ],
             options={
@@ -124,7 +124,7 @@ class Migration(migrations.Migration):
             name='ProfileSIPRel',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
-                ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
+                ('status', models.IntegerField(default=0, verbose_name='Profile status', choices=[(0, 'Disabled'), (1, 'Enabled'), (2, 'Default')])),
                 ('profilesip', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileSIP')),
             ],
             options={
@@ -136,7 +136,7 @@ class Migration(migrations.Migration):
             name='ProfileSubmitDescriptionRel',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
-                ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
+                ('status', models.IntegerField(default=0, verbose_name='Profile status', choices=[(0, 'Disabled'), (1, 'Enabled'), (2, 'Default')])),
                 ('profilesubmitdescription', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileSubmitDescription')),
             ],
             options={
@@ -148,7 +148,7 @@ class Migration(migrations.Migration):
             name='ProfileTransferProjectRel',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
-                ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
+                ('status', models.IntegerField(default=0, verbose_name='Profile status', choices=[(0, 'Disabled'), (1, 'Enabled'), (2, 'Default')])),
                 ('profiletransferproject', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileTransferProject')),
             ],
             options={
@@ -160,7 +160,7 @@ class Migration(migrations.Migration):
             name='ProfileWorkflowRel',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
-                ('status', models.IntegerField(default=0, verbose_name=b'Profile status', choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')])),
+                ('status', models.IntegerField(default=0, verbose_name='Profile status', choices=[(0, 'Disabled'), (1, 'Enabled'), (2, 'Default')])),
                 ('profileworkflow', models.ForeignKey(on_delete=models.CASCADE, to='profiles.ProfileWorkflow')),
             ],
             options={

@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='structure',
             name='version',
-            field=models.CharField(default=b'1.0', max_length=255),
+            field=models.CharField(default='1.0', max_length=255),
         ),
         migrations.AddField(
             model_name='structureunit',

@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='profile',
             name='profile_type',
-            field=models.CharField(choices=[(b'transfer_project', b'Transfer Project'), (b'content_type', b'Content Type'), (b'data_selection', b'Data Selection'), (b'authority_information', b'Authority Information'), (b'archival_description', b'Archival Description'), (b'import', b'Import'), (b'submit_description', b'Submit Description'), (b'sip', b'SIP'), (b'aic_description', b'AIC Description'), (b'aip', b'AIP'), (b'aip_description', b'AIP Description'), (b'dip', b'DIP'), (b'workflow', b'Workflow'), (b'preservation_metadata', b'Preservation Metadata'), (b'event', b'Event')], max_length=255),
+            field=models.CharField(choices=[('transfer_project', 'Transfer Project'), ('content_type', 'Content Type'), ('data_selection', 'Data Selection'), ('authority_information', 'Authority Information'), ('archival_description', 'Archival Description'), ('import', 'Import'), ('submit_description', 'Submit Description'), ('sip', 'SIP'), ('aic_description', 'AIC Description'), ('aip', 'AIP'), ('aip_description', 'AIP Description'), ('dip', 'DIP'), ('workflow', 'Workflow'), ('preservation_metadata', 'Preservation Metadata'), ('event', 'Event')], max_length=255),
         ),
     ]

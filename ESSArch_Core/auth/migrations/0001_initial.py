@@ -31,8 +31,8 @@ class Migration(migrations.Migration):
             name='UserProfile',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ip_list_columns', picklefield.fields.PickledObjectField(default=[b'object_identifier_value', b'responsible', b'create_date', b'state', b'step_state', b'events', b'status', b'delete'], editable=False)),
-                ('ip_list_view_type', models.CharField(choices=[(b'aic', b'AIC'), (b'ip', b'IP')], default=b'aic', max_length=10)),
+                ('ip_list_columns', picklefield.fields.PickledObjectField(default=['object_identifier_value', 'responsible', 'create_date', 'state', 'step_state', 'events', 'status', 'delete'], editable=False)),
+                ('ip_list_view_type', models.CharField(choices=[('aic', 'AIC'), ('ip', 'IP')], default='aic', max_length=10)),
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='user_profile', to=settings.AUTH_USER_MODEL)),
             ],
             options={

@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userprofile',
             name='ip_list_columns',
-            field=picklefield.fields.PickledObjectField(default=[b'label', b'object_identifier_value', b'start_date', b'end_date', b'responsible', b'state', b'step_state', b'status', b'filebrowser', b'delete'], editable=False),
+            field=picklefield.fields.PickledObjectField(default=['label', 'object_identifier_value', 'start_date', 'end_date', 'responsible', 'state', 'step_state', 'status', 'filebrowser', 'delete'], editable=False),
         ),
     ]
