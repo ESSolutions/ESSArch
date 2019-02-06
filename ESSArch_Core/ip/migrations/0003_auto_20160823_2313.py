@@ -38,26 +38,26 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='informationpackage',
             name='ArchivalInstitution',
-            field=models.CharField(default=b'', max_length=255),
+            field=models.CharField(default='', max_length=255),
         ),
         migrations.AddField(
             model_name='informationpackage',
             name='ArchivalLocation',
-            field=models.CharField(default=b'', max_length=255),
+            field=models.CharField(default='', max_length=255),
         ),
         migrations.AddField(
             model_name='informationpackage',
             name='ArchivalType',
-            field=models.CharField(default=b'', max_length=255),
+            field=models.CharField(default='', max_length=255),
         ),
         migrations.AddField(
             model_name='informationpackage',
             name='ArchivistOrganization',
-            field=models.CharField(default=b'', max_length=255),
+            field=models.CharField(default='', max_length=255),
         ),
         migrations.AddField(
             model_name='informationpackage',
             name='SubmissionAgreement',
-            field=models.CharField(default=b'', max_length=255),
+            field=models.CharField(default='', max_length=255),
         ),
     ]

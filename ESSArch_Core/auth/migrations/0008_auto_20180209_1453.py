@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userprofile',
             name='ip_list_view_type',
-            field=models.CharField(choices=[(b'aic', b'AIC'), (b'ip', b'IP')], default=b'ip', max_length=10),
+            field=models.CharField(choices=[('aic', 'AIC'), ('ip', 'IP')], default='ip', max_length=10),
         ),
     ]

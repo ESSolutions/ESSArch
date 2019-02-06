@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='tag',
             name='type',
-            field=models.CharField(default='', max_length=255, verbose_name=b'Type'),
+            field=models.CharField(default='', max_length=255, verbose_name='Type'),
             preserve_default=False,
         ),
         migrations.AddField(

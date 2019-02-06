@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='processtask',
             name='name',
-            field=models.CharField(choices=[('WorkflowEngine.tasks.ValidateMetadata', b'ValidateMetadata'), ('WorkflowEngine.tasks.AddPremisToMetsAmdSec', b'AddPremisToMetsAmdSec'), ('WorkflowEngine.tasks.CreateIPEventsFile', b'CreateIPEventsFile'), ('WorkflowEngine.tasks.Third', b'Third'), ('WorkflowEngine.tasks.UploadFile', b'UploadFile'), ('WorkflowEngine.tasks.CreateTAR', b'CreateTAR'), ('WorkflowEngine.tasks.Sleepy', b'Sleepy'), ('WorkflowEngine.tasks.GenerateXML', b'GenerateXML'), ('WorkflowEngine.tasks.CreatePhysicalModel', b'CreatePhysicalModel'), ('WorkflowEngine.tasks.Second', b'Second'), ('WorkflowEngine.tasks.ValidateLogicalPhysical', b'ValidateLogicalPhysical'), ('WorkflowEngine.tasks.First', b'First')], max_length=255),
+            field=models.CharField(choices=[('WorkflowEngine.tasks.ValidateMetadata', 'ValidateMetadata'), ('WorkflowEngine.tasks.AddPremisToMetsAmdSec', 'AddPremisToMetsAmdSec'), ('WorkflowEngine.tasks.CreateIPEventsFile', 'CreateIPEventsFile'), ('WorkflowEngine.tasks.Third', 'Third'), ('WorkflowEngine.tasks.UploadFile', 'UploadFile'), ('WorkflowEngine.tasks.CreateTAR', 'CreateTAR'), ('WorkflowEngine.tasks.Sleepy', 'Sleepy'), ('WorkflowEngine.tasks.GenerateXML', 'GenerateXML'), ('WorkflowEngine.tasks.CreatePhysicalModel', 'CreatePhysicalModel'), ('WorkflowEngine.tasks.Second', 'Second'), ('WorkflowEngine.tasks.ValidateLogicalPhysical', 'ValidateLogicalPhysical'), ('WorkflowEngine.tasks.First', 'First')], max_length=255),
         ),
         migrations.AlterField(
             model_name='processtask',

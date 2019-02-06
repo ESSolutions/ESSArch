@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
             name='ProfileRel',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('status', models.IntegerField(choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')], default=0, verbose_name=b'Profile status')),
+                ('status', models.IntegerField(choices=[(0, 'Disabled'), (1, 'Enabled'), (2, 'Default')], default=0, verbose_name='Profile status')),
                 ('profile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile')),
             ],
             options={

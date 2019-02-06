@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
             name='Profile',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('profile_type', models.CharField(choices=[(b'transfer_project', b'Transfer Project'), (b'content_type', b'Content Type'), (b'data_selection', b'Data Selection'), (b'classification', b'Classification'), (b'import', b'Import'), (b'submit_description', b'Submit Description'), (b'sip', b'SIP'), (b'aip', b'AIP'), (b'dip', b'DIP'), (b'workflow', b'Workflow'), (b'preservation_description', b'Preservation Description')], max_length=255)),
+                ('profile_type', models.CharField(choices=[('transfer_project', 'Transfer Project'), ('content_type', 'Content Type'), ('data_selection', 'Data Selection'), ('classification', 'Classification'), ('import', 'Import'), ('submit_description', 'Submit Description'), ('sip', 'SIP'), ('aip', 'AIP'), ('dip', 'DIP'), ('workflow', 'Workflow'), ('preservation_description', 'Preservation Description')], max_length=255)),
                 ('name', models.CharField(max_length=255)),
                 ('type', models.CharField(max_length=255)),
                 ('status', models.CharField(max_length=255)),
