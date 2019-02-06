@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import errno
 import os
 import uuid
@@ -11,7 +9,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import Case, When, Value, IntegerField
 from django.db.models.functions import Cast
-from django.utils.encoding import python_2_unicode_compatible
 from picklefield.fields import PickledObjectField
 from retrying import retry
 
@@ -157,7 +154,6 @@ class StorageMethodQueryset(models.QuerySet):
         return self.filter(containers=True)
 
 
-@python_2_unicode_compatible
 class StorageMethod(models.Model):
     """Disk, tape or CAS"""
 
@@ -192,7 +188,6 @@ class StorageMethod(models.Model):
         return str(self.id)
 
 
-@python_2_unicode_compatible
 class StorageMethodTargetRelation(models.Model):
     """Relation between StorageMethod and StorageTarget"""
 
@@ -251,7 +246,6 @@ class StorageTargetQueryset(models.QuerySet):
         ).order_by('remote', 'container_order', 'storage_type')
 
 
-@python_2_unicode_compatible
 class StorageTarget(models.Model):
     """A series of tapes or a single disk"""
 
@@ -356,7 +350,6 @@ class StorageMediumQueryset(models.QuerySet):
         ).order_by('remote', 'container_order', 'storage_type')
 
 
-@python_2_unicode_compatible
 class StorageMedium(models.Model):
     "A single storage medium (device)"
 
@@ -473,7 +466,6 @@ class StorageObjectQueryset(models.QuerySet):
         ).order_by('remote', 'container_order', 'storage_type')
 
 
-@python_2_unicode_compatible
 class StorageObject(models.Model):
     """The stored representation of an archive object on a storage medium"""
 
@@ -613,7 +605,6 @@ class StorageObject(models.Model):
         return False
 
 
-@python_2_unicode_compatible
 class TapeDrive(models.Model):
     STATUS_CHOICES = (
         (0, 'Inactive'),
@@ -636,7 +627,6 @@ class TapeDrive(models.Model):
         return self.device
 
 
-@python_2_unicode_compatible
 class TapeSlot(models.Model):
     STATUS_CHOICES = (
         (0, 'Inactive'),
@@ -664,7 +654,6 @@ class TapeSlot(models.Model):
         return str(self.slot_id)
 
 
-@python_2_unicode_compatible
 class Robot(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     label = models.CharField("Describing label for the robot", max_length=255, blank=True)

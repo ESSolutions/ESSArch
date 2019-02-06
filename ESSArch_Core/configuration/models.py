@@ -25,7 +25,6 @@
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 import uuid
@@ -153,7 +152,6 @@ class DefaultColumnVisible(models.Model):
     visible = models.BooleanField(default=True)
 
 
-@python_2_unicode_compatible
 class ArchivePolicy(models.Model):
     """Specifies how an IP should be archived"""
 

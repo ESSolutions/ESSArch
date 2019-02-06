@@ -22,8 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-from __future__ import unicode_literals
-
 import importlib
 import itertools
 import logging

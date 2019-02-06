@@ -22,8 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-from __future__ import absolute_import
-
 import os
 import uuid
 

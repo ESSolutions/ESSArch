@@ -22,8 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-from __future__ import division
-
 import errno
 import io
 import logging
@@ -43,7 +41,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import Count, Max, Min
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from lxml import etree
@@ -155,7 +152,6 @@ class InformationPackageManager(models.Manager):
         return self.for_user(user, 'view_informationpackage')
 
 
-@python_2_unicode_compatible
 class InformationPackage(models.Model):
     """
     Informaion Package

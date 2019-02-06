@@ -27,7 +27,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as DjangoGroup, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.utils.encoding import python_2_unicode_compatible
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from groups_manager import exceptions_gm
@@ -48,7 +47,6 @@ class GroupGenericObjects(models.Model):
         unique_together = ['group', 'object_id', 'content_type']
 
 
-@python_2_unicode_compatible
 class GroupMemberRole(GroupMemberRoleMixin):
     codename = models.CharField(_('codename'), unique=True, max_length=255)
     label = models.SlugField(_('label'), blank=True, max_length=255)
