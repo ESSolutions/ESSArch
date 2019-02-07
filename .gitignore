@@ -8,3 +8,13 @@ MANIFEST
 .settings/
 tools.db
 .DS_Store
+
+# python virtual environment
+/venv/
+
+# JetBrains IDEs
+/.idea/
+
+# Coverage default folders 
+.coverage
+htmlcov/
