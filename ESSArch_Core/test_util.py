@@ -1,12 +1,14 @@
 import tempfile
 import shutil
+import os
+import datetime
 
 from subprocess import PIPE
 
 from unittest import mock
 from django.test import TestCase
 from lxml import objectify, etree
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, NotFound
 
 from ESSArch_Core.util import (
     convert_file,
@@ -14,7 +16,10 @@ from ESSArch_Core.util import (
     get_files_and_dirs,
     parse_content_range_header,
     flatten,
-    getSchemas
+    getSchemas,
+    nested_lookup,
+    list_files,
+    normalize_path,
 )
 
 
@@ -173,3 +178,177 @@ class GetSchemasTest(TestCase):
 
         with self.assertRaises(etree.XMLSyntaxError):
             getSchemas(filename=fp)
+
+
+class NestedLookupTest(TestCase):
+    def test_nested_lookup_dict_first_layer(self):
+        my_dict = {"my_key": 42}
+
+        self.assertEqual(42, next(nested_lookup('my_key', my_dict)))
+
+    def test_nested_lookup_nested_dict_two_layer(self):
+        my_dict = {"first_layer": {"my_key": 42}}
+
+        self.assertEqual(42, next(nested_lookup('my_key', my_dict)))
+
+    def test_nested_lookup_list_in_dict(self):
+        my_dict = {"first_layer": [
+            {"key_1": 1},
+            {"key_2": 2},
+            {"my_key": 42},
+            {"key_3": 3},
+        ]}
+
+        self.assertEqual(42, next(nested_lookup('my_key', my_dict)))
+
+    def test_nested_lookup_dict_in_list(self):
+        my_list = [
+            {"key_1": 1},
+            {"key_2": 2},
+            {"my_key": 42},
+            {"key_3": 3},
+        ]
+
+        self.assertEqual(42, next(nested_lookup('my_key', my_list)))
+
+    def test_nested_lookup_multiple_occurrences_should_return_all_of_them(self):
+        my_list = {
+            "first_layer": [
+                {"my_key": 1},
+                {"key_2": 2},
+                {"my_key": 3},
+            ],
+            "second_layer": [
+                {"key_3": 3},
+                {"my_key": 5},
+                {"key_4": 4},
+                {"my_key": 7},
+            ]
+        }
+
+        found_values = list(nested_lookup('my_key', my_list))
+        self.assertCountEqual([1, 3, 5, 7], found_values)
+
+    def test_nested_lookup_key_missing_should_return_None(self):
+        my_list = [
+            {"key_1": 1},
+            {"key_2": 2},
+            {"key_3": 3},
+        ]
+
+        result_list = list(nested_lookup('missing_key', my_list))
+        self.assertEqual(len(result_list), 0)
+
+
+class ListFilesTest(TestCase):
+
+    def setUp(self):
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.textdir = os.path.join(self.datadir, "textdir")
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        try:
+            os.makedirs(self.textdir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def create_files(self):
+        files = []
+        for i in range(3):
+            fname = os.path.join(self.textdir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('%s' % i)
+            files.append(fname)
+
+        return files
+
+    def create_archive_file(self, archive_format):
+        self.create_files()
+
+        output_filename = "archive_file"
+        archive_file_full_path = os.path.join(self.datadir, output_filename)
+
+        return shutil.make_archive(archive_file_full_path, archive_format, self.textdir)
+
+    def test_list_files_dir_with_default_args_should_raise_NotFound(self):
+        path = self.datadir
+        self.create_files()
+
+        with self.assertRaises(NotFound):
+            list_files(path)
+
+    def test_list_files_tarfile_with_default_args_should_return_response(self):
+        file_path = self.create_archive_file('tar')
+        resp = list_files(file_path)
+        self.assertEqual(resp.status_code, 200)
+        file_names = ["./0.txt", "./1.txt", "./2.txt"]  # TODO: bug in shutil for tar is adding an extra './'
+
+        for el in resp.data:
+            data_name = el['name']
+            data_type = el['type']
+            data_size = el['size']
+            data_modified = el['modified']
+
+            self.assertIn(data_name, file_names)
+            file_names.remove(data_name)
+            self.assertEqual(data_type, "file")
+            self.assertEqual(data_size, 1)
+            self.assertEqual(type(data_modified), datetime.datetime)
+
+    def test_list_files_zip_file_with_default_args_should_return_response(self):
+        file_path = self.create_archive_file('zip')
+        resp = list_files(file_path)
+        self.assertEqual(resp.status_code, 200)
+        file_names = ["0.txt", "1.txt", "2.txt"]
+
+        for el in resp.data:
+            data_name = el['name']
+            data_type = el['type']
+            data_size = el['size']
+            data_modified = el['modified']
+
+            self.assertIn(data_name, file_names)
+            file_names.remove(data_name)
+            self.assertEqual(data_type, "file")
+            self.assertEqual(data_size, 1)
+            self.assertEqual(type(data_modified), datetime.datetime)
+
+    @mock.patch('ESSArch_Core.util.generate_file_response')
+    def test_list_files_path_to_file_in_tar(self, generate_file_response):
+        file_path = self.create_archive_file('tar')
+        sub_path_file = './0.txt'  # TODO: bug in shutil for tar is adding an extra './'
+        new_folder = os.path.join(file_path, sub_path_file)
+
+        new_folder = normalize_path(new_folder)
+
+        list_files(new_folder)
+
+        generate_file_response.assert_called_once_with(mock.ANY, 'text/plain', False, name=sub_path_file)
+
+    def test_list_files_path_to_non_existing_file_in_tar_should_throw_NotFound(self):
+        file_path = self.create_archive_file('tar')
+        new_folder = os.path.join(file_path, "non_existing_file.txt")
+
+        with self.assertRaises(NotFound):
+            list_files(new_folder)
+
+    def test_list_files_path_to_non_existing_file_in_zip_should_throw_NotFound(self):
+        file_path = self.create_archive_file('zip')
+        new_folder = os.path.join(file_path, "non_existing_file.txt")
+
+        with self.assertRaises(NotFound):
+            list_files(new_folder)
+
+    @mock.patch('ESSArch_Core.util.generate_file_response')
+    def test_list_files_path_to_file_in_zip(self, generate_file_response):
+        file_path = self.create_archive_file('zip')
+        sub_path_file = '0.txt'
+        new_folder = os.path.join(file_path, sub_path_file)
+
+        new_folder = normalize_path(new_folder)
+
+        list_files(new_folder)
+
+        generate_file_response.assert_called_once_with(mock.ANY, 'text/plain', False, name=sub_path_file)
