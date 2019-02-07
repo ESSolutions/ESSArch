@@ -667,7 +667,7 @@ def list_files(path, force_download=False, request=None, paginator=None):
 
         with zipfile.ZipFile(zip_path) as zipf:
             try:
-                f = io.BytesIO(zipf.extractfile(zip_subpath).read())
+                f = io.BytesIO(zipf.read(zip_subpath))
                 content_type = fid.get_mimetype(zip_subpath)
                 return generate_file_response(f, content_type, force_download, name=zip_subpath)
             except KeyError:

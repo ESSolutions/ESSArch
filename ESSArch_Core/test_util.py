@@ -1,12 +1,14 @@
 import tempfile
 import shutil
+import os
+import datetime
 
 from subprocess import PIPE
 
 from unittest import mock
 from django.test import TestCase
 from lxml import objectify, etree
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, NotFound
 
 from ESSArch_Core.util import (
     convert_file,
@@ -14,7 +16,9 @@ from ESSArch_Core.util import (
     get_files_and_dirs,
     parse_content_range_header,
     flatten,
-    getSchemas
+    getSchemas,
+    nested_lookup,
+    list_files,
 )
 
 
@@ -173,3 +177,155 @@ class GetSchemasTest(TestCase):
 
         with self.assertRaises(etree.XMLSyntaxError):
             getSchemas(filename=fp)
+
+
+class NestedLookupTest(TestCase):
+    def test_nested_lookup_dict_first_layer(self):
+        my_dict = {"my_key": 42}
+
+        self.assertEqual(42, next(nested_lookup('my_key', my_dict)))
+
+    def test_nested_lookup_nested_dict_two_layer(self):
+        my_dict = {"first_layer": {"my_key": 42}}
+
+        self.assertEqual(42, next(nested_lookup('my_key', my_dict)))
+
+    def test_nested_lookup_list_in_dict(self):
+        my_dict = {"first_layer": [
+            {"key_1": 1},
+            {"key_2": 2},
+            {"my_key": 42},
+            {"key_3": 3},
+        ]}
+
+        self.assertEqual(42, next(nested_lookup('my_key', my_dict)))
+
+    def test_nested_lookup_dict_in_list(self):
+        my_list = [
+            {"key_1": 1},
+            {"key_2": 2},
+            {"my_key": 42},
+            {"key_3": 3},
+        ]
+
+        self.assertEqual(42, next(nested_lookup('my_key', my_list)))
+
+
+class ListFilesTest(TestCase):
+
+    def setUp(self):
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.textdir = os.path.join(self.datadir, "textdir")
+
+        try:
+            os.makedirs(self.textdir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def create_files(self):
+        files = []
+        for i in range(3):
+            fname = os.path.join(self.textdir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('%s' % i)
+            files.append(fname)
+
+        return files
+
+    def create_archive_file(self, archive_format):
+        self.create_files()
+
+        output_filename = "archive_file"
+        archive_file_full_path = os.path.join(self.datadir, output_filename)
+
+        return shutil.make_archive(archive_file_full_path, archive_format, self.textdir)
+
+    def create_paginator(self):
+        return None
+
+    def test_list_files_dir_with_default_args_should_raise_NotFound(self):
+        path = self.datadir
+        self.create_files()
+
+        with self.assertRaises(NotFound):
+            list_files(path)
+
+    def test_list_files_tarfile_with_default_args_should_return_response(self):
+        file_path = self.create_archive_file('tar')
+        resp = list_files(file_path)
+        self.assertEqual(resp.status_code, 200)
+        file_names = ["./0.txt", "./1.txt", "./2.txt"]  # TODO: bug in shutil for tar is adding an extra './'
+
+        for el in resp.data:
+            data_name = el['name']
+            data_type = el['type']
+            data_size = el['size']
+            data_modified = el['modified']
+
+            self.assertIn(data_name, file_names)
+            file_names.remove(data_name)
+            self.assertEqual(data_type, "file")
+            self.assertEqual(data_size, 1)
+            self.assertEqual(type(data_modified), datetime.datetime)
+
+    def test_list_files_zip_file_with_default_args_should_return_response(self):
+        file_path = self.create_archive_file('zip')
+        resp = list_files(file_path)
+        self.assertEqual(resp.status_code, 200)
+        file_names = ["0.txt", "1.txt", "2.txt"]
+
+        for el in resp.data:
+            data_name = el['name']
+            data_type = el['type']
+            data_size = el['size']
+            data_modified = el['modified']
+
+            self.assertIn(data_name, file_names)
+            file_names.remove(data_name)
+            self.assertEqual(data_type, "file")
+            self.assertEqual(data_size, 1)
+            self.assertEqual(type(data_modified), datetime.datetime)
+
+    def test_list_files_path_to_file_in_tar(self):
+        file_path = self.create_archive_file('tar')
+        new_folder = os.path.join(file_path, "./0.txt")  # TODO: bug in shutil for tar is adding an extra './'
+
+        resp = list_files(new_folder)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp['Content-Disposition'], 'inline; filename="0.txt"')
+        self.assertEqual(resp['Content-Type'], 'text/plain; charset=utf-8')
+        self.assertEqual(resp['Cache-Control'], 'no-cache, no-store, must-revalidate')
+        self.assertEqual(resp['Pragma'], 'no-cache')
+        self.assertEqual(resp['Expires'], '0')
+
+    def test_list_files_path_to_non_existing_file_in_tar_should_throw_NotFound(self):
+        file_path = self.create_archive_file('tar')
+        new_folder = os.path.join(file_path, "non_existing_file.txt")
+
+        with self.assertRaises(NotFound):
+            list_files(new_folder)
+
+    def test_list_files_path_to_non_existing_file_in_zip_should_throw_NotFound(self):
+        file_path = self.create_archive_file('zip')
+        new_folder = os.path.join(file_path, "non_existing_file.txt")
+
+        with self.assertRaises(NotFound):
+            list_files(new_folder)
+
+    def test_list_files_path_to_file_in_zip(self):
+        file_path = self.create_archive_file('zip')
+        new_folder = os.path.join(file_path, "0.txt")
+
+        resp = list_files(new_folder)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp['Content-Disposition'], 'inline; filename="0.txt"')
+        self.assertEqual(resp['Content-Type'], 'text/plain; charset=utf-8')
+        self.assertEqual(resp['Cache-Control'], 'no-cache, no-store, must-revalidate')
+        self.assertEqual(resp['Pragma'], 'no-cache')
+        self.assertEqual(resp['Expires'], '0')
