@@ -369,20 +369,6 @@ def normalize_path(path):
     return path
 
 
-def mkdir_p(path):
-    """
-    http://stackoverflow.com/a/600612/1523238
-    """
-
-    try:
-        os.makedirs(path)
-    except OSError as exc:  # Python >2.5
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
-
-
 def get_event_spec():
     dirname = os.path.dirname(os.path.realpath(__file__))
     fname = 'templates/JSONPremisEventTemplate.json'
