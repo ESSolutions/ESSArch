@@ -147,7 +147,7 @@ class AppraisalJob(MaintenanceJob):
 
     MAINTENANCE_TYPE = 'appraisal'
 
-    class Meta:
+    class Meta(MaintenanceJob.Meta):
         permissions = (
             ('run_appraisaljob', 'Can run appraisal job'),
         )
