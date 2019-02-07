@@ -12,7 +12,7 @@ tools.db
 # python virtual environment
 /venv/
 
-# IntelliJ Idea
+# JetBrains IDEs
 /.idea/
 
 # Coverage default folders 
