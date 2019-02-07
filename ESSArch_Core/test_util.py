@@ -210,6 +210,38 @@ class NestedLookupTest(TestCase):
 
         self.assertEqual(42, next(nested_lookup('my_key', my_list)))
 
+    def test_nested_lookup_multiple_occurrences_should_return_all_of_them(self):
+        my_list = {
+            "first_layer": [
+                {"my_key": 1},
+                {"key_2": 2},
+                {"my_key": 3},
+            ],
+            "second_layer": [
+                {"key_3": 3},
+                {"my_key": 5},
+                {"key_4": 4},
+                {"my_key": 7},
+            ]
+        }
+
+        found_values = list(nested_lookup('my_key', my_list))
+        self.assertEqual(len(found_values), 4)
+        self.assertIn(1, found_values)
+        self.assertIn(3, found_values)
+        self.assertIn(5, found_values)
+        self.assertIn(7, found_values)
+
+    def test_nested_lookup_key_missing_should_return_None(self):
+        my_list = [
+            {"key_1": 1},
+            {"key_2": 2},
+            {"key_3": 3},
+        ]
+
+        result_list = list(nested_lookup('missing_key', my_list))
+        self.assertEqual(len(result_list), 0)
+
 
 class ListFilesTest(TestCase):
 
@@ -217,15 +249,13 @@ class ListFilesTest(TestCase):
         self.root = os.path.dirname(os.path.realpath(__file__))
         self.datadir = os.path.join(self.root, "datadir")
         self.textdir = os.path.join(self.datadir, "textdir")
+        self.addCleanup(shutil.rmtree, self.datadir)
 
         try:
             os.makedirs(self.textdir)
         except OSError as e:
             if e.errno != 17:
                 raise
-
-    def tearDown(self):
-        shutil.rmtree(self.datadir)
 
     def create_files(self):
         files = []
@@ -244,9 +274,6 @@ class ListFilesTest(TestCase):
         archive_file_full_path = os.path.join(self.datadir, output_filename)
 
         return shutil.make_archive(archive_file_full_path, archive_format, self.textdir)
-
-    def create_paginator(self):
-        return None
 
     def test_list_files_dir_with_default_args_should_raise_NotFound(self):
         path = self.datadir
@@ -291,17 +318,15 @@ class ListFilesTest(TestCase):
             self.assertEqual(data_size, 1)
             self.assertEqual(type(data_modified), datetime.datetime)
 
-    def test_list_files_path_to_file_in_tar(self):
+    @mock.patch('ESSArch_Core.util.generate_file_response')
+    def test_list_files_path_to_file_in_tar(self, generate_file_response):
         file_path = self.create_archive_file('tar')
-        new_folder = os.path.join(file_path, "./0.txt")  # TODO: bug in shutil for tar is adding an extra './'
+        sub_path_file = './0.txt'  # TODO: bug in shutil for tar is adding an extra './'
+        new_folder = os.path.join(file_path, sub_path_file)
 
-        resp = list_files(new_folder)
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp['Content-Disposition'], 'inline; filename="0.txt"')
-        self.assertEqual(resp['Content-Type'], 'text/plain; charset=utf-8')
-        self.assertEqual(resp['Cache-Control'], 'no-cache, no-store, must-revalidate')
-        self.assertEqual(resp['Pragma'], 'no-cache')
-        self.assertEqual(resp['Expires'], '0')
+        list_files(new_folder)
+
+        generate_file_response.assert_called_once_with(mock.ANY, 'text/plain', False, name=sub_path_file)
 
     def test_list_files_path_to_non_existing_file_in_tar_should_throw_NotFound(self):
         file_path = self.create_archive_file('tar')
@@ -317,15 +342,12 @@ class ListFilesTest(TestCase):
         with self.assertRaises(NotFound):
             list_files(new_folder)
 
-    def test_list_files_path_to_file_in_zip(self):
+    @mock.patch('ESSArch_Core.util.generate_file_response')
+    def test_list_files_path_to_file_in_zip(self, generate_file_response):
         file_path = self.create_archive_file('zip')
-        new_folder = os.path.join(file_path, "0.txt")
+        sub_path_file = '0.txt'
+        new_folder = os.path.join(file_path, sub_path_file)
 
-        resp = list_files(new_folder)
+        list_files(new_folder)
 
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp['Content-Disposition'], 'inline; filename="0.txt"')
-        self.assertEqual(resp['Content-Type'], 'text/plain; charset=utf-8')
-        self.assertEqual(resp['Cache-Control'], 'no-cache, no-store, must-revalidate')
-        self.assertEqual(resp['Pragma'], 'no-cache')
-        self.assertEqual(resp['Expires'], '0')
+        generate_file_response.assert_called_once_with(mock.ANY, 'text/plain', False, name=sub_path_file)
