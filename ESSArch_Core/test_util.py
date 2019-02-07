@@ -19,6 +19,7 @@ from ESSArch_Core.util import (
     getSchemas,
     nested_lookup,
     list_files,
+    normalize_path,
 )
 
 
@@ -226,11 +227,7 @@ class NestedLookupTest(TestCase):
         }
 
         found_values = list(nested_lookup('my_key', my_list))
-        self.assertEqual(len(found_values), 4)
-        self.assertIn(1, found_values)
-        self.assertIn(3, found_values)
-        self.assertIn(5, found_values)
-        self.assertIn(7, found_values)
+        self.assertCountEqual([1, 3, 5, 7], found_values)
 
     def test_nested_lookup_key_missing_should_return_None(self):
         my_list = [
@@ -324,8 +321,7 @@ class ListFilesTest(TestCase):
         sub_path_file = './0.txt'  # TODO: bug in shutil for tar is adding an extra './'
         new_folder = os.path.join(file_path, sub_path_file)
 
-        if os.sep != '/':
-            new_folder = new_folder.replace(os.sep, '/')
+        new_folder = normalize_path(new_folder)
 
         list_files(new_folder)
 
@@ -351,8 +347,7 @@ class ListFilesTest(TestCase):
         sub_path_file = '0.txt'
         new_folder = os.path.join(file_path, sub_path_file)
 
-        if os.sep != '/':
-            new_folder = new_folder.replace(os.sep, '/')
+        new_folder = normalize_path(new_folder)
 
         list_files(new_folder)
 
