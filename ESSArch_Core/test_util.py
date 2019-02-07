@@ -324,6 +324,9 @@ class ListFilesTest(TestCase):
         sub_path_file = './0.txt'  # TODO: bug in shutil for tar is adding an extra './'
         new_folder = os.path.join(file_path, sub_path_file)
 
+        if os.sep != '/':
+            new_folder = new_folder.replace(os.sep, '/')
+
         list_files(new_folder)
 
         generate_file_response.assert_called_once_with(mock.ANY, 'text/plain', False, name=sub_path_file)
@@ -347,6 +350,9 @@ class ListFilesTest(TestCase):
         file_path = self.create_archive_file('zip')
         sub_path_file = '0.txt'
         new_folder = os.path.join(file_path, sub_path_file)
+
+        if os.sep != '/':
+            new_folder = new_folder.replace(os.sep, '/')
 
         list_files(new_folder)
 
