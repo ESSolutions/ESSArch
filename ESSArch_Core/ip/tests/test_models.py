@@ -134,10 +134,7 @@ class GetPathResponseContainerTests(TestCase):
 class StatusTest(TestCase):
 
     def setUp(self):
-        self.datadir = normalize_path(tempfile.mkdtemp())
-        self.ip = InformationPackage.objects.create(object_path=self.datadir)
-
-        self.addCleanup(shutil.rmtree, self.datadir)
+        self.ip = InformationPackage.objects.create()
 
     def test_status_is_100_when_state_is_any_completed_state(self):
         completed_states = ["Prepared", "Uploaded", "Created", "Submitted", "Received", "Transferred", 'Archived']
