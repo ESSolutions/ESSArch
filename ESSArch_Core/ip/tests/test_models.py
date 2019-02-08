@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+import uuid
 
 from unittest import mock
 from django.test import TestCase
@@ -128,3 +129,40 @@ class GetPathResponseContainerTests(TestCase):
         mock_open_file.return_value
         mock_fid.return_value.get_mimetype.return_value
         mock_list_files.assert_called_once_with(path)
+
+
+class StatusTest(TestCase):
+
+    def setUp(self):
+        self.ip = InformationPackage.objects.create()
+
+    def test_status_is_100_when_state_is_any_completed_state(self):
+        completed_states = ["Prepared", "Uploaded", "Created", "Submitted", "Received", "Transferred", 'Archived']
+
+        for state in completed_states:
+            self.ip.state = state
+            self.assertEqual(self.ip.status(), 100)
+
+    def test_status_is_33_when_state_is_preparing_and_submission_agreement_is_not_locked(self):
+        self.ip.state = 'Preparing'
+        self.ip.submission_agreement_locked = False
+
+        self.assertEqual(self.ip.status(), 33)
+
+    def test_status_is_between_66_and_100_when_state_is_preparing_and_submission_agreement_is_locked(self):
+        self.ip.state = 'Preparing'
+        self.ip.submission_agreement_locked = True
+
+        status = self.ip.status()
+        self.assertGreaterEqual(status, 66)
+        self.assertLessEqual(status, 100)
+
+    def test_status_is_100_if_state_is_None(self):
+        self.ip.state = None
+
+        self.assertEqual(self.ip.status(), 100)
+
+    def test_status_is_100_if_state_is_an_unhandled_type(self):
+        self.ip.state = uuid.uuid4
+
+        self.assertEqual(self.ip.status(), 100)
