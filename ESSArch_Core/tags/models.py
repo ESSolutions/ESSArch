@@ -3,10 +3,249 @@ import uuid
 import jsonfield
 from django.db import models, transaction
 from django.db.models import F, OuterRef, Subquery
+from django.utils.translation import ugettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
+from countries_plus.models import Country
+from languages_plus.models import Language
 from mptt.models import MPTTModel, TreeForeignKey
 
 from ESSArch_Core.tags.documents import VersionedDocType
+
+
+class RelationType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+
+class AgentRelation(models.Model):
+    agent_a = models.ForeignKey('tags.Agent', on_delete=models.CASCADE, related_name='agent_relations_a')
+    agent_b = models.ForeignKey('tags.Agent', on_delete=models.CASCADE, related_name='agent_relations_b')
+    type = models.ForeignKey('tags.RelationType', on_delete=models.PROTECT, null=False)
+    description = models.TextField(_('description'), blank=True)
+    start_date = models.DateField(_('start date'), null=True)
+    end_date = models.DateField(_('end date'), null=True)
+
+
+class Agent(models.Model):
+    MINIMAL = 0
+    PARTIAL = 1
+    FULL = 2
+    LEVEL_OF_DETAIL_CHOICES = (
+        (MINIMAL, _('minimal')),
+        (PARTIAL, _('partial')),
+        (FULL, _('full')),
+    )
+
+    DRAFT = 0
+    FINAL = 1
+    RECORD_STATUS_CHOICES = (
+        (DRAFT, _('draft')),
+        (FINAL, _('final')),
+    )
+
+    LATIN = 0
+    SCRIPT_CHOICES = (
+        (LATIN, _('latin')),
+    )
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    places = models.ManyToManyField('tags.Topography', through='tags.AgentPlace', related_name='agents')
+    type = models.ForeignKey('tags.AgentType', on_delete=models.PROTECT, null=False, related_name='agents')
+    ref_code = models.ForeignKey('tags.RefCode', on_delete=models.PROTECT, null=False, related_name='agents')
+    related_agents = models.ManyToManyField(
+        'self',
+        through='tags.AgentRelation',
+        through_fields=('agent_a', 'agent_b'),
+        symmetrical=False,
+    )
+    level_of_detail = models.IntegerField(_('level of detail'), choices=LEVEL_OF_DETAIL_CHOICES, null=False)
+    record_status = models.IntegerField(_('record status'), choices=RECORD_STATUS_CHOICES, null=False)
+    script = models.IntegerField(_('record status'), choices=RECORD_STATUS_CHOICES, null=False)
+
+    language = models.ForeignKey(Language, on_delete=models.PROTECT, null=False, verbose_name=_('language'))
+    mandates = models.ManyToManyField('tags.SourcesOfAuthority', related_name='agents', verbose_name=_('mandates'))
+
+    create_date = models.DateField(_('create date'), null=False)
+    revise_date = models.DateField(_('revise date'), null=True)
+
+    start_date = models.DateField(_('start date'), null=True)
+    end_date = models.DateField(_('end date'), null=True)
+
+
+class AgentNote(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    agent = models.ForeignKey(
+        'tags.Agent',
+        on_delete=models.CASCADE,
+        null=False,
+        related_name='notes',
+        verbose_name=_('agent')
+    )
+    type = models.ForeignKey('tags.AgentNoteType', on_delete=models.PROTECT, null=False, verbose_name=_('type'))
+    text = models.TextField(_('text'), blank=False)
+    create_date = models.DateField(_('create date'), null=False)
+    revise_date = models.DateField(_('revise date'), null=True)
+
+
+class AgentNoteType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+
+class AgentFunction(models.Model):
+    """
+    TODO:
+        1. figure out which fields to add
+        2. add them
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    agent = models.ForeignKey('tags.Agent', on_delete=models.CASCADE, null=False, related_name='functions')
+
+
+class SourcesOfAuthority(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    type = models.ForeignKey('tags.AuthorityType', on_delete=models.PROTECT, null=False)
+    name = models.TextField(_('name'), blank=False)
+    href = models.TextField(_('href'), blank=True)
+    start_date = models.DateField(_('start date'), null=True)
+    end_date = models.DateField(_('end date'), null=True)
+
+
+class AuthorityType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+
+class AgentIdentifier(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    identifier = models.TextField(_('identifier'), blank=False)
+    agent = models.ForeignKey('tags.Agent', on_delete=models.CASCADE, null=False, related_name='identifiers')
+    type = models.ForeignKey('tags.AgentIdentifierType', on_delete=models.PROTECT, null=False, verbose_name=_('type'))
+
+
+class AgentIdentifierType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+
+class Topography(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(_('name'), max_length=255)
+    alt_name = models.TextField(_('alternative name'), blank=True)
+    type = models.CharField(_('type'), max_length=255)
+    main_category = models.TextField(_('main category'), blank=True)
+    sub_category = models.TextField(_('sub category'), blank=True)
+    reference_code = models.TextField(_('reference code'))
+    start_year = models.DateField(_('start year'), null=True)
+    end_year = models.DateField(_('end year'), null=True)
+    lng = models.DecimalField(_('longitude'), max_digits=9, decimal_places=6, null=True)
+    lat = models.DecimalField(_('latitude'), max_digits=9, decimal_places=6, null=True)
+
+    class Meta():
+        unique_together = ('name', 'type')  # Avoid duplicates within same type
+
+
+class AgentPlaceType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+
+class AgentPlace(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    agent = models.ForeignKey('tags.Agent', on_delete=models.CASCADE, null=False)
+    topography = models.ForeignKey('tags.Topography', on_delete=models.CASCADE, null=True)
+    type = models.ForeignKey('tags.AgentPlaceType', on_delete=models.PROTECT, null=False)
+    description = models.TextField(_('description'), blank=True)
+    start_date = models.DateField(_('start date'), null=True)
+    end_date = models.DateField(_('end date'), null=True)
+
+
+class AgentType(models.Model):
+    CORPORATE_BODY = 'corporatebody'
+    PERSON = 'person'
+    FAMILY = 'family'
+    CPF_CHOICES = (
+        (CORPORATE_BODY, _('corporate body')),
+        (PERSON, _('person')),
+        (FAMILY, _('family')),
+    )
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    cpf = models.CharField(max_length=20, choices=CPF_CHOICES, blank=False)
+    main_type = models.ForeignKey('tags.MainAgentType', on_delete=models.PROTECT, null=False)
+    sub_type = models.TextField(_('sub type'), blank=True)
+    legal_status = models.TextField(_('legal status'), blank=False)
+
+
+class MainAgentType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+
+class AgentName(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    agent = models.ForeignKey('tags.Agent', on_delete=models.CASCADE, null=False, related_name='names')
+    main = models.TextField(_('main'), blank=False)
+    part = models.TextField(_('part'), blank=True)
+    description = models.TextField(_('description'), blank=True)
+    type = models.ForeignKey('tags.AgentNameType', on_delete=models.PROTECT, null=False)
+    start_date = models.DateField(_('start date'), null=True)
+    end_date = models.DateField(_('end date'), null=True)
+    certainty = models.NullBooleanField(_('certainty'))
+
+
+class AgentNameType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+
+class RefCode(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.PROTECT,
+        null=False,
+        related_name='ref_codes',
+        verbose_name=_('country code')
+    )
+    repository_code = models.CharField(_('repository code'), max_length=255, blank=False)
+
+    class Meta():
+        unique_together = ('country', 'repository_code')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class Structure(models.Model):
