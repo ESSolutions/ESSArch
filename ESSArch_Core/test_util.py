@@ -283,7 +283,8 @@ class ListFilesTest(TestCase):
         file_path = self.create_archive_file('tar')
         resp = list_files(file_path)
         self.assertEqual(resp.status_code, 200)
-        file_names = ["./0.txt", "./1.txt", "./2.txt"]  # TODO: bug in shutil for tar is adding an extra './'
+        # FIXME: remove ./ when issue is fixed https://bugs.python.org/issue35964
+        file_names = ["./0.txt", "./1.txt", "./2.txt"]
 
         for el in resp.data:
             data_name = el['name']
@@ -318,7 +319,7 @@ class ListFilesTest(TestCase):
     @mock.patch('ESSArch_Core.util.generate_file_response')
     def test_list_files_path_to_file_in_tar(self, generate_file_response):
         file_path = self.create_archive_file('tar')
-        sub_path_file = './0.txt'  # TODO: bug in shutil for tar is adding an extra './'
+        sub_path_file = './0.txt'  # FIXME: remove ./ when issue is fixed https://bugs.python.org/issue35964
         new_folder = os.path.join(file_path, sub_path_file)
 
         new_folder = normalize_path(new_folder)
