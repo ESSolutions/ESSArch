@@ -166,3 +166,126 @@ class StatusTest(TestCase):
         self.ip.state = uuid.uuid4
 
         self.assertEqual(self.ip.status(), 100)
+
+
+class InformationPackageOpenFileTests(TestCase):
+
+    def setUp(self):
+        self.datadir = tempfile.mkdtemp()
+        self.textdir = os.path.join(self.datadir, "textdir")
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        try:
+            os.makedirs(self.textdir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+        self.ip = InformationPackage.objects.create()
+
+    def create_files(self):
+        files = []
+        for i in range(3):
+            fname = os.path.join(self.textdir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('%s' % i)
+            files.append(fname)
+
+        return files
+
+    def create_mets_xml_file(self, filename):
+        dirname = os.path.join(self.textdir, os.path.dirname(filename))
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        fname = os.path.join(self.textdir, '%s' % filename)
+        with open(fname, 'w') as f:
+            f.write("I'm a mets_xml")
+
+    def create_archive_file(self, archive_format):
+        self.create_files()
+
+        output_filename = "archive_file"
+        archive_file_full_path = os.path.join(self.datadir, output_filename)
+
+        return shutil.make_archive(archive_file_full_path, archive_format, self.textdir)
+
+    @mock.patch('ESSArch_Core.ip.models.open')
+    def test_open_file_with_default_params_should_call_open_of_object_path(self, mock_open):
+        self.ip.object_path = os.path.join(self.datadir, "")
+
+        self.ip.open_file()
+
+        mock_open.assert_called_once_with(self.ip.object_path)
+
+    def test_open_file_with_default_params_and_object_path_is_not_set_should_raise_FileNotFoundError(self):
+        with self.assertRaises(FileNotFoundError):
+            self.ip.open_file()
+
+    @mock.patch('ESSArch_Core.ip.models.open')
+    def test_open_file_when_object_path_is_a_file_and_equal_to_path_then_open_it(self, mock_open):
+        archive_file = self.create_archive_file('tar')
+        self.ip.object_path = archive_file
+        self.ip.save()
+
+        self.ip.open_file(archive_file)
+
+        mock_open.assert_called_once_with(archive_file)
+
+    @mock.patch('ESSArch_Core.ip.models.open')
+    def test_open_file_when_xml_mets_exists_then_open_it(self, mock_open):
+        archive_file = self.create_archive_file('tar')
+        self.ip.object_path = archive_file
+        self.ip.package_mets_path = os.path.join(os.path.dirname(archive_file), 'mets.xml')
+        self.ip.save()
+
+        self.ip.open_file(self.ip.package_mets_path)
+
+        mock_open.assert_called_once_with(self.ip.package_mets_path)
+
+    @mock.patch('ESSArch_Core.ip.models.open')
+    def test_open_file_when_mets_path_not_set_then_generate_path_from_identifier_value(self, mock_open):
+        archive_file = self.create_archive_file('tar')
+        self.ip.object_path = archive_file
+        self.ip.object_identifier_value = "mets"
+        self.ip.save()
+        path_to_mets_xml = os.path.join(os.path.dirname(archive_file), 'mets.xml')
+
+        self.ip.open_file(path_to_mets_xml)
+
+        mock_open.assert_called_once_with(path_to_mets_xml)
+
+    @mock.patch('ESSArch_Core.ip.models.io')
+    def test_open_file_when_mets_path_not_set_then_read_mets_xml_from_tar(self, mocked_io):
+        self.create_mets_xml_file("mets.xml")
+        archive_file = self.create_archive_file('tar')
+        self.ip.object_path = archive_file
+        self.ip.object_identifier_value = "identifier_value_that_does_not_match_mets_file_name"
+        self.ip.save()
+
+        self.ip.open_file('./mets.xml')
+
+        mocked_io.BytesIO.assert_called_once()
+
+    @mock.patch('ESSArch_Core.ip.models.io')
+    def test_open_file_when_mets_path_not_set_then_read_mets_xml_from_tar_with_identifier(self, mocked_io):
+        self.create_mets_xml_file("mets_folder/mets.xml")
+        archive_file = self.create_archive_file('tar')
+        self.ip.object_path = archive_file
+        self.ip.object_identifier_value = "./mets_folder/"
+        self.ip.save()
+
+        self.ip.open_file('mets.xml')
+
+        mocked_io.BytesIO.assert_called_once()
+
+    @mock.patch('ESSArch_Core.ip.models.io')
+    def test_open_file_when_mets_path_not_set_then_read_mets_xml_from_zip(self, mocked_io):
+        self.create_mets_xml_file("mets_folder/mets.xml")
+        archive_file = self.create_archive_file('zip')
+        self.ip.object_path = archive_file
+        self.ip.object_identifier_value = "mets_folder/"
+        self.ip.save()
+
+        self.ip.open_file('mets.xml')
+
+        mocked_io.BytesIO.assert_called_once()
