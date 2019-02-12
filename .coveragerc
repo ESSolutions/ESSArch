@@ -1,0 +1,6 @@
+[run]
+branch = True
+include=ESSArch_Core/*
+omit =
+    */migrations/*
+    */tests/*
