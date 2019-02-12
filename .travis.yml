@@ -55,7 +55,6 @@ matrix:
       dist: trusty
       before_install: cd ESSArch_Core/frontend
       install: yarn
-      before_script: skip
       script: yarn prettier --check **/*.js **/*.scss **/*.html
       after_success: skip
 
@@ -63,11 +62,8 @@ install:
   - python -m pip install --upgrade pip wheel codecov
   - pip install -e .["tests$EXTRA_PACKAGES"]
 
-before_script:
-  - cd ESSArch_Core
-
 script:
-  - coverage run manage.py test -v2
+  - coverage run ESSArch_Core/manage.py test -v2
 
 after_success:
   - bash <(curl -s https://codecov.io/bash) -c -F backend
