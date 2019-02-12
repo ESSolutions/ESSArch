@@ -7,7 +7,9 @@ import uuid
 from unittest import mock
 from django.test import TestCase
 from rest_framework.test import APIRequestFactory
+from celery import states as celery_state
 
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.util import normalize_path, timestamp_to_datetime
 
@@ -421,3 +423,111 @@ class InformationPackageOpenFileTests(TestCase):
         self.ip.open_file('mets.xml')
 
         mocked_io.BytesIO.assert_called_once()
+
+
+class InformationPackageStepStateTests(TestCase):
+
+    def create_information_package(self, num, aic, package_type=InformationPackage.AIP):
+        ip_set = set()
+        for i in range(num):
+            ip_set.add(
+                InformationPackage.objects.create(label=i, package_type=package_type, aic=aic)
+            )
+
+        return ip_set
+
+    @mock.patch('ESSArch_Core.ip.models.InformationPackage.related_ips')
+    def test_step_state_when_its_an_AIC_with_no_related_IPs_then_success(self, mocked_related_ips):
+        self.ip = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        mocked_related_ips.return_value = set()
+        state = self.ip.step_state
+
+        self.assertEqual(state, celery_state.SUCCESS)
+        mocked_related_ips.assert_called_once()
+
+    def test_step_state_when_its_an_AIC_with_3_related_IPs_then_success(self):
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        ip_set = self.create_information_package(3, aic)
+        for ip in ip_set:
+            ProcessTask.objects.create(information_package=ip, status=celery_state.SUCCESS)
+
+        state = aic.step_state
+        self.assertEqual(state, celery_state.SUCCESS)
+
+    def test_step_state_when_its_an_AIC_with_3_related_IPs_with_one_task_started_then_started(self):
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        ip_set = self.create_information_package(3, aic)
+        statuses = [celery_state.SUCCESS, celery_state.STARTED, celery_state.SUCCESS]
+
+        for idx, ip in enumerate(ip_set):
+            ProcessTask.objects.create(information_package=ip, status=statuses[idx])
+
+        state = aic.step_state
+        self.assertEqual(state, celery_state.STARTED)
+
+    def test_step_state_when_its_an_AIC_with_3_related_IPs_with_one_task_pending_then_pending(self):
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        ip_set = self.create_information_package(3, aic)
+        statuses = [celery_state.SUCCESS, celery_state.PENDING, celery_state.SUCCESS]
+
+        for idx, ip in enumerate(ip_set):
+            ProcessTask.objects.create(information_package=ip, status=statuses[idx])
+
+        state = aic.step_state
+        self.assertEqual(state, celery_state.PENDING)
+
+    def test_step_state_when_its_an_AIC_with_3_related_IPs_with_one_task_failure_then_failure(self):
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        ip_set = self.create_information_package(3, aic)
+        statuses = [celery_state.SUCCESS, celery_state.FAILURE, celery_state.SUCCESS]
+
+        for idx, ip in enumerate(ip_set):
+            ProcessTask.objects.create(information_package=ip, status=statuses[idx])
+
+        state = aic.step_state
+        self.assertEqual(state, celery_state.FAILURE)
+
+    def test_step_state_when_its_an_AIP_with_no_tasks_then_success(self):
+        aip = InformationPackage.objects.create(package_type=InformationPackage.AIP)
+
+        state = aip.step_state
+        self.assertEqual(state, celery_state.SUCCESS)
+
+    def test_step_state_when_its_an_AIP_with_all_success_tasks_then_success(self):
+        aip = InformationPackage.objects.create(package_type=InformationPackage.AIP)
+
+        for i in range(3):
+            ProcessTask.objects.create(information_package=aip, status=celery_state.SUCCESS)
+
+        state = aip.step_state
+        self.assertEqual(state, celery_state.SUCCESS)
+
+    def test_step_state_when_its_an_AIP_with_one_task_started_then_started(self):
+        aip = InformationPackage.objects.create(package_type=InformationPackage.AIP)
+
+        statuses = [celery_state.SUCCESS, celery_state.STARTED, celery_state.SUCCESS]
+        for status in statuses:
+            ProcessTask.objects.create(information_package=aip, status=status)
+
+        state = aip.step_state
+        self.assertEqual(state, celery_state.STARTED)
+
+    def test_step_state_when_its_an_AIP_with_one_task_pending_then_pending(self):
+        aip = InformationPackage.objects.create(package_type=InformationPackage.AIP)
+
+        statuses = [celery_state.SUCCESS, celery_state.PENDING, celery_state.SUCCESS]
+        for status in statuses:
+            ProcessTask.objects.create(information_package=aip, status=status)
+
+        state = aip.step_state
+        self.assertEqual(state, celery_state.PENDING)
+
+    def test_step_state_when_its_an_AIP_with_one_task_failure_then_failure(self):
+        aip = InformationPackage.objects.create(package_type=InformationPackage.AIP)
+
+        statuses = [celery_state.SUCCESS, celery_state.FAILURE, celery_state.SUCCESS]
+        for status in statuses:
+            ProcessTask.objects.create(information_package=aip, status=status)
+
+        state = aip.step_state
+        self.assertEqual(state, celery_state.FAILURE)
