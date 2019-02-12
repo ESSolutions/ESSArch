@@ -1,3 +1,4 @@
+import datetime
 import os
 import shutil
 import tempfile
@@ -14,9 +15,43 @@ from ESSArch_Core.util import normalize_path, timestamp_to_datetime
 class InformationPackageListFilesTests(TestCase):
     def setUp(self):
         self.datadir = normalize_path(tempfile.mkdtemp())
+        self.textdir = os.path.join(self.datadir, "textdir")
+        self.addCleanup(shutil.rmtree, self.datadir)
         self.ip = InformationPackage.objects.create(object_path=self.datadir)
 
-        self.addCleanup(shutil.rmtree, self.datadir)
+    def create_files(self):
+        try:
+            os.makedirs(self.textdir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+        files = []
+        for i in range(3):
+            fname = os.path.join(self.textdir, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('%s' % i)
+            files.append(fname)
+
+        return files
+
+    def create_archive_file(self, archive_format):
+        self.create_files()
+
+        output_filename = "archive_file"
+        archive_file_full_path = os.path.join(self.datadir, output_filename)
+
+        return shutil.make_archive(archive_file_full_path, archive_format, self.textdir)
+
+    def create_mets_xml_file(self, filename):
+        dirname = os.path.join(self.datadir, os.path.dirname(filename))
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        fname = os.path.join(self.datadir, '%s' % filename)
+        with open(fname, 'w') as f:
+            f.write("I'm a mets_xml")
+
+        return fname
 
     def test_list_file(self):
         fd, path = tempfile.mkstemp(dir=self.datadir)
@@ -56,6 +91,103 @@ class InformationPackageListFilesTests(TestCase):
                 'modified': timestamp_to_datetime(os.stat(filepath).st_mtime)
             }]
         )
+
+    def test_list_files_tar_file_should_return_entries(self):
+        archive_path = self.create_archive_file('tar')
+        self.ip.object_path = archive_path
+        self.ip.save()
+
+        entries = self.ip.list_files(path='archive_file.tar')
+        self.assertEqual(len(entries), 3)
+
+        # FIXME: remove ./ when issue is fixed https://bugs.python.org/issue35964
+        file_names = ['./0.txt', './1.txt', './2.txt']
+
+        for e in entries:
+            self.assertIn(e['name'], file_names)
+            file_names.remove(e['name'])
+            self.assertEqual(e['type'], 'file')
+            self.assertEqual(e['size'], 1)
+            self.assertEqual(type(e['modified']), datetime.datetime)
+
+    def test_list_files_zip_file_should_return_entries(self):
+        archive_path = self.create_archive_file('zip')
+        self.ip.object_path = archive_path
+        self.ip.save()
+
+        entries = self.ip.list_files(path='archive_file.zip')
+        self.assertEqual(len(entries), 3)
+
+        file_names = ['0.txt', '1.txt', '2.txt']
+
+        for e in entries:
+            self.assertIn(e['name'], file_names)
+            file_names.remove(e['name'])
+            self.assertEqual(e['type'], 'file')
+            self.assertEqual(e['size'], 1)
+            self.assertEqual(type(e['modified']), datetime.datetime)
+
+    def test_list_root_folder_with_no_params(self):
+        archive_path = self.create_archive_file('tar')
+        self.ip.object_path = archive_path
+        self.ip.save()
+
+        entries = self.ip.list_files(path='')
+
+        self.assertEqual(
+            entries,
+            [{
+                'type': 'file',
+                'name': os.path.basename(archive_path),
+                'size': os.path.getsize(archive_path),
+                'modified': timestamp_to_datetime(os.stat(archive_path).st_mtime)
+            }]
+        )
+
+    def test_list_root_folder_when_xml_exists_with_no_params(self):
+        archive_path = self.create_archive_file('tar')
+        xml_path = self.create_mets_xml_file('archive_file.xml')
+        self.ip.object_path = archive_path
+        self.ip.save()
+
+        entries = self.ip.list_files(path='')
+
+        self.assertEqual(
+            entries,
+            [{
+                'type': 'file',
+                'name': os.path.basename(archive_path),
+                'size': os.path.getsize(archive_path),
+                'modified': timestamp_to_datetime(os.stat(archive_path).st_mtime)
+            }, {
+                'type': 'file',
+                'name': os.path.basename(xml_path),
+                'size': os.path.getsize(xml_path),
+                'modified': timestamp_to_datetime(os.stat(xml_path).st_mtime)
+            }]
+        )
+
+    def test_list_multiple_files_in_folder(self):
+        archive_path = self.create_archive_file('tar')
+        self.ip.object_path = archive_path
+        self.ip.save()
+
+        files = [f for f in os.listdir(self.textdir) if os.path.isfile(os.path.join(self.textdir, f))]
+        expected_entries = []
+        for f in files:
+            expected_entries.append(
+                {
+                    'type': 'file',
+                    'name': f,
+                    'size': 1,
+                    'modified': timestamp_to_datetime(os.stat(os.path.join(self.textdir, f)).st_mtime)
+                }
+            )
+
+        entries = self.ip.list_files(path=self.textdir)
+
+        self.assertCountEqual(entries, expected_entries)
+        self.assertEqual(len(entries), 3)
 
 
 class GetPathResponseTests(TestCase):

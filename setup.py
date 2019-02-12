@@ -192,7 +192,7 @@ if __name__ == '__main__':
                      "sphinx-rtd-theme==0.4.1", "sphinxcontrib-httpdomain==1.7.0",
                      "sphinxcontrib-httpexample==0.10.0",
                      "sphinxcontrib-inlinesyntaxhighlight==0.2"],
-            "tests": ["fakeredis==0.15.0"],
+            "tests": ["coverage==4.5.2", "fakeredis==0.15.0"],
             "s3": ["boto3==1.9.14"],
             "ldap": ["django-auth-ldap==1.7.0"],
             "saml2": ["djangosaml2==0.17.2"],
