@@ -17,6 +17,7 @@ matrix:
       python: "3.6"
       install: pip install flake8==3.7.1
       script: flake8
+      after_success: skip
 
     - python: "3.6"
       dist: trusty
