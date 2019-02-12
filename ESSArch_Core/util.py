@@ -542,6 +542,13 @@ def get_charset(byte_str):
     return chardet.detect(byte_str)['encoding']
 
 
+def get_filename_from_file_obj(file_obj, name):
+    filename = getattr(file_obj, 'name', None)
+    filename = filename if (isinstance(filename, str) and filename) else name
+    filename = os.path.basename(filename) if filename is not None else name
+    return filename
+
+
 def generate_file_response(file_obj, content_type, force_download=False, name=None):
     charset = get_charset(file_obj.read(128))
     file_obj.seek(0)
@@ -549,9 +556,7 @@ def generate_file_response(file_obj, content_type, force_download=False, name=No
     content_type = u'{}; charset={}'.format(content_type, charset)
     response = FileResponse(file_obj, content_type=content_type)
 
-    filename = getattr(file_obj, 'name', None)
-    filename = filename if (isinstance(filename, str) and filename) else name
-    filename = os.path.basename(filename) if filename is not None else name
+    filename = get_filename_from_file_obj(file_obj, name)
 
     if filename:
         try:
