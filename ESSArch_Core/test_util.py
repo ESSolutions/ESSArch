@@ -6,6 +6,7 @@ import datetime
 from subprocess import PIPE
 
 from unittest import mock
+from django.http.response import FileResponse
 from django.test import TestCase
 from lxml import objectify, etree
 from rest_framework.exceptions import ValidationError, NotFound
@@ -20,6 +21,7 @@ from ESSArch_Core.util import (
     nested_lookup,
     list_files,
     normalize_path,
+    generate_file_response,
 )
 
 
@@ -352,3 +354,144 @@ class ListFilesTest(TestCase):
         list_files(new_folder)
 
         generate_file_response.assert_called_once_with(mock.ANY, 'text/plain', False, name=sub_path_file)
+
+
+class GenerateFileResponseTests(TestCase):
+
+    def get_headers_from_response(self, response):
+        if isinstance(response, FileResponse):
+            headers = {}
+            for k, v in response.__dict__.get('_headers').items():
+                headers[v[0]] = v[1]
+
+            return headers
+        else:
+            raise Exception("Response must be instance of an 'FileResponse'")
+
+    @mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
+    @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value="some_file_name.txt")
+    def test_when_utf8_and_file_obj_has_name_then_return_inline_file_response(self, get_charset, get_file_name):
+        content_type = 'text/plain'
+        mock_file_obj = mock.Mock()
+
+        resp = generate_file_response(mock_file_obj, content_type)
+        headers = self.get_headers_from_response(resp)
+
+        self.assertEqual(
+            headers,
+            {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+                'Content-Type': 'text/plain; charset=utf-8',
+                'Content-Disposition': 'inline; filename="{}"'.format("some_file_name.txt")
+            }
+        )
+
+        self.assertEqual(type(resp), FileResponse)
+
+    @mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
+    @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value=None)
+    def test_when_utf8_and_no_filename_then_return_without_content_dispo(self, get_charset, get_filename):
+        content_type = 'text/plain'
+        mock_file_obj = mock.Mock()
+
+        resp = generate_file_response(mock_file_obj, content_type)
+        headers = self.get_headers_from_response(resp)
+        self.assertEqual(
+            headers,
+            {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+                'Content-Type': 'text/plain; charset=utf-8',
+            }
+        )
+
+        self.assertEqual(type(resp), FileResponse)
+
+    @mock.patch('ESSArch_Core.util.get_charset', return_value="windows-1252")
+    @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value="some_file_name.txt")
+    def test_win1252_and_file_obj_has_name_then_return_inline_file_response(self, get_charset, get_filename):
+        content_type = 'text/plain'
+        mock_file_obj = mock.Mock()
+
+        resp = generate_file_response(mock_file_obj, content_type)
+        headers = self.get_headers_from_response(resp)
+
+        self.assertEqual(
+            headers,
+            {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+                'Content-Type': 'text/plain; charset=windows-1252',
+                'Content-Disposition': 'inline; filename="{}"'.format("some_file_name.txt")
+            }
+        )
+
+        self.assertEqual(type(resp), FileResponse)
+
+    @mock.patch('ESSArch_Core.util.get_charset', return_value="windows-1252")
+    @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value=None)
+    def test_win1252_and_no_filename_then_return_without_content_dispo(self, mock_get_charset, mock_get_filename):
+        content_type = 'text/plain'
+        mock_file_obj = mock.Mock()
+
+        resp = generate_file_response(mock_file_obj, content_type)
+        headers = self.get_headers_from_response(resp)
+        self.assertEqual(
+            headers,
+            {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+                'Content-Type': 'text/plain; charset=windows-1252',
+            }
+        )
+
+        self.assertEqual(type(resp), FileResponse)
+
+    @mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
+    @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value="some_file_name.txt")
+    def test_when_force_download_and_filename_not_none_then_add_attachment(self, get_charset, get_filename):
+        content_type = "text/plain"
+        mock_file_obj = mock.Mock()
+
+        resp = generate_file_response(mock_file_obj, content_type, force_download=True)
+        headers = self.get_headers_from_response(resp)
+
+        self.assertEqual(
+            headers,
+            {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+                'Content-Type': 'text/plain; charset=utf-8',
+                'Content-Disposition': 'attachment; filename="{}"'.format("some_file_name.txt")
+            }
+        )
+
+        self.assertEqual(type(resp), FileResponse)
+
+    @mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
+    @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value="none_ascii_å_name.txt")
+    def test_when_filename_is_not_ascii(self, get_charset, get_filename):
+        content_type = "text/plain"
+        mock_file_obj = mock.Mock()
+
+        resp = generate_file_response(mock_file_obj, content_type)
+        headers = self.get_headers_from_response(resp)
+
+        self.assertEqual(
+            headers,
+            {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+                'Content-Type': 'text/plain; charset=utf-8',
+                'Content-Disposition': "inline; filename*=utf-8''{}".format("none_ascii_%C3%A5_name.txt")
+            }
+        )
+
+        self.assertEqual(type(resp), FileResponse)
