@@ -5,4 +5,6 @@ coverage:
       backend:
         flags: backend
   ignore:
-    - **/migrations/.*
+    - "**/migrations/.*"
+    - "**/*test*"
+    - "**/__init__.py"
