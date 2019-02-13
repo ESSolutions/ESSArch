@@ -297,7 +297,7 @@ class StatusTest(TestCase):
         self.assertEqual(self.ip.status(), 100)
 
     def test_status_is_100_if_state_is_an_unhandled_type(self):
-        self.ip.state = uuid.uuid4
+        self.ip.state = uuid.uuid4()
 
         self.assertEqual(self.ip.status(), 100)
 
