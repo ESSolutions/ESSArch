@@ -1,6 +1,0 @@
-[run]
-branch = True
-source=ESSArch_Core
-omit =
-    */migrations/*
-    */tests/*
