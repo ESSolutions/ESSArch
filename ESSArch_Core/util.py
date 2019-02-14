@@ -32,7 +32,6 @@ import os
 import platform
 import re
 import shutil
-import sys
 import tarfile
 import zipfile
 from urllib.parse import quote
@@ -653,8 +652,6 @@ def list_files(path, force_download=False, request=None, paginator=None):
     if len(path.split('.tar/')) == 2:
         tar_path, tar_subpath = path.split('.tar/')
         tar_path += '.tar'
-        if sys.version_info <= (3, 0):
-            tar_subpath = bytes(tar_subpath.encode('utf-8'))
 
         with tarfile.open(tar_path) as tar:
             try:
@@ -667,8 +664,6 @@ def list_files(path, force_download=False, request=None, paginator=None):
     if len(path.split('.zip/')) == 2:
         zip_path, zip_subpath = path.split('.zip/')
         zip_path += '.zip'
-        if sys.version_info <= (3, 0):
-            zip_subpath = bytes(zip_subpath.encode('utf-8'))
 
         with zipfile.ZipFile(zip_path) as zipf:
             try:

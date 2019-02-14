@@ -4,5 +4,3 @@ coverage:
       default: off
       backend:
         flags: backend
-  ignore:
-    - **/migrations/.*

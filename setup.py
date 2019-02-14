@@ -154,7 +154,7 @@ if __name__ == '__main__':
             "crontab==0.22.2",
             "daphne==2.2.3",
             "dj-database-url==0.5.0",
-            "django==1.11.18",
+            "django==1.11.20",
             "django-cors-headers==2.4.0",
             "django-countries-plus==1.2.1",
             "django-filter==2.0",

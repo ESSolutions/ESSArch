@@ -10,7 +10,7 @@ import pyfakefs.fake_filesystem as fake_fs
 
 import requests
 
-from .copy import copy_chunk, copy_chunk_locally, copy_chunk_remotely, copy_file, copy_file_locally
+from ESSArch_Core.storage.copy import copy_chunk, copy_chunk_locally, copy_chunk_remotely, copy_file, copy_file_locally
 
 
 class CopyChunkTestCase(TestCase):
