@@ -221,7 +221,7 @@ class DBTask(Task):
             'event_type': self.event_type,
             'object': self.ip,
             'agent': agent,
-            'task': self.task_id,
+            'task': task_id,
             'outcome': outcome
         }
         logger.log(level, outcome_detail_note, extra=extra)
