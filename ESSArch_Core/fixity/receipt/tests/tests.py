@@ -1,8 +1,15 @@
 from unittest import mock
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.template.exceptions import TemplateDoesNotExist
 
-from ESSArch_Core.fixity.receipt.backends import email
+import datetime
+import os
+import shutil
+from lxml import etree
+
+from ESSArch_Core.fixity.models import Validation
+from ESSArch_Core.fixity.receipt.backends import email, xml
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
@@ -55,3 +62,124 @@ class EmailReceiptBackendTests(TestCase):
 
         with self.assertRaises(email.NoEmailSentError):
             self.backend.create('receipts/email.txt', 'example', 'outcome', 'short msg', 'msg', task=task.pk)
+
+
+class XMLReceiptBackendTests(TestCase):
+
+    def setUp(self):
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        try:
+            os.makedirs(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def create_validation(self):
+        return Validation.objects.create()
+
+    def create_task(self):
+        return ProcessTask.objects.create()
+
+    def test_bad_template(self):
+        backend = xml.XMLReceiptBackend()
+
+        with self.assertRaises(TemplateDoesNotExist):
+            backend.create(
+                template="bad_template",
+                destination="some_destination",
+                outcome="outcome_data",
+                short_message="some_short_message",
+                message="some message nothuentohe notehu"
+            )
+
+    def test_with_no_ip_should_create_xml(self):
+        backend = xml.XMLReceiptBackend()
+        dest_file_path = os.path.join(self.datadir, "dest_file.xml")
+
+        backend.create(
+            template="receipts/xml.json",
+            destination=dest_file_path,
+            outcome="outcome data",
+            short_message="some short message",
+            message="some longer message",
+        )
+
+        expected_attributes = {
+            'outcome': 'outcome data',
+            'message': 'some longer message'
+        }
+
+        root_xml = etree.parse(dest_file_path)
+        status_el = root_xml.xpath("/receipt/status")[0]
+        datetime_el = root_xml.xpath("/receipt/datetime")[0]
+
+        self.assertEqual(status_el.attrib, expected_attributes)
+        self.assertIsNotNone(datetime_el.text)
+
+    def test_with_no_ip_and_date_passed_should_create_xml(self):
+        backend = xml.XMLReceiptBackend()
+        dest_file_path = os.path.join(self.datadir, "dest_file.xml")
+
+        datetime_now = datetime.datetime.now()
+
+        backend.create(
+            template="receipts/xml.json",
+            destination=dest_file_path,
+            outcome="outcome data",
+            short_message="some short message",
+            message="some longer message",
+            date=datetime_now,
+        )
+
+        expected_attributes = {
+            'outcome': 'outcome data',
+            'message': 'some longer message'
+        }
+
+        root_xml = etree.parse(dest_file_path)
+        status_el = root_xml.xpath("/receipt/status")[0]
+        datetime_el = root_xml.xpath("/receipt/datetime")[0]
+
+        self.assertEqual(status_el.attrib, expected_attributes)
+        self.assertEqual(datetime_el.text, datetime_now.isoformat())
+
+    def test_with_tasks_passed_should_be_added_to_xml(self):
+        backend = xml.XMLReceiptBackend()
+        task = self.create_task()
+        validation = self.create_validation()
+        validation.task = task
+        validation.passed = True
+        validation.save()
+
+        dest_file_path = os.path.join(self.datadir, "dest_file.xml")
+
+        backend.create(
+            template="receipts/xml.json",
+            destination=dest_file_path,
+            outcome="outcome data",
+            short_message="some short message",
+            message="some longer message",
+            task=task,
+        )
+
+        expected_status_attributes = {
+            'outcome': 'outcome data',
+            'message': 'some longer message'
+        }
+
+        expected_validation_attributes = {
+            'passed': 'true'
+        }
+
+        root_xml = etree.parse(dest_file_path)
+        status_el = root_xml.xpath("/receipt/status")[0]
+        datetime_el = root_xml.xpath("/receipt/datetime")[0]
+        validations_el = root_xml.xpath("/receipt/validations/validation")
+
+        self.assertEqual(status_el.attrib, expected_status_attributes)
+        self.assertIsNotNone(datetime_el.text)
+        self.assertEqual(len(validations_el), 1)
+        self.assertEqual(validations_el[0].attrib, expected_validation_attributes)
