@@ -61,10 +61,6 @@ class FormatIdentifier:
     def get_mimetype(self, fname):
         logger.debug('Getting mimetype for %s' % fname)
         self._init_mimetypes()
-        file_name, file_ext = os.path.splitext(fname)
-
-        if not file_ext:
-            file_ext = file_name
 
         content_type, encoding = mimetypes.guess_type(fname)
         logger.info('Guessed mimetype for %s: type: %s, encoding: %s' % (fname, content_type, encoding))
