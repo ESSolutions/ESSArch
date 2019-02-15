@@ -70,6 +70,39 @@ class Agent(models.Model):
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
 
+    tags = models.ManyToManyField('tags.TagVersion', through='tags.AgentTagLink', related_name='agents')
+    task = models.ForeignKey('WorkflowEngine.ProcessTask', on_delete=models.SET_NULL, null=True, related_name='agents')
+
+
+class AgentTagLink(models.Model):
+    agent = models.ForeignKey(
+        'tags.Agent',
+        on_delete=models.CASCADE,
+        null=False,
+        related_name='tag_links',
+        verbose_name=_('agent')
+    )
+    tag = models.ForeignKey(
+        'tags.TagVersion',
+        on_delete=models.CASCADE,
+        null=False,
+        related_name='agent_links',
+        verbose_name=_('tag')
+    )
+    type = models.ForeignKey(
+        'tags.AgentTagLinkRelationType',
+        on_delete=models.PROTECT,
+        null=False,
+        verbose_name=_('type')
+    )
+    start_date = models.DateField(_('start date'), null=True)
+    end_date = models.DateField(_('end date'), null=True)
+    description = models.TextField(_('description'), blank=True)
+
+
+class AgentTagLinkRelationType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
 
 class AgentNote(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -105,6 +138,7 @@ class SourcesOfAuthority(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = models.ForeignKey('tags.AuthorityType', on_delete=models.PROTECT, null=False)
     name = models.TextField(_('name'), blank=False)
+    description = models.TextField(_('description'), blank=True)
     href = models.TextField(_('href'), blank=True)
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
@@ -208,46 +242,6 @@ class RefCode(models.Model):
         unique_together = ('country', 'repository_code')
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class Structure(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, blank=False)
@@ -257,6 +251,12 @@ class Structure(models.Model):
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     specification = jsonfield.JSONField(default={})
+    task = models.ForeignKey(
+        'WorkflowEngine.ProcessTask',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='structures',
+    )
 
     def is_move_allowed(self, tag_structure, dst_tag_structure):
         current_version = tag_structure.tag.current_version
@@ -284,6 +284,12 @@ class StructureUnit(MPTTModel):
     reference_code = models.CharField(max_length=255)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
+    task = models.ForeignKey(
+        'WorkflowEngine.ProcessTask',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='structure_units',
+    )
 
     def __str__(self):
         return '{} {}'.format(self.reference_code, self.name)
