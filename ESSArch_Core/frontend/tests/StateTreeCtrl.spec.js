@@ -25,7 +25,7 @@
 describe('StateTreeCtrl', function() {
   beforeEach(module('essarch.controllers'));
 
-  var $controller, $scope, controller, Task, Step, listViewService;
+  var $controller, $scope, controller, Task, Step, StateTree;
 
   beforeEach(inject(function(_$controller_) {
     $controller = _$controller_;
@@ -35,11 +35,11 @@ describe('StateTreeCtrl', function() {
 
   Step = jasmine.createSpyObj('Step', ['get']);
 
-  listViewService = jasmine.createSpyObj('listViewService', ['getTreeData']);
+  StateTree = jasmine.createSpyObj('StateTree', ['getTreeData']);
   module(function($provide) {
     $provide.value('Task', Task);
     $provide.value('Step', Step);
-    $provide.value('listViewService', listViewService);
+    $provide.value('StateTree', StateTree);
   });
 
   beforeEach(inject(function($rootScope) {
@@ -48,7 +48,7 @@ describe('StateTreeCtrl', function() {
       $scope: $scope,
       Task: Task,
       Step: Step,
-      listViewService: listViewService,
+      StateTree: StateTree,
     });
   }));
 
@@ -198,12 +198,12 @@ describe('StateTreeCtrl', function() {
 
   describe('get step/task-list', function() {
     beforeEach(inject(function($q) {
-      var listViewServicePromise = {
+      var StateTreePromise = {
         getTreeData: $q.defer(),
       };
-      listViewService.getTreeData.and.returnValue(listViewServicePromise.getTreeData.promise);
+      StateTree.getTreeData.and.returnValue(StateTreePromise.getTreeData.promise);
 
-      listViewServicePromise.getTreeData.resolve([
+      StateTreePromise.getTreeData.resolve([
         {
           id: 'cec675f3-8874-4d0a-bedf-1e85770799bd',
           flow_type: 'step',
@@ -241,8 +241,8 @@ describe('StateTreeCtrl', function() {
         $scope.statusViewUpdate({id: 'cec675f3-8874-4d0a-bedf-1e857707uhjg'}).then(function() {});
       });
     }));
-    it('listViewService.getTreeData is called', function() {
-      expect(listViewService.getTreeData).toHaveBeenCalled();
+    it('StateTree.getTreeData is called', function() {
+      expect(StateTree.getTreeData).toHaveBeenCalled();
     });
   });
 });
