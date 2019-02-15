@@ -7,7 +7,7 @@ angular.module('essarch.services').factory('SelectedIPUpdater', function() {
      * Update selected IP(s) with data from new IP list.
      * @param {Array} newIps new IPs
      * @param {Array} selectedIps selected IPs (multiple select)
-     * @param {Array} selectedIp selected IP (single select)
+     * @param {Object} selectedIp selected IP (single select)
      */
 
     update: function(newIps, selectedIps, selectedIp) {
