@@ -24,6 +24,9 @@ class AgentRelation(models.Model):
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
 
+    class Meta():
+        unique_together = ('agent_a', 'agent_b', 'type')  # Avoid duplicates within same type
+
 
 class Agent(models.Model):
     MINIMAL = 0

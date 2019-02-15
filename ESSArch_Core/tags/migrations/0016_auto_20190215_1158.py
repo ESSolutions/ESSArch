@@ -292,6 +292,10 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='agents', to='tags.AgentType'),
         ),
         migrations.AlterUniqueTogether(
+            name='agentrelation',
+            unique_together=set([('agent_a', 'agent_b', 'type')]),
+        ),
+        migrations.AlterUniqueTogether(
             name='refcode',
             unique_together=set([('country', 'repository_code')]),
         ),
