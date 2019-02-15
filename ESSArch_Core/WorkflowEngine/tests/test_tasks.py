@@ -358,7 +358,7 @@ class DBTaskTests(TestCase):
     @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
     def test_failure_when_event_type_not_none_then_create_event(self, mock_create_event, mock_proc_task, mock_einfo):
         db_task = DBTask()
-        db_task.event_type = not None
+        db_task.event_type = 123
         task_id = uuid.uuid4()
         args = uuid.uuid4()
         kwargs = uuid.uuid4()
