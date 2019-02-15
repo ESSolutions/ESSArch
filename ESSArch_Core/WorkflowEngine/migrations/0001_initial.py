@@ -65,7 +65,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(blank=True, max_length=256)),
                 ('progress', models.IntegerField(blank=True, default=0)),
                 ('task_id', models.CharField(max_length=255, unique=True, verbose_name='task id')),
-                ('status', models.CharField(choices=[('RECEIVED', 'RECEIVED'), ('RETRY', 'RETRY'), ('REVOKED', 'REVOKED'), ('SUCCESS', 'SUCCESS'), ('STARTED', 'STARTED'), ('FAILURE', 'FAILURE'), ('PENDING', 'PENDING')], default='PENDING', max_length=50, verbose_name='state')),
+                ('status', models.CharField(choices=[('FAILURE', 'FAILURE'), ('PENDING', 'PENDING'), ('RECEIVED', 'RECEIVED'), ('RETRY', 'RETRY'), ('REVOKED', 'REVOKED'), ('STARTED', 'STARTED'), ('SUCCESS', 'SUCCESS')], default='PENDING', max_length=50, verbose_name='state')),
                 ('result', picklefield.fields.PickledObjectField(default=None, editable=False, null=True)),
                 ('date_done', models.DateTimeField(auto_now=True, verbose_name='done at')),
                 ('traceback', models.TextField(blank=True, null=True, verbose_name='traceback')),
