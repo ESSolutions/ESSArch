@@ -64,7 +64,7 @@ class MaintenanceJob(models.Model):
     STATUS_CHOICES = zip(celery_states.ALL_STATES, celery_states.ALL_STATES)
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    rule = models.ForeignKey('maintenance.AppraisalRule', on_delete=models.CASCADE, null=True, related_name='jobs')
+    rule = models.ForeignKey('maintenance.MaintenanceRule', on_delete=models.SET_NULL, null=True, related_name='jobs')
     status = models.CharField(choices=STATUS_CHOICES, max_length=50, default=celery_states.PENDING)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
@@ -143,7 +143,7 @@ class AppraisalRule(MaintenanceRule):
 
 
 class AppraisalJob(MaintenanceJob):
-    rule = models.ForeignKey('maintenance.AppraisalRule', on_delete=models.CASCADE, null=True, related_name='jobs')
+    rule = models.ForeignKey('maintenance.AppraisalRule', on_delete=models.SET_NULL, null=True, related_name='jobs')
 
     MAINTENANCE_TYPE = 'appraisal'
 
@@ -393,7 +393,7 @@ class ConversionRule(MaintenanceRule):
 
 
 class ConversionJob(MaintenanceJob):
-    rule = models.ForeignKey('maintenance.ConversionRule', on_delete=models.CASCADE, null=True, related_name='jobs')
+    rule = models.ForeignKey('maintenance.ConversionRule', on_delete=models.SET_NULL, null=True, related_name='jobs')
 
     MAINTENANCE_TYPE = 'conversion'
 
