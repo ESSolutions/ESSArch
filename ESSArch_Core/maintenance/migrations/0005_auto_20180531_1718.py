@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='appraisaljob',
-            options={'permissions': (('run_appraisaljob', 'Can run appraisal job'),)},
+            options={'get_latest_by': 'start_date', 'permissions': (('run_appraisaljob', 'Can run appraisal job'),)},
         ),
     ]
