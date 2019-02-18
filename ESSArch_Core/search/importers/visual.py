@@ -73,7 +73,7 @@ class VisualImporter(BaseImporter):
                 name=arkivbildare.xpath("va:verksamtyp/va:typkod", namespaces=cls.NSMAP)[0].text,
             )
 
-            agent_type = AgentType.objects.create(  # TODO: get_or_create?
+            agent_type, _ = AgentType.objects.get_or_create(
                 cpf=arkivbildare.get('ipstyp'),
                 main_type=main_agent_type,
             )
@@ -182,7 +182,6 @@ class VisualImporter(BaseImporter):
             yield arkiv_doc.to_dict(include_meta=True), arkiv_tag, arkiv_version, arkiv_structure, arkiv_link
 
             for serie_el in cls.get_serier(arkiv_el):
-                # TODO: main and sub series
                 structure_unit = cls.parse_serie(
                     serie_el, arkiv_structure, agent=agent, task=task, ip=ip,
                 )
@@ -297,7 +296,7 @@ class VisualImporter(BaseImporter):
         logger.debug("Parsing volym...")
         ref_code = volym_el.xpath("va:volnr", namespaces=cls.NSMAP)[0].text
         name = volym_el.xpath("va:utseende", namespaces=cls.NSMAP)[0].text
-        tag_type = "Volym"  # TODO: get from xml?
+        tag_type = "Volym"
 
         id = uuid.uuid4()
         doc = Component(
@@ -357,7 +356,6 @@ class VisualImporter(BaseImporter):
 
         # TODO: Delete structures (förteckningsplaner) connected to tags?
         Structure.objects.all().delete()
-
 
         logger.debug("Deleting task tags already in database...")
         Tag.objects.filter(task=task).delete()
