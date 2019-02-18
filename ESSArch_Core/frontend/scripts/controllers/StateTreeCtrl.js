@@ -5,7 +5,6 @@ angular
     $translate,
     Step,
     Task,
-    listViewService,
     appConfig,
     $timeout,
     $interval,
@@ -13,6 +12,7 @@ angular
     $q,
     $uibModal,
     $log,
+    StateTree,
     Notifications,
     $rootScope
   ) {
@@ -166,12 +166,12 @@ angular
     $scope.myTreeControl.scope.updatePageNumber = function(branch, page) {
       if (page > branch.page_number && branch.next) {
         branch.page_number = parseInt(branch.next.page);
-        listViewService.getChildrenForStep(branch, branch.page_number).then(function(result) {
+        StateTree.getChildrenForStep(branch, branch.page_number).then(function(result) {
           branch = result;
         });
       } else if (page < branch.page_number && branch.prev && page > 0) {
         branch.page_number = parseInt(branch.prev.page);
-        listViewService.getChildrenForStep(branch, branch.page_number).then(function(result) {
+        StateTree.getChildrenForStep(branch, branch.page_number).then(function(result) {
           branch = result;
         });
       }
@@ -180,7 +180,7 @@ angular
 
     //Click on +/- on step
     $scope.stepClick = function(step) {
-      listViewService.getChildrenForStep(step);
+      StateTree.getChildrenForStep(step);
     };
 
     $scope.getTask = function(branch) {
@@ -270,7 +270,7 @@ angular
       if ($scope.tree_data != []) {
         expandedNodes = checkExpanded($scope.tree_data);
       }
-      return listViewService.getTreeData(row, expandedNodes).then(function(value) {
+      return StateTree.getTreeData(row, expandedNodes).then(function(value) {
         return $q.all(value).then(function(values) {
           if ($scope.tree_data.length && values.length) {
             $scope.tree_data = updateStepProperties($scope.tree_data, values);

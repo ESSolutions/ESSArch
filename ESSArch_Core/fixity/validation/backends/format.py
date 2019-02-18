@@ -17,7 +17,7 @@ class FormatValidator(BaseValidator):
     """
 
     def __init__(self, *args, **kwargs):
-        super(FormatValidator, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         allow_unknown = self.options.get('allow_unknown_file_types', False)
         self.fid = FormatIdentifier(allow_unknown_file_types=allow_unknown)

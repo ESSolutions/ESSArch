@@ -540,13 +540,15 @@ class ProcessStep(MPTTModel, Process):
 
 class OrderedProcessTaskManager(models.Manager):
     def get_queryset(self):
-        return super(OrderedProcessTaskManager, self).get_queryset().order_by('processstep_pos')
+        return super().get_queryset().order_by('processstep_pos')
 
 
 class ProcessTask(Process):
-    TASK_STATE_CHOICES = zip(
+    _states = list(zip(
         celery_states.ALL_STATES, celery_states.ALL_STATES
-    )
+    ))
+    _states.sort()
+    TASK_STATE_CHOICES = _states
 
     label = models.CharField(max_length=255, blank=True)
     status = models.CharField(

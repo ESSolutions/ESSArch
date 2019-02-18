@@ -57,11 +57,11 @@ class MultipleCharFilter(filters.MultipleChoiceFilter):
 class ListFilter(django_filters.Filter):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('lookup_expr', 'in')
-        super(ListFilter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def filter(self, qs, value):
         if value in EMPTY_VALUES:
             return qs
 
         value_list = value.split(u',')
-        return super(ListFilter, self).filter(qs, value_list)
+        return super().filter(qs, value_list)

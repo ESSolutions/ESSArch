@@ -40,7 +40,7 @@ class MaintenanceRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        qs = super(MaintenanceRuleViewSet, self).get_queryset()
+        qs = super().get_queryset()
         public = qs.filter(public=True)
         local = get_objects_for_user(user, qs.filter(public=False), [])
         return public | local
@@ -81,7 +81,7 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
     @permission_required_or_403(['maintenance.run_appraisaljob'])
     @detail_route(methods=['post'])
     def run(self, request, pk=None):
-        return super(AppraisalJobViewSet, self).run(request, pk)
+        return super().run(request, pk)
 
     @detail_route(methods=['get'])
     def preview(self, request, pk=None):

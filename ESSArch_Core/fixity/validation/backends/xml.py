@@ -28,7 +28,7 @@ class DiffCheckValidator(BaseValidator):
     file_validator = False
 
     def __init__(self, *args, **kwargs):
-        super(DiffCheckValidator, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if not self.context:
             raise ValueError('A context (xml) is required')

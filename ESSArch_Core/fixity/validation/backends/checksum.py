@@ -26,7 +26,7 @@ class ChecksumValidator(BaseValidator):
     """
 
     def __init__(self, *args, **kwargs):
-        super(ChecksumValidator, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if not self.context:
             raise ValueError('Need something to compare to')

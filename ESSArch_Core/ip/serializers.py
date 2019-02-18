@@ -35,7 +35,7 @@ class EventIPSerializer(serializers.HyperlinkedModelSerializer):
     def create(self, validated_data):
         if 'linkingAgentIdentifierValue' not in validated_data:
             validated_data['linkingAgentIdentifierValue'] = self.context['request'].user
-        return super(EventIPSerializer, self).create(validated_data)
+        return super().create(validated_data)
 
     class Meta:
         model = EventIP
@@ -102,7 +102,7 @@ class WorkareaSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         if 'user' not in validated_data:
             validated_data['user'] = self.context['request'].user
-        return super(WorkareaSerializer, self).create(validated_data)
+        return super().create(validated_data)
 
     class Meta:
         model = Workarea
