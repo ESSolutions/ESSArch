@@ -162,7 +162,7 @@ class UserLoggedInSerializer(UserSerializer):
 
         user_profile.save()
 
-        return super(UserLoggedInSerializer, self).update(instance, validated_data)
+        return super().update(instance, validated_data)
 
     class Meta:
         model = User
@@ -194,7 +194,7 @@ class NotificationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         if 'user' not in validated_data:
             validated_data['user'] = self.context['request'].user
-        return super(NotificationSerializer, self).create(validated_data)
+        return super().create(validated_data)
 
     class Meta:
         model = Notification

@@ -149,7 +149,7 @@ class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
     def create(self, validated_data):
         if 'user' not in validated_data:
             validated_data['user'] = self.context['request'].user
-        return super(ProcessStepSerializer, self).create(validated_data)
+        return super().create(validated_data)
 
     class Meta:
         model = ProcessStep

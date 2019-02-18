@@ -22,7 +22,7 @@ class MaintenanceRuleSerializer(serializers.ModelSerializer):
         if 'user' not in validated_data:
             validated_data['user'] = self.context['request'].user
 
-        instance = super(MaintenanceRuleSerializer, self).create(validated_data)
+        instance = super().create(validated_data)
         if not instance.public:
             org = validated_data['user'].user_profile.current_organization
             org.add_object(instance)
@@ -42,7 +42,7 @@ class MaintenanceJobSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         if 'user' not in validated_data:
             validated_data['user'] = self.context['request'].user
-        return super(MaintenanceJobSerializer, self).create(validated_data)
+        return super().create(validated_data)
 
     class Meta:
         model = MaintenanceJob

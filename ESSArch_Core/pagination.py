@@ -77,7 +77,7 @@ class LinkHeaderPagination(pagination.PageNumberPagination):
             queryset = queryset.exclude(**current_filter)
             queryset = queryset.annotate(current=Subquery(current.values(after_field)[:1])).filter(**after_filter)
 
-        return super(LinkHeaderPagination, self).paginate_queryset(queryset, request, view)
+        return super().paginate_queryset(queryset, request, view)
 
 
 class NoPagination(pagination.PageNumberPagination):
@@ -88,7 +88,7 @@ class NoPagination(pagination.PageNumberPagination):
 
     def paginate_queryset(self, queryset, request, view=None):
         self.count = queryset.count()
-        return super(NoPagination, self).paginate_queryset(queryset, request, view)
+        return super().paginate_queryset(queryset, request, view)
 
     def get_paginated_response(self, data):
         headers = {'Count': self.count or 0}

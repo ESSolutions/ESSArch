@@ -58,7 +58,7 @@ class GroupMemberRole(GroupMemberRoleMixin):
     def save(self, *args, **kwargs):
         if not self.label:
             self.label = self.codename
-        super(GroupMemberRole, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = _('role')
@@ -71,9 +71,9 @@ class ProxyGroup(DjangoGroup):
         try:
             self.essauth_group.name = self.name
             self.essauth_group.save()
-            return super(ProxyGroup, self).save(*args, **kwargs)
+            return super().save(*args, **kwargs)
         except Group.DoesNotExist:
-            group = super(ProxyGroup, self).save(*args, **kwargs)
+            group = super().save(*args, **kwargs)
             Group.objects.create(name=self.name, django_group=self)
             return group
 

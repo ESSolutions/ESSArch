@@ -10,7 +10,7 @@ class IsoDateTimeRangeField(RangeField):
 
     def __init__(self, *args, **kwargs):
         fields = (IsoDateTimeField(), IsoDateTimeField())
-        super(IsoDateTimeRangeField, self).__init__(fields, *args, **kwargs)
+        super().__init__(fields, *args, **kwargs)
 
 
 class MultipleTextField(forms.Field):

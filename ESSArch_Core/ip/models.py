@@ -275,7 +275,7 @@ class InformationPackage(models.Model):
         if not self.object_identifier_value:
             self.object_identifier_value = str(self.pk)
 
-        super(InformationPackage, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def get_agent(self, role, type):
         try:

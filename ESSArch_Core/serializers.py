@@ -39,7 +39,7 @@ class DynamicHyperlinkedModelSerializer(DynamicFieldsMixin, serializers.Hyperlin
         omit = kwargs.pop('omit', None)
 
         # Instantiate the superclass normally
-        super(DynamicHyperlinkedModelSerializer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if fields is not None:
             # Drop any fields that are not specified in the `fields` argument.
