@@ -12,14 +12,14 @@ from mptt.models import MPTTModel, TreeForeignKey
 from ESSArch_Core.tags.documents import VersionedDocType
 
 
-class RelationType(models.Model):
+class AgentRelationType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
 
 
 class AgentRelation(models.Model):
     agent_a = models.ForeignKey('tags.Agent', on_delete=models.CASCADE, related_name='agent_relations_a')
     agent_b = models.ForeignKey('tags.Agent', on_delete=models.CASCADE, related_name='agent_relations_b')
-    type = models.ForeignKey('tags.RelationType', on_delete=models.PROTECT, null=False)
+    type = models.ForeignKey('tags.AgentRelationType', on_delete=models.PROTECT, null=False)
     description = models.TextField(_('description'), blank=True)
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
