@@ -1,6 +1,6 @@
 angular.module('essarch.services').factory('StateTree', function(IP, Step, $filter, linkHeaderParser) {
   //Get data for status view. child steps and tasks
-  function getStatusViewData(ip, expandedNodes) {
+  function getTreeData(ip, expandedNodes) {
     return IP.workflow({
       id: ip.id,
       hidden: false,
@@ -100,10 +100,6 @@ angular.module('essarch.services').factory('StateTree', function(IP, Step, $filt
       });
     });
     return {steps: steps, expandedSteps: expanded};
-  }
-  //Prepare the data for tree view in status view
-  function getTreeData(row, expandedNodes) {
-    return getStatusViewData(row, expandedNodes);
   }
   return {
     getTreeData: getTreeData,
