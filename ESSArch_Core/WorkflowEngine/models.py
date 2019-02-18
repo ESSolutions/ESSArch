@@ -540,7 +540,7 @@ class ProcessStep(MPTTModel, Process):
 
 class OrderedProcessTaskManager(models.Manager):
     def get_queryset(self):
-        return super(OrderedProcessTaskManager, self).get_queryset().order_by('processstep_pos')
+        return super().get_queryset().order_by('processstep_pos')
 
 
 class ProcessTask(Process):

@@ -183,7 +183,7 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
             workarea.ip.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        return super(WorkareaEntryViewSet, self).destroy(request, pk, **kwargs)
+        return super().destroy(request, pk, **kwargs)
 
 
 class InformationPackageViewSet(viewsets.ModelViewSet):
@@ -212,7 +212,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if self.action == 'destroy':
             self.permission_classes = [CanDeleteIP]
 
-        return super(InformationPackageViewSet, self).get_permissions()
+        return super().get_permissions()
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())

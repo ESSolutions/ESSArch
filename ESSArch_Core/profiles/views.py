@@ -82,7 +82,7 @@ class ProfileIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             detail = 'Method "{method}" is not allowed on locked profiles'.format(method=request.method)
             raise exceptions.MethodNotAllowed(method=request.method, detail=detail)
 
-        return super(ProfileIPViewSet, self).update(request, *args, **kwargs)
+        return super().update(request, *args, **kwargs)
 
 
 class InformationPackageProfileIPViewSet(ProfileIPViewSet):
@@ -104,7 +104,7 @@ class ProfileIPDataViewSet(viewsets.ModelViewSet):
             detail = 'Method "{method}" is not allowed on locked profiles'.format(method=request.method)
             raise exceptions.MethodNotAllowed(method=request.method, detail=detail)
 
-        return super(ProfileIPDataViewSet, self).update(request, *args, **kwargs)
+        return super().update(request, *args, **kwargs)
 
     @transaction.atomic
     @list_route(methods=['post'], url_path='import-from-template')

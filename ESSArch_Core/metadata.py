@@ -10,7 +10,7 @@ from ESSArch_Core.WorkflowEngine.polling import AVAILABLE_POLLERS
 
 class CustomMetadata(SimpleMetadata):
     def determine_metadata(self, request, view):
-        metadata = super(CustomMetadata, self).determine_metadata(request, view)
+        metadata = super().determine_metadata(request, view)
 
         metadata['transformers'] = AVAILABLE_TRANSFORMERS.keys()
         metadata['workflow_pollers'] = AVAILABLE_POLLERS.keys()

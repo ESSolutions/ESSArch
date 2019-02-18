@@ -57,7 +57,7 @@ class IsResponsibleOrReadOnly(IsResponsible):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        return super(IsResponsibleOrReadOnly, self).has_object_permission(request, view, obj)
+        return super().has_object_permission(request, view, obj)
 
 
 class CanDeleteIP(IsResponsibleOrReadOnly):

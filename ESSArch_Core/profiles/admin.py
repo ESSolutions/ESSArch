@@ -34,7 +34,7 @@ from .utils import profile_types
 
 class SubmissionAgreementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        super(SubmissionAgreementForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         for pt in [pt.lower().replace(' ', '_') for pt in profile_types]:
             self.fields[u'profile_{}'.format(pt)].required = False
 
@@ -48,7 +48,7 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
         for pt in [pt.lower().replace(' ', '_') for pt in profile_types]:
             qs = Profile.objects.filter(profile_type=pt)
             context['adminform'].form.fields[u'profile_{}'.format(pt)].queryset = qs
-        return super(SubmissionAgreementAdmin, self).render_change_form(request, context, args, kwargs)
+        return super().render_change_form(request, context, args, kwargs)
 
     form = SubmissionAgreementForm
     list_display = ('name', 'type', 'status', 'label')

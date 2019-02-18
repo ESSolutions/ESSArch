@@ -42,7 +42,7 @@ def filter_permissions(qs):
 
 class GroupMemberForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        super(GroupMemberForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['expiration_date'].required = False
         self.fields['roles'].required = False
         self.fields['group'].disabled = True
@@ -110,7 +110,7 @@ class UserAdmin(DjangoUserAdmin, NestedModelAdmin):
         if db_field.name == 'user_permissions':
             qs = kwargs.get('queryset', db_field.remote_field.model.objects)
             kwargs['queryset'] = filter_permissions(qs)
-        return super(UserAdmin, self).formfield_for_manytomany(
+        return super().formfield_for_manytomany(
             db_field, request=request, **kwargs)
 
     def has_add_permission(self, request):
@@ -128,11 +128,11 @@ class UserAdmin(DjangoUserAdmin, NestedModelAdmin):
 
 class GroupForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        super(GroupForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['group_type'].required = False
 
     def save(self, commit=True):
-        group = super(GroupForm, self).save(commit=False)
+        group = super().save(commit=False)
         group.name = group.django_group.name
         if commit:
             group.save()
@@ -174,7 +174,7 @@ class GroupAdmin(DjangoGroupAdmin):
         if db_field.name == 'permissions':
             qs = kwargs.get('queryset', db_field.remote_field.model.objects)
             kwargs['queryset'] = filter_permissions(qs)
-        return super(GroupAdmin, self).formfield_for_manytomany(
+        return super().formfield_for_manytomany(
             db_field, request=request, **kwargs)
 
     def has_add_permission(self, request):
