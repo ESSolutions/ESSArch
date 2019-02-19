@@ -55,7 +55,7 @@ matrix:
       dist: trusty
       before_install: cd ESSArch_Core/frontend
       install: yarn
-      script: yarn prettier --check **/*.js **/*.scss **/*.html
+      script: yarn prettier --check "**/*.{js,scss,html}"
       after_success: skip
 
 install:
