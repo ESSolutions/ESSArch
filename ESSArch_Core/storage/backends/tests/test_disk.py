@@ -143,7 +143,7 @@ class DiskStorageBackendTests(TestCase):
     def test_read_container_default(self, mock_copy, mock_ip, mock_storage_obj):
         disk_storage_backend = DiskStorageBackend()
         full_path_to_src = "the/full/path/to/src"
-        container_path = os.path.join("container/path")
+        container_path = "container/path"
 
         mock_storage_obj.container = True
         mock_storage_obj.get_full_path.return_value = full_path_to_src
@@ -194,7 +194,7 @@ class DiskStorageBackendTests(TestCase):
     def test_read_container_extract(self, mock_copy, mock_ip, mock_storage_obj, mock_extract):
         disk_storage_backend = DiskStorageBackend()
         full_path_to_src = "the/full/path/to/src"
-        container_path = os.path.join("container/path")
+        container_path = "container/path"
 
         mock_storage_obj.container = True
         mock_storage_obj.get_full_path.return_value = full_path_to_src
