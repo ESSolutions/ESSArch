@@ -158,17 +158,17 @@ class VisualImporter(BaseImporter):
         for arkivbildare in root.xpath("va:arkivbildare", namespaces=cls.NSMAP):
             agent_type = cls.parse_agent_type(arkivbildare)
 
-            start_year = arkivbildare.get('verksamf')
+            start_year = arkivbildare.xpath('va:verksamf', namespaces=cls.NSMAP)[0].text
             start_date = None
-            if start_year is not None:
+            if start_year:
                 start_date = datetime(
                     year=int(start_year), month=1, day=1,
                     tzinfo=pytz.UTC,
                 )
 
-            end_year = arkivbildare.get('verksamt')
+            end_year = arkivbildare.xpath('va:verksamt', namespaces=cls.NSMAP)[0].text
             end_date = None
-            if end_year is not None:
+            if end_year:
                 end_date = datetime(
                     year=int(end_year), month=1, day=1,
                     tzinfo=pytz.UTC,
