@@ -517,10 +517,6 @@ class EardErmsImporter(BaseImporter):
 
             yield tag, tag_version, tag_repr, component.to_dict(include_meta=True)
 
-    def update_progress(self, progress):
-        self.task.progress = (progress / 100) * 100
-        self.task.save()
-
     def import_content(self, task, path, rootdir=None, ip=None):
         if not rootdir:
             rootdir = os.path.dirname(path)
@@ -544,13 +540,13 @@ class EardErmsImporter(BaseImporter):
         Search(using=es, index=indices_to_delete).query('term', task_id=str(self.task.pk)).delete()
 
         tags, tag_versions, tag_structures, components = self.parse_eard(path, ip, rootdir, archive)
-        self.update_progress(50)
+        self.task.update_progress(50)
 
         self.save_to_database(tags, tag_versions, tag_structures, archive)
-        self.update_progress(75)
+        self.task.update_progress(75)
 
         self.save_to_elasticsearch(components)
-        self.update_progress(100)
+        self.task.update_progress(100)
 
         return self.indexed_files
 
@@ -591,4 +587,4 @@ class EardErmsImporter(BaseImporter):
                 logger.info('Saved document %s: %r' % (doc, result))
                 count += 1
                 partial_progress = ((count / total) / 4) * 100
-                self.update_progress(75 + partial_progress)
+                self.task.update_progress(75 + partial_progress)
