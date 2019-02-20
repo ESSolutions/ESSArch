@@ -6,6 +6,7 @@ import uuid
 
 import pytz
 from countries_plus.models import Country
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import OuterRef, Subquery, F
 from django.utils import dateparse, timezone
@@ -57,6 +58,12 @@ class VisualImporter(BaseImporter):
     REPO_CODE = 'SVK'  # TODO: just a dummy
 
     AGENT_TAG_LINK_RELATION_TYPE, _ = AgentTagLinkRelationType.objects.get_or_create(name='creator')
+
+    REF_CODE, _ = RefCode.objects.get_or_create(
+        country=Country.objects.get(iso=COUNTRY_CODE),
+        repository_code=REPO_CODE,
+    )
+    LANGUAGE = Language.objects.get(iso_639_1='sv')
 
     @classmethod
     def parse_agent_type(cls, arkivbildare):
@@ -146,83 +153,88 @@ class VisualImporter(BaseImporter):
             )
 
     @classmethod
-    def parse_arkivbildares(cls, root, task=None, ip=None):
+    def parse_agent_start_date(cls, arkivbildare):
+        start_year = arkivbildare.xpath('va:verksamf', namespaces=cls.NSMAP)[0].text
+        start_date = None
+        if start_year:
+            start_date = datetime(
+                year=int(start_year), month=1, day=1,
+                tzinfo=pytz.UTC,
+            )
+
+        return start_date
+
+    @classmethod
+    def parse_agent_end_date(cls, arkivbildare):
+        end_year = arkivbildare.xpath('va:verksamt', namespaces=cls.NSMAP)[0].text
+        end_date = None
+        if end_year:
+            end_date = datetime(
+                year=int(end_year), month=1, day=1,
+                tzinfo=pytz.UTC,
+            )
+
+        return end_date
+
+    @classmethod
+    def parse_arkivbildare(cls, el, task=None):
         logger.debug("Parsing arkivbildare...")
 
-        ref_code, _ = RefCode.objects.get_or_create(
-            country=Country.objects.get(iso=cls.COUNTRY_CODE),
-            repository_code=cls.REPO_CODE,
+        agent_type = cls.parse_agent_type(el)
+        start_date = cls.parse_agent_start_date(el)
+        end_date = cls.parse_agent_end_date(el)
+
+        agent = Agent.objects.create(
+            type=agent_type,
+            ref_code=cls.REF_CODE,
+            level_of_detail=Agent.PARTIAL,
+            record_status=Agent.DRAFT,
+            script=Agent.LATIN,
+            language=cls.LANGUAGE,
+            create_date=timezone.now(),  # TODO: change model to allow null?
+            start_date=start_date,
+            end_date=end_date,
+            task=task,
         )
-        language = Language.objects.get(iso_639_1='sv')
 
-        for arkivbildare in root.xpath("va:arkivbildare", namespaces=cls.NSMAP):
-            agent_type = cls.parse_agent_type(arkivbildare)
+        cls.parse_agent_names(el, agent)
+        cls.parse_agent_notes(el, agent)
+        cls.parse_agent_identifiers(el, agent)
+        cls.parse_agent_places(el, agent)
 
-            start_year = arkivbildare.xpath('va:verksamf', namespaces=cls.NSMAP)[0].text
-            start_date = None
-            if start_year:
-                start_date = datetime(
-                    year=int(start_year), month=1, day=1,
-                    tzinfo=pytz.UTC,
-                )
+        logger.info("Parsed arkivbildare")
 
-            end_year = arkivbildare.xpath('va:verksamt', namespaces=cls.NSMAP)[0].text
-            end_date = None
-            if end_year:
-                end_date = datetime(
-                    year=int(end_year), month=1, day=1,
-                    tzinfo=pytz.UTC,
-                )
+        return agent
 
-            agent = Agent.objects.create(
-                type=agent_type,
-                ref_code=ref_code,
-                level_of_detail=Agent.PARTIAL,
-                record_status=Agent.DRAFT,
-                script=Agent.LATIN,
-                language=language,
-                create_date=timezone.now(),  # TODO: change model to allow null?
-                start_date=start_date,
-                end_date=end_date,
-                task=task,
-            )
+    @classmethod
+    def save_tags(cls, tags, tag_versions, tag_structures):
+        logger.debug("Saving tags...")
 
-            cls.parse_agent_names(arkivbildare, agent)
-            cls.parse_agent_notes(arkivbildare, agent)
-            cls.parse_agent_identifiers(arkivbildare, agent)
-            cls.parse_agent_places(arkivbildare, agent)
+        Tag.objects.bulk_create(tags, batch_size=100)
+        TagVersion.objects.bulk_create(tag_versions, batch_size=100)
+        with transaction.atomic():
+            with TagStructure.objects.disable_mptt_updates():
+                TagStructure.objects.bulk_create(tag_structures, batch_size=100)
 
-            logger.debug("Creating tags, tag versions, tag structures and agent tag links...")
-            docs, tags, tag_versions, tag_structure, agent_tag_links = zip(
-                *cls.create_arkiv(
-                    arkivbildare, agent=agent, task=task, ip=ip
-                )
-            )
-            Tag.objects.bulk_create(tags, batch_size=100)
-            TagVersion.objects.bulk_create(tag_versions, batch_size=100)
-            with transaction.atomic():
-                with TagStructure.objects.disable_mptt_updates():
-                    TagStructure.objects.bulk_create(tag_structure, batch_size=100)
+        logger.info("Tags saved")
 
-            agent_tag_links = [x for x in agent_tag_links if x is not None]
-            AgentTagLink.objects.bulk_create(agent_tag_links, batch_size=100)
+    @classmethod
+    def update_current_tag_versions(cls, task):
+        logger.debug("Update current tag versions...")
 
-            versions = TagVersion.objects.filter(tag=OuterRef('pk'))
-            Tag.objects.filter(
-                task=task, current_version__isnull=True
-            ).annotate(
-                version=Subquery(versions.values('pk')[:1])
-            ).update(
-                current_version_id=F('version')
-            )
+        versions = TagVersion.objects.filter(tag=OuterRef('pk'))
+        Tag.objects.filter(
+            task=task, current_version__isnull=True
+        ).annotate(
+            version=Subquery(versions.values('pk')[:1])
+        ).update(
+            current_version_id=F('version')
+        )
 
-            cls.save_to_elasticsearch(docs, task)
-
-            yield agent
+        logger.info("Updated current tag versions")
 
     @classmethod
     def create_arkiv(cls, arkivbildare, agent=None, task=None, ip=None):
-        logger.debug("Creating arkiv...")
         for arkiv_el in cls.get_arkiv(arkivbildare):
             arkiv_doc, arkiv_tag, arkiv_version, arkiv_structure, arkiv_link = cls.parse_arkiv(
                 arkiv_el, agent=agent, task=task, ip=ip
@@ -231,7 +243,7 @@ class VisualImporter(BaseImporter):
 
             for serie_el in cls.get_serier(arkiv_el):
                 structure_unit = cls.parse_serie(
-                    serie_el, arkiv_structure, agent=agent, task=task, ip=ip,
+                    serie_el, arkiv_structure.structure, agent=agent, task=task, ip=ip,
                 )
 
                 for volym_el in cls.get_volymer(serie_el):
@@ -315,40 +327,41 @@ class VisualImporter(BaseImporter):
             tag_id=tag_version.id,
             type=cls.AGENT_TAG_LINK_RELATION_TYPE,
         )
+        logger.info("Parsed arkiv")
         return doc, tag, tag_version, tag_structure, agent_tag_link
 
     @classmethod
-    def parse_serie(cls, el, parent_tag_structure, agent=None, task=None, ip=None):
+    def parse_serie(cls, el, structure, agent=None, task=None, ip=None):
         logger.debug("Parsing serie...")
         name = el.xpath("va:serierubrik", namespaces=cls.NSMAP)[0].text
         tag_type = el.get('level')
         reference_code = el.get("signum")
 
-        parent_unit = None
+        parent_unit_id = None
         parent_reference_code = reference_code
+
+        cache_key_prefix = str(structure.pk)
+
         while len(parent_reference_code) > 1:
             parent_reference_code = parent_reference_code.rsplit(maxsplit=1)[0]
-            try:
-                parent_unit = StructureUnit.objects.get(
-                    structure=parent_tag_structure.structure,
-                    type=tag_type,
-                    reference_code=parent_reference_code
-                )
-            except StructureUnit.DoesNotExist:
-                pass
-            else:
+            cache_key = '{}{}'.format(cache_key_prefix, parent_reference_code)
+            parent_unit_id = cache.get(cache_key)
+
+            if parent_unit_id is not None:
                 break
 
         unit = StructureUnit.objects.create(
-            structure=parent_tag_structure.structure,
+            structure=structure,
             name=name,
-            parent=parent_unit,
+            parent_id=parent_unit_id,
             type=tag_type,
             reference_code=reference_code,
         )
+        cache.set('{}{}'.format(cache_key_prefix, reference_code), str(unit.pk), 30)
 
         # TODO: store in new index in elasticsearch?
 
+        logger.info("Parsed serie")
         return unit
 
     @classmethod
@@ -390,6 +403,7 @@ class VisualImporter(BaseImporter):
             level=0
         )
 
+        logger.info("Parsed volym")
         return doc, tag, tag_version, tag_structure
 
     def import_content(self, task, path, rootdir=None, ip=None):
@@ -427,8 +441,27 @@ class VisualImporter(BaseImporter):
 
         tree = etree.parse(xmlfile, self.xmlparser)
         root = tree.getroot()
-        list(self.parse_arkivbildares(root, task=self.task, ip=self.ip))
+
+        all_docs = []
+        for arkivbildare in root.xpath("va:arkivbildare", namespaces=self.NSMAP):
+            agent = self.parse_arkivbildare(arkivbildare, task=self.task)
+
+            docs, tags, tag_versions, tag_structures, agent_tag_links = zip(
+                *self.create_arkiv(
+                    arkivbildare, agent=agent, task=self.task, ip=self.ip
+                )
+            )
+            all_docs.extend(all_docs)
+
+            self.save_tags(tags, tag_versions, tag_structures)
+            self.update_current_tag_versions(self.task)
+
+            agent_tag_links = [x for x in agent_tag_links if x is not None]
+            AgentTagLink.objects.bulk_create(agent_tag_links, batch_size=100)
+
         logger.info("XML elements parsed")
+
+        self.save_to_elasticsearch(all_docs, self.task)
 
         logger.debug("Rebuilding trees...")
         TagStructure.objects.rebuild()
