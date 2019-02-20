@@ -48,7 +48,7 @@ class XMLSchemaValidatorTests(TestCase):
             validator.validate("some_xml_file_path")
 
         validations = Validation.objects.filter(passed=False, validator="XMLSchemaValidator")
-        self.assertEqual(len(validations), 2)
+        self.assertEqual(validations.count(), 2)
 
     @mock.patch("ESSArch_Core.fixity.validation.backends.xml.validate_against_schema")
     def test_when_other_exception_raised_create_validation_object(self, validate_against_schema):
@@ -75,7 +75,7 @@ class XMLSchemaValidatorTests(TestCase):
             task_id=task.id,
             validator='XMLSchemaValidator'
         )
-        self.assertEqual(len(validations), 1)
+        self.assertEqual(validations.count(), 1)
 
     @mock.patch("ESSArch_Core.fixity.validation.backends.xml.validate_against_schema")
     def test_when_successful_create_validation_object(self, validate_against_schema):
@@ -97,7 +97,7 @@ class XMLSchemaValidatorTests(TestCase):
             task_id=task.id,
             validator='XMLSchemaValidator'
         )
-        self.assertEqual(len(validations), 1)
+        self.assertEqual(validations.count(), 1)
 
 
 class XMLSchematronValidatorTests(TestCase):
@@ -185,7 +185,7 @@ class XMLSchematronValidatorTests(TestCase):
             validator.validate("some_xml_file_path")
 
         validations = Validation.objects.filter(passed=False, validator="XMLSchematronValidator")
-        self.assertEqual(len(validations), 2)
+        self.assertEqual(validations.count(), 2)
 
     @mock.patch("ESSArch_Core.fixity.validation.backends.xml.XMLSchematronValidator._validate_schematron")
     def test_when_other_exception_raised_create_validation_object(self, validate_against_schema):
@@ -212,7 +212,7 @@ class XMLSchematronValidatorTests(TestCase):
             task_id=task.id,
             validator='XMLSchematronValidator'
         )
-        self.assertEqual(len(validations), 1)
+        self.assertEqual(validations.count(), 1)
 
     @mock.patch("ESSArch_Core.fixity.validation.backends.xml.XMLSchematronValidator._validate_schematron")
     def test_when_successful_create_validation_object(self, validate_against_schema):
@@ -234,7 +234,7 @@ class XMLSchematronValidatorTests(TestCase):
             task_id=task.id,
             validator='XMLSchematronValidator'
         )
-        self.assertEqual(len(validations), 1)
+        self.assertEqual(validations.count(), 1)
 
     def test_validate_schematron_bad_schematron_file_should_raise_exception(self):
         schematron_file_name = "non_existing_schematron_file"
@@ -386,7 +386,7 @@ class XMLISOSchematronValidatorTests(TestCase):
             validator.validate("some_xml_file_path")
 
         validations = Validation.objects.filter(passed=False, validator="XMLISOSchematronValidator")
-        self.assertEqual(len(validations), 2)
+        self.assertEqual(validations.count(), 2)
 
     @mock.patch("ESSArch_Core.fixity.validation.backends.xml.XMLISOSchematronValidator._validate_isoschematron")
     def test_when_other_exception_raised_create_validation_object(self, validate_against_schema):
@@ -413,7 +413,7 @@ class XMLISOSchematronValidatorTests(TestCase):
             task_id=task.id,
             validator='XMLISOSchematronValidator'
         )
-        self.assertEqual(len(validations), 1)
+        self.assertEqual(validations.count(), 1)
 
     @mock.patch("ESSArch_Core.fixity.validation.backends.xml.XMLISOSchematronValidator._validate_isoschematron")
     def test_when_successful_create_validation_object(self, validate_against_schema):
@@ -435,7 +435,7 @@ class XMLISOSchematronValidatorTests(TestCase):
             task_id=task.id,
             validator='XMLISOSchematronValidator'
         )
-        self.assertEqual(len(validations), 1)
+        self.assertEqual(validations.count(), 1)
 
     def test_validate_schematron_bad_schematron_file_should_raise_exception(self):
         schematron_file_name = "non_existing_schematron_file"
