@@ -3,7 +3,7 @@ from django.db.models import Max, Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from rest_framework import exceptions, viewsets
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import DjangoModelPermissions, SAFE_METHODS
 
@@ -30,7 +30,7 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('published',)
 
-    @detail_route()
+    @action(detail=True)
     def profiles(self, request, pk=None):
         sa = self.get_object()
         profiles = [p for p in sa.get_profiles() if p is not None]
@@ -107,7 +107,7 @@ class ProfileIPDataViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     @transaction.atomic
-    @list_route(methods=['post'], url_path='import-from-template')
+    @action(detail=False, methods=['post'], url_path='import-from-template')
     def import_from_template(self, request):
         relation = request.data.get('relation')
         relation = ProfileIP.objects.get(pk=relation)
@@ -118,7 +118,7 @@ class ProfileIPDataViewSet(viewsets.ModelViewSet):
                                                       version=max_version + 1)
         return Response(ProfileIPDataSerializer(profile_ip_obj).data)
 
-    @detail_route(methods=['post'], url_path='save-as-template')
+    @action(detail=True, methods=['post'], url_path='save-as-template')
     def save_as_template(self, request, pk=None):
         obj = self.get_object()
         name = request.data.get('name')

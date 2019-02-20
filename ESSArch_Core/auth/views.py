@@ -52,7 +52,7 @@ from rest_auth.views import (
 )
 
 from rest_framework import permissions, status, viewsets
-from rest_framework.decorators import api_view, permission_classes, list_route
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -136,7 +136,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
         return NotificationSerializer
 
-    @list_route(methods=['post'], url_path='set-all-seen')
+    @action(detail=False, methods=['post'], url_path='set-all-seen')
     def set_all_seen(self, request):
         self.get_queryset().update(seen=True)
         return Response(status=status.HTTP_204_NO_CONTENT)

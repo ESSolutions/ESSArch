@@ -3,7 +3,7 @@ import itertools
 from django.db.models import Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import exceptions, filters, mixins, status, viewsets
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
@@ -67,7 +67,7 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
 
         return qs
 
-    @detail_route(methods=['post'], url_path='validate')
+    @action(detail=True, methods=['post'], url_path='validate')
     def validate(self, request, pk=None):
         workarea = self.get_object()
         ip = workarea.ip
@@ -110,7 +110,7 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
         task.run()
         return Response("Validating IP")
 
-    @detail_route(methods=['post'], url_path='transform')
+    @action(detail=True, methods=['post'], url_path='transform')
     def transform(self, request, pk=None):
         workarea = self.get_object()
         ip = workarea.ip
@@ -250,7 +250,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ).select_related('submission_agreement')
         return queryset
 
-    @detail_route(methods=['post'], url_path='change-organization')
+    @action(detail=True, methods=['post'], url_path='change-organization')
     def change_organization(self, request, pk=None):
         ip = self.get_object()
 
@@ -261,7 +261,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ip.change_organization(org)
         return Response()
 
-    @detail_route()
+    @action(detail=True)
     def workflow(self, request, pk=None):
         ip = self.get_object()
         hidden = request.query_params.get('hidden')
@@ -279,7 +279,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         serializer.is_valid()
         return Response(serializer.data)
 
-    @detail_route(methods=['put'], url_path='check-profile')
+    @action(detail=True, methods=['put'], url_path='check-profile')
     def check_profile(self, request, pk=None):
         ip = self.get_object()
         ptype = request.data.get("type")
