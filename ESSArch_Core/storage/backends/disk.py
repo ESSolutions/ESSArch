@@ -29,15 +29,14 @@ class DiskStorageBackend(BaseStorageBackend):
         return open(path, *args, **kwargs)
 
     def read(self, storage_object, dst, extract=False, include_xml=True, block_size=65536):
-        medium = storage_object.storage_medium
-        target = medium.storage_target
-        ip = storage_object.ip
         src = storage_object.get_full_path()
 
         if storage_object.container:
+            ip = storage_object.ip
+            target = storage_object.storage_medium.storage_target.target
             src_tar = src
             src_xml = os.path.splitext(src)[0] + '.xml'
-            src_aic_xml = os.path.join(target.target, str(ip.aic.pk)) + '.xml'
+            src_aic_xml = os.path.join(target, str(ip.aic.pk)) + '.xml'
 
             if include_xml:
                 copy(src_xml, dst, block_size=block_size)
