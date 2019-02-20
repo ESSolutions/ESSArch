@@ -4,7 +4,7 @@ from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from glob2 import iglob
 from rest_framework import filters, status, viewsets
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -52,7 +52,7 @@ class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     filterset_class = MaintenanceJobFilter
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def run(self, request, pk=None):
         job = self.get_object()
         job.start_date = timezone.now()
@@ -60,7 +60,7 @@ class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         job.run()
         return Response(status=status.HTTP_202_ACCEPTED)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def report(self, request, pk=None):
         path = self.get_object()._get_report_directory()
         path = os.path.join(path, pk + '.pdf')
@@ -79,11 +79,11 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
     filterset_class = AppraisalJobFilter
 
     @permission_required_or_403(['maintenance.run_appraisaljob'])
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def run(self, request, pk=None):
         return super().run(request, pk)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def preview(self, request, pk=None):
         job = self.get_object()
         ips = job.rule.information_packages.filter(appraisal_date__lte=timezone.now(), active=True)
@@ -124,7 +124,7 @@ class ConversionJobViewSet(MaintenanceJobViewSet):
     serializer_class = ConversionJobSerializer
     filterset_class = ConversionJobFilter
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def preview(self, request, pk=None):
         job = self.get_object()
         ips = job.rule.information_packages.all()
