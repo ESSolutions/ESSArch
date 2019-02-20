@@ -451,17 +451,17 @@ class VisualImporter(BaseImporter):
                     arkivbildare, agent=agent, task=self.task, ip=self.ip
                 )
             )
-            all_docs.extend(all_docs)
+            all_docs.extend(docs)
 
             self.save_tags(tags, tag_versions, tag_structures)
-            self.update_current_tag_versions(self.task)
+            self.update_current_tag_versions()
 
             agent_tag_links = [x for x in agent_tag_links if x is not None]
             AgentTagLink.objects.bulk_create(agent_tag_links, batch_size=100)
 
         logger.info("XML elements parsed")
 
-        self.save_to_elasticsearch(all_docs, self.task)
+        self.save_to_elasticsearch(all_docs)
 
         logger.debug("Rebuilding trees...")
         TagStructure.objects.rebuild()
