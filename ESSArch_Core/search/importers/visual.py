@@ -8,11 +8,7 @@ import pytz
 from countries_plus.models import Country
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import OuterRef, Subquery, F
 from django.utils import dateparse, timezone
-from elasticsearch_dsl.connections import get_connection
-from elasticsearch_dsl import Search
-from elasticsearch import helpers as es_helpers
 from languages_plus.models import Language
 from lxml import etree
 
@@ -42,7 +38,6 @@ from ESSArch_Core.tags.models import (
 )
 
 logger = logging.getLogger('essarch.search.importers.VisualImporter')
-es = get_connection()
 
 
 class VisualImporter(BaseImporter):
@@ -202,7 +197,7 @@ class VisualImporter(BaseImporter):
         cls.parse_agent_identifiers(el, agent)
         cls.parse_agent_places(el, agent)
 
-        logger.info("Parsed arkivbildare")
+        logger.info("Parsed arkivbildare: {}".format(agent.pk))
 
         return agent
 
@@ -219,40 +214,26 @@ class VisualImporter(BaseImporter):
         logger.info("Tags saved")
 
     @classmethod
-    def update_current_tag_versions(cls, task):
-        logger.debug("Update current tag versions...")
-
-        versions = TagVersion.objects.filter(tag=OuterRef('pk'))
-        Tag.objects.filter(
-            task=task, current_version__isnull=True
-        ).annotate(
-            version=Subquery(versions.values('pk')[:1])
-        ).update(
-            current_version_id=F('version')
-        )
-
-        logger.info("Updated current tag versions")
-
-    @classmethod
-    def create_arkiv(cls, arkivbildare, agent=None, task=None, ip=None):
+    def create_arkiv(cls, arkivbildare, agent, task=None, ip=None):
         for arkiv_el in cls.get_arkiv(arkivbildare):
             arkiv_doc, arkiv_tag, arkiv_version, arkiv_structure, arkiv_link = cls.parse_arkiv(
                 arkiv_el, agent=agent, task=task, ip=ip
             )
             yield arkiv_doc.to_dict(include_meta=True), arkiv_tag, arkiv_version, arkiv_structure, arkiv_link
 
-            for serie_el in cls.get_serier(arkiv_el):
-                structure_unit = cls.parse_serie(
-                    serie_el, arkiv_structure.structure, agent=agent, task=task, ip=ip,
-                )
-
-                for volym_el in cls.get_volymer(serie_el):
-                    volym_doc, volym_tag, volym_version, volym_structure = cls.parse_volym(
-                        volym_el, arkiv_version, arkiv_structure, structure_unit, agent=agent, task=task, ip=ip
+            with StructureUnit.objects.delay_mptt_updates():
+                for serie_el in cls.get_serier(arkiv_el):
+                    structure_unit = cls.parse_serie(
+                        serie_el, arkiv_structure.structure, agent=agent, task=task, ip=ip,
                     )
 
-                    volym_doc.archive = arkiv_version.pk
-                    yield volym_doc.to_dict(include_meta=True), volym_tag, volym_version, volym_structure, None
+                    for volym_el in cls.get_volymer(serie_el):
+                        volym_doc, volym_tag, volym_version, volym_structure = cls.parse_volym(
+                            volym_el, arkiv_version, arkiv_structure, structure_unit, agent=agent, task=task, ip=ip
+                        )
+
+                        volym_doc.archive = arkiv_version.pk
+                        yield volym_doc.to_dict(include_meta=True), volym_tag, volym_version, volym_structure, None
 
     @staticmethod
     def get_arkiv(arkivbildare):
@@ -293,9 +274,9 @@ class VisualImporter(BaseImporter):
             version='1.0',
         )
 
-        id = uuid.uuid4()
+        archive_id = uuid.uuid4()
         doc = Archive(
-            _id=id,
+            _id=archive_id,
             current_version=True,
             name=name,
             type=tag_type,
@@ -304,7 +285,7 @@ class VisualImporter(BaseImporter):
 
         tag = Tag(information_package=ip, task=task)
         tag_version = TagVersion(
-            pk=id,
+            pk=archive_id,
             tag=tag,
             elastic_index='archive',
             type=tag_type,
@@ -327,7 +308,7 @@ class VisualImporter(BaseImporter):
             tag_id=tag_version.id,
             type=cls.AGENT_TAG_LINK_RELATION_TYPE,
         )
-        logger.info("Parsed arkiv")
+        logger.info("Parsed arkiv: {}".format(tag_version.pk))
         return doc, tag, tag_version, tag_structure, agent_tag_link
 
     @classmethod
@@ -361,7 +342,7 @@ class VisualImporter(BaseImporter):
 
         # TODO: store in new index in elasticsearch?
 
-        logger.info("Parsed serie")
+        logger.info("Parsed serie: {}".format(unit.pk))
         return unit
 
     @classmethod
@@ -403,37 +384,31 @@ class VisualImporter(BaseImporter):
             level=0
         )
 
-        logger.info("Parsed volym")
+        logger.info("Parsed volym: {}".format(tag_version.pk))
         return doc, tag, tag_version, tag_structure
 
-    def import_content(self, task, path, rootdir=None, ip=None):
+    def import_content(self, path, rootdir=None, ip=None):
         self.indexed_files = []
-        self.task = task
         self.ip = ip
 
         logger.debug("Importing data from {}...".format(path))
-        self.cleanup(task)
+        self.cleanup()
         self.parse_xml(path)
         logger.info("Data imported from {}".format(path))
 
-    @staticmethod
-    def cleanup(task):
+    def cleanup(self):
         logger.debug("Deleting task agents already in database...")
-        Agent.objects.filter(task=task).delete()
+        Agent.objects.filter(task=self.task).delete()
         logger.info("Deleted task agents already in database...")
 
         # TODO: Delete structures (förteckningsplaner) connected to tags?
         Structure.objects.all().delete()
 
         logger.debug("Deleting task tags already in database...")
-        Tag.objects.filter(task=task).delete()
+        Tag.objects.filter(task=self.task).delete()
         logger.info("Deleted task tags already in database...")
 
-        # Delete from elastic
-        logger.debug("Deleting task tags already in Elasticsearch...")
-        indices_to_delete = [doc._index._name for doc in [Archive, Component]]
-        Search(using=es, index=indices_to_delete).query('term', task_id=str(task.pk)).delete()
-        logger.info("Deleted task tags already in Elasticsearch...")
+        self.cleanup_elasticsearch(self.task)
 
     @transaction.atomic
     def parse_xml(self, xmlfile):
@@ -448,46 +423,29 @@ class VisualImporter(BaseImporter):
 
             docs, tags, tag_versions, tag_structures, agent_tag_links = zip(
                 *self.create_arkiv(
-                    arkivbildare, agent=agent, task=self.task, ip=self.ip
+                    arkivbildare, agent, task=self.task, ip=self.ip
                 )
             )
             all_docs.extend(docs)
 
             self.save_tags(tags, tag_versions, tag_structures)
-            self.update_current_tag_versions()
 
             agent_tag_links = [x for x in agent_tag_links if x is not None]
             AgentTagLink.objects.bulk_create(agent_tag_links, batch_size=100)
 
         logger.info("XML elements parsed")
 
-        self.save_to_elasticsearch(all_docs)
+        self.update_current_tag_versions()
+
+        total = None
+        if self.task is not None:
+            total = TagVersion.objects.filter(tag__task=self.task).count()
+
+        for _, count in self.save_to_elasticsearch(all_docs):
+            if self.task is not None:
+                partial_progress = ((count / total) / 4) * 100
+                self.task.update_progress(75 + partial_progress)
 
         logger.debug("Rebuilding trees...")
         TagStructure.objects.rebuild()
         logger.info("Trees rebuilt")
-
-    @classmethod
-    def save_to_elasticsearch(cls, components, task=None):
-        logger.debug("Saving to Elasticsearch...")
-        count = 0
-        total = None
-
-        if task is not None:
-            total = TagVersion.objects.filter(tag__task=task).count()
-
-        for ok, result in es_helpers.streaming_bulk(es, components):
-            action, result = result.popitem()
-            doc_id = result['_id']
-            doc = '/%s/%s' % (result['_index'], doc_id)
-
-            if not ok:
-                logger.error('Failed to %s document %s: %r' % (action, doc, result))
-            else:
-                logger.debug('Saved document %s: %r' % (doc, result))
-                if task is not None:
-                    count += 1
-                    partial_progress = ((count / total) / 4) * 100
-                    task.update_progress(75 + partial_progress)
-
-        logger.info("Documents saved to Elasticsearch")
