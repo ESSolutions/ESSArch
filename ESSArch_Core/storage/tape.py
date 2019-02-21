@@ -318,18 +318,7 @@ def set_tape_file_number(drive, num=0):
 
     current_num = get_tape_file_number(drive)
 
-    if num < current_num:
-        op = 'bsfm'
-        new_num = current_num - num + 1
-    else:
-        new_num = num - current_num
-
-        if new_num > 0:
-            op = 'fsf'
-        elif new_num == 0:
-            # We are already on the correct file, ensure we are at the beginning
-            op = 'bsfm'
-            new_num = 1
+    new_num, op = get_tape_op_and_count(current_num, num)
 
     cmd = 'mt -f %s %s %d' % (drive, op, new_num)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
@@ -346,6 +335,22 @@ def set_tape_file_number(drive, num=0):
 
     logger.debug('File number of {drive} set to {num}'.format(num=num, drive=drive))
     return out
+
+
+def get_tape_op_and_count(current_tape_file_num, new_file_num):
+    if new_file_num < current_tape_file_num:
+        op = 'bsfm'
+        new_num = current_tape_file_num - new_file_num + 1
+    else:
+        new_num = new_file_num - current_tape_file_num
+
+        if new_num > 0:
+            op = 'fsf'
+        elif new_num == 0:
+            # We are already on the correct file, ensure we are at the beginning
+            op = 'bsfm'
+            new_num = 1
+    return new_num, op
 
 
 def robot_inventory(robot):
