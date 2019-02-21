@@ -301,12 +301,12 @@ class TapeTests(TestCase):
     @mock.patch('ESSArch_Core.storage.tape.rewind_tape')
     def test_set_tape_file_number_default_should_rewind_tape(self, mock_rewind_tape):
         set_tape_file_number("device_to_update")
-        mock_rewind_tape.assert_called_once_with("device_to_mount")
+        mock_rewind_tape.assert_called_once_with("device_to_update")
 
     @mock.patch('ESSArch_Core.storage.tape.rewind_tape')
     def test_set_tape_file_number_num_is_0_should_rewind_tape(self, mock_rewind_tape):
         set_tape_file_number("device_to_update", 0)
-        mock_rewind_tape.assert_called_once_with("device_to_mount")
+        mock_rewind_tape.assert_called_once_with("device_to_update")
 
     @mock.patch('ESSArch_Core.storage.tape.get_tape_op_and_count', return_value=(43, 'someOp'))
     @mock.patch('ESSArch_Core.storage.tape.get_tape_file_number', return_value=42)
