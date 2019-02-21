@@ -3,6 +3,18 @@
   background-color: $selected !important;
 }
 
+.selectable {
+  cursor: pointer;
+  &:hover {
+    background-color: lighten($selected, 40%) !important;
+  }
+  &.selected {
+    &:hover {
+      background-color: $selected !important;
+    }
+  }
+}
+
 .global-search {
   min-width: 105px;
   flex-grow: 1;
