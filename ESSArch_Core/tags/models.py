@@ -118,8 +118,8 @@ class AgentNote(models.Model):
     )
     type = models.ForeignKey('tags.AgentNoteType', on_delete=models.PROTECT, null=False, verbose_name=_('type'))
     text = models.TextField(_('text'), blank=False)
-    create_date = models.DateField(_('create date'), null=False)
-    revise_date = models.DateField(_('revise date'), null=True)
+    create_date = models.DateTimeField(_('create date'), null=False)
+    revise_date = models.DateTimeField(_('revise date'), null=True)
 
 
 class AgentNoteType(models.Model):
