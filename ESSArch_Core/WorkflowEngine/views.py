@@ -32,7 +32,7 @@ from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import exceptions
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
@@ -104,7 +104,7 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
 
         return ProcessStepDetailSerializer
 
-    @detail_route(methods=['get'], url_path='child-steps')
+    @action(detail=True, methods=['get'], url_path='child-steps')
     def child_steps(self, request, pk=None):
         step = self.get_object()
         child_steps = step.child_steps.all()
@@ -141,7 +141,7 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return ProcessTaskDetailSerializer
 
     @transaction.atomic
-    @detail_route(methods=['post'], permission_classes=[CanRetry])
+    @action(detail=True, methods=['post'], permission_classes=[CanRetry])
     def retry(self, request, pk=None):
         obj = self.get_object()
         if obj.status != celery_states.FAILURE:
@@ -157,7 +157,7 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response({'status': 'retries task'})
 
     @transaction.atomic
-    @detail_route(methods=['post'], permission_classes=[CanUndo])
+    @action(detail=True, methods=['post'], permission_classes=[CanUndo])
     def undo(self, request, pk=None):
         self.get_object().undo()
         return Response({'status': 'undoing task'})

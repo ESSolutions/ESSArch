@@ -361,9 +361,7 @@ class XMLSchematronValidator(BaseValidator):
         started = timezone.now()
         relpath = os.path.relpath(filepath, rootdir)
         try:
-            sct_doc = etree.parse(self.context)
-            schematron = etree.Schematron(sct_doc)
-            schematron.assertValid(etree.parse(filepath))
+            self._validate_schematron(filepath)
         except etree.DocumentInvalid as e:
             logger.exception(
                 'Schematron validation of {xml} against {schema} failed'.format(
@@ -421,6 +419,11 @@ class XMLSchematronValidator(BaseValidator):
             )
         )
 
+    def _validate_schematron(self, filepath):
+        sct_doc = etree.parse(self.context)
+        schematron = etree.Schematron(sct_doc)
+        schematron.assertValid(etree.parse(filepath))
+
 
 class XMLISOSchematronValidator(BaseValidator):
     def validate(self, filepath, expected=None):
@@ -430,9 +433,7 @@ class XMLISOSchematronValidator(BaseValidator):
         started = timezone.now()
         relpath = os.path.relpath(filepath, rootdir)
         try:
-            sct_doc = etree.parse(self.context)
-            schematron = isoschematron.Schematron(sct_doc)
-            schematron.assertValid(etree.parse(filepath))
+            self._validate_isoschematron(filepath)
         except etree.DocumentInvalid as e:
             logger.exception(
                 'ISO-Schematron validation of {xml} against {schema} failed'.format(
@@ -489,3 +490,8 @@ class XMLISOSchematronValidator(BaseValidator):
                 xml=filepath, schema=self.context
             )
         )
+
+    def _validate_isoschematron(self, filepath):
+        sct_doc = etree.parse(self.context)
+        schematron = isoschematron.Schematron(sct_doc)
+        schematron.assertValid(etree.parse(filepath))
