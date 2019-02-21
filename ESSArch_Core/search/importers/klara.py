@@ -143,7 +143,7 @@ class KlaraImporter(BaseImporter):
 
         historik = arkivbildare.xpath("ObjectParts/Notes/ArchiveOrig.Notes")
         if len(historik) and historik[0].text:
-            historik = historik[0]
+            historik = historik[0].text
 
             note_type_historik, _ = AgentNoteType.objects.get_or_create(
                 name='historik',
