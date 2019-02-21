@@ -43,9 +43,13 @@ class KlaraImporter(BaseImporter):
     LANGUAGE = Language.objects.get(iso_639_1='sv')
 
     @staticmethod
-    def _parse_timestamp(ts, fmt):
-        ts = ts.replace('CEST', 'CET')
-        dt = datetime.strptime(ts, fmt)
+    def _parse_timestamp(ts):
+        date_format = "%Y-%m-%d %H:%M:%S:%f"
+        tPart, tzPart = ts.rsplit(' ', 1)
+        tzPart = tzPart.replace('CEST', 'CET')
+
+        dt = datetime.strptime(tPart, date_format)
+
         return timezone.make_aware(dt)
 
     @classmethod
@@ -210,14 +214,12 @@ class KlaraImporter(BaseImporter):
 
     @classmethod
     def parse_agent_create_date(cls, arkivbildare):
-        date_format = "%Y-%m-%d %H:%M:%S:%f %Z"
-
         try:
             date_string = arkivbildare.xpath('ObjectParts/General/ArchiveOrig.CreatedWhen')[0].text
             if date_string is None:
                 return cls.parse_agent_revise_date(arkivbildare)
 
-            return cls._parse_timestamp(date_string, date_format)
+            return cls._parse_timestamp(date_string)
         except IndexError:
             return cls.parse_agent_revise_date(arkivbildare)
 
@@ -227,9 +229,8 @@ class KlaraImporter(BaseImporter):
 
     @classmethod
     def parse_agent_revise_date(cls, arkivbildare):
-        date_format = "%Y-%m-%d %H:%M:%S:%f %Z"
         date_string = arkivbildare.xpath('ObjectParts/General/ArchiveOrig.ModifiedWhen')[0].text
-        return cls._parse_timestamp(date_string, date_format)
+        return cls._parse_timestamp(date_string)
 
     @classmethod
     def parse_agent_revised_by(cls, arkivbildare):
