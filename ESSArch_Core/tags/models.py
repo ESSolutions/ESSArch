@@ -26,7 +26,7 @@ class AgentRelation(models.Model):
     create_date = models.DateTimeField(_('create date'), auto_now_add=True)
     revise_date = models.DateTimeField(_('revise date'), auto_now=True)
 
-    class Meta():
+    class Meta:
         unique_together = ('agent_a', 'agent_b', 'type')  # Avoid duplicates within same type
 
 
@@ -178,7 +178,7 @@ class Topography(models.Model):
     lng = models.DecimalField(_('longitude'), max_digits=9, decimal_places=6, null=True)
     lat = models.DecimalField(_('latitude'), max_digits=9, decimal_places=6, null=True)
 
-    class Meta():
+    class Meta:
         unique_together = ('name', 'type')  # Avoid duplicates within same type
 
 
@@ -244,7 +244,7 @@ class RefCode(models.Model):
     )
     repository_code = models.CharField(_('repository code'), max_length=255, blank=False)
 
-    class Meta():
+    class Meta:
         unique_together = ('country', 'repository_code')
 
 
@@ -343,7 +343,7 @@ class StructureUnitRelation(models.Model):
     create_date = models.DateTimeField(_('create date'), auto_now_add=True)
     revise_date = models.DateTimeField(_('revise date'), auto_now=True)
 
-    class Meta():
+    class Meta:
         unique_together = ('structure_unit_a', 'structure_unit_b', 'type')  # Avoid duplicates within same type
 
 
@@ -466,7 +466,7 @@ class TagVersionRelation(models.Model):
     create_date = models.DateTimeField(_('create date'), auto_now_add=True)
     revise_date = models.DateTimeField(_('revise date'), auto_now=True)
 
-    class Meta():
+    class Meta:
         unique_together = ('tag_version_a', 'tag_version_b', 'type')  # Avoid duplicates within same type
 
 
@@ -475,7 +475,7 @@ class MediumType(models.Model):
     size = models.CharField(_('size'), max_length=255, blank=False)
     unit = models.CharField(_('unit'), max_length=255, blank=False)
 
-    class Meta():
+    class Meta:
         unique_together = ('name', 'size', 'unit')  # Avoid duplicates
 
 
