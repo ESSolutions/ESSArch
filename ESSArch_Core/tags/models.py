@@ -120,6 +120,7 @@ class AgentNote(models.Model):
     )
     type = models.ForeignKey('tags.AgentNoteType', on_delete=models.PROTECT, null=False, verbose_name=_('type'))
     text = models.TextField(_('text'), blank=False)
+    href = models.TextField(_('href'), blank=True)
     create_date = models.DateTimeField(_('create date'), null=False)
     revise_date = models.DateTimeField(_('revise date'), null=True)
 
@@ -247,6 +248,45 @@ class RefCode(models.Model):
         unique_together = ('country', 'repository_code')
 
 
+class NodeNote(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    tag_version = models.ForeignKey(
+        'tags.TagVersion',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='notes',
+        verbose_name=_('tag version')
+    )
+    structure_unit = models.ForeignKey(
+        'tags.StructureUnit',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='notes',
+        verbose_name=_('structure unit')
+    )
+    type = models.ForeignKey('tags.NodeNoteType', on_delete=models.PROTECT, null=False, verbose_name=_('type'))
+    text = models.TextField(_('text'), blank=False)
+    href = models.TextField(_('href'), blank=True)
+    create_date = models.DateTimeField(_('create date'), null=False)
+    revise_date = models.DateTimeField(_('revise date'), null=True)
+
+
+class NodeNoteType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+
+class NodeRelationType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+
+class StructureType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+
+class RuleConventionType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+
 class Structure(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, blank=False)
@@ -256,6 +296,7 @@ class Structure(models.Model):
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     specification = jsonfield.JSONField(default={})
+    rule_convention_type = models.ForeignKey('tags.RuleConventionType', on_delete=models.PROTECT, null=True)
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask',
         on_delete=models.SET_NULL,
@@ -279,6 +320,33 @@ class Structure(models.Model):
         get_latest_by = 'create_date'
 
 
+class StructureUnitType(models.Model):
+    structure_type = models.ForeignKey('StructureType', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255, blank=False)
+
+
+class StructureUnitRelation(models.Model):
+    structure_unit_a = models.ForeignKey(
+        'tags.StructureUnit',
+        on_delete=models.CASCADE,
+        related_name='structure_unit_relations_a',
+    )
+    structure_unit_b = models.ForeignKey(
+        'tags.StructureUnit',
+        on_delete=models.CASCADE,
+        related_name='structure_unit_relations_b',
+    )
+    type = models.ForeignKey('tags.NodeRelationType', on_delete=models.PROTECT, null=False)
+    description = models.TextField(_('description'), blank=True)
+    start_date = models.DateField(_('start date'), null=True)
+    end_date = models.DateField(_('end date'), null=True)
+    create_date = models.DateTimeField(_('create date'), auto_now_add=True)
+    revise_date = models.DateTimeField(_('revise date'), auto_now=True)
+
+    class Meta():
+        unique_together = ('structure_unit_a', 'structure_unit_b', 'type')  # Avoid duplicates within same type
+
+
 class StructureUnit(MPTTModel):
     structure = models.ForeignKey('tags.Structure', on_delete=models.CASCADE, null=False, related_name='units')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
@@ -294,6 +362,12 @@ class StructureUnit(MPTTModel):
         on_delete=models.SET_NULL,
         null=True,
         related_name='structure_units',
+    )
+    related_structure_units = models.ManyToManyField(
+        'self',
+        through='tags.StructureUnitRelation',
+        through_fields=('structure_unit_a', 'structure_unit_b'),
+        symmetrical=False,
     )
 
     def __str__(self):
@@ -374,6 +448,37 @@ class Tag(models.Model):
         )
 
 
+class TagVersionRelation(models.Model):
+    tag_version_a = models.ForeignKey(
+        'tags.StructureUnit',
+        on_delete=models.CASCADE,
+        related_name='tag_version_relations_a',
+    )
+    tag_version_b = models.ForeignKey(
+        'tags.StructureUnit',
+        on_delete=models.CASCADE,
+        related_name='tag_version_relations_b',
+    )
+    type = models.ForeignKey('tags.NodeRelationType', on_delete=models.PROTECT, null=False)
+    description = models.TextField(_('description'), blank=True)
+    start_date = models.DateField(_('start date'), null=True)
+    end_date = models.DateField(_('end date'), null=True)
+    create_date = models.DateTimeField(_('create date'), auto_now_add=True)
+    revise_date = models.DateTimeField(_('revise date'), auto_now=True)
+
+    class Meta():
+        unique_together = ('tag_version_a', 'tag_version_b', 'type')  # Avoid duplicates within same type
+
+
+class MediumType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False)
+    size = models.CharField(_('size'), max_length=255, blank=False)
+    unit = models.CharField(_('unit'), max_length=255, blank=False)
+
+    class Meta():
+        unique_together = ('name', 'size', 'unit')  # Avoid duplicates
+
+
 class TagVersion(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tag = models.ForeignKey('tags.Tag', on_delete=models.CASCADE, related_name='versions')
@@ -382,8 +487,15 @@ class TagVersion(models.Model):
     name = models.CharField(max_length=255)
     elastic_index = models.CharField(max_length=255, blank=False, default=None)
     create_date = models.DateTimeField(auto_now_add=True)
+    revise_date = models.DateTimeField(auto_now=True)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
+    medium_type = models.ForeignKey(
+        'tags.MediumType',
+        on_delete=models.PROTECT,
+        related_name='tag_versions',
+        null=True
+    )
 
     def to_search_doc(self):
         try:
@@ -567,6 +679,8 @@ class TagStructure(MPTTModel):
     structure = models.ForeignKey('tags.Structure', on_delete=models.CASCADE, null=False)
     structure_unit = models.ForeignKey('tags.StructureUnit', on_delete=models.CASCADE, null=True)
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
+    start_date = models.DateField(_('start date'), null=True)
+    end_date = models.DateField(_('end date'), null=True)
 
     def create_new(self, representation):
         tree_id = self.__class__.objects._get_next_tree_id()
