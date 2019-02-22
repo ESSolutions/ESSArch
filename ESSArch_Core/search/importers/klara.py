@@ -3,6 +3,7 @@
 from datetime import datetime
 import logging
 
+import pytz
 from countries_plus.models import Country
 from django.db import transaction
 from django.utils import timezone
@@ -49,8 +50,8 @@ class KlaraImporter(BaseImporter):
         tzPart = tzPart.replace('CEST', 'CET')
 
         dt = datetime.strptime(tPart, date_format)
-
-        return timezone.make_aware(dt)
+        tz = pytz.timezone(tzPart)
+        return tz.localize(dt)
 
     @classmethod
     def parse_agent_type(cls, arkivbildare):
