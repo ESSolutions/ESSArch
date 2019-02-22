@@ -23,6 +23,8 @@ class AgentRelation(models.Model):
     description = models.TextField(_('description'), blank=True)
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
+    create_date = models.DateTimeField(_('create date'), auto_now_add=True)
+    revise_date = models.DateTimeField(_('revise date'), auto_now=True)
 
     class Meta():
         unique_together = ('agent_a', 'agent_b', 'type')  # Avoid duplicates within same type
