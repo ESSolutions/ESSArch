@@ -3,7 +3,6 @@ import logging
 import os
 import shutil
 import tarfile
-import zipfile
 
 import requests
 from django.contrib.auth import get_user_model
@@ -11,7 +10,6 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import ugettext as _
 from lxml import etree
-from os import walk
 
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.auth.models import Notification
@@ -25,7 +23,7 @@ from ESSArch_Core.fixity.receipt import get_backend as get_receipt_backend
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
 from ESSArch_Core.util import (creation_date, find_destination, get_event_spec,
                                get_premis_ip_object_element_spec, normalize_path,
-                               timestamp_to_datetime)
+                               timestamp_to_datetime, zip_directory)
 
 User = get_user_model()
 
@@ -289,17 +287,7 @@ class CreateContainer(DBTask):
 
         if container_format == 'zip':
             self.event_type = 50410
-            compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
-            with zipfile.ZipFile(dst, 'w', compression) as new_zip:
-                for root, dirs, files in walk(src):
-                    for d in dirs:
-                        filepath = os.path.join(root, d)
-                        arcname = os.path.relpath(filepath, src)
-                        new_zip.write(filepath, arcname)
-                    for f in files:
-                        filepath = os.path.join(root, f)
-                        arcname = os.path.relpath(filepath, src)
-                        new_zip.write(filepath, arcname)
+            zip_directory(dirname=src, zipname=dst, compress=compress)
         else:
             self.event_type = 50400
             compression = ':gz' if compress else ''

@@ -77,7 +77,7 @@ from ESSArch_Core.storage.tape import (DEFAULT_TAPE_BLOCK_SIZE,
 from ESSArch_Core.tags import (DELETION_PROCESS_QUEUE, DELETION_QUEUE,
                                INDEX_PROCESS_QUEUE, INDEX_QUEUE,
                                UPDATE_PROCESS_QUEUE, UPDATE_QUEUE)
-from ESSArch_Core.util import convert_file, get_event_element_spec, get_tree_size_and_count
+from ESSArch_Core.util import convert_file, get_event_element_spec, get_tree_size_and_count, zip_directory
 
 User = get_user_model()
 redis = get_redis_connection()
@@ -300,17 +300,7 @@ class CreateZIP(DBTask):
             compress: Compresses the zip file if true
         """
 
-        compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
-        with zipfile.ZipFile(zipname, 'w', compression) as new_zip:
-            for root, dirs, files in walk(dirname):
-                for d in dirs:
-                    filepath = os.path.join(root, d)
-                    arcname = os.path.relpath(filepath, dirname)
-                    new_zip.write(filepath, arcname)
-                for f in files:
-                    filepath = os.path.join(root, f)
-                    arcname = os.path.relpath(filepath, dirname)
-                    new_zip.write(filepath, arcname)
+        zip_directory(dirname, zipname, compress)
 
         self.set_progress(100, total=100)
         return zipname
