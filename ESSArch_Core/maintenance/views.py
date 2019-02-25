@@ -118,27 +118,27 @@ class ConversionJobViewSet(MaintenanceJobViewSet):
     def preview(self, request, pk=None):
         job = self.get_object()
         ips = job.rule.information_packages.all()
-        files = []
+        found_files = []
 
         for ip in ips:
             datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
             for pattern, spec in job.rule.specification.items():
-                files.extend(find_all_files(datadir, ip, pattern))
+                found_files.extend(find_all_files(datadir, ip, pattern))
 
-        return Response(files)
+        return Response(found_files)
 
 
 def find_all_files(datadir, ip, pattern):
-    files = []
+    found_files = []
     for path in iglob(datadir + '/' + pattern):
         if os.path.isdir(path):
-            for root, dirs, files in walk(path):
+            for root, dirs, found_files in walk(path):
                 rel = os.path.relpath(root, datadir)
 
-                for f in files:
-                    files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
+                for f in found_files:
+                    found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
 
         elif os.path.isfile(path):
             rel = os.path.relpath(path, datadir)
-            files.append({'ip': ip.object_identifier_value, 'document': rel})
-    return files
+            found_files.append({'ip': ip.object_identifier_value, 'document': rel})
+    return found_files
