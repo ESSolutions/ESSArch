@@ -399,14 +399,14 @@ class VisualImporter(BaseImporter):
     def cleanup(self):
         logger.debug("Deleting task agents already in database...")
         Agent.objects.filter(task=self.task).delete()
-        logger.info("Deleted task agents already in database...")
+        logger.info("Deleted task agents already in database")
 
         # TODO: Delete structures (förteckningsplaner) connected to tags?
         Structure.objects.all().delete()
 
         logger.debug("Deleting task tags already in database...")
         Tag.objects.filter(task=self.task).delete()
-        logger.info("Deleted task tags already in database...")
+        logger.info("Deleted task tags already in database")
 
         self.cleanup_elasticsearch(self.task)
 
