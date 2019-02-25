@@ -248,6 +248,30 @@ class RefCode(models.Model):
         unique_together = ('country', 'repository_code')
 
 
+class NodeIdentifier(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    identifier = models.TextField(_('identifier'), blank=False)
+    tag_version = models.ForeignKey(
+        'tags.TagVersion',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='identifiers',
+        verbose_name=_('tag version')
+    )
+    structure_unit = models.ForeignKey(
+        'tags.StructureUnit',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='identifiers',
+        verbose_name=_('structure unit')
+    )
+    type = models.ForeignKey('tags.NodeIdentifierType', on_delete=models.PROTECT, null=False, verbose_name=_('type'))
+
+
+class NodeIdentifierType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+
 class NodeNote(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tag_version = models.ForeignKey(
