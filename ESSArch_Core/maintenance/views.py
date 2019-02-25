@@ -93,7 +93,7 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
             datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
             if job.rule.specification:
                 for pattern in job.rule.specification:
-                    found_files = find_all_files(datadir, ip, pattern)
+                    found_files.extend(find_all_files(datadir, ip, pattern))
             else:
                 for root, dirs, files in walk(datadir):
                     rel = os.path.relpath(root, datadir)
@@ -123,7 +123,7 @@ class ConversionJobViewSet(MaintenanceJobViewSet):
         for ip in ips:
             datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
             for pattern, spec in job.rule.specification.items():
-                files = find_all_files(datadir, ip, pattern)
+                files.extend(find_all_files(datadir, ip, pattern))
 
         return Response(files)
 
