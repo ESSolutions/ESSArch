@@ -4,4 +4,3 @@ coverage:
       default: off
       backend:
         flags: backend
-    patch: off
