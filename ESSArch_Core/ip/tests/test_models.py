@@ -571,7 +571,7 @@ class InformationPackageGetAgentTests(TestCase):
         self.assertEqual(ip.get_agent("role_2", "type_1"), agent_2)
 
 
-class InformationPackageOtherTests(TestCase):
+class InformationPackageGetLockKeyTests(TestCase):
 
     def test_get_lock_key_success(self):
         ip = InformationPackage.objects.create()
@@ -580,9 +580,15 @@ class InformationPackageOtherTests(TestCase):
         self.assertIsNotNone(ip.pk)
         self.assertEqual(ip.get_lock_key(), f'lock_ip_{pk}')
 
+
+class InformationPackageIsLockedTests(TestCase):
+
     def test_is_locked_not_in_cache_should_return_False(self):
         ip = InformationPackage.objects.create()
         self.assertEqual(ip.is_locked(), False)
+
+
+class InformationPackageGetChecksumAlgorithmTests(TestCase):
 
     @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
     def test_get_checksum_algorithm_when_SIP_then_get_from_profile_data(self, mock_profile_data):
@@ -625,6 +631,9 @@ class InformationPackageOtherTests(TestCase):
 
         self.assertEqual(aip.get_checksum_algorithm(), "SHA-256")
 
+
+class InformationPackageGetEmailRecipientTests(TestCase):
+
     @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
     def test_get_email_recipient_not_in_profile_data_should_return_None(self, mock_profile_data):
         ip = InformationPackage.objects.create()
@@ -646,6 +655,9 @@ class InformationPackageOtherTests(TestCase):
 
         self.assertEqual(ip.get_email_recipient(), "some@email.com")
 
+
+class InformationPackageGetContainerFormatTests(TestCase):
+
     @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
     def test_get_container_format_not_in_profile_return_tar(self, mock_profile_data):
         ip = InformationPackage.objects.create()
@@ -666,6 +678,9 @@ class InformationPackageOtherTests(TestCase):
         mock_profile_data.return_value = {'container_format': "jar"}
 
         self.assertEqual(ip.get_container_format(), 'jar')
+
+
+class InformationPackageGetPathTests(TestCase):
 
     def test_get_path_should_return_object_path(self):
         ip = InformationPackage.objects.create(object_path="path/to/the/object.tar")
