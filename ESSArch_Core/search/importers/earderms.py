@@ -513,7 +513,7 @@ class EardErmsImporter(BaseImporter):
 
             yield tag, tag_version, tag_repr, component.to_dict(include_meta=True)
 
-    def import_content(self, path, rootdir=None, ip=None):
+    def import_content(self, path, rootdir=None, ip=None, **extra_paths):
         if not rootdir:
             rootdir = os.path.dirname(path)
 

@@ -30,7 +30,7 @@ class BaseImporter(object):
         doc = query.execute().hits[0]
         return TagVersion.objects.get(pk=doc._id)
 
-    def import_content(self, path, rootdir=None, ip=None):
+    def import_content(self, path, rootdir=None, ip=None, **extra_paths):
         raise NotImplementedError
 
     def update_current_tag_versions(self):
