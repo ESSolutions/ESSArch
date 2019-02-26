@@ -26,6 +26,8 @@ from ESSArch_Core.tags.models import (
     AgentNoteType,
     AgentPlace,
     AgentPlaceType,
+    AgentTagLink,
+    AgentTagLinkRelationType,
     AgentType,
     MainAgentType,
     MediumType,
@@ -49,6 +51,7 @@ class KlaraImporter(BaseImporter):
     AGENT_IDENTIFIER_TYPE = 'Klara'
     AGENT_NAME_TYPE = 'auktoriserad'
     AGENT_ALT_NAME_TYPE = 'alternativt'
+    AGENT_TAG_LINK_RELATION_TYPE_NAME = 'creator'
     COUNTRY_CODE = 'SE'
     LANGUAGE_CODE = 'sv'
     NODE_IDENTIFIER_TYPE_NAME = 'Klara-id'
@@ -58,6 +61,7 @@ class KlaraImporter(BaseImporter):
     _language = None
     _name_type = None
     _alt_name_type = None
+    _tag_link_relation_type = None
     _note_type_anmarkning = None
     _note_type_historik = None
     _medium_type_logisk = None
@@ -92,6 +96,14 @@ class KlaraImporter(BaseImporter):
         if self._alt_name_type is None:
             self._alt_name_type, _ = AgentNameType.objects.get_or_create(name=self.AGENT_ALT_NAME_TYPE)
         return self._alt_name_type
+
+    @property
+    def tag_link_relation_type(self):
+        if self._tag_link_relation_type is None:
+            self._tag_link_relation_type, _ = AgentTagLinkRelationType.objects.get_or_create(
+                name=self.AGENT_TAG_LINK_RELATION_TYPE_NAME
+            )
+        return self._tag_link_relation_type
 
     @property
     def note_type_anmarkning(self):
@@ -371,8 +383,6 @@ class KlaraImporter(BaseImporter):
         return cls._parse_year_string(end_year)
 
     def parse_archive(self, el, task=None, ip=None):
-        # TODO: link to agent (might do this outside this function)
-
         name = el.xpath('ObjectParts/General/Archive.Name')[0].text
         tag_type = 'Arkiv'
 
@@ -417,14 +427,33 @@ class KlaraImporter(BaseImporter):
             structure=structure,
         )
 
+        agent_hash = self.build_agent_hash(
+            el.xpath('ObjectParts/General/Archive.ArchiveOrigID')[0].text,
+            el.xpath('ObjectParts/General/ArchiveOrig.Name')[0].text,
+        )
+        agent_id = cache.get(agent_hash)
+
+        AgentTagLink.objects.create(
+            agent_id=agent_id,
+            tag=tag_version,
+            type=self.tag_link_relation_type,
+        )
+
         return doc, tag, tag_version, tag_structure, inst_code
 
     @staticmethod
-    def build_archive_hash(archive_id, archive_name, archive_orig_name):
+    def build_agent_hash(archive_orig_id, archive_orig_name):
+        m = hashlib.sha256()
+        m.update(archive_orig_id.encode('utf-8'))
+        m.update(archive_orig_name.encode('utf-8'))
+        return m.digest()
+
+    @staticmethod
+    def build_archive_hash(archive_id, archive_name, agent_hash):
         m = hashlib.sha256()
         m.update(archive_id.encode('utf-8'))
         m.update(archive_name.encode('utf-8'))
-        m.update(archive_orig_name.encode('utf-8'))
+        m.update(agent_hash)
         return m.digest()
 
     @staticmethod
@@ -480,8 +509,7 @@ class KlaraImporter(BaseImporter):
         logger.info("Parsed series: {}".format(unit.pk))
         return unit
 
-    @classmethod
-    def parse_volume(cls, el, medium_type_logisk, task, ip=None):
+    def parse_volume(self, el, medium_type_logisk, task, ip=None):
         logger.debug("Parsing volume...")
         tag_type = "Volym"
 
@@ -489,8 +517,8 @@ class KlaraImporter(BaseImporter):
         name = el.xpath("Volume.Title")[0].text or ""
 
         date = el.xpath("Volume.Date")[0].text
-        start_date = cls._parse_year_string(date[:4]) if date and len(date) >= 4 else None
-        end_date = cls._parse_year_string(date[-4:]) if date and len(date) == 4 else None
+        start_date = self._parse_year_string(date[:4]) if date and len(date) >= 4 else None
+        end_date = self._parse_year_string(date[-4:]) if date and len(date) == 4 else None
 
         short_name = el.xpath("VolumeType.ShortName")[0].text
         if short_name == 'L':
@@ -500,10 +528,15 @@ class KlaraImporter(BaseImporter):
 
         volume_id = uuid.uuid4()
 
-        archive_hash = cls.build_archive_hash(
+        agent_hash = self.build_agent_hash(
+            el.xpath("ArchiveOrig.ArchiveOrigID")[0].text,
+            el.xpath("ArchiveOrig.Name")[0].text,
+        )
+
+        archive_hash = self.build_archive_hash(
             el.xpath("Archive.ArchiveID")[0].text,
             el.xpath("Archive.Name")[0].text,
-            el.xpath("ArchiveOrig.Name")[0].text,
+            agent_hash,
         )
 
         archive_tag_id = cache.get(archive_hash)
@@ -515,7 +548,7 @@ class KlaraImporter(BaseImporter):
             pk=archive_tag_id
         )
 
-        series_hash = cls.build_series_hash(
+        series_hash = self.build_series_hash(
             el.xpath("Series.SeriesID")[0].text,
             el.xpath("Series.Signum")[0].text,
             el.xpath("Series.Title")[0].text,
@@ -548,7 +581,7 @@ class KlaraImporter(BaseImporter):
             medium_type=medium_type,
         )
 
-        tag_structure = TagStructure.objects.create(
+        TagStructure.objects.create(
             tag=tag,
             structure_unit=unit,
             structure=unit.structure,
@@ -618,7 +651,13 @@ class KlaraImporter(BaseImporter):
         root = tree.getroot()
 
         for arkivbildare in root.xpath("ArchiveOrig"):
-            self.parse_arkivbildare(arkivbildare, task=self.task)
+            agent = self.parse_arkivbildare(arkivbildare, task=self.task)
+            agent_hash = self.build_agent_hash(
+                arkivbildare.xpath('ObjectParts/General/ArchiveOrig.ArchiveOrigID')[0].text,
+                arkivbildare.xpath('ObjectParts/General/ArchiveOrig.Name')[0].text,
+            )
+
+            cache.set(agent_hash, agent.pk, 300)
 
         logger.info("Agent XML elements parsed")
 
@@ -634,14 +673,18 @@ class KlaraImporter(BaseImporter):
                 archive_el, task=self.task, ip=self.ip
             )
 
+            agent_hash = self.build_agent_hash(
+                archive_el.xpath("ObjectParts/General/Archive.ArchiveOrigID")[0].text,
+                archive_el.xpath("ObjectParts/General/ArchiveOrig.Name")[0].text
+            )
+
             archive_id = archive_el.xpath("ObjectParts/General/Archive.ArchiveID")[0].text
             archive_name = archive_el.xpath("ObjectParts/General/Archive.Name")[0].text
-            archive_orig_name = archive_el.xpath("ObjectParts/General/ArchiveOrig.Name")[0].text
 
             archive_hash = self.build_archive_hash(
                 archive_id,
                 archive_name,
-                archive_orig_name,
+                agent_hash,
             )
 
             cache.set(archive_hash, archive_tag.pk, 300)
