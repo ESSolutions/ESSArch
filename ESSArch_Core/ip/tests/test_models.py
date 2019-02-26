@@ -10,7 +10,7 @@ from rest_framework.test import APIRequestFactory
 from celery import states as celery_state
 
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
-from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.ip.models import InformationPackage, Agent, Workarea
 from ESSArch_Core.util import normalize_path, timestamp_to_datetime
 
 
@@ -531,3 +531,247 @@ class InformationPackageStepStateTests(TestCase):
 
         state = aip.step_state
         self.assertEqual(state, celery_state.FAILURE)
+
+
+class InformationPackageGetAgentTests(TestCase):
+
+    def test_get_agent_when_role_does_not_exists_should_return_None(self):
+        agent = Agent.objects.create(role="role_1", type="type_1", name="name_1", code="code_1")
+        ip = InformationPackage.objects.create()
+        ip.agents.add(agent)
+        ip.save()
+
+        self.assertEqual(ip.get_agent("non existent role", "type_1"), None)
+
+    def test_get_agent_when_type_does_not_exists_should_return_None(self):
+        agent = Agent.objects.create(role="role_1", type="type_1", name="name_1", code="code_1")
+        ip = InformationPackage.objects.create()
+        ip.agents.add(agent)
+        ip.save()
+
+        self.assertEqual(ip.get_agent("role_1", "non existing type"), None)
+
+    def test_get_agent_when_exists_return_agent(self):
+        agent = Agent.objects.create(role="role_1", type="type_1", name="name_1", code="code_1")
+        ip = InformationPackage.objects.create()
+        ip.agents.add(agent)
+        ip.save()
+
+        self.assertEqual(ip.get_agent("role_1", "type_1"), agent)
+
+    def test_get_agent_when_multiple_agents_exists_return_agent(self):
+        agent_1 = Agent.objects.create(role="role_1", type="type_1", name="name_1", code="code_1")
+        agent_2 = Agent.objects.create(role="role_2", type="type_1", name="name_1", code="code_1")
+        ip = InformationPackage.objects.create()
+        ip.agents.add(agent_1)
+        ip.agents.add(agent_2)
+        ip.save()
+
+        self.assertEqual(ip.get_agent("role_1", "type_1"), agent_1)
+        self.assertEqual(ip.get_agent("role_2", "type_1"), agent_2)
+
+
+class InformationPackageGetLockKeyTests(TestCase):
+
+    def test_get_lock_key_success(self):
+        ip = InformationPackage.objects.create()
+        pk = ip.pk
+
+        self.assertIsNotNone(ip.pk)
+        self.assertEqual(ip.get_lock_key(), f'lock_ip_{pk}')
+
+
+class InformationPackageIsLockedTests(TestCase):
+
+    def test_is_locked_not_in_cache_should_return_False(self):
+        ip = InformationPackage.objects.create()
+        self.assertEqual(ip.is_locked(), False)
+
+
+class InformationPackageGetChecksumAlgorithmTests(TestCase):
+
+    @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
+    def test_get_checksum_algorithm_when_SIP_then_get_from_profile_data(self, mock_profile_data):
+        sip = InformationPackage.objects.create(package_type=InformationPackage.SIP)
+        sip.profile_type = InformationPackage.SIP
+
+        mock_profile_data.return_value = {'checksum_algorithm': 'DUMMY_ALGORITHM'}
+
+        self.assertEqual(sip.get_checksum_algorithm(), "DUMMY_ALGORITHM")
+
+    @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
+    def test_get_checksum_algorithm_when_SIP_and_key_missing_in_profile_data_then_default(self, mock_profile_data):
+        sip = InformationPackage.objects.create(package_type=InformationPackage.SIP)
+        sip.profile_type = InformationPackage.SIP
+
+        mock_profile_data.return_value = {}
+
+        self.assertEqual(sip.get_checksum_algorithm(), "SHA-256")
+
+    @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
+    def test_get_checksum_algorithm_when_SIP_and_profile_data_is_None(self, mock_profile_data):
+        sip = InformationPackage.objects.create(package_type=InformationPackage.SIP)
+        sip.profile_type = InformationPackage.SIP
+
+        mock_profile_data.return_value = None
+
+        self.assertEqual(sip.get_checksum_algorithm(), "SHA-256")
+
+    @mock.patch('ESSArch_Core.ip.models.InformationPackage.policy')
+    def test_get_checksum_algorithm_when_AIP_then_get_from_checksum_algo_display(self, mock_policy):
+        aip = InformationPackage.objects.create(package_type=InformationPackage.AIP)
+        aip.profile_type = None
+
+        mock_policy.get_checksum_algorithm_display.return_value = "sho-257"
+
+        self.assertEqual(aip.get_checksum_algorithm(), "SHO-257")
+
+    def test_get_checksum_algorithm_when_profile_type_not_set_return_default(self):
+        aip = InformationPackage.objects.create(package_type=InformationPackage.AIP)
+
+        self.assertEqual(aip.get_checksum_algorithm(), "SHA-256")
+
+
+class InformationPackageGetEmailRecipientTests(TestCase):
+
+    @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
+    def test_get_email_recipient_not_in_profile_data_should_return_None(self, mock_profile_data):
+        ip = InformationPackage.objects.create()
+        mock_profile_data.return_value = {}
+
+        self.assertEqual(ip.get_email_recipient(), None)
+
+    @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
+    def test_get_email_recipient_when_profile_data_is_None_return_None(self, mock_profile_data):
+        ip = InformationPackage.objects.create()
+        mock_profile_data.return_value = None
+
+        self.assertEqual(ip.get_email_recipient(), None)
+
+    @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
+    def test_get_email_recipient_get_from_profile_data(self, mock_profile_data):
+        ip = InformationPackage.objects.create()
+        mock_profile_data.return_value = {'preservation_organization_receiver_email': 'some@email.com'}
+
+        self.assertEqual(ip.get_email_recipient(), "some@email.com")
+
+
+class InformationPackageGetContainerFormatTests(TestCase):
+
+    @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
+    def test_get_container_format_not_in_profile_return_tar(self, mock_profile_data):
+        ip = InformationPackage.objects.create()
+        mock_profile_data.return_value = {}
+
+        self.assertEqual(ip.get_container_format(), 'tar')
+
+    @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
+    def test_get_container_format_when_profile_data_is_None_return_tar(self, mock_profile_data):
+        ip = InformationPackage.objects.create()
+        mock_profile_data.return_value = None
+
+        self.assertEqual(ip.get_container_format(), 'tar')
+
+    @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
+    def test_get_container_format_get_from_profile_data(self, mock_profile_data):
+        ip = InformationPackage.objects.create()
+        mock_profile_data.return_value = {'container_format': "jar"}
+
+        self.assertEqual(ip.get_container_format(), 'jar')
+
+
+class InformationPackageGetPathTests(TestCase):
+
+    def test_get_path_should_return_object_path(self):
+        ip = InformationPackage.objects.create(object_path="path/to/the/object.tar")
+
+        self.assertEqual(ip.get_path(), "path/to/the/object.tar")
+
+
+class InformationPackageGenerationTests(TestCase):
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        self.user = User.objects.create(username='user')
+
+    def test_is_first_generation_aic_is_None_should_return_True(self):
+        aip = InformationPackage.objects.create(package_type=InformationPackage.AIP, generation=0)
+
+        self.assertEqual(aip.is_first_generation(), True)
+
+    def test_is_first_generation_aic_with_single_aip_should_return_True(self):
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        aip = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=0)
+
+        self.assertEqual(aip.is_first_generation(), True)
+
+    def test_is_first_generation_aic_with_multiple_aips(self):
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        aip_1 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
+        aip_2 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=13)
+        aip_1.save()
+        aip_2.save()
+
+        self.assertEqual(aip_1.is_first_generation(), False)
+        self.assertEqual(aip_2.is_first_generation(), True)
+
+    def test_is_first_generation_aic_with_multiple_aips_when_workarea_read_only_is_False_should_be_filtered(self):
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        aip_1 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
+        aip_2 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=13)
+        Workarea.objects.create(ip=aip_2, read_only=False, user=self.user)
+        aip_1.save()
+        aip_2.save()
+
+        self.assertEqual(aip_1.is_first_generation(), True)
+        self.assertEqual(aip_2.is_first_generation(), False)
+
+    def test_is_first_generation_aic_when_workarea_read_only_is_False_should_be_filtered(self):
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        aip = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
+        Workarea.objects.create(ip=aip, read_only=False, user=self.user)
+        aip.save()
+
+        self.assertEqual(aip.is_first_generation(), False)
+
+    def test_is_last_generation_aic_is_None_should_return_True(self):
+        aip = InformationPackage.objects.create(package_type=InformationPackage.AIP, generation=0)
+
+        self.assertEqual(aip.is_last_generation(), True)
+
+    def test_is_last_generation_aic_with_single_aip_should_return_True(self):
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        aip = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=0)
+
+        self.assertEqual(aip.is_last_generation(), True)
+
+    def test_is_last_generation_aic_with_multiple_aips(self):
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        aip_1 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
+        aip_2 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=13)
+        aip_1.save()
+        aip_2.save()
+
+        self.assertEqual(aip_1.is_last_generation(), True)
+        self.assertEqual(aip_2.is_last_generation(), False)
+
+    def test_is_last_generation_aic_with_multiple_aips_when_workarea_read_only_is_False_should_be_filtered(self):
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        aip_1 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
+        aip_2 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=13)
+        Workarea.objects.create(ip=aip_1, read_only=False, user=self.user)
+        aip_1.save()
+        aip_2.save()
+
+        self.assertEqual(aip_1.is_last_generation(), False)
+        self.assertEqual(aip_2.is_last_generation(), True)
+
+    def test_is_last_generation_aic_when_workarea_read_only_is_False_should_be_filtered(self):
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        aip = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
+        Workarea.objects.create(ip=aip, read_only=False, user=self.user)
+        aip.save()
+
+        self.assertEqual(aip.is_last_generation(), False)
