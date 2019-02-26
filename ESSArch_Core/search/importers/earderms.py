@@ -19,8 +19,6 @@ from ESSArch_Core.tags.models import StructureUnit, Tag, TagStructure, TagVersio
 from ESSArch_Core.util import get_tree_size_and_count, remove_prefix, timestamp_to_datetime
 
 logger = logging.getLogger('essarch.search.importers.EardErmsImporter')
-es = get_connection()
-
 
 class EardErmsImporter(BaseImporter):
     def get_archive(self, xmlfile):
@@ -541,6 +539,8 @@ class EardErmsImporter(BaseImporter):
 
         logger.debug("Deleting task tags already in Elasticsearch...")
         indices_to_delete = [doc._index._name for doc in [Archive, Component, File]]
+
+        es = get_connection()
         Search(using=es, index=indices_to_delete).query('term', task_id=str(self.task.pk)).delete()
 
         tags, tag_versions, tag_structures, components = self.parse_eard(path, ip, rootdir, archive)
@@ -580,6 +580,7 @@ class EardErmsImporter(BaseImporter):
         count = 0
         total = TagVersion.objects.filter(tag__task=self.task).count()
 
+        es = get_connection()
         for ok, result in es_helpers.streaming_bulk(es, components):
             action, result = result.popitem()
             doc_id = result['_id']
