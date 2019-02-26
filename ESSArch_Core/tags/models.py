@@ -474,12 +474,12 @@ class Tag(models.Model):
 
 class TagVersionRelation(models.Model):
     tag_version_a = models.ForeignKey(
-        'tags.StructureUnit',
+        'tags.TagVersion',
         on_delete=models.CASCADE,
         related_name='tag_version_relations_a',
     )
     tag_version_b = models.ForeignKey(
-        'tags.StructureUnit',
+        'tags.TagVersion',
         on_delete=models.CASCADE,
         related_name='tag_version_relations_b',
     )
