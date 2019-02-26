@@ -20,6 +20,7 @@ from ESSArch_Core.util import get_tree_size_and_count, remove_prefix, timestamp_
 
 logger = logging.getLogger('essarch.search.importers.EardErmsImporter')
 
+
 class EardErmsImporter(BaseImporter):
     def get_archive(self, xmlfile):
         try:
