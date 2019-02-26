@@ -337,8 +337,9 @@ class VisualImporter(BaseImporter):
             parent_id=parent_unit_id,
             type=tag_type,
             reference_code=reference_code,
+            task=task,
         )
-        cache.set('{}{}'.format(cache_key_prefix, reference_code), str(unit.pk), 30)
+        cache.set('{}{}'.format(cache_key_prefix, reference_code), str(unit.pk), 300)
 
         # TODO: store in new index in elasticsearch?
 
@@ -352,9 +353,9 @@ class VisualImporter(BaseImporter):
         name = el.xpath("va:utseende", namespaces=cls.NSMAP)[0].text
         tag_type = "Volym"
 
-        id = uuid.uuid4()
+        volym_id = uuid.uuid4()
         doc = Component(
-            _id=id,
+            _id=volym_id,
             archive=str(archive_version.pk),
             structure_unit=str(structure_unit.pk),
             current_version=True,
@@ -366,7 +367,7 @@ class VisualImporter(BaseImporter):
 
         tag = Tag(information_package=ip, task=task)
         tag_version = TagVersion(
-            pk=id,
+            pk=volym_id,
             tag=tag,
             elastic_index='component',
             reference_code=ref_code,
@@ -387,7 +388,7 @@ class VisualImporter(BaseImporter):
         logger.info("Parsed volym: {}".format(tag_version.pk))
         return doc, tag, tag_version, tag_structure
 
-    def import_content(self, path, rootdir=None, ip=None):
+    def import_content(self, path, rootdir=None, ip=None, **extra_paths):
         self.indexed_files = []
         self.ip = ip
 
@@ -401,8 +402,10 @@ class VisualImporter(BaseImporter):
         Agent.objects.filter(task=self.task).delete()
         logger.info("Deleted task agents already in database")
 
-        # TODO: Delete structures (förteckningsplaner) connected to tags?
-        Structure.objects.all().delete()
+        # TODO: Delete Structures connected to task?
+        logger.debug("Deleting task structure units already in database...")
+        StructureUnit.objects.filter(task=self.task).delete()
+        logger.info("Deleted task structure units already in database")
 
         logger.debug("Deleting task tags already in database...")
         Tag.objects.filter(task=self.task).delete()
