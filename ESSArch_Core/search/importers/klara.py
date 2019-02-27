@@ -3,6 +3,7 @@
 from datetime import datetime
 from itertools import chain
 import hashlib
+import html
 import logging
 import re
 import uuid
@@ -448,7 +449,7 @@ class KlaraImporter(BaseImporter):
         history_note_text = el.xpath("ObjectParts/History/Archive.History")[0].text
         if history_note_text:
             NodeNote.objects.create(
-                text=history_note_text,
+                text=html.unescape(history_note_text),
                 tag_version=tag_version,
                 type=self.node_note_type_historik,
                 create_date=timezone.now(),  # TODO: use something else to get the date?
