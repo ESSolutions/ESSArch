@@ -190,7 +190,7 @@ def validate_file_format(request_id, filename, format_name, format_registry_key,
     return "Success"
 
 
-def validate_files(self_ip, responsible, ip, rootdir, validate_fileformat, validate_integrity, xmlfile):
+def validate_files(ip, responsible, rootdir, validate_fileformat, validate_integrity, xmlfile):
     if any([validate_fileformat, validate_integrity]):
         if rootdir is None:
             rootdir = InformationPackage.objects.values_list('object_path', flat=True).get(pk=ip)
@@ -210,8 +210,8 @@ def validate_files(self_ip, responsible, ip, rootdir, validate_fileformat, valid
                     validator.validate(filename)
                 except Exception as e:
                     recipient = User.objects.get(pk=responsible).email
-                    if recipient and self_ip:
-                        ip = InformationPackage.objects.get(pk=self_ip)
+                    if recipient and ip:
+                        ip = InformationPackage.objects.get(pk=ip)
                         subject = 'Rejected "%s"' % ip.object_identifier_value
                         body = '"%s" was rejected:\n%s' % (ip.object_identifier_value, str(e))
                         send_mail(subject, body, None, [recipient], fail_silently=False)

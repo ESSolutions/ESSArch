@@ -276,7 +276,7 @@ class CreateZIP(DBTask):
 
 class ValidateFiles(DBTask):
     def run(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
-        validate_files(self.ip, self.responsible, ip, rootdir, validate_fileformat, validate_integrity, xmlfile)
+        validate_files(self.ip, self.responsible, rootdir, validate_fileformat, validate_integrity, xmlfile)
 
     def event_outcome_success(self, ip, xmlfile, validate_fileformat=True, validate_integrity=True, rootdir=None):
         return "Validated files in %s" % xmlfile
