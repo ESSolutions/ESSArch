@@ -70,7 +70,7 @@ class BaseImporter(object):
 
     @staticmethod
     def cleanup_elasticsearch(task):
-        logger.info("Deleted task tags already in Elasticsearch...")
+        logger.debug("Deleting task tags already in Elasticsearch...")
         conn = get_es_connection()
         Search(using=conn, index='_all').query('term', task_id=str(task.pk)).delete()
-        logger.info("Deleted task tags already in Elasticsearch...")
+        logger.info("Deleted task tags already in Elasticsearch")
