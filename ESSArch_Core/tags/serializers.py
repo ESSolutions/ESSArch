@@ -7,6 +7,7 @@ from ESSArch_Core.tags.models import (
     MediumType,
     NodeIdentifier,
     NodeNote,
+    RuleConventionType,
     Structure,
     StructureUnit,
     Tag,
@@ -32,12 +33,20 @@ class NodeNoteSerializer(serializers.ModelSerializer):
         fields = ('id', 'type', 'text', 'href', 'create_date', 'revise_date',)
 
 
+class RuleConventionTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RuleConventionType
+        fields = ('name',)
+
+
 class StructureSerializer(serializers.ModelSerializer):
+    rule_convention_type = RuleConventionTypeSerializer()
     specification = serializers.JSONField(default={})
 
     class Meta:
         model = Structure
-        fields = ('id', 'name', 'version', 'create_date', 'start_date', 'end_date', 'specification',)
+        fields = ('id', 'name', 'version', 'create_date', 'start_date', 'end_date', 'specification',
+                  'rule_convention_type',)
 
 
 class StructureUnitSerializer(serializers.ModelSerializer):
