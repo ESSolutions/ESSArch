@@ -4,17 +4,151 @@ from rest_framework import serializers
 
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.tags.models import (
+    Agent,
+    AgentIdentifier,
+    AgentName,
+    AgentNote,
+    AgentPlace,
+    AgentRelation,
+    AgentTagLink,
+    AgentType,
+    MainAgentType,
     MediumType,
     NodeIdentifier,
     NodeNote,
     RuleConventionType,
+    SourcesOfAuthority,
     Structure,
     StructureUnit,
     Tag,
     TagStructure,
     TagVersion,
     TagVersionRelation,
+    Topography,
 )
+
+
+class AgentIdentifierSerializer(serializers.ModelSerializer):
+    type = serializers.CharField(source='type.name')
+
+    class Meta:
+        model = AgentIdentifier
+        fields = ('id', 'identifier', 'type',)
+
+
+class AgentNameSerializer(serializers.ModelSerializer):
+    type = serializers.CharField(source='type.name')
+
+    class Meta:
+        model = AgentName
+        fields = ('main', 'part', 'description', 'type', 'start_date', 'end_date', 'certainty',)
+
+
+class AgentNoteSerializer(serializers.ModelSerializer):
+    type = serializers.CharField(source='type.name')
+
+    class Meta:
+        model = AgentNote
+        fields = ('text', 'type', 'href', 'create_date', 'revise_date',)
+
+
+class SourcesOfAuthoritySerializer(serializers.ModelSerializer):
+    type = serializers.CharField(source='type.name')
+
+    class Meta:
+        model = SourcesOfAuthority
+        fields = ('id', 'name', 'description', 'type', 'href', 'start_date', 'end_date',)
+
+
+class TopographySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Topography
+        fields = (
+            'id',
+            'name',
+            'alt_name',
+            'type',
+            'main_category',
+            'sub_category',
+            'reference_code',
+            'start_year',
+            'end_year',
+            'lng',
+            'lat',
+        )
+
+
+class AgentPlaceSerializer(serializers.ModelSerializer):
+    topography = TopographySerializer()
+    type = serializers.CharField(source='type.name')
+
+    class Meta:
+        model = AgentPlace
+        fields = ('id', 'topography', 'type', 'description', 'start_date', 'end_date')
+
+
+class MainAgentTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MainAgentType
+        fields = ('id', 'name',)
+
+
+class AgentTypeSerializer(serializers.ModelSerializer):
+    main_type = MainAgentTypeSerializer()
+
+    class Meta:
+        model = AgentType
+        fields = ('id', 'main_type', 'sub_type', 'cpf',)
+
+
+class RelatedAgentSerializer(serializers.ModelSerializer):
+    names = AgentNameSerializer(many=True)
+    type = AgentTypeSerializer()
+
+    class Meta:
+        model = Agent
+        fields = ('id', 'names', 'type',)
+
+
+class AgentRelationSerializer(serializers.ModelSerializer):
+    agent = RelatedAgentSerializer(source='agent_b')
+    type = serializers.CharField(source='type.name')
+
+    class Meta:
+        model = AgentRelation
+        fields = ('type', 'description', 'start_date', 'end_date', 'create_date', 'revise_date', 'agent',)
+
+
+class AgentSerializer(serializers.ModelSerializer):
+    identifiers = AgentIdentifierSerializer(many=True)
+    names = AgentNameSerializer(many=True)
+    notes = AgentNoteSerializer(many=True)
+    places = AgentPlaceSerializer(source='agentplace_set', many=True)
+    type = AgentTypeSerializer()
+    mandates = SourcesOfAuthoritySerializer(many=True)
+    related_agents = AgentRelationSerializer(source='agent_relations_a', many=True)
+
+    class Meta:
+        model = Agent
+        fields = (
+            'id',
+            'names',
+            'notes',
+            'type',
+            'identifiers',
+            'places',
+            'mandates',
+            'level_of_detail',
+            'record_status',
+            'script',
+            'language',
+            'mandates',
+            'related_agents',
+            'create_date',
+            'revise_date',
+            'start_date',
+            'end_date',
+        )
 
 
 class NodeIdentifierSerializer(serializers.ModelSerializer):
@@ -130,6 +264,23 @@ class TagVersionRelationSerializer(serializers.ModelSerializer):
         fields = ('tag_version', 'type')
 
 
+class TagVersionAgentTagLinkAgentSerializer(serializers.ModelSerializer):
+    names = AgentNameSerializer(many=True)
+
+    class Meta:
+        model = Agent
+        fields = ('id', 'names', 'create_date', 'revise_date', 'start_date', 'end_date',)
+
+
+class TagVersionAgentTagLinkSerializer(serializers.ModelSerializer):
+    agent = TagVersionAgentTagLinkAgentSerializer()
+    type = serializers.CharField(source='type.name')
+
+    class Meta:
+        model = AgentTagLink
+        fields = ('agent', 'type', 'start_date', 'end_date', 'description',)
+
+
 class TagVersionNestedSerializer(serializers.ModelSerializer):
     _id = serializers.UUIDField(source='pk')
     _index = serializers.CharField(source='elastic_index')
@@ -142,6 +293,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     medium_type = MediumTypeSerializer()
     notes = NodeNoteSerializer(many=True)
     identifiers = NodeIdentifierSerializer(many=True)
+    agents = TagVersionAgentTagLinkSerializer(source='agent_links', many=True)
 
     def get_root(self, obj):
         root = obj.get_root()
@@ -209,7 +361,16 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
         model = TagVersion
         fields = ('_id', '_index', 'name', 'type', 'create_date', 'revise_date', 'start_date', 'related_tags', 'notes',
                   'end_date', 'is_leaf_node', '_source', 'masked_fields', 'structure_unit', 'root', 'medium_type',
-                  'identifiers',)
+                  'identifiers', 'agents',)
+
+
+class AgentArchiveLinkSerializer(serializers.ModelSerializer):
+    archive = TagVersionNestedSerializer(source='tag')
+    type = serializers.CharField(source='type.name')
+
+    class Meta:
+        model = AgentTagLink
+        fields = ('archive', 'type', 'description', 'start_date', 'end_date',)
 
 
 class TagVersionSerializer(TagVersionNestedSerializer):
