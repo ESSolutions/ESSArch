@@ -172,10 +172,17 @@ class KlaraImporter(BaseImporter):
 
     @staticmethod
     def _parse_year_string(year_str):
-        if year_str:
-            return datetime.strptime(year_str, '%Y')
+        """
+        Parses a string containing only the year, e.g.: "2019"
 
-        return None
+        Args:
+            year_str (str): The year
+
+        Returns:
+            A datetime object at the very start of the given year
+        """
+
+        return datetime.strptime(year_str, '%Y')
 
     @staticmethod
     def get_series(archive):
@@ -357,12 +364,14 @@ class KlaraImporter(BaseImporter):
     @classmethod
     def parse_agent_start_date(cls, arkivbildare):
         start_year = arkivbildare.xpath('ObjectParts/General/ArchiveOrig.ExistFrom')[0].text
-        return cls._parse_year_string(start_year)
+        if start_year:
+            return cls._parse_year_string(start_year)
 
     @classmethod
     def parse_agent_end_date(cls, arkivbildare):
         end_year = arkivbildare.xpath('ObjectParts/General/ArchiveOrig.ExistTo')[0].text
-        return cls._parse_year_string(end_year)
+        if end_year:
+            return cls._parse_year_string(end_year)
 
     def parse_arkivbildare(self, el, task):
         logger.debug("Parsing arkivbildare...")
@@ -419,13 +428,37 @@ class KlaraImporter(BaseImporter):
 
     @classmethod
     def parse_archive_start_date(cls, el):
+        """
+        Gets the start date of the archive
+
+        Args:
+            el (etree.ElementBase): The <Archive> element
+
+        Returns:
+            The start date of the archive as a datetime object
+            if there is one, otherwise None
+        """
+
         start_year = el.xpath('ObjectParts/General/Archive.DateBegin')[0].text
-        return cls._parse_year_string(start_year)
+        if start_year:
+            return cls._parse_year_string(start_year)
 
     @classmethod
     def parse_archive_end_date(cls, el):
+        """
+        Gets the end date of the archive
+
+        Args:
+            el (etree.ElementBase): The <Archive> element
+
+        Returns:
+            The end date of the archive as a datetime object
+            if there is one, otherwise None
+        """
+
         end_year = el.xpath('ObjectParts/General/Archive.DateEnd')[0].text
-        return cls._parse_year_string(end_year)
+        if end_year:
+            return cls._parse_year_string(end_year)
 
     def parse_archive(self, el, task=None, ip=None):
         name = el.xpath('ObjectParts/General/Archive.Name')[0].text
