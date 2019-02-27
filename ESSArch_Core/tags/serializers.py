@@ -3,7 +3,7 @@ import elasticsearch
 from rest_framework import serializers
 
 from ESSArch_Core.ip.utils import get_cached_objid
-from ESSArch_Core.tags.models import Tag, TagVersion, Structure, StructureUnit, TagStructure
+from ESSArch_Core.tags.models import Tag, TagVersion, TagVersionRelation, Structure, StructureUnit, TagStructure
 
 
 class StructureSerializer(serializers.ModelSerializer):
@@ -72,6 +72,21 @@ class TagVersionWriteSerializer(serializers.ModelSerializer):
         fields = ('start_date', 'end_date', 'name', 'type', 'reference_code',)
 
 
+class RelatedTagVersionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TagVersion
+        fields = ('id', 'name',)
+
+
+class TagVersionRelationSerializer(serializers.ModelSerializer):
+    tag_version = RelatedTagVersionSerializer(source='tag_version_b')
+    type = serializers.CharField(source='type.name')
+
+    class Meta:
+        model = TagVersionRelation
+        fields = ('tag_version', 'type')
+
+
 class TagVersionNestedSerializer(serializers.ModelSerializer):
     _id = serializers.UUIDField(source='pk')
     _index = serializers.CharField(source='elastic_index')
@@ -80,6 +95,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     masked_fields = serializers.SerializerMethodField()
     structure_unit = serializers.SerializerMethodField()
     root = serializers.SerializerMethodField()
+    related_tags = TagVersionRelationSerializer(source='tag_version_relations_a', many=True)
 
     def get_root(self, obj):
         root = obj.get_root()
@@ -145,7 +161,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TagVersion
-        fields = ('_id', '_index', 'name', 'type', 'create_date', 'start_date',
+        fields = ('_id', '_index', 'name', 'type', 'create_date', 'start_date', 'related_tags',
                   'end_date', 'is_leaf_node', '_source', 'masked_fields', 'structure_unit', 'root',)
 
 

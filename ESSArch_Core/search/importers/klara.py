@@ -4,6 +4,7 @@ from datetime import datetime
 from itertools import chain
 import hashlib
 import logging
+import re
 import uuid
 
 import pytz
@@ -33,12 +34,14 @@ from ESSArch_Core.tags.models import (
     MediumType,
     NodeIdentifier,
     NodeIdentifierType,
+    NodeRelationType,
     RefCode,
     Structure,
     StructureUnit,
     Tag,
     TagStructure,
     TagVersion,
+    TagVersionRelation,
     Topography,
 )
 
@@ -46,6 +49,8 @@ logger = logging.getLogger('essarch.search.importers.KlaraImporter')
 
 
 class KlaraImporter(BaseImporter):
+    VOLUME_RELATION_REGEX = re.compile(r'[ABCDEFGHJKLÖ]+[A-Za-zÅÖÖåäö0-9]+[:0-9]{2,}')
+
     SERIE_XPATH = etree.XPath("ObjectParts/Series/Archive.Series/Series")
 
     AGENT_IDENTIFIER_TYPE = 'Klara'
@@ -56,6 +61,7 @@ class KlaraImporter(BaseImporter):
     LANGUAGE_CODE = 'sv'
     NODE_IDENTIFIER_TYPE_NAME = 'Klara-id'
     REPO_CODE = 'C020'  # TODO: just a dummy
+    VOLUME_RELATION_TYPE_NAME = 'associative'
 
     _ref_code = None
     _language = None
@@ -66,6 +72,7 @@ class KlaraImporter(BaseImporter):
     _note_type_historik = None
     _medium_type_logisk = None
     _node_identifier_type_klara = None
+    _volume_relation_type = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -130,6 +137,14 @@ class KlaraImporter(BaseImporter):
                 name=self.NODE_IDENTIFIER_TYPE_NAME
             )
         return self._node_identifier_type_klara
+
+    @property
+    def volume_relation_type(self):
+        if self._volume_relation_type is None:
+            self._volume_relation_type, _ = NodeRelationType.objects.get_or_create(
+                name=self.VOLUME_RELATION_TYPE_NAME,
+            )
+        return self._volume_relation_type
 
     @staticmethod
     def _parse_timestamp(ts):
@@ -526,7 +541,7 @@ class KlaraImporter(BaseImporter):
         else:
             medium_type = None
 
-        volume_id = uuid.uuid4()
+        volume_id = str(uuid.uuid4())
 
         agent_hash = self.build_agent_hash(
             el.xpath("ArchiveOrig.ArchiveOrigID")[0].text,
@@ -581,6 +596,11 @@ class KlaraImporter(BaseImporter):
             medium_type=medium_type,
         )
 
+        related_id_match = self.VOLUME_RELATION_REGEX.search(name)
+        if related_id_match:
+            relation_cache_key = 'relation_{}'.format(volume_id)
+            cache.set(relation_cache_key, related_id_match.group(0), 300)
+
         TagStructure.objects.create(
             tag=tag,
             structure_unit=unit,
@@ -604,16 +624,47 @@ class KlaraImporter(BaseImporter):
 
         archive_xml_path = extra_paths.get('archive_xml')
         if archive_xml_path:
-            logger.debug("Importing data from {}...".format(archive_xml_path))
-            docs = self.parse_archive_xml(archive_xml_path)
-            logger.info("Data imported from {}".format(archive_xml_path))
+            logger.debug("Importing archives and series from {}...".format(archive_xml_path))
+            docs = list(self.parse_archive_xml(archive_xml_path))
+            logger.info("Archive and series imported from {}".format(archive_xml_path))
 
             volume_xml_path = extra_paths.get('volume_xml')
             if volume_xml_path:
-                logger.debug("Importing data from {}...".format(volume_xml_path))
-                volume_docs = self.parse_volume_xml(volume_xml_path)
+                logger.debug("Importing volumes from {}...".format(volume_xml_path))
+                volume_docs = list(self.parse_volume_xml(volume_xml_path))
                 docs = chain(docs, volume_docs)
-                logger.info("Data imported from {}".format(volume_xml_path))
+                logger.info("Volumes imported from {}".format(volume_xml_path))
+
+                logger.debug("Creating relations between volumes...")
+
+                for tag_version in TagVersion.objects.filter(tag__task=self.task).iterator():
+                    logger.debug("Getting related reference from cache...")
+                    relation_cache_key = 'relation_{}'.format(str(tag_version.pk))
+                    related_ref = cache.get(relation_cache_key)
+                    if related_ref:
+                        logger.info("Related reference found in cache")
+                        related_series_ref, related_volume_ref = related_ref.split(':')
+                        # TODO replace this with something faster (and safer and more correct?)
+                        try:
+                            related_tag_version = TagVersion.objects.get(
+                                tag__task=self.task,
+                                reference_code=related_volume_ref,
+                                tag__structures__structure_unit__reference_code=related_series_ref,
+                            )
+                        except TagVersion.DoesNotExist:
+                            logger.exception(
+                                'Related tag version with reference "{}" not found, skipping...'.format(related_ref)
+                            )
+                        else:
+                            TagVersionRelation.objects.create(
+                                tag_version_a=tag_version,
+                                tag_version_b=related_tag_version,
+                                type=self.volume_relation_type,
+                            )
+                    else:
+                        logger.info("No related reference found in cache")
+
+                logger.info("Relations created between volumes ")
 
             self.update_current_tag_versions()
 
