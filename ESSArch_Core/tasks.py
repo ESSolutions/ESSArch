@@ -286,7 +286,7 @@ class ValidateFileFormat(DBTask):
     queue = 'validation'
 
     def run(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
-        return validate_file_format(self.request.id, filename, format_name, format_registry_key, format_version)
+        return validate_file_format(filename, format_name, format_registry_key, format_version)
 
     def undo(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
         pass
