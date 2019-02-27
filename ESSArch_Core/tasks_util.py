@@ -6,7 +6,6 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db.models import F
 
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.essxml.util import find_files
