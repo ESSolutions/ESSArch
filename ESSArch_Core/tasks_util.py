@@ -6,10 +6,10 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db.models import F
 
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.essxml.util import find_files
+from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.fixity.validation.backends.format import FormatValidator
 from ESSArch_Core.ip.models import InformationPackage, EventIP
@@ -155,24 +155,13 @@ def write_medium_label_to_drive(drive_id, medium, slot_id, tape_drive):
         TapeDrive.objects.filter(pk=drive_id).update(locked=False)
 
 
-def validate_file_format(request_id, filename, format_name, format_registry_key, format_version):
+def validate_file_format(filename, format_name, format_registry_key, format_version):
     """
     Validates the format of the given file
     """
-    task = ProcessTask.objects.values(
-        'information_package_id', 'responsible_id'
-    ).get(pk=request_id)
 
-    t = ProcessTask.objects.create(
-        name="ESSArch_Core.tasks.IdentifyFileFormat",
-        params={
-            "filename": filename,
-        },
-        information_package_id=task.get('information_package_id'),
-        responsible_id=task.get('responsible_id'),
-    )
-
-    actual_format_name, actual_format_version, actual_format_registry_key = t.run().get()
+    fid = FormatIdentifier()
+    actual_format_name, actual_format_version, actual_format_registry_key = fid.identify_file_format(filename)
 
     if format_name:
         assert actual_format_name == format_name, (
