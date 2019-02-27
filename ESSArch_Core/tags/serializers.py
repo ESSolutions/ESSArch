@@ -3,7 +3,24 @@ import elasticsearch
 from rest_framework import serializers
 
 from ESSArch_Core.ip.utils import get_cached_objid
-from ESSArch_Core.tags.models import Tag, TagVersion, TagVersionRelation, Structure, StructureUnit, TagStructure
+from ESSArch_Core.tags.models import (
+    MediumType,
+    NodeNote,
+    Structure,
+    StructureUnit,
+    Tag,
+    TagStructure,
+    TagVersion,
+    TagVersionRelation,
+)
+
+
+class NodeNoteSerializer(serializers.ModelSerializer):
+    type = serializers.CharField(source='type.name')
+
+    class Meta:
+        model = NodeNote
+        fields = ('id', 'type', 'text', 'href', 'create_date', 'revise_date',)
 
 
 class StructureSerializer(serializers.ModelSerializer):
@@ -59,6 +76,12 @@ class TagStructureSerializer(serializers.ModelSerializer):
         read_only_fields = ('parent', 'structure',)
 
 
+class MediumTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MediumType
+        fields = ('id', 'name', 'size', 'unit',)
+
+
 class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
     class Meta:
         model = TagVersion
@@ -96,6 +119,8 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     structure_unit = serializers.SerializerMethodField()
     root = serializers.SerializerMethodField()
     related_tags = TagVersionRelationSerializer(source='tag_version_relations_a', many=True)
+    medium_type = MediumTypeSerializer()
+    notes = NodeNoteSerializer(many=True)
 
     def get_root(self, obj):
         root = obj.get_root()
@@ -161,8 +186,8 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TagVersion
-        fields = ('_id', '_index', 'name', 'type', 'create_date', 'start_date', 'related_tags',
-                  'end_date', 'is_leaf_node', '_source', 'masked_fields', 'structure_unit', 'root',)
+        fields = ('_id', '_index', 'name', 'type', 'create_date', 'revise_date', 'start_date', 'related_tags', 'notes',
+                  'end_date', 'is_leaf_node', '_source', 'masked_fields', 'structure_unit', 'root', 'medium_type',)
 
 
 class TagVersionSerializer(TagVersionNestedSerializer):
