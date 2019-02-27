@@ -34,6 +34,8 @@ from ESSArch_Core.tags.models import (
     MediumType,
     NodeIdentifier,
     NodeIdentifierType,
+    NodeNote,
+    NodeNoteType,
     NodeRelationType,
     RefCode,
     Structure,
@@ -59,7 +61,8 @@ class KlaraImporter(BaseImporter):
     AGENT_TAG_LINK_RELATION_TYPE_NAME = 'creator'
     COUNTRY_CODE = 'SE'
     LANGUAGE_CODE = 'sv'
-    NODE_IDENTIFIER_TYPE_NAME = 'Klara-id'
+    NODE_IDENTIFIER_TYPE_KLARA_NAME = 'Klara-id'
+    NODE_NOTE_TYPE_HISTORIK_NAME = 'Historik'
     REPO_CODE = 'C020'  # TODO: just a dummy
     VOLUME_RELATION_TYPE_NAME = 'associative'
 
@@ -73,6 +76,7 @@ class KlaraImporter(BaseImporter):
     _medium_type_logisk = None
     _node_identifier_type_klara = None
     _volume_relation_type = None
+    _node_note_type_historik = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -134,9 +138,17 @@ class KlaraImporter(BaseImporter):
     def node_identifier_type_klara(self):
         if self._node_identifier_type_klara is None:
             self._node_identifier_type_klara, _ = NodeIdentifierType.objects.get_or_create(
-                name=self.NODE_IDENTIFIER_TYPE_NAME
+                name=self.NODE_IDENTIFIER_TYPE_KLARA_NAME
             )
         return self._node_identifier_type_klara
+
+    @property
+    def node_note_type_historik(self):
+        if self._node_note_type_historik is None:
+            self._node_note_type_historik, _ = NodeNoteType.objects.get_or_create(
+                name=self.NODE_NOTE_TYPE_HISTORIK_NAME
+            )
+        return self._node_note_type_historik
 
     @property
     def volume_relation_type(self):
@@ -432,6 +444,16 @@ class KlaraImporter(BaseImporter):
             tag_version=tag_version,
             type=self.node_identifier_type_klara,
         )
+
+        history_note_text = el.xpath("ObjectParts/History/Archive.History")[0].text
+        if history_note_text:
+            NodeNote.objects.create(
+                text=history_note_text,
+                tag_version=tag_version,
+                type=self.node_note_type_historik,
+                create_date=timezone.now(),  # TODO: use something else to get the date?
+                revise_date=timezone.now(),  # TODO: use something else to get the date?
+            )
 
         structure, _ = Structure.objects.get_or_create(  # TODO: get or create?
             name="Arkivförteckning för {}".format(name),
