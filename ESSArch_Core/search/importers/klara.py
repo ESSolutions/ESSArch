@@ -39,6 +39,7 @@ from ESSArch_Core.tags.models import (
     NodeNoteType,
     NodeRelationType,
     RefCode,
+    RuleConventionType,
     Structure,
     StructureUnit,
     Tag,
@@ -401,6 +402,22 @@ class KlaraImporter(BaseImporter):
         return agent
 
     @classmethod
+    def parse_archive_create_date(cls, el):
+        create_date = el.xpath('ObjectParts/General/Archive.CreatedWhen')[0].text
+        if create_date is None:
+            return None
+
+        return cls._parse_timestamp(create_date)
+
+    @classmethod
+    def parse_archive_revise_date(cls, el):
+        revise_date = el.xpath('ObjectParts/General/Archive.ModifiedWhen')[0].text
+        if revise_date is None:
+            return None
+
+        return cls._parse_timestamp(revise_date)
+
+    @classmethod
     def parse_archive_start_date(cls, el):
         start_year = el.xpath('ObjectParts/General/Archive.DateBegin')[0].text
         return cls._parse_year_string(start_year)
@@ -412,6 +429,9 @@ class KlaraImporter(BaseImporter):
 
     def parse_archive(self, el, task=None, ip=None):
         name = el.xpath('ObjectParts/General/Archive.Name')[0].text
+        orig_name = el.xpath('ObjectParts/General/ArchiveOrig.Name')[0].text
+        create_date = self.parse_archive_create_date(el)
+        revise_date = self.parse_archive_revise_date(el)
         tag_type = 'Arkiv'
 
         tag = Tag.objects.create(information_package=ip, task=task)
@@ -424,8 +444,8 @@ class KlaraImporter(BaseImporter):
             type=tag_type,
             name=name,
             elastic_index='archive',
-            create_date=el.xpath('ObjectParts/General/Archive.CreatedWhen'),
-            revise_date=el.xpath('ObjectParts/General/Archive.ModifiedWhen'),
+            create_date=create_date,
+            revise_date=revise_date,
             start_date=self.parse_archive_start_date(el),
             end_date=self.parse_archive_end_date(el),
         )
@@ -456,9 +476,15 @@ class KlaraImporter(BaseImporter):
                 revise_date=timezone.now(),  # TODO: use something else to get the date?
             )
 
+        rule_convention_type, _ = RuleConventionType.objects.get_or_create(
+            name=el.xpath("ObjectParts/General/ArchiveType.Name")[0].text,
+        )
+
         structure, _ = Structure.objects.get_or_create(  # TODO: get or create?
-            name="Arkivförteckning för {}".format(name),
+            name="Arkivförteckning för {}".format(orig_name),
             version='1.0',
+            create_date=create_date,
+            rule_convention_type=rule_convention_type,
         )
         tag_structure = TagStructure.objects.create(
             tag=tag,
@@ -467,7 +493,7 @@ class KlaraImporter(BaseImporter):
 
         agent_hash = self.build_agent_hash(
             el.xpath('ObjectParts/General/Archive.ArchiveOrigID')[0].text,
-            el.xpath('ObjectParts/General/ArchiveOrig.Name')[0].text,
+            orig_name,
         )
         agent_id = cache.get(agent_hash)
 
