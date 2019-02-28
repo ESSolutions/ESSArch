@@ -53,7 +53,7 @@ logger = logging.getLogger('essarch.search.importers.KlaraImporter')
 
 
 class KlaraImporter(BaseImporter):
-    VOLUME_RELATION_REGEX = re.compile(r'[ABCDEFGHJKLÖ]+[A-Za-zÅÖÖåäö0-9]+[:0-9]{2,}')
+    VOLUME_RELATION_REGEX = re.compile(r'[ABCDEFGHJKLÖ]+\s*[A-Za-zÅÖÖåäö0-9]+\s*\:\s*[0-9]+')
 
     SERIE_XPATH = etree.XPath("ObjectParts/Series/Archive.Series/Series")
 
@@ -681,7 +681,8 @@ class KlaraImporter(BaseImporter):
         related_id_match = self.VOLUME_RELATION_REGEX.search(name)
         if related_id_match:
             relation_cache_key = 'relation_{}'.format(volume_id)
-            cache.set(relation_cache_key, related_id_match.group(0), 300)
+            match_without_whitespace = re.sub(r'\s+', '', related_id_match.group(0))
+            cache.set(relation_cache_key, match_without_whitespace, 300)
 
         TagStructure.objects.create(
             tag=tag,
