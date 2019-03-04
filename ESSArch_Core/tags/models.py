@@ -276,6 +276,9 @@ class RefCode(models.Model):
     )
     repository_code = models.CharField(_('repository code'), max_length=255, blank=False)
 
+    def __str__(self):
+        return '{}/{}'.format(self.country.iso, self.repository_code)
+
     class Meta:
         unique_together = ('country', 'repository_code')
 
