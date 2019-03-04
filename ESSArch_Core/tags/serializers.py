@@ -11,6 +11,7 @@ from ESSArch_Core.tags.models import (
     AgentName,
     AgentNameType,
     AgentNote,
+    AgentNoteType,
     AgentPlace,
     AgentRelation,
     AgentTagLink,
@@ -64,6 +65,17 @@ class AgentNoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgentNote
         fields = ('text', 'type', 'href', 'create_date', 'revise_date',)
+
+
+class AgentNoteWriteSerializer(AgentNoteSerializer):
+    type = serializers.PrimaryKeyRelatedField(queryset=AgentNoteType.objects.all())
+
+    class Meta(AgentNoteSerializer.Meta):
+        extra_kwargs = {
+            'create_date': {
+                'default': timezone.now,
+            },
+        }
 
 
 class SourcesOfAuthoritySerializer(serializers.ModelSerializer):
@@ -171,17 +183,23 @@ class AgentWriteSerializer(AgentSerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=AgentType.objects.all())
     ref_code = serializers.PrimaryKeyRelatedField(queryset=RefCode.objects.all())
     names = AgentNameWriteSerializer(many=True)
+    notes = AgentNoteWriteSerializer(many=True)
 
     def create(self, validated_data):
         names = validated_data.pop('names')
+        notes = validated_data.pop('notes')
         agent = Agent.objects.create(**validated_data)
 
         name_objs = []
-
         for name in names:
             name_objs.append(AgentName(agent=agent, **name))
-
         AgentName.objects.bulk_create(name_objs)
+
+        note_objs = []
+        for note in notes:
+            note_objs.append(AgentNote(agent=agent, **note))
+        AgentNote.objects.bulk_create(note_objs)
+
         return agent
 
     def validate_names(self, value):
