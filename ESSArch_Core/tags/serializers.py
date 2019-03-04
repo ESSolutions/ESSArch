@@ -9,6 +9,7 @@ from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.tags.models import (
     Agent,
     AgentIdentifier,
+    AgentIdentifierType,
     AgentName,
     AgentNameType,
     AgentNote,
@@ -42,6 +43,14 @@ class RefCodeSerializer(serializers.ModelSerializer):
 
 class AgentIdentifierSerializer(serializers.ModelSerializer):
     type = serializers.CharField(source='type.name')
+
+    class Meta:
+        model = AgentIdentifier
+        fields = ('id', 'identifier', 'type',)
+
+
+class AgentIdentifierWriteSerializer(serializers.ModelSerializer):
+    type = serializers.PrimaryKeyRelatedField(queryset=AgentIdentifierType.objects.all())
 
     class Meta:
         model = AgentIdentifier
@@ -183,8 +192,16 @@ class AgentSerializer(serializers.ModelSerializer):
 class AgentWriteSerializer(AgentSerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=AgentType.objects.all())
     ref_code = serializers.PrimaryKeyRelatedField(queryset=RefCode.objects.all())
-    names = AgentNameWriteSerializer(many=True)
-    notes = AgentNoteWriteSerializer(many=True)
+    identifiers = AgentIdentifierWriteSerializer(many=True, required=False)
+    names = AgentNameWriteSerializer(many=True, required=False)
+    notes = AgentNoteWriteSerializer(many=True, required=False)
+
+    @staticmethod
+    def create_identifiers(agent, identifiers_data):
+        AgentIdentifier.objects.bulk_create([
+            AgentIdentifier(agent=agent, **identifier)
+            for identifier in identifiers_data
+        ])
 
     @staticmethod
     def create_names(agent, names_data):
@@ -202,10 +219,12 @@ class AgentWriteSerializer(AgentSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        names_data = validated_data.pop('names')
-        notes_data = validated_data.pop('notes')
+        identifiers_data = validated_data.pop('identifiers', [])
+        names_data = validated_data.pop('names', [])
+        notes_data = validated_data.pop('notes', [])
         agent = Agent.objects.create(**validated_data)
 
+        self.create_identifiers(agent, identifiers_data)
         self.create_names(agent, names_data)
         self.create_notes(agent, notes_data)
 
@@ -213,8 +232,13 @@ class AgentWriteSerializer(AgentSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
+        identifiers_data = validated_data.pop('identifiers', None)
         names_data = validated_data.pop('names', None)
         notes_data = validated_data.pop('notes', None)
+
+        if identifiers_data is not None:
+            AgentIdentifier.objects.filter(agent=instance).delete()
+            self.create_identifiers(instance, identifiers_data)
 
         if names_data is not None:
             AgentName.objects.filter(agent=instance).delete()
