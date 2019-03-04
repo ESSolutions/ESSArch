@@ -209,11 +209,6 @@ class AgentWriteSerializer(AgentSerializer):
         self.create_names(agent, names_data)
         self.create_notes(agent, notes_data)
 
-        notes = []
-        for note in notes_data:
-            notes.append(AgentNote(agent=agent, **note))
-        AgentNote.objects.bulk_create(notes)
-
         return agent
 
     @transaction.atomic
