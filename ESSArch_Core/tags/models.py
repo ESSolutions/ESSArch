@@ -15,6 +15,9 @@ from ESSArch_Core.tags.documents import VersionedDocType
 class AgentRelationType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class AgentRelation(models.Model):
     agent_a = models.ForeignKey('tags.Agent', on_delete=models.CASCADE, related_name='agent_relations_a')
@@ -110,6 +113,9 @@ class AgentTagLink(models.Model):
 class AgentTagLinkRelationType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class AgentNote(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -129,6 +135,9 @@ class AgentNote(models.Model):
 
 class AgentNoteType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class AgentFunction(models.Model):
@@ -155,6 +164,9 @@ class SourcesOfAuthority(models.Model):
 class AuthorityType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class AgentIdentifier(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -165,6 +177,9 @@ class AgentIdentifier(models.Model):
 
 class AgentIdentifierType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Topography(models.Model):
@@ -186,6 +201,9 @@ class Topography(models.Model):
 
 class AgentPlaceType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class AgentPlace(models.Model):
@@ -224,6 +242,9 @@ class AgentType(models.Model):
 class MainAgentType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class AgentName(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -239,6 +260,9 @@ class AgentName(models.Model):
 
 class AgentNameType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class RefCode(models.Model):
@@ -279,6 +303,9 @@ class NodeIdentifier(models.Model):
 class NodeIdentifierType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class NodeNote(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -306,17 +333,29 @@ class NodeNote(models.Model):
 class NodeNoteType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class NodeRelationType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class StructureType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class RuleConventionType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Structure(models.Model):
