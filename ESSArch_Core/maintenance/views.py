@@ -87,30 +87,20 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
     def preview(self, request, pk=None):
         job = self.get_object()
         ips = job.rule.information_packages.filter(appraisal_date__lte=timezone.now(), active=True)
-        found = []
+        found_files = []
 
         for ip in ips:
             datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
             if job.rule.specification:
                 for pattern in job.rule.specification:
-                    for path in iglob(datadir + '/' + pattern):
-                        if os.path.isdir(path):
-                            for root, dirs, files in walk(path):
-                                rel = os.path.relpath(root, datadir)
-
-                                for f in files:
-                                    found.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
-
-                        elif os.path.isfile(path):
-                            rel = os.path.relpath(path, datadir)
-                            found.append({'ip': ip.object_identifier_value, 'document': rel})
+                    found_files.extend(find_all_files(datadir, ip, pattern))
             else:
                 for root, dirs, files in walk(datadir):
                     rel = os.path.relpath(root, datadir)
 
                     for f in files:
-                        found.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
-        return Response(found)
+                        found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
+        return Response(found_files)
 
 
 class ConversionRuleViewSet(MaintenanceRuleViewSet):
@@ -128,21 +118,27 @@ class ConversionJobViewSet(MaintenanceJobViewSet):
     def preview(self, request, pk=None):
         job = self.get_object()
         ips = job.rule.information_packages.all()
-        files = []
+        found_files = []
 
         for ip in ips:
             datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
             for pattern, spec in job.rule.specification.items():
-                for path in iglob(datadir + '/' + pattern):
-                    if os.path.isdir(path):
-                        for root, dirs, files in walk(path):
-                            rel = os.path.relpath(root, datadir)
+                found_files.extend(find_all_files(datadir, ip, pattern))
 
-                            for f in files:
-                                files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
+        return Response(found_files)
 
-                    elif os.path.isfile(path):
-                        rel = os.path.relpath(path, datadir)
-                        files.append({'ip': ip.object_identifier_value, 'document': rel})
 
-        return Response(files)
+def find_all_files(datadir, ip, pattern):
+    found_files = []
+    for path in iglob(datadir + '/' + pattern):
+        if os.path.isdir(path):
+            for root, dirs, found_files in walk(path):
+                rel = os.path.relpath(root, datadir)
+
+                for f in found_files:
+                    found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
+
+        elif os.path.isfile(path):
+            rel = os.path.relpath(path, datadir)
+            found_files.append({'ip': ip.object_identifier_value, 'document': rel})
+    return found_files

@@ -28,7 +28,6 @@ import os
 import pickle
 import shutil
 import tarfile
-import tempfile
 import time
 import zipfile
 
@@ -36,9 +35,8 @@ import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.core.mail import EmailMessage, send_mail
+from django.core.mail import EmailMessage
 from django.db import transaction
-from django.db.models import F
 from django.utils import timezone
 from django_redis import get_redis_connection
 from elasticsearch import helpers as es_helpers
@@ -52,32 +50,31 @@ from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.WorkflowEngine.polling import get_backend
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 from ESSArch_Core.auth.models import Notification
-from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, findElementWithoutNamespace
-from ESSArch_Core.essxml.util import find_files
 from ESSArch_Core.fixity import validation
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
-from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
-from ESSArch_Core.fixity.validation.backends.format import FormatValidator
 from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLComparisonValidator, XMLSchemaValidator
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.copy import copy_file
-from ESSArch_Core.storage.exceptions import TapeDriveLockedError
-from ESSArch_Core.storage.models import StorageMedium, TapeDrive, TapeSlot
+from ESSArch_Core.storage.models import TapeDrive
 from ESSArch_Core.storage.tape import (DEFAULT_TAPE_BLOCK_SIZE,
-                                       create_tape_label, get_tape_file_number,
-                                       is_tape_drive_online, mount_tape,
-                                       read_tape, rewind_tape, robot_inventory,
-                                       set_tape_file_number, tape_empty,
-                                       unmount_tape, verify_tape_label,
-                                       wait_to_come_online, write_to_tape)
+                                       get_tape_file_number,
+                                       is_tape_drive_online, read_tape, rewind_tape, robot_inventory,
+                                       set_tape_file_number, write_to_tape)
 from ESSArch_Core.tags import (DELETION_PROCESS_QUEUE, DELETION_QUEUE,
                                INDEX_PROCESS_QUEUE, INDEX_QUEUE,
                                UPDATE_PROCESS_QUEUE, UPDATE_QUEUE)
-from ESSArch_Core.util import convert_file, get_event_element_spec, get_tree_size_and_count
+from ESSArch_Core.util import convert_file, get_tree_size_and_count, zip_directory
+from ESSArch_Core.tasks_util import (
+    unmount_tape_from_drive,
+    mount_tape_medium_into_drive,
+    validate_file_format,
+    validate_files,
+    append_events,
+)
 
 User = get_user_model()
 redis = get_redis_connection()
@@ -193,45 +190,7 @@ class AppendEvents(DBTask):
     event_type = 50610
 
     def run(self, filename="", events=None):
-        if not filename:
-            ip = InformationPackage.objects.get(pk=self.ip)
-            filename = os.path.join(ip.object_path, ip.get_events_file_path())
-        generator = XMLGenerator(filepath=filename)
-        template = get_event_element_spec()
-
-        if not events:
-            events = EventIP.objects.filter(linkingObjectIdentifierValue=self.ip)
-
-        id_types = {}
-
-        for id_type in ['event', 'linking_agent', 'linking_object']:
-            entity = '%s_identifier_type' % id_type
-            id_types[id_type] = Parameter.objects.cached('entity', entity, 'value')
-
-        target = generator.find_element('premis')
-        for event in events.iterator():
-            objid = get_cached_objid(event.linkingObjectIdentifierValue)
-
-            data = {
-                "eventIdentifierType": id_types['event'],
-                "eventIdentifierValue": str(event.eventIdentifierValue),
-                "eventType": (
-                    str(event.eventType.code) if event.eventType.code is not None and
-                    event.eventType.code != '' else str(event.eventType.eventType)),
-                "eventDateTime": str(event.eventDateTime),
-                "eventDetail": event.eventType.eventDetail,
-                "eventOutcome": str(event.eventOutcome),
-                "eventOutcomeDetailNote": event.eventOutcomeDetailNote,
-                "linkingAgentIdentifierType": id_types['linking_agent'],
-                "linkingAgentIdentifierValue": event.linkingAgentIdentifierValue,
-                "linkingAgentRole": event.linkingAgentRole,
-                "linkingObjectIdentifierType": id_types['linking_object'],
-                "linkingObjectIdentifierValue": objid,
-            }
-
-            generator.insert_from_specification(target, template, data)
-
-        generator.write(filename)
+        append_events(self.ip, events, filename)
 
     def event_outcome_success(self, filename="", events=None):
         if not filename:
@@ -300,17 +259,7 @@ class CreateZIP(DBTask):
             compress: Compresses the zip file if true
         """
 
-        compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
-        with zipfile.ZipFile(zipname, 'w', compression) as new_zip:
-            for root, dirs, files in walk(dirname):
-                for d in dirs:
-                    filepath = os.path.join(root, d)
-                    arcname = os.path.relpath(filepath, dirname)
-                    new_zip.write(filepath, arcname)
-                for f in files:
-                    filepath = os.path.join(root, f)
-                    arcname = os.path.relpath(filepath, dirname)
-                    new_zip.write(filepath, arcname)
+        zip_directory(dirname, zipname, compress)
 
         self.set_progress(100, total=100)
         return zipname
@@ -327,32 +276,7 @@ class CreateZIP(DBTask):
 
 class ValidateFiles(DBTask):
     def run(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
-        if any([validate_fileformat, validate_integrity]):
-            if rootdir is None:
-                rootdir = InformationPackage.objects.values_list('object_path', flat=True).get(pk=ip)
-
-            format_validator = FormatValidator()
-
-            for f in find_files(xmlfile, rootdir):
-                filename = os.path.join(rootdir, f.path)
-
-                if validate_fileformat and f.format is not None:
-                    format_validator.validate(filename, (f.format, None, None))
-
-                if validate_integrity and f.checksum is not None and f.checksum_type is not None:
-                    options = {'expected': f.checksum, 'algorithm': f.checksum_type}
-                    validator = ChecksumValidator(context='checksum_str', options=options)
-                    try:
-                        validator.validate(filename)
-                    except Exception as e:
-                        recipient = User.objects.get(pk=self.responsible).email
-                        if recipient and self.ip:
-                            ip = InformationPackage.objects.get(pk=self.ip)
-                            subject = 'Rejected "%s"' % ip.object_identifier_value
-                            body = '"%s" was rejected:\n%s' % (ip.object_identifier_value, str(e))
-                            send_mail(subject, body, None, [recipient], fail_silently=False)
-
-                        raise
+        validate_files(self.ip, self.responsible, rootdir, validate_fileformat, validate_integrity, xmlfile)
 
     def event_outcome_success(self, ip, xmlfile, validate_fileformat=True, validate_integrity=True, rootdir=None):
         return "Validated files in %s" % xmlfile
@@ -362,39 +286,7 @@ class ValidateFileFormat(DBTask):
     queue = 'validation'
 
     def run(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
-        """
-        Validates the format of the given file
-        """
-
-        task = ProcessTask.objects.values(
-            'information_package_id', 'responsible_id'
-        ).get(pk=self.request.id)
-
-        t = ProcessTask.objects.create(
-            name="ESSArch_Core.tasks.IdentifyFileFormat",
-            params={
-                "filename": filename,
-            },
-            information_package_id=task.get('information_package_id'),
-            responsible_id=task.get('responsible_id'),
-        )
-
-        actual_format_name, actual_format_version, actual_format_registry_key = t.run().get()
-
-        if format_name:
-            assert actual_format_name == format_name, (
-                "format name for %s is not valid, (%s != %s)" % filename, format_name, actual_format_name
-            )
-
-        if format_version:
-            assert actual_format_version == format_version, "format version for %s is not valid" % filename
-
-        if format_registry_key:
-            assert actual_format_registry_key == format_registry_key, (
-                "format registry key for %s is not valid" % filename
-            )
-
-        return "Success"
+        return validate_file_format(filename, format_name, format_registry_key, format_version)
 
     def undo(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
         pass
@@ -734,80 +626,7 @@ class MountTape(DBTask):
 
     @retry(stop_max_attempt_number=5, wait_fixed=60000)
     def run(self, medium=None, drive=None, timeout=120):
-        """
-        Mounts tape into drive
-
-        Args:
-            medium: Which medium to mount
-            drive: Which drive to load to
-        """
-
-        medium = StorageMedium.objects.get(pk=medium)
-        slot = medium.tape_slot.slot_id
-        tape_drive = TapeDrive.objects.get(pk=drive)
-
-        if tape_drive.locked:
-            raise TapeDriveLockedError()
-
-        tape_drive.locked = True
-        tape_drive.save(update_fields=['locked'])
-
-        try:
-            mount_tape(tape_drive.robot.device, slot, tape_drive.drive_id)
-            wait_to_come_online(tape_drive.device, timeout)
-        except BaseException:
-            StorageMedium.objects.filter(pk=medium.pk).update(status=100)
-            TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
-            TapeSlot.objects.filter(slot_id=slot).update(status=100)
-            raise
-
-        TapeDrive.objects.filter(pk=drive).update(
-            num_of_mounts=F('num_of_mounts') + 1,
-            last_change=timezone.now(),
-        )
-        StorageMedium.objects.filter(pk=medium.pk).update(
-            num_of_mounts=F('num_of_mounts') + 1,
-            tape_drive_id=drive
-        )
-
-        xmlfile = tempfile.NamedTemporaryFile(delete=False)
-
-        try:
-            arcname = '%s_label.xml' % medium.medium_id
-
-            if medium.format not in [100, 101]:
-                if tape_empty(tape_drive.device):
-                    create_tape_label(medium, xmlfile.name)
-                    rewind_tape(tape_drive.device)
-                    write_to_tape(tape_drive.device, xmlfile.name, arcname=arcname)
-                else:
-                    tar = tarfile.open(tape_drive.device, 'r|')
-                    first_member = tar.getmembers()[0]
-                    tar.close()
-                    rewind_tape(tape_drive.device)
-
-                    if first_member.name.endswith('_label.xml'):
-                        tar = tarfile.open(tape_drive.device, 'r|')
-                        xmlstring = tar.extractfile(first_member).read()
-                        tar.close()
-                        if not verify_tape_label(medium, xmlstring):
-                            raise ValueError('Tape contains invalid label file')
-                    elif first_member.name == 'reuse':
-                        create_tape_label(medium, xmlfile.name)
-                        rewind_tape(tape_drive.device)
-                        write_to_tape(tape_drive.device, xmlfile.name, arcname=arcname)
-                    else:
-                        raise ValueError('Tape contains unknown information')
-
-                    rewind_tape(tape_drive.device)
-        except BaseException:
-            StorageMedium.objects.filter(pk=medium.pk).update(status=100)
-            TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
-            TapeSlot.objects.filter(slot_id=slot).update(status=100)
-            raise
-        finally:
-            xmlfile.close()
-            TapeDrive.objects.filter(pk=drive).update(locked=False)
+        mount_tape_medium_into_drive(drive, medium, timeout)
 
     def undo(self, medium=None, drive=None, timeout=120):
         pass
@@ -821,44 +640,7 @@ class UnmountTape(DBTask):
 
     @retry(stop_max_attempt_number=5, wait_fixed=60000)
     def run(self, drive=None):
-        """
-        Unmounts tape from drive into slot
-
-        Args:
-            drive: Which drive to unmount from
-        """
-
-        tape_drive = TapeDrive.objects.get(pk=drive)
-
-        if not hasattr(tape_drive, 'storage_medium'):
-            raise ValueError("No tape in tape drive to unmount")
-
-        slot = tape_drive.storage_medium.tape_slot
-        robot = tape_drive.robot
-
-        if tape_drive.locked:
-            raise TapeDriveLockedError()
-
-        tape_drive.locked = True
-        tape_drive.save(update_fields=['locked'])
-
-        try:
-            res = unmount_tape(robot.device, slot.slot_id, tape_drive.drive_id)
-        except BaseException:
-            StorageMedium.objects.filter(pk=tape_drive.storage_medium.pk).update(status=100)
-            TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
-            TapeSlot.objects.filter(pk=slot.pk).update(status=100)
-            raise
-
-        StorageMedium.objects.filter(pk=tape_drive.storage_medium.pk).update(
-            tape_drive=None
-        )
-
-        tape_drive.last_change = timezone.now()
-        tape_drive.locked = False
-        tape_drive.save(update_fields=['last_change', 'locked'])
-
-        return res
+        return unmount_tape_from_drive(drive)
 
     def undo(self, robot=None, slot=None, drive=None):
         pass

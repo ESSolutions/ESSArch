@@ -715,3 +715,25 @@ def turn_on_auto_now_add(ModelClass, field_name):
 def do_to_model(ModelClass, field_name, func):
     field = ModelClass._meta.get_field(field_name)
     func(field)
+
+
+def zip_directory(dirname=None, zipname=None, compress=False):
+    """
+    Creates a ZIP file from the specified directory
+
+    Args:
+        dirname: The directory to create a ZIP from
+        zipname: The name of the zip file
+        compress: Compresses the zip file if true
+    """
+    compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
+    with zipfile.ZipFile(zipname, 'w', compression) as new_zip:
+        for root, dirs, files in walk(dirname):
+            for d in dirs:
+                filepath = os.path.join(root, d)
+                arcname = os.path.relpath(filepath, dirname)
+                new_zip.write(filepath, arcname)
+            for f in files:
+                filepath = os.path.join(root, f)
+                arcname = os.path.relpath(filepath, dirname)
+                new_zip.write(filepath, arcname)
