@@ -1,4 +1,5 @@
 from django.core.cache import cache
+from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 import elasticsearch
@@ -185,28 +186,55 @@ class AgentWriteSerializer(AgentSerializer):
     names = AgentNameWriteSerializer(many=True)
     notes = AgentNoteWriteSerializer(many=True)
 
+    @staticmethod
+    def create_names(agent, names_data):
+        AgentName.objects.bulk_create([
+            AgentName(agent=agent, **name)
+            for name in names_data
+        ])
+
+    @staticmethod
+    def create_notes(agent, notes_data):
+        AgentNote.objects.bulk_create([
+            AgentNote(agent=agent, **note)
+            for note in notes_data
+        ])
+
+    @transaction.atomic
     def create(self, validated_data):
-        names = validated_data.pop('names')
-        notes = validated_data.pop('notes')
+        names_data = validated_data.pop('names')
+        notes_data = validated_data.pop('notes')
         agent = Agent.objects.create(**validated_data)
 
-        name_objs = []
-        for name in names:
-            name_objs.append(AgentName(agent=agent, **name))
-        AgentName.objects.bulk_create(name_objs)
+        self.create_names(agent, names_data)
+        self.create_notes(agent, notes_data)
 
-        note_objs = []
-        for note in notes:
-            note_objs.append(AgentNote(agent=agent, **note))
-        AgentNote.objects.bulk_create(note_objs)
+        notes = []
+        for note in notes_data:
+            notes.append(AgentNote(agent=agent, **note))
+        AgentNote.objects.bulk_create(notes)
 
         return agent
 
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        names_data = validated_data.pop('names', None)
+        notes_data = validated_data.pop('notes', None)
+
+        if names_data is not None:
+            AgentName.objects.filter(agent=instance).delete()
+            self.create_names(instance, names_data)
+
+        if notes_data is not None:
+            AgentNote.objects.filter(agent=instance).delete()
+            self.create_notes(instance, notes_data)
+
+        return instance
+
     def validate_names(self, value):
-        if self.instance is None:
-            # we are creating an object, not updating
-            if len(value) == 0:
-                raise serializers.ValidationError(_("Agents requires at least one name"))
+        # we are creating an object, not updating
+        if len(value) == 0:
+            raise serializers.ValidationError(_("Agents requires at least one name"))
 
         return value
 
