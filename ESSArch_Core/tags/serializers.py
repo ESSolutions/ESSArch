@@ -229,7 +229,7 @@ class AgentWriteSerializer(AgentSerializer):
             AgentNote.objects.filter(agent=instance).delete()
             self.create_notes(instance, notes_data)
 
-        return instance
+        return super().update(instance, validated_data)
 
     def validate_names(self, value):
         # we are creating an object, not updating
