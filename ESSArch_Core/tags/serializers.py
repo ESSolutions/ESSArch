@@ -15,7 +15,9 @@ from ESSArch_Core.tags.models import (
     AgentNote,
     AgentNoteType,
     AgentPlace,
+    AgentPlaceType,
     AgentRelation,
+    AgentRelationType,
     AgentTagLink,
     AgentType,
     MainAgentType,
@@ -123,6 +125,10 @@ class AgentPlaceSerializer(serializers.ModelSerializer):
         fields = ('id', 'topography', 'type', 'description', 'start_date', 'end_date')
 
 
+class AgentPlaceWriteSerializer(AgentPlaceSerializer):
+    type = serializers.PrimaryKeyRelatedField(queryset=AgentPlaceType.objects.all())
+
+
 class MainAgentTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = MainAgentType
@@ -153,6 +159,11 @@ class AgentRelationSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgentRelation
         fields = ('type', 'description', 'start_date', 'end_date', 'create_date', 'revise_date', 'agent',)
+
+
+class AgentRelationWriteSerializer(AgentRelationSerializer):
+    agent = serializers.PrimaryKeyRelatedField(source='agent_b', queryset=Agent.objects.all())
+    type = serializers.PrimaryKeyRelatedField(queryset=AgentRelationType.objects.all())
 
 
 class AgentSerializer(serializers.ModelSerializer):
@@ -195,6 +206,8 @@ class AgentWriteSerializer(AgentSerializer):
     identifiers = AgentIdentifierWriteSerializer(many=True, required=False)
     names = AgentNameWriteSerializer(many=True, required=False)
     notes = AgentNoteWriteSerializer(many=True, required=False)
+    places = AgentPlaceWriteSerializer(source='agent_places', many=True, required=False)
+    related_agents = AgentRelationWriteSerializer(source='agent_relations_a', many=True, required=False)
 
     @staticmethod
     def create_identifiers(agent, identifiers_data):
@@ -217,16 +230,45 @@ class AgentWriteSerializer(AgentSerializer):
             for note in notes_data
         ])
 
+    @staticmethod
+    def create_places(agent, places_data):
+        for place_data in places_data:
+            topography_data = place_data.pop('topography')
+            topography_name = topography_data.pop('name')
+            topography_type = topography_data.pop('type')
+            topography, _ = Topography.objects.get_or_create(
+                name=topography_name,
+                type=topography_type,
+                defaults=topography_data,
+            )
+
+            AgentPlace.objects.create(
+                agent=agent,
+                topography=topography,
+                **place_data,
+            )
+
+    @staticmethod
+    def create_relations(agent, agent_relations):
+        AgentRelation.objects.bulk_create([
+            AgentRelation(agent_a=agent, **relation)
+            for relation in agent_relations
+        ])
+
     @transaction.atomic
     def create(self, validated_data):
         identifiers_data = validated_data.pop('identifiers', [])
         names_data = validated_data.pop('names', [])
         notes_data = validated_data.pop('notes', [])
+        places_data = validated_data.pop('agent_places', [])
+        related_agents_data = validated_data.pop('agent_relations_a', [])
         agent = Agent.objects.create(**validated_data)
 
         self.create_identifiers(agent, identifiers_data)
         self.create_names(agent, names_data)
         self.create_notes(agent, notes_data)
+        self.create_places(agent, places_data)
+        self.create_relations(agent, related_agents_data)
 
         return agent
 
@@ -235,6 +277,8 @@ class AgentWriteSerializer(AgentSerializer):
         identifiers_data = validated_data.pop('identifiers', None)
         names_data = validated_data.pop('names', None)
         notes_data = validated_data.pop('notes', None)
+        places_data = validated_data.pop('places', None)
+        related_agents_data = validated_data.pop('related_agents', None)
 
         if identifiers_data is not None:
             AgentIdentifier.objects.filter(agent=instance).delete()
@@ -248,10 +292,21 @@ class AgentWriteSerializer(AgentSerializer):
             AgentNote.objects.filter(agent=instance).delete()
             self.create_notes(instance, notes_data)
 
+        if places_data is not None:
+            AgentPlace.objects.filter(agent=instance).delete()
+            self.create_places(instance, places_data)
+
+        if related_agents_data is not None:
+            AgentRelation.objects.filter(agent_a=instance).delete()
+            self.create_agent_relations(instance, related_agents_data)
+
         return super().update(instance, validated_data)
 
     def validate_names(self, value):
-        # we are creating an object, not updating
+        for name in value:
+            if name.get('start_date') and name.get('start_date') > name.get('end_date'):
+                raise serializers.ValidationError(_("end date must occur after start date"))
+
         if len(value) == 0:
             raise serializers.ValidationError(_("Agents requires at least one name"))
 
