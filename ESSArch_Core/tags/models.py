@@ -214,6 +214,12 @@ class AgentType(models.Model):
     sub_type = models.TextField(_('sub type'), blank=True)
     legal_status = models.TextField(_('legal status'), blank=False)
 
+    def __str__(self):
+        if self.sub_type:
+            return '{} - {}'.format(self.main_type.name, self.sub_type)
+
+        return self.main_type.name
+
 
 class MainAgentType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
