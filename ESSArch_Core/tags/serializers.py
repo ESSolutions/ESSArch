@@ -168,15 +168,29 @@ class AgentSerializer(serializers.ModelSerializer):
 
 
 class AgentWriteSerializer(AgentSerializer):
-    authorized_name = AgentNameWriteSerializer(write_only=True)
     type = serializers.PrimaryKeyRelatedField(queryset=AgentType.objects.all())
     ref_code = serializers.PrimaryKeyRelatedField(queryset=RefCode.objects.all())
+    names = AgentNameWriteSerializer(many=True)
 
     def create(self, validated_data):
-        authorized_name = validated_data.pop('authorized_name')
+        names = validated_data.pop('names')
         agent = Agent.objects.create(**validated_data)
-        AgentName.objects.create(agent=agent, **authorized_name)
+
+        name_objs = []
+
+        for name in names:
+            name_objs.append(AgentName(agent=agent, **name))
+
+        AgentName.objects.bulk_create(name_objs)
         return agent
+
+    def validate_names(self, value):
+        if self.instance is None:
+            # we are creating an object, not updating
+            if len(value) == 0:
+                raise serializers.ValidationError(_("Agents requires at least one name"))
+
+        return value
 
     def validate(self, data):
         if data.get('start_date') and data.get('start_date') > data.get('end_date'):
@@ -185,7 +199,6 @@ class AgentWriteSerializer(AgentSerializer):
         return data
 
     class Meta(AgentSerializer.Meta):
-        fields = AgentSerializer.Meta.fields + ('authorized_name',)
         extra_kwargs = {
             'create_date': {
                 'default': timezone.now,
