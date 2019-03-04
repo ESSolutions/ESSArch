@@ -62,9 +62,11 @@ class Agent(models.Model):
         through_fields=('agent_a', 'agent_b'),
         symmetrical=False,
     )
-    level_of_detail = models.IntegerField(_('level of detail'), choices=LEVEL_OF_DETAIL_CHOICES, null=False)
-    record_status = models.IntegerField(_('record status'), choices=RECORD_STATUS_CHOICES, null=False)
-    script = models.IntegerField(_('record status'), choices=RECORD_STATUS_CHOICES, null=False)
+    level_of_detail = models.IntegerField(
+        _('level of detail'), choices=LEVEL_OF_DETAIL_CHOICES, null=False, db_index=True,
+    )
+    record_status = models.IntegerField(_('record status'), choices=RECORD_STATUS_CHOICES, null=False, db_index=True)
+    script = models.IntegerField(_('record status'), choices=RECORD_STATUS_CHOICES, null=False, db_index=True)
 
     language = models.ForeignKey(Language, on_delete=models.PROTECT, null=False, verbose_name=_('language'))
     mandates = models.ManyToManyField('tags.SourcesOfAuthority', related_name='agents', verbose_name=_('mandates'))
@@ -207,7 +209,7 @@ class AgentType(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    cpf = models.CharField(max_length=20, choices=CPF_CHOICES, blank=False)
+    cpf = models.CharField(max_length=20, choices=CPF_CHOICES, blank=False, db_index=True)
     main_type = models.ForeignKey('tags.MainAgentType', on_delete=models.PROTECT, null=False)
     sub_type = models.TextField(_('sub type'), blank=True)
     legal_status = models.TextField(_('legal status'), blank=False)
