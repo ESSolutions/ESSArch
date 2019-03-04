@@ -83,6 +83,13 @@ class Agent(models.Model):
     tags = models.ManyToManyField('tags.TagVersion', through='tags.AgentTagLink', related_name='agents')
     task = models.ForeignKey('WorkflowEngine.ProcessTask', on_delete=models.SET_NULL, null=True, related_name='agents')
 
+    def __str__(self):
+        name = self.names.order_by(F('start_date').asc(nulls_last=True)).last()
+        if name is None:
+            return super().__str__()
+
+        return name.main
+
 
 class AgentTagLink(models.Model):
     agent = models.ForeignKey(
