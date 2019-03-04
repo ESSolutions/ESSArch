@@ -3,12 +3,27 @@ from collections import OrderedDict
 from django_filters.utils import label_for_filter
 from django.utils.encoding import force_text
 from rest_framework.metadata import SimpleMetadata
+from rest_framework.relations import RelatedField, ManyRelatedField
 
 from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
 from ESSArch_Core.WorkflowEngine.polling import AVAILABLE_POLLERS
 
 
 class CustomMetadata(SimpleMetadata):
+
+    def get_field_info(self, field):
+        field_info = super().get_field_info(field)
+
+        if isinstance(field, (RelatedField, ManyRelatedField)):
+            field_info['choices'] = [
+                {
+                    'value': choice_value,
+                    'display_name': force_text(choice_name, strings_only=True)
+                }
+                for choice_value, choice_name in field.get_choices().items()
+            ]
+        return field_info
+
     def determine_metadata(self, request, view):
         metadata = super().determine_metadata(request, view)
 
