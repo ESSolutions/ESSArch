@@ -1,4 +1,6 @@
 from django.core.cache import cache
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 import elasticsearch
 from rest_framework import serializers
 
@@ -7,6 +9,7 @@ from ESSArch_Core.tags.models import (
     Agent,
     AgentIdentifier,
     AgentName,
+    AgentNameType,
     AgentNote,
     AgentPlace,
     AgentRelation,
@@ -16,6 +19,7 @@ from ESSArch_Core.tags.models import (
     MediumType,
     NodeIdentifier,
     NodeNote,
+    RefCode,
     RuleConventionType,
     SourcesOfAuthority,
     Structure,
@@ -26,6 +30,12 @@ from ESSArch_Core.tags.models import (
     TagVersionRelation,
     Topography,
 )
+
+
+class RefCodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RefCode
+        fields = ('country', 'repository_code',)
 
 
 class AgentIdentifierSerializer(serializers.ModelSerializer):
@@ -42,6 +52,10 @@ class AgentNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgentName
         fields = ('main', 'part', 'description', 'type', 'start_date', 'end_date', 'certainty',)
+
+
+class AgentNameWriteSerializer(AgentNameSerializer):
+    type = serializers.PrimaryKeyRelatedField(queryset=AgentNameType.objects.all())
 
 
 class AgentNoteSerializer(serializers.ModelSerializer):
@@ -120,13 +134,14 @@ class AgentRelationSerializer(serializers.ModelSerializer):
 
 
 class AgentSerializer(serializers.ModelSerializer):
-    identifiers = AgentIdentifierSerializer(many=True)
-    names = AgentNameSerializer(many=True)
-    notes = AgentNoteSerializer(many=True)
-    places = AgentPlaceSerializer(source='agentplace_set', many=True)
+    identifiers = AgentIdentifierSerializer(many=True, required=False)
+    names = AgentNameSerializer(many=True, required=False)
+    notes = AgentNoteSerializer(many=True, required=False)
+    places = AgentPlaceSerializer(source='agentplace_set', many=True, required=False)
     type = AgentTypeSerializer()
-    mandates = SourcesOfAuthoritySerializer(many=True)
-    related_agents = AgentRelationSerializer(source='agent_relations_a', many=True)
+    mandates = SourcesOfAuthoritySerializer(many=True, required=False)
+    related_agents = AgentRelationSerializer(source='agent_relations_a', many=True, required=False)
+    ref_code = RefCodeSerializer()
 
     class Meta:
         model = Agent
@@ -135,6 +150,7 @@ class AgentSerializer(serializers.ModelSerializer):
             'names',
             'notes',
             'type',
+            'ref_code',
             'identifiers',
             'places',
             'mandates',
@@ -149,6 +165,32 @@ class AgentSerializer(serializers.ModelSerializer):
             'start_date',
             'end_date',
         )
+
+
+class AgentWriteSerializer(AgentSerializer):
+    authorized_name = AgentNameWriteSerializer(write_only=True)
+    type = serializers.PrimaryKeyRelatedField(queryset=AgentType.objects.all())
+    ref_code = serializers.PrimaryKeyRelatedField(queryset=RefCode.objects.all())
+
+    def create(self, validated_data):
+        authorized_name = validated_data.pop('authorized_name')
+        agent = Agent.objects.create(**validated_data)
+        AgentName.objects.create(agent=agent, **authorized_name)
+        return agent
+
+    def validate(self, data):
+        if data.get('start_date') and data.get('start_date') > data.get('end_date'):
+            raise serializers.ValidationError(_("end date must occur after start date"))
+
+        return data
+
+    class Meta(AgentSerializer.Meta):
+        fields = AgentSerializer.Meta.fields + ('authorized_name',)
+        extra_kwargs = {
+            'create_date': {
+                'default': timezone.now,
+            },
+        }
 
 
 class NodeIdentifierSerializer(serializers.ModelSerializer):
