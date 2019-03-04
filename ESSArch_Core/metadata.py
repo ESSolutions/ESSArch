@@ -14,6 +14,8 @@ class CustomMetadata(SimpleMetadata):
     def get_field_info(self, field):
         field_info = super().get_field_info(field)
 
+        field_info['many'] = getattr(field, 'many', False)
+
         if isinstance(field, (RelatedField, ManyRelatedField)):
             field_info['choices'] = [
                 {
