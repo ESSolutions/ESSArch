@@ -312,6 +312,8 @@ class AgentWriteSerializer(AgentSerializer):
 
         if notes_data is not None:
             AgentNote.objects.filter(agent=instance).delete()
+            for note in notes_data:
+                note.setdefault('create_date', timezone.now())
             self.create_notes(instance, notes_data)
 
         if places_data is not None:
