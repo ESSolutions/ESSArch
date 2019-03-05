@@ -20,6 +20,7 @@ from ESSArch_Core.tags.models import (
     AgentRelationType,
     AgentTagLink,
     AgentType,
+    AuthorityType,
     MainAgentType,
     MediumType,
     NodeIdentifier,
@@ -96,6 +97,10 @@ class SourcesOfAuthoritySerializer(serializers.ModelSerializer):
     class Meta:
         model = SourcesOfAuthority
         fields = ('id', 'name', 'description', 'type', 'href', 'start_date', 'end_date',)
+
+
+class SourcesOfAuthorityWriteSerializer(SourcesOfAuthoritySerializer):
+    type = serializers.PrimaryKeyRelatedField(queryset=AuthorityType.objects.all())
 
 
 class TopographySerializer(serializers.ModelSerializer):
@@ -204,6 +209,7 @@ class AgentWriteSerializer(AgentSerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=AgentType.objects.all())
     ref_code = serializers.PrimaryKeyRelatedField(queryset=RefCode.objects.all())
     identifiers = AgentIdentifierWriteSerializer(many=True, required=False)
+    mandates = SourcesOfAuthorityWriteSerializer(many=True, required=False)
     names = AgentNameWriteSerializer(many=True, required=False)
     notes = AgentNoteWriteSerializer(many=True, required=False)
     places = AgentPlaceWriteSerializer(source='agent_places', many=True, required=False)
@@ -215,6 +221,15 @@ class AgentWriteSerializer(AgentSerializer):
             AgentIdentifier(agent=agent, **identifier)
             for identifier in identifiers_data
         ])
+
+    @staticmethod
+    def create_mandates(agent, mandates_data):
+        mandates = SourcesOfAuthority.objects.bulk_create([
+            SourcesOfAuthority(**mandate)
+            for mandate in mandates_data
+        ])
+
+        agent.mandates.set(mandates)
 
     @staticmethod
     def create_names(agent, names_data):
@@ -258,6 +273,7 @@ class AgentWriteSerializer(AgentSerializer):
     @transaction.atomic
     def create(self, validated_data):
         identifiers_data = validated_data.pop('identifiers', [])
+        mandates_data = validated_data.pop('mandates', [])
         names_data = validated_data.pop('names', [])
         notes_data = validated_data.pop('notes', [])
         places_data = validated_data.pop('agent_places', [])
@@ -265,6 +281,7 @@ class AgentWriteSerializer(AgentSerializer):
         agent = Agent.objects.create(**validated_data)
 
         self.create_identifiers(agent, identifiers_data)
+        self.create_mandates(agent, mandates_data)
         self.create_names(agent, names_data)
         self.create_notes(agent, notes_data)
         self.create_places(agent, places_data)
@@ -275,6 +292,7 @@ class AgentWriteSerializer(AgentSerializer):
     @transaction.atomic
     def update(self, instance, validated_data):
         identifiers_data = validated_data.pop('identifiers', None)
+        mandates_data = validated_data.pop('mandates', None)
         names_data = validated_data.pop('names', None)
         notes_data = validated_data.pop('notes', None)
         places_data = validated_data.pop('places', None)
@@ -283,6 +301,10 @@ class AgentWriteSerializer(AgentSerializer):
         if identifiers_data is not None:
             AgentIdentifier.objects.filter(agent=instance).delete()
             self.create_identifiers(instance, identifiers_data)
+
+        if mandates_data is not None:
+            SourcesOfAuthority.objects.filter(agent=instance).delete()
+            self.create_mandates(instance, mandates_data)
 
         if names_data is not None:
             AgentName.objects.filter(agent=instance).delete()
