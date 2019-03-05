@@ -640,7 +640,7 @@ class ParseGallringTests(TestCase):
     def setUp(self):
         self.importer = EardErmsImporter()
 
-    def test_parse_gallring_when_gallars_is_true(self):
+    def test_parse_gallring_when_gallras_is_true(self):
         xml_string = '''
             <root Gallras='true'>
                 <GallringsFrist>some g deadline</GallringsFrist>
@@ -845,7 +845,7 @@ class ParseEgetElementTests(TestCase):
         self.assertDictEqual(data, expected_data)
 
     def test_parse_eget_element_with_name_prefix_should_remove_the_prefix(self):
-        xml_string = u'''
+        xml_string = '''
             <root Namn='Dokument/Ärende/some name' DataTyp='some data type' Format='some format'>
                 <Varde>some value</Varde>
             </root>
