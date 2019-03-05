@@ -1,160 +1,93 @@
-from unittest.mock import call
-
-from django.test import TestCase
-from unittest import mock
-
-from rest_framework import exceptions
 from ESSArch_Core.auth.decorators import permission_required_or_403
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
+from django.test import TestCase
+
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.test import APIRequestFactory, force_authenticate
+from rest_framework.views import APIView
+
+User = get_user_model()
 
 
 class PermissionRequiredOr403Tests(TestCase):
+    factory = APIRequestFactory()
 
-    def setUp(self):
-        self.mock_view = mock.Mock()
-        self.mock_req = mock.Mock()
-        self.args = (1, 2, 5)
+    def test_no_permission(self):
+        class TestView(APIView):
+            @permission_required_or_403('ip.add_informationpackage')
+            def get(self, request, format=None):
+                return Response({})
 
-    @staticmethod
-    def dummy_decorated_view(view, request, *args, **kwargs):
-        return "dummy_was_called", view, request, args, kwargs
+        user = User.objects.create()
+        request = self.factory.get('/')
+        force_authenticate(request, user=user)
+        response = TestView.as_view()(request)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @mock.patch('ESSArch_Core.auth.decorators.get_object_or_404', return_value="dummy_obj")
-    def test_when_user_has_the_right_perm(self, mock_get_obj_or_404):
-        dummy_decorated_view = permission_required_or_403('p')(self.dummy_decorated_view)
+    def test_permission(self):
+        class TestView(APIView):
+            @permission_required_or_403('ip.add_informationpackage')
+            def get(self, request, format=None):
+                return Response({})
 
-        self.mock_view.get_queryset().model = "dummy_model"
-        self.mock_req.user.has_perm.return_value = 'permission_1'
-        kwargs = {"dummy_key_1": 1, "pk": 2, "dummy_key_3": 3}
-        expected_calls = [call('p')]
+        user = User.objects.create()
+        user.user_permissions.add(Permission.objects.get(codename='add_informationpackage'))
+        request = self.factory.get('/')
+        force_authenticate(request, user=user)
+        response = TestView.as_view()(request)
 
-        res_dummy, res_view, res_req, res_args, res_kwargs = dummy_decorated_view(
-            self.mock_view, self.mock_req, *self.args, **kwargs)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        mock_get_obj_or_404.assert_called_once()
-        self.assertEqual(self.mock_req.user.has_perm.mock_calls, expected_calls)
+    def test_multiple_permissions_granted(self):
+        class TestView(APIView):
+            @permission_required_or_403(['ip.add_informationpackage', 'ip.delete_informationpackage'])
+            def get(self, request, format=None):
+                return Response({})
 
-        self.assertEqual(res_dummy, "dummy_was_called")
-        self.assertEqual(res_view, self.mock_view)
-        self.assertEqual(res_req, self.mock_req)
-        self.assertEqual(res_args, self.args)
-        self.assertEqual(res_kwargs, kwargs)
+        user = User.objects.create()
+        user.user_permissions.add(*Permission.objects.filter(
+            codename__in=('add_informationpackage', 'delete_informationpackage')))
+        request = self.factory.get('/')
+        force_authenticate(request, user=user)
+        response = TestView.as_view()(request)
 
-    @mock.patch('ESSArch_Core.auth.decorators.get_object_or_404', return_value="dummy_obj")
-    def test_when_user_has_the_right_perm_but_accept_global_perms_is_False(self, mock_get_obj_or_404):
-        dummy_decorated_view = permission_required_or_403('p', accept_global_perms=False)(self.dummy_decorated_view)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.mock_view.get_queryset().model = "dummy_model"
-        self.mock_req.user.has_perm.return_value = 'permission_1'
-        kwargs = {"dummy_key_1": 1, "pk": 2, "dummy_key_3": 3}
-        expected_calls = [call('p', 'dummy_obj')]
+    def test_multiple_permissions_when_not_all_granted(self):
+        class TestView(APIView):
+            @permission_required_or_403([
+                'ip.add_informationpackage',
+                'ip.delete_informationpackage',
+                'ip.change_informationpackage',
+            ])
+            def get(self, request, format=None):
+                return Response({})
 
-        res_dummy, res_view, res_req, res_args, res_kwargs = dummy_decorated_view(
-            self.mock_view, self.mock_req, *self.args, **kwargs)
+        user = User.objects.create()
+        user.user_permissions.add(*Permission.objects.filter(
+            codename__in=('add_informationpackage', 'delete_informationpackage')))
+        request = self.factory.get('/')
+        force_authenticate(request, user=user)
+        response = TestView.as_view()(request)
 
-        mock_get_obj_or_404.assert_called_once()
-        self.assertEqual(self.mock_req.user.has_perm.mock_calls, expected_calls)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertEqual(res_dummy, "dummy_was_called")
-        self.assertEqual(res_view, self.mock_view)
-        self.assertEqual(res_req, self.mock_req)
-        self.assertEqual(res_args, self.args)
-        self.assertEqual(res_kwargs, kwargs)
+    def test_multiple_permissions_granted_none_global_perms(self):
+        class TestView(APIView):
+            @permission_required_or_403(
+                ['ip.add_informationpackage', 'ip.delete_informationpackage'],
+                accept_global_perms=False
+            )
+            def get(self, request, format=None):
+                return Response({})
 
-    @mock.patch('ESSArch_Core.auth.decorators.get_object_or_404', return_value="dummy_obj")
-    def test_when_user_has_the_right_perm_for_obj(self, mock_get_obj_or_404):
-        dummy_decorated_view = permission_required_or_403('p')(self.dummy_decorated_view)
+        user = User.objects.create()
+        user.user_permissions.add(*Permission.objects.filter(
+            codename__in=('add_informationpackage', 'delete_informationpackage')))
+        request = self.factory.get('/')
+        force_authenticate(request, user=user)
+        response = TestView.as_view()(request)
 
-        self.mock_view.get_queryset().model = "dummy_model"
-        self.mock_req.user.has_perm.side_effect = [False, 'permission_1']
-        kwargs = {"dummy_key_1": 1, "pk": 2, "dummy_key_3": 3}
-        expected_calls = [call('p'), call('p', 'dummy_obj')]
-
-        res_dummy, res_view, res_req, res_args, res_kwargs = dummy_decorated_view(
-            self.mock_view, self.mock_req, *self.args, **kwargs)
-
-        mock_get_obj_or_404.assert_called_once()
-        self.assertEqual(self.mock_req.user.has_perm.mock_calls, expected_calls)
-
-        self.assertEqual(res_dummy, "dummy_was_called")
-        self.assertEqual(res_view, self.mock_view)
-        self.assertEqual(res_req, self.mock_req)
-        self.assertEqual(res_args, self.args)
-        self.assertEqual(res_kwargs, kwargs)
-
-    @mock.patch('ESSArch_Core.auth.decorators.get_object_or_404', return_value="dummy_obj")
-    def test_when_list_of_perms_is_required(self, mock_get_obj_or_404):
-        dummy_decorated_view = permission_required_or_403(['p1', 'p2'])(self.dummy_decorated_view)
-
-        self.mock_view.get_queryset().model = "dummy_model"
-        self.mock_req.user.has_perm.side_effect = [True, False, True, True]
-        kwargs = {"dummy_key_1": 1, "pk": 2, "dummy_key_3": 3}
-        expected_calls = [call('p1'), call('p2'), call('p1', 'dummy_obj'), call('p2', 'dummy_obj')]
-
-        res_dummy, res_view, res_req, res_args, res_kwargs = dummy_decorated_view(
-            self.mock_view, self.mock_req, *self.args, **kwargs)
-
-        mock_get_obj_or_404.assert_called_once()
-        self.assertEqual(self.mock_req.user.has_perm.mock_calls, expected_calls)
-
-        self.assertEqual(res_dummy, "dummy_was_called")
-        self.assertEqual(res_view, self.mock_view)
-        self.assertEqual(res_req, self.mock_req)
-        self.assertEqual(res_args, self.args)
-        self.assertEqual(res_kwargs, kwargs)
-
-    @mock.patch('ESSArch_Core.auth.decorators.get_object_or_404', return_value="dummy_obj")
-    def test_when_user_does_not_have_permission_then_raise_exception(self, mock_get_obj_or_404):
-        dummy_decorated_view = permission_required_or_403('p')(self.dummy_decorated_view)
-
-        self.mock_view.get_queryset().model = "dummy_model"
-        self.mock_req.user.has_perm.side_effect = [False, False]
-        kwargs = {"dummy_key_1": 1, "pk": 2, "dummy_key_3": 3}
-        expected_calls = [call('p'), call('p', 'dummy_obj')]
-
-        with self.assertRaises(exceptions.PermissionDenied):
-            dummy_decorated_view(self.mock_view, self.mock_req, *self.args, **kwargs)
-
-        mock_get_obj_or_404.assert_called_once()
-        self.assertEqual(self.mock_req.user.has_perm.mock_calls, expected_calls)
-
-    @mock.patch('ESSArch_Core.auth.decorators.get_object_or_404', return_value="dummy_obj")
-    def test_when_pk_does_not_exist_then_dont_try_to_get_the_object(self, mock_get_obj_or_404):
-        dummy_decorated_view = permission_required_or_403('p')(self.dummy_decorated_view)
-
-        self.mock_view.get_queryset().model = "dummy_model"
-        self.mock_req.user.has_perm.side_effect = [False, 'permission_1']
-        kwargs = {"dummy_key_1": 1, "dummy_key_3": 3}
-        expected_calls = [call('p'), call('p', None)]
-
-        res_dummy, res_view, res_req, res_args, res_kwargs = dummy_decorated_view(
-            self.mock_view, self.mock_req, *self.args, **kwargs)
-
-        mock_get_obj_or_404.assert_not_called()
-        self.assertEqual(self.mock_req.user.has_perm.mock_calls, expected_calls)
-
-        self.assertEqual(res_dummy, "dummy_was_called")
-        self.assertEqual(res_view, self.mock_view)
-        self.assertEqual(res_req, self.mock_req)
-        self.assertEqual(res_args, self.args)
-        self.assertEqual(res_kwargs, kwargs)
-
-    @mock.patch('ESSArch_Core.auth.decorators.get_object_or_404', return_value="dummy_obj")
-    def test_when_model_is_None_does_not_exist_then_dont_try_to_get_the_object(self, mock_get_obj_or_404):
-        dummy_decorated_view = permission_required_or_403('p')(self.dummy_decorated_view)
-
-        self.mock_view.get_queryset().model = None
-        self.mock_req.user.has_perm.side_effect = [False, 'permission_1']
-        kwargs = {"dummy_key_1": 1, "dummy_key_3": 3}
-        expected_calls = [call('p'), call('p', None)]
-
-        res_dummy, res_view, res_req, res_args, res_kwargs = dummy_decorated_view(
-            self.mock_view, self.mock_req, *self.args, **kwargs)
-
-        mock_get_obj_or_404.assert_not_called()
-        self.assertEqual(self.mock_req.user.has_perm.mock_calls, expected_calls)
-
-        self.assertEqual(res_dummy, "dummy_was_called")
-        self.assertEqual(res_view, self.mock_view)
-        self.assertEqual(res_req, self.mock_req)
-        self.assertEqual(res_args, self.args)
-        self.assertEqual(res_kwargs, kwargs)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

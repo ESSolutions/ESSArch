@@ -9,12 +9,13 @@ def permission_required_or_403(perms, accept_global_perms=True):
 
     def decorator(view_func):
         def _wrapped_view(view, request, *args, **kwargs):
-            pk = kwargs.get('pk')
             obj = None
 
-            model = view.get_queryset().model
-            if model and pk is not None:
-                obj = get_object_or_404(model, pk=pk)
+            if hasattr(view, 'get_queryset'):
+                pk = kwargs.get('pk')
+                model = view.get_queryset().model
+                if model and pk is not None:
+                    obj = get_object_or_404(model, pk=pk)
 
             has_permissions = False
             if accept_global_perms:
