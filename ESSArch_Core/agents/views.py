@@ -2,7 +2,7 @@ from django.db.models import Prefetch
 from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 
-from ESSArch_Core.tags.models import (
+from ESSArch_Core.agents.models import (
     Agent,
     AgentIdentifier,
     AgentName,
@@ -11,7 +11,7 @@ from ESSArch_Core.tags.models import (
     AgentRelation,
     SourcesOfAuthority,
 )
-from ESSArch_Core.tags.serializers import (
+from ESSArch_Core.agents.serializers import (
     AgentSerializer,
     AgentWriteSerializer,
 )

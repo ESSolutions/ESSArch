@@ -16,9 +16,7 @@ from django.utils import timezone
 from languages_plus.models import Language
 from lxml import etree
 
-from ESSArch_Core.search.importers.base import BaseImporter
-from ESSArch_Core.tags.documents import Archive, Component
-from ESSArch_Core.tags.models import (
+from ESSArch_Core.agents.models import (
     Agent,
     AgentIdentifier,
     AgentIdentifierType,
@@ -32,13 +30,18 @@ from ESSArch_Core.tags.models import (
     AgentTagLinkRelationType,
     AgentType,
     MainAgentType,
+    RefCode,
+    Topography,
+)
+from ESSArch_Core.search.importers.base import BaseImporter
+from ESSArch_Core.tags.documents import Archive, Component
+from ESSArch_Core.tags.models import (
     MediumType,
     NodeIdentifier,
     NodeIdentifierType,
     NodeNote,
     NodeNoteType,
     NodeRelationType,
-    RefCode,
     RuleConventionType,
     Structure,
     StructureUnit,
@@ -46,7 +49,6 @@ from ESSArch_Core.tags.models import (
     TagStructure,
     TagVersion,
     TagVersionRelation,
-    Topography,
 )
 
 logger = logging.getLogger('essarch.search.importers.KlaraImporter')

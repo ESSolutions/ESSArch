@@ -7,7 +7,7 @@ from languages_plus.models import Language
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from ESSArch_Core.tags.models import (
+from ESSArch_Core.agents.models import (
     Agent,
     AgentIdentifier,
     AgentIdentifierType,

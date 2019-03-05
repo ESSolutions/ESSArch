@@ -1,11 +1,11 @@
 from django.conf.urls import include, url
 
 from ESSArch_Core.WorkflowEngine.views import ProcessTaskViewSet, ProcessStepViewSet
+from ESSArch_Core.agents.views import AgentViewSet
 from ESSArch_Core.ip.views import InformationPackageViewSet, WorkareaEntryViewSet
 from ESSArch_Core.maintenance.views import AppraisalRuleViewSet
 from ESSArch_Core.profiles.views import ProfileViewSet, SubmissionAgreementViewSet
 from ESSArch_Core.routers import ESSArchRouter
-from ESSArch_Core.tags.views import AgentViewSet
 
 router = ESSArchRouter()
 router.register(r'agents', AgentViewSet)
