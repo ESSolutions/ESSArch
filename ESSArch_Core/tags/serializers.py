@@ -303,7 +303,7 @@ class AgentWriteSerializer(AgentSerializer):
             self.create_identifiers(instance, identifiers_data)
 
         if mandates_data is not None:
-            SourcesOfAuthority.objects.filter(agent=instance).delete()
+            SourcesOfAuthority.objects.filter(agents=instance).delete()
             self.create_mandates(instance, mandates_data)
 
         if names_data is not None:
