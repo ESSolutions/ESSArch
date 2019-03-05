@@ -1,4 +1,5 @@
 import os
+import shutil
 import tempfile
 
 from django.contrib.auth import get_user_model
@@ -10,7 +11,7 @@ from rest_framework.test import APIClient
 
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.views import find_all_files
-from ESSArch_Core.util import win_to_posix
+from ESSArch_Core.util import win_to_posix, normalize_path
 
 User = get_user_model()
 
@@ -45,7 +46,9 @@ class CreateAppraisalRuleTests(TestCase):
 class FindAllFilesTests(TestCase):
 
     def setUp(self):
-        self.datadir = os.path.join(tempfile.mkdtemp(), "datadir")
+        self.tmpdir = normalize_path(tempfile.mkdtemp())
+        self.datadir = os.path.join(self.tmpdir, "datadir")
+        self.addCleanup(shutil.rmtree, self.datadir)
         self.dir_names = [
             'a_dir', 'b_dir', 'c_dir',
             'aa_dir', 'bb_dir', 'cc_dir',
