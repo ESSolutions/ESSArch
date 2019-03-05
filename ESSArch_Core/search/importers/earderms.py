@@ -56,10 +56,13 @@ class EardErmsImporter(BaseImporter):
     def get_errands_root(self, el):
         return el.xpath("*[local-name()='ArkivobjektListaArenden']")
 
+    def get_arkiv_objekt_arenden(self, el):
+        return el.xpath("*[local-name()='ArkivobjektArende']")
+
     def get_acts_root(self, el):
         return el.xpath("*[local-name()='ArkivobjektListaHandlingar']")
 
-    def parse_document(self, xmlpath, ip, rootdir, document, act, parent):
+    def parse_document(self, ip, rootdir, document, act, parent):
         id = str(uuid.uuid4())
         name = document.get("Namn")
         desc = document.get("Beskrivning")
@@ -120,7 +123,6 @@ class EardErmsImporter(BaseImporter):
         return tag, tag_version, tag_repr, d_dict
 
     def parse_person(self, el):
-        data = {}
         data_mappings = {
             'namn': 'Namn',
             'organisation': 'Organisation',
@@ -135,16 +137,10 @@ class EardErmsImporter(BaseImporter):
             'skyddad_identitet': 'SkyddadIdentitet',
         }
 
-        for k, v in data_mappings.items():
-            try:
-                data[k] = el.xpath("*[local-name()='{el}']".format(el=v))[0].text
-            except IndexError:
-                continue
-
+        data = self.parse_mappings(data_mappings, el)
         return data
 
     def parse_agent(self, el):
-        data = {}
         data_mappings = {
             'namn': 'Namn',
             'roll': 'Roll',
@@ -152,11 +148,7 @@ class EardErmsImporter(BaseImporter):
             'organisation': 'Organisationsnamn',
         }
 
-        for k, v in data_mappings.items():
-            try:
-                data[k] = el.xpath("*[local-name()='{el}']".format(el=v))[0].text
-            except IndexError:
-                continue
+        data = self.parse_mappings(data_mappings, el)
 
         return data
 
@@ -198,18 +190,12 @@ class EardErmsImporter(BaseImporter):
         return initiator_obj
 
     def parse_restriction(self, el):
-        data = {}
         data_mappings = {
             'beskrivning': 'ForklarandeText',
             'lagrum': 'Lagrum',
             'upphor': 'RestriktionsDatum',
         }
-
-        for k, v in data_mappings.items():
-            try:
-                data[k] = el.xpath("*[local-name()='{el}']".format(el=v))[0].text
-            except IndexError:
-                continue
+        data = self.parse_mappings(data_mappings, el)
 
         typ = el.xpath("./@*[local-name()='Typ']")[0]
         try:
@@ -229,7 +215,7 @@ class EardErmsImporter(BaseImporter):
             'period_slut': 'GallringsPeriodSlut',
         }
         data = self.parse_mappings(data_mappings, el)
-        data['gallras'] = el.get('gallras') == 'true'
+        data['gallras'] = el.get('Gallras') == 'true'
         return data
 
     def parse_egenskaper(self, el):
@@ -268,12 +254,6 @@ class EardErmsImporter(BaseImporter):
         return data
 
     def parse_act(self, act, errand):
-        id = str(uuid.uuid4())  # act.get("Systemidentifierare")
-        reference_code = act.xpath("*[local-name()='ArkivobjektID']")[0].text
-        unit_ids = {'id': reference_code}
-        parent = Node(id=errand.meta.id, index=errand._index._name)
-
-        data = {}
         data_mappings = {
             'name': ['Rubrik', 'ArkivobjektID'],
             'status': 'StatusHandling',
@@ -282,18 +262,7 @@ class EardErmsImporter(BaseImporter):
             'arkivobjekt_id': 'ArkivobjektID',
         }
 
-        for k, v in data_mappings.items():
-            if not isinstance(v, list):
-                v = [v]
-            found = False
-            for val in v:
-                if not found:
-                    try:
-                        data[k] = act.xpath("*[local-name()='{el}']".format(el=val))[0].text
-                    except IndexError:
-                        continue
-                    else:
-                        found = True
+        data = self.parse_mappings(data_mappings, act)
 
         data['avsandare'] = []
         for avsandare in act.xpath("*[local-name()='Avsandare']"):
@@ -337,17 +306,16 @@ class EardErmsImporter(BaseImporter):
             'create_date': 'Skapad',
             'preparation_date': 'Upprattad',
         }
-        dates = {}
+        dates = self.parse_mappings(date_mappings, act)
 
-        for k, v in date_mappings.items():
-            try:
-                dates[k] = act.xpath("*[local-name()='{el}']".format(el=v))[0].text
-            except IndexError:
-                continue
+        component_id = str(uuid.uuid4())  # act.get("Systemidentifierare")
+        reference_code = act.xpath("*[local-name()='ArkivobjektID']")[0].text
+        unit_ids = {'id': reference_code}
+        parent = Node(id=errand.meta.id, index=errand._index._name)
 
         data.update(dates)
         return Component(
-            _id=id,
+            _id=component_id,
             current_version=True,
             unit_ids=unit_ids,
             task_id=str(self.task.pk),
@@ -375,7 +343,7 @@ class EardErmsImporter(BaseImporter):
                         found = True
         return data
 
-    def parse_acts(self, xmlpath, ip, rootdir, errand, acts_root, parent):
+    def parse_acts(self, ip, rootdir, errand, acts_root, parent):
         for act_el in acts_root.xpath("*[local-name()='ArkivobjektHandling']"):
             act = self.parse_act(act_el, errand)
 
@@ -395,17 +363,21 @@ class EardErmsImporter(BaseImporter):
             )
 
             for doc_el in act_el.xpath("*[local-name()='Bilaga']"):
-                yield self.parse_document(xmlpath, ip, rootdir, doc_el, act, tag_repr)
+                yield self.parse_document(ip, rootdir, doc_el, act, tag_repr)
 
             yield tag, tag_version, tag_repr, act.to_dict(include_meta=True)
 
     def parse_errand(self, errand, archive, ip, structure):
-        id = str(uuid.uuid4())  # errand.get("Systemidentifierare")
-        reference_code = errand.xpath("*[local-name()='ArkivobjektID']")[0].text
-        unit_ids = {'id': reference_code}
-
         try:
-            unit_reference_code = errand.xpath("*[local-name()='KlassReferens']")[0].text
+            ip_id = ip.pk
+        except AttributeError:
+            if ip is not None:
+                raise
+
+            ip_id = None
+
+        unit_reference_code = errand.xpath("*[local-name()='KlassReferens']")[0].text
+        try:
             structure_unit = StructureUnit.objects.get(structure=structure, reference_code=unit_reference_code)
         except StructureUnit.DoesNotExist:
             logger.exception('Structure unit {} not found in {}'.format(unit_reference_code, structure))
@@ -464,16 +436,13 @@ class EardErmsImporter(BaseImporter):
                 pass
 
         data.update(dates)
-        try:
-            ip_id = ip.pk
-        except AttributeError:
-            if ip is not None:
-                raise
 
-            ip_id = None
+        component_id = str(uuid.uuid4())  # errand.get("Systemidentifierare")
+        reference_code = errand.xpath("*[local-name()='ArkivobjektID']")[0].text
+        unit_ids = {'id': reference_code}
 
         return Component(
-            _id=id,
+            _id=component_id,
             current_version=True,
             unit_ids=unit_ids,
             structure_unit=str(structure_unit.pk),
@@ -488,10 +457,10 @@ class EardErmsImporter(BaseImporter):
     def get_tag_structure(self, tag_version_id):
         return TagStructure.objects.filter(tag__versions__pk=tag_version_id).latest()
 
-    def parse_errands(self, xmlpath, ip, rootdir, archive, errands_root):
+    def parse_errands(self, ip, rootdir, archive, errands_root):
         archive_structure = archive.get_active_structure()
         structure = archive_structure.structure
-        for errand in errands_root.xpath("*[local-name()='ArkivobjektArende']"):
+        for errand in self.get_arkiv_objekt_arenden(errands_root):
             component, structure_unit = self.parse_errand(errand, archive, ip, structure)
             tag = Tag(information_package=ip, task=self.task)
             tag_version = TagVersion(pk=component.meta.id, tag=tag,
@@ -511,7 +480,7 @@ class EardErmsImporter(BaseImporter):
 
             acts_root = self.get_acts_root(errand)
             if len(acts_root):
-                for act in self.parse_acts(xmlpath, ip, rootdir, component, acts_root[0], tag_repr):
+                for act in self.parse_acts(ip, rootdir, component, acts_root[0], tag_repr):
                     yield act
 
             yield tag, tag_version, tag_repr, component.to_dict(include_meta=True)
@@ -561,7 +530,7 @@ class EardErmsImporter(BaseImporter):
         tree = etree.parse(xmlfile, self.xmlparser)
         root = tree.getroot()
         errands_root = self.get_errands_root(root)
-        return zip(*self.parse_errands(xmlfile, ip, rootdir, archive, errands_root[0]))
+        return zip(*self.parse_errands(ip, rootdir, archive, errands_root[0]))
 
     def save_to_database(self, tags, tag_versions, tag_structures, archive):
         logger.debug("Saving to Database...")
