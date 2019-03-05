@@ -69,7 +69,7 @@ class Agent(models.Model):
         _('level of detail'), choices=LEVEL_OF_DETAIL_CHOICES, null=False, db_index=True,
     )
     record_status = models.IntegerField(_('record status'), choices=RECORD_STATUS_CHOICES, null=False, db_index=True)
-    script = models.IntegerField(_('record status'), choices=RECORD_STATUS_CHOICES, null=False, db_index=True)
+    script = models.IntegerField(_('script'), choices=SCRIPT_CHOICES, null=False, db_index=True)
 
     language = models.ForeignKey(Language, on_delete=models.PROTECT, null=False, verbose_name=_('language'))
     mandates = models.ManyToManyField('tags.SourcesOfAuthority', related_name='agents', verbose_name=_('mandates'))
