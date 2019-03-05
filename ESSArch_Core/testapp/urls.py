@@ -5,8 +5,10 @@ from ESSArch_Core.ip.views import InformationPackageViewSet, WorkareaEntryViewSe
 from ESSArch_Core.maintenance.views import AppraisalRuleViewSet
 from ESSArch_Core.profiles.views import ProfileViewSet, SubmissionAgreementViewSet
 from ESSArch_Core.routers import ESSArchRouter
+from ESSArch_Core.tags.views import AgentViewSet
 
 router = ESSArchRouter()
+router.register(r'agents', AgentViewSet)
 router.register(r'appraisal-rules', AppraisalRuleViewSet)
 router.register(r'information-packages', InformationPackageViewSet)
 router.register(r'profiles', ProfileViewSet)
