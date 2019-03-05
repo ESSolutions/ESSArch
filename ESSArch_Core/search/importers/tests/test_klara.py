@@ -6,8 +6,8 @@ from lxml import objectify
 from django.test import TestCase
 from django.utils import timezone
 
+from ESSArch_Core.agents.models import Agent, AgentName, AgentType, MainAgentType
 from ESSArch_Core.search.importers.klara import KlaraImporter
-from ESSArch_Core.tags.models import Agent, AgentName, AgentType, MainAgentType
 
 
 class ParseTimestampTests(TestCase):
