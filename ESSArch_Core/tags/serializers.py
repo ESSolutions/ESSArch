@@ -295,8 +295,8 @@ class AgentWriteSerializer(AgentSerializer):
         mandates_data = validated_data.pop('mandates', None)
         names_data = validated_data.pop('names', None)
         notes_data = validated_data.pop('notes', None)
-        places_data = validated_data.pop('places', None)
-        related_agents_data = validated_data.pop('related_agents', None)
+        places_data = validated_data.pop('agent_places', None)
+        related_agents_data = validated_data.pop('agent_relations_a', None)
 
         if identifiers_data is not None:
             AgentIdentifier.objects.filter(agent=instance).delete()
@@ -322,7 +322,7 @@ class AgentWriteSerializer(AgentSerializer):
 
         if related_agents_data is not None:
             AgentRelation.objects.filter(agent_a=instance).delete()
-            self.create_agent_relations(instance, related_agents_data)
+            self.create_relations(instance, related_agents_data)
 
         return super().update(instance, validated_data)
 

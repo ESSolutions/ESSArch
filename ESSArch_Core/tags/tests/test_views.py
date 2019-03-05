@@ -9,11 +9,15 @@ from rest_framework.test import APIClient
 
 from ESSArch_Core.tags.models import (
     Agent,
+    AgentIdentifier,
+    AgentIdentifierType,
     AgentName,
     AgentNameType,
     AgentNote,
     AgentNoteType,
+    AgentPlace,
     AgentPlaceType,
+    AgentRelation,
     AgentRelationType,
     AgentType,
     AuthorityType,
@@ -41,6 +45,7 @@ class CreateAgentTests(TestCase):
         self.agent_type = AgentType.objects.create(main_type=self.main_agent_type)
 
         self.authority_type = AuthorityType.objects.create(name='test')
+        self.identifier_type = AgentIdentifierType.objects.create(name='test')
         self.name_type = AgentNameType.objects.create(name='test')
         self.note_type = AgentNoteType.objects.create(name='test')
         self.place_type = AgentPlaceType.objects.create(name='test')
@@ -63,15 +68,7 @@ class CreateAgentTests(TestCase):
         )
 
     def test_create(self):
-        related_agent = Agent.objects.create(
-            level_of_detail=Agent.MINIMAL,
-            script=Agent.LATIN,
-            language=Language.objects.get(iso_639_1='sv'),
-            record_status=Agent.DRAFT,
-            type=self.agent_type,
-            ref_code=self.ref_code,
-            create_date=timezone.now(),
-        )
+        related_agent = self.create_agent()
 
         response = self.client.post(
             self.url,
@@ -82,6 +79,10 @@ class CreateAgentTests(TestCase):
                 'record_status': Agent.DRAFT,
                 'type': self.agent_type.pk,
                 'ref_code': self.ref_code.pk,
+                'identifiers': [{
+                    'identifier': 'test',
+                    'type': self.identifier_type.pk,
+                }],
                 'mandates': [{
                     'name': 'test',
                     'type': self.authority_type.pk,
@@ -280,6 +281,24 @@ class CreateAgentTests(TestCase):
         self.assertEqual(AgentNote.objects.count(), 1)
         self.assertTrue(AgentNote.objects.filter(agent=agent, text='test', create_date='2019-03-01 12:34:56').exists())
 
+    def test_update_identifiers(self):
+        agent = self.create_agent()
+        url = reverse('agent-detail', args=[agent.pk])
+
+        response = self.client.patch(
+            url,
+            data={
+                'identifiers': [{
+                    'identifier': 'test',
+                    'type': self.identifier_type.pk,
+                }],
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(AgentIdentifier.objects.count(), 1)
+        self.assertTrue(AgentIdentifier.objects.filter(agent=agent, identifier='test').exists())
+
     def test_update_mandates(self):
         agent = self.create_agent()
         url = reverse('agent-detail', args=[agent.pk])
@@ -297,3 +316,44 @@ class CreateAgentTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(SourcesOfAuthority.objects.count(), 1)
         self.assertTrue(SourcesOfAuthority.objects.filter(agents=agent, name='test').exists())
+
+    def test_update_places(self):
+        agent = self.create_agent()
+        url = reverse('agent-detail', args=[agent.pk])
+
+        response = self.client.patch(
+            url,
+            data={
+                'places': [{
+                    'type': self.place_type.pk,
+                    'topography': {
+                        'name': 'test',
+                        'type': 'test',
+                        'reference_code': 'test',
+                    },
+                }],
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(AgentPlace.objects.count(), 1)
+        self.assertTrue(AgentPlace.objects.filter(agent=agent, topography__name='test').exists())
+
+    def test_update_related_agents(self):
+        agent = self.create_agent()
+        related_agent = self.create_agent()
+        url = reverse('agent-detail', args=[agent.pk])
+
+        response = self.client.patch(
+            url,
+            data={
+                'related_agents': [{
+                    'agent': related_agent.pk,
+                    'type': self.relation_type.pk,
+                }],
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(AgentRelation.objects.count(), 1)
+        self.assertTrue(AgentRelation.objects.filter(agent_a=agent, agent_b=related_agent).exists())
