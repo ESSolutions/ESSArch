@@ -156,7 +156,7 @@ if __name__ == '__main__':
             "dj-database-url==0.5.0",
             "django==1.11.20",
             "django-cors-headers==2.4.0",
-            "django-filter==2.0",
+            "django-filter==2.1.0",
             "django-groups-manager==0.6.2",
             "django-guardian==1.4.9",
             "django-mptt==0.9.1",

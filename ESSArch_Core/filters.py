@@ -26,7 +26,7 @@ import django_filters
 from django_filters import rest_framework as filters
 from django_filters.constants import EMPTY_VALUES
 
-from ESSArch_Core.forms.fields import IsoDateTimeRangeField, MultipleTextField
+from ESSArch_Core.forms.fields import MultipleTextField
 
 
 def string_to_bool(s):
@@ -39,10 +39,6 @@ def string_to_bool(s):
         'true': True,
         'false': False,
     }.get(s.lower(), None)
-
-
-class IsoDateTimeFromToRangeFilter(filters.DateTimeFromToRangeFilter):
-    field_class = IsoDateTimeRangeField
 
 
 class MultipleCharFilter(filters.MultipleChoiceFilter):
