@@ -352,6 +352,65 @@ class XMLSchemaValidator(BaseValidator):
         logger.info(u"Successful schema validation of {xml}".format(xml=filepath))
 
 
+class XMLSyntaxValidator(BaseValidator):
+    def validate(self, filepath, expected=None):
+        logger.debug('Validating syntax of {xml}'.format(xml=filepath))
+
+        etree.clear_error_log()
+        started = timezone.now()
+
+        try:
+            etree.parse(filepath)
+        except etree.XMLSyntaxError as e:
+            logger.exception(
+                'Syntax validation of {xml} failed'.format(xml=filepath)
+            )
+            done = timezone.now()
+            validation_objs = []
+            for error in e.error_log:
+                message = '{line}: {msg}'.format(line=error.line, msg=error.message)
+                validation_objs.append(Validation(
+                    passed=False,
+                    validator=self.__class__.__name__,
+                    filename=filepath,
+                    message=message,
+                    time_started=started,
+                    time_done=done,
+                    information_package_id=self.ip,
+                    task_id=self.task,
+                ))
+
+            Validation.objects.bulk_create(validation_objs, 100)
+            raise
+        except Exception as e:
+            logger.exception('Unknown error during syntax validation of {xml}'.format(xml=filepath))
+            done = timezone.now()
+            Validation.objects.create(
+                passed=False,
+                validator=self.__class__.__name__,
+                filename=filepath,
+                message=str(e),
+                time_started=started,
+                time_done=done,
+                information_package_id=self.ip,
+                task_id=self.task,
+            )
+            raise
+
+        Validation.objects.create(
+            passed=True,
+            validator=self.__class__.__name__,
+            filename=filepath,
+            time_started=started,
+            time_done=timezone.now(),
+            information_package_id=self.ip,
+            task_id=self.task,
+        )
+        logger.info(
+            "Successful syntax validation of {xml}".format(xml=filepath)
+        )
+
+
 class XMLSchematronValidator(BaseValidator):
     def validate(self, filepath, expected=None):
         logger.debug(u'Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
