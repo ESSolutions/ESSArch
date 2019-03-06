@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from django_filters import rest_framework as filters
 from rest_framework import exceptions
 
-from ESSArch_Core.filters import IsoDateTimeFromToRangeFilter, ListFilter, MultipleCharFilter
+from ESSArch_Core.filters import ListFilter, MultipleCharFilter
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
 
 User = get_user_model()
@@ -43,10 +43,10 @@ class InformationPackageFilter(filters.FilterSet):
     )
     state = MultipleCharFilter()
     object_size = filters.RangeFilter()
-    start_date = IsoDateTimeFromToRangeFilter()
-    end_date = IsoDateTimeFromToRangeFilter()
-    create_date = IsoDateTimeFromToRangeFilter()
-    entry_date = IsoDateTimeFromToRangeFilter()
+    start_date = filters.IsoDateTimeFromToRangeFilter()
+    end_date = filters.IsoDateTimeFromToRangeFilter()
+    create_date = filters.IsoDateTimeFromToRangeFilter()
+    entry_date = filters.IsoDateTimeFromToRangeFilter()
     package_type = MultipleCharFilter()
     package_type_name_exclude = filters.CharFilter(
         label=_("Excluded Package Type"),
@@ -67,7 +67,7 @@ class InformationPackageFilter(filters.FilterSet):
 
 
 class EventIPFilter(filters.FilterSet):
-    eventDateTime = IsoDateTimeFromToRangeFilter()
+    eventDateTime = filters.IsoDateTimeFromToRangeFilter()
 
     class Meta:
         model = EventIP
