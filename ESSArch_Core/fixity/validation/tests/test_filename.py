@@ -10,16 +10,16 @@ class FilenameValidatorTests(TestCase):
         validator = FilenameValidator()
         validator.validate('foo.xml')
 
-        self.assertTrue(Validation.objects.count(), 1)
-        self.assertTrue(Validation.objects.filter(passed=True).count(), 1)
+        self.assertEqual(Validation.objects.count(), 1)
+        self.assertEqual(Validation.objects.filter(passed=True).count(), 1)
 
     def test_invalid(self):
         validator = FilenameValidator()
         with self.assertRaises(ValidationError):
             validator.validate('foo?.xml')
 
-        self.assertTrue(Validation.objects.count(), 1)
-        self.assertTrue(Validation.objects.filter(passed=False).count(), 1)
+        self.assertEqual(Validation.objects.count(), 1)
+        self.assertEqual(Validation.objects.filter(passed=False).count(), 1)
 
     def test_custom_pattern(self):
         validator = FilenameValidator()
@@ -27,12 +27,12 @@ class FilenameValidatorTests(TestCase):
 
         validator.validate('foo?.xml', pattern)
 
-        self.assertTrue(Validation.objects.count(), 1)
-        self.assertTrue(Validation.objects.filter(passed=True).count(), 1)
+        self.assertEqual(Validation.objects.count(), 1)
+        self.assertEqual(Validation.objects.filter(passed=True).count(), 1)
 
         with self.assertRaises(ValidationError):
             validator.validate('foo!.xml', pattern)
 
-        self.assertTrue(Validation.objects.count(), 2)
-        self.assertTrue(Validation.objects.filter(passed=True).count(), 1)
-        self.assertTrue(Validation.objects.filter(passed=False).count(), 1)
+        self.assertEqual(Validation.objects.count(), 2)
+        self.assertEqual(Validation.objects.filter(passed=True).count(), 1)
+        self.assertEqual(Validation.objects.filter(passed=False).count(), 1)
