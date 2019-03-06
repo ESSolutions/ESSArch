@@ -62,15 +62,36 @@ class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def report(self, request, pk=None):
+        path = self.get_report_pdf_path(pk)
+        return generate_file_response(open(path, 'rb'), 'application/pdf')
+
+    def get_report_pdf_path(self, pk):
         path = self.get_object()._get_report_directory()
         path = os.path.join(path, pk + '.pdf')
-        return generate_file_response(open(path, 'rb'), 'application/pdf')
+        return path
 
 
 class AppraisalRuleViewSet(MaintenanceRuleViewSet):
     queryset = AppraisalRule.objects.all()
     serializer_class = AppraisalRuleSerializer
     filterset_class = AppraisalRuleFilter
+
+
+def get_appraisal_job_preview_response(rule):
+    ips = rule.information_packages.filter(appraisal_date__lte=timezone.now(), active=True)
+    found_files = []
+    for ip in ips:
+        datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
+        if rule.specification:
+            for pattern in rule.specification:
+                found_files.extend(find_all_files(datadir, ip, pattern))
+        else:
+            for root, dirs, files in walk(datadir):
+                rel = os.path.relpath(root, datadir)
+
+                for f in files:
+                    found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
+    return Response(found_files)
 
 
 class AppraisalJobViewSet(MaintenanceJobViewSet):
@@ -86,27 +107,23 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
     @action(detail=True, methods=['get'])
     def preview(self, request, pk=None):
         job = self.get_object()
-        ips = job.rule.information_packages.filter(appraisal_date__lte=timezone.now(), active=True)
-        found_files = []
-
-        for ip in ips:
-            datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
-            if job.rule.specification:
-                for pattern in job.rule.specification:
-                    found_files.extend(find_all_files(datadir, ip, pattern))
-            else:
-                for root, dirs, files in walk(datadir):
-                    rel = os.path.relpath(root, datadir)
-
-                    for f in files:
-                        found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
-        return Response(found_files)
+        return get_appraisal_job_preview_response(job.rule)
 
 
 class ConversionRuleViewSet(MaintenanceRuleViewSet):
     queryset = ConversionRule.objects.all()
     serializer_class = ConversionRuleSerializer
     filterset_class = ConversionRuleFilter
+
+
+def get_conversion_job_preview_response(rule):
+    ips = rule.information_packages.all()
+    found_files = []
+    for ip in ips:
+        datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
+        for pattern, spec in rule.specification.items():
+            found_files.extend(find_all_files(datadir, ip, pattern))
+    return Response(found_files)
 
 
 class ConversionJobViewSet(MaintenanceJobViewSet):
@@ -117,15 +134,7 @@ class ConversionJobViewSet(MaintenanceJobViewSet):
     @action(detail=True, methods=['get'])
     def preview(self, request, pk=None):
         job = self.get_object()
-        ips = job.rule.information_packages.all()
-        found_files = []
-
-        for ip in ips:
-            datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
-            for pattern, spec in job.rule.specification.items():
-                found_files.extend(find_all_files(datadir, ip, pattern))
-
-        return Response(found_files)
+        return get_conversion_job_preview_response(job.rule)
 
 
 def find_all_files(datadir, ip, pattern):
