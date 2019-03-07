@@ -63,7 +63,7 @@ def reverse_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ip', '0010_remove_informationpackage_status'),
+        ('ip', '0008_auto_20160831_1120'),
     ]
 
     operations = [
