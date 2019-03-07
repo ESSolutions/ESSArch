@@ -830,8 +830,8 @@ class XMLSyntaxValidatorTests(TestCase):
         validator = XMLSyntaxValidator()
         validator.validate(xml)
 
-        self.assertTrue(Validation.objects.count(), 1)
-        self.assertTrue(Validation.objects.filter(passed=True).count(), 1)
+        self.assertEqual(Validation.objects.count(), 1)
+        self.assertEqual(Validation.objects.filter(passed=True).count(), 1)
 
     def test_invalid_xml(self):
         xml = StringIO("""\
@@ -847,8 +847,8 @@ class XMLSyntaxValidatorTests(TestCase):
         with self.assertRaises(etree.XMLSyntaxError):
             validator.validate(xml)
 
-        self.assertTrue(Validation.objects.count(), 2)
-        self.assertTrue(Validation.objects.filter(passed=False).count(), 2)
+        self.assertEqual(Validation.objects.count(), 2)
+        self.assertEqual(Validation.objects.filter(passed=False).count(), 2)
 
 
 class XMLComparisonValidatorTests(TestCase):
