@@ -278,7 +278,6 @@ class UserProfile(models.Model):
     ip_list_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=IP,)
     notifications_enabled = models.BooleanField(default=True)
 
-
     class Meta:
         db_table = "essauth_userprofile"
 
