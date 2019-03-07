@@ -314,7 +314,9 @@ class AgentWriteSerializer(AgentSerializer):
 
     def validate_names(self, value):
         for name in value:
-            if name.get('start_date') and name.get('start_date') > name.get('end_date'):
+            if name.get('start_date') and name.get('end_date') and \
+               name.get('start_date') > name.get('end_date'):
+
                 raise serializers.ValidationError(_("end date must occur after start date"))
 
         if len(value) == 0:
@@ -323,7 +325,9 @@ class AgentWriteSerializer(AgentSerializer):
         return value
 
     def validate(self, data):
-        if data.get('start_date') and data.get('start_date') > data.get('end_date'):
+        if data.get('start_date') and data.get('end_date') and \
+           data.get('start_date') > data.get('end_date'):
+
             raise serializers.ValidationError(_("end date must occur after start date"))
 
         return data

@@ -184,6 +184,26 @@ class CreateAgentTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_create_start_date_without_end_date(self):
+        response = self.client.post(
+            self.url,
+            data={
+                'level_of_detail': Agent.MINIMAL,
+                'script': Agent.LATIN,
+                'language': 'sv',
+                'record_status': Agent.DRAFT,
+                'type': self.agent_type.pk,
+                'ref_code': self.ref_code.pk,
+                'names': [{
+                    'main': 'test',
+                    'type': self.name_type.pk,
+                }],
+                'start_date': '1994-01-01',
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
     def test_create_name_start_date_after_name_end_date(self):
         response = self.client.post(
             self.url,
@@ -208,6 +228,30 @@ class CreateAgentTests(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_name_start_date_without_name_end_date(self):
+        response = self.client.post(
+            self.url,
+            data={
+                'level_of_detail': Agent.MINIMAL,
+                'script': Agent.LATIN,
+                'language': 'sv',
+                'record_status': Agent.DRAFT,
+                'type': self.agent_type.pk,
+                'ref_code': self.ref_code.pk,
+                'names': [{
+                    'main': 'test',
+                    'type': self.name_type.pk,
+                    'start_date': '1994-01-01',
+                }],
+                'notes': [{
+                    'text': 'test',
+                    'type': self.note_type.pk,
+                }],
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_without_names(self):
         response = self.client.post(
