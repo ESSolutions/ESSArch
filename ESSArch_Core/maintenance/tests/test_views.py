@@ -57,15 +57,14 @@ class ConversionJobViewSetPreviewTests(TestCase):
         response = self.client.get(self.url, {'name': 'foo'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @mock.patch('ESSArch_Core.maintenance.views.get_conversion_job_preview_response')
-    def test_authenticated(self, mock_get_conversion_job_preview_response):
-        mock_get_conversion_job_preview_response.return_value = Response(status=status.HTTP_200_OK)
+    @mock.patch('ESSArch_Core.maintenance.views.get_conversion_job_preview_files')
+    def test_authenticated(self, mock_get_conversion_job_preview_files):
+        mock_get_conversion_job_preview_files.return_value = ["file1", "file2"]
         self.client.force_authenticate(user=self.user)
 
-        response = self.client.get(self.url, {'name': 'foo'})
+        self.client.get(self.url, {'name': 'foo'})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        mock_get_conversion_job_preview_response.assert_called_once()
+        mock_get_conversion_job_preview_files.assert_called_once()
 
 
 class AppraisalJobViewSetPreviewTests(TestCase):
@@ -79,15 +78,14 @@ class AppraisalJobViewSetPreviewTests(TestCase):
         response = self.client.get(self.url, {'name': 'foo'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @mock.patch('ESSArch_Core.maintenance.views.get_appraisal_job_preview_response')
-    def test_authenticated(self, mock_get_appraisal_job_preview_response):
-        mock_get_appraisal_job_preview_response.return_value = Response(status=status.HTTP_200_OK)
+    @mock.patch('ESSArch_Core.maintenance.views.get_appraisal_job_preview_files')
+    def test_authenticated(self, mock_get_appraisal_job_preview_files):
+        mock_get_appraisal_job_preview_files.return_value = ["file1", "file2"]
         self.client.force_authenticate(user=self.user)
 
-        response = self.client.get(self.url, {'name': 'foo'})
+        self.client.get(self.url, {'name': 'foo'})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        mock_get_appraisal_job_preview_response.assert_called_once()
+        mock_get_appraisal_job_preview_files.assert_called_once()
 
 
 class AppraisalJobViewSetRunTests(TestCase):
@@ -165,9 +163,8 @@ class AppraisalJobViewSetReportTests(TestCase):
         mock_open.return_value = "dummy_stream"
         self.client.force_authenticate(user=self.user)
 
-        response = self.client.get(self.url, {'name': 'foo'})
+        self.client.get(self.url, {'name': 'foo'})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_get_report_pdf_path.assert_called_once_with(str(self.apprisal_job.pk))
         mock_open.assert_called_once_with("report_path.pdf", 'rb')
         mock_generate_file_response.assert_called_once_with("dummy_stream", 'application/pdf')

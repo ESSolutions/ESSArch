@@ -77,7 +77,7 @@ class AppraisalRuleViewSet(MaintenanceRuleViewSet):
     filterset_class = AppraisalRuleFilter
 
 
-def get_appraisal_job_preview_response(rule):
+def get_appraisal_job_preview_files(rule):
     ips = rule.information_packages.filter(appraisal_date__lte=timezone.now(), active=True)
     found_files = []
     for ip in ips:
@@ -91,7 +91,7 @@ def get_appraisal_job_preview_response(rule):
 
                 for f in files:
                     found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
-    return Response(found_files)
+    return found_files
 
 
 class AppraisalJobViewSet(MaintenanceJobViewSet):
@@ -107,7 +107,8 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
     @action(detail=True, methods=['get'])
     def preview(self, request, pk=None):
         job = self.get_object()
-        return get_appraisal_job_preview_response(job.rule)
+        found_files = get_appraisal_job_preview_files(job.rule)
+        return Response(found_files)
 
 
 class ConversionRuleViewSet(MaintenanceRuleViewSet):
@@ -116,14 +117,14 @@ class ConversionRuleViewSet(MaintenanceRuleViewSet):
     filterset_class = ConversionRuleFilter
 
 
-def get_conversion_job_preview_response(rule):
+def get_conversion_job_preview_files(rule):
     ips = rule.information_packages.all()
     found_files = []
     for ip in ips:
         datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
         for pattern, spec in rule.specification.items():
             found_files.extend(find_all_files(datadir, ip, pattern))
-    return Response(found_files)
+    return found_files
 
 
 class ConversionJobViewSet(MaintenanceJobViewSet):
@@ -134,7 +135,8 @@ class ConversionJobViewSet(MaintenanceJobViewSet):
     @action(detail=True, methods=['get'])
     def preview(self, request, pk=None):
         job = self.get_object()
-        return get_conversion_job_preview_response(job.rule)
+        found_files = get_conversion_job_preview_files(job.rule)
+        return Response(found_files)
 
 
 def find_all_files(datadir, ip, pattern):
