@@ -258,11 +258,6 @@ class GroupMember(GroupMemberMixin):
 
 
 class UserProfile(models.Model):
-    DEFAULT_IP_LIST_COLUMNS = [
-        'label', 'object_identifier_value', 'start_date', 'end_date', 'responsible',
-        'state', 'step_state', 'status', 'filebrowser', 'delete',
-    ]
-
     AIC = 'aic'
     IP = 'ip'
     IP_LIST_VIEW_CHOICES = (
@@ -270,12 +265,19 @@ class UserProfile(models.Model):
         (IP, 'IP'),
     )
 
+    def default_ip_list_columns():
+        return [
+            'label', 'object_identifier_value', 'start_date', 'end_date', 'responsible',
+            'state', 'step_state', 'status', 'filebrowser', 'delete',
+        ]
+
     user = models.OneToOneField(DjangoUser, on_delete=models.CASCADE, related_name='user_profile')
     current_organization = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
     language = models.CharField(max_length=10, default='en')
-    ip_list_columns = PickledObjectField(default=DEFAULT_IP_LIST_COLUMNS,)
+    ip_list_columns = PickledObjectField(default=default_ip_list_columns)
     ip_list_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=IP,)
     notifications_enabled = models.BooleanField(default=True)
+
 
     class Meta:
         db_table = "essauth_userprofile"
