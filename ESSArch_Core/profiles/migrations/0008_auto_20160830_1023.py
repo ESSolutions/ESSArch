@@ -35,7 +35,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('profiles', '0007_auto_20160826_1338'),
+        ('profiles', '0006_auto_20160826_1216'),
     ]
 
     operations = [

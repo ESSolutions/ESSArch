@@ -42,4 +42,14 @@ class Migration(migrations.Migration):
             name='sip_specification',
             field=jsonfield.fields.JSONField(null=True),
         ),
+        migrations.AddField(
+            model_name='profilesip',
+            name='sip_template',
+            field=jsonfield.fields.JSONField(null=True),
+        ),
+        migrations.AlterField(
+            model_name='profilesip',
+            name='sip_specification_data',
+            field=jsonfield.fields.JSONField(null=True),
+        ),
     ]

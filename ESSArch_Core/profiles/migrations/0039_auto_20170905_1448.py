@@ -33,7 +33,7 @@ def reverse_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('profiles', '0038_auto_20170824_1525'),
+        ('profiles', '0035_auto_20170817_1109'),
     ]
 
     operations = [
