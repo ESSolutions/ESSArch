@@ -32,7 +32,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ip', '0013_auto_20160913_1116'),
+        ('ip', '0011_auto_20160901_1123'),
     ]
 
     operations = [
