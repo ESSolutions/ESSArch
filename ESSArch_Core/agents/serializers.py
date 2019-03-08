@@ -30,8 +30,14 @@ class RefCodeSerializer(serializers.ModelSerializer):
         fields = ('country', 'repository_code',)
 
 
+class AgentIdentifierTypeSerialzier(serializers.ModelSerializer):
+    class Meta:
+        model = AgentIdentifierType
+        fields = ('id', 'name')
+
+
 class AgentIdentifierSerializer(serializers.ModelSerializer):
-    type = serializers.CharField(source='type.name')
+    type = AgentIdentifierTypeSerialzier()
 
     class Meta:
         model = AgentIdentifier
@@ -46,24 +52,36 @@ class AgentIdentifierWriteSerializer(serializers.ModelSerializer):
         fields = ('id', 'identifier', 'type',)
 
 
+class AgentNameTypeSerialzier(serializers.ModelSerializer):
+    class Meta:
+        model = AgentNameType
+        fields = ('id', 'name')
+
+
 class AgentNameSerializer(serializers.ModelSerializer):
-    type = serializers.CharField(source='type.name')
+    type = AgentNameTypeSerialzier()
 
     class Meta:
         model = AgentName
-        fields = ('main', 'part', 'description', 'type', 'start_date', 'end_date', 'certainty',)
+        fields = ('id', 'main', 'part', 'description', 'type', 'start_date', 'end_date', 'certainty',)
 
 
 class AgentNameWriteSerializer(AgentNameSerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=AgentNameType.objects.all())
 
 
+class AgentNoteTypeSerialzier(serializers.ModelSerializer):
+    class Meta:
+        model = AgentNoteType
+        fields = ('id', 'name')
+
+
 class AgentNoteSerializer(serializers.ModelSerializer):
-    type = serializers.CharField(source='type.name')
+    type = AgentNoteTypeSerialzier()
 
     class Meta:
         model = AgentNote
-        fields = ('text', 'type', 'href', 'create_date', 'revise_date',)
+        fields = ('id', 'text', 'type', 'href', 'create_date', 'revise_date',)
 
 
 class AgentNoteWriteSerializer(AgentNoteSerializer):
@@ -77,8 +95,15 @@ class AgentNoteWriteSerializer(AgentNoteSerializer):
         }
 
 
+class AuthorityTypeSerialzier(serializers.ModelSerializer):
+    class Meta:
+        model = AuthorityType
+        fields = ('id', 'name')
+
+
+
 class SourcesOfAuthoritySerializer(serializers.ModelSerializer):
-    type = serializers.CharField(source='type.name')
+    type = AuthorityTypeSerialzier()
 
     class Meta:
         model = SourcesOfAuthority
@@ -107,9 +132,15 @@ class TopographySerializer(serializers.ModelSerializer):
         )
 
 
+class AgentPlaceTypeSerialzier(serializers.ModelSerializer):
+    class Meta:
+        model = AgentPlaceType
+        fields = ('id', 'name')
+
+
 class AgentPlaceSerializer(serializers.ModelSerializer):
     topography = TopographySerializer()
-    type = serializers.CharField(source='type.name')
+    type = AgentPlaceTypeSerialzier()
 
     class Meta:
         model = AgentPlace

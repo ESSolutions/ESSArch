@@ -1,4 +1,4 @@
-from django.db.models import Prefetch
+from django.db.models import F, Prefetch
 from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 
@@ -22,11 +22,11 @@ class AgentViewSet(viewsets.ModelViewSet):
         'type__main_type', 'ref_code', 'language',
     ).prefetch_related(
         Prefetch('names', AgentName.objects.prefetch_related('type')),
-        Prefetch('identifiers', AgentIdentifier.objects.prefetch_related('type')),
-        Prefetch('agentplace_set', AgentPlace.objects.prefetch_related('topography', 'type',)),
-        Prefetch('notes', AgentNote.objects.prefetch_related('type')),
-        Prefetch('mandates', SourcesOfAuthority.objects.prefetch_related('type')),
-        Prefetch('agent_relations_a', AgentRelation.objects.prefetch_related('agent_b')),
+        Prefetch('identifiers', AgentIdentifier.objects.prefetch_related('type').order_by('type__name', 'identifier')),
+        Prefetch('agentplace_set', AgentPlace.objects.prefetch_related('topography', 'type',).order_by(F('start_date').desc(nulls_first=True))),
+        Prefetch('notes', AgentNote.objects.prefetch_related('type').order_by('-create_date')),
+        Prefetch('mandates', SourcesOfAuthority.objects.prefetch_related('type').order_by(F('start_date').desc(nulls_first=True))),
+        Prefetch('agent_relations_a', AgentRelation.objects.prefetch_related('agent_b').order_by(F('start_date').desc(nulls_first=True))),
     )
     serializer_class = AgentSerializer
     filter_backends = (OrderingFilter, SearchFilter,)
