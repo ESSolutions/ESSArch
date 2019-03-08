@@ -29,3 +29,11 @@
     justify-content: flex-end;
   }
 }
+
+.flex-100-grow {
+  display: flex;
+  width: 100%;
+  div {
+    flex-grow: 1;
+  }
+}

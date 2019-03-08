@@ -85,3 +85,9 @@
 .mb-base {
   margin-bottom: $padding-base-vertical;
 }
+
+.m-base,
+.mx-base,
+.ml-base {
+  margin-left: $padding-base-horizontal;
+}

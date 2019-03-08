@@ -30,7 +30,7 @@
       ng-if="!angular.isUndefined(vm.value)"
       ng-class="vm.inputClass"
       ng-model="vm.value"
-      ng-options="x for x in vm.options"
+      ng-options="{{vm.labelProp && vm.valueProp ? 'x.' + vm.valueProp + ' as x.' + vm.labelProp + ' for x in vm.options' : 'x for x in vm.options'}}"
       uib-tooltip="{{vm.tooltip}}"
       tooltip-placement="auto top"
       tooltip-append-to-body="true"
@@ -49,7 +49,7 @@
   </div>
   <div ng-if="vm.edit && vm.type === 'date'" class="d-flex">
     <div
-      ng-if="!angular.isUndefined(vm.value)"
+      ng-if="vm.value"
       class="dropdown"
       uib-dropdown
       dropdown-append-to-body
@@ -70,12 +70,12 @@
         <datetimepicker
           data-ng-model="vm.value"
           ng-change="dropdown_status[vm.value] = false"
-          data-datetimepicker-config="{ dropdownSelector: '#dropdown-' + vm.value, minView: 'day', startView: 'year', modelType: 'YYYY-MM-DDTHH:mm:ssZ'}"
+          data-datetimepicker-config="{ dropdownSelector: '#dropdown-' + vm.value, minView: 'day', startView: 'year', modelType: 'YYYY-MM-DD'}"
         />
       </ul>
     </div>
     <div
-      ng-if="!angular.isUndefined(vm.value2)"
+      ng-if="vm.value2"
       class="dropdown"
       uib-dropdown
       dropdown-append-to-body
@@ -96,7 +96,7 @@
         <datetimepicker
           data-ng-model="vm.value2"
           ng-change="dropdown_status[vm.value2] = false"
-          data-datetimepicker-config="{ dropdownSelector: '#dropdown-' + vm.value2, minView: 'day', startView: 'year', modelType: 'YYYY-MM-DDTHH:mm:ssZ'}"
+          data-datetimepicker-config="{ dropdownSelector: '#dropdown-' + vm.value2, minView: 'day', startView: 'year', modelType: 'YYYY-MM-DD'}"
         />
       </ul>
     </div>
