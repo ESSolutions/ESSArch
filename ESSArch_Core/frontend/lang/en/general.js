@@ -167,6 +167,7 @@ angular.module('essarch.language').config(function($translateProvider) {
     TRACEBACK: 'Traceback',
     TYPE: 'Type',
     UNDO: 'Undo',
+    UNSAVED_DATA_WARNING: 'Any changes will be lost, are you sure?',
     UPDATE: 'Update',
     USE: 'Use',
     USERNAME: 'Username',
