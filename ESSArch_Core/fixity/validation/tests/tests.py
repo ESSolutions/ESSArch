@@ -3,6 +3,7 @@ import hashlib
 import os
 import shutil
 import tempfile
+from io import StringIO
 
 from django.test import TestCase
 from lxml import etree
@@ -12,10 +13,11 @@ from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.format import FormatIdentifier
+from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.fixity.validation.backends.format import FormatValidator
 from ESSArch_Core.fixity.validation.backends.structure import StructureValidator
-from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLComparisonValidator
+from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLComparisonValidator, XMLSyntaxValidator
 
 
 class ChecksumValidatorTests(TestCase, fake_filesystem_unittest.TestCase):
@@ -809,6 +811,44 @@ class DiffCheckValidatorTests(TestCase):
         msg = '0 confirmed, 1 added, 1 changed, 1 renamed, 1 deleted$'.format(xml=self.fname)
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
+
+
+class XMLSyntaxValidatorTests(TestCase):
+    def setUp(self):
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+    def test_valid_xml(self):
+        xml = StringIO("""\
+        <catalog>
+          <cd>
+            <title>test</title>
+          </cd>
+        </catalog>
+        """)
+
+        validator = XMLSyntaxValidator()
+        validator.validate(xml)
+
+        self.assertEqual(Validation.objects.count(), 1)
+        self.assertEqual(Validation.objects.filter(passed=True).count(), 1)
+
+    def test_invalid_xml(self):
+        xml = StringIO("""\
+        <catalog>
+          <cd>
+            <title>test</title><
+          </c>
+        </catalog>
+        """)
+
+        validator = XMLSyntaxValidator()
+
+        with self.assertRaises(etree.XMLSyntaxError):
+            validator.validate(xml)
+
+        self.assertEqual(Validation.objects.count(), 2)
+        self.assertEqual(Validation.objects.filter(passed=False).count(), 2)
 
 
 class XMLComparisonValidatorTests(TestCase):

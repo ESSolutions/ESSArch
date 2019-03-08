@@ -81,4 +81,12 @@ class Migration(migrations.Migration):
             name='Startdate',
             field=models.DateTimeField(null=True, verbose_name='start date'),
         ),
+        migrations.RemoveField(
+            model_name='informationpackage',
+            name='Producer',
+        ),
+        migrations.RemoveField(
+            model_name='informationpackage',
+            name='Status',
+        ),
     ]

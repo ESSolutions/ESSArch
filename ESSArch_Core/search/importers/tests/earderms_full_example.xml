@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Leveransobjekt xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="eARDERMS http://xml.ra.se/e-arkiv/ERMS/Arendehantering.xsd">
+  <SystemInfo>
+    <AnpassadMetadataInformation>
+      <AnyElement/>
+    </AnpassadMetadataInformation>
+  </SystemInfo>
+  <ArkivbildarStruktur>
+    <Arkivbildare>
+      <Namn>some_avbildare_namn</Namn>
+      <VerksamhetstidFran>some_verk_tid_fr</VerksamhetstidFran>
+      <VerksamhetstidTill>some_verk_tid_till</VerksamhetstidTill>
+      <Historik>some_historik</Historik>
+      <Verksamhetsbeskrivning>some_verk_besk</Verksamhetsbeskrivning>
+      <Arkivbildare/>
+    </Arkivbildare>
+  </ArkivbildarStruktur>
+  <Informationsklass>some_info_klass</Informationsklass>
+  <VerksamhetsbaseradArkivredovisning>
+    <ArkivReferens>some_arkiv_ref</ArkivReferens>
+    <KlassificeringsstrukturNamn>some_klass_strukt_namn</KlassificeringsstrukturNamn>
+    <KlassReferens>some_klass_ref</KlassReferens>
+    <HandlingstypsReferens>some_handlings_typ_ref</HandlingstypsReferens>
+    <ForvaringsenhetsReferens>some_forvar_enhet_ref</ForvaringsenhetsReferens>
+  </VerksamhetsbaseradArkivredovisning>
+  <Bilaga Namn="some_bi_namn" Beskrivning="some_bi_besk" Lank="some_bi_lank" Storlek="3" CharacterSet="some_char_set" Mimetyp="some_mime_type" Checksumma="some_checksum" ChecksummaMetod="some_checksum_metod" SchemaURI="some_schema_uri" Esignatur="Nej">
+    <Bevaras>true</Bevaras>
+  </Bilaga>
+  <EgnaElement>
+    <EgnaElementBeskrivning>some_egna_elem_besk</EgnaElementBeskrivning>
+    <EgetElement Namn="some_eget_namn" DataTyp="some_datatyp" Format="some_format">
+      <Varde>some_eget_elem_varde</Varde>
+      <Egenskaper>
+        <Egenskap Namn="some_egenskap_namn" DataTyp="some_datatyp_2" Format="some_format_2">
+          <Varde>some_egenskap_varde</Varde>
+          <Egenskaper/>
+        </Egenskap>
+      </Egenskaper>
+      <EgetElement/>
+    </EgetElement>
+  </EgnaElement>
+  <TillkommandeXMLdata>
+    <AnyElement/>
+  </TillkommandeXMLdata>
+  <ArkivobjektListaArenden>
+    <ArkivobjektArende Systemidentifierare="some_system_id">
+      <ArkivobjektID>some_arkiv_obj_id</ArkivobjektID>
+      <Informationsklass>some_info_klass_2</Informationsklass>
+      <KlassReferens>some_klass_ref_2</KlassReferens>
+      <HandlingstypsReferens>some_handlingstyp_ref_2</HandlingstypsReferens>
+      <ForvaringsenhetsReferens>some_forvaring_enhet_ref_2</ForvaringsenhetsReferens>
+      <MinaArendeoversikterKlassificering>some_mina_arende_ovr_klass</MinaArendeoversikterKlassificering>
+      <MinaArendeoversikterStatus>some_mina_arende_status</MinaArendeoversikterStatus>
+      <ExtraID ExtraIDTyp="anySimpleType">some_extra_id_text</ExtraID>
+      <ArendeTyp>some_arende_typ</ArendeTyp>
+      <Arkiverat>2004-02-14T19:44:14</Arkiverat>
+      <Avslutat>2018-11-01T06:36:46+01:00</Avslutat>
+      <Beskrivning>some_besk</Beskrivning>
+      <Beslutat>2013-05-22T03:02:49+02:00</Beslutat>
+      <Forvaringsplats>some_forvaringsplats</Forvaringsplats>
+      <Gallring Gallras="true">
+        <GallringsFrist>some_gall_frist</GallringsFrist>
+        <GallringsForklaring>some_g_desc</GallringsForklaring>
+        <GallringsPeriodSlut>2013-12-21+01:00</GallringsPeriodSlut>
+      </Gallring>
+      <Agent>
+        <Roll>some_agent_roll</Roll>
+        <Namn>some_agent_name</Namn>
+        <Organisationsnamn>some_agent_org_namn</Organisationsnamn>
+        <Enhetsnamn>some_agent_enhet_namn</Enhetsnamn>
+      </Agent>
+      <Klass>some_klass</Klass>
+      <Restriktion Typ="Sekretess" AnnanTyp="some_annan_typ">
+        <ForklarandeText>some_forklarande_text</ForklarandeText>
+        <Lagrum>some_lagrum</Lagrum>
+        <RestriktionsDatum>2009-10-14</RestriktionsDatum>
+      </Restriktion>
+      <Motpart>
+        <Namn>some_motpart_namn</Namn>
+        <Organisation>some_motpart_org </Organisation>
+        <Postadress>some_motpart_postadress</Postadress>
+        <Postnummer>some_postnr</Postnummer>
+        <Postort>some_postort</Postort>
+        <Land>some_land</Land>
+        <IDnummer Typ="1">some_motpart_id_nr</IDnummer>
+        <Telefon>some_tel</Telefon>
+        <Fax>some_fax</Fax>
+        <EPost>some_epost</EPost>
+        <SkyddadIdentitet>true</SkyddadIdentitet>
+      </Motpart>
+      <Notering>some_notering</Notering>
+      <ArendeRelation Typ="Egen relationsdefinition" AnnanTyp="rel_annan_typ">arende_rel_text</ArendeRelation>
+      <SistaAnvandandetidpunkt>2017-11-01T09:15:53+01:00</SistaAnvandandetidpunkt>
+      <Skapad>2014-06-10T20:33:25+02:00</Skapad>
+      <Inkommen>2003-11-10T08:56:46+01:00</Inkommen>
+      <StatusArande>some_arande_status</StatusArande>
+      <Upprattad>2015-06-18T00:07:00+02:00</Upprattad>
+      <Expedierad>2000-04-21T02:36:55+02:00</Expedierad>
+      <Atkomst>some_atkomst</Atkomst>
+      <Arendemening>some_arendemening</Arendemening>
+      <Bilaga Namn="some_bi_namn_2" Beskrivning="some_bi_besk_2" Lank="some_bi_lank_2" Storlek="3" CharacterSet="some_char_set_2" Mimetyp="some_mime_type_2" Checksumma="some_checksum_2" ChecksummaMetod="some_checksum_metod_2" SchemaURI="some_schema_uri_2" Esignatur="Nej">
+        <Bevaras>true</Bevaras>
+      </Bilaga>
+      <EgnaElement>
+        <EgnaElementBeskrivning>some_egna_elem_besk_2</EgnaElementBeskrivning>
+        <EgetElement Namn="some_eget_namn_2" DataTyp="some_datatyp_3" Format="some_format_2">
+          <Varde>some_eget_elem_varde_2</Varde>
+          <Egenskaper>
+            <Egenskap Namn="some_egenskap_namn_2" DataTyp="some_datatyp_4" Format="some_format_2">
+              <Varde>some_egenskap_varde_2</Varde>
+              <Egenskaper/>
+            </Egenskap>
+          </Egenskaper>
+          <EgetElement/>
+        </EgetElement>
+      </EgnaElement>
+      <TillkommandeXMLdata>
+        <AnyElement/>
+      </TillkommandeXMLdata>
+      <ArkivobjektListaHandlingar>
+      </ArkivobjektListaHandlingar>
+    </ArkivobjektArende>
+  </ArkivobjektListaArenden>
+  <ArkivobjektListaHandlingar>
+    <ArkivobjektHandling Systemidentifierare="some_arkiv_obj_hand_id">
+      <ArkivobjektID>some_arkiv_id</ArkivobjektID>
+      <Informationsklass>some_info_klass_3</Informationsklass>
+      <KlassReferens>some_klass_ref_3</KlassReferens>
+      <HandlingstypsReferens>some_handlingstyp_ref_3</HandlingstypsReferens>
+      <ForvaringsenhetsReferens>some_forvaringenhets_ref</ForvaringsenhetsReferens>
+      <ExtraID ExtraIDTyp="anySimpleType">some_extra_id_3</ExtraID>
+      <Handlingstyp>some_handling_typ_3</Handlingstyp>
+      <Avsandare>
+        <Namn>some_avsandare_namn</Namn>
+        <Organisation>some_avsandare_org</Organisation>
+        <Postadress>some_avsandare_postadress</Postadress>
+        <Postnummer>some_avsandare_postnummer</Postnummer>
+        <Postort>some_avsandare_postort</Postort>
+        <Land>some_avsandare_land</Land>
+        <IDnummer Typ="1">some_avsandare_id_nummer</IDnummer>
+        <Telefon>some_avsandare_tel</Telefon>
+        <Fax>some_avsandare_fax</Fax>
+        <EPost>some_avsandare_epost</EPost>
+        <SkyddadIdentitet>true</SkyddadIdentitet>
+      </Avsandare>
+      <Beskrivning>some_beskrivning</Beskrivning>
+      <Expedierad>2019-06-11T10:11:35</Expedierad>
+      <Gallring Gallras="false">
+        <GallringsFrist>some_gallrings_frist</GallringsFrist>
+        <GallringsForklaring>some_gallrings_forklaring</GallringsForklaring>
+        <GallringsPeriodSlut>2014-07-20+02:00</GallringsPeriodSlut>
+      </Gallring>
+      <Agent>
+        <Roll>some_agent_roll_2</Roll>
+        <Namn>some_agent_name_2</Namn>
+        <Organisationsnamn>some_agent_org_namn_2</Organisationsnamn>
+        <Enhetsnamn>some_agent_enhet_namn_2</Enhetsnamn>
+      </Agent>
+      <Inkommen>2005-05-29T11:30:53+02:00</Inkommen>
+      <Lopnummer>3</Lopnummer>
+      <Mottagare>
+        <Namn>some_mottagare_namn</Namn>
+        <Organisation>some_mottagare_org</Organisation>
+        <Postadress>some_mottagare_postadress</Postadress>
+        <Postnummer>some_mottagare_postnummer</Postnummer>
+        <Postort>some_mottagare_postort</Postort>
+        <Land>some_mottagare_land</Land>
+        <IDnummer Typ="1">some_mottagare_id_nr</IDnummer>
+        <Telefon>some_mottagare_tel</Telefon>
+        <Fax>some_mottagare_fax</Fax>
+        <EPost>some_mottagare_epost</EPost>
+        <SkyddadIdentitet>true</SkyddadIdentitet>
+      </Mottagare>
+      <Notering>some_notering_2</Notering>
+      <HandlingRelation Typ="&#xC4;r annat format av" AnnanTyp="handling_rel_annan_typ">some_handling_rel_text</HandlingRelation>
+      <Rubrik>some_rubrik_2</Rubrik>
+      <Skapad>2014-10-15T13:12:55</Skapad>
+      <SistaAnvandandetidpunkt>2003-02-28T03:31:48+01:00</SistaAnvandandetidpunkt>
+      <StatusHandling>Inkommen</StatusHandling>
+      <Upprattad>2011-05-05T13:49:40</Upprattad>
+      <Atkomst>some_atkomst_2</Atkomst>
+      <Restriktion Typ="Sekretess" AnnanTyp="restriktion_some_annan_typ">
+        <ForklarandeText>some_forklarande_text_2</ForklarandeText>
+        <Lagrum>some_lagrum_2</Lagrum>
+        <RestriktionsDatum>2017-03-08</RestriktionsDatum>
+      </Restriktion>
+      <Bilaga Namn="some_bi_namn_3" Beskrivning="some_bi_besk_3" Lank="some_bi_lank_3" Storlek="3" CharacterSet="some_char_set_3" Mimetyp="some_mime_type_3" Checksumma="some_checksum_3" ChecksummaMetod="some_checksum_metod_3" SchemaURI="some_schema_uri_3" Esignatur="Ja">
+        <Bevaras>true</Bevaras>
+      </Bilaga>
+      <EgnaElement>
+        <EgnaElementBeskrivning>some_egna_element_besk</EgnaElementBeskrivning>
+        <EgetElement Namn="some_eget_elem_namn" DataTyp="some_datatyp_5" Format="some_eget_elem_format">
+          <Varde>some_eget_elem_varde_3</Varde>
+          <Egenskaper>
+            <Egenskap Namn="some_egenskap_namn_3" DataTyp="some_datatyp_6" Format="some_egenskap_format_3">
+              <Varde>some_egenskap_varde_3</Varde>
+              <Egenskaper/>
+            </Egenskap>
+          </Egenskaper>
+          <EgetElement/>
+        </EgetElement>
+      </EgnaElement>
+      <TillkommandeXMLdata>
+        <AnyElement/>
+      </TillkommandeXMLdata>
+    </ArkivobjektHandling>
+  </ArkivobjektListaHandlingar>
+</Leveransobjekt>

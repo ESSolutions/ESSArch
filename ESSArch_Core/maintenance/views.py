@@ -132,10 +132,10 @@ def find_all_files(datadir, ip, pattern):
     found_files = []
     for path in iglob(datadir + '/' + pattern):
         if os.path.isdir(path):
-            for root, dirs, found_files in walk(path):
+            for root, dirs, files in walk(path):
                 rel = os.path.relpath(root, datadir)
 
-                for f in found_files:
+                for f in files:
                     found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
 
         elif os.path.isfile(path):
