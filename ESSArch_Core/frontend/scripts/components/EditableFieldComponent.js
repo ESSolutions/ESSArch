@@ -12,7 +12,11 @@ angular.module('essarch.components').component('editableField', {
     textClass: '@', // Class for text
     inputClass: '@', // For custom input class, default is form-control
     options: '<', // Options for select field, only used when type = 'select'
+    labelProp: '<', // Property visible in select
+    valueProp: '<', // Actual property in select
     options2: '<', // Options for select field2, only used when type2 = 'select'
+    labelProp2: '<', // Property visible in select2
+    valueProp2: '<', // Actual property in select2
     placeholder: '<', // Placeholder for value
     placeholder2: '<', // placeholder for value2
     tooltip: '@', // Tooltip for value
