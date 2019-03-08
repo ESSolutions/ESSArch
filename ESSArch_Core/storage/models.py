@@ -276,6 +276,10 @@ class StorageTarget(models.Model):
         if medium is not None:
             return medium, False
 
+        medium = self._create_storage_medium()
+        return medium, True
+
+    def _create_storage_medium(self):
         storage_type = get_storage_type_from_medium_type(self.type)
         medium_location = Parameter.objects.get(entity='medium_location').value
         agent = Parameter.objects.get(entity='agent_identifier_value').value
@@ -296,7 +300,7 @@ class StorageTarget(models.Model):
                                                   agent=agent)
         else:
             raise NotImplementedError()
-        return medium, True
+        return medium
 
     def get_storage_backend(self):
         storage_type = get_storage_type_from_medium_type(self.type)
@@ -388,13 +392,7 @@ class StorageMedium(models.Model):
     objects = StorageMediumQueryset.as_manager()
 
     def get_type(self):
-        target_type = self.storage_target.type
-        if target_type < 300:
-            return DISK
-        elif target_type < 400:
-            return TAPE
-        else:
-            return CAS
+        return get_storage_type_from_medium_type(self.storage_target.type)
 
     def mark_as_full(self):
         objs = self.storage.annotate(
@@ -489,7 +487,7 @@ class StorageObject(models.Model):
             if self.container:
                 target += '.tar'
         else:
-            return os.path.join(target, self.content_location_value)
+            target = os.path.join(target, self.content_location_value)
         return target
 
     def get_full_path(self):
