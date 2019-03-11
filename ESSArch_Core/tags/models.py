@@ -1,12 +1,10 @@
 import uuid
 
 import jsonfield
-from countries_plus.models import Country
 from django.db import models, transaction
 from django.db.models import F, OuterRef, Subquery
 from django.utils.translation import ugettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
-from languages_plus.models import Language
 from mptt.models import MPTTModel, TreeForeignKey
 
 from ESSArch_Core.tags.documents import VersionedDocType

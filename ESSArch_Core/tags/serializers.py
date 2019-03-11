@@ -1,5 +1,6 @@
 import elasticsearch
 from django.core.cache import cache
+from django.db import transaction
 from rest_framework import serializers
 
 from ESSArch_Core.agents.models import Agent, AgentTagLink
@@ -9,9 +10,11 @@ from ESSArch_Core.tags.models import (
     MediumType,
     NodeIdentifier,
     NodeNote,
+    NodeRelationType,
     RuleConventionType,
     Structure,
     StructureUnit,
+    StructureUnitRelation,
     Tag,
     TagStructure,
     TagVersion,
@@ -35,6 +38,12 @@ class NodeNoteSerializer(serializers.ModelSerializer):
         fields = ('id', 'type', 'text', 'href', 'create_date', 'revise_date',)
 
 
+class NodeRelationTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NodeRelationType
+        fields = ('id', 'name',)
+
+
 class RuleConventionTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = RuleConventionType
@@ -51,11 +60,36 @@ class StructureSerializer(serializers.ModelSerializer):
                   'rule_convention_type',)
 
 
+class RelatedStructureUnitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StructureUnit
+        fields = ('id', 'name',)
+
+
+class StructureUnitRelationSerializer(serializers.ModelSerializer):
+    structure_unit = RelatedStructureUnitSerializer(source='structure_unit_b')
+    type = NodeRelationTypeSerializer()
+
+    class Meta:
+        model = StructureUnitRelation
+        fields = ('type', 'description', 'start_date', 'end_date', 'create_date', 'revise_date', 'structure_unit',)
+
+
+class StructureUnitRelationWriteSerializer(StructureUnitRelationSerializer):
+    structure_unit = serializers.PrimaryKeyRelatedField(
+        source='structure_unit_b', queryset=StructureUnit.objects.all()
+    )
+    type = serializers.PrimaryKeyRelatedField(queryset=NodeRelationType.objects.all())
+
+
 class StructureUnitSerializer(serializers.ModelSerializer):
     identifiers = NodeIdentifierSerializer(many=True)
     notes = NodeNoteSerializer(many=True)
     is_leaf_node = serializers.SerializerMethodField()
     is_unit_leaf_node = serializers.SerializerMethodField()
+    related_structure_units = StructureUnitRelationSerializer(
+        source='structure_unit_relations_a', many=True, required=False
+    )
 
     def get_is_unit_leaf_node(self, obj):
         return obj.is_leaf_node()
@@ -86,7 +120,40 @@ class StructureUnitSerializer(serializers.ModelSerializer):
             'id', 'parent', 'name', 'type', 'description',
             'reference_code', 'start_date', 'end_date', 'is_leaf_node',
             'is_unit_leaf_node', 'structure', 'identifiers', 'notes',
+            'related_structure_units',
         )
+
+
+class StructureUnitWriteSerializer(StructureUnitSerializer):
+    related_structure_units = StructureUnitRelationWriteSerializer(
+        source='structure_unit_relations_a', many=True, required=False
+    )
+
+    @staticmethod
+    def create_relations(structure_unit, structure_unit_relations):
+        StructureUnitRelation.objects.bulk_create([
+            StructureUnitRelation(structure_unit_a=structure_unit, **relation)
+            for relation in structure_unit_relations
+        ])
+
+    @transaction.atomic
+    def create(self, validated_data):
+        related_units_data = validated_data.pop('structure_unit_relations_a', [])
+        unit = StructureUnit.objects.create(**validated_data)
+
+        self.create_relations(unit, related_units_data)
+
+        return unit
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        related_units_data = validated_data.pop('structure_unit_relations_a', None)
+
+        if related_units_data is not None:
+            StructureUnitRelation.objects.filter(structure_unit_a=instance).delete()
+            self.create_relations(instance, related_units_data)
+
+        return super().update(instance, validated_data)
 
 
 class TagStructureSerializer(serializers.ModelSerializer):
