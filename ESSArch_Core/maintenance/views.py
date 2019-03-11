@@ -2,13 +2,11 @@ import os
 
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from glob2 import iglob
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
-from os import walk
 
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.util import get_objects_for_user
@@ -62,9 +60,13 @@ class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def report(self, request, pk=None):
+        path = self.get_report_pdf_path(pk)
+        return generate_file_response(open(path, 'rb'), 'application/pdf')
+
+    def get_report_pdf_path(self, pk):
         path = self.get_object()._get_report_directory()
         path = os.path.join(path, pk + '.pdf')
-        return generate_file_response(open(path, 'rb'), 'application/pdf')
+        return path
 
 
 class AppraisalRuleViewSet(MaintenanceRuleViewSet):
@@ -86,20 +88,7 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
     @action(detail=True, methods=['get'])
     def preview(self, request, pk=None):
         job = self.get_object()
-        ips = job.rule.information_packages.filter(appraisal_date__lte=timezone.now(), active=True)
-        found_files = []
-
-        for ip in ips:
-            datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
-            if job.rule.specification:
-                for pattern in job.rule.specification:
-                    found_files.extend(find_all_files(datadir, ip, pattern))
-            else:
-                for root, dirs, files in walk(datadir):
-                    rel = os.path.relpath(root, datadir)
-
-                    for f in files:
-                        found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
+        found_files = job.rule.get_job_preview_files()
         return Response(found_files)
 
 
@@ -117,28 +106,5 @@ class ConversionJobViewSet(MaintenanceJobViewSet):
     @action(detail=True, methods=['get'])
     def preview(self, request, pk=None):
         job = self.get_object()
-        ips = job.rule.information_packages.all()
-        found_files = []
-
-        for ip in ips:
-            datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
-            for pattern, spec in job.rule.specification.items():
-                found_files.extend(find_all_files(datadir, ip, pattern))
-
+        found_files = job.rule.get_job_preview_files()
         return Response(found_files)
-
-
-def find_all_files(datadir, ip, pattern):
-    found_files = []
-    for path in iglob(datadir + '/' + pattern):
-        if os.path.isdir(path):
-            for root, dirs, files in walk(path):
-                rel = os.path.relpath(root, datadir)
-
-                for f in files:
-                    found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
-
-        elif os.path.isfile(path):
-            rel = os.path.relpath(path, datadir)
-            found_files.append({'ip': ip.object_identifier_value, 'document': rel})
-    return found_files

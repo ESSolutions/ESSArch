@@ -43,6 +43,22 @@ TYPE_CHOICES = (
 )
 
 
+def find_all_files(datadir, ip, pattern):
+    found_files = []
+    for path in iglob(datadir + '/' + pattern):
+        if os.path.isdir(path):
+            for root, dirs, files in walk(path):
+                rel = os.path.relpath(root, datadir)
+
+                for f in files:
+                    found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
+
+        elif os.path.isfile(path):
+            rel = os.path.relpath(path, datadir)
+            found_files.append({'ip': ip.object_identifier_value, 'document': rel})
+    return found_files
+
+
 class MaintenanceRule(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
@@ -140,6 +156,22 @@ class MaintenanceJobEntry(models.Model):
 class AppraisalRule(MaintenanceRule):
     type = models.CharField(max_length=100, choices=TYPE_CHOICES, default=ARCHIVAL_OBJECT)
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='appraisal_rules')
+
+    def get_job_preview_files(self):
+        ips = self.information_packages.filter(appraisal_date__lte=timezone.now(), active=True)
+        found_files = []
+        for ip in ips:
+            datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
+            if self.specification:
+                for pattern in self.specification:
+                    found_files.extend(find_all_files(datadir, ip, pattern))
+            else:
+                for root, dirs, files in walk(datadir):
+                    rel = os.path.relpath(root, datadir)
+
+                    for f in files:
+                        found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
+        return found_files
 
 
 class AppraisalJob(MaintenanceJob):
@@ -270,6 +302,15 @@ class AppraisalJobEntry(MaintenanceJobEntry):
 
 class ConversionRule(MaintenanceRule):
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='conversion_rules')
+
+    def get_job_preview_files(self):
+        ips = self.information_packages.all()
+        found_files = []
+        for ip in ips:
+            datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
+            for pattern, spec in self.specification.items():
+                found_files.extend(find_all_files(datadir, ip, pattern))
+        return found_files
 
 
 def preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path, new_ip, policy):
