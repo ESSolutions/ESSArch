@@ -2,13 +2,11 @@ import os
 
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from glob2 import iglob
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
-from os import walk
 
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.util import get_objects_for_user
@@ -77,23 +75,6 @@ class AppraisalRuleViewSet(MaintenanceRuleViewSet):
     filterset_class = AppraisalRuleFilter
 
 
-def get_appraisal_job_preview_files(rule):
-    ips = rule.information_packages.filter(appraisal_date__lte=timezone.now(), active=True)
-    found_files = []
-    for ip in ips:
-        datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
-        if rule.specification:
-            for pattern in rule.specification:
-                found_files.extend(find_all_files(datadir, ip, pattern))
-        else:
-            for root, dirs, files in walk(datadir):
-                rel = os.path.relpath(root, datadir)
-
-                for f in files:
-                    found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
-    return found_files
-
-
 class AppraisalJobViewSet(MaintenanceJobViewSet):
     queryset = AppraisalJob.objects.all()
     serializer_class = AppraisalJobSerializer
@@ -107,7 +88,7 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
     @action(detail=True, methods=['get'])
     def preview(self, request, pk=None):
         job = self.get_object()
-        found_files = get_appraisal_job_preview_files(job.rule)
+        found_files = job.rule.get_job_preview_files()
         return Response(found_files)
 
 
@@ -115,16 +96,6 @@ class ConversionRuleViewSet(MaintenanceRuleViewSet):
     queryset = ConversionRule.objects.all()
     serializer_class = ConversionRuleSerializer
     filterset_class = ConversionRuleFilter
-
-
-def get_conversion_job_preview_files(rule):
-    ips = rule.information_packages.all()
-    found_files = []
-    for ip in ips:
-        datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
-        for pattern, spec in rule.specification.items():
-            found_files.extend(find_all_files(datadir, ip, pattern))
-    return found_files
 
 
 class ConversionJobViewSet(MaintenanceJobViewSet):
@@ -135,21 +106,5 @@ class ConversionJobViewSet(MaintenanceJobViewSet):
     @action(detail=True, methods=['get'])
     def preview(self, request, pk=None):
         job = self.get_object()
-        found_files = get_conversion_job_preview_files(job.rule)
+        found_files = job.rule.get_job_preview_files()
         return Response(found_files)
-
-
-def find_all_files(datadir, ip, pattern):
-    found_files = []
-    for path in iglob(datadir + '/' + pattern):
-        if os.path.isdir(path):
-            for root, dirs, files in walk(path):
-                rel = os.path.relpath(root, datadir)
-
-                for f in files:
-                    found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
-
-        elif os.path.isfile(path):
-            rel = os.path.relpath(path, datadir)
-            found_files.append({'ip': ip.object_identifier_value, 'document': rel})
-    return found_files

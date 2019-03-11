@@ -12,8 +12,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.maintenance.models import AppraisalJob, ConversionJob
-from ESSArch_Core.maintenance.views import find_all_files
+from ESSArch_Core.maintenance.models import AppraisalJob, ConversionJob, find_all_files, ConversionRule, AppraisalRule
 from ESSArch_Core.util import win_to_posix, normalize_path
 
 User = get_user_model()
@@ -57,14 +56,17 @@ class ConversionJobViewSetPreviewTests(TestCase):
         response = self.client.get(self.url, {'name': 'foo'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @mock.patch('ESSArch_Core.maintenance.views.get_conversion_job_preview_files')
-    def test_authenticated(self, mock_get_conversion_job_preview_files):
-        mock_get_conversion_job_preview_files.return_value = ["file1", "file2"]
+    @mock.patch('ESSArch_Core.maintenance.views.ConversionJobViewSet.get_object')
+    @mock.patch('ESSArch_Core.maintenance.models.ConversionRule.get_job_preview_files')
+    def test_authenticated(self, mock_get_job_preview_files, mock_get_object):
+        mock_get_object.return_value = ConversionJob()
+        mock_get_object.return_value.rule = ConversionRule()
+        mock_get_job_preview_files.return_value = ["file1", "file2"]
         self.client.force_authenticate(user=self.user)
 
         self.client.get(self.url, {'name': 'foo'})
 
-        mock_get_conversion_job_preview_files.assert_called_once()
+        mock_get_job_preview_files.assert_called_once()
 
 
 class AppraisalJobViewSetPreviewTests(TestCase):
@@ -78,14 +80,17 @@ class AppraisalJobViewSetPreviewTests(TestCase):
         response = self.client.get(self.url, {'name': 'foo'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @mock.patch('ESSArch_Core.maintenance.views.get_appraisal_job_preview_files')
-    def test_authenticated(self, mock_get_appraisal_job_preview_files):
-        mock_get_appraisal_job_preview_files.return_value = ["file1", "file2"]
+    @mock.patch('ESSArch_Core.maintenance.views.AppraisalJobViewSet.get_object')
+    @mock.patch('ESSArch_Core.maintenance.models.AppraisalRule.get_job_preview_files')
+    def test_authenticated(self, mock_get_job_preview_files, mock_get_object):
+        mock_get_object.return_value = AppraisalJob()
+        mock_get_object.return_value.rule = AppraisalRule()
+        mock_get_job_preview_files.return_value = ["file1", "file2"]
         self.client.force_authenticate(user=self.user)
 
         self.client.get(self.url, {'name': 'foo'})
 
-        mock_get_appraisal_job_preview_files.assert_called_once()
+        mock_get_job_preview_files.assert_called_once()
 
 
 class AppraisalJobViewSetRunTests(TestCase):
