@@ -8,7 +8,7 @@ class StructureUnitFilter(filters.FilterSet):
 
     class Meta:
         model = StructureUnit
-        fields = ['has_parent']
+        fields = ['has_parent', 'structure']
 
 
 class TagFilter(filters.FilterSet):
