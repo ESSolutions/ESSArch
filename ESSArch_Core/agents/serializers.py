@@ -174,9 +174,15 @@ class RelatedAgentSerializer(serializers.ModelSerializer):
         fields = ('id', 'names', 'type',)
 
 
+class AgentRelationTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AgentRelationType
+        fields = ('id', 'name',)
+
+
 class AgentRelationSerializer(serializers.ModelSerializer):
     agent = RelatedAgentSerializer(source='agent_b')
-    type = serializers.CharField(source='type.name')
+    type = AgentRelationTypeSerializer()
 
     class Meta:
         model = AgentRelation
