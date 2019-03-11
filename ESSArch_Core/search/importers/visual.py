@@ -30,7 +30,7 @@ from ESSArch_Core.agents.models import (
     Topography,
 )
 from ESSArch_Core.search.importers.base import BaseImporter
-from ESSArch_Core.tags.documents import Archive, Component
+from ESSArch_Core.tags.documents import Agent as AgentDoc, Archive, Component
 from ESSArch_Core.tags.models import (
     Structure,
     StructureUnit,
@@ -199,9 +199,14 @@ class VisualImporter(BaseImporter):
         cls.parse_agent_identifiers(el, agent)
         cls.parse_agent_places(el, agent)
 
+        doc = AgentDoc(
+            _id=str(agent.pk),
+            names=[name.main for name in agent.names.all()],
+        )
+
         logger.info("Parsed arkivbildare: {}".format(agent.pk))
 
-        return agent
+        return agent, doc.to_dict(include_meta=True)
 
     @classmethod
     def save_tags(cls, tags, tag_versions, tag_structures):
@@ -435,7 +440,8 @@ class VisualImporter(BaseImporter):
 
         all_docs = []
         for arkivbildare in root.xpath("va:arkivbildare", namespaces=self.NSMAP):
-            agent = self.parse_arkivbildare(arkivbildare, task=self.task)
+            agent, doc = self.parse_arkivbildare(arkivbildare, task=self.task)
+            all_docs.append(doc)
 
             docs, tags, tag_versions, tag_structures, agent_tag_links = zip(
                 *self.create_arkiv(
