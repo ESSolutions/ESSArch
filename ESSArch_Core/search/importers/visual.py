@@ -219,7 +219,7 @@ class VisualImporter(BaseImporter):
     def create_arkiv(cls, arkivbildare, agent, task=None, ip=None):
         for arkiv_el in cls.get_arkiv(arkivbildare):
             arkiv_doc, arkiv_tag, arkiv_version, arkiv_structure, arkiv_link = cls.parse_arkiv(
-                arkiv_el, agent=agent, task=task, ip=ip
+                arkiv_el, agent, task=task, ip=ip
             )
             yield arkiv_doc.to_dict(include_meta=True), arkiv_tag, arkiv_version, arkiv_structure, arkiv_link
 
@@ -230,12 +230,15 @@ class VisualImporter(BaseImporter):
                     )
 
                     for volym_el in cls.get_volymer(serie_el):
-                        volym_doc, volym_tag, volym_version, volym_structure = cls.parse_volym(
-                            volym_el, arkiv_version, arkiv_structure, structure_unit, agent=agent, task=task, ip=ip
+                        volym_doc, volym_tag, volym_version, volym_structure, volym_link = cls.parse_volym(
+                            volym_el, arkiv_version, arkiv_structure, structure_unit, agent, task=task, ip=ip
                         )
 
                         volym_doc.archive = arkiv_version.pk
-                        yield volym_doc.to_dict(include_meta=True), volym_tag, volym_version, volym_structure, None
+                        yield (
+                            volym_doc.to_dict(include_meta=True),
+                            volym_tag, volym_version, volym_structure, volym_link
+                        )
 
     @staticmethod
     def get_arkiv(arkivbildare):
@@ -250,7 +253,7 @@ class VisualImporter(BaseImporter):
         return VisualImporter.VOLYM_XPATH(serie)
 
     @classmethod
-    def parse_arkiv(cls, el, agent=None, task=None, ip=None):
+    def parse_arkiv(cls, el, agent, task=None, ip=None):
         logger.debug("Parsing arkiv...")
         name = el.xpath("va:arkivnamn", namespaces=cls.NSMAP)[0].text
         tag_type = 'Arkiv'
@@ -283,6 +286,7 @@ class VisualImporter(BaseImporter):
             name=name,
             type=tag_type,
             task_id=task.pk,
+            agents=[agent.pk],
         )
 
         tag = Tag(information_package=ip, task=task)
@@ -349,7 +353,7 @@ class VisualImporter(BaseImporter):
         return unit
 
     @classmethod
-    def parse_volym(cls, el, archive_version, parent_tag_structure, structure_unit, agent=None, task=None, ip=None):
+    def parse_volym(cls, el, archive_version, parent_tag_structure, structure_unit, agent, task=None, ip=None):
         logger.debug("Parsing volym...")
         ref_code = el.xpath("va:volnr", namespaces=cls.NSMAP)[0].text
         name = el.xpath("va:utseende", namespaces=cls.NSMAP)[0].text
@@ -365,6 +369,7 @@ class VisualImporter(BaseImporter):
             name=name,
             reference_code=ref_code,
             type=tag_type,
+            agents=[agent.pk],
         )
 
         tag = Tag(information_package=ip, task=task)
@@ -387,8 +392,14 @@ class VisualImporter(BaseImporter):
             level=0
         )
 
+        agent_tag_link = AgentTagLink(
+            agent=agent,
+            tag_id=tag_version.id,
+            type=cls.AGENT_TAG_LINK_RELATION_TYPE,
+        )
+
         logger.info("Parsed volym: {}".format(tag_version.pk))
-        return doc, tag, tag_version, tag_structure
+        return doc, tag, tag_version, tag_structure, agent_tag_link
 
     def import_content(self, path, rootdir=None, ip=None, **extra_paths):
         self.indexed_files = []

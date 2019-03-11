@@ -34,7 +34,7 @@ from ESSArch_Core.agents.models import (
     Topography,
 )
 from ESSArch_Core.search.importers.base import BaseImporter
-from ESSArch_Core.tags.documents import Archive, Component
+from ESSArch_Core.tags.documents import Agent as AgentDoc, Archive, Component
 from ESSArch_Core.tags.models import (
     MediumType,
     NodeIdentifier,
@@ -485,18 +485,10 @@ class KlaraImporter(BaseImporter):
             end_date=self.parse_archive_end_date(el),
         )
 
-        doc = Archive(
-            _id=archive_id,
-            current_version=True,
-            name=name,
-            type=tag_type,
-            task_id=task.pk,
-        )
-
         inst_code = el.xpath("ObjectParts/General/ArchiveInst.InstCode")[0].text
-        archive_id = el.xpath("ObjectParts/General/Archive.ArchiveID")[0].text
+        archive_klara_id = el.xpath("ObjectParts/General/Archive.ArchiveID")[0].text
         NodeIdentifier.objects.create(
-            identifier="{}/{}".format(inst_code, archive_id),
+            identifier="{}/{}".format(inst_code, archive_klara_id),
             tag_version=tag_version,
             type=self.node_identifier_type_klara,
         )
@@ -536,6 +528,15 @@ class KlaraImporter(BaseImporter):
             agent_id=agent_id,
             tag=tag_version,
             type=self.tag_link_relation_type,
+        )
+
+        doc = Archive(
+            _id=archive_id,
+            current_version=True,
+            name=name,
+            type=tag_type,
+            task_id=task.pk,
+            agents=[agent_id],
         )
 
         return doc, tag, tag_version, tag_structure, inst_code
@@ -631,6 +632,7 @@ class KlaraImporter(BaseImporter):
             el.xpath("ArchiveOrig.ArchiveOrigID")[0].text,
             el.xpath("ArchiveOrig.Name")[0].text,
         )
+        agent_id = cache.get(agent_hash)
 
         archive_hash = self.build_archive_hash(
             el.xpath("Archive.ArchiveID")[0].text,
@@ -665,6 +667,7 @@ class KlaraImporter(BaseImporter):
             name=name,
             reference_code=ref_code,
             type=tag_type,
+            agents=[agent_id],
         )
 
         tag = Tag.objects.create(information_package=ip, task=task)
@@ -678,6 +681,12 @@ class KlaraImporter(BaseImporter):
             start_date=start_date,
             end_date=end_date,
             medium_type=medium_type,
+        )
+
+        AgentTagLink.objects.create(
+            agent_id=agent_id,
+            tag=tag_version,
+            type=self.tag_link_relation_type,
         )
 
         related_id_match = self.VOLUME_RELATION_REGEX.search(name)
@@ -699,18 +708,17 @@ class KlaraImporter(BaseImporter):
     def import_content(self, agent_xml_path, rootdir=None, ip=None, **extra_paths):
         self.indexed_files = []
         self.ip = ip
+        docs = []
 
         logger.debug("Importing data from {}...".format(agent_xml_path))
         self.cleanup()
-        self.parse_agent_xml(agent_xml_path)
+        docs += list(self.parse_agent_xml(agent_xml_path))
         logger.info("Data imported from {}".format(agent_xml_path))
-
-        docs = []
 
         archive_xml_path = extra_paths.get('archive_xml')
         if archive_xml_path:
             logger.debug("Importing archives and series from {}...".format(archive_xml_path))
-            docs = list(self.parse_archive_xml(archive_xml_path))
+            docs += list(self.parse_archive_xml(archive_xml_path))
             logger.info("Archive and series imported from {}".format(archive_xml_path))
 
             volume_xml_path = extra_paths.get('volume_xml')
@@ -756,7 +764,7 @@ class KlaraImporter(BaseImporter):
         total = None
         if self.task is not None:
             docs = list(docs)
-            total = TagVersion.objects.filter(tag__task=self.task).count()
+            total = len(docs)
 
         for _, count in self.save_to_elasticsearch(docs):
             if self.task is not None:
@@ -792,8 +800,13 @@ class KlaraImporter(BaseImporter):
                 arkivbildare.xpath('ObjectParts/General/ArchiveOrig.ArchiveOrigID')[0].text,
                 arkivbildare.xpath('ObjectParts/General/ArchiveOrig.Name')[0].text,
             )
-
             cache.set(agent_hash, agent.pk, 300)
+
+            doc = AgentDoc(
+                _id=str(agent.pk),
+                names=[name.main for name in agent.names.all()],
+            )
+            yield doc.to_dict(include_meta=True)
 
         logger.info("Agent XML elements parsed")
 
