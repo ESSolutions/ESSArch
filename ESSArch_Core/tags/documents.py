@@ -44,6 +44,7 @@ class VersionedDocType(Document):
     personal_identification_numbers = Keyword()
     restrictions = Nested(Restriction)
     ip = Keyword()
+    agents = Keyword()
     task_id = Keyword()
 
     def create_new_version(self, start_date=None, end_date=None, refresh=False):
@@ -178,3 +179,12 @@ class Directory(VersionedDocType):
 
     class Meta:
         date_detection = MetaField('false')
+
+
+class Agent(Document):
+    task_id = Keyword()
+    names = Text()
+
+    class Index:
+        name = 'agent'
+        analyzers = [autocomplete_analyzer]
