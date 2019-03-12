@@ -749,11 +749,18 @@ class KlaraImporter(BaseImporter):
                                 'Related tag version with reference "{}" not found, skipping...'.format(related_ref)
                             )
                         else:
-                            TagVersionRelation.objects.create(
-                                tag_version_a=tag_version,
-                                tag_version_b=related_tag_version,
-                                type=self.volume_relation_type,
-                            )
+                            TagVersionRelation.objects.bulk_create([
+                                TagVersionRelation(
+                                    tag_version_a=tag_version,
+                                    tag_version_b=related_tag_version,
+                                    type=self.volume_relation_type,
+                                ),
+                                TagVersionRelation(
+                                    tag_version_a=related_tag_version,
+                                    tag_version_b=tag_version,
+                                    type=self.volume_relation_type,
+                                )
+                            ])
                     else:
                         logger.info("No related reference found in cache")
 
