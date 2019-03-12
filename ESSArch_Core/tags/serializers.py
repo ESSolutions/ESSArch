@@ -91,27 +91,18 @@ class StructureUnitSerializer(serializers.ModelSerializer):
         source='structure_unit_relations_a', many=True, required=False
     )
 
+    archive = serializers.SerializerMethodField()
+
+    def get_archive(self, obj):
+        return obj.structure.tagstructure_set.filter(
+            tag__current_version__elastic_index='archive'
+        ).first().tag.current_version.pk
+
     def get_is_unit_leaf_node(self, obj):
         return obj.is_leaf_node()
 
     def get_is_leaf_node(self, obj):
-        archive_id = self.context.get('archive')
-        archive_structure_id = self.context.get('archive_structure')
-        structure_id = self.context.get('structure')
-
-        if archive_structure_id is not None:
-            archive = TagStructure.objects.get(pk=archive_structure_id)
-        elif archive_id is not None:
-            archive_qs = TagStructure.objects.filter(tag__versions=archive_id)
-            if structure_id is not None:
-                archive_qs = archive_qs.filter(structure=structure_id)
-
-            archive = archive_qs.get()
-        else:
-            return obj.is_leaf_node()
-
-        archive_descendants = archive.get_descendants().filter(structure_unit=obj)
-
+        archive_descendants = obj.structure.tagstructure_set.filter(structure_unit=obj)
         return obj.is_leaf_node() and not archive_descendants.exists()
 
     class Meta:
@@ -120,7 +111,7 @@ class StructureUnitSerializer(serializers.ModelSerializer):
             'id', 'parent', 'name', 'type', 'description',
             'reference_code', 'start_date', 'end_date', 'is_leaf_node',
             'is_unit_leaf_node', 'structure', 'identifiers', 'notes',
-            'related_structure_units',
+            'related_structure_units', 'archive',
         )
 
 

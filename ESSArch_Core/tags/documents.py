@@ -209,7 +209,7 @@ class InformationPackageDocument(VersionedDocType):
         return doc
 
     class Index:
-        name = 'information-package'
+        name = 'information_package'
         analyzers = [autocomplete_analyzer, ngram_analyzer]
 
     class Meta:
@@ -283,5 +283,5 @@ class StructureUnitDocument(DocumentBase):
         return doc
 
     class Index:
-        name = 'structure-unit'
+        name = 'structure_unit'
         analyzers = [autocomplete_analyzer]

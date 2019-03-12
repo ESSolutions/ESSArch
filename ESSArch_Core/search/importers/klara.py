@@ -508,7 +508,7 @@ class KlaraImporter(BaseImporter):
             name=el.xpath("ObjectParts/General/ArchiveType.Name")[0].text,
         )
 
-        structure, _ = Structure.objects.get_or_create(  # TODO: get or create?
+        structure = Structure.objects.create(
             name="Arkivförteckning för {}".format(orig_name),
             version='1.0',
             create_date=create_date,

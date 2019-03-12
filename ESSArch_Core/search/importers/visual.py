@@ -207,7 +207,7 @@ class VisualImporter(BaseImporter):
         return agent, doc.to_dict(include_meta=True)
 
     @classmethod
-    def save_tags(cls, tags, tag_versions, tag_structures):
+    def save_tags(cls, tags, tag_versions, tag_structures, tag_links):
         logger.info("Saving tags...")
 
         Tag.objects.bulk_create(tags, batch_size=100)
@@ -216,32 +216,51 @@ class VisualImporter(BaseImporter):
             with TagStructure.objects.disable_mptt_updates():
                 TagStructure.objects.bulk_create(tag_structures, batch_size=100)
 
+        AgentTagLink.objects.bulk_create(tag_links, batch_size=100)
+
         logger.info("Tags saved")
+
+    @classmethod
+    def parse_serier(cls, arkiv_el, agent, arkiv_version, arkiv_structure, task, ip):
+        volym_tags = []
+        volym_versions = []
+        volym_structures = []
+        volym_links = []
+
+        with StructureUnit.objects.delay_mptt_updates():
+            logger.info('Parsing series of {}...'.format(arkiv_version.pk))
+            for serie_el in cls.get_serier(arkiv_el):
+                structure_unit = cls.parse_serie(
+                    serie_el, arkiv_structure.structure, agent=agent, task=task, ip=ip,
+                )
+
+                logger.info('Parsing volumes of structure unit {}'.format(structure_unit.reference_code))
+                for volym_el in cls.get_volymer(serie_el):
+                    doc, volym_tag, volym_version, volym_structure, volym_link = cls.parse_volym(
+                        volym_el, arkiv_version, arkiv_structure, structure_unit, agent, task=task, ip=ip
+                    )
+                    yield doc
+
+                    volym_tags.append(volym_tag)
+                    volym_versions.append(volym_version)
+                    volym_structures.append(volym_structure)
+                    volym_links.append(volym_link)
+
+                logger.info('Volumes of structure unit {} successfully parsed'.format(structure_unit.reference_code))
+
+            logger.info('Series of {} successfully parsed'.format(arkiv_version.pk))
+
+        cls.save_tags(volym_tags, volym_versions, volym_structures, volym_links)
 
     @classmethod
     def create_arkiv(cls, arkivbildare, agent, task=None, ip=None):
         for arkiv_el in cls.get_arkiv(arkivbildare):
-            arkiv_doc, arkiv_tag, arkiv_version, arkiv_structure, arkiv_link = cls.parse_arkiv(
+            doc, arkiv_tag, arkiv_version, arkiv_structure, arkiv_link = cls.parse_arkiv(
                 arkiv_el, agent, task=task, ip=ip
             )
-            yield arkiv_doc, arkiv_tag, arkiv_version, arkiv_structure, arkiv_link
 
-            with StructureUnit.objects.delay_mptt_updates():
-                logger.info('Parsing series of {}...'.format(arkiv_version.pk))
-                for serie_el in cls.get_serier(arkiv_el):
-                    structure_unit = cls.parse_serie(
-                        serie_el, arkiv_structure.structure, agent=agent, task=task, ip=ip,
-                    )
-
-                    logger.info('Parsing volumes of structure unit {}'.format(structure_unit.reference_code))
-                    for volym_el in cls.get_volymer(serie_el):
-                        yield cls.parse_volym(
-                            volym_el, arkiv_version, arkiv_structure, structure_unit, agent, task=task, ip=ip
-                        )
-
-                    logger.info('Volumes of structure unit {} successfully parsed'.format(structure_unit.reference_code))
-
-                logger.info('Series of {} successfully parsed'.format(arkiv_version.pk))
+            yield doc
+            yield from cls.parse_serier(arkiv_el, agent, arkiv_version, arkiv_structure, task, ip)
 
     @staticmethod
     def get_arkiv(arkivbildare):
@@ -277,13 +296,8 @@ class VisualImporter(BaseImporter):
                 tzinfo=pytz.UTC,
             )
 
-        structure, _ = Structure.objects.get_or_create(  # TODO: get or create?
-            name="Arkivförteckning för {}".format(name),
-            version='1.0',
-        )
-
-        tag = Tag(information_package=ip, task=task)
-        tag_version = TagVersion(
+        tag = Tag.objects.create(information_package=ip, task=task)
+        tag_version = TagVersion.objects.create(
             tag=tag,
             elastic_index='archive',
             type=tag_type,
@@ -291,17 +305,18 @@ class VisualImporter(BaseImporter):
             start_date=start_date,
             end_date=end_date,
         )
-        tree_id = TagStructure.objects._get_next_tree_id()
-        tag_structure = TagStructure(
-            tag=tag,
-            structure=structure,
-            tree_id=tree_id,
-            lft=0,
-            rght=0,
-            level=0
+
+        structure = Structure.objects.create(
+            name="Arkivförteckning för {}".format(name),
+            version='1.0',
         )
 
-        agent_tag_link = AgentTagLink(
+        tag_structure = TagStructure.objects.create(
+            tag=tag,
+            structure=structure,
+        )
+
+        agent_tag_link = AgentTagLink.objects.create(
             agent=agent,
             tag_id=tag_version.id,
             type=cls.AGENT_TAG_LINK_RELATION_TYPE,
@@ -425,21 +440,14 @@ class VisualImporter(BaseImporter):
         root = tree.getroot()
 
         all_docs = []
-        for arkivbildare in root.xpath("va:arkivbildare", namespaces=self.NSMAP):
-            agent, doc = self.parse_arkivbildare(arkivbildare, task=self.task)
-            all_docs.append(doc)
 
-            docs, tags, tag_versions, tag_structures, agent_tag_links = zip(
-                *self.create_arkiv(
-                    arkivbildare, agent, task=self.task, ip=self.ip
-                )
-            )
-            all_docs.extend(docs)
+        with TagStructure.objects.disable_mptt_updates():
+            for arkivbildare in root.xpath("va:arkivbildare", namespaces=self.NSMAP):
+                agent, doc = self.parse_arkivbildare(arkivbildare, task=self.task)
+                all_docs.append(doc)
 
-            self.save_tags(tags, tag_versions, tag_structures)
-
-            agent_tag_links = [x for x in agent_tag_links if x is not None]
-            AgentTagLink.objects.bulk_create(agent_tag_links, batch_size=100)
+                docs = list(self.create_arkiv(arkivbildare, agent, task=self.task, ip=self.ip))
+                all_docs.extend(docs)
 
         logger.info("XML elements parsed")
 
