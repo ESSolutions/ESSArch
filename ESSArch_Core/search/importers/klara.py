@@ -16,6 +16,7 @@ from django.utils import timezone
 from languages_plus.models import Language
 from lxml import etree
 
+from ESSArch_Core.agents.documents import AgentDocument
 from ESSArch_Core.agents.models import (
     Agent,
     AgentIdentifier,
@@ -34,7 +35,7 @@ from ESSArch_Core.agents.models import (
     Topography,
 )
 from ESSArch_Core.search.importers.base import BaseImporter
-from ESSArch_Core.tags.documents import Agent as AgentDoc, Archive, Component
+from ESSArch_Core.tags.documents import Archive, Component, StructureUnitDocument
 from ESSArch_Core.tags.models import (
     MediumType,
     NodeIdentifier,
@@ -376,7 +377,7 @@ class KlaraImporter(BaseImporter):
             return cls._parse_year_string(end_year)
 
     def parse_arkivbildare(self, el, task):
-        logger.debug("Parsing arkivbildare...")
+        logger.info("Parsing arkivbildare...")
 
         agent_type = self.parse_agent_type(el)
 
@@ -530,14 +531,7 @@ class KlaraImporter(BaseImporter):
             type=self.tag_link_relation_type,
         )
 
-        doc = Archive(
-            _id=archive_id,
-            current_version=True,
-            name=name,
-            type=tag_type,
-            task_id=task.pk,
-            agents=[agent_id],
-        )
+        doc = Archive.from_obj(tag_version).to_dict(include_meta=True)
 
         return doc, tag, tag_version, tag_structure, inst_code
 
@@ -604,9 +598,7 @@ class KlaraImporter(BaseImporter):
         # save for building tree
         cache.set('{}{}'.format(cache_key_prefix, reference_code), str(unit.pk), 300)
 
-        # TODO: store in new index in elasticsearch?
-
-        logger.info("Parsed series: {}".format(unit.pk))
+        logger.debug("Parsed series: {}".format(unit.pk))
         return unit
 
     def parse_volume(self, el, medium_type_logisk, task, ip=None):
@@ -658,18 +650,6 @@ class KlaraImporter(BaseImporter):
         unit_id = cache.get(series_hash)
         unit = StructureUnit.objects.get(pk=unit_id)
 
-        doc = Component(
-            _id=volume_id,
-            archive=str(archive_tag.current_version.pk),
-            structure_unit=unit_id,
-            current_version=True,
-            task_id=task.pk,
-            name=name,
-            reference_code=ref_code,
-            type=tag_type,
-            agents=[agent_id],
-        )
-
         tag = Tag.objects.create(information_package=ip, task=task)
         tag_version = TagVersion.objects.create(
             pk=volume_id,
@@ -702,40 +682,42 @@ class KlaraImporter(BaseImporter):
             parent=archive_tag.get_active_structure()
         )
 
-        logger.info("Parsed volume: {}".format(tag_version.pk))
-        return doc, tag_version
+        doc = Component.from_obj(tag_version, archive=str(archive_tag.current_version.pk))
+
+        logger.debug("Parsed volume: {}".format(tag_version.pk))
+        return doc.to_dict(include_meta=True), tag_version
 
     def import_content(self, agent_xml_path, rootdir=None, ip=None, **extra_paths):
         self.indexed_files = []
         self.ip = ip
         docs = []
 
-        logger.debug("Importing data from {}...".format(agent_xml_path))
+        logger.info("Importing data from {}...".format(agent_xml_path))
         self.cleanup()
         docs += list(self.parse_agent_xml(agent_xml_path))
         logger.info("Data imported from {}".format(agent_xml_path))
 
         archive_xml_path = extra_paths.get('archive_xml')
         if archive_xml_path:
-            logger.debug("Importing archives and series from {}...".format(archive_xml_path))
+            logger.info("Importing archives and series from {}...".format(archive_xml_path))
             docs += list(self.parse_archive_xml(archive_xml_path))
             logger.info("Archive and series imported from {}".format(archive_xml_path))
 
             volume_xml_path = extra_paths.get('volume_xml')
             if volume_xml_path:
-                logger.debug("Importing volumes from {}...".format(volume_xml_path))
+                logger.info("Importing volumes from {}...".format(volume_xml_path))
                 volume_docs = list(self.parse_volume_xml(volume_xml_path))
                 docs = chain(docs, volume_docs)
                 logger.info("Volumes imported from {}".format(volume_xml_path))
 
-                logger.debug("Creating relations between volumes...")
+                logger.info("Creating relations between volumes...")
 
                 for tag_version in TagVersion.objects.filter(tag__task=self.task).iterator():
                     logger.debug("Getting related reference from cache...")
                     relation_cache_key = 'relation_{}'.format(str(tag_version.pk))
                     related_ref = cache.get(relation_cache_key)
                     if related_ref:
-                        logger.info("Related reference found in cache")
+                        logger.debug("Related reference found in cache")
                         related_series_ref, related_volume_ref = related_ref.split(':')
                         # TODO replace this with something faster (and safer and more correct?)
                         try:
@@ -762,7 +744,7 @@ class KlaraImporter(BaseImporter):
                                 )
                             ])
                     else:
-                        logger.info("No related reference found in cache")
+                        logger.debug("No related reference found in cache")
 
                 logger.info("Relations created between volumes ")
 
@@ -779,16 +761,16 @@ class KlaraImporter(BaseImporter):
                 self.task.update_progress(75 + partial_progress)
 
     def cleanup(self):
-        logger.debug("Deleting task agents already in database...")
+        logger.info("Deleting task agents already in database...")
         Agent.objects.filter(task=self.task).delete()
         logger.info("Deleted task agents already in database")
 
         # TODO: Delete Structures connected to task?
-        logger.debug("Deleting task structure units already in database...")
+        logger.info("Deleting task structure units already in database...")
         StructureUnit.objects.filter(task=self.task).delete()
         logger.info("Deleted task structure units already in database")
 
-        logger.debug("Deleting task tags already in database...")
+        logger.info("Deleting task tags already in database...")
         Tag.objects.filter(task=self.task).delete()
         logger.info("Deleted task tags already in database")
 
@@ -796,7 +778,7 @@ class KlaraImporter(BaseImporter):
 
     @transaction.atomic
     def parse_agent_xml(self, xmlfile):
-        logger.debug("Parsing agent XML elements...")
+        logger.info("Parsing agent XML elements...")
 
         tree = etree.parse(xmlfile, self.xmlparser)
         root = tree.getroot()
@@ -809,17 +791,13 @@ class KlaraImporter(BaseImporter):
             )
             cache.set(agent_hash, agent.pk, 300)
 
-            doc = AgentDoc(
-                _id=str(agent.pk),
-                names=[name.main for name in agent.names.all()],
-            )
-            yield doc.to_dict(include_meta=True)
+            yield AgentDocument.from_obj(agent).to_dict(include_meta=True)
 
         logger.info("Agent XML elements parsed")
 
     @transaction.atomic
     def parse_archive_xml(self, xmlfile):
-        logger.debug("Parsing archive XML elements...")
+        logger.info("Parsing archive XML elements...")
 
         tree = etree.parse(xmlfile, self.xmlparser)
         root = tree.getroot()
@@ -866,13 +844,16 @@ class KlaraImporter(BaseImporter):
 
                 cache.set(series_hash, series_structure_unit.pk, 300)
 
-            yield archive_doc.to_dict(include_meta=True)
+                doc = StructureUnitDocument.from_obj(series_structure_unit)
+                yield doc.to_dict(include_meta=True)
+
+            yield archive_doc
 
         logger.info("Archive XML elements parsed")
 
     @transaction.atomic
     def parse_volume_xml(self, xmlfile):
-        logger.debug("Parsing volume XML elements...")
+        logger.info("Parsing volume XML elements...")
 
         tree = etree.parse(xmlfile, self.xmlparser)
         root = tree.getroot()
@@ -885,6 +866,6 @@ class KlaraImporter(BaseImporter):
                 ip=self.ip,
             )
 
-            yield volume_doc.to_dict(include_meta=True)
+            yield volume_doc
 
         logger.info("Volume XML elements parsed")

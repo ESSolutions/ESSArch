@@ -30,7 +30,8 @@ from ESSArch_Core.agents.models import (
     Topography,
 )
 from ESSArch_Core.search.importers.base import BaseImporter
-from ESSArch_Core.tags.documents import Agent as AgentDoc, Archive, Component
+from ESSArch_Core.agents.documents import AgentDocument
+from ESSArch_Core.tags.documents import Archive, Component, StructureUnitDocument
 from ESSArch_Core.tags.models import (
     Structure,
     StructureUnit,
@@ -175,7 +176,7 @@ class VisualImporter(BaseImporter):
 
     @classmethod
     def parse_arkivbildare(cls, el, task=None):
-        logger.debug("Parsing arkivbildare...")
+        logger.info("Parsing arkivbildare...")
 
         agent_type = cls.parse_agent_type(el)
         start_date = cls.parse_agent_start_date(el)
@@ -199,10 +200,7 @@ class VisualImporter(BaseImporter):
         cls.parse_agent_identifiers(el, agent)
         cls.parse_agent_places(el, agent)
 
-        doc = AgentDoc(
-            _id=str(agent.pk),
-            names=[name.main for name in agent.names.all()],
-        )
+        doc = AgentDocument.from_obj(agent)
 
         logger.info("Parsed arkivbildare: {}".format(agent.pk))
 
@@ -210,7 +208,7 @@ class VisualImporter(BaseImporter):
 
     @classmethod
     def save_tags(cls, tags, tag_versions, tag_structures):
-        logger.debug("Saving tags...")
+        logger.info("Saving tags...")
 
         Tag.objects.bulk_create(tags, batch_size=100)
         TagVersion.objects.bulk_create(tag_versions, batch_size=100)
@@ -226,24 +224,24 @@ class VisualImporter(BaseImporter):
             arkiv_doc, arkiv_tag, arkiv_version, arkiv_structure, arkiv_link = cls.parse_arkiv(
                 arkiv_el, agent, task=task, ip=ip
             )
-            yield arkiv_doc.to_dict(include_meta=True), arkiv_tag, arkiv_version, arkiv_structure, arkiv_link
+            yield arkiv_doc, arkiv_tag, arkiv_version, arkiv_structure, arkiv_link
 
             with StructureUnit.objects.delay_mptt_updates():
+                logger.info('Parsing series of {}...'.format(arkiv_version.pk))
                 for serie_el in cls.get_serier(arkiv_el):
                     structure_unit = cls.parse_serie(
                         serie_el, arkiv_structure.structure, agent=agent, task=task, ip=ip,
                     )
 
+                    logger.info('Parsing volumes of structure unit {}'.format(structure_unit.reference_code))
                     for volym_el in cls.get_volymer(serie_el):
-                        volym_doc, volym_tag, volym_version, volym_structure, volym_link = cls.parse_volym(
+                        yield cls.parse_volym(
                             volym_el, arkiv_version, arkiv_structure, structure_unit, agent, task=task, ip=ip
                         )
 
-                        volym_doc.archive = arkiv_version.pk
-                        yield (
-                            volym_doc.to_dict(include_meta=True),
-                            volym_tag, volym_version, volym_structure, volym_link
-                        )
+                    logger.info('Volumes of structure unit {} successfully parsed'.format(structure_unit.reference_code))
+
+                logger.info('Series of {} successfully parsed'.format(arkiv_version.pk))
 
     @staticmethod
     def get_arkiv(arkivbildare):
@@ -259,7 +257,7 @@ class VisualImporter(BaseImporter):
 
     @classmethod
     def parse_arkiv(cls, el, agent, task=None, ip=None):
-        logger.debug("Parsing arkiv...")
+        logger.info("Parsing arkiv...")
         name = el.xpath("va:arkivnamn", namespaces=cls.NSMAP)[0].text
         tag_type = 'Arkiv'
 
@@ -284,19 +282,8 @@ class VisualImporter(BaseImporter):
             version='1.0',
         )
 
-        archive_id = uuid.uuid4()
-        doc = Archive(
-            _id=archive_id,
-            current_version=True,
-            name=name,
-            type=tag_type,
-            task_id=task.pk,
-            agents=[agent.pk],
-        )
-
         tag = Tag(information_package=ip, task=task)
         tag_version = TagVersion(
-            pk=archive_id,
             tag=tag,
             elastic_index='archive',
             type=tag_type,
@@ -319,8 +306,12 @@ class VisualImporter(BaseImporter):
             tag_id=tag_version.id,
             type=cls.AGENT_TAG_LINK_RELATION_TYPE,
         )
+
+        doc = Archive.from_obj(tag_version)
+        doc.agents = [str(agent.pk)]
+
         logger.info("Parsed arkiv: {}".format(tag_version.pk))
-        return doc, tag, tag_version, tag_structure, agent_tag_link
+        return doc.to_dict(include_meta=True), tag, tag_version, tag_structure, agent_tag_link
 
     @classmethod
     def parse_serie(cls, el, structure, agent=None, task=None, ip=None):
@@ -350,11 +341,14 @@ class VisualImporter(BaseImporter):
             reference_code=reference_code,
             task=task,
         )
+        doc = StructureUnitDocument.from_obj(unit)
+        doc.save()
+
         cache.set('{}{}'.format(cache_key_prefix, reference_code), str(unit.pk), 300)
 
         # TODO: store in new index in elasticsearch?
 
-        logger.info("Parsed serie: {}".format(unit.pk))
+        logger.debug("Parsed serie: {}".format(unit.pk))
         return unit
 
     @classmethod
@@ -365,17 +359,6 @@ class VisualImporter(BaseImporter):
         tag_type = "Volym"
 
         volym_id = uuid.uuid4()
-        doc = Component(
-            _id=volym_id,
-            archive=str(archive_version.pk),
-            structure_unit=str(structure_unit.pk),
-            current_version=True,
-            task_id=task.pk,
-            name=name,
-            reference_code=ref_code,
-            type=tag_type,
-            agents=[agent.pk],
-        )
 
         tag = Tag(information_package=ip, task=task)
         tag_version = TagVersion(
@@ -403,29 +386,32 @@ class VisualImporter(BaseImporter):
             type=cls.AGENT_TAG_LINK_RELATION_TYPE,
         )
 
-        logger.info("Parsed volym: {}".format(tag_version.pk))
-        return doc, tag, tag_version, tag_structure, agent_tag_link
+        doc = Component.from_obj(tag_version, archive=str(archive_version.pk))
+        doc.agents = [str(agent.pk)]
+
+        logger.debug("Parsed volym: {}".format(tag_version.pk))
+        return doc.to_dict(include_meta=True), tag, tag_version, tag_structure, agent_tag_link
 
     def import_content(self, path, rootdir=None, ip=None, **extra_paths):
         self.indexed_files = []
         self.ip = ip
 
-        logger.debug("Importing data from {}...".format(path))
+        logger.info("Importing data from {}...".format(path))
         self.cleanup()
         self.parse_xml(path)
         logger.info("Data imported from {}".format(path))
 
     def cleanup(self):
-        logger.debug("Deleting task agents already in database...")
+        logger.info("Deleting task agents already in database...")
         Agent.objects.filter(task=self.task).delete()
         logger.info("Deleted task agents already in database")
 
         # TODO: Delete Structures connected to task?
-        logger.debug("Deleting task structure units already in database...")
+        logger.info("Deleting task structure units already in database...")
         StructureUnit.objects.filter(task=self.task).delete()
         logger.info("Deleted task structure units already in database")
 
-        logger.debug("Deleting task tags already in database...")
+        logger.info("Deleting task tags already in database...")
         Tag.objects.filter(task=self.task).delete()
         logger.info("Deleted task tags already in database")
 
@@ -433,7 +419,7 @@ class VisualImporter(BaseImporter):
 
     @transaction.atomic
     def parse_xml(self, xmlfile):
-        logger.debug("Parsing XML elements...")
+        logger.info("Parsing XML elements...")
 
         tree = etree.parse(xmlfile, self.xmlparser)
         root = tree.getroot()
@@ -468,6 +454,6 @@ class VisualImporter(BaseImporter):
                 partial_progress = ((count / total) / 4) * 100
                 self.task.update_progress(75 + partial_progress)
 
-        logger.debug("Rebuilding trees...")
+        logger.info("Rebuilding trees...")
         TagStructure.objects.rebuild()
         logger.info("Trees rebuilt")

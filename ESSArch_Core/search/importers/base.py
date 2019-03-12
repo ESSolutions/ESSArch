@@ -10,7 +10,7 @@ from lxml import etree
 from ESSArch_Core.tags.documents import Component
 from ESSArch_Core.tags.models import Tag, TagVersion
 
-logger = logging.getLogger('essarch.search.importers.VisualImporter')
+logger = logging.getLogger('essarch.search.importers.BaseImporter')
 
 
 class BaseImporter(object):
@@ -34,7 +34,7 @@ class BaseImporter(object):
         raise NotImplementedError
 
     def update_current_tag_versions(self):
-        logger.debug("Update current tag versions...")
+        logger.info("Update current tag versions...")
 
         versions = TagVersion.objects.filter(tag=OuterRef('pk'))
         Tag.objects.filter(
@@ -49,7 +49,7 @@ class BaseImporter(object):
 
     @staticmethod
     def save_to_elasticsearch(components):
-        logger.debug("Saving to Elasticsearch...")
+        logger.info("Saving to Elasticsearch...")
         conn = get_es_connection()
         count = 0
 
@@ -70,7 +70,7 @@ class BaseImporter(object):
 
     @staticmethod
     def cleanup_elasticsearch(task):
-        logger.debug("Deleting task tags already in Elasticsearch...")
+        logger.info("Deleting task tags already in Elasticsearch...")
         conn = get_es_connection()
         Search(using=conn, index='_all').query('term', task_id=str(task.pk)).delete()
         logger.info("Deleted task tags already in Elasticsearch")

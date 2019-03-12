@@ -3,6 +3,10 @@ from elasticsearch_dsl import (Boolean, Date, Document, InnerDoc, Integer, Keywo
                                MetaField, Nested, Object, Q, Text, analyzer,
                                tokenizer, token_filter)
 
+from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.search.documents import DocumentBase
+from ESSArch_Core.tags.models import StructureUnit, TagVersion
+
 ngram_tokenizer = tokenizer('custom_ngram_tokenizer', type='ngram', min_gram=3,
                             max_gram=3)
 ngram_analyzer = analyzer('custom_ngram_analyzer', tokenizer=ngram_tokenizer,
@@ -27,7 +31,7 @@ class Restriction(InnerDoc):
     permissions = Keyword()
 
 
-class VersionedDocType(Document):
+class VersionedDocType(DocumentBase):
     name = Text(
         analyzer=autocomplete_analyzer,
         search_analyzer='standard',
@@ -103,6 +107,32 @@ class Component(VersionedDocType):
     institution = Keyword()
     organization = Keyword()
 
+    @classmethod
+    def get_model(cls):
+        return TagVersion
+
+    @classmethod
+    def get_index_queryset(cls):
+        return TagVersion.objects.select_related('tag').exclude(elastic_index='archive')
+
+    @classmethod
+    def from_obj(cls, obj, archive=None):
+        units = StructureUnit.objects.filter(tagstructure__tag__current_version=obj)
+
+        doc = Component(
+            _id=str(obj.pk),
+            id=str(obj.pk),
+            task_id=str(obj.tag.task.pk),
+            archive=archive or str(obj.get_root().pk),
+            structure_unit=[str(pk) for pk in units.values_list('pk', flat=True)],
+            current_version=obj.tag.current_version == obj,
+            name=obj.name,
+            reference_code=obj.reference_code,
+            type=obj.type,
+            agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
+        )
+        return doc
+
     class Index:
         name = 'component'
         analyzers = [autocomplete_analyzer]
@@ -122,6 +152,27 @@ class Archive(VersionedDocType):
     organization = Keyword()
     organization_group = Integer()
 
+    @classmethod
+    def get_model(cls):
+        return TagVersion
+
+    @classmethod
+    def get_index_queryset(cls):
+        return TagVersion.objects.select_related('tag').filter(elastic_index='archive')
+
+    @classmethod
+    def from_obj(cls, obj):
+        doc = Archive(
+            _id=str(obj.pk),
+            id=str(obj.pk),
+            task_id=str(obj.tag.task.pk),
+            current_version=obj.tag.current_version == obj,
+            name=obj.name,
+            type=obj.type,
+            agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
+        )
+        return doc
+
     class Index:
         name = 'archive'
         analyzers = [autocomplete_analyzer]
@@ -130,7 +181,7 @@ class Archive(VersionedDocType):
         date_detection = MetaField('false')
 
 
-class InformationPackage(VersionedDocType):
+class InformationPackageDocument(VersionedDocType):
     id = Keyword()  # @id
     object_identifier_value = Text(
         analyzer=ngram_analyzer,
@@ -142,8 +193,23 @@ class InformationPackage(VersionedDocType):
     institution = Keyword()
     organization = Keyword()
 
+    @classmethod
+    def get_model(cls):
+        return InformationPackage
+
+    @classmethod
+    def from_obj(cls, obj):
+        doc = InformationPackage(
+            _id=str(obj.pk),
+            id=str(obj.pk),
+            object_identifier_value=obj.object_identifier_value,
+            start_date=obj.start_date,
+            end_date=obj.end_date,
+        )
+        return doc
+
     class Index:
-        name = 'information_package'
+        name = 'information-package'
         analyzers = [autocomplete_analyzer, ngram_analyzer]
 
     class Meta:
@@ -169,7 +235,7 @@ class File(Component):
         date_detection = MetaField('false')
 
 
-class Directory(VersionedDocType):
+class Directory(Component):
     ip = Keyword()
     href = Keyword()  # @href
 
@@ -181,10 +247,41 @@ class Directory(VersionedDocType):
         date_detection = MetaField('false')
 
 
-class Agent(Document):
+class StructureUnitDocument(DocumentBase):
+    id = Keyword()
     task_id = Keyword()
-    names = Text()
+    name = Text(
+        analyzer=autocomplete_analyzer,
+        search_analyzer='standard',
+        fields={'keyword': {'type': 'keyword'}}
+    )
+    type = Keyword()
+    description = Text()
+    comment = Text()
+    reference_code = Keyword()
+    start_date = Date()
+    end_date = Date()
+
+    @classmethod
+    def get_model(cls):
+        return StructureUnit
+
+    @classmethod
+    def from_obj(cls, obj):
+        doc = StructureUnitDocument(
+            _id=obj.pk,
+            id=obj.pk,
+            task_id=str(obj.task.pk),
+            name=obj.name,
+            type=obj.type,
+            description=obj.description,
+            comment=obj.comment,
+            reference_code=obj.reference_code,
+            start_date=obj.start_date,
+            end_date=obj.end_date,
+        )
+        return doc
 
     class Index:
-        name = 'agent'
+        name = 'structure-unit'
         analyzers = [autocomplete_analyzer]

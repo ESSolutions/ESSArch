@@ -36,8 +36,6 @@ def setup_index(doctype):
                 {"add": {"alias": alias, "index": index}},
             ]
         })
-    else:
-        migrate(doctype, move_data=True, update_alias=True)
 
 
 def get_next_index(pattern):

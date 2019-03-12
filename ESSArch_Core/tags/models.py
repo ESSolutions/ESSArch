@@ -7,8 +7,6 @@ from django.utils.translation import ugettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
 from mptt.models import MPTTModel, TreeForeignKey
 
-from ESSArch_Core.tags.documents import VersionedDocType
-
 
 class NodeIdentifier(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -335,7 +333,9 @@ class TagVersion(models.Model):
             'type': self.type,
         }
 
-    def to_search(self):
+    def to_search(self):  # TODO: replace with from_obj
+        from ESSArch_Core.tags.documents import VersionedDocType
+
         d = self.to_search_data()
         return VersionedDocType(**d)
 
@@ -348,7 +348,9 @@ class TagVersion(models.Model):
             params={'_source_exclude': 'attachment.content'}
         )
 
-    def get_doc(self):
+    def get_doc(self):  # TODO: do we need this?
+        from ESSArch_Core.tags.documents import VersionedDocType
+
         kwargs = {'params': {}}
         if self.elastic_index == 'document':
             kwargs['params']['_source_exclude'] = 'attachment.content'
