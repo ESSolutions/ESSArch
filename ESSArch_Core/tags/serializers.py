@@ -3,7 +3,7 @@ from django.core.cache import cache
 from django.db import transaction
 from rest_framework import serializers
 
-from ESSArch_Core.agents.models import Agent, AgentTagLink
+from ESSArch_Core.agents.models import Agent, AgentTagLink, AgentTagLinkRelationType
 from ESSArch_Core.agents.serializers import AgentNameSerializer
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.tags.models import (
@@ -296,7 +296,19 @@ class AgentArchiveLinkSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AgentTagLink
-        fields = ('archive', 'type', 'description', 'start_date', 'end_date',)
+        fields = ('id', 'archive', 'type', 'description', 'start_date', 'end_date',)
+
+
+class AgentArchiveLinkWriteSerializer(AgentArchiveLinkSerializer):
+    agent = serializers.PrimaryKeyRelatedField(queryset=Agent.objects.all())
+    archive = serializers.PrimaryKeyRelatedField(
+        source='tag',
+        queryset=TagVersion.objects.filter(elastic_index='archive')
+    )
+    type = serializers.PrimaryKeyRelatedField(queryset=AgentTagLinkRelationType.objects.all())
+
+    class Meta(AgentArchiveLinkSerializer.Meta):
+        AgentArchiveLinkSerializer.Meta.fields += ('agent',)
 
 
 class TagVersionSerializer(TagVersionNestedSerializer):
