@@ -200,7 +200,7 @@ if __name__ == '__main__':
             "mssql": ["django-pyodbc-azure==1.11.15.0"],
             "mysql": ["mysqlclient==1.3.13"],
             "postgres": ["psycopg2==2.7.5"],
-            "logstash": ["python-logstash==0.46"],
+            "logstash": ["python-logstash==0.4.6"],
         },
         packages=find_packages(),
         include_package_data=True,
