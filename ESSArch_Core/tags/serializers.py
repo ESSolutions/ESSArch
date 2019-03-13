@@ -4,7 +4,10 @@ from django.db import transaction
 from rest_framework import serializers
 
 from ESSArch_Core.agents.models import Agent, AgentTagLink, AgentTagLinkRelationType
-from ESSArch_Core.agents.serializers import AgentNameSerializer
+from ESSArch_Core.agents.serializers import (
+    AgentNameSerializer,
+    AgentTagLinkRelationTypeSerializer,
+)
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.tags.models import (
     MediumType,
@@ -292,7 +295,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
 
 class AgentArchiveLinkSerializer(serializers.ModelSerializer):
     archive = TagVersionNestedSerializer(source='tag')
-    type = serializers.CharField(source='type.name')
+    type = AgentTagLinkRelationTypeSerializer()
 
     class Meta:
         model = AgentTagLink

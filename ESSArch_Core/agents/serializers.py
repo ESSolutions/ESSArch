@@ -15,6 +15,7 @@ from ESSArch_Core.agents.models import (
     AgentPlaceType,
     AgentRelation,
     AgentRelationType,
+    AgentTagLinkRelationType,
     AgentType,
     AuthorityType,
     MainAgentType,
@@ -149,6 +150,12 @@ class AgentPlaceSerializer(serializers.ModelSerializer):
 
 class AgentPlaceWriteSerializer(AgentPlaceSerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=AgentPlaceType.objects.all())
+
+
+class AgentTagLinkRelationTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AgentTagLinkRelationType
+        fields = ('id', 'name',)
 
 
 class MainAgentTypeSerializer(serializers.ModelSerializer):
