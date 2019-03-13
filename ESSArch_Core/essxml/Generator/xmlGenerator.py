@@ -475,6 +475,34 @@ class XMLAttribute(object):
         return name, content, self.required
 
 
+def find_files_in_path_not_in_external_dirs(fid, path, external, algorithm, rootdir=""):
+    files = []
+    for root, dirnames, filenames in walk(path):
+        dirnames[:] = [d for d in dirnames if d not in [e[1] for e in external]]
+
+        for fname in filenames:
+            filepath = os.path.join(root, fname)
+            relpath = os.path.relpath(filepath, path)
+
+            fileinfo = parse_file(filepath, fid, relpath, algorithm=algorithm, rootdir=rootdir)
+            files.append(fileinfo)
+    return files
+
+
+def parse_files(fid, path, external, algorithm, rootdir):
+    files = []
+    if os.path.isfile(path):
+        relpath = os.path.basename(path)
+
+        file_info = parse_file(path, fid, relpath, algorithm=algorithm)
+        files.append(file_info)
+
+    elif os.path.isdir(path):
+        found_files = find_files_in_path_not_in_external_dirs(fid, path, external, algorithm, rootdir)
+        files.extend(found_files)
+    return files
+
+
 class XMLGenerator(object):
     def __init__(self, filepath=None):
         self.parser = etree.XMLParser(remove_blank_text=True)
@@ -560,41 +588,10 @@ class XMLGenerator(object):
                     fileinfo = parse_file(filepath, self.fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir)
                     files.append(fileinfo)
 
-            if os.path.isfile(folderToParse):
-                filepath = folderToParse
-                relpath = os.path.basename(folderToParse)
-
-                fileinfo = parse_file(filepath, self.fid, relpath, algorithm=algorithm)
-                files.append(fileinfo)
-
-            elif os.path.isdir(folderToParse):
-                for root, dirnames, filenames in walk(folderToParse):
-                    dirnames[:] = [d for d in dirnames if d not in [e[1] for e in external]]
-
-                    for fname in filenames:
-                        filepath = os.path.join(root, fname)
-                        relpath = os.path.relpath(filepath, folderToParse)
-
-                        fileinfo = parse_file(filepath, self.fid, relpath, algorithm=algorithm)
-                        files.append(fileinfo)
+            files.extend(parse_files(self.fid, folderToParse, external, algorithm, rootdir=""))
 
         for path in extra_paths_to_parse:
-            if os.path.isfile(path):
-                relpath = os.path.basename(path)
-
-                fileinfo = parse_file(path, self.fid, relpath, algorithm=algorithm)
-                files.append(fileinfo)
-
-            elif os.path.isdir(path):
-                for root, dirnames, filenames in walk(path):
-                    dirnames[:] = [d for d in dirnames if d not in [e[1] for e in external]]
-
-                    for fname in filenames:
-                        filepath = os.path.join(root, fname)
-                        relpath = os.path.relpath(filepath, path)
-
-                        fileinfo = parse_file(filepath, self.fid, relpath, algorithm=algorithm, rootdir=path)
-                        files.append(fileinfo)
+            files.extend(parse_files(self.fid, path, external, algorithm, rootdir=path))
 
         for idx, f in enumerate(self.toCreate):
             fname = f['file']

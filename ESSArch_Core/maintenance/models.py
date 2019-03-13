@@ -43,6 +43,22 @@ TYPE_CHOICES = (
 )
 
 
+def find_all_files(datadir, ip, pattern):
+    found_files = []
+    for path in iglob(datadir + '/' + pattern):
+        if os.path.isdir(path):
+            for root, dirs, files in walk(path):
+                rel = os.path.relpath(root, datadir)
+
+                for f in files:
+                    found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
+
+        elif os.path.isfile(path):
+            rel = os.path.relpath(path, datadir)
+            found_files.append({'ip': ip.object_identifier_value, 'document': rel})
+    return found_files
+
+
 class MaintenanceRule(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
@@ -141,6 +157,22 @@ class AppraisalRule(MaintenanceRule):
     type = models.CharField(max_length=100, choices=TYPE_CHOICES, default=ARCHIVAL_OBJECT)
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='appraisal_rules')
 
+    def get_job_preview_files(self):
+        ips = self.information_packages.filter(appraisal_date__lte=timezone.now(), active=True)
+        found_files = []
+        for ip in ips:
+            datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
+            if self.specification:
+                for pattern in self.specification:
+                    found_files.extend(find_all_files(datadir, ip, pattern))
+            else:
+                for root, dirs, files in walk(datadir):
+                    rel = os.path.relpath(root, datadir)
+
+                    for f in files:
+                        found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
+        return found_files
+
 
 class AppraisalJob(MaintenanceJob):
     rule = models.ForeignKey('maintenance.AppraisalRule', on_delete=models.SET_NULL, null=True, related_name='jobs')
@@ -167,19 +199,7 @@ class AppraisalJob(MaintenanceJob):
         ips = get_information_packages(self)
 
         for ip in ips.order_by('-cached').iterator():  # run cached IPs first
-            while not ip.cached:
-                with allow_join_result():
-                    t, created = ProcessTask.objects.get_or_create(
-                        name='workflow.tasks.CacheAIP',
-                        information_package=ip,
-                        defaults={'responsible': ip.responsible, 'eager': False}
-                    )
-
-                    if not created:
-                        t.run()
-
-                time.sleep(10)
-                ip.refresh_from_db()
+            run_cached_ip(ip)
 
             # inactivate old generations
             InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
@@ -252,115 +272,7 @@ class AppraisalJob(MaintenanceJob):
                             job_entry.save()
 
                 # preserve new generation
-                sa = new_ip.submission_agreement
-
-                try:
-                    os.remove(mets_path)
-                except OSError as e:
-                    if e.errno != errno.ENOENT:
-                        raise
-
-                filesToCreate = OrderedDict()
-
-                try:
-                    premis_profile = new_ip.get_profile_rel('preservation_metadata').profile
-                    premis_profile_data = ip.get_profile_data('preservation_metadata')
-                except ProfileIP.DoesNotExist:
-                    pass
-                else:
-                    premis_dir, premis_name = find_destination("preservation_description_file", aip_profile.structure)
-                    premis_path = os.path.join(dstdir, premis_dir, premis_name)
-
-                    try:
-                        os.remove(premis_path)
-                    except OSError as e:
-                        if e.errno != errno.ENOENT:
-                            raise
-
-                    filesToCreate[premis_path] = {
-                        'spec': premis_profile.specification,
-                        'data': fill_specification_data(premis_profile_data, ip=new_ip, sa=sa),
-                    }
-
-                filesToCreate[mets_path] = {
-                    'spec': aip_profile.specification,
-                    'data': fill_specification_data(aip_profile_data, ip=new_ip, sa=sa),
-                }
-
-                t = ProcessTask.objects.create(
-                    name='ESSArch_Core.tasks.GenerateXML',
-                    params={
-                        'filesToCreate': filesToCreate,
-                        'folderToParse': dstdir,
-                    },
-                    responsible=new_ip.responsible,
-                    information_package=new_ip,
-                )
-                t.run().get()
-
-                dsttar = dstdir + '.tar'
-                dstxml = dstdir + '.xml'
-
-                objid = new_ip.object_identifier_value
-
-                with tarfile.open(dsttar, 'w') as tar:
-                    for root, dirs, files in walk(dstdir):
-                        rel = os.path.relpath(root, dstdir)
-                        for d in dirs:
-                            src = os.path.join(root, d)
-                            arc = os.path.join(objid, rel, d)
-                            arc = os.path.normpath(arc)
-                            index_path(new_ip, src)
-                            tar.add(src, arc, recursive=False)
-
-                        for f in files:
-                            src = os.path.join(root, f)
-                            index_path(new_ip, src)
-                            tar.add(src, os.path.normpath(os.path.join(objid, rel, f)))
-
-                algorithm = policy.get_checksum_algorithm_display()
-                checksum = calculate_checksum(dsttar, algorithm=algorithm)
-
-                info = fill_specification_data(new_ip.get_profile_data('aip_description'), ip=new_ip, sa=sa)
-                info["_IP_CREATEDATE"] = timestamp_to_datetime(creation_date(dsttar)).isoformat()
-
-                aip_desc_profile = new_ip.get_profile('aip_description')
-                filesToCreate = {
-                    dstxml: {
-                        'spec': aip_desc_profile.specification,
-                        'data': info
-                    }
-                }
-
-                ProcessTask.objects.create(
-                    name="ESSArch_Core.tasks.GenerateXML",
-                    params={
-                        "filesToCreate": filesToCreate,
-                        "folderToParse": dsttar,
-                        "extra_paths_to_parse": [mets_path],
-                        "algorithm": algorithm,
-                    },
-                    information_package=new_ip,
-                    responsible=new_ip.responsible,
-                ).run().get()
-
-                InformationPackage.objects.filter(pk=new_ip.pk).update(
-                    message_digest=checksum, message_digest_algorithm=policy.checksum_algorithm,
-                )
-
-                ProcessTask.objects.create(
-                    name='ESSArch_Core.tasks.UpdateIPSizeAndCount',
-                    information_package=new_ip,
-                    responsible=new_ip.responsible,
-                ).run().get()
-
-                t = ProcessTask.objects.create(
-                    name='workflow.tasks.StoreAIP',
-                    information_package=new_ip,
-                    responsible=new_ip.responsible,
-                )
-
-                t.run()
+                preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path, new_ip, policy)
 
         self._mark_as_complete()
 
@@ -391,6 +303,143 @@ class AppraisalJobEntry(MaintenanceJobEntry):
 class ConversionRule(MaintenanceRule):
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='conversion_rules')
 
+    def get_job_preview_files(self):
+        ips = self.information_packages.all()
+        found_files = []
+        for ip in ips:
+            datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
+            for pattern, spec in self.specification.items():
+                found_files.extend(find_all_files(datadir, ip, pattern))
+        return found_files
+
+
+def preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path, new_ip, policy):
+    sa = new_ip.submission_agreement
+
+    try:
+        os.remove(mets_path)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+
+    filesToCreate = OrderedDict()
+
+    try:
+        premis_profile = new_ip.get_profile_rel('preservation_metadata').profile
+        premis_profile_data = ip.get_profile_data('preservation_metadata')
+    except ProfileIP.DoesNotExist:
+        pass
+    else:
+        premis_dir, premis_name = find_destination("preservation_description_file", aip_profile.structure)
+        premis_path = os.path.join(dstdir, premis_dir, premis_name)
+
+        try:
+            os.remove(premis_path)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
+
+        filesToCreate[premis_path] = {
+            'spec': premis_profile.specification,
+            'data': fill_specification_data(premis_profile_data, ip=new_ip, sa=sa),
+        }
+
+    filesToCreate[mets_path] = {
+        'spec': aip_profile.specification,
+        'data': fill_specification_data(aip_profile_data, ip=new_ip, sa=sa),
+    }
+
+    t = ProcessTask.objects.create(
+        name='ESSArch_Core.tasks.GenerateXML',
+        params={
+            'filesToCreate': filesToCreate,
+            'folderToParse': dstdir,
+        },
+        responsible=new_ip.responsible,
+        information_package=new_ip,
+    )
+    t.run().get()
+
+    dsttar = dstdir + '.tar'
+    dstxml = dstdir + '.xml'
+
+    objid = new_ip.object_identifier_value
+
+    with tarfile.open(dsttar, 'w') as tar:
+        for root, dirs, files in walk(dstdir):
+            rel = os.path.relpath(root, dstdir)
+            for d in dirs:
+                src = os.path.join(root, d)
+                arc = os.path.join(objid, rel, d)
+                arc = os.path.normpath(arc)
+                index_path(new_ip, src)
+                tar.add(src, arc, recursive=False)
+
+            for f in files:
+                src = os.path.join(root, f)
+                index_path(new_ip, src)
+                tar.add(src, os.path.normpath(os.path.join(objid, rel, f)))
+
+    algorithm = policy.get_checksum_algorithm_display()
+    checksum = calculate_checksum(dsttar, algorithm=algorithm)
+
+    info = fill_specification_data(new_ip.get_profile_data('aip_description'), ip=new_ip, sa=sa)
+    info["_IP_CREATEDATE"] = timestamp_to_datetime(creation_date(dsttar)).isoformat()
+
+    aip_desc_profile = new_ip.get_profile('aip_description')
+    filesToCreate = {
+        dstxml: {
+            'spec': aip_desc_profile.specification,
+            'data': info
+        }
+    }
+
+    ProcessTask.objects.create(
+        name="ESSArch_Core.tasks.GenerateXML",
+        params={
+            "filesToCreate": filesToCreate,
+            "folderToParse": dsttar,
+            "extra_paths_to_parse": [mets_path],
+            "algorithm": algorithm,
+        },
+        information_package=new_ip,
+        responsible=new_ip.responsible,
+    ).run().get()
+
+    InformationPackage.objects.filter(pk=new_ip.pk).update(
+        message_digest=checksum, message_digest_algorithm=policy.checksum_algorithm,
+    )
+
+    ProcessTask.objects.create(
+        name='ESSArch_Core.tasks.UpdateIPSizeAndCount',
+        information_package=new_ip,
+        responsible=new_ip.responsible,
+    ).run().get()
+
+    t = ProcessTask.objects.create(
+        name='workflow.tasks.StoreAIP',
+        information_package=new_ip,
+        responsible=new_ip.responsible,
+    )
+
+    t.run()
+
+
+def run_cached_ip(ip):
+    while not ip.cached:
+        with allow_join_result():
+            t, created = ProcessTask.objects.get_or_create(
+                name='workflow.tasks.CacheAIP',
+                information_package=ip,
+                defaults={'responsible': ip.responsible, 'eager': False}
+            )
+
+            if not created:
+                t.run()
+
+        time.sleep(10)
+        ip.refresh_from_db()
+
 
 class ConversionJob(MaintenanceJob):
     rule = models.ForeignKey('maintenance.ConversionRule', on_delete=models.SET_NULL, null=True, related_name='jobs')
@@ -408,19 +457,7 @@ class ConversionJob(MaintenanceJob):
         ips = get_information_packages(self)
 
         for ip in ips.order_by('-cached').iterator():  # convert cached IPs first
-            while not ip.cached:
-                with allow_join_result():
-                    t, created = ProcessTask.objects.get_or_create(
-                        name='workflow.tasks.CacheAIP',
-                        information_package=ip,
-                        defaults={'responsible': ip.responsible, 'eager': False}
-                    )
-
-                    if not created:
-                        t.run()
-
-                time.sleep(10)
-                ip.refresh_from_db()
+            run_cached_ip(ip)
 
             policy = ip.policy
             srcdir = os.path.join(policy.cache_storage.value, ip.object_identifier_value)
@@ -487,115 +524,7 @@ class ConversionJob(MaintenanceJob):
                         job_entry.save()
 
             # preserve new generation
-            sa = new_ip.submission_agreement
-
-            try:
-                os.remove(mets_path)
-            except OSError as e:
-                if e.errno != errno.ENOENT:
-                    raise
-
-            filesToCreate = OrderedDict()
-
-            try:
-                premis_profile = new_ip.get_profile_rel('preservation_metadata').profile
-                premis_profile_data = ip.get_profile_data('preservation_metadata')
-            except ProfileIP.DoesNotExist:
-                pass
-            else:
-                premis_dir, premis_name = find_destination("preservation_description_file", aip_profile.structure)
-                premis_path = os.path.join(dstdir, premis_dir, premis_name)
-
-                try:
-                    os.remove(premis_path)
-                except OSError as e:
-                    if e.errno != errno.ENOENT:
-                        raise
-
-                filesToCreate[premis_path] = {
-                    'spec': premis_profile.specification,
-                    'data': fill_specification_data(premis_profile_data, ip=new_ip, sa=sa),
-                }
-
-            filesToCreate[mets_path] = {
-                'spec': aip_profile.specification,
-                'data': fill_specification_data(aip_profile_data, ip=new_ip, sa=sa),
-            }
-
-            t = ProcessTask.objects.create(
-                name='ESSArch_Core.tasks.GenerateXML',
-                params={
-                    'filesToCreate': filesToCreate,
-                    'folderToParse': dstdir,
-                },
-                responsible=new_ip.responsible,
-                information_package=new_ip,
-            )
-            t.run().get()
-
-            dsttar = dstdir + '.tar'
-            dstxml = dstdir + '.xml'
-
-            objid = new_ip.object_identifier_value
-
-            with tarfile.open(dsttar, 'w') as tar:
-                for root, dirs, files in walk(dstdir):
-                    rel = os.path.relpath(root, dstdir)
-                    for d in dirs:
-                        src = os.path.join(root, d)
-                        arc = os.path.join(objid, rel, d)
-                        arc = os.path.normpath(arc)
-                        index_path(new_ip, src)
-                        tar.add(src, arc, recursive=False)
-
-                    for f in files:
-                        src = os.path.join(root, f)
-                        index_path(new_ip, src)
-                        tar.add(src, os.path.normpath(os.path.join(objid, rel, f)))
-
-            algorithm = policy.get_checksum_algorithm_display()
-            checksum = calculate_checksum(dsttar, algorithm=algorithm)
-
-            info = fill_specification_data(new_ip.get_profile_data('aip_description'), ip=new_ip, sa=sa)
-            info["_IP_CREATEDATE"] = timestamp_to_datetime(creation_date(dsttar)).isoformat()
-
-            aip_desc_profile = new_ip.get_profile('aip_description')
-            filesToCreate = {
-                dstxml: {
-                    'spec': aip_desc_profile.specification,
-                    'data': info
-                }
-            }
-
-            ProcessTask.objects.create(
-                name="ESSArch_Core.tasks.GenerateXML",
-                params={
-                    "filesToCreate": filesToCreate,
-                    "folderToParse": dsttar,
-                    "extra_paths_to_parse": [mets_path],
-                    "algorithm": algorithm,
-                },
-                information_package=new_ip,
-                responsible=new_ip.responsible,
-            ).run().get()
-
-            InformationPackage.objects.filter(pk=new_ip.pk).update(
-                message_digest=checksum, message_digest_algorithm=policy.checksum_algorithm,
-            )
-
-            ProcessTask.objects.create(
-                name='ESSArch_Core.tasks.UpdateIPSizeAndCount',
-                information_package=new_ip,
-                responsible=new_ip.responsible,
-            ).run().get()
-
-            t = ProcessTask.objects.create(
-                name='workflow.tasks.StoreAIP',
-                information_package=new_ip,
-                responsible=new_ip.responsible,
-            )
-
-            t.run()
+            preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path, new_ip, policy)
 
 
 class ConversionJobEntry(MaintenanceJobEntry):

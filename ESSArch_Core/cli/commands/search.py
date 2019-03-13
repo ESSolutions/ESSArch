@@ -4,7 +4,7 @@ from django.conf import settings
 
 import click
 
-all_indexes = settings.ELASTICSEARCH_INDEXES['default']
+all_indexes = getattr(settings, 'ELASTICSEARCH_INDEXES', {'default': {}})['default']
 
 
 def get_indexes(indexes):
