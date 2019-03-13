@@ -28,7 +28,7 @@ from ESSArch_Core.agents.models import (
 class RefCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = RefCode
-        fields = ('country', 'repository_code',)
+        fields = ('id', 'country', 'repository_code',)
 
 
 class AgentIdentifierTypeSerialzier(serializers.ModelSerializer):
