@@ -130,6 +130,11 @@ if __name__ == '__main__':
         author='Henrik Ek',
         author_email='henrik@essolutions.se',
         url='http://www.essolutions.se',
+        entry_points={
+            'console_scripts': [
+                'essarch = ESSArch_Core.cli.main:cli',
+            ],
+        },
         project_urls={
             'Documentation': 'http://docs.essarch.org/',
             'Source Code': 'https://github.com/ESSolutions/ESSArch_Core/tree/%s' % versioneer.get_versions()['full'],
@@ -151,6 +156,7 @@ if __name__ == '__main__':
             "channels==2.1.5",
             "channels_redis==2.3.1",
             "chardet==3.0.2",
+            "click==7.0",
             "crontab==0.22.2",
             "daphne==2.2.3",
             "dj-database-url==0.5.0",
