@@ -92,20 +92,25 @@ class StructureUnitRelationWriteSerializer(StructureUnitRelationSerializer):
 
 
 class StructureUnitSerializer(serializers.ModelSerializer):
-    identifiers = NodeIdentifierSerializer(many=True)
-    notes = NodeNoteSerializer(many=True)
+    identifiers = NodeIdentifierSerializer(many=True, read_only=True)
+    notes = NodeNoteSerializer(many=True, read_only=True)
     is_leaf_node = serializers.SerializerMethodField()
     is_unit_leaf_node = serializers.SerializerMethodField()
     related_structure_units = StructureUnitRelationSerializer(
         source='structure_unit_relations_a', many=True, required=False
     )
 
-    archive = serializers.SerializerMethodField()
+    archive = serializers.SerializerMethodField(read_only=True)
 
     def get_archive(self, obj):
-        return obj.structure.tagstructure_set.filter(
+        tag_structure = obj.structure.tagstructure_set.filter(
             tag__current_version__elastic_index='archive'
-        ).first().tag.current_version.pk
+        ).first()
+
+        if tag_structure is not None:
+            return tag_structure.tag.current_version.pk
+
+        return None
 
     def get_is_unit_leaf_node(self, obj):
         return obj.is_leaf_node()
