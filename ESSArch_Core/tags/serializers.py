@@ -63,6 +63,12 @@ class StructureSerializer(serializers.ModelSerializer):
                   'rule_convention_type',)
 
 
+class StructureWriteSerializer(StructureSerializer):
+    rule_convention_type = serializers.PrimaryKeyRelatedField(
+        queryset=RuleConventionType.objects.all(), allow_null=True
+    )
+
+
 class RelatedStructureUnitSerializer(serializers.ModelSerializer):
     class Meta:
         model = StructureUnit
