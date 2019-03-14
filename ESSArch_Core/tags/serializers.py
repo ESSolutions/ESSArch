@@ -65,7 +65,7 @@ class StructureSerializer(serializers.ModelSerializer):
 
 class StructureWriteSerializer(StructureSerializer):
     rule_convention_type = serializers.PrimaryKeyRelatedField(
-        queryset=RuleConventionType.objects.all(), allow_null=True
+        queryset=RuleConventionType.objects.all(), allow_null=True, default=None
     )
 
 
