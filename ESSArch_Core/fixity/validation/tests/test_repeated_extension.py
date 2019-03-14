@@ -27,6 +27,13 @@ class RepeatedExtensionValidatorTests(TestCase):
         self.assertEqual(Validation.objects.count(), 1)
         self.assertEqual(Validation.objects.filter(passed=True).count(), 1)
 
+    def test_valid_repeated_extension_name(self):
+        validator = RepeatedExtensionValidator()
+        validator.validate('foo.pdfpdf')
+
+        self.assertEqual(Validation.objects.count(), 1)
+        self.assertEqual(Validation.objects.filter(passed=True).count(), 1)
+
     def test_valid_every_other_repeated(self):
         validator = RepeatedExtensionValidator()
         validator.validate('foo.tar.gz.tar.gz')
