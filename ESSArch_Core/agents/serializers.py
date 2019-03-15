@@ -193,7 +193,7 @@ class AgentRelationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AgentRelation
-        fields = ('type', 'description', 'start_date', 'end_date', 'create_date', 'revise_date', 'agent',)
+        fields = ('id', 'type', 'description', 'start_date', 'end_date', 'create_date', 'revise_date', 'agent',)
 
 
 class AgentRelationWriteSerializer(AgentRelationSerializer):
