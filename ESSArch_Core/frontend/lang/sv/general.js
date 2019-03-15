@@ -29,6 +29,7 @@ angular.module('essarch.language').config(function($translateProvider) {
     CREATE: 'Skapa',
     CREATED: 'Skapad',
     CUSTOM_IDENTIFICATION: 'Egen identifiering',
+    DASHBOARD: 'Dashboard',
     DATABASE: 'Databas',
     DATE: 'Datum',
     DAY: 'Dag',
