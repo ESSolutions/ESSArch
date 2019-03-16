@@ -14,6 +14,7 @@ AVAILABLE_VALIDATORS = {
     'diff_check': 'ESSArch_Core.fixity.validation.backends.xml.DiffCheckValidator',
     'xml_comparison': 'ESSArch_Core.fixity.validation.backends.xml.XMLComparisonValidator',
     'format': 'ESSArch_Core.fixity.validation.backends.format.FormatValidator',
+    'fixed_width': 'ESSArch_Core.fixity.validation.backends.fixed_width.FixedWidthValidator',
     'mediaconch': 'ESSArch_Core.fixity.validation.backends.mediaconch.MediaconchValidator',
     'structure': 'ESSArch_Core.fixity.validation.backends.structure.StructureValidator',
     'verapdf': 'ESSArch_Core.fixity.validation.backends.verapdf.VeraPDFValidator',
