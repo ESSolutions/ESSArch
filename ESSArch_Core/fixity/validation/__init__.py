@@ -53,6 +53,7 @@ def _validate_file(path, validators, task=None, ip=None, stop_at_failure=True, r
 
         try:
             validator.data[PATH_VARIABLE] = path
+            validator.validate(path)
         except Exception:
             if stop_at_failure:
                 raise
@@ -65,6 +66,7 @@ def _validate_directory(path, validators, task=None, ip=None, stop_at_failure=Tr
     for validator in dir_validators:
         try:
             validator.data[PATH_VARIABLE] = path
+            validator.validate(path)
         except Exception:
             if stop_at_failure:
                 raise
@@ -86,9 +88,6 @@ def validate_path(path, validators, profile, data=None, task=None, ip=None, stop
     validator_instances = []
 
     for name in validators:
-        if name not in AVAILABLE_VALIDATORS.keys():
-            raise ValueError('Validator "%s" not specified in profile' % name)
-
         try:
             module_name, validator_class = AVAILABLE_VALIDATORS[name].rsplit('.', 1)
         except KeyError:
