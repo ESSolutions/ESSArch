@@ -163,7 +163,7 @@ class AppraisalRule(MaintenanceRule):
         for ip in ips:
             datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
             if self.specification:
-                for pattern in self.specification:
+                for pattern, spec in self.specification.items():
                     found_files.extend(find_all_files(datadir, ip, pattern))
             else:
                 for root, dirs, files in walk(datadir):
@@ -188,7 +188,7 @@ class AppraisalJob(MaintenanceJob):
         pass
 
     def _run_archive_object(self):
-        def get_information_packages(job):
+        def get_information_packages():
             return self.rule.information_packages.filter(
                 active=True,
                 appraisal_date__lte=timezone.now(),
@@ -196,7 +196,7 @@ class AppraisalJob(MaintenanceJob):
                 appraisal_job_entries__job=self,
             )
 
-        ips = get_information_packages(self)
+        ips = get_information_packages()
 
         for ip in ips.order_by('-cached').iterator():  # run cached IPs first
             run_cached_ip(ip)
@@ -213,7 +213,6 @@ class AppraisalJob(MaintenanceJob):
                     rel = os.path.relpath(root, srcdir)
 
                     for f in files:
-                        fpath = os.path.join(root, f)
                         job_entry = AppraisalJobEntry.objects.create(
                             job=self,
                             start_date=timezone.now(),
@@ -240,7 +239,7 @@ class AppraisalJob(MaintenanceJob):
                 shutil.copytree(srcdir, dstdir)
 
                 # delete files specified in rule
-                for pattern in self.rule.specification:
+                for pattern, spec in self.rule.specification.items():
                     for path in iglob(dstdir + '/' + pattern):
                         if os.path.isdir(path):
                             for root, dirs, files in walk(path):
@@ -273,8 +272,6 @@ class AppraisalJob(MaintenanceJob):
 
                 # preserve new generation
                 preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path, new_ip, policy)
-
-        self._mark_as_complete()
 
     def _run(self):
         if self.rule.type == ARCHIVAL_OBJECT:
@@ -322,7 +319,7 @@ def preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path
         if e.errno != errno.ENOENT:
             raise
 
-    filesToCreate = OrderedDict()
+    files_to_create = OrderedDict()
 
     try:
         premis_profile = new_ip.get_profile_rel('preservation_metadata').profile
@@ -339,12 +336,12 @@ def preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path
             if e.errno != errno.ENOENT:
                 raise
 
-        filesToCreate[premis_path] = {
+        files_to_create[premis_path] = {
             'spec': premis_profile.specification,
             'data': fill_specification_data(premis_profile_data, ip=new_ip, sa=sa),
         }
 
-    filesToCreate[mets_path] = {
+    files_to_create[mets_path] = {
         'spec': aip_profile.specification,
         'data': fill_specification_data(aip_profile_data, ip=new_ip, sa=sa),
     }
@@ -352,7 +349,7 @@ def preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path
     t = ProcessTask.objects.create(
         name='ESSArch_Core.tasks.GenerateXML',
         params={
-            'filesToCreate': filesToCreate,
+            'filesToCreate': files_to_create,
             'folderToParse': dstdir,
         },
         responsible=new_ip.responsible,
@@ -387,7 +384,7 @@ def preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path
     info["_IP_CREATEDATE"] = timestamp_to_datetime(creation_date(dsttar)).isoformat()
 
     aip_desc_profile = new_ip.get_profile('aip_description')
-    filesToCreate = {
+    files_to_create = {
         dstxml: {
             'spec': aip_desc_profile.specification,
             'data': info
@@ -397,7 +394,7 @@ def preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path
     ProcessTask.objects.create(
         name="ESSArch_Core.tasks.GenerateXML",
         params={
-            "filesToCreate": filesToCreate,
+            "filesToCreate": files_to_create,
             "folderToParse": dsttar,
             "extra_paths_to_parse": [mets_path],
             "algorithm": algorithm,
@@ -447,14 +444,14 @@ class ConversionJob(MaintenanceJob):
     MAINTENANCE_TYPE = 'conversion'
 
     def _run(self):
-        def get_information_packages(job):
+        def get_information_packages():
             return self.rule.information_packages.filter(
                 active=True,
             ).exclude(
                 conversion_job_entries__job=self,
             )
 
-        ips = get_information_packages(self)
+        ips = get_information_packages()
 
         for ip in ips.order_by('-cached').iterator():  # convert cached IPs first
             run_cached_ip(ip)
