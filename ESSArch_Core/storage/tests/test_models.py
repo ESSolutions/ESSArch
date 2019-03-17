@@ -2,7 +2,8 @@ import os
 import shutil
 import tempfile
 import uuid
-from unittest import TestCase, mock
+from unittest import mock
+from django.test import TestCase
 
 from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.ip.models import InformationPackage
@@ -21,6 +22,7 @@ class GetStorageTypeFromMediumTypeTests(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        super(GetStorageTypeFromMediumTypeTests, cls).setUpClass()
         cls.medium_choices = [e[0] for e in medium_type_CHOICES]
 
     def test_all_medium_types_for_storage_type_DISK(self):
@@ -49,10 +51,6 @@ class StorageTargetCreateStorageMediumTests(TestCase):
         self.medium_location_param = Parameter.objects.create(entity='medium_location', value="dummy_medium_location")
         self.agent_id_param = Parameter.objects.create(entity='agent_identifier_value', value="dummy_agent_id")
 
-    def tearDown(self):
-        self.medium_location_param.delete()
-        self.agent_id_param.delete()
-
     def test_when_no_storage_medium_exists_should_create_new_StorageMedium_for_DISK(self):
         storage_target_name = f'dummy_st_name_{uuid.uuid4()}'
         storage_target = StorageTarget.objects.create(
@@ -62,7 +60,7 @@ class StorageTargetCreateStorageMediumTests(TestCase):
 
         medium = storage_target._create_storage_medium()
 
-        # Make sure its persisted
+        # Make sure it's persisted
         persisted_storage_medium = StorageMedium.objects.filter(storage_target=storage_target).first()
         self.assertEqual(persisted_storage_medium, medium)
 
@@ -118,11 +116,6 @@ class StorageTargetGetOrCreateStorageMediumTests(TestCase):
     def setUp(self):
         self.medium_location_param = Parameter.objects.create(entity='medium_location', value="dummy_medium_location")
         self.agent_id_param = Parameter.objects.create(entity='agent_identifier_value', value="dummy_agent_id")
-
-    def tearDown(self):
-        self.medium_location_param.delete()
-        self.agent_id_param.delete()
-        StorageMedium.objects.all().delete()
 
     def create_storage_medium(self, storage_target):
         return StorageMedium.objects.create(
@@ -265,10 +258,6 @@ class StorageObjectGetRootTests(TestCase):
             format=self.storage_target.default_format,
             agent=self.agent_id_param.value,
         )
-
-    def tearDown(self):
-        self.medium_location_param.delete()
-        self.agent_id_param.delete()
 
     def test_when_content_location_value_is_empty_string_and_not_container(self):
         storage_object = StorageObject.objects.create(
