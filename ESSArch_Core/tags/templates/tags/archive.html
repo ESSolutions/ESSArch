@@ -1,0 +1,109 @@
+{% load essarch_meta %}
+{% load i18n %}
+{% load tz %}
+
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @page {
+      size: Letter;
+      margin: 0in 0.44in 0.2in 0.44in;
+    }
+    body {
+      font-size: 12px;
+      height: 100%;
+      background-color: white;
+      margin: 0px auto;
+      overflow: auto;
+      -ms-overflow-style: scrollbar;
+    }
+    table {
+      margin: 0 auto;
+      color: #333; /* Lighten up font color */
+      font-family: Helvetica, Arial, sans-serif; /* Nicer font */
+      border-collapse:
+        collapse; border-spacing: 0;
+      width: 100%;
+      display: table;
+    }
+
+    td, th { border: 1px solid #CCC; } /* Make cells a bit taller */
+
+    th {
+      /*background: #328cc1; /* Light grey background */
+      font-weight: bold; /* Make sure they're bold */
+      height: 30px;
+      color: white;
+      text-align: center;
+    }
+    thead>tr {
+      background-color: #328cc1; /* Light grey background */
+    }
+
+    td {
+      background: #FAFAFA; /* Lighter grey background */
+      text-align: left; /* Center our text */
+      padding-left: 10px;
+      height: 20px;
+    }
+    .title {
+      width: 100%;
+      color: #0e4971;
+      line-height: 1.5;
+    }
+    .footer {
+      margin-top: 20px;
+      color: #bbbbbb;
+    }
+
+    .pagebreak { page-break-before: always; }
+  </style>
+</head>
+<body>
+<div class="title">
+  <h1>{% trans "Archive" %}: {{archive_name}}</h1>
+  <b>{% trans "Date" %}: </b>{% now "Y-m-d G:i:s e" %}
+  <br/>
+  <hr/>
+</div>
+{% for serie in series %}
+    <table>
+      <thead>
+      <tr>
+        <th colspan="2">{% trans "Serie" %}</th>
+        <th>{% trans "Serie signum" %}</th>
+      </tr>
+      <tr>
+        <td colspan="2">{{ serie.name }}</td>
+        <td>{{ serie.reference_code }}</td>
+      </tr>
+      <tr>
+        <th>{% trans "Volume number" %}</th>
+        <th>{% trans "Time" %}</th>
+        <th>{% trans "Notes" %}</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for volume in serie.volumes %}
+        <tr>
+          <td>{{volume.reference_code}}</td>
+          <td>{{volume.start_date | date:"Y"}} - {{volume.end_date | date:"Y"}}</td>
+          <td>
+            {% for note in volume.notes.all %}
+              <div>{{note.text}}</div>
+            {% endfor %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <div class="pagebreak"> </div>
+{% endfor %}
+<div class="footer">
+  {% essarch_project_shortname %} ({% essarch_project_name %}) {% essarch_version %}. © Copyright ESSolutions AB.
+</div>
+</body>
+</html>
+
+
