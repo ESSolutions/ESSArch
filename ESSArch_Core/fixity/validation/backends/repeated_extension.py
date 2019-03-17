@@ -10,7 +10,7 @@ from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 
 logger = logging.getLogger('essarch.fixity.validation.repeated_extension')
 
-REPEATED_PATTERN = r'\.(\w+).\1'
+REPEATED_PATTERN = r'\.(\w+)\.\1'
 
 
 class RepeatedExtensionValidator(BaseValidator):
