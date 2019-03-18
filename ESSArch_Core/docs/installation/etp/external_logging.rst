@@ -24,6 +24,14 @@ Start Elastic-stack
     $ docker-compose up -d
 
 Then navigate to http://localhost:5601 to open up Kibana.
+*After* the first log is sent from the application to logstash, you will get the option to create an index in http://localhost:5601/app/kibana#/management/kibana/index
+
+Per default the index pattern should be::
+
+    logstash-*
+
+
+Click next to create the index pattern, and then head over to `Discover` page to see your logs: http://localhost:5601/app/kibana#/discover
 
 
 LogStash Configuration
