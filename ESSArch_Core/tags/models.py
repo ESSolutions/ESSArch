@@ -1,6 +1,7 @@
 import uuid
 
 import jsonfield
+from django.contrib.auth import get_user_model
 from django.db import models, transaction
 from django.db.models import F, OuterRef, Subquery
 from django.utils.translation import ugettext_lazy as _
@@ -84,6 +85,8 @@ class RuleConventionType(models.Model):
 
     def __str__(self):
         return self.name
+
+User = get_user_model()
 
 
 class Structure(models.Model):
@@ -530,3 +533,9 @@ class TagStructure(MPTTModel):
     class Meta:
         get_latest_by = 'structure__create_date'
         ordering = ('structure__create_date',)
+
+
+class Search(models.Model):
+    query = jsonfield.JSONField(null=False)
+    name = models.CharField(max_length=255, blank=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='searches')
