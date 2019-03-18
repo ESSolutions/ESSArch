@@ -66,18 +66,20 @@
       </h2>
     </div>
   </div>
-  <hr />
-  <h4>
-    {{'DASHBOARD.ARCHIVAL_DESCRIPTION' | translate}}
-  </h4>
-  <div class="flex-wrap align-items-center justify-content-evenly">
-    <div class="p-base flex-column align-items-center" ng-repeat="x in vm.stats.tags">
-      <h4 class="text-center pb-base">
-        {{x.type}}
-      </h4>
-      <h2 class="text-center text-bold">
-        {{x.total}}
-      </h2>
+  <div ng-if="vm.stats.tags.length">
+    <hr />
+    <h4>
+      {{'DASHBOARD.ARCHIVAL_DESCRIPTION' | translate}}
+    </h4>
+    <div class="flex-wrap align-items-center justify-content-evenly">
+      <div class="p-base flex-column align-items-center" ng-repeat="x in vm.stats.tags">
+        <h4 class="text-center pb-base">
+          {{x.type}}
+        </h4>
+        <h2 class="text-center text-bold">
+          {{x.total}}
+        </h2>
+      </div>
     </div>
   </div>
 </div>
