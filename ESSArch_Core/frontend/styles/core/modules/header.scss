@@ -14,6 +14,28 @@
   height: 50px;
 }
 
+.custom-logo {
+  display: block;
+  position: relative;
+  float: left;
+  margin-top: 10px;
+  img {
+    width: 42px;
+    height: auto;
+  }
+  @include medium-screen-up {
+    position: absolute;
+    top: 12px;
+    left: calc(50% - 27px);
+    float: none;
+    margin-top: 0;
+    img {
+      width: 54px;
+      height: auto;
+    }
+  }
+}
+
 .logo {
   height: 100%;
   display: inline-block;
@@ -35,6 +57,9 @@
 .page-title-small {
   display: none;
   margin-left: 50%;
+  &.has-custom-logo {
+    margin-left: calc(50% - 42px);
+  }
   margin-top: 12px;
   margin-bottom: 12px;
   cursor: pointer;
