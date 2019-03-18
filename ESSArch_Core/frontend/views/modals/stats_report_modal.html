@@ -1,19 +1,19 @@
 <div class="modal-heading">
-    <h3 class="modal-title" id="modal-title">{{'DASHBOARD.BUILD_REPORT' | translate }}</h3>
+  <h3 class="modal-title" id="modal-title">{{'DASHBOARD.BUILD_REPORT' | translate }}</h3>
+</div>
+<form ng-submit="$ctrl.generateReport()">
+  <div class="modal-body" id="modal-body">
+    <h4>
+      {{'DASHBOARD.SELECT_INFORMATION_FOR_REPORT' | translate}}
+    </h4>
+    <ul ng-if="$ctrl.options !== {}" class="list-unstyled">
+      <li ng-repeat="(key, value) in $ctrl.options">
+        <input type="checkbox" ng-model="$ctrl.selected[key]" /> {{'DASHBOARD.' + key.toUpperCase() | translate}}
+      </li>
+    </ul>
   </div>
-  <form ng-submit="$ctrl.generateReport()">
-    <div class="modal-body" id="modal-body">
-      <h4>
-        {{'DASHBOARD.SELECT_INFORMATION_FOR_REPORT' | translate}}
-      </h4>
-      <ul ng-if="$ctrl.options !== {}" class="list-unstyled">
-        <li ng-repeat="(key, value) in $ctrl.options">
-          <input type="checkbox" ng-model="$ctrl.selected[key]" /> {{'DASHBOARD.' + key.toUpperCase() | translate}}
-        </li>
-      </ul>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-primary" type="submit" focused="true">{{ "DASHBOARD.GENERATE_REPORT" | translate }}</button>
-      <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{ "CANCEL" | translate }}</button>
-    </div>
-  </form>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit" focused="true">{{ "DASHBOARD.GENERATE_REPORT" | translate }}</button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{ "CANCEL" | translate }}</button>
+  </div>
+</form>

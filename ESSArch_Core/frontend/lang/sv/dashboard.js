@@ -14,7 +14,7 @@ angular.module('essarch.language').config(function($translateProvider) {
       TAGS: 'Arkivredovisning',
       TOTAL_OBJECT_SIZE: 'Total storlek',
       USERS: 'Användare',
-      USERS_AND_PERMISSIONS: 'Användare och behörigheter'
+      USERS_AND_PERMISSIONS: 'Användare och behörigheter',
     },
   });
 });
