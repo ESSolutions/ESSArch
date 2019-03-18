@@ -9,7 +9,7 @@ angular.module('essarch.language').config(function($translateProvider) {
       ORDERED_INFORMATION_PACKAGES: 'Beställda utlämnandepaket',
       PERMISSIONS: 'Behörigheter',
       ROLES: 'Roller',
-      SELECT_INFORMATION_FOR_REPORT: 'Välj vilken information som ska inlkuderas i rapporten',
+      SELECT_INFORMATION_FOR_REPORT: 'Välj vilken information som ska inkluderas i rapporten',
       SYSTEM: 'Bestånd',
       TAGS: 'Arkivredovisning',
       TOTAL_OBJECT_SIZE: 'Total storlek',
