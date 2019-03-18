@@ -88,16 +88,16 @@ Modify your ``local_epp_settings.py`` by adding the logstash handlers and logger
         'django.request': {
             'handlers': ['logstash'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
         },
         'django.security': {
             'handlers': ['logstash'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
         },
         'django.channels.server': {
             'handlers': ['logstash'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
         },
   }
