@@ -27,6 +27,11 @@ def user_post_save(sender, instance, created, *args, **kwargs):
                                     defaults={'username': instance.username, 'first_name': instance.first_name,
                                               'last_name': instance.last_name, 'email': instance.email})
 
+    if created:
+        logger.info(f"User '{instance}' was created.")
+    else:
+        logger.info(f"User '{instance}' was updated.")
+
 
 @receiver(user_logged_in)
 def user_logged_in(sender, user, request, **kwargs):
@@ -49,9 +54,18 @@ def group_pre_save(sender, instance, *args, **kwargs):
         instance.django_group = DjangoGroup.objects.create(name=instance.name)
 
 
+@receiver(post_save, sender=Group)
+def group_post_save(sender, instance, created, *args, **kwargs):
+    if created:
+        logger.info(f"Created group '{instance.name}'")
+    else:
+        logger.info(f"Group '{instance.name}' was modified!")
+
+
 @receiver(m2m_changed, sender=ProxyUser.groups.through)
 @receiver(m2m_changed, sender=User.groups.through)
 def group_users_change(sender, instance, action, reverse, pk_set=None, *args, **kwargs):
+    logger.info(f"Changing group for user '{instance}', action: {action}.")
     member = instance.essauth_member
     if action == 'post_add':
         # we use loop instead of bulk_create for easier handling of duplicates in database
@@ -66,11 +80,13 @@ def group_users_change(sender, instance, action, reverse, pk_set=None, *args, **
 
 @receiver(post_save, sender=GroupMember)
 def group_member_save(sender, instance, created, *args, **kwargs):
+    logger.info(f"User '{instance.member}' is now member of group '{instance.group}'.")
     groups_manager_group_member_save(sender, instance, created, *args, **kwargs)
 
 
 @receiver(post_delete, sender=GroupMember)
 def group_member_delete(sender, instance, *args, **kwargs):
+    logger.info(f"User '{instance.member}' is no longer member of group '{instance.group}'.")
     groups_manager_group_member_delete(sender, instance, *args, **kwargs)
 
 

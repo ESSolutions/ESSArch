@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-
+import logging
 
 from django import forms
 from django.contrib import admin
@@ -23,6 +23,7 @@ from ESSArch_Core.auth.models import (Group, GroupMember, GroupMemberRole, Group
                                       ProxyUser, ProxyPermission)
 
 User = get_user_model()
+logger = logging.getLogger('essarch.auth')
 
 admin.site.unregister([
     GroupManagerMember,
@@ -125,6 +126,15 @@ class UserAdmin(DjangoUserAdmin, NestedModelAdmin):
     def has_module_permission(self, request):
         return request.user.has_module_perms('auth')
 
+    def log_addition(self, request, object, message):
+        logger.info(f"User '{request.user}' attempting to add user '{object}' with msg: '{message}'.")
+
+    def log_change(self, request, object, message):
+        logger.info(f"User '{request.user}' attempting to change the user '{object}' with msg: '{message}'.")
+
+    def log_deletion(self, request, object, message):
+        logger.info(f"User '{request.user}' attempting to delete the user '{object}' with msg: '{message}'.")
+
 
 class GroupForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -189,6 +199,15 @@ class GroupAdmin(DjangoGroupAdmin):
     def has_module_permission(self, request):
         return request.user.has_module_perms('auth')
 
+    def log_addition(self, request, object, message):
+        logger.info(f"User '{request.user}' attempting to add group '{object}' with msg: '{message}'.")
+
+    def log_change(self, request, object, message):
+        logger.info(f"User '{request.user}' attempting to change the group '{object}' with msg: '{message}'.")
+
+    def log_deletion(self, request, object, message):
+        logger.info(f"User '{request.user}' attempting to delete the group '{object}' with msg: '{message}'.")
+
 
 class GroupTypeAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
@@ -203,14 +222,44 @@ class GroupTypeAdmin(admin.ModelAdmin):
     def has_module_permission(self, request):
         return request.user.has_module_perms('groups_manager')
 
+    def log_addition(self, request, object, message):
+        logger.info(f"User '{request.user}' attempting to create new group type '{object}' with msg: '{message}'.")
+
+    def log_change(self, request, object, message):
+        logger.info(f"User '{request.user}' attempting to change the group type '{object}' with msg: '{message}'.")
+
+    def log_deletion(self, request, object, message):
+        logger.info(f"User '{request.user}' attempting to delete the group type '{object}' with msg: '{message}'.")
+
 
 class GroupMemberRoleAdmin(admin.ModelAdmin):
     filter_horizontal = ['permissions']
 
+    def log_addition(self, request, object, message):
+        logger.info(f"User '{request.user}' attempting to create role '{object}' with msg: '{message}'.")
+
+    def log_change(self, request, object, message):
+        logger.info(f"User '{request.user}' attempting to change the role '{object}' with msg: '{message}'.")
+
+    def log_deletion(self, request, object, message):
+        logger.info(f"User '{request.user}' attempting to delete the role '{object}' with msg: '{message}'.")
+
+
+class ProxyPermissionAdmin(admin.ModelAdmin):
+
+    def log_addition(self, request, object, message):
+        logger.info(f"User '{request.user}' attempting to create permission '{object.name}' with msg: '{message}'.")
+
+    def log_change(self, request, object, message):
+        logger.info(f"User '{request.user}' attempting to change the permission '{object.name}' with msg: '{message}'.")
+
+    def log_deletion(self, request, object, message):
+        logger.info(f"User '{request.user}' attempting to delete the permission '{object.name}' with msg: '{message}'.")
+
 
 admin.site.unregister(DjangoGroup)
 admin.site.unregister(User)
-admin.site.register(ProxyPermission)
+admin.site.register(ProxyPermission, ProxyPermissionAdmin)
 admin.site.register(ProxyGroup, GroupAdmin)
 admin.site.register(ProxyUser, UserAdmin)
 admin.site.register(GroupType, GroupTypeAdmin)
