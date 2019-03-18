@@ -1,11 +1,16 @@
 <div class="dashboard-stats content-wrapper">
+  <div class="d-flex justify-content-end">
+    <button class="btn btn-primary" ng-click="vm.buildReportModal()">
+      {{'DASHBOARD.BUILD_REPORT' | translate}}
+    </button>
+  </div>
   <h4>
     {{'DASHBOARD.SYSTEM' | translate}}
   </h4>
   <div class="flex-wrap align-items-center justify-content-evenly">
     <div class="p-base flex-column align-items-center">
       <h4 class="text-center pb-base">
-        {{'INFORMATION_PACKAGES' | translate}}
+        {{'DASHBOARD.INFORMATION_PACKAGES' | translate}}
       </h4>
       <h2 class="text-center text-bold">
         {{vm.stats.information_packages}}
