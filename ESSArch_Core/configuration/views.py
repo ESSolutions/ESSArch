@@ -49,6 +49,7 @@ from ESSArch_Core.configuration.models import (
     EventType,
     Parameter,
     Path,
+    Site,
 )
 
 from ESSArch_Core.configuration.serializers import (
@@ -57,6 +58,7 @@ from ESSArch_Core.configuration.serializers import (
     EventTypeSerializer,
     ParameterSerializer,
     PathSerializer,
+    SiteSerializer,
 )
 
 from rest_framework import viewsets
@@ -193,3 +195,13 @@ class ArchivePolicyViewSet(viewsets.ModelViewSet):
     """
     queryset = ArchivePolicy.objects.all()
     serializer_class = ArchivePolicySerializer
+
+
+class SiteView(APIView):
+    def get(self, request):
+        site = Site.objects.first()
+        if site is None:
+            return None
+
+        serializer = SiteSerializer(instance=site)
+        return Response(serializer.data)
