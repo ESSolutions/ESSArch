@@ -29,6 +29,7 @@ angular.module('essarch.language').config(function($translateProvider) {
     CREATE: 'Create',
     CREATED: 'Created',
     CUSTOM_IDENTIFICATION: 'Custom identification',
+    DASHBOARD: 'Dashboard',
     DATABASE: 'Database',
     DATE: 'Date',
     DAY: 'Day',
