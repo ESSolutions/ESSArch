@@ -5,7 +5,8 @@ from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as DjangoGroup
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
-from django.db.models.signals import m2m_changed, post_delete, pre_save, post_save
+from django.contrib.sessions.models import Session
+from django.db.models.signals import m2m_changed, post_delete, pre_save, post_save, pre_delete
 from django.dispatch import receiver
 from groups_manager.models import group_member_delete as groups_manager_group_member_delete
 from groups_manager.models import group_member_save as groups_manager_group_member_save
@@ -27,6 +28,11 @@ def user_post_save(sender, instance, created, *args, **kwargs):
                                     defaults={'username': instance.username, 'first_name': instance.first_name,
                                               'last_name': instance.last_name, 'email': instance.email})
 
+    if created:
+        logger.info(f"User '{instance}' was created.")
+    else:
+        logger.info(f"User '{instance}' was updated.")
+
 
 @receiver(user_logged_in)
 def user_logged_in(sender, user, request, **kwargs):
@@ -43,15 +49,40 @@ def user_login_failed(sender, credentials, **kwargs):
     logger.warning("Authentication failure with credentials: %s" % (repr(credentials)))
 
 
+@receiver(pre_delete, sender=Session)
+def log_before_deleting_session(sender, instance, **kwargs):
+    uid = instance.get_decoded().get('_auth_user_id')
+    if uid:
+        user = User.objects.get(id=uid)
+        logger.info(f"Deleting session for user '{user}'.")
+
+
+@receiver(post_save, sender=Session)
+def log_before_creating_session(sender, instance, **kwargs):
+    uid = instance.get_decoded().get('_auth_user_id')
+    if uid:
+        user = User.objects.get(id=uid)
+        logger.info(f"Created new session for user '{user}'.")
+
+
 @receiver(pre_save, sender=Group)
 def group_pre_save(sender, instance, *args, **kwargs):
     if not hasattr(instance, 'django_group'):
         instance.django_group = DjangoGroup.objects.create(name=instance.name)
 
 
+@receiver(post_save, sender=Group)
+def group_post_save(sender, instance, created, *args, **kwargs):
+    if created:
+        logger.info(f"Created group '{instance.name}'")
+    else:
+        logger.info(f"Group '{instance.name}' was modified!")
+
+
 @receiver(m2m_changed, sender=ProxyUser.groups.through)
 @receiver(m2m_changed, sender=User.groups.through)
 def group_users_change(sender, instance, action, reverse, pk_set=None, *args, **kwargs):
+    logger.info(f"Changing group for user '{instance}', action: {action}.")
     member = instance.essauth_member
     if action == 'post_add':
         # we use loop instead of bulk_create for easier handling of duplicates in database
@@ -66,11 +97,13 @@ def group_users_change(sender, instance, action, reverse, pk_set=None, *args, **
 
 @receiver(post_save, sender=GroupMember)
 def group_member_save(sender, instance, created, *args, **kwargs):
+    logger.info(f"User '{instance.member}' is now member of group '{instance.group}'.")
     groups_manager_group_member_save(sender, instance, created, *args, **kwargs)
 
 
 @receiver(post_delete, sender=GroupMember)
 def group_member_delete(sender, instance, *args, **kwargs):
+    logger.info(f"User '{instance.member}' is no longer member of group '{instance.group}'.")
     groups_manager_group_member_delete(sender, instance, *args, **kwargs)
 
 
