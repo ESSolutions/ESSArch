@@ -14,6 +14,7 @@ angular
     Notifications
   ) {
     var vm = this;
+    $scope.$translate = $translate;
 
     vm.getCookieName = function() {
       var name;
