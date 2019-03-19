@@ -318,6 +318,8 @@
     @include medium-screen-up {
       text-align: left;
     }
+    display: flex;
+    align-items: center;
   }
   .action-button {
     @include small-screen {

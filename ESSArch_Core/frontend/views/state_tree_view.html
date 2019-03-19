@@ -1,8 +1,19 @@
 <div class="status-tree-grid table-container">
   <div class="state-tree-table-head">
-    <h4 class="m-0">
-      {{ "TASKS" | translate }}
-    </h4>
+    <div class="d-flex align-items-center">
+      <h4 class="m-0">
+        {{ "TASKS" | translate }}
+      </h4>
+      <a
+        target="_blank"
+        class="help-button ml-base"
+        uib-tooltip="{{'SEE_MORE_INFO_ABOUT_PAGE' | translate}}"
+        tooltip-position="top auto"
+        href="/docs/{{$translate.use()}}/core/user_guide/user-interface.html#state-view"
+      >
+        <i class="far fa-question-circle"></i>
+      </a>
+    </div>
     <div class="refresh-icon">
       <span
         style="float: right; margin-bottom: 5px;"

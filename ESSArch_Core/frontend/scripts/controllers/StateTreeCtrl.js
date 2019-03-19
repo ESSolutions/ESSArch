@@ -27,6 +27,8 @@ angular
     $scope.eventShow = false;
     vm.validations = [];
 
+    $scope.$translate = $translate;
+
     vm.$onChanges = function() {
       $scope.tree_data = [];
       $scope.ip = vm.ip;
