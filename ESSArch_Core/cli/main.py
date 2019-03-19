@@ -27,6 +27,7 @@ list(
         lambda cmd: cli.add_command(locate(cmd)), (
             'ESSArch_Core.cli.commands.convert.convert',
             'ESSArch_Core.cli.commands.transform.transform',
+            'ESSArch_Core.cli.commands.validate.validate',
         )
     )
 )
