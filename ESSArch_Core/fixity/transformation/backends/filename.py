@@ -2,6 +2,8 @@ import os
 import string
 import unicodedata
 
+import click
+
 from ESSArch_Core.fixity.transformation.backends.base import BaseTransformer
 
 DEFAULT_WHITELIST_FILE = "-_. %s%s" % (string.ascii_letters, string.digits)
@@ -24,7 +26,8 @@ class FilenameTransformer(BaseTransformer):
         # keep only whitelisted chars
         return ''.join(c for c in filename if c in whitelist)
 
-    def transform(self, path, whitelist=None, replace=None, normalize_unicode=True):
+    @classmethod
+    def transform(cls, path, whitelist=None, replace=None, normalize_unicode=True):
 
         if whitelist is None:
             if os.path.isfile(path):
@@ -39,5 +42,15 @@ class FilenameTransformer(BaseTransformer):
                 replace['.'] = '_'
 
         basename = os.path.basename(path)
-        new_basename = self.clean(basename, whitelist, replace, normalize_unicode)
+        new_basename = cls.clean(basename, whitelist, replace, normalize_unicode)
         os.rename(path, os.path.join(os.path.dirname(path), new_basename))
+
+    @staticmethod
+    @click.command()
+    @click.argument('path', metavar='INPUT', type=click.Path(exists=True))
+    @click.option('--whitelist')
+    @click.option('-r', '--replace', type=(str, str), multiple=True)
+    @click.option('--normalize-unicode/--no-normalize-unicode', default=True)
+    def cli(path, whitelist, replace, normalize_unicode):
+        replace = {k: v for k, v in replace}
+        FilenameTransformer.transform(path, whitelist, replace, normalize_unicode)

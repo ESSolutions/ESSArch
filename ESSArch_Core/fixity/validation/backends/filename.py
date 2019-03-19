@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 import traceback
 
@@ -10,11 +11,12 @@ from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 
 logger = logging.getLogger('essarch.fixity.validation.filename')
 
-DEFAULT_EXPECTED = r'^[\da-zA-Z_\-]+\.[\da-zA-Z]+$'
+DEFAULT_EXPECTED_FILE = r'^[\da-zA-Z_\-]+\.[\da-zA-Z]+$'
+DEFAULT_EXPECTED_DIR = r'^[\da-zA-Z_\-]+$'
 
 
 class FilenameValidator(BaseValidator):
-    def validate(self, filepath, expected=DEFAULT_EXPECTED):
+    def validate(self, filepath, expected=None):
         logger.debug('Validating filename of %s' % filepath)
 
         val_obj = Validation(
@@ -33,7 +35,13 @@ class FilenameValidator(BaseValidator):
 
         passed = False
         try:
-            if not re.search(expected, filepath):
+            if expected is None:
+                if os.path.isfile(filepath):
+                    expected = DEFAULT_EXPECTED_FILE
+                else:
+                    expected = DEFAULT_EXPECTED_DIR
+
+            if not re.search(expected, os.path.basename(filepath)):
                 message = "Filename validation of {} failed, it does not match {}".format(filepath, expected)
                 logger.warning(message)
                 raise ValidationError(message)

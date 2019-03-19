@@ -4,6 +4,7 @@ import shutil
 import string
 from unittest import mock
 
+from click.testing import CliRunner
 from django.test import TestCase
 
 from ESSArch_Core.fixity.transformation.backends.filename import (
@@ -95,3 +96,21 @@ class FilenameTransformerTransformTests(TestCase):
         replace = {'.': '_'}
         FilenameTransformer().transform(path, replace=replace)
         mock_rename.assert_called_once_with(path, 'foo_xml')
+
+
+@mock.patch('ESSArch_Core.fixity.transformation.backends.filename.FilenameTransformer.transform')
+class FilenameTransformerCliTests(TestCase):
+    def test_cli(self, mock_transform):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            open('foo#.txt', 'a')
+            whitelist = ".%s" % (string.ascii_letters)
+
+            result = runner.invoke(FilenameTransformer.cli, [
+                'foo#.txt',
+                '--whitelist', whitelist,
+                '--replace', '#', '_',
+            ])
+            mock_transform.assert_called_once_with('foo#.txt', whitelist, {'#': '_'}, True)
+
+            self.assertEqual(result.exit_code, 0)
