@@ -1,3 +1,5 @@
+import click
+
 from ..exceptions import InvalidInputFormat, InvalidOutputFormat
 
 
@@ -27,11 +29,12 @@ class BaseConverter:
         if out_fmt is not None:
             cls.validate_output_format(out_fmt)
 
-    def convert(self, input_file, output_file, in_fmt=None, out_fmt=None):
+    @classmethod
+    def convert(cls, input_file, output_file, in_fmt=None, out_fmt=None):
         raise NotImplementedError('Subclasses of BaseConverter must provide a convert() method')
 
     def _convert(self, input_file, output_file, in_fmt=None, out_fmt=None):
-        self.validate_formats(input_file, output_file, in_fmt=in_fmt, out_fmt=out_fmt)
+        self.validate_formats(in_fmt=in_fmt, out_fmt=out_fmt)
         msg_context = {
             'input': input_file,
             'output': output_file,
@@ -47,3 +50,8 @@ class BaseConverter:
 
         msg = 'Converted {input}{in_fmt} to {output}{out_fmt} using {conv}'.format(**msg_context),
         self.logger.info(msg)
+
+    @staticmethod
+    @click.command()
+    def cli(input_file, output_file, in_fmt, out_fmt):
+        raise NotImplementedError('Subclasses of BaseConverter must provide a cli() method')

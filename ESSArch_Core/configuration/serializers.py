@@ -30,6 +30,7 @@ from ESSArch_Core.configuration.models import (
     EventType,
     Parameter,
     Path,
+    Site,
 )
 
 from ESSArch_Core.serializers import DynamicHyperlinkedModelSerializer
@@ -88,3 +89,9 @@ class ArchivePolicySerializer(DynamicHyperlinkedModelSerializer):
             "receive_extract_sip", "cache_storage", "ingest_path",
             "storage_methods",
         )
+
+
+class SiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Site
+        fields = ('name', 'logo',)
