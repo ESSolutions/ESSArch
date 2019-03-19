@@ -50,6 +50,16 @@ Example ``logstash.conf``::
         json {
             source => "[message][raw]"
         }
+
+        # Workaround for HTTP logs created from "django.channels.server" that have an extra "\u001b[m" at start and "\u001b[0m" at end.
+        if [type] == "django_http" {
+            grok {
+                match => { "message" => "m%{URIPROTO:protocol} %{WORD:method} %{URIPATHPARAM:request} %{NUMBER:status_code} \[%{NUMBER:duration}, %{HOSTPORT:host}\]" }
+            }
+            mutate {
+                remove_field => [ "message" ]
+            }
+        }
     }
 
     output {
@@ -80,6 +90,16 @@ Modify your ``local_eta_settings.py`` by adding the logstash handlers and logger
             'fqdn': False,
             'tags': ['ETA'],  # Name of the app
         },
+        'logstash_http': {  # This handler is for distinguishing http requests
+            'level': 'INFO',
+            'class': 'logstash.TCPLogstashHandler',
+            'host': 'localhost',  # logstash host
+            'port': 5002,  # logstash port
+            'version': 1,
+            'message_type': 'django_http',
+            'fqdn': False,
+            'tags': ['ETA'],  # Name of the app
+        },
     },
 
     'loggers': {
@@ -104,7 +124,7 @@ Modify your ``local_eta_settings.py`` by adding the logstash handlers and logger
             'propagate': False,
         },
         'django.channels.server': {
-            'handlers': ['logstash'],
+            'handlers': ['logstash_http'],
             'level': 'INFO',
             'propagate': False,
         },
