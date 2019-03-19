@@ -142,6 +142,7 @@ angular.module('essarch.language').config(function($translateProvider) {
     SAVE_ERROR: 'An error occured!',
     SEARCH: 'Search',
     SEETRACEBACK: 'See traceback',
+    SEE_MORE_INFO_ABOUT_PAGE: 'See more information about this page',
     SEE_MY_IPS: 'See own information packages',
     SELECTALL: 'Select all',
     SELECTED: 'Selected',

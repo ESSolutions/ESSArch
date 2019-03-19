@@ -142,6 +142,7 @@ angular.module('essarch.language').config(function($translateProvider) {
     SAVE_ERROR: 'Ett fel uppstod!',
     SEARCH: 'Sök',
     SEETRACEBACK: 'Se traceback',
+    SEE_MORE_INFO_ABOUT_PAGE: 'Se mer information om denna sida',
     SEE_MY_IPS: 'Se egna informationspaket',
     SELECTALL: 'Välj alla',
     SELECTED: 'Vald(a)',
