@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as DjangoGroup
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 from django.contrib.sessions.models import Session
-from django.db.models.signals import m2m_changed, post_delete, pre_save, post_save, pre_delete, post_init
+from django.db.models.signals import m2m_changed, post_delete, pre_save, post_save, pre_delete
 from django.dispatch import receiver
 from groups_manager.models import group_member_delete as groups_manager_group_member_delete
 from groups_manager.models import group_member_save as groups_manager_group_member_save
