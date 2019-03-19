@@ -1,5 +1,6 @@
 from unittest import mock
 
+from click.testing import CliRunner
 from django.test import TestCase
 
 from ESSArch_Core.fixity.transformation.backends.repeated_extension import RepeatedExtensionTransformer
@@ -38,3 +39,15 @@ class RepeatedExtensionTransformerTests(TestCase):
     def test_invalid_in_middle_of_extensions(self, mock_rename):
         RepeatedExtensionTransformer().transform('foo.tar.xml.xml.gz')
         mock_rename.assert_called_once_with('foo.tar.xml.xml.gz', 'foo.tar.xml.gz')
+
+
+@mock.patch('ESSArch_Core.fixity.transformation.backends.repeated_extension.RepeatedExtensionTransformer.transform')
+class RepeatedExtensionTransformerCliTests(TestCase):
+    def test_cli(self, mock_transform):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            open('foo.txt.txt', 'a')
+            result = runner.invoke(RepeatedExtensionTransformer.cli, ['foo.txt.txt'])
+            mock_transform.assert_called_once_with('foo.txt.txt')
+
+            self.assertEqual(result.exit_code, 0)
