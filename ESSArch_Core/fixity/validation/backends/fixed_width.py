@@ -1,5 +1,7 @@
+import json
 import logging
 
+import click
 from dateutil.parser import parse
 from django.utils import timezone
 
@@ -55,7 +57,7 @@ class FixedWidthValidator(BaseValidator):
             if field['end'] - field['start'] != field['length']:
                 msg = 'Conflicting field length on row {}: end - start != length'.format(row_number)
                 logger.error(msg)
-                self.errors += 1
+                self.errors.append(msg)
                 self._create_obj(filepath, False, msg)
 
             col = line[field['start']:field['end']]
@@ -73,7 +75,7 @@ class FixedWidthValidator(BaseValidator):
                 except ValueError:
                     msg = self.invalid_datatype_err.format(col.rstrip(), row_number, field['datatype'])
                     logger.error(msg)
-                    self.errors += 1
+                    self.errors.append(msg)
                     self._create_obj(filepath, False, msg)
                     continue
 
@@ -83,7 +85,7 @@ class FixedWidthValidator(BaseValidator):
                 except ValueError:
                     msg = self.invalid_datatype_err.format(col, row_number, field['datatype'])
                     logger.error(msg)
-                    self.errors += 1
+                    self.errors.append(msg)
                     self._create_obj(filepath, False, msg)
                     continue
 
@@ -91,7 +93,7 @@ class FixedWidthValidator(BaseValidator):
                 if not self._validate_date_column(cleaned_col):
                     msg = self.invalid_datatype_err.format(col, row_number, field['datatype'])
                     logger.error(msg)
-                    self.errors += 1
+                    self.errors.append(msg)
                     self._create_obj(filepath, False, msg)
 
     def _validate_lines(self, filepath, input_file, fields, filler):
@@ -103,7 +105,7 @@ class FixedWidthValidator(BaseValidator):
             if len(line.replace('\n', '')) != sum([w['length'] for w in fields]):
                 msg = 'Invalid record size for post {}'.format(line)
                 logger.error(msg)
-                self.errors += 1
+                self.errors.append(msg)
                 self._create_obj(filepath, False, msg)
 
             self._validate_fields(fields, filepath, line, row_number, filler)
@@ -115,7 +117,7 @@ class FixedWidthValidator(BaseValidator):
             except UnicodeDecodeError:
                 msg = 'Invalid encoding for filepath {}'.format(filepath)
                 logger.exception(msg)
-                self.errors += 1
+                self.errors.append(msg)
                 self._create_obj(filepath, False, msg)
 
     def validate(self, filepath, expected=None):
@@ -127,13 +129,33 @@ class FixedWidthValidator(BaseValidator):
         encoding = self.options.get('encoding', 'utf-8')
         filler = self.options.get('filler', ' ')
 
-        self.errors = 0
+        self.errors = []
         self.warnings = 0
         self._validate(filepath, expected, encoding, filler)
 
-        if self.errors > 0:
-            msg = 'Fixed-width validation of {} failed with {} error(s)'.format(filepath, self.errors)
+        if len(self.errors):
+            msg = 'Fixed-width validation of {} failed with {} error(s)'.format(filepath, len(self.errors))
             logger.error(msg)
-            raise ValidationError(msg)
+            raise ValidationError(msg, errors=self.errors)
 
         logger.info('Successful fixed-width validation of {}'.format(filepath))
+
+    @staticmethod
+    @click.command()
+    @click.argument('path', metavar='INPUT', type=click.Path(exists=True))
+    @click.argument('fields', type=click.Path(exists=True))
+    @click.option('--filler', type=str, default=' ', show_default=True)
+    @click.option('--encoding', type=str)
+    def cli(path, fields, filler, encoding):
+        with open(fields, encoding=encoding) as fields_file:
+            fields = json.load(fields_file)
+
+        options = {'filler': filler, 'encoding': encoding}
+        validator = FixedWidthValidator(options=options)
+
+        try:
+            validator.validate(path, expected=fields)
+        except ValidationError as e:
+            click.echo(e, err=True)
+            for error in e.errors:
+                click.echo(error, err=True)
