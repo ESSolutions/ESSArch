@@ -22,6 +22,16 @@ def cli(ctx):
     """
 
 
+list(
+    map(
+        lambda cmd: cli.add_command(locate(cmd)), (
+            'ESSArch_Core.cli.commands.convert.convert',
+            'ESSArch_Core.cli.commands.transform.transform',
+        )
+    )
+)
+
+
 @cli.group()
 def search():
     """Manage search indices

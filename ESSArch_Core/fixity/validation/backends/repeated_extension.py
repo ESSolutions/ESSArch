@@ -1,5 +1,4 @@
 import logging
-import os
 import re
 import traceback
 
@@ -9,15 +8,14 @@ from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 
-logger = logging.getLogger('essarch.fixity.validation.filename')
+logger = logging.getLogger('essarch.fixity.validation.repeated_extension')
 
-DEFAULT_EXPECTED_FILE = r'^[\da-zA-Z_\-]+\.[\da-zA-Z]+$'
-DEFAULT_EXPECTED_DIR = r'^[\da-zA-Z_\-]+$'
+REPEATED_PATTERN = r'\.(\w+)\.\1'
 
 
-class FilenameValidator(BaseValidator):
-    def validate(self, filepath, expected=None):
-        logger.debug('Validating filename of %s' % filepath)
+class RepeatedExtensionValidator(BaseValidator):
+    def validate(self, filepath):
+        logger.debug('Validating extension of %s' % filepath)
 
         val_obj = Validation(
             filename=filepath,
@@ -35,14 +33,8 @@ class FilenameValidator(BaseValidator):
 
         passed = False
         try:
-            if expected is None:
-                if os.path.isfile(filepath):
-                    expected = DEFAULT_EXPECTED_FILE
-                else:
-                    expected = DEFAULT_EXPECTED_DIR
-
-            if not re.search(expected, os.path.basename(filepath)):
-                message = "Filename validation of {} failed, it does not match {}".format(filepath, expected)
+            if re.search(REPEATED_PATTERN, filepath):
+                message = "Extension validation of {} failed, repeated extensions found".format(filepath)
                 logger.warning(message)
                 raise ValidationError(message)
 
@@ -52,7 +44,7 @@ class FilenameValidator(BaseValidator):
             val_obj.message = traceback.format_exc()
             raise
         else:
-            val_obj.message = 'Successfully validated filename of {}'.format(filepath)
+            val_obj.message = 'Successfully validated extension of {}'.format(filepath)
             logger.info(val_obj.message)
         finally:
             val_obj.time_done = timezone.now()

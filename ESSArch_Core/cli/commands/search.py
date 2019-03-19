@@ -29,8 +29,8 @@ def clear(indexes):
 
 
 @click.command()
-@click.option('-b', '--batch-size', 'batch_size', type=int, help='Number of items to index at once.')
 @click.option('-i', '--index', 'indexes', type=str, multiple=True, help='Specify which index to update.')
+@click.option('-b', '--batch-size', 'batch_size', type=int, help='Number of items to index at once.')
 @click.option('-r', '--remove-stale', 'remove_stale', default=False, help='Remove objects from the index \
                                                                            that are no longer in the database.')
 def rebuild(indexes, batch_size, remove_stale):

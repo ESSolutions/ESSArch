@@ -2,13 +2,15 @@ import logging
 import shlex
 from subprocess import PIPE, Popen
 
+import click
+
 from ESSArch_Core.fixity.conversion.backends.base import BaseConverter
 from ESSArch_Core.fixity.conversion.exceptions import InvalidFormat
 
-logger = logging.getLogger('essarch.fixity.conversion.backends.openssl')
-
 
 class OpenSSLConverter(BaseConverter):
+    logger = logging.getLogger('essarch.fixity.conversion.backends.openssl')
+
     input_formats = [
         'application/x-pem-file',
         'application/x-pkcs12',
@@ -106,15 +108,30 @@ class OpenSSLConverter(BaseConverter):
         cmd = shlex.split(cmd)
         return Popen(cmd, stdout=PIPE, stderr=PIPE)
 
-    def convert(self, input_file, output_file, in_fmt=None, out_fmt=None, **kwargs):
-        cert_files = kwargs.pop('cert_files', None)
-        in_key = kwargs.pop('in_key', None)
-        password = kwargs.pop('password', None)
+    @classmethod
+    def convert(cls, input_file, output_file, in_fmt=None, out_fmt=None, cert_files=None, in_key=None, password=None):
 
-        cmd = self.create_command(input_file, output_file, in_fmt, out_fmt, cert_files, in_key, password)
+        cmd = cls.create_command(input_file, output_file, in_fmt, out_fmt, cert_files, in_key, password)
 
-        logger.debug(cmd)
+        cls.logger.info(cmd)
 
-        p = self.run_command(cmd)
+        p = cls.run_command(cmd)
         out, err = p.communicate()
+
+        if p.returncode:
+            raise Exception(err)
+
         return out, err, p.returncode
+
+    @staticmethod
+    @click.command()
+    @click.argument('input_file', metavar='INPUT', type=click.Path(exists=True))
+    @click.argument('output_file', metavar='OUTPUT', type=click.Path())
+    @click.option('--in-fmt', 'in_fmt', type=click.Choice(input_formats), help="Format of the input file")
+    @click.option('--out-fmt', 'out_fmt', type=click.Choice(output_formats), help="Format of the output file")
+    @click.option('--cert-file', 'cert_files', type=click.Path(exists=True), multiple=True, help="Certificate file")
+    @click.option('--in-key', 'in_key', type=click.Path(exists=True), help="Key file")
+    @click.option('--password', 'password', help="Password sent to -passin or -passout")
+    def cli(input_file, output_file, in_fmt, out_fmt, cert_files, in_key, password):
+        """Convert certificates and keys using OpenSSL"""
+        return OpenSSLConverter.convert(input_file, output_file, in_fmt, out_fmt, cert_files, in_key, password)
