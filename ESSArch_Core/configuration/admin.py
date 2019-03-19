@@ -25,8 +25,9 @@
     Email - essarch@essolutions.se
 """
 
-from .models import Parameter, Path, EventType, Agent
+from .models import Parameter, Path, EventType, Agent, Site
 from django.contrib import admin
+from django.contrib.sites.models import Site as DjangoSite
 
 
 class ParameterAdmin(admin.ModelAdmin):
@@ -86,4 +87,6 @@ class AgentAdmin(admin.ModelAdmin):
     fields = ('agentType', 'agentDetail')
 
 
+admin.site.unregister(DjangoSite)
 admin.site.register(Agent, AgentAdmin)
+admin.site.register(Site)

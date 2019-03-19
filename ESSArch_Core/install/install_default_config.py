@@ -27,7 +27,7 @@
 import django
 django.setup()
 
-from ESSArch_Core.configuration.models import EventType, Parameter  # noqa
+from ESSArch_Core.configuration.models import EventType, Parameter, Site  # noqa
 
 
 def installDefaultConfiguration():
@@ -35,6 +35,8 @@ def installDefaultConfiguration():
     installDefaultEventTypes()
     print("Installing parameters...")
     installDefaultParameters()
+    print("Installing site...")
+    installDefaultSite()
 
     return 0
 
@@ -138,6 +140,10 @@ def installDefaultParameters():
         Parameter.objects.get_or_create(entity=key, defaults={'value': dct[key]})
 
     return 0
+
+
+def installDefaultSite():
+    Site.objects.get_or_create(name='ESSArch')
 
 
 if __name__ == '__main__':
