@@ -1,6 +1,8 @@
 import csv
 import logging
 
+import click
+
 from django.utils import timezone
 
 from ESSArch_Core.exceptions import ValidationError
@@ -29,10 +31,10 @@ class CSVValidator(BaseValidator):
             }
         )
 
-    def _validate(self, path, column_number, delimiter=','):
+    def _validate(self, path, column_number, delimiter=',', encoding=None):
         validation_objs = []
 
-        with open(path, 'r') as csvfile:
+        with open(path, 'r', encoding=encoding) as csvfile:
             for row in csvfile:
                 # Check that row ends with line break
                 if not row.endswith('\n'):
@@ -50,9 +52,9 @@ class CSVValidator(BaseValidator):
                     validation_objs.append(self._create_obj(path, False, msg))
 
         Validation.objects.bulk_create(validation_objs, batch_size=100)
-        return len(validation_objs)
+        return [o.message for o in validation_objs]
 
-    def validate(self, filepath, expected=None):
+    def validate(self, filepath, expected=None, encoding=None):
         logger.debug('Validating csv: %s' % filepath)
         time_started = timezone.now()
 
@@ -60,15 +62,16 @@ class CSVValidator(BaseValidator):
         delimiter = self.options.get('delimiter', ',')
 
         try:
-            error_num = self._validate(filepath, column_number, delimiter)
+            errors = self._validate(filepath, column_number, delimiter, encoding)
+
         except Exception:
             logger.exception('Unknown error occurred when validating {}'.format(filepath))
             raise
         else:
-            if error_num > 0:
-                msg = 'CSV validation of {} failed with {} errors'.format(filepath, error_num)
+            if len(errors) > 0:
+                msg = 'CSV validation of {} failed with {} error(s)'.format(filepath, len(errors))
                 logger.error(msg)
-                raise ValidationError(msg)
+                raise ValidationError(msg, errors=errors)
 
             message = 'Successfully validated csv: {}'.format(filepath)
             time_done = timezone.now()
@@ -89,3 +92,20 @@ class CSVValidator(BaseValidator):
                 }
             )
             logger.info(message)
+
+    @staticmethod
+    @click.command()
+    @click.argument('path', metavar='INPUT', type=click.Path(exists=True))
+    @click.argument('cols', type=int, metavar='COLUMN_NUMBER')
+    @click.option('--delimiter', type=str, default=',', show_default=True)
+    @click.option('--encoding', type=str)
+    def cli(path, cols, delimiter, encoding):
+        options = {'column_number': cols, 'delimiter': delimiter}
+        validator = CSVValidator(options=options)
+
+        try:
+            validator.validate(path, encoding=encoding)
+        except ValidationError as e:
+            click.echo(e, err=True)
+            for error in e.errors:
+                click.echo(error, err=True)

@@ -3,6 +3,7 @@ import os
 import re
 import traceback
 
+import click
 from django.utils import timezone
 
 from ESSArch_Core.exceptions import ValidationError
@@ -58,3 +59,15 @@ class FilenameValidator(BaseValidator):
             val_obj.time_done = timezone.now()
             val_obj.passed = passed
             val_obj.save()
+
+    @staticmethod
+    @click.command()
+    @click.argument('path', metavar='INPUT', type=click.Path(exists=True))
+    @click.option('-p', '--pattern', type=str, help='Regex pattern to match with')
+    def cli(path, pattern):
+        validator = FilenameValidator()
+
+        try:
+            validator.validate(path, pattern)
+        except ValidationError as e:
+            click.echo(e, err=True)
