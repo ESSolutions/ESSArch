@@ -12,6 +12,7 @@ from celery import states as celery_states
 from celery.result import allow_join_result
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils import timezone
 from glob2 import iglob
@@ -91,6 +92,7 @@ class MaintenanceJob(models.Model):
     class Meta:
         abstract = True
         get_latest_by = 'start_date'
+        ordering = ('-start_date',)
 
     def _get_report_directory(self):
         entity = '%s_reports' % self.MAINTENANCE_TYPE
@@ -166,7 +168,7 @@ class AppraisalRule(MaintenanceRule):
         for ip in ips:
             datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
             if self.specification:
-                for pattern, spec in self.specification.items():
+                for pattern in self.specification:
                     found_files.extend(find_all_files(datadir, ip, pattern))
             else:
                 for root, dirs, files in walk(datadir):
@@ -193,13 +195,17 @@ class AppraisalJob(MaintenanceJob):
     def _run_archive_object(self):
         def get_information_packages():
             return self.rule.information_packages.filter(
+                Q(
+                    Q(appraisal_date__lte=timezone.now()) |
+                    Q(appraisal_date__isnull=True)
+                ),
                 active=True,
-                appraisal_date__lte=timezone.now(),
             ).exclude(
                 appraisal_job_entries__job=self,
             )
 
         ips = get_information_packages()
+        logger.info('Running appraisal job {} on {} information packages'.format(self.pk, ips.count()))
 
         for ip in ips.order_by('-cached').iterator():  # run cached IPs first
             run_cached_ip(ip)
@@ -242,7 +248,7 @@ class AppraisalJob(MaintenanceJob):
                 shutil.copytree(srcdir, dstdir)
 
                 # delete files specified in rule
-                for pattern, spec in self.rule.specification.items():
+                for pattern in self.rule.specification:
                     for path in iglob(dstdir + '/' + pattern):
                         if os.path.isdir(path):
                             for root, dirs, files in walk(path):
@@ -308,7 +314,7 @@ class ConversionRule(MaintenanceRule):
         found_files = []
         for ip in ips:
             datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
-            for pattern, spec in self.specification.items():
+            for pattern, spec in self.specification:
                 found_files.extend(find_all_files(datadir, ip, pattern))
         return found_files
 
@@ -413,11 +419,11 @@ def run_cached_ip(ip):
             t, created = ProcessTask.objects.get_or_create(
                 name='workflow.tasks.CacheAIP',
                 information_package=ip,
-                defaults={'responsible': ip.responsible, 'eager': False}
+                defaults={'responsible': ip.responsible, 'eager': True}
             )
 
-            if not created:
-                t.run()
+            if created:
+                t.run().get()
 
         time.sleep(10)
         ip.refresh_from_db()
