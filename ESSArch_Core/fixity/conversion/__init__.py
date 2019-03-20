@@ -5,6 +5,7 @@ from django.conf import settings
 AVAILABLE_CONVERTERS = {
     'image': 'ESSArch_Core.fixity.conversion.backends.image.ImageConverter',
     'openssl': 'ESSArch_Core.fixity.conversion.backends.openssl.OpenSSLConverter',
+    'sie': 'ESSArch_Core.fixity.conversion.backends.sie.SIEConverter',
 }
 
 extra_converters = getattr(settings, 'ESSARCH_CONVERTERS', {})
