@@ -5,14 +5,13 @@ services:
 
     ###### EPP #######
     epp_db:
-        image: "mariadb:$MARIADB_VERSION"
+        image: "postgres:$POSTGRES_VERSION"
         ports:
-            - 3003:3306
+            - 3003:5432
         environment:
-            MYSQL_DATABASE: epp
-            MYSQL_USER: arkiv
-            MYSQL_PASSWORD: password
-            MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+            POSTGRES_DB: epp
+            POSTGRES_USER: arkiv
+            POSTGRES_PASSWORD: password
 
     epp_rabbitmq:
         image: "rabbitmq:$RABBITMQ_VERSION"
@@ -30,14 +29,14 @@ services:
 
     ###### ETA #######
     eta_db:
-        image: "mariadb:$MARIADB_VERSION"
+        image: "postgres:$POSTGRES_VERSION"
         ports:
-            - 3002:3306
+            - 3002:5432
         environment:
-            MYSQL_DATABASE: eta
-            MYSQL_USER: arkiv
-            MYSQL_PASSWORD: password
-            MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+            POSTGRES_DB: eta
+            POSTGRES_USER: arkiv
+            POSTGRES_PASSWORD: password
+
     eta_rabbitmq:
         image: "rabbitmq:$RABBITMQ_VERSION"
         ports:
@@ -45,6 +44,7 @@ services:
         environment:
             - RABBITMQ_DEFAULT_USER=rabbitmq
             - RABBITMQ_DEFAULT_PASS=rabbitmq
+
     eta_redis:
         image: "redis:$REDIS_VERSION"
         ports:
@@ -53,14 +53,14 @@ services:
 
     ###### ETP #######
     etp_db:
-        image: "mariadb:$MARIADB_VERSION"
+        image: "postgres:$POSTGRES_VERSION"
         ports:
-            - 3001:3306
+            - 3001:5432
         environment:
-            MYSQL_DATABASE: etp
-            MYSQL_USER: arkiv
-            MYSQL_PASSWORD: password
-            MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+            POSTGRES_DB: etp
+            POSTGRES_USER: arkiv
+            POSTGRES_PASSWORD: password
+
     etp_rabbitmq:
         image: "rabbitmq:$RABBITMQ_VERSION"
         ports:
@@ -68,6 +68,7 @@ services:
         environment:
             - RABBITMQ_DEFAULT_USER=rabbitmq
             - RABBITMQ_DEFAULT_PASS=rabbitmq
+
     etp_redis:
         image: "redis:$REDIS_VERSION"
         ports:
@@ -75,7 +76,7 @@ services:
 
 
     ###### ELK Stack #######
-    elk_elasticsearch:
+    elasticsearch:
         build:
             context: docker/elasticsearch
             args:
@@ -94,7 +95,7 @@ services:
         networks:
             - elk
 
-    elk_logstash:
+    logstash:
         build:
             context: docker/logstash
             args:
@@ -114,9 +115,9 @@ services:
         networks:
             - elk
         depends_on:
-            - elk_elasticsearch
+            - elasticsearch
 
-    elk_kibana:
+    kibana:
         build:
             context: docker/kibana
             args:
@@ -130,7 +131,7 @@ services:
         networks:
             - elk
         depends_on:
-            - elk_elasticsearch
+            - elasticsearch
 
 networks:
     elk:
