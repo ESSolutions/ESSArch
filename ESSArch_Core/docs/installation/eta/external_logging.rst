@@ -8,7 +8,7 @@ Externalize logging and monitoring
 Elastic-stack
 =============
 
-Install the logstash plugin
+Install the python-logstash-async:
 
 .. code-block:: bash
 
@@ -77,27 +77,58 @@ Modify your ``local_eta_settings.py`` by adding the logstash handlers and logger
 
   LOGGING = {
     ...
-    'handlers': {
+    'formatters': {
         ...
         'logstash': {
-            'level': 'DEBUG',
-            'class': 'logstash.TCPLogstashHandler',
-            'host': 'localhost',  # logstash host
-            'port': 5002,  # logstash port
-            'version': 1,
-            'message_type': 'django',
+            '()': 'logstash_async.formatter.DjangoLogstashFormatter',
+            'message_type': 'logstash',
             'fqdn': False,
-            'tags': ['ETA'],  # Name of the app
+            'extra_prefix': '',
+            'extra': {
+                'application': 'ETA',
+                'environment': 'dev'
+            }
         },
-        'logstash_http': {  # This handler is for distinguishing http requests
-            'level': 'INFO',
-            'class': 'logstash.TCPLogstashHandler',
-            'host': 'localhost',  # logstash host
-            'port': 5002,  # logstash port
-            'version': 1,
+        'logstash_http': {
+            '()': 'logstash_async.formatter.DjangoLogstashFormatter',
             'message_type': 'django_http',
             'fqdn': False,
-            'tags': ['ETA'],  # Name of the app
+            'extra_prefix': '',
+            'extra': {
+                'application': 'ETA',
+                'environment': 'dev'
+            }
+        },
+    },
+    'handlers': {
+        ...
+        'logstash_http': {
+            'level': 'INFO',
+            'class': 'logstash_async.handler.AsynchronousLogstashHandler',
+            'formatter': 'logstash_http',
+            'transport': 'logstash_async.transport.TcpTransport',
+            'host': 'localhost',
+            'port': 5002,
+            'ssl_enable': True,
+            'ssl_verify': True,
+            'ca_certs': 'etc/ssl/certs/logstash_ca.crt',
+            'certfile': '/etc/ssl/certs/logstash.crt',
+            'keyfile': '/etc/ssl/private/logstash.key',
+            'database_path': '{}/eta_logstash_http.db'.format('/var/tmp'),
+        },
+        'logstash': {
+            'level': 'INFO',
+            'class': 'logstash_async.handler.AsynchronousLogstashHandler',
+            'formatter': 'logstash',
+            'transport': 'logstash_async.transport.TcpTransport',
+            'host': 'localhost',
+            'port': 5002,
+            'ssl_enable': True,
+            'ssl_verify': True,
+            'ca_certs': 'etc/ssl/certs/logstash_ca.crt',
+            'certfile': '/etc/ssl/certs/logstash.crt',
+            'keyfile': '/etc/ssl/private/logstash.key',
+            'database_path': '{}/eta_logstash.db'.format('/var/tmp'),
         },
     },
 
@@ -108,9 +139,13 @@ Modify your ``local_eta_settings.py`` by adding the logstash handlers and logger
             'level': 'DEBUG',
         },
         'essarch.auth': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['log_file_auth', 'logstash'],
             'propagate': False,
+        },
+        'django': {
+            'handlers': ['logstash'],
+            'level': 'INFO',
         },
         'django.request': {
             'handlers': ['logstash'],
@@ -119,7 +154,7 @@ Modify your ``local_eta_settings.py`` by adding the logstash handlers and logger
         },
         'django.security': {
             'handlers': ['logstash'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'django.channels.server': {
@@ -127,4 +162,11 @@ Modify your ``local_eta_settings.py`` by adding the logstash handlers and logger
             'level': 'INFO',
             'propagate': False,
         },
+        'django.contrib.auth': {
+            'handlers': ['logstash'],
+            'level': 'INFO',
+            'propagate': False,
+        },
   }
+
+More about how to configure the logging can be found at the plugin docs: https://python-logstash-async.readthedocs.io/en/stable/usage.html#usage-with-django
