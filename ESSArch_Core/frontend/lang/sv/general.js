@@ -13,6 +13,7 @@ angular.module('essarch.language').config(function($translateProvider) {
     ARCHIVALTYPE: 'Arkivtyp',
     ARCHIVAL_LOCATION: 'Arkivplats',
     ARCHIVAL_TYPE: 'Arkivtyp',
+    ARCHIVECREATORS: 'Arkivbildare',
     ARCHIVISTORGANIZATION: 'Arkivorganisation',
     CANCEL: 'Avbryt',
     CANNOT_RECEIVE_ERROR: 'Ogiltig leveransöverenskommelse i XML-fil',

@@ -13,6 +13,7 @@ angular.module('essarch.language').config(function($translateProvider) {
     ARCHIVALTYPE: 'Archival type',
     ARCHIVAL_LOCATION: 'Archival location',
     ARCHIVAL_TYPE: 'Archival type',
+    ARCHIVECREATORS: 'Archive creators',
     ARCHIVISTORGANIZATION: 'Archivist organization',
     CANCEL: 'Cancel',
     CANNOT_RECEIVE_ERROR: 'Invalid submission agreement in XML-file',
