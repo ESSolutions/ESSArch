@@ -1,0 +1,137 @@
+version: '3'
+
+services:
+
+
+    ###### EPP #######
+    epp_db:
+        image: "mariadb:$MARIADB_VERSION"
+        ports:
+            - 3003:3306
+        environment:
+            MYSQL_DATABASE: epp
+            MYSQL_USER: arkiv
+            MYSQL_PASSWORD: password
+            MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+
+    epp_rabbitmq:
+        image: "rabbitmq:$RABBITMQ_VERSION"
+        ports:
+            - 15003:5672
+        environment:
+            - RABBITMQ_DEFAULT_USER=rabbitmq
+            - RABBITMQ_DEFAULT_PASS=rabbitmq
+
+    epp_redis:
+        image: "redis:$REDIS_VERSION"
+        ports:
+            - 6003:6379
+
+
+    ###### ETA #######
+    eta_db:
+        image: "mariadb:$MARIADB_VERSION"
+        ports:
+            - 3002:3306
+        environment:
+            MYSQL_DATABASE: eta
+            MYSQL_USER: arkiv
+            MYSQL_PASSWORD: password
+            MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    eta_rabbitmq:
+        image: "rabbitmq:$RABBITMQ_VERSION"
+        ports:
+            - 15002:5672
+        environment:
+            - RABBITMQ_DEFAULT_USER=rabbitmq
+            - RABBITMQ_DEFAULT_PASS=rabbitmq
+    eta_redis:
+        image: "redis:$REDIS_VERSION"
+        ports:
+            - 6002:6379
+
+
+    ###### ETP #######
+    etp_db:
+        image: "mariadb:$MARIADB_VERSION"
+        ports:
+            - 3001:3306
+        environment:
+            MYSQL_DATABASE: etp
+            MYSQL_USER: arkiv
+            MYSQL_PASSWORD: password
+            MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    etp_rabbitmq:
+        image: "rabbitmq:$RABBITMQ_VERSION"
+        ports:
+            - 15001:5672
+        environment:
+            - RABBITMQ_DEFAULT_USER=rabbitmq
+            - RABBITMQ_DEFAULT_PASS=rabbitmq
+    etp_redis:
+        image: "redis:$REDIS_VERSION"
+        ports:
+            - 6001:6379
+
+
+    ###### ELK Stack #######
+    elk_elasticsearch:
+        build:
+            context: docker/elasticsearch
+            args:
+                ELK_VERSION: $ELK_VERSION
+        volumes:
+            - ./docker/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+        ports:
+            - "9200:9200"
+            - "9300:9300"
+            - "9202:9200"
+            - "9302:9300"
+            - "9203:9200"
+            - "9303:9300"
+        environment:
+            ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+        networks:
+            - elk
+
+    elk_logstash:
+        build:
+            context: docker/logstash
+            args:
+                ELK_VERSION: $ELK_VERSION
+        volumes:
+            - ./docker/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+            - ./docker/logstash/pipeline:/usr/share/logstash/pipeline:ro
+        ports:
+            - "5000:5000"
+            - "9600:9600"
+            - "5002:5000"
+            - "9602:9600"
+            - "5003:5000"
+            - "9603:9600"
+        environment:
+            LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+        networks:
+            - elk
+        depends_on:
+            - elk_elasticsearch
+
+    elk_kibana:
+        build:
+            context: docker/kibana
+            args:
+                ELK_VERSION: $ELK_VERSION
+        volumes:
+            - ./docker/kibana/config/:/usr/share/kibana/config:ro
+        ports:
+            - "5601:5601"
+            - "5602:5601"
+            - "5603:5601"
+        networks:
+            - elk
+        depends_on:
+            - elk_elasticsearch
+
+networks:
+    elk:
+        driver: bridge
