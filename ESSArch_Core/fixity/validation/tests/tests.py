@@ -844,9 +844,10 @@ class XMLSyntaxValidatorTests(TestCase):
 
         validator = XMLSyntaxValidator()
 
-        with self.assertRaises(etree.XMLSyntaxError):
+        with self.assertRaises(ValidationError) as cm:
             validator.validate(xml)
 
+        self.assertEqual(len(cm.exception.errors), 2)
         self.assertEqual(Validation.objects.count(), 2)
         self.assertEqual(Validation.objects.filter(passed=False).count(), 2)
 
