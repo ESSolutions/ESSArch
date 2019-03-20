@@ -20,7 +20,6 @@ Start Elastic-stack
 
 .. code-block:: bash
 
-    $ cd docker/etp
     $ docker-compose up -d
 
 Then navigate to http://localhost:5601 to open up Kibana.
