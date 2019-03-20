@@ -2,6 +2,7 @@ import copy
 import logging
 import os
 
+import click
 from django.utils import timezone
 from lxml import etree, isoschematron
 from os import walk
@@ -362,8 +363,9 @@ class XMLSyntaxValidator(BaseValidator):
         try:
             etree.parse(filepath)
         except etree.XMLSyntaxError as e:
+            msg = 'Syntax validation of {xml} failed'.format(xml=filepath)
             logger.exception(
-                'Syntax validation of {xml} failed'.format(xml=filepath)
+                msg
             )
             done = timezone.now()
             validation_objs = []
@@ -381,7 +383,7 @@ class XMLSyntaxValidator(BaseValidator):
                 ))
 
             Validation.objects.bulk_create(validation_objs, 100)
-            raise
+            raise ValidationError(msg, errors=[o.message for o in validation_objs])
         except Exception as e:
             logger.exception('Unknown error during syntax validation of {xml}'.format(xml=filepath))
             done = timezone.now()
@@ -409,6 +411,19 @@ class XMLSyntaxValidator(BaseValidator):
         logger.info(
             "Successful syntax validation of {xml}".format(xml=filepath)
         )
+
+    @staticmethod
+    @click.command()
+    @click.argument('path', metavar='INPUT', type=click.Path(exists=True))
+    def cli(path):
+        validator = XMLSyntaxValidator()
+
+        try:
+            validator.validate(path)
+        except ValidationError as e:
+            click.echo(e, err=True)
+            for error in e.errors:
+                click.echo(error, err=True)
 
 
 class XMLSchematronValidator(BaseValidator):
