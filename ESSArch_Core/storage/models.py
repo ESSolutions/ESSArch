@@ -686,7 +686,7 @@ class IOQueue(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='io_queues')
     object_path = models.CharField(max_length=256, blank=True)
     write_size = models.BigIntegerField(null=True, blank=True)
-    result = PickledObjectField(blank=True)
+    result = PickledObjectField(blank=True, null=True)
     status = models.IntegerField(blank=True, default=0, choices=req_status_CHOICES)
     task_id = models.CharField(max_length=36, blank=True)
     posted = models.DateTimeField(auto_now_add=True)
