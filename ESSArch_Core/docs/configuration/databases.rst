@@ -25,4 +25,23 @@ Here is an example using MySQL:
         }
     }
 
+
+Here is an example using Postgres:
+
+.. code-block:: python
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'etp',
+            'USER': 'arch',
+            'PASSWORD': 'password',
+            'HOST': '127.0.0.1',
+            'PORT': '5432',
+            'OPTIONS': {
+                'isolation_level': 'read committed',
+            }
+        }
+    }
+
 .. _Django database documentation: https://docs.djangoproject.com/en/stable/ref/databases/
