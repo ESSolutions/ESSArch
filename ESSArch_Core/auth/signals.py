@@ -76,7 +76,7 @@ def group_post_save(sender, instance, created, *args, **kwargs):
     if created:
         logger.info(f"Created group '{instance.name}'")
     else:
-        logger.info(f"Group '{instance.name}' was modified!")
+        logger.info(f"Group '{instance.name}' was modified.")
 
 
 @receiver(m2m_changed, sender=ProxyUser.groups.through)

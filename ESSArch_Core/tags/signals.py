@@ -11,17 +11,17 @@ logger = logging.getLogger('essarch.core')
 @receiver(post_save, sender=TagVersion)
 def set_current_version_after_creation(sender, instance, created, **kwargs):
     if created and instance.tag.current_version is None:
-        logger.info(f"TagVersion '{instance}' was created!")
+        logger.info(f"TagVersion '{instance}' was created.")
         tag = instance.tag
         tag.current_version = instance
         tag.save(update_fields=['current_version'])
     else:
-        logger.info(f"TagVersion '{instance}' was updated!")
+        logger.info(f"TagVersion '{instance}' was updated.")
 
 
 @receiver(pre_delete, sender=TagVersion)
 def fix_current_version_before_version_delete(sender, instance, **kwargs):
-    logger.info(f"Changing current version of TagVersion: '{instance}', before deleting!")
+    logger.info(f"Changing current version of TagVersion: '{instance}', before deleting.")
     if instance.tag.current_version == instance:
         try:
             tag = instance.tag
@@ -33,9 +33,9 @@ def fix_current_version_before_version_delete(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=TagVersion)
 def log_after_deleting_tag_version(sender, instance, **kwargs):
-    logger.info(f"TagVersion '{instance}' was deleted!")
+    logger.info(f"TagVersion '{instance}' was deleted.")
 
 
 @receiver(post_delete, sender=Tag)
 def log_after_deleting_tag(sender, instance, **kwargs):
-    logger.info(f"Tag '{instance}' was deleted!")
+    logger.info(f"Tag '{instance}' was deleted.")
