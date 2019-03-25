@@ -181,10 +181,18 @@ class RelatedAgentSerializer(serializers.ModelSerializer):
         fields = ('id', 'names', 'type',)
 
 
-class AgentRelationTypeSerializer(serializers.ModelSerializer):
+class AgentRelationTypeMirroredSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgentRelationType
-        fields = ('id', 'name',)
+        fields = ('id', 'name')
+
+
+class AgentRelationTypeSerializer(serializers.ModelSerializer):
+    mirrored_type = AgentRelationTypeMirroredSerializer()
+
+    class Meta:
+        model = AgentRelationType
+        fields = ('id', 'name', 'mirrored_type',)
 
 
 class AgentRelationSerializer(serializers.ModelSerializer):
