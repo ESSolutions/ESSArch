@@ -22,7 +22,7 @@ class GetStorageTypeFromMediumTypeTests(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(GetStorageTypeFromMediumTypeTests, cls).setUpClass()
+        super().setUpClass()
         cls.medium_choices = [e[0] for e in medium_type_CHOICES]
 
     def test_all_medium_types_for_storage_type_DISK(self):
