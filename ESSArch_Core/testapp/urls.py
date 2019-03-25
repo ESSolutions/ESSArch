@@ -6,6 +6,10 @@ from ESSArch_Core.ip.views import InformationPackageViewSet, WorkareaEntryViewSe
 from ESSArch_Core.maintenance.views import AppraisalRuleViewSet, AppraisalJobViewSet, ConversionJobViewSet
 from ESSArch_Core.profiles.views import ProfileViewSet, SubmissionAgreementViewSet
 from ESSArch_Core.routers import ESSArchRouter
+from ESSArch_Core.tags.views import (
+    StructureViewSet,
+    StructureUnitViewSet,
+)
 
 router = ESSArchRouter()
 router.register(r'agents', AgentViewSet)
@@ -15,6 +19,13 @@ router.register(r'conversion-jobs', ConversionJobViewSet)
 router.register(r'information-packages', InformationPackageViewSet)
 router.register(r'profiles', ProfileViewSet)
 router.register(r'steps', ProcessStepViewSet)
+router.register(r'structures', StructureViewSet).register(
+    r'units',
+    StructureUnitViewSet,
+    base_name='structure-units',
+    parents_query_lookups=['structure']
+)
+router.register(r'structure-units', StructureUnitViewSet)
 router.register(r'submission-agreements', SubmissionAgreementViewSet)
 router.register(r'tasks', ProcessTaskViewSet)
 router.register(r'workarea-entries', WorkareaEntryViewSet, base_name='workarea-entries')

@@ -8,6 +8,7 @@ from ESSArch_Core.agents.serializers import (
     AgentNameSerializer,
     AgentTagLinkRelationTypeSerializer,
 )
+from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.tags.models import (
     MediumType,
@@ -56,17 +57,28 @@ class RuleConventionTypeSerializer(serializers.ModelSerializer):
 class StructureSerializer(serializers.ModelSerializer):
     rule_convention_type = RuleConventionTypeSerializer()
     specification = serializers.JSONField(default={})
+    created_by = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+    revised_by = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
 
     class Meta:
         model = Structure
-        fields = ('id', 'name', 'version', 'create_date', 'start_date', 'end_date', 'specification',
-                  'rule_convention_type',)
+        fields = ('id', 'name', 'version', 'create_date', 'revise_date', 'start_date', 'end_date', 'specification',
+                  'rule_convention_type', 'created_by', 'revised_by')
 
 
 class StructureWriteSerializer(StructureSerializer):
     rule_convention_type = serializers.PrimaryKeyRelatedField(
         queryset=RuleConventionType.objects.all(), allow_null=True, default=None
     )
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context['request'].user
+        validated_data['revised_by'] = self.context['request'].user
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data['revised_by'] = self.context['request'].user
+        return super().update(instance, validated_data)
 
 
 class RelatedStructureUnitSerializer(serializers.ModelSerializer):

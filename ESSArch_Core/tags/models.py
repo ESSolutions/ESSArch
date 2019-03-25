@@ -9,6 +9,9 @@ from elasticsearch_dsl.connections import get_connection
 from mptt.models import MPTTModel, TreeForeignKey
 
 
+User = get_user_model()
+
+
 class NodeIdentifier(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     identifier = models.TextField(_('identifier'), blank=False)
@@ -86,15 +89,16 @@ class RuleConventionType(models.Model):
     def __str__(self):
         return self.name
 
-User = get_user_model()
-
 
 class Structure(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, blank=False)
     version = models.CharField(max_length=255, blank=False, default='1.0')
     version_link = models.UUIDField(default=uuid.uuid4, null=False)
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='created_structures')
+    revised_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='revised_structures')
     create_date = models.DateTimeField(auto_now_add=True)
+    revise_date = models.DateTimeField(auto_now=True)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     specification = jsonfield.JSONField(default={})
