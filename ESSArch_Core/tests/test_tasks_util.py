@@ -60,7 +60,7 @@ class TapeMountOrUnmountTests(TestCase):
         mock_unmount_tape.assert_called_once_with("robot_device", 12, 2)
         self.assertEqual(tape_drive.locked, False)
         self.assertEqual(storage_medium.tape_drive, None)
-        self.assertTrue(before < tape_drive.last_change < after)
+        self.assertTrue(before <= tape_drive.last_change <= after)
         self.assertEqual(res, "dummy_output")
 
     @mock.patch('ESSArch_Core.tasks_util.unmount_tape')
@@ -174,6 +174,6 @@ class TapeMountOrUnmountTests(TestCase):
         wait_to_come_online.assert_called_once_with("unique_char", 121)
         self.assertEqual(tape_drive.num_of_mounts, 1)
         self.assertEqual(tape_drive.locked, True)
-        self.assertTrue(before < tape_drive.last_change < after)
+        self.assertTrue(before <= tape_drive.last_change <= after)
         self.assertEqual(storage_medium.num_of_mounts, 1)
         self.assertEqual(storage_medium.tape_drive_id, tape_drive.pk)
