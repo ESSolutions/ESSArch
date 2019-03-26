@@ -7,9 +7,9 @@ branches:
   - master
 
 templates:
-  mariadb: &mariadb EXTRA_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
-  mysql: &mysql EXTRA_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
-  postgres: &postgres EXTRA_PACKAGES=",postgres" DATABASE_URL="postgres://postgres@localhost/essarch?isolation_level=read committed"
+  mariadb: &mariadb DB_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
+  mysql: &mysql DB_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
+  postgres: &postgres DB_PACKAGES=",postgres" DATABASE_URL="postgres://postgres@localhost/essarch?isolation_level=read committed"
 
 matrix:
   include:
@@ -61,7 +61,7 @@ matrix:
 
 install:
   - python -m pip install --upgrade pip wheel codecov
-  - pip install -e .["tests$EXTRA_PACKAGES"]
+  - pip install -e .["tests,s3$DB_PACKAGES"]
 
 script:
   - coverage run ESSArch_Core/manage.py test -v2

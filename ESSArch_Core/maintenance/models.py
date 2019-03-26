@@ -314,7 +314,7 @@ class ConversionRule(MaintenanceRule):
         found_files = []
         for ip in ips:
             datadir = os.path.join(ip.policy.cache_storage.value, ip.object_identifier_value)
-            for pattern, spec in self.specification:
+            for pattern, spec in self.specification.items():
                 found_files.extend(find_all_files(datadir, ip, pattern))
         return found_files
 
