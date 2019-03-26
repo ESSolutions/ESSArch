@@ -157,7 +157,7 @@ class StructureUnit(MPTTModel):
     structure = models.ForeignKey('tags.Structure', on_delete=models.CASCADE, null=False, related_name='units')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
     name = models.CharField(max_length=255)
-    type = models.CharField(max_length=255)
+    type = models.ForeignKey('tags.StructureUnitType', on_delete=models.PROTECT)
     description = models.TextField(blank=True)
     comment = models.TextField(blank=True)
     reference_code = models.CharField(max_length=255)
@@ -285,11 +285,18 @@ class MediumType(models.Model):
         unique_together = ('name', 'size', 'unit')  # Avoid duplicates
 
 
+class TagVersionType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class TagVersion(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tag = models.ForeignKey('tags.Tag', on_delete=models.CASCADE, related_name='versions')
     reference_code = models.CharField(max_length=255, blank=True)
-    type = models.CharField(max_length=255)
+    type = models.ForeignKey('tags.TagVersionType', on_delete=models.PROTECT)
     name = models.CharField(max_length=255)
     elastic_index = models.CharField(max_length=255, blank=False, default=None)
     create_date = models.DateTimeField(auto_now_add=True)
