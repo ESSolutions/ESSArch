@@ -9,7 +9,7 @@ from languages_plus.models import Language
 
 class AgentRelationType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
-    mirrored_type = models.ForeignKey('self', on_delete=models.PROTECT, null=True, verbose_name=_('mirrored type'))
+    mirrored_type = models.ForeignKey('self', on_delete=models.PROTECT, blank=True, null=True, verbose_name=_('mirrored type'))
 
     def __str__(self):
         return self.name
