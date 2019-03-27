@@ -154,16 +154,12 @@ class MaintenanceJobRunTests(TestCase):
         self.appraisal_path = os.path.join(self.datadir, 'appraisal_path')
         self.conversion_path = os.path.join(self.datadir, 'conversion_path')
 
-    def create_paths(self, create_dir, has_access=True):
+    def create_paths(self, create_dir):
 
         if create_dir:
             try:
                 os.makedirs(self.appraisal_path)
                 os.makedirs(self.conversion_path)
-
-                if not has_access:
-                    os.chmod(self.appraisal_path, S_IWRITE & 0)
-                    os.chmod(self.conversion_path, S_IWRITE & 0)
             except OSError as e:
                 if e.errno != 17:
                     raise
@@ -174,6 +170,10 @@ class MaintenanceJobRunTests(TestCase):
     def reset_access_rights(self):
         os.chmod(self.appraisal_path, 0o7777)
         os.chmod(self.conversion_path, 0o7777)
+
+    def remove_access_rights(self):
+        os.chmod(self.appraisal_path, ~S_IWRITE)
+        os.chmod(self.conversion_path, ~S_IWRITE)
 
     @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._mark_as_complete')
     @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._get_report_directory')
@@ -220,7 +220,8 @@ class MaintenanceJobRunTests(TestCase):
     @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob._run')
     def test_call_run_when_report_dir_is_not_writeable(self, apr_run, con_run, get_report_directory, mark_as_complete):
         before = timezone.now()
-        self.create_paths(create_dir=True, has_access=False)
+        self.create_paths(create_dir=True)
+        self.remove_access_rights()
         get_report_directory.side_effect = [self.appraisal_path, self.conversion_path, self.conversion_path]
 
         try:
@@ -264,7 +265,7 @@ class MaintenanceJobRunTests(TestCase):
     @mock.patch('ESSArch_Core.maintenance.models.ConversionJob._run')
     @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob._run')
     def test_call_success(self, mock_appr__run, mock_con__run, mock__get_report_directory, mock__mark_as_complete):
-        self.create_paths(create_dir=True, has_access=True)
+        self.create_paths(create_dir=True)
         mock__get_report_directory.side_effect = [self.appraisal_path, self.conversion_path]
 
         self.appraisal_job.run()
