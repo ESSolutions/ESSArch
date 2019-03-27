@@ -266,4 +266,8 @@ admin.site.register(ProxyUser, UserAdmin)
 admin.site.register(GroupType, GroupTypeAdmin)
 admin.site.register(GroupMemberRole, GroupMemberRoleAdmin)
 
+auditlog.register(ProxyPermission)
+auditlog.register(ProxyGroup)
 auditlog.register(ProxyUser, mask_value_fields=['password'])
+auditlog.register(GroupType)
+auditlog.register(GroupMemberRole)
