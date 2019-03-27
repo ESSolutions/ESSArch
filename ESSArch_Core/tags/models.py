@@ -247,7 +247,11 @@ class Tag(models.Model):
             return True
 
     def __str__(self):
-        return '{}'.format(self.current_version)
+        try:
+            return '{}'.format(self.current_version)
+        except TagVersion.DoesNotExist:
+            return '{}'.format(self.pk)
+
 
     class Meta:
         permissions = (
