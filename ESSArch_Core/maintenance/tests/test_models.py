@@ -1,3 +1,4 @@
+import errno
 import os
 import shutil
 import tempfile
@@ -183,11 +184,20 @@ class MaintenanceJobRunTests(TestCase):
         self.create_paths(create_dir=False)
         get_report_directory.side_effect = [self.appraisal_path, self.conversion_path]
 
-        with self.assertRaisesRegex(OSError, f".* No such file or directory: '{self.appraisal_path}'"):
-            self.appraisal_job.run()
+        if os.name == 'nt':
+            with self.assertRaises(OSError) as apr_e:
+                self.appraisal_job.run()
+            self.assertEqual(apr_e.exception.errno, errno.ENOENT)
 
-        with self.assertRaisesRegex(OSError, f".* No such file or directory: '{self.conversion_path}'"):
-            self.conversion_job.run()
+            with self.assertRaises(OSError) as con_e:
+                self.conversion_job.run()
+            self.assertEqual(con_e.exception.errno, errno.ENOENT)
+        else:
+            with self.assertRaisesRegex(OSError, f".* No such file or directory: '{self.appraisal_path}'"):
+                self.appraisal_job.run()
+
+            with self.assertRaisesRegex(OSError, f".* No such file or directory: '{self.conversion_path}'"):
+                self.conversion_job.run()
 
         after = timezone.now()
 
@@ -211,15 +221,28 @@ class MaintenanceJobRunTests(TestCase):
     def test_call_run_when_report_dir_is_not_writeable(self, apr_run, con_run, get_report_directory, mark_as_complete):
         before = timezone.now()
         self.create_paths(create_dir=True, has_access=False)
-        get_report_directory.side_effect = [self.appraisal_path, self.conversion_path]
+        get_report_directory.side_effect = [self.appraisal_path, self.conversion_path, self.conversion_path]
 
-        with self.assertRaisesRegex(OSError, f".* Permission denied: '{self.appraisal_path}'"):
-            self.appraisal_job.run()
+        try:
+            if os.name == 'nt':
+                with self.assertRaises(OSError) as apr_e:
+                    self.appraisal_job.run()
+                self.assertEqual(apr_e.exception.errno, errno.EACCES)
 
-        with self.assertRaisesRegex(OSError, f".* Permission denied: '{self.conversion_path}'"):
-            self.conversion_job.run()
+                with self.assertRaises(OSError) as con_e:
+                    self.conversion_job.run()
+                self.assertEqual(con_e.exception.errno, errno.EACCES)
+            else:
+                with self.assertRaisesRegex(OSError, f".* Permission denied: '{self.appraisal_path}'"):
+                    self.appraisal_job.run()
 
-        self.reset_access_rights()
+                with self.assertRaisesRegex(OSError, f".* Permission denied: '{self.conversion_path}'"):
+                    self.conversion_job.run()
+        except Exception:
+            raise
+        finally:
+            # We need to reset the access rights here so that it the paths can be cleaned up.
+            self.reset_access_rights()
 
         after = timezone.now()
 
