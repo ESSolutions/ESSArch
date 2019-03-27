@@ -34,10 +34,13 @@ from ESSArch_Core.agents.documents import AgentDocument
 from ESSArch_Core.tags.documents import Archive, Component, StructureUnitDocument
 from ESSArch_Core.tags.models import (
     Structure,
+    StructureType,
     StructureUnit,
+    StructureUnitType,
     Tag,
     TagStructure,
     TagVersion,
+    TagVersionType,
 )
 
 logger = logging.getLogger('essarch.search.importers.VisualImporter')
@@ -62,6 +65,10 @@ class VisualImporter(BaseImporter):
         repository_code=REPO_CODE,
     )
     LANGUAGE = Language.objects.get(iso_639_1='sv')
+
+    STRUCTURE_TYPE, _ = StructureType.objects.get_or_create(name='Klassificeringsstruktur')
+    ARCHIVE_TYPE, _ = TagVersionType.objects.get_or_create(name='Arkiv', archive_type=True)
+    VOLUME_TYPE, _ = TagVersionType.objects.get_or_create(name='Volym', archive_type=False)
 
     @classmethod
     def parse_agent_type(cls, arkivbildare):
@@ -278,7 +285,7 @@ class VisualImporter(BaseImporter):
     def parse_arkiv(cls, el, agent, task=None, ip=None):
         logger.info("Parsing arkiv...")
         name = el.xpath("va:arkivnamn", namespaces=cls.NSMAP)[0].text
-        tag_type = 'Arkiv'
+        tag_type = cls.ARCHIVE_TYPE
 
         start_year = el.xpath("va:tidarkivf", namespaces=cls.NSMAP)[0].text
         start_date = None
@@ -332,7 +339,12 @@ class VisualImporter(BaseImporter):
     def parse_serie(cls, el, structure, agent=None, task=None, ip=None):
         logger.debug("Parsing serie...")
         name = el.xpath("va:serierubrik", namespaces=cls.NSMAP)[0].text
-        tag_type = el.get('level')
+        tag_type, _ = StructureUnitType.objects.get_or_create(
+            name=el.get('level'),
+            defaults={
+                'structure_type': cls.STRUCTURE_TYPE,
+            }
+        )
         reference_code = el.get("signum")
 
         parent_unit_id = None
@@ -371,7 +383,7 @@ class VisualImporter(BaseImporter):
         logger.debug("Parsing volym...")
         ref_code = el.xpath("va:volnr", namespaces=cls.NSMAP)[0].text
         name = el.xpath("va:utseende", namespaces=cls.NSMAP)[0].text
-        tag_type = "Volym"
+        tag_type = cls.VOLUME_TYPE
 
         volym_id = uuid.uuid4()
 

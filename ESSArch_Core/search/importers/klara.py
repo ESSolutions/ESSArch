@@ -45,11 +45,14 @@ from ESSArch_Core.tags.models import (
     NodeRelationType,
     RuleConventionType,
     Structure,
+    StructureType,
     StructureUnit,
+    StructureUnitType,
     Tag,
     TagStructure,
     TagVersion,
     TagVersionRelation,
+    TagVersionType,
 )
 
 logger = logging.getLogger('essarch.search.importers.KlaraImporter')
@@ -70,6 +73,11 @@ class KlaraImporter(BaseImporter):
     NODE_NOTE_TYPE_HISTORIK_NAME = 'Historik'
     REPO_CODE = 'C020'  # TODO: just a dummy
     VOLUME_RELATION_TYPE_NAME = 'associative'
+
+    STRUCTURE_TYPE, _ = StructureType.objects.get_or_create(name='Klassificeringsstruktur')
+    ARCHIVE_TYPE, _ = TagVersionType.objects.get_or_create(name='Arkiv', archive_type=True)
+    SERIE_TYPE, _ = StructureUnitType.objects.get_or_create(name='Serie', structure_type=STRUCTURE_TYPE)
+    VOLUME_TYPE, _ = TagVersionType.objects.get_or_create(name='Volym', archive_type=False)
 
     _ref_code = None
     _language = None
@@ -468,7 +476,7 @@ class KlaraImporter(BaseImporter):
         orig_name = el.xpath('ObjectParts/General/ArchiveOrig.Name')[0].text
         create_date = self.parse_archive_create_date(el)
         revise_date = self.parse_archive_revise_date(el)
-        tag_type = 'Arkiv'
+        tag_type = self.ARCHIVE_TYPE
 
         tag = Tag.objects.create(information_package=ip, task=task)
 
@@ -562,7 +570,7 @@ class KlaraImporter(BaseImporter):
     def parse_series(self, el, structure, inst_code, task):
         logger.debug("Parsing series...")
         name = el.xpath("Series.Title")[0].text
-        tag_type = 'serie'
+        tag_type = self.SERIE_TYPE
         reference_code = el.xpath("Series.Signum")[0].text
 
         parent_unit_id = None
@@ -603,7 +611,7 @@ class KlaraImporter(BaseImporter):
 
     def parse_volume(self, el, medium_type_logisk, task, ip=None):
         logger.debug("Parsing volume...")
-        tag_type = "Volym"
+        tag_type = self.VOLUME_TYPE
 
         ref_code = el.xpath("Volume.VolumeCode")[0].text
         name = el.xpath("Volume.Title")[0].text or ""

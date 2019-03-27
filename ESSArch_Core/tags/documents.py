@@ -128,7 +128,7 @@ class Component(VersionedDocType):
             current_version=obj.tag.current_version == obj,
             name=obj.name,
             reference_code=obj.reference_code,
-            type=obj.type,
+            type=obj.type.name,
             agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
         )
         return doc
@@ -168,7 +168,7 @@ class Archive(VersionedDocType):
             task_id=str(obj.tag.task.pk),
             current_version=obj.tag.current_version == obj,
             name=obj.name,
-            type=obj.type,
+            type=obj.type.name,
             agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
         )
         return doc
@@ -273,7 +273,7 @@ class StructureUnitDocument(DocumentBase):
             id=obj.pk,
             task_id=str(obj.task.pk),
             name=obj.name,
-            type=obj.type,
+            type=obj.type.name,
             description=obj.description,
             comment=obj.comment,
             reference_code=obj.reference_code,
