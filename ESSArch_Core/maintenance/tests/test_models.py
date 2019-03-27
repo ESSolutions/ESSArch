@@ -195,7 +195,7 @@ class MaintenanceJobRunTests(TestCase):
         con_run.assert_not_called()
         mark_as_complete.assert_not_called()
 
-        # Update object form DB
+        # Update object from DB
         self.appraisal_job.refresh_from_db()
         self.conversion_job.refresh_from_db()
 
@@ -227,7 +227,7 @@ class MaintenanceJobRunTests(TestCase):
         con_run.assert_not_called()
         mark_as_complete.assert_not_called()
 
-        # Update object form DB
+        # Update object from DB
         self.appraisal_job.refresh_from_db()
         self.conversion_job.refresh_from_db()
 
@@ -251,7 +251,7 @@ class MaintenanceJobRunTests(TestCase):
         mock_con__run.assert_called_once()
         mock__mark_as_complete.assert_called()
 
-        # Update object form DB
+        # Update object from DB
         self.appraisal_job.refresh_from_db()
         self.conversion_job.refresh_from_db()
 
