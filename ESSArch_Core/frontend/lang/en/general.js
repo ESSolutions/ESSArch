@@ -188,6 +188,5 @@ angular.module('essarch.language').config(function($translateProvider) {
     YOUHAVELOGGEDOUT: 'You have logged out.',
     en: 'English',
     sv: 'Svenska',
-    'This field is required': 'This field is required',
   });
 });
