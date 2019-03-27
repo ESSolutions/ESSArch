@@ -37,10 +37,15 @@ class AgentDocument(DocumentBase):
 
     @classmethod
     def from_obj(cls, obj):
+        if obj.task is None:
+            task_id = None
+        else:
+            task_id = str(obj.task.pk)
+
         doc = AgentDocument(
             _id=str(obj.pk),
             id=str(obj.pk),
-            task_id=str(obj.task.pk),
+            task_id=task_id,
             names=[
                 AgentNameDocument.from_obj(name) for name in obj.names.iterator()
             ],

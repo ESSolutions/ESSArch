@@ -690,7 +690,7 @@ class KlaraImporter(BaseImporter):
             parent=archive_tag.get_active_structure()
         )
 
-        doc = Component.from_obj(tag_version, archive=str(archive_tag.current_version.pk))
+        doc = Component.from_obj(tag_version, archive=archive_tag.current_version)
 
         logger.debug("Parsed volume: {}".format(tag_version.pk))
         return doc.to_dict(include_meta=True), tag_version

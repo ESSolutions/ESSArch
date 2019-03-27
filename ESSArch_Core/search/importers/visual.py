@@ -68,6 +68,7 @@ class VisualImporter(BaseImporter):
 
     STRUCTURE_TYPE, _ = StructureType.objects.get_or_create(name='Klassificeringsstruktur')
     ARCHIVE_TYPE, _ = TagVersionType.objects.get_or_create(name='Arkiv', archive_type=True)
+    SERIE_TYPE, _ = StructureUnitType.objects.get_or_create(name='Serie', structure_type=STRUCTURE_TYPE)
     VOLUME_TYPE, _ = TagVersionType.objects.get_or_create(name='Volym', archive_type=False)
 
     @classmethod
@@ -339,12 +340,14 @@ class VisualImporter(BaseImporter):
     def parse_serie(cls, el, structure, agent=None, task=None, ip=None):
         logger.debug("Parsing serie...")
         name = el.xpath("va:serierubrik", namespaces=cls.NSMAP)[0].text
-        tag_type, _ = StructureUnitType.objects.get_or_create(
-            name=el.get('level'),
-            defaults={
-                'structure_type': cls.STRUCTURE_TYPE,
-            }
-        )
+        tag_type = {'series': cls.SERIE_TYPE}.get(el.get('level'), None)
+        if tag_type is None:
+            tag_type, _ = StructureUnitType.objects.get_or_create(
+                name=el.get('level'),
+                defaults={
+                    'structure_type': cls.STRUCTURE_TYPE,
+                }
+            )
         reference_code = el.get("signum")
 
         parent_unit_id = None
@@ -413,7 +416,7 @@ class VisualImporter(BaseImporter):
             type=cls.AGENT_TAG_LINK_RELATION_TYPE,
         )
 
-        doc = Component.from_obj(tag_version, archive=str(archive_version.pk))
+        doc = Component.from_obj(tag_version, archive=archive_version)
         doc.agents = [str(agent.pk)]
 
         logger.debug("Parsed volym: {}".format(tag_version.pk))

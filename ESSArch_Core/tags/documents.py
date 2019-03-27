@@ -91,6 +91,66 @@ class VersionedDocType(DocumentBase):
         return list(fields)
 
 
+class ComponentArchiveDocument(InnerDoc):
+    id = Keyword()
+    name = Keyword()
+    reference_code = Keyword()
+
+    @classmethod
+    def from_obj(cls, obj):
+        doc = ComponentArchiveDocument(
+            id=str(obj.pk),
+            name=obj.name,
+            reference_code=obj.reference_code,
+        )
+        return doc
+
+
+class StructureTypeDocument(InnerDoc):
+    id = Keyword()
+    name = Keyword()
+
+    @classmethod
+    def from_obj(cls, obj):
+        doc = StructureTypeDocument(
+            id=str(obj.pk),
+            name=obj.name,
+        )
+        return doc
+
+
+class InnerStructureDocument(InnerDoc):
+    id = Keyword()
+    name = Keyword()
+    structure_type = Object(StructureTypeDocument)
+
+    @classmethod
+    def from_obj(cls, obj):
+        doc = InnerStructureDocument(
+            id=str(obj.pk),
+            name=obj.name,
+            type=StructureTypeDocument.from_obj(obj.type),
+        )
+        return doc
+
+
+class ComponentStructureUnitDocument(InnerDoc):
+    id = Keyword()
+    name = Keyword()
+    reference_code = Keyword()
+    structure = Object(InnerStructureDocument)
+
+    @classmethod
+    def from_obj(cls, obj):
+        doc = ComponentStructureUnitDocument(
+            id=str(obj.pk),
+            name=obj.name,
+            reference_code=obj.reference_code,
+            structure=InnerStructureDocument.from_obj(obj.structure),
+        )
+        return doc
+
+
 class Component(VersionedDocType):
     unit_ids = Nested()  # unitid
     unit_dates = Nested()  # unitdate
@@ -103,7 +163,8 @@ class Component(VersionedDocType):
     desc = Text(analyzer=autocomplete_analyzer, search_analyzer='standard')
     type = Keyword()  # series, volume, etc.
     parent = Object(Node)
-    archive = Keyword()
+    archive = Object(ComponentArchiveDocument)
+    structure_units = Nested(ComponentStructureUnitDocument)
     institution = Keyword()
     organization = Keyword()
 
@@ -117,14 +178,26 @@ class Component(VersionedDocType):
 
     @classmethod
     def from_obj(cls, obj, archive=None):
-        units = StructureUnit.objects.filter(tagstructure__tag__current_version=obj)
+        units = StructureUnit.objects.filter(tagstructure__tag__versions=obj)
+
+        if archive is not None:
+            archive_doc = ComponentArchiveDocument.from_obj(archive)
+        elif obj.get_root() is not None:
+            archive_doc = ComponentArchiveDocument.from_obj(obj.get_root())
+        else:
+            archive_doc = None
+
+        if obj.tag.task is None:
+            task_id = None
+        else:
+            task_id = str(obj.tag.task.pk)
 
         doc = Component(
             _id=str(obj.pk),
             id=str(obj.pk),
-            task_id=str(obj.tag.task.pk),
-            archive=archive or str(obj.get_root().pk),
-            structure_unit=[str(pk) for pk in units.values_list('pk', flat=True)],
+            task_id=task_id,
+            archive=archive_doc,
+            structure_units=[ComponentStructureUnitDocument.from_obj(unit) for unit in units],
             current_version=obj.tag.current_version == obj,
             name=obj.name,
             reference_code=obj.reference_code,
@@ -162,10 +235,15 @@ class Archive(VersionedDocType):
 
     @classmethod
     def from_obj(cls, obj):
+        if obj.tag.task is None:
+            task_id = None
+        else:
+            task_id = str(obj.tag.task.pk)
+
         doc = Archive(
             _id=str(obj.pk),
             id=str(obj.pk),
-            task_id=str(obj.tag.task.pk),
+            task_id=task_id,
             current_version=obj.tag.current_version == obj,
             name=obj.name,
             type=obj.type.name,
@@ -268,10 +346,15 @@ class StructureUnitDocument(DocumentBase):
 
     @classmethod
     def from_obj(cls, obj):
+        if obj.task is None:
+            task_id = None
+        else:
+            task_id = str(obj.task.pk)
+
         doc = StructureUnitDocument(
             _id=obj.pk,
             id=obj.pk,
-            task_id=str(obj.task.pk),
+            task_id=task_id,
             name=obj.name,
             type=obj.type.name,
             description=obj.description,

@@ -108,7 +108,7 @@ class DocumentBase(es.Document):
             end = start + batch_size
             items = resp.hits[start:end]
             for item in items:
-                if int(item.meta.id) not in db_ids:
-                    removed.append(int(item.meta.id))
+                if item.meta.id not in db_ids:
+                    removed.append(item.meta.id)
         for remove_id in removed:
             cls.get(id=remove_id).delete()
