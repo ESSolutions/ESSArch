@@ -290,6 +290,7 @@ class MediumType(models.Model):
 
 class TagVersionType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+    archive_type = models.BooleanField(_('archive type'))
 
     def __str__(self):
         return self.name
