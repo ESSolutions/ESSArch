@@ -1,0 +1,21 @@
+<formly-transclude></formly-transclude>
+<div ng-messages="fc.$error" ng-if="form.$submitted || options.formControl.$touched" class="error-messages">
+  <div
+    ng-message="{{ ::name }}"
+    ng-repeat="(name, message) in ::options.validation.messages"
+    class="message angular-animate"
+    translate
+  >
+    {{ message(fc.$viewValue, fc.$modelValue, this)}}
+  </div>
+</div>
+<div ng-messages="fc[0].$error" ng-if="form.$submitted || options.formControl[0].$touched" class="error-messages">
+  <div
+    ng-message="{{ ::name }}"
+    ng-repeat="(name, message) in ::options.validation.messages"
+    class="message angular-animate"
+    translate
+  >
+    {{ message(fc[0].$viewValue, fc[0].$modelValue, this)}}
+  </div>
+</div>

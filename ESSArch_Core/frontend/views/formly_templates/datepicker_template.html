@@ -19,10 +19,13 @@
         set-touched="options.formControl"
         id="{{::id}}"
         name="{{::id}}"
+        required="{{options.templateOptions.required}}"
         type="text"
-        data-date-time-input="YYYY-MM-DD"
+        data-date-time-input="{{options.templateOptions.dateFormat ? options.templateOptions.dateFormat : 'YYYY-MM-DD'}}"
+        data-model-type="{{options.templateOptions.dateFormat ? options.templateOptions.dateFormat : 'Date'}}"
         class="form-control"
         data-ng-model="model[options.key]"
+        autocomplete="off"
       /><span class="input-group-addon"><i class="fas fa-calendar-alt"></i></span>
     </div>
   </a>
@@ -30,7 +33,8 @@
     <datetimepicker
       data-ng-model="model[options.key]"
       ng-change="status[options.key] = false"
-      data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType: 'YYYY-MM-DDTHH:mm:ssZ'}"
+      data-required="{{options.templateOptions.required}}"
+      data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType: options.templateOptions.dateFormat ? options.templateOptions.dateFormat : 'YYYY-MM-DDTHH:mm:ssZ'}"
     />
   </ul>
 </div>
