@@ -93,6 +93,7 @@ class RuleConventionType(models.Model):
 class Structure(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, blank=False)
+    type = models.ForeignKey(StructureType, on_delete=models.PROTECT)
     version = models.CharField(max_length=255, blank=False, default='1.0')
     version_link = models.UUIDField(default=uuid.uuid4, null=False)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='created_structures')

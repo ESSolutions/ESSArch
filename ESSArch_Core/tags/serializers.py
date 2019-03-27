@@ -64,6 +64,7 @@ class StructureTypeSerializer(serializers.ModelSerializer):
 
 
 class StructureSerializer(serializers.ModelSerializer):
+    type = StructureTypeSerializer()
     rule_convention_type = RuleConventionTypeSerializer()
     specification = serializers.JSONField(default={})
     created_by = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
@@ -71,11 +72,12 @@ class StructureSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Structure
-        fields = ('id', 'name', 'version', 'create_date', 'revise_date', 'start_date', 'end_date', 'specification',
-                  'rule_convention_type', 'created_by', 'revised_by')
+        fields = ('id', 'name', 'type', 'version', 'create_date', 'revise_date', 'start_date', 'end_date',
+                  'specification', 'rule_convention_type', 'created_by', 'revised_by')
 
 
 class StructureWriteSerializer(StructureSerializer):
+    type = serializers.PrimaryKeyRelatedField(queryset=StructureType.objects.all())
     rule_convention_type = serializers.PrimaryKeyRelatedField(
         queryset=RuleConventionType.objects.all(), allow_null=True, default=None
     )
