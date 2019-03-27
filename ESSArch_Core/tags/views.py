@@ -13,12 +13,14 @@ from ESSArch_Core.tags.models import (
     Structure,
     StructureUnit,
     Tag,
+    TagVersionType
 )
 from ESSArch_Core.tags.serializers import (
     AgentArchiveLinkSerializer,
     AgentArchiveLinkWriteSerializer,
     TagSerializer,
     TagVersionNestedSerializer,
+    TagVersionTypeSerializer,
     StructureSerializer,
     StructureWriteSerializer,
     StructureUnitSerializer,
@@ -143,6 +145,13 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             return self.paginator.get_paginated_response(serialized)
 
         return Response(serializer(children, many=True, context=context).data)
+
+
+class TagVersionTypeViewSet(viewsets.ModelViewSet):
+    queryset = TagVersionType.objects.all()
+    serializer_class = TagVersionTypeSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('archive_type',)
 
 
 class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):

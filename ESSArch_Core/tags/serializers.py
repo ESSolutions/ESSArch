@@ -25,6 +25,7 @@ from ESSArch_Core.tags.models import (
     TagStructure,
     TagVersion,
     TagVersionRelation,
+    TagVersionType,
 )
 
 
@@ -251,6 +252,12 @@ class TagVersionAgentTagLinkSerializer(serializers.ModelSerializer):
         fields = ('agent', 'type', 'start_date', 'end_date', 'description',)
 
 
+class TagVersionTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TagVersionType
+        fields = ('pk', 'name', 'archive_type',)
+
+
 class TagVersionNestedSerializer(serializers.ModelSerializer):
     _id = serializers.UUIDField(source='pk')
     _index = serializers.CharField(source='elastic_index')
@@ -264,6 +271,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     notes = NodeNoteSerializer(many=True)
     identifiers = NodeIdentifierSerializer(many=True)
     agents = TagVersionAgentTagLinkSerializer(source='agent_links', many=True)
+    type = TagVersionTypeSerializer()
 
     def get_root(self, obj):
         root = obj.get_root()
