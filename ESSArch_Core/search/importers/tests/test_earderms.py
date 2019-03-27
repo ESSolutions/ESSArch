@@ -1,3 +1,5 @@
+import shutil
+import tempfile
 import uuid
 import os
 from unittest import TestCase, mock
@@ -5,7 +7,7 @@ from unittest import TestCase, mock
 from lxml import etree
 
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
-from ESSArch_Core.search.importers.earderms import EardErmsImporter
+from ESSArch_Core.search.importers.earderms import EardErmsImporter, get_encoded_content_from_file
 from ESSArch_Core.tags.models import Structure, StructureUnit
 
 
@@ -1252,3 +1254,26 @@ class UpdateProgressTests(TestCase):
         self.importer.update_progress(66.66)
         task.refresh_from_db()
         self.assertEqual(task.progress, 66)
+
+
+class GetEncodedContentFromFileTests(TestCase):
+
+    def setUp(self):
+
+        self.datadir = tempfile.mkdtemp()
+        self.file_with_asscii_content = os.path.join(self.datadir, 'my_ascii_file')
+        self.addCleanup(shutil.rmtree, self.datadir)
+        self.expected_encoded_content = "aGVsbG8gYXNjaWkgd29ybGQ="
+
+        try:
+            line = 'hello ascii world'
+            with open(self.file_with_asscii_content, 'w', encoding='ascii') as f:
+                f.write(line)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def test_get_encoded_file_is_b64_ascii(self):
+
+        res = get_encoded_content_from_file(self.file_with_asscii_content)
+        self.assertEqual(res, self.expected_encoded_content)
