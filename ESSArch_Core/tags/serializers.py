@@ -17,7 +17,9 @@ from ESSArch_Core.tags.models import (
     NodeRelationType,
     RuleConventionType,
     Structure,
+    StructureType,
     StructureUnit,
+    StructureUnitType,
     StructureUnitRelation,
     Tag,
     TagStructure,
@@ -52,6 +54,12 @@ class RuleConventionTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = RuleConventionType
         fields = ('name',)
+
+
+class StructureTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StructureType
+        fields = ('id', 'name',)
 
 
 class StructureSerializer(serializers.ModelSerializer):
@@ -103,7 +111,16 @@ class StructureUnitRelationWriteSerializer(StructureUnitRelationSerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=NodeRelationType.objects.all())
 
 
+class StructureUnitTypeSerializer(serializers.ModelSerializer):
+    structure_type = StructureTypeSerializer()
+
+    class Meta:
+        model = StructureUnitType
+        fields = ('id', 'name', 'structure_type',)
+
+
 class StructureUnitSerializer(serializers.ModelSerializer):
+    type = StructureUnitTypeSerializer()
     identifiers = NodeIdentifierSerializer(many=True, read_only=True)
     notes = NodeNoteSerializer(many=True, read_only=True)
     is_leaf_node = serializers.SerializerMethodField()
@@ -142,6 +159,7 @@ class StructureUnitSerializer(serializers.ModelSerializer):
 
 
 class StructureUnitWriteSerializer(StructureUnitSerializer):
+    type = serializers.PrimaryKeyRelatedField(queryset=StructureUnitType.objects.all())
     related_structure_units = StructureUnitRelationWriteSerializer(
         source='structure_unit_relations_a', many=True, required=False
     )

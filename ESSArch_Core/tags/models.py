@@ -130,6 +130,9 @@ class StructureUnitType(models.Model):
     structure_type = models.ForeignKey('StructureType', on_delete=models.CASCADE)
     name = models.CharField(max_length=255, blank=False)
 
+    def __str__(self):
+        return self.name
+
 
 class StructureUnitRelation(models.Model):
     structure_unit_a = models.ForeignKey(
