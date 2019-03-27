@@ -1,0 +1,18 @@
+<label
+  ng-if="options.templateOptions.label !== null"
+  class="control-label"
+  for="{{::id}}"
+  uib-tooltip="{{options.templateOptions.desc}}"
+  tooltip-placement="auto top"
+  tooltip-append-to-body="true"
+  >{{to.label}} {{to.required ? '*' : ''}}</label
+>
+<div class="flex-row align-items-center">
+  <input class="form-control" id="{{::id}}" name="{{::id}}" class="form-control" ng-model="model[options.key]" />
+  <div ng-if="options.templateOptions.delete">
+    <button
+      ng-click="options.templateOptions.delete()"
+      class="clickable fas fa-trash-alt btn btn-default btn-sm"
+    ></button>
+  </div>
+</div>
