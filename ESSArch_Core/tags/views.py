@@ -11,6 +11,7 @@ from ESSArch_Core.agents.models import AgentTagLink
 from ESSArch_Core.tags.filters import StructureUnitFilter, TagFilter
 from ESSArch_Core.tags.models import (
     Structure,
+    StructureType,
     StructureUnit,
     Tag,
     TagVersionType
@@ -22,6 +23,7 @@ from ESSArch_Core.tags.serializers import (
     TagVersionNestedSerializer,
     TagVersionTypeSerializer,
     StructureSerializer,
+    StructureTypeSerializer,
     StructureWriteSerializer,
     StructureUnitSerializer,
     StructureUnitWriteSerializer,
@@ -57,12 +59,22 @@ class ArchiveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
 
-class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = Structure.objects.prefetch_related('units')
-    serializer_class = StructureSerializer
+class StructureTypeViewSet(viewsets.ModelViewSet):
+    queryset = StructureType.objects.all()
+    serializer_class = StructureTypeSerializer
     permission_classes = (DjangoModelPermissions,)
     filter_backends = (OrderingFilter, SearchFilter,)
-    ordering_fields = ('name', 'create_date', 'version',)
+    ordering_fields = ('name',)
+    search_fields = ('name',)
+
+
+class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    queryset = Structure.objects.select_related('type').prefetch_related('units')
+    serializer_class = StructureSerializer
+    permission_classes = (DjangoModelPermissions,)
+    filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter,)
+    filterset_fields = ('type',)
+    ordering_fields = ('name', 'create_date', 'version', 'type')
     search_fields = ('name',)
 
     def get_serializer_class(self):
