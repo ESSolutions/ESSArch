@@ -167,7 +167,6 @@ class MaintenanceJobRunTests(TestCase):
             assert not os.path.isdir(self.appraisal_path)
             assert not os.path.isdir(self.conversion_path)
 
-
     def add_write_access_rights_win(self, path):
         if os.name == 'nt':
             import win32security as w32
