@@ -520,6 +520,7 @@ class KlaraImporter(BaseImporter):
         structure = Structure.objects.create(
             name="Arkivförteckning för {}".format(orig_name),
             type=self.STRUCTURE_TYPE,
+            template=False,
             version='1.0',
             create_date=create_date,
             rule_convention_type=rule_convention_type,

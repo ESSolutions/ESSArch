@@ -328,6 +328,7 @@ class VisualImporter(BaseImporter):
         structure = Structure.objects.create(
             name="Arkivförteckning för {}".format(name),
             type=cls.STRUCTURE_TYPE,
+            template=False,
             version='1.0',
         )
 

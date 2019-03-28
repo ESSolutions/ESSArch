@@ -73,7 +73,7 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = StructureSerializer
     permission_classes = (DjangoModelPermissions,)
     filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter,)
-    filterset_fields = ('type',)
+    filterset_fields = ('type', 'template',)
     ordering_fields = ('name', 'create_date', 'version', 'type')
     search_fields = ('name',)
 

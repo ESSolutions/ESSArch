@@ -72,8 +72,11 @@ class StructureSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Structure
-        fields = ('id', 'name', 'type', 'version', 'create_date', 'revise_date', 'start_date', 'end_date',
+        fields = ('id', 'name', 'type', 'template', 'version', 'create_date', 'revise_date', 'start_date', 'end_date',
                   'specification', 'rule_convention_type', 'created_by', 'revised_by')
+        extra_kwargs = {
+            'template': {'read_only': True},
+        }
 
 
 class StructureWriteSerializer(StructureSerializer):
@@ -83,6 +86,7 @@ class StructureWriteSerializer(StructureSerializer):
     )
 
     def create(self, validated_data):
+        validated_data['template'] = True
         validated_data['created_by'] = self.context['request'].user
         validated_data['revised_by'] = self.context['request'].user
         return super().create(validated_data)
