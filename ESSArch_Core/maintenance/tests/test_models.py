@@ -167,7 +167,7 @@ class MaintenanceJobRunTests(TestCase):
             assert not os.path.isdir(self.appraisal_path)
             assert not os.path.isdir(self.conversion_path)
 
-    def add_write_access_rights_win(self, path):
+    def remove_deny_write_permission_acl_on_win_for_file(self, path):
         if os.name == 'nt':
             import win32security as w32
             import ntsecuritycon as con
@@ -178,7 +178,7 @@ class MaintenanceJobRunTests(TestCase):
             sd = w32.GetFileSecurity(path, w32.DACL_SECURITY_INFORMATION)
             dacl = sd.GetSecurityDescriptorDacl()
 
-            dacl.AddAccessAllowedAce(w32.ACL_REVISION, con.FILE_GENERIC_WRITE, w_user)
+            dacl.DeleteAce(0)
 
             sd.SetSecurityDescriptorDacl(1, dacl, 0)
             w32.SetFileSecurity(path, w32.DACL_SECURITY_INFORMATION, sd)
@@ -187,8 +187,8 @@ class MaintenanceJobRunTests(TestCase):
 
     def add_write_access_rights(self):
         if os.name == 'nt':
-            self.add_write_access_rights_win(self.appraisal_path)
-            self.add_write_access_rights_win(self.conversion_path)
+            self.remove_deny_write_permission_acl_on_win_for_file(self.appraisal_path)
+            self.remove_deny_write_permission_acl_on_win_for_file(self.conversion_path)
         else:
             os.chmod(self.appraisal_path, 0o7777)
             os.chmod(self.conversion_path, 0o7777)

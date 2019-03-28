@@ -33,6 +33,7 @@ import platform
 import re
 import shutil
 import tarfile
+import uuid
 import zipfile
 from urllib.parse import quote
 
@@ -737,3 +738,17 @@ def zip_directory(dirname=None, zipname=None, compress=False):
                 filepath = os.path.join(root, f)
                 arcname = os.path.relpath(filepath, dirname)
                 new_zip.write(filepath, arcname)
+
+
+def has_write_access(directory):
+    if os.name == 'nt':
+        try:
+            tmp_file = os.path.join(directory, str(uuid.uuid4()))
+            with open(tmp_file, 'a') as f:
+                f.write("")
+            os.remove(tmp_file)
+            return True
+        except PermissionError:
+            return False
+    else:
+        return os.access(directory, os.W_OK)
