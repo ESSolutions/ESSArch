@@ -9,12 +9,19 @@ from ESSArch_Core.agents.models import (
     AgentNote,
     AgentPlace,
     AgentRelation,
+    AgentType,
     SourcesOfAuthority,
 )
 from ESSArch_Core.agents.serializers import (
     AgentSerializer,
+    AgentTypeSerializer,
     AgentWriteSerializer,
 )
+
+
+class AgentTypeViewSet(viewsets.ModelViewSet):
+    queryset = AgentType.objects.select_related('main_type')
+    serializer_class = AgentTypeSerializer
 
 
 class AgentViewSet(viewsets.ModelViewSet):
