@@ -91,14 +91,14 @@ class VersionedDocType(DocumentBase):
         return list(fields)
 
 
-class ComponentArchiveDocument(InnerDoc):
+class InnerArchiveDocument(InnerDoc):
     id = Keyword()
     name = Keyword()
     reference_code = Keyword()
 
     @classmethod
     def from_obj(cls, obj):
-        doc = ComponentArchiveDocument(
+        doc = InnerArchiveDocument(
             id=str(obj.pk),
             name=obj.name,
             reference_code=obj.reference_code,
@@ -163,7 +163,7 @@ class Component(VersionedDocType):
     desc = Text(analyzer=autocomplete_analyzer, search_analyzer='standard')
     type = Keyword()  # series, volume, etc.
     parent = Object(Node)
-    archive = Object(ComponentArchiveDocument)
+    archive = Nested(InnerArchiveDocument)
     structure_units = Nested(ComponentStructureUnitDocument)
     institution = Keyword()
     organization = Keyword()
@@ -181,9 +181,9 @@ class Component(VersionedDocType):
         units = StructureUnit.objects.filter(tagstructure__tag__versions=obj)
 
         if archive is not None:
-            archive_doc = ComponentArchiveDocument.from_obj(archive)
+            archive_doc = InnerArchiveDocument.from_obj(archive)
         elif obj.get_root() is not None:
-            archive_doc = ComponentArchiveDocument.from_obj(obj.get_root())
+            archive_doc = InnerArchiveDocument.from_obj(obj.get_root())
         else:
             archive_doc = None
 
@@ -337,6 +337,7 @@ class StructureUnitDocument(DocumentBase):
     description = Text()
     comment = Text()
     reference_code = Keyword()
+    archive = Nested(InnerArchiveDocument)
     start_date = Date()
     end_date = Date()
 
@@ -346,6 +347,13 @@ class StructureUnitDocument(DocumentBase):
 
     @classmethod
     def from_obj(cls, obj):
+        structure_set = obj.structure.tagstructure_set
+        if structure_set.exists():
+            archive = structure_set.first().get_root().tag.current_version
+            archive_doc = InnerArchiveDocument.from_obj(archive)
+        else:
+            archive_doc = None
+
         if obj.task is None:
             task_id = None
         else:
@@ -360,6 +368,7 @@ class StructureUnitDocument(DocumentBase):
             description=obj.description,
             comment=obj.comment,
             reference_code=obj.reference_code,
+            archive=archive_doc,
             start_date=obj.start_date,
             end_date=obj.end_date,
         )
