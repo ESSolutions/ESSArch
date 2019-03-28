@@ -3,6 +3,7 @@ import uuid
 from countries_plus.models import Country
 from django.db import models
 from django.db.models import F
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from languages_plus.models import Language
 
@@ -22,7 +23,7 @@ class AgentRelation(models.Model):
     description = models.TextField(_('description'), blank=True)
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
-    create_date = models.DateTimeField(_('create date'), auto_now_add=True)
+    create_date = models.DateTimeField(_('create date'), default=timezone.now)
     revise_date = models.DateTimeField(_('revise date'), auto_now=True)
 
     class Meta:

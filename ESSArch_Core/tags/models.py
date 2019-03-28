@@ -4,6 +4,7 @@ import jsonfield
 from django.contrib.auth import get_user_model
 from django.db import models, transaction
 from django.db.models import F, OuterRef, Subquery
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
 from mptt.models import MPTTModel, TreeForeignKey
@@ -98,7 +99,7 @@ class Structure(models.Model):
     version_link = models.UUIDField(default=uuid.uuid4, null=False)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='created_structures')
     revised_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='revised_structures')
-    create_date = models.DateTimeField(auto_now_add=True)
+    create_date = models.DateTimeField(default=timezone.now)
     revise_date = models.DateTimeField(auto_now=True)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
@@ -150,7 +151,7 @@ class StructureUnitRelation(models.Model):
     description = models.TextField(_('description'), blank=True)
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
-    create_date = models.DateTimeField(_('create date'), auto_now_add=True)
+    create_date = models.DateTimeField(_('create date'), default=timezone.now)
     revise_date = models.DateTimeField(_('revise date'), auto_now=True)
 
     class Meta:
@@ -277,7 +278,7 @@ class TagVersionRelation(models.Model):
     description = models.TextField(_('description'), blank=True)
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
-    create_date = models.DateTimeField(_('create date'), auto_now_add=True)
+    create_date = models.DateTimeField(_('create date'), default=timezone.now)
     revise_date = models.DateTimeField(_('revise date'), auto_now=True)
 
     class Meta:
@@ -308,7 +309,7 @@ class TagVersion(models.Model):
     type = models.ForeignKey('tags.TagVersionType', on_delete=models.PROTECT)
     name = models.CharField(max_length=255)
     elastic_index = models.CharField(max_length=255, blank=False, default=None)
-    create_date = models.DateTimeField(auto_now_add=True)
+    create_date = models.DateTimeField(default=timezone.now, null=True)
     revise_date = models.DateTimeField(auto_now=True)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
