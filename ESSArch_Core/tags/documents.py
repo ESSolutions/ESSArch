@@ -200,6 +200,7 @@ class Component(VersionedDocType):
             structure_units=[ComponentStructureUnitDocument.from_obj(unit) for unit in units],
             current_version=obj.tag.current_version == obj,
             name=obj.name,
+            desc=obj.description,
             reference_code=obj.reference_code,
             type=obj.type.name,
             agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],

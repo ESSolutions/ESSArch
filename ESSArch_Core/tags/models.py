@@ -308,6 +308,7 @@ class TagVersion(models.Model):
     reference_code = models.CharField(max_length=255, blank=True)
     type = models.ForeignKey('tags.TagVersionType', on_delete=models.PROTECT)
     name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, blank=True)
     elastic_index = models.CharField(max_length=255, blank=False, default=None)
     create_date = models.DateTimeField(default=timezone.now, null=True)
     revise_date = models.DateTimeField(auto_now=True)
