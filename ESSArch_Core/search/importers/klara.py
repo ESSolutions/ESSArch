@@ -490,6 +490,7 @@ class KlaraImporter(BaseImporter):
             elastic_index='archive',
             create_date=create_date,
             revise_date=revise_date,
+            import_date=timezone.now(),
             start_date=self.parse_archive_start_date(el),
             end_date=self.parse_archive_end_date(el),
         )
@@ -667,6 +668,8 @@ class KlaraImporter(BaseImporter):
             reference_code=ref_code,
             name=name,
             type=tag_type,
+            create_date=None,
+            import_date=timezone.now(),
             start_date=start_date,
             end_date=end_date,
             medium_type=medium_type,

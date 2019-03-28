@@ -283,6 +283,14 @@ class VisualImporter(BaseImporter):
         return VisualImporter.VOLYM_XPATH(serie)
 
     @classmethod
+    def parse_archive_create_date(cls, el):
+        return el.get('andraddat')
+
+    @classmethod
+    def parse_archive_revise_date(cls, el):
+        return el.get('andraddat')
+
+    @classmethod
     def parse_arkiv(cls, el, agent, task=None, ip=None):
         logger.info("Parsing arkiv...")
         name = el.xpath("va:arkivnamn", namespaces=cls.NSMAP)[0].text
@@ -310,6 +318,9 @@ class VisualImporter(BaseImporter):
             elastic_index='archive',
             type=tag_type,
             name=name,
+            create_date=cls.parse_archive_create_date(el),
+            revise_date=cls.parse_archive_revise_date(el),
+            import_date=timezone.now(),
             start_date=start_date,
             end_date=end_date,
         )
@@ -383,6 +394,14 @@ class VisualImporter(BaseImporter):
         return unit
 
     @classmethod
+    def parse_volume_create_date(cls, el):
+        return el.get('andraddat')
+
+    @classmethod
+    def parse_volume_revise_date(cls, el):
+        return el.get('andraddat')
+
+    @classmethod
     def parse_volym(cls, el, archive_version, parent_tag_structure, structure_unit, agent, task=None, ip=None):
         logger.debug("Parsing volym...")
         ref_code = el.xpath("va:volnr", namespaces=cls.NSMAP)[0].text
@@ -398,6 +417,9 @@ class VisualImporter(BaseImporter):
             elastic_index='component',
             reference_code=ref_code,
             name=name,
+            create_date=cls.parse_volume_create_date(el),
+            revise_date=cls.parse_volume_revise_date(el),
+            import_date=timezone.now(),
             type=tag_type,
         )
         tag_structure = TagStructure(

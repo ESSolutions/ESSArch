@@ -339,7 +339,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TagVersion
-        fields = ('_id', '_index', 'name', 'type', 'create_date', 'revise_date', 'start_date', 'related_tags', 'notes',
+        fields = ('_id', '_index', 'name', 'type', 'create_date', 'revise_date', 'import_date', 'start_date', 'related_tags', 'notes',
                   'end_date', 'is_leaf_node', '_source', 'masked_fields', 'structure_unit', 'root', 'medium_type',
                   'identifiers', 'agents',)
 

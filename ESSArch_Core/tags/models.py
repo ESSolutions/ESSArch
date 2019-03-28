@@ -99,7 +99,7 @@ class Structure(models.Model):
     version_link = models.UUIDField(default=uuid.uuid4, null=False)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='created_structures')
     revised_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='revised_structures')
-    create_date = models.DateTimeField(default=timezone.now)
+    create_date = models.DateTimeField(default=timezone.now, null=True)
     revise_date = models.DateTimeField(auto_now=True)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
@@ -313,6 +313,7 @@ class TagVersion(models.Model):
     revise_date = models.DateTimeField(auto_now=True)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
+    import_date = models.DateTimeField(null=True)
     medium_type = models.ForeignKey(
         'tags.MediumType',
         on_delete=models.PROTECT,
