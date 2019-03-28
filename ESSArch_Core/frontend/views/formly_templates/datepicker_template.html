@@ -19,7 +19,7 @@
         set-touched="options.formControl"
         id="{{::id}}"
         name="{{::id}}"
-        required="{{options.templateOptions.required}}"
+        ng-required="options.templateOptions.required"
         type="text"
         data-date-time-input="{{options.templateOptions.dateFormat ? options.templateOptions.dateFormat : 'YYYY-MM-DD'}}"
         data-model-type="{{options.templateOptions.dateFormat ? options.templateOptions.dateFormat : 'Date'}}"
@@ -33,7 +33,7 @@
     <datetimepicker
       data-ng-model="model[options.key]"
       ng-change="status[options.key] = false"
-      data-required="{{options.templateOptions.required}}"
+      ng-required="options.templateOptions.required"
       data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType: options.templateOptions.dateFormat ? options.templateOptions.dateFormat : 'YYYY-MM-DDTHH:mm:ssZ'}"
     />
   </ul>
