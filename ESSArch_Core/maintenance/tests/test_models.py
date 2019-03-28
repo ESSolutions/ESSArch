@@ -167,13 +167,58 @@ class MaintenanceJobRunTests(TestCase):
             assert not os.path.isdir(self.appraisal_path)
             assert not os.path.isdir(self.conversion_path)
 
-    def reset_access_rights(self):
-        os.chmod(self.appraisal_path, 0o7777)
-        os.chmod(self.conversion_path, 0o7777)
 
-    def remove_access_rights(self):
-        os.chmod(self.appraisal_path, ~S_IWRITE)
-        os.chmod(self.conversion_path, ~S_IWRITE)
+    def add_write_access_rights_win(self, path):
+        if os.name == 'nt':
+            import win32security as w32
+            import ntsecuritycon as con
+            import getpass
+
+            w_user, _, _ = w32.LookupAccountName("", getpass.getuser())
+
+            sd = w32.GetFileSecurity(path, w32.DACL_SECURITY_INFORMATION)
+            dacl = sd.GetSecurityDescriptorDacl()
+
+            dacl.AddAccessAllowedAce(w32.ACL_REVISION, con.FILE_GENERIC_WRITE, w_user)
+
+            sd.SetSecurityDescriptorDacl(1, dacl, 0)
+            w32.SetFileSecurity(path, w32.DACL_SECURITY_INFORMATION, sd)
+        else:
+            raise Exception("This method should only be called on Windows NT like OS")
+
+    def add_write_access_rights(self):
+        if os.name == 'nt':
+            self.add_write_access_rights_win(self.appraisal_path)
+            self.add_write_access_rights_win(self.conversion_path)
+        else:
+            os.chmod(self.appraisal_path, 0o7777)
+            os.chmod(self.conversion_path, 0o7777)
+
+    def remove_write_access_rights_win(self, path):
+        if os.name == 'nt':
+            import win32security as w32
+            import ntsecuritycon as con
+            import getpass
+
+            w_user, _, _ = w32.LookupAccountName("", getpass.getuser())
+
+            sd = w32.GetFileSecurity(path, w32.DACL_SECURITY_INFORMATION)
+            dacl = sd.GetSecurityDescriptorDacl()
+
+            dacl.AddAccessDeniedAce(w32.ACL_REVISION, con.FILE_GENERIC_WRITE, w_user)
+
+            sd.SetSecurityDescriptorDacl(1, dacl, 0)
+            w32.SetFileSecurity(path, w32.DACL_SECURITY_INFORMATION, sd)
+        else:
+            raise Exception("This method should only be called on Windows NT like OS")
+
+    def remove_write_access_rights(self):
+        if os.name == 'nt':
+            self.remove_write_access_rights_win(self.appraisal_path)
+            self.remove_write_access_rights_win(self.conversion_path)
+        else:
+            os.chmod(self.appraisal_path, ~S_IWRITE)
+            os.chmod(self.conversion_path, ~S_IWRITE)
 
     @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._mark_as_complete')
     @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._get_report_directory')
@@ -221,7 +266,7 @@ class MaintenanceJobRunTests(TestCase):
     def test_call_run_when_report_dir_is_not_writeable(self, apr_run, con_run, get_report_directory, mark_as_complete):
         before = timezone.now()
         self.create_paths(create_dir=True)
-        self.remove_access_rights()
+        self.remove_write_access_rights()
         get_report_directory.side_effect = [self.appraisal_path, self.conversion_path, self.conversion_path]
 
         try:
@@ -243,7 +288,7 @@ class MaintenanceJobRunTests(TestCase):
             raise
         finally:
             # We need to reset the access rights here so that it the paths can be cleaned up.
-            self.reset_access_rights()
+            self.add_write_access_rights()
 
         after = timezone.now()
 
