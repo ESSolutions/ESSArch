@@ -33,6 +33,7 @@ angular.module('essarch.language').config(function($translateProvider) {
     DASHBOARD: 'Dashboard',
     DATABASE: 'Databas',
     DATE: 'Datum',
+    DATES: 'Datum',
     DAY: 'Dag',
     DELETE: 'Radera',
     DESC: 'Beskrivning',
