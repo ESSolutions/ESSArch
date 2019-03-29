@@ -17,16 +17,18 @@ def link_tag_version_types(apps, schema_editor):
 
 
 def link_structure_unit_types(apps, schema_editor):
+    Structure = apps.get_model('tags', 'Structure')
     StructureType = apps.get_model('tags', 'StructureType')
     StructureUnit = apps.get_model('tags', 'StructureUnit')
     StructureUnitType = apps.get_model('tags', 'StructureUnitType')
 
-    structure_type, _ = StructureType.objects.get_or_create(name='temp')
+    if Structure.objects.exists():
+        structure_type, _ = StructureType.objects.get_or_create(name='temp')
 
-    for unit in StructureUnit.objects.all().iterator():
-        unit_type, created = StructureUnitType.objects.get_or_create(name=unit.type, defaults={'structure_type': structure_type})
-        unit.type_link = unit_type
-        unit.save()
+        for unit in StructureUnit.objects.all().iterator():
+            unit_type, created = StructureUnitType.objects.get_or_create(name=unit.type, defaults={'structure_type': structure_type})
+            unit.type_link = unit_type
+            unit.save()
 
 
 class Migration(migrations.Migration):
