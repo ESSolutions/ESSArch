@@ -122,6 +122,32 @@ class Structure(models.Model):
 
         return True
 
+    def create_template_instance(self):
+        from ESSArch_Core.tags.documents import StructureUnitDocument
+
+        old_structure_pk = self.pk
+        new_structure = self
+        new_structure.pk = None
+        new_structure.template = False
+        new_structure.save()
+
+        # create descendants from structure
+        for unit in StructureUnit.objects.filter(structure_id=old_structure_pk):
+            old_parent_ref_code = getattr(unit.parent, 'reference_code', None)
+            new_unit = unit
+            new_unit.pk = None
+            new_unit.parent = None
+            new_unit.structure = new_structure
+
+            if old_parent_ref_code is not None:
+                parent = new_structure.units.get(reference_code=old_parent_ref_code)
+                new_unit.parent = parent
+
+            new_unit.save()
+            StructureUnitDocument.from_obj(new_unit).save()
+
+        return new_structure
+
     def __str__(self):
         return '{} {}'.format(self.name, self.version)
 
