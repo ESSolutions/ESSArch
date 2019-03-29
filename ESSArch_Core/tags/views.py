@@ -13,6 +13,7 @@ from ESSArch_Core.tags.models import (
     Structure,
     StructureType,
     StructureUnit,
+    StructureUnitType,
     Tag,
     TagVersionType
 )
@@ -26,6 +27,7 @@ from ESSArch_Core.tags.serializers import (
     StructureTypeSerializer,
     StructureWriteSerializer,
     StructureUnitSerializer,
+    StructureUnitTypeSerializer,
     StructureUnitWriteSerializer,
 )
 from ESSArch_Core.util import mptt_to_dict
@@ -94,6 +96,15 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             dicts.append(mptt_to_dict(n, StructureUnitSerializer))
 
         return Response(dicts)
+
+
+class StructureUnitTypeViewSet(viewsets.ModelViewSet):
+    queryset = StructureUnitType.objects.all()
+    serializer_class = StructureUnitTypeSerializer
+    permission_classes = (DjangoModelPermissions,)
+    filter_backends = (OrderingFilter, SearchFilter,)
+    ordering_fields = ('name',)
+    search_fields = ('name',)
 
 
 class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
