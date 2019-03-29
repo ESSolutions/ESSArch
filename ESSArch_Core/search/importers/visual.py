@@ -66,7 +66,7 @@ class VisualImporter(BaseImporter):
     )
     LANGUAGE = Language.objects.get(iso_639_1='sv')
 
-    STRUCTURE_TYPE, _ = StructureType.objects.get_or_create(name='Klassificeringsstruktur')
+    STRUCTURE_TYPE, _ = StructureType.objects.get_or_create(name='Förteckning')
     ARCHIVE_TYPE, _ = TagVersionType.objects.get_or_create(name='Arkiv', archive_type=True)
     SERIE_TYPE, _ = StructureUnitType.objects.get_or_create(name='Serie', structure_type=STRUCTURE_TYPE)
     VOLUME_TYPE, _ = TagVersionType.objects.get_or_create(name='Volym', archive_type=False)
