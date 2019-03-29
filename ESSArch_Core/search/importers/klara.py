@@ -520,10 +520,11 @@ class KlaraImporter(BaseImporter):
         structure = Structure.objects.create(
             name="Arkivförteckning för {}".format(orig_name),
             type=self.STRUCTURE_TYPE,
-            template=False,
+            template=True,
             version='1.0',
             create_date=create_date,
             rule_convention_type=rule_convention_type,
+            task=task,
         )
         tag_structure = TagStructure.objects.create(
             tag=tag,
@@ -778,10 +779,13 @@ class KlaraImporter(BaseImporter):
         Agent.objects.filter(task=self.task).delete()
         logger.info("Deleted task agents already in database")
 
-        # TODO: Delete Structures connected to task?
         logger.info("Deleting task structure units already in database...")
         StructureUnit.objects.filter(task=self.task).delete()
         logger.info("Deleted task structure units already in database")
+
+        logger.info("Deleting task structures already in database...")
+        Structure.objects.filter(task=self.task).delete()
+        logger.info("Deleted task structures already in database")
 
         logger.info("Deleting task tags already in database...")
         Tag.objects.filter(task=self.task).delete()
@@ -819,6 +823,12 @@ class KlaraImporter(BaseImporter):
             archive_doc, archive_tag, archive_tag_version, archive_tag_structure, inst_code = self.parse_archive(
                 archive_el, task=self.task, ip=self.ip
             )
+            structure_template_pk = archive_tag_structure.structure.pk
+            structure = archive_tag_structure.structure.create_template_instance()
+            archive_tag_structure.structure = structure
+            archive_tag_structure.save()
+
+            structure_template = Structure.objects.get(pk=structure_template_pk)
 
             agent_hash = self.build_agent_hash(
                 archive_el.xpath("ObjectParts/General/Archive.ArchiveOrigID")[0].text,
@@ -837,12 +847,21 @@ class KlaraImporter(BaseImporter):
             cache.set(archive_hash, archive_tag.pk, 300)
 
             for series_el in self.get_series(archive_el):
-                series_structure_unit = self.parse_series(
+                series_template_structure_unit = self.parse_series(
                     series_el,
-                    archive_tag_structure.structure,
+                    structure_template,
                     inst_code,
                     task=self.task,
                 )
+
+                old_parent_ref_code = getattr(series_template_structure_unit.parent, 'reference_code', None)
+                series_structure_unit = series_template_structure_unit
+                series_structure_unit.pk = None
+                series_structure_unit.structure = structure
+                if old_parent_ref_code is not None:
+                    parent = structure.units.get(reference_code=old_parent_ref_code)
+                    series_structure_unit.parent = parent
+                series_structure_unit.save()
 
                 series_id = series_el.xpath("Series.SeriesID")[0].text
                 series_signum = series_el.xpath("Series.Signum")[0].text
