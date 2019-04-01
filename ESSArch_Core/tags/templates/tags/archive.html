@@ -80,6 +80,14 @@
         <td>{{ serie.reference_code }}</td>
       </tr>
       <tr>
+        <th colspan="3">{% trans "Notes" %}</th>
+      </tr>
+      {% for note in serie.notes.all %}
+        <tr>
+          <td colspan="3">{{ note.create_date | date:"Y-m-d" }}: {{ note.text }}</td>
+        </tr>
+      {% endfor %}
+      <tr>
         <th>{% trans "Volume number" %}</th>
         <th>{% trans "Time" %}</th>
         <th>{% trans "Notes" %}</th>
@@ -88,11 +96,11 @@
       <tbody>
       {% for volume in serie.volumes %}
         <tr>
-          <td>{{volume.reference_code}}</td>
-          <td>{{volume.start_date | date:"Y"}} - {{volume.end_date | date:"Y"}}</td>
+          <td>{{volume.current_version.reference_code}}</td>
+          <td>{{volume.current_version.start_date | date:"Y"}} - {{volume.current_version.end_date | date:"Y"}}</td>
           <td>
-            {% for note in volume.notes.all %}
-              <div>{{note.text}}</div>
+            {% for note in volume.current_version.notes.all %}
+              <div>{{ note.create_date | date:"Y-m-d" }}: {{note.text}}</div>
             {% endfor %}
           </td>
         </tr>
