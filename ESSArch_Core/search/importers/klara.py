@@ -182,18 +182,24 @@ class KlaraImporter(BaseImporter):
         return tz.localize(dt)
 
     @staticmethod
-    def _parse_year_string(year_str):
+    def _parse_year_string(year_str, end=False):
         """
         Parses a string containing only the year, e.g.: "2019"
 
         Args:
             year_str (str): The year
+            end (bool): Returns the end of the year if true, else the start
 
         Returns:
-            A datetime object at the very start of the given year
+            A datetime object at the very start or very end of the given year
         """
 
-        return datetime.strptime(year_str, '%Y')
+        d = datetime.strptime(year_str, '%Y')
+
+        if end:
+            d = d.replace(month=12, day=31)
+
+        return d
 
     @staticmethod
     def get_series(archive):
@@ -226,8 +232,8 @@ class KlaraImporter(BaseImporter):
                 agent=agent,
                 main=name_el.xpath("ArchOrigAltName.Name")[0].text,
                 type=name_type,
-                start_date=datetime.strptime(name_el.xpath("ArchOrigAltName.UsedFrom")[0].text, '%Y'),
-                end_date=datetime.strptime(name_el.xpath("ArchOrigAltName.UsedTo")[0].text, '%Y'),
+                start_date=cls._parse_year_string(name_el.xpath("ArchOrigAltName.UsedFrom")[0].text),
+                end_date=cls._parse_year_string(name_el.xpath("ArchOrigAltName.UsedTo")[0].text, end=True),
             )
             yield alt_name
 
@@ -382,7 +388,7 @@ class KlaraImporter(BaseImporter):
     def parse_agent_end_date(cls, arkivbildare):
         end_year = arkivbildare.xpath('ObjectParts/General/ArchiveOrig.ExistTo')[0].text
         if end_year:
-            return cls._parse_year_string(end_year)
+            return cls._parse_year_string(end_year, end=True)
 
     def parse_arkivbildare(self, el, task):
         logger.info("Parsing arkivbildare...")
@@ -469,7 +475,7 @@ class KlaraImporter(BaseImporter):
 
         end_year = el.xpath('ObjectParts/General/Archive.DateEnd')[0].text
         if end_year:
-            return cls._parse_year_string(end_year)
+            return cls._parse_year_string(end_year, end=True)
 
     def parse_archive(self, el, task=None, ip=None):
         name = el.xpath('ObjectParts/General/Archive.Name')[0].text
@@ -622,7 +628,7 @@ class KlaraImporter(BaseImporter):
 
         date = el.xpath("Volume.Date")[0].text
         start_date = self._parse_year_string(date[:4]) if date and len(date) >= 4 else None
-        end_date = self._parse_year_string(date[-4:]) if date and len(date) == 4 else None
+        end_date = self._parse_year_string(date[-4:], end=True) if date and len(date) == 4 else None
 
         short_name = el.xpath("VolumeType.ShortName")[0].text
         if short_name == 'L':

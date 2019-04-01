@@ -176,7 +176,7 @@ class VisualImporter(BaseImporter):
         end_date = None
         if end_year:
             end_date = datetime(
-                year=int(end_year), month=1, day=1,
+                year=int(end_year), month=12, day=31,
                 tzinfo=pytz.UTC,
             )
 
@@ -314,7 +314,7 @@ class VisualImporter(BaseImporter):
         end_date = None
         if end_year is not None:
             end_date = datetime(
-                year=int(end_year), month=1, day=1,
+                year=int(end_year), month=12, day=31,
                 tzinfo=pytz.UTC,
             )
 
