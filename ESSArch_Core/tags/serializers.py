@@ -1,6 +1,7 @@
 import elasticsearch
 from django.core.cache import cache
 from django.db import transaction
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from ESSArch_Core.agents.models import Agent, AgentTagLink, AgentTagLinkRelationType
@@ -170,6 +171,15 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
     related_structure_units = StructureUnitRelationWriteSerializer(
         source='structure_unit_relations_a', many=True, required=False
     )
+
+    def validate(self, data):
+        structure = data['structure']
+        unit_type = data['type']
+
+        if structure.type != unit_type.structure_type:
+            raise serializers.ValidationError(_(f'Type {unit_type.name} not allowed in {structure.type.name}'))
+
+        return super().validate(data)
 
     @staticmethod
     def create_relations(structure_unit, structure_unit_relations):
