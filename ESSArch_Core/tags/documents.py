@@ -204,6 +204,7 @@ class Component(VersionedDocType):
             reference_code=obj.reference_code,
             type=obj.type.name,
             agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
+            **obj.extra_data,
         )
         return doc
 
@@ -248,7 +249,9 @@ class Archive(VersionedDocType):
             current_version=obj.tag.current_version == obj,
             name=obj.name,
             type=obj.type.name,
+            reference_code=obj.reference_code,
             agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
+            **obj.extra_data,
         )
         return doc
 

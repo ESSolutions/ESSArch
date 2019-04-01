@@ -348,6 +348,7 @@ class TagVersion(models.Model):
         related_name='tag_versions',
         null=True
     )
+    extra_data = jsonfield.JSONField(default={})
 
     def to_search_doc(self):
         try:
