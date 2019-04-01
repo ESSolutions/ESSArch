@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='tagversion',
-            name='extra_data',
+            name='custom_fields',
             field=jsonfield.fields.JSONField(default={}),
         ),
     ]

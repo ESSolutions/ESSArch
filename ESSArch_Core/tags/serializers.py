@@ -288,7 +288,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     identifiers = NodeIdentifierSerializer(many=True)
     agents = TagVersionAgentTagLinkSerializer(source='agent_links', many=True)
     type = TagVersionTypeSerializer()
-    extra_data = serializers.JSONField()
+    custom_fields = serializers.JSONField()
 
     def get_root(self, obj):
         root = obj.get_root()
@@ -356,7 +356,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
         model = TagVersion
         fields = ('_id', '_index', 'name', 'type', 'create_date', 'revise_date', 'import_date', 'start_date', 'related_tags', 'notes',
                   'end_date', 'is_leaf_node', '_source', 'masked_fields', 'structure_unit', 'root', 'medium_type',
-                  'identifiers', 'agents', 'description', 'reference_code', 'extra_data',)
+                  'identifiers', 'agents', 'description', 'reference_code', 'custom_fields',)
 
 
 class AgentArchiveLinkSerializer(serializers.ModelSerializer):
