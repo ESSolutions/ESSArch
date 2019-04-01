@@ -229,34 +229,33 @@ class VisualImporter(BaseImporter):
         logger.info("Tags saved")
 
     @classmethod
-    def parse_serier(cls, arkiv_el, agent, arkiv_version, arkiv_structure, task, ip):
+    def parse_serier(cls, arkiv_el, agent, arkiv_version, arkiv_structure, structure_template, task, ip):
         volym_tags = []
         volym_versions = []
         volym_structures = []
         volym_links = []
 
-        with StructureUnit.objects.delay_mptt_updates():
-            logger.info('Parsing series of {}...'.format(arkiv_version.pk))
-            for serie_el in cls.get_serier(arkiv_el):
-                structure_unit = cls.parse_serie(
-                    serie_el, arkiv_structure.structure, agent=agent, task=task, ip=ip,
+        logger.info('Parsing series of {}...'.format(arkiv_version.pk))
+        for serie_el in cls.get_serier(arkiv_el):
+            structure_unit = cls.parse_serie(
+                serie_el, arkiv_structure.structure, structure_template, agent=agent, task=task, ip=ip,
+            )
+
+            logger.info('Parsing volumes of structure unit {}'.format(structure_unit.reference_code))
+            for volym_el in cls.get_volymer(serie_el):
+                doc, volym_tag, volym_version, volym_structure, volym_link = cls.parse_volym(
+                    volym_el, arkiv_version, arkiv_structure, structure_unit, agent, task=task, ip=ip
                 )
+                yield doc
 
-                logger.info('Parsing volumes of structure unit {}'.format(structure_unit.reference_code))
-                for volym_el in cls.get_volymer(serie_el):
-                    doc, volym_tag, volym_version, volym_structure, volym_link = cls.parse_volym(
-                        volym_el, arkiv_version, arkiv_structure, structure_unit, agent, task=task, ip=ip
-                    )
-                    yield doc
+                volym_tags.append(volym_tag)
+                volym_versions.append(volym_version)
+                volym_structures.append(volym_structure)
+                volym_links.append(volym_link)
 
-                    volym_tags.append(volym_tag)
-                    volym_versions.append(volym_version)
-                    volym_structures.append(volym_structure)
-                    volym_links.append(volym_link)
+            logger.info('Volumes of structure unit {} successfully parsed'.format(structure_unit.reference_code))
 
-                logger.info('Volumes of structure unit {} successfully parsed'.format(structure_unit.reference_code))
-
-            logger.info('Series of {} successfully parsed'.format(arkiv_version.pk))
+        logger.info('Series of {} successfully parsed'.format(arkiv_version.pk))
 
         cls.save_tags(volym_tags, volym_versions, volym_structures, volym_links)
 
@@ -267,8 +266,15 @@ class VisualImporter(BaseImporter):
                 arkiv_el, agent, task=task, ip=ip
             )
 
+            structure_template_pk = arkiv_structure.structure.pk
+            structure = arkiv_structure.structure.create_template_instance()
+            arkiv_structure.structure = structure
+            arkiv_structure.save()
+
+            structure_template = Structure.objects.get(pk=structure_template_pk)
+
             yield doc
-            yield from cls.parse_serier(arkiv_el, agent, arkiv_version, arkiv_structure, task, ip)
+            yield from cls.parse_serier(arkiv_el, agent, arkiv_version, arkiv_structure, structure_template, task, ip)
 
     @staticmethod
     def get_arkiv(arkivbildare):
@@ -328,8 +334,9 @@ class VisualImporter(BaseImporter):
         structure = Structure.objects.create(
             name="Arkivförteckning för {}".format(name),
             type=cls.STRUCTURE_TYPE,
-            template=False,
+            template=True,
             version='1.0',
+            task=task,
         )
 
         tag_structure = TagStructure.objects.create(
@@ -350,7 +357,7 @@ class VisualImporter(BaseImporter):
         return doc.to_dict(include_meta=True), tag, tag_version, tag_structure, agent_tag_link
 
     @classmethod
-    def parse_serie(cls, el, structure, agent=None, task=None, ip=None):
+    def parse_serie(cls, el, structure, structure_template, agent=None, task=None, ip=None):
         logger.debug("Parsing serie...")
         name = el.xpath("va:serierubrik", namespaces=cls.NSMAP)[0].text
         tag_type = {'series': cls.SERIE_TYPE}.get(el.get('level'), None)
@@ -366,7 +373,7 @@ class VisualImporter(BaseImporter):
         parent_unit_id = None
         parent_reference_code = reference_code
 
-        cache_key_prefix = str(structure.pk)
+        cache_key_prefix = str(structure_template.pk)
 
         while len(parent_reference_code) > 1:
             parent_reference_code = parent_reference_code.rsplit(maxsplit=1)[0]
@@ -376,20 +383,28 @@ class VisualImporter(BaseImporter):
             if parent_unit_id is not None:
                 break
 
-        unit = StructureUnit.objects.create(
-            structure=structure,
+        template_unit = StructureUnit.objects.create(
+            structure=structure_template,
             name=name,
             parent_id=parent_unit_id,
             type=tag_type,
             reference_code=reference_code,
             task=task,
         )
+
+        cache.set('{}{}'.format(cache_key_prefix, reference_code), str(template_unit.pk), 300)
+
+        old_parent_ref_code = getattr(template_unit.parent, 'reference_code', None)
+        unit = template_unit
+        unit.pk = None
+        unit.structure = structure
+        if old_parent_ref_code is not None:
+            parent = structure.units.get(reference_code=old_parent_ref_code)
+            unit.parent = parent
+        unit.save()
+
         doc = StructureUnitDocument.from_obj(unit)
         doc.save()
-
-        cache.set('{}{}'.format(cache_key_prefix, reference_code), str(unit.pk), 300)
-
-        # TODO: store in new index in elasticsearch?
 
         logger.debug("Parsed serie: {}".format(unit.pk))
         return unit
@@ -460,10 +475,13 @@ class VisualImporter(BaseImporter):
         Agent.objects.filter(task=self.task).delete()
         logger.info("Deleted task agents already in database")
 
-        # TODO: Delete Structures connected to task?
         logger.info("Deleting task structure units already in database...")
         StructureUnit.objects.filter(task=self.task).delete()
         logger.info("Deleted task structure units already in database")
+
+        logger.info("Deleting task structures already in database...")
+        Structure.objects.filter(task=self.task).delete()
+        logger.info("Deleted task structures already in database")
 
         logger.info("Deleting task tags already in database...")
         Tag.objects.filter(task=self.task).delete()
