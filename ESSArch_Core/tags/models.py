@@ -133,17 +133,7 @@ class Structure(models.Model):
 
         # create descendants from structure
         for unit in StructureUnit.objects.filter(structure_id=old_structure_pk):
-            old_parent_ref_code = getattr(unit.parent, 'reference_code', None)
-            new_unit = unit
-            new_unit.pk = None
-            new_unit.parent = None
-            new_unit.structure = new_structure
-
-            if old_parent_ref_code is not None:
-                parent = new_structure.units.get(reference_code=old_parent_ref_code)
-                new_unit.parent = parent
-
-            new_unit.save()
+            new_unit = unit.create_template_instance(new_structure)
             StructureUnitDocument.from_obj(new_unit).save()
 
         return new_structure
@@ -207,6 +197,41 @@ class StructureUnit(MPTTModel):
         through_fields=('structure_unit_a', 'structure_unit_b'),
         symmetrical=False,
     )
+
+    def create_template_instance(self, new_structure):
+        old_pk = self.pk
+        old_parent_ref_code = getattr(self.parent, 'reference_code', None)
+        new_unit = self
+        new_unit.pk = None
+        new_unit.parent = None
+        new_unit.structure = new_structure
+
+        if old_parent_ref_code is not None:
+            parent = new_structure.units.get(reference_code=old_parent_ref_code)
+            new_unit.parent = parent
+
+        new_unit.save()
+
+        old = StructureUnit.objects.get(pk=old_pk)
+
+        for identifier in old.identifiers.all():
+            NodeIdentifier.objects.create(
+                structure_unit=new_unit,
+                identifier=identifier.identifier,
+                type=identifier.type,
+            )
+
+        for note in old.notes.all():
+            NodeNote.objects.create(
+                structure_unit=new_unit,
+                text=note.text,
+                type=note.type,
+                href=note.href,
+                create_date=note.create_date,
+                revise_date=note.revise_date,
+            )
+
+        return new_unit
 
     def __str__(self):
         return '{} {}'.format(self.reference_code, self.name)

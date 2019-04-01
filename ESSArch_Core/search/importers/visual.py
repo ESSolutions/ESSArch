@@ -394,14 +394,7 @@ class VisualImporter(BaseImporter):
 
         cache.set('{}{}'.format(cache_key_prefix, reference_code), str(template_unit.pk), 300)
 
-        old_parent_ref_code = getattr(template_unit.parent, 'reference_code', None)
-        unit = template_unit
-        unit.pk = None
-        unit.structure = structure
-        if old_parent_ref_code is not None:
-            parent = structure.units.get(reference_code=old_parent_ref_code)
-            unit.parent = parent
-        unit.save()
+        unit = template_unit.create_template_instance(structure)
 
         doc = StructureUnitDocument.from_obj(unit)
         doc.save()

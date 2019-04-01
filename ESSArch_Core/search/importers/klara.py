@@ -859,15 +859,7 @@ class KlaraImporter(BaseImporter):
                     inst_code,
                     task=self.task,
                 )
-
-                old_parent_ref_code = getattr(series_template_structure_unit.parent, 'reference_code', None)
-                series_structure_unit = series_template_structure_unit
-                series_structure_unit.pk = None
-                series_structure_unit.structure = structure
-                if old_parent_ref_code is not None:
-                    parent = structure.units.get(reference_code=old_parent_ref_code)
-                    series_structure_unit.parent = parent
-                series_structure_unit.save()
+                unit = series_template_structure_unit.create_template_instance(structure)
 
                 series_id = series_el.xpath("Series.SeriesID")[0].text
                 series_signum = series_el.xpath("Series.Signum")[0].text
@@ -880,9 +872,9 @@ class KlaraImporter(BaseImporter):
                     archive_hash,
                 )
 
-                cache.set(series_hash, series_structure_unit.pk, 300)
+                cache.set(series_hash, unit.pk, 300)
 
-                doc = StructureUnitDocument.from_obj(series_structure_unit)
+                doc = StructureUnitDocument.from_obj(unit)
                 yield doc.to_dict(include_meta=True)
 
             yield archive_doc
