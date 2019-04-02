@@ -1261,13 +1261,13 @@ class GetEncodedContentFromFileTests(TestCase):
     def setUp(self):
 
         self.datadir = tempfile.mkdtemp()
-        self.file_with_asscii_content = os.path.join(self.datadir, 'my_ascii_file')
+        self.file_with_ascii_content = os.path.join(self.datadir, 'my_ascii_file')
         self.addCleanup(shutil.rmtree, self.datadir)
         self.expected_encoded_content = "aGVsbG8gYXNjaWkgd29ybGQ="
 
         try:
             line = 'hello ascii world'
-            with open(self.file_with_asscii_content, 'w', encoding='ascii') as f:
+            with open(self.file_with_ascii_content, 'w', encoding='ascii') as f:
                 f.write(line)
         except OSError as e:
             if e.errno != 17:
@@ -1275,5 +1275,5 @@ class GetEncodedContentFromFileTests(TestCase):
 
     def test_get_encoded_file_is_b64_ascii(self):
 
-        res = get_encoded_content_from_file(self.file_with_asscii_content)
+        res = get_encoded_content_from_file(self.file_with_ascii_content)
         self.assertEqual(res, self.expected_encoded_content)
