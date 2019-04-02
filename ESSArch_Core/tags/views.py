@@ -102,9 +102,10 @@ class StructureUnitTypeViewSet(viewsets.ModelViewSet):
     queryset = StructureUnitType.objects.all()
     serializer_class = StructureUnitTypeSerializer
     permission_classes = (DjangoModelPermissions,)
-    filter_backends = (OrderingFilter, SearchFilter,)
+    filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter,)
     ordering_fields = ('name',)
     search_fields = ('name',)
+    filterset_fields = ('structure_type',)
 
 
 class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
