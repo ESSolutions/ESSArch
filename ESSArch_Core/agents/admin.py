@@ -6,6 +6,7 @@ from ESSArch_Core.agents.models import (
     AgentNoteType,
     AgentPlaceType,
     AgentRelationType,
+    AgentTagLinkRelationType,
     AgentType,
     AuthorityType,
     MainAgentType,
@@ -17,6 +18,7 @@ admin.site.register(AgentNameType)
 admin.site.register(AgentNoteType)
 admin.site.register(AgentPlaceType)
 admin.site.register(AgentRelationType)
+admin.site.register(AgentTagLinkRelationType)
 admin.site.register(AgentType)
 admin.site.register(AuthorityType)
 admin.site.register(MainAgentType)
