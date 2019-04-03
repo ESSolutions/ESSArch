@@ -332,7 +332,7 @@ class ActionPermissionsHasPermissionTests(TestCase):
 
     def test_when_view_has_extra_function(self):
         class ExtraFunctionView(TestView):
-            @action(detail=True, methods=['create'])
+            @action(detail=True, methods=['post'])
             def some_other(self, request, *args, **kwargs):
                 return Response(status=status.HTTP_201_CREATED, data="hello from some_other_method")
 
