@@ -120,7 +120,9 @@ class AppraisalJobViewSetRunTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
         mock_appraisal_job_run.assert_called_once()
 
-    def test_authenticated_with_only_add_permission(self):
+    @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob.run')
+    def test_authenticated_with_only_add_permission(self, mock_appraisal_job_run):
+        mock_appraisal_job_run.return_value = mock.ANY
         perm_list = [
             'add_appraisaljob',
         ]
@@ -130,8 +132,11 @@ class AppraisalJobViewSetRunTests(TestCase):
 
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        mock_appraisal_job_run.assert_not_called()
 
-    def test_authenticated_with_only_run_permission(self):
+    @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob.run')
+    def test_authenticated_with_only_run_permission(self, mock_appraisal_job_run):
+        mock_appraisal_job_run.return_value = mock.ANY
         perm_list = [
             'run_appraisaljob',
         ]
@@ -140,7 +145,8 @@ class AppraisalJobViewSetRunTests(TestCase):
         self.client.force_authenticate(user=self.user)
 
         response = self.client.post(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        mock_appraisal_job_run.assert_called_once()
 
 
 class AppraisalJobViewSetReportTests(TestCase):
