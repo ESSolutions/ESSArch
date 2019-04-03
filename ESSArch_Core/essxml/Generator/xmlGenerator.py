@@ -52,6 +52,10 @@ leading_underscore_tag_re = re.compile(r'%s *_(.*?(?=\}))%s' % (re.escape('{{'),
 
 
 def parse_content_django(content, info=None, unicode_error=False, syntax_error=False):
+    for k, v in info.items():
+        if (isinstance(v, (str, bytes))):
+            info[k] = make_unicode(v)
+
     c = Context(info)
     try:
         t = Template(content)
@@ -73,14 +77,7 @@ def parse_content_django(content, info=None, unicode_error=False, syntax_error=F
         regcontent = leading_underscore_tag_re.sub(r'{{\1}}', content)
         return parse_content_django(regcontent, info=new_data, syntax_error=True)
 
-    try:
-        return t.render(c)
-    except DjangoUnicodeDecodeError:
-        if unicode_error:
-            raise
-        for k, v in info.items():
-            info[k] = make_unicode(v)
-        return parse_content_django(content, info=info, unicode_error=True)
+    return t.render(c)
 
 
 def parseContent(content, info=None):
