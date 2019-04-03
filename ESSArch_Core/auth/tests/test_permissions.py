@@ -4,7 +4,6 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from rest_framework.decorators import action
-from rest_framework.exceptions import MethodNotAllowed
 from rest_framework import status, viewsets, serializers
 from rest_framework.response import Response
 from rest_framework.test import APIRequestFactory, force_authenticate
