@@ -37,24 +37,6 @@ class ActionPermissionsGetRequiredPermissionsTests(TestCase):
         for method in non_existing_actions:
             self.assertEqual(action_perm.get_required_permissions(method, model_cls), [])
 
-    def test_default_not_allow(self):
-        model_cls = MyModel()
-        action_perm = ActionPermissions()
-        action_perm.default_allow = False
-
-        self.assertEqual(action_perm.get_required_permissions('list', model_cls), [])
-        self.assertEqual(action_perm.get_required_permissions('retrieve', model_cls), [])
-        self.assertEqual(action_perm.get_required_permissions('create', model_cls), ['my_app.add_mymodel'])
-        self.assertEqual(action_perm.get_required_permissions('update', model_cls), ['my_app.change_mymodel'])
-        self.assertEqual(action_perm.get_required_permissions('partial_update', model_cls), ['my_app.change_mymodel'])
-        self.assertEqual(action_perm.get_required_permissions('destroy', model_cls), ['my_app.delete_mymodel'])
-
-        # Non existing
-        non_existing_actions = ['run', 'get', 'GET', 'post', 'POST', 'put', 'PUT', 'delete', 'DELETE', 'head', 'HEAD']
-        for method in non_existing_actions:
-            with self.assertRaisesRegexp(MethodNotAllowed, f'Method "{method}" not allowed.'):
-                action_perm.get_required_permissions(method, model_cls)
-
 
 class TestViewSerializer(serializers.ModelSerializer):
     class Meta:
@@ -69,27 +51,21 @@ class TestView(viewsets.ModelViewSet):
     permission_classes = (ActionPermissions,)
     serializer_class = TestViewSerializer
 
-    @action(detail=True, methods=['get'])
     def list(self, request, *args, **kwargs):
         return Response(status=status.HTTP_200_OK, data="hello from list")
 
-    @action(detail=True, methods=['get'])
     def retrieve(self, request, *args, **kwargs):
         return Response(status=status.HTTP_200_OK, data="hello from retrieve")
 
-    @action(detail=True, methods=['post'])
     def create(self, request, *args, **kwargs):
         return Response(status=status.HTTP_201_CREATED, data="hello from create")
 
-    @action(detail=True, methods=['put'])
     def update(self, request, *args, **kwargs):
         return Response(status=status.HTTP_204_NO_CONTENT, data="hello from update")
 
-    @action(detail=True, methods=['patch'])
     def partial_update(self, request, *args, **kwargs):
         return Response(status=status.HTTP_206_PARTIAL_CONTENT, data="hello from partial_update")
 
-    @action(detail=True, methods=['delete'])
     def destroy(self, request, *args, **kwargs):
         return Response(status=status.HTTP_204_NO_CONTENT, data="hello from destroy")
 
@@ -354,3 +330,25 @@ class ActionPermissionsHasPermissionTests(TestCase):
         response = get_response('delete', 'destroy', self.user)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(response.data, "hello from destroy")
+
+    def test_when_view_has_extra_function(self):
+        class ExtraFunctionView(TestView):
+            @action(detail=True, methods=['create'])
+            def some_other(self, request, *args, **kwargs):
+                return Response(status=status.HTTP_201_CREATED, data="hello from some_other_method")
+
+        def get_response(method_name, action_name, user, authenticated=True):
+            request = getattr(self.factory, method_name)('/')
+
+            if authenticated:
+                force_authenticate(request, user=user)
+
+            return ExtraFunctionView.as_view({method_name: action_name})(request)
+
+        # needs no permission
+        self.validate_get_list_and_get_retrieve(self.user)
+
+        # None default methods does not require any permissions per default
+        response = get_response('post', 'some_other', self.user)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data, "hello from some_other_method")

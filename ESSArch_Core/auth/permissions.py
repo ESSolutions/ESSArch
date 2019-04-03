@@ -17,8 +17,6 @@ class ActionPermissions(DjangoModelPermissions):
         'destroy': ['%(app_label)s.delete_%(model_name)s'],
     }
 
-    default_allow = True
-
     def get_required_permissions(self, method, model_cls):
         """
         Given a model and a called method, return the list of permission
@@ -30,10 +28,7 @@ class ActionPermissions(DjangoModelPermissions):
         }
 
         if method not in self.perms_map:
-            if self.default_allow:
-                return []
-            else:
-                raise exceptions.MethodNotAllowed(method)
+            return []
 
         return [perm % kwargs for perm in self.perms_map[method]]
 
