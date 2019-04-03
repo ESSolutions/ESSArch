@@ -1,4 +1,5 @@
 from unittest import mock
+
 from django.test import TestCase
 from django.db import models
 from django.contrib.auth import get_user_model
@@ -8,6 +9,7 @@ from rest_framework import status, viewsets, serializers
 from rest_framework.response import Response
 from rest_framework.test import APIRequestFactory, force_authenticate
 
+from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.permissions import ActionPermissions
 
 User = get_user_model()
@@ -336,6 +338,11 @@ class ActionPermissionsHasPermissionTests(TestCase):
             def some_other(self, request, *args, **kwargs):
                 return Response(status=status.HTTP_201_CREATED, data="hello from some_other_method")
 
+            @action(detail=True, methods=['post'])
+            @permission_required_or_403('auth.add_user')
+            def some_other_with_permission(self, request, *args, **kwargs):
+                return Response(status=status.HTTP_201_CREATED, data="hello from some_other_with_permission_method")
+
         def get_response(method_name, action_name, user, authenticated=True):
             request = getattr(self.factory, method_name)('/')
 
@@ -347,7 +354,15 @@ class ActionPermissionsHasPermissionTests(TestCase):
         # needs no permission
         self.validate_get_list_and_get_retrieve(self.user)
 
-        # None default methods does not require any permissions per default
+        # custom methods does not require any permissions by default
         response = get_response('post', 'some_other', self.user)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data, "hello from some_other_method")
+
+        response = get_response('post', 'some_other_with_permission', self.user)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.user.user_permissions.add(Permission.objects.get(codename='add_user'))
+        response = get_response('post', 'some_other_with_permission', self.user)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data, "hello from some_other_with_permission_method")
