@@ -43,7 +43,7 @@ class GetObjectForUpdateViewMixin(object):
         queryset lookups.  Eg if objects are referenced using multiple
         keyword arguments in the url conf.
         """
-        queryset = self.filter_queryset(self.get_queryset()).select_for_update()
+        queryset = self.filter_queryset(self.get_queryset()).select_related().select_for_update()
 
         # Perform the lookup filtering.
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
