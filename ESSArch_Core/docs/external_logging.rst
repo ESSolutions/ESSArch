@@ -1,4 +1,4 @@
-.. _etp-external-logging:
+.. _external-logging:
 
 **********************************
 External logging and monitoring
