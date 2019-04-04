@@ -12,7 +12,7 @@ ESSArch Core
     configuration/index
     development
     directory_structure
-    logging
+    external_logging
     installation/index
     restapi/index
 
