@@ -12,4 +12,3 @@
     running
     safety_backup_procedures
     logfiles
-    external_logging

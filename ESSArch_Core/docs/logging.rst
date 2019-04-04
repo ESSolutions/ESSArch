@@ -1,39 +1,44 @@
 .. _etp-external-logging:
 
 **********************************
-Externalize logging and monitoring
+External logging and monitoring
 **********************************
 
 
-Elastic-stack
-=============
+Using the ELK stack
+===================
 
-Install the python-logstash-async:
+The Elastic-Logstash-Kibana (ELK) stack can be used to store and monitor logs
+from ESSArch.
+
+
+Start by installing the necessary logstash dependencies:
 
 .. code-block:: bash
 
     $ pip install -e /path/to/ESSArch_Core/[logstash]
 
 
-Start Elastic-stack
-^^^^^^^^^^^^^^^^^^^
+If ESSArch is installed using docker, then the complete ELK-stack is started
+together with ESSArch:
 
 .. code-block:: bash
 
     $ docker-compose up -d
 
-Then navigate to http://localhost:5601 to open up Kibana.
-*After* the first log is sent from the application to logstash, you will get the option to create an index in http://localhost:5601/app/kibana#/management/kibana/index
+When the first log is sent from the application to logstash, you will get
+the option to create an index in Kibana.
 
-Per default the index pattern should be::
+By default the index pattern should be::
 
     logstash-*
 
 
-Click next to create the index pattern, and then head over to `Discover` page to see your logs: http://localhost:5601/app/kibana#/discover
+Click next to create the index pattern, and then head over to `Discover` page
+to see your logs.
 
 
-LogStash Configuration
+Logstash Configuration
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Example ``logstash.conf``::
@@ -71,7 +76,10 @@ Example ``logstash.conf``::
 Configuration
 ^^^^^^^^^^^^^
 
-Modify your ``local_etp_settings.py`` by adding the logstash handlers and loggers. This will override the default LOGGING configurations.
+Modify your ESSArch settings by adding the logstash handlers and loggers. This
+will override the default LOGGING configurations.
+
+This is an example for ETP:
 
 .. code-block:: python
 
@@ -169,4 +177,10 @@ Modify your ``local_etp_settings.py`` by adding the logstash handlers and logger
         },
   }
 
-More about how to configure the logging can be found at the plugin docs: https://python-logstash-async.readthedocs.io/en/stable/usage.html#usage-with-django
+More information on how to configure the logging can be found in the
+documentation for the logstash python library:
+https://python-logstash-async.readthedocs.io/en/stable/usage.html#usage-with-django
+
+.. seealso::
+
+    :ref:`configuration`
