@@ -30,7 +30,6 @@ import re
 import uuid
 
 from django.template import Template, Context, TemplateSyntaxError
-from django.utils.encoding import DjangoUnicodeDecodeError
 
 from lxml import etree
 
