@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import logging
 
+from auditlog.registry import auditlog
 from django import forms
 from django.contrib import admin
 from django.contrib.auth import get_user_model
@@ -264,3 +265,9 @@ admin.site.register(ProxyGroup, GroupAdmin)
 admin.site.register(ProxyUser, UserAdmin)
 admin.site.register(GroupType, GroupTypeAdmin)
 admin.site.register(GroupMemberRole, GroupMemberRoleAdmin)
+
+auditlog.register(ProxyPermission)
+auditlog.register(ProxyGroup)
+auditlog.register(ProxyUser, mask_value_fields=['password'])
+auditlog.register(GroupType)
+auditlog.register(GroupMemberRole)
