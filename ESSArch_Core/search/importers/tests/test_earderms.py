@@ -1259,7 +1259,6 @@ class UpdateProgressTests(TestCase):
 class GetEncodedContentFromFileTests(TestCase):
 
     def setUp(self):
-
         self.datadir = tempfile.mkdtemp()
         self.file_with_ascii_content = os.path.join(self.datadir, 'my_ascii_file')
         self.addCleanup(shutil.rmtree, self.datadir)
@@ -1274,6 +1273,5 @@ class GetEncodedContentFromFileTests(TestCase):
                 raise
 
     def test_get_encoded_file_is_b64_ascii(self):
-
         res = get_encoded_content_from_file(self.file_with_ascii_content)
         self.assertEqual(res, self.expected_encoded_content)
