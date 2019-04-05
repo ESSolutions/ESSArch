@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.auth.decorators import permission_required_or_403
+from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.maintenance.filters import (AppraisalJobFilter,
                                               AppraisalRuleFilter,
@@ -45,7 +46,7 @@ class MaintenanceRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
 
 class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
     serializer_class = MaintenanceJobSerializer
     filterset_class = MaintenanceJobFilter
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend)

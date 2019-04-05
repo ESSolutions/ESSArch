@@ -39,31 +39,31 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='profile',
             name='cm_change_authority',
-            field=models.CharField(default='', max_length=255),
+            field=models.CharField(blank=True, max_length=255),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='profile',
             name='cm_change_description',
-            field=models.CharField(default='', max_length=255),
+            field=models.CharField(blank=True, max_length=255),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='profile',
             name='cm_release_date',
-            field=models.CharField(default='', max_length=255),
+            field=models.CharField(blank=True, max_length=255),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='profile',
             name='cm_sections_affected',
-            field=models.CharField(default='', max_length=255),
+            field=models.CharField(blank=True, max_length=255),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='profile',
             name='cm_version',
-            field=models.CharField(default='', max_length=255),
+            field=models.CharField(blank=True, max_length=255),
             preserve_default=False,
         ),
     ]

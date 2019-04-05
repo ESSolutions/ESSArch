@@ -33,7 +33,7 @@ from ESSArch_Core.util import (
     find_destination,
     get_tree_size_and_count,
     timestamp_to_datetime,
-)
+    has_write_access)
 
 logger = logging.getLogger('essarch.maintenance')
 User = get_user_model()
@@ -135,7 +135,7 @@ class MaintenanceJob(models.Model):
             if not os.path.isdir(report_dir):
                 raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), report_dir)
 
-            if not os.access(report_dir, os.W_OK):
+            if not has_write_access(report_dir):
                 raise OSError(errno.EACCES, os.strerror(errno.EACCES), report_dir)
 
             self._run()

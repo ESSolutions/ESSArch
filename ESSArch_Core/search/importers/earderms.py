@@ -18,6 +18,13 @@ from ESSArch_Core.util import get_tree_size_and_count, remove_prefix, timestamp_
 logger = logging.getLogger('essarch.search.importers.EardErmsImporter')
 
 
+def get_encoded_content_from_file(filepath):
+    with open(filepath, 'rb') as f:
+        content = f.read()
+        encoded_content = base64.b64encode(content).decode("ascii")
+    return encoded_content
+
+
 class EardErmsImporter(BaseImporter):
     def get_archive(self, xmlfile):
         try:
@@ -75,9 +82,7 @@ class EardErmsImporter(BaseImporter):
         filename = os.path.basename(filepath)
         ext = os.path.splitext(filepath)[1][1:]
 
-        with open(filepath, 'rb') as f:
-            content = f.read()
-            encoded_content = base64.b64encode(content).decode("ascii")
+        encoded_content = get_encoded_content_from_file(filepath)
 
         size, _ = get_tree_size_and_count(filepath)
         modified = timestamp_to_datetime(os.stat(filepath).st_mtime)
