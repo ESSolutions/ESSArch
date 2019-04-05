@@ -164,7 +164,7 @@ if __name__ == '__main__':
             "django-cors-headers==2.5.2",
             "django-filter==2.1.0",
             "django-groups-manager==0.6.2",
-            "django-guardian==1.4.9",
+            "django-guardian==1.5.0",
             "django-mptt==0.9.1",
             "django-nested-inline==0.3.7",
             "django-picklefield==2.0",
