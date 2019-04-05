@@ -169,7 +169,7 @@ if __name__ == '__main__':
             "django-nested-inline==0.3.7",
             "django-picklefield==2.0",
             "django-redis==4.10.0",
-            "django-rest-auth[with_social]==0.9.3",
+            "django-rest-auth[with_social]==0.9.5",
             "djangorestframework==3.8.2",
             "drf-dynamic-fields==0.3.1",
             "drf-extensions==0.4.0",
