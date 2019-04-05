@@ -26,12 +26,14 @@ from _version import get_versions
 import platform
 import socket
 import sys
+import logging
 
 from celery import current_app
 from django.db import connection
 from django.conf import settings
 from django.utils import timezone
 from django_redis import get_redis_connection
+from redis.exceptions import RedisError
 from elasticsearch_dsl.connections import get_connection as get_es_connection
 
 try:
@@ -65,6 +67,8 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+logger = logging.getLogger('essarch.configuration')
+
 
 def get_database_info():
     vendor = connection.vendor
@@ -92,12 +96,40 @@ def get_elasticsearch_info():
     return get_es_connection().info()
 
 
-def get_redis_info():
-    return get_redis_connection().info()
+def get_redis_info(full=False):
+    try:
+        props = get_redis_connection().info()
+        if full:
+            props['version'] = props.pop('redis_version')
+            return props
+        return {'version': props['redis_version']}
+    except RedisError:
+        logger.exception("Redis seems to be down.")
+        return {
+            'version': 'unknown',
+            'error': 'ERROR on redis. Check the logs for more detail.'
+        }
 
 
-def get_rabbitmq_info():
-    return current_app.connection().connection.server_properties
+def get_rabbitmq_info(full=False):
+    try:
+        props = current_app.connection().connection.server_properties
+        if full:
+            return props
+        return {'version': props['version']}
+    except ConnectionError:
+        logger.exception("Could not connect to RabbitMQ.")
+        return {
+            'version': 'unknown',
+            'error': 'Error connecting to RabbitMQ. Check the logs for more detail.'
+        }
+
+
+def str_2_bool_convert(s):
+    if isinstance(s, str):
+        return s.lower() == 'true'
+    if isinstance(s, bool):
+        return s
 
 
 class SysInfoView(APIView):
@@ -106,6 +138,7 @@ class SysInfoView(APIView):
     """
 
     def get(self, request):
+        full = str_2_bool_convert(request.query_params.get('full', False))
         context = {}
 
         # Flags in settings: Their expected  and actual values.
@@ -135,9 +168,9 @@ class SysInfoView(APIView):
         except KeyError:
             pass
 
-        context['redis'] = get_redis_info()
-        context['rabbitmq'] = get_rabbitmq_info()
-        context['workers'] = get_workers()
+        context['redis'] = get_redis_info(full)
+        context['rabbitmq'] = get_rabbitmq_info(full)
+        context['workers'] = get_workers(context['rabbitmq'])
         context['python_packages'] = pip_freeze()
 
         context['settings_flags'] = []
