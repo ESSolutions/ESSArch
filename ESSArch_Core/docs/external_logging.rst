@@ -5,28 +5,28 @@ External logging and monitoring
 **********************************
 
 
-Using the ELK stack
-===================
+Using the Elastic Stack
+=======================
 
-The Elastic-Logstash-Kibana (ELK) stack can be used to store and monitor logs
+The Elastic Stack can be used to store and monitor logs
 from ESSArch.
 
 
-Start by installing the necessary logstash dependencies:
+Start by installing the necessary Logstash dependencies:
 
 .. code-block:: bash
 
     $ pip install -e /path/to/ESSArch_Core/[logstash]
 
 
-If ESSArch is installed using docker, then the complete ELK-stack is started
+If ESSArch is installed using Docker, then the complete Elastic Stack is started
 together with ESSArch:
 
 .. code-block:: bash
 
     $ docker-compose up -d
 
-When the first log is sent from the application to logstash, you will get
+When the first log is sent from the application to Logstash, you will get
 the option to create an index in Kibana.
 
 By default the index pattern should be::
@@ -76,7 +76,7 @@ Example ``logstash.conf``::
 Configuration
 ^^^^^^^^^^^^^
 
-Modify your ESSArch settings by adding the logstash handlers and loggers. This
+Modify your ESSArch settings by adding the Logstash handlers and loggers. This
 will override the default LOGGING configurations.
 
 This is an example for ETP:
@@ -178,7 +178,7 @@ This is an example for ETP:
   }
 
 More information on how to configure the logging can be found in the
-documentation for the logstash python library:
+documentation for the Logstash Python library:
 https://python-logstash-async.readthedocs.io/en/stable/usage.html#usage-with-django
 
 .. seealso::
