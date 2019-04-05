@@ -15,6 +15,10 @@ class AgentRelationType(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = _('agent relation type')
+        verbose_name_plural = _('agent relation types')
+
 
 class AgentRelation(models.Model):
     agent_a = models.ForeignKey('agents.Agent', on_delete=models.CASCADE, related_name='agent_relations_a')
@@ -120,6 +124,10 @@ class AgentTagLinkRelationType(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = _('agent tag relation type')
+        verbose_name_plural = _('agent tag relation types')
+
 
 class AgentNote(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -142,6 +150,10 @@ class AgentNoteType(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = _('agent note type')
+        verbose_name_plural = _('agent note types')
 
 
 class AgentFunction(models.Model):
@@ -171,6 +183,10 @@ class AuthorityType(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = _('authority type')
+        verbose_name_plural = _('authority types')
+
 
 class AgentIdentifier(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -184,6 +200,10 @@ class AgentIdentifierType(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = _('agent identifier type')
+        verbose_name_plural = _('agent identifier types')
 
 
 class Topography(models.Model):
@@ -208,6 +228,10 @@ class AgentPlaceType(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = _('agent place type')
+        verbose_name_plural = _('agent place types')
 
 
 class AgentPlace(models.Model):
@@ -242,12 +266,20 @@ class AgentType(models.Model):
 
         return self.main_type.name
 
+    class Meta:
+        verbose_name = _('agent type')
+        verbose_name_plural = _('agent types')
+
 
 class MainAgentType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = _('main agent type')
+        verbose_name_plural = _('main agent types')
 
 
 class AgentName(models.Model):
@@ -268,6 +300,10 @@ class AgentNameType(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = _('agent name type')
+        verbose_name_plural = _('agent name types')
+
 
 class RefCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -285,4 +321,3 @@ class RefCode(models.Model):
 
     class Meta:
         unique_together = ('country', 'repository_code')
-
