@@ -151,7 +151,7 @@ if __name__ == '__main__':
             "Topic :: System :: Archiving",
         ],
         install_requires=[
-            "celery==4.2.1",
+            "celery==4.3.0",
             "cffi==1.11.5",
             "channels==2.1.7",
             "channels_redis==2.3.3",
