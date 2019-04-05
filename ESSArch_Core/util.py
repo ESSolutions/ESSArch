@@ -743,6 +743,10 @@ def zip_directory(dirname=None, zipname=None, compress=False):
 def has_write_access(directory):
     if os.name == 'nt':
         try:
+            # We want to use tempfile but there is a bug on Windows: https://bugs.python.org/issue22107
+            # See also Stackoverflow link:
+            # https://stackoverflow.com/questions/55109076/python-tempfile-temporaryfile-hangs-on-windows-when-no-write-privilege
+
             tmp_file = os.path.join(directory, str(uuid.uuid4()))
             with open(tmp_file, 'a') as f:
                 f.write("")
