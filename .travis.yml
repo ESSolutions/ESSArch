@@ -1,6 +1,7 @@
 sudo: required
 language: python
 cache: pip
+dist: xenial
 
 branches:
   only:
@@ -19,28 +20,33 @@ matrix:
       script: flake8
       after_success: skip
 
-    - python: "3.6"
-      dist: trusty
+    - name: "Linux with SQLite"
+      python: "3.6"
 
-    - python: "3.6"
-      dist: trusty
-      services:
-        - mariadb
+    - name: "Linux with MariaDB"
+      python: "3.6"
+      addons:
+        mariadb: 10.2
       env: *mariadb
 
-    - python: "3.6"
-      dist: trusty
+    - name: "Linux with MySQL"
+      python: "3.6"
       services:
         - mysql
       env: *mysql
 
-    - python: "3.6"
-      dist: trusty
-      services:
-        - postgres
+    - name: "Linux with PostgreSQL"
+      python: "3.6"
+      addons:
+        postgresql: "10"
+        apt:
+          packages:
+          - postgresql-10
+          - postgresql-client-10
       env: *postgres
 
-    - os: windows
+    - name: "Windows with SQLite"
+      os: windows
       language: sh
       python: "3.6"
       before_install:
@@ -53,7 +59,6 @@ matrix:
     - env: PRETTIER
       language: node_js
       node_js: "10"
-      dist: trusty
       before_install: cd ESSArch_Core/frontend
       install: yarn
       script: yarn prettier --check "**/*.{js,scss,html}"
