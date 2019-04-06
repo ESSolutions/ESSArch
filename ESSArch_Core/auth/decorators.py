@@ -1,6 +1,9 @@
+from django.contrib.auth import get_user_model
 from django.utils.functional import wraps
 from rest_framework import exceptions
 from rest_framework.generics import get_object_or_404
+
+User = get_user_model()
 
 
 def permission_required_or_403(perms, accept_global_perms=True):
@@ -17,12 +20,16 @@ def permission_required_or_403(perms, accept_global_perms=True):
                 if model and pk is not None:
                     obj = get_object_or_404(model, pk=pk)
 
+            # clear permission cache
+            # see https://docs.djangoproject.com/en/stable/topics/auth/default/#permission-caching
+            user = User.objects.get(pk=request.user.pk)
+
             has_permissions = False
             if accept_global_perms:
-                has_permissions = all(request.user.has_perm(perm) for perm in perms)
+                has_permissions = all(user.has_perm(perm) for perm in perms)
 
             if not has_permissions:
-                has_permissions = all(request.user.has_perm(perm, obj) for perm in perms)
+                has_permissions = all(user.has_perm(perm, obj) for perm in perms)
 
             if not has_permissions:
                 raise exceptions.PermissionDenied

@@ -1,7 +1,9 @@
+import errno
 import os
 import shutil
 import tempfile
 from unittest import mock
+from stat import S_IWRITE
 
 from django.template import TemplateDoesNotExist
 from django.test import TestCase
@@ -138,6 +140,192 @@ class MaintenanceJobMarkAsCompleteTests(TestCase):
         self.assertEqual(appraisal_job.end_date, self.now)
         self.assertEqual(conversion_job.status, celery_states.SUCCESS)
         self.assertEqual(conversion_job.end_date, self.now)
+
+
+class MaintenanceJobRunTests(TestCase):
+
+    def setUp(self):
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        self.appraisal_job = AppraisalJob.objects.create()
+        self.conversion_job = ConversionJob.objects.create()
+
+        self.appraisal_path = os.path.join(self.datadir, 'appraisal_path')
+        self.conversion_path = os.path.join(self.datadir, 'conversion_path')
+
+    def create_paths(self, create_dir):
+
+        if create_dir:
+            try:
+                os.makedirs(self.appraisal_path)
+                os.makedirs(self.conversion_path)
+            except OSError as e:
+                if e.errno != 17:
+                    raise
+        else:
+            assert not os.path.isdir(self.appraisal_path)
+            assert not os.path.isdir(self.conversion_path)
+
+    def remove_deny_write_permission_acl_on_win_for_file(self, path):
+        if os.name == 'nt':
+            import win32security as w32
+            import getpass
+
+            w_user, _, _ = w32.LookupAccountName("", getpass.getuser())
+
+            sd = w32.GetFileSecurity(path, w32.DACL_SECURITY_INFORMATION)
+            dacl = sd.GetSecurityDescriptorDacl()
+
+            dacl.DeleteAce(0)
+
+            sd.SetSecurityDescriptorDacl(1, dacl, 0)
+            w32.SetFileSecurity(path, w32.DACL_SECURITY_INFORMATION, sd)
+        else:
+            raise Exception("This method should only be called on Windows NT like OS")
+
+    def add_write_access_rights(self):
+        if os.name == 'nt':
+            self.remove_deny_write_permission_acl_on_win_for_file(self.appraisal_path)
+            self.remove_deny_write_permission_acl_on_win_for_file(self.conversion_path)
+        else:
+            os.chmod(self.appraisal_path, 0o7777)
+            os.chmod(self.conversion_path, 0o7777)
+
+    def remove_write_access_rights_win(self, path):
+        if os.name == 'nt':
+            import win32security as w32
+            import ntsecuritycon as con
+            import getpass
+
+            w_user, _, _ = w32.LookupAccountName("", getpass.getuser())
+
+            sd = w32.GetFileSecurity(path, w32.DACL_SECURITY_INFORMATION)
+            dacl = sd.GetSecurityDescriptorDacl()
+
+            dacl.AddAccessDeniedAce(w32.ACL_REVISION, con.FILE_GENERIC_WRITE, w_user)
+
+            sd.SetSecurityDescriptorDacl(1, dacl, 0)
+            w32.SetFileSecurity(path, w32.DACL_SECURITY_INFORMATION, sd)
+        else:
+            raise Exception("This method should only be called on Windows NT like OS")
+
+    def remove_write_access_rights(self):
+        if os.name == 'nt':
+            self.remove_write_access_rights_win(self.appraisal_path)
+            self.remove_write_access_rights_win(self.conversion_path)
+        else:
+            os.chmod(self.appraisal_path, ~S_IWRITE)
+            os.chmod(self.conversion_path, ~S_IWRITE)
+
+    @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._mark_as_complete')
+    @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._get_report_directory')
+    @mock.patch('ESSArch_Core.maintenance.models.ConversionJob._run')
+    @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob._run')
+    def test_call_run_when_report_dir_does_not_exists(self, apr_run, con_run, get_report_directory, mark_as_complete):
+        before = timezone.now()
+        self.create_paths(create_dir=False)
+        get_report_directory.side_effect = [self.appraisal_path, self.conversion_path]
+
+        if os.name == 'nt':
+            with self.assertRaises(OSError) as apr_e:
+                self.appraisal_job.run()
+            self.assertEqual(apr_e.exception.errno, errno.ENOENT)
+
+            with self.assertRaises(OSError) as con_e:
+                self.conversion_job.run()
+            self.assertEqual(con_e.exception.errno, errno.ENOENT)
+        else:
+            with self.assertRaisesRegex(OSError, f".* No such file or directory: '{self.appraisal_path}'"):
+                self.appraisal_job.run()
+
+            with self.assertRaisesRegex(OSError, f".* No such file or directory: '{self.conversion_path}'"):
+                self.conversion_job.run()
+
+        after = timezone.now()
+
+        apr_run.assert_not_called()
+        con_run.assert_not_called()
+        mark_as_complete.assert_not_called()
+
+        # Update object from DB
+        self.appraisal_job.refresh_from_db()
+        self.conversion_job.refresh_from_db()
+
+        self.assertEqual(self.appraisal_job.status, celery_states.FAILURE)
+        self.assertTrue(before <= self.appraisal_job.end_date <= after)
+        self.assertEqual(self.conversion_job.status, celery_states.FAILURE)
+        self.assertTrue(before <= self.conversion_job.end_date <= after)
+
+    @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._mark_as_complete')
+    @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._get_report_directory')
+    @mock.patch('ESSArch_Core.maintenance.models.ConversionJob._run')
+    @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob._run')
+    def test_call_run_when_report_dir_is_not_writeable(self, apr_run, con_run, get_report_directory, mark_as_complete):
+        before = timezone.now()
+        self.create_paths(create_dir=True)
+        self.remove_write_access_rights()
+        get_report_directory.side_effect = [self.appraisal_path, self.conversion_path, self.conversion_path]
+
+        try:
+            if os.name == 'nt':
+                with self.assertRaises(OSError) as apr_e:
+                    self.appraisal_job.run()
+                self.assertEqual(apr_e.exception.errno, errno.EACCES)
+
+                with self.assertRaises(OSError) as con_e:
+                    self.conversion_job.run()
+                self.assertEqual(con_e.exception.errno, errno.EACCES)
+            else:
+                with self.assertRaisesRegex(OSError, f".* Permission denied: '{self.appraisal_path}'"):
+                    self.appraisal_job.run()
+
+                with self.assertRaisesRegex(OSError, f".* Permission denied: '{self.conversion_path}'"):
+                    self.conversion_job.run()
+        except Exception:
+            raise
+        finally:
+            # We need to reset the access rights here so that it the paths can be cleaned up.
+            self.add_write_access_rights()
+
+        after = timezone.now()
+
+        apr_run.assert_not_called()
+        con_run.assert_not_called()
+        mark_as_complete.assert_not_called()
+
+        # Update object from DB
+        self.appraisal_job.refresh_from_db()
+        self.conversion_job.refresh_from_db()
+
+        self.assertEqual(self.appraisal_job.status, celery_states.FAILURE)
+        self.assertTrue(before <= self.appraisal_job.end_date <= after)
+        self.assertEqual(self.conversion_job.status, celery_states.FAILURE)
+        self.assertTrue(before <= self.conversion_job.end_date <= after)
+
+    @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._mark_as_complete')
+    @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._get_report_directory')
+    @mock.patch('ESSArch_Core.maintenance.models.ConversionJob._run')
+    @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob._run')
+    def test_call_success(self, mock_appr__run, mock_con__run, mock__get_report_directory, mock__mark_as_complete):
+        self.create_paths(create_dir=True)
+        mock__get_report_directory.side_effect = [self.appraisal_path, self.conversion_path]
+
+        self.appraisal_job.run()
+        self.conversion_job.run()
+
+        mock_appr__run.assert_called_once()
+        mock_con__run.assert_called_once()
+        mock__mark_as_complete.assert_called()
+
+        # Update object from DB
+        self.appraisal_job.refresh_from_db()
+        self.conversion_job.refresh_from_db()
+
+        self.assertEqual(self.appraisal_job.status, celery_states.STARTED)
+        self.assertEqual(self.appraisal_job.end_date, None)
+        self.assertEqual(self.conversion_job.status, celery_states.STARTED)
+        self.assertEqual(self.conversion_job.end_date, None)
 
 
 class FindAllFilesTests(TestCase):
