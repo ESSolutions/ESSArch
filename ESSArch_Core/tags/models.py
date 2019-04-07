@@ -95,7 +95,11 @@ class Structure(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, blank=False)
     type = models.ForeignKey(StructureType, on_delete=models.PROTECT)
-    template = models.BooleanField(_('template'))
+    template = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True,
+        limit_choices_to={'is_template': True}, verbose_name=_('template'),
+    )
+    is_template = models.BooleanField(_('is template'))
     version = models.CharField(max_length=255, blank=False, default='1.0')
     version_link = models.UUIDField(default=uuid.uuid4, null=False)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='created_structures')
@@ -122,21 +126,25 @@ class Structure(models.Model):
 
         return True
 
-    def create_template_instance(self):
+    def create_template_instance(self, archive_tag):
         from ESSArch_Core.tags.documents import StructureUnitDocument
 
         old_structure_pk = self.pk
         new_structure = self
         new_structure.pk = None
-        new_structure.template = False
+        new_structure.is_template = False
+        new_structure.template_id = old_structure_pk
         new_structure.save()
+
+        archive_tagstructure = TagStructure.objects.create(tag=archive_tag, structure=new_structure)
+        new_structure.tagstructure_set.add(archive_tagstructure)
 
         # create descendants from structure
         for unit in StructureUnit.objects.filter(structure_id=old_structure_pk):
             new_unit = unit.create_template_instance(new_structure)
             StructureUnitDocument.from_obj(new_unit).save()
 
-        return new_structure
+        return new_structure, archive_tagstructure
 
     def __str__(self):
         return '{} {}'.format(self.name, self.version)
@@ -305,7 +313,6 @@ class Tag(models.Model):
             return '{}'.format(self.current_version)
         except TagVersion.DoesNotExist:
             return '{}'.format(self.pk)
-
 
     class Meta:
         permissions = (

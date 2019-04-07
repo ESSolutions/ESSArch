@@ -266,12 +266,8 @@ class VisualImporter(BaseImporter):
                 arkiv_el, agent, task=task, ip=ip
             )
 
-            structure_template_pk = arkiv_structure.structure.pk
-            structure = arkiv_structure.structure.create_template_instance()
-            arkiv_structure.structure = structure
-            arkiv_structure.save()
-
-            structure_template = Structure.objects.get(pk=structure_template_pk)
+            structure = arkiv_structure.structure
+            structure_template = structure.template
 
             yield doc
             yield from cls.parse_serier(arkiv_el, agent, arkiv_version, arkiv_structure, structure_template, task, ip)
@@ -334,15 +330,12 @@ class VisualImporter(BaseImporter):
         structure = Structure.objects.create(
             name="Arkivförteckning för {}".format(name),
             type=cls.STRUCTURE_TYPE,
-            template=True,
+            is_template=True,
             version='1.0',
             task=task,
         )
 
-        tag_structure = TagStructure.objects.create(
-            tag=tag,
-            structure=structure,
-        )
+        _, tag_structure = structure.create_template_instance(tag)
 
         agent_tag_link = AgentTagLink.objects.create(
             agent=agent,

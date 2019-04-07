@@ -25,7 +25,7 @@ class ListStructureTests(TestCase):
         self.structure_type = StructureType.objects.create(name='test')
 
     def create_structure(self):
-        return Structure.objects.create(type=self.structure_type, template=True)
+        return Structure.objects.create(type=self.structure_type, is_template=True)
 
     def test_empty(self):
         response = self.client.get(self.url)
@@ -93,7 +93,7 @@ class UpdateStructureTests(TestCase):
         self.structure_type = StructureType.objects.create(name='test')
 
     def create_structure(self):
-        return Structure.objects.create(type=self.structure_type, template=True)
+        return Structure.objects.create(type=self.structure_type, is_template=True)
 
     def test_without_permission(self):
         structure = self.create_structure()
@@ -141,7 +141,7 @@ class CreateStructureUnitTests(TestCase):
         self.structure_type = StructureType.objects.create(name='test')
 
     def create_structure(self):
-        return Structure.objects.create(type=self.structure_type, template=True)
+        return Structure.objects.create(type=self.structure_type, is_template=True)
 
     def test_invalid_type(self):
         structure = self.create_structure()
@@ -195,7 +195,7 @@ class UpdateStructureUnitTests(TestCase):
         self.structure_unit_type = StructureUnitType.objects.create(name='test', structure_type=self.structure_type)
 
     def create_structure(self):
-        return Structure.objects.create(type=self.structure_type, template=True)
+        return Structure.objects.create(type=self.structure_type, is_template=True)
 
     def create_structure_unit(self, structure):
         return StructureUnit.objects.create(structure=structure, type=self.structure_unit_type)

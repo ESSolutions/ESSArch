@@ -526,16 +526,13 @@ class KlaraImporter(BaseImporter):
         structure = Structure.objects.create(
             name="Arkivförteckning för {}".format(orig_name),
             type=self.STRUCTURE_TYPE,
-            template=True,
+            is_template=True,
             version='1.0',
             create_date=create_date,
             rule_convention_type=rule_convention_type,
             task=task,
         )
-        tag_structure = TagStructure.objects.create(
-            tag=tag,
-            structure=structure,
-        )
+        _, tag_structure = structure.create_template_instance(tag)
 
         agent_hash = self.build_agent_hash(
             el.xpath('ObjectParts/General/Archive.ArchiveOrigID')[0].text,
@@ -829,12 +826,9 @@ class KlaraImporter(BaseImporter):
             archive_doc, archive_tag, archive_tag_version, archive_tag_structure, inst_code = self.parse_archive(
                 archive_el, task=self.task, ip=self.ip
             )
-            structure_template_pk = archive_tag_structure.structure.pk
-            structure = archive_tag_structure.structure.create_template_instance()
-            archive_tag_structure.structure = structure
-            archive_tag_structure.save()
 
-            structure_template = Structure.objects.get(pk=structure_template_pk)
+            structure = archive_tag_structure.structure
+            structure_template = structure.template
 
             agent_hash = self.build_agent_hash(
                 archive_el.xpath("ObjectParts/General/Archive.ArchiveOrigID")[0].text,
