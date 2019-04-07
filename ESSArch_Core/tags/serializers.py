@@ -74,7 +74,8 @@ class StructureSerializer(serializers.ModelSerializer):
     class Meta:
         model = Structure
         fields = ('id', 'name', 'type', 'template', 'is_template', 'version', 'create_date', 'revise_date',
-                'start_date', 'end_date', 'specification', 'rule_convention_type', 'created_by', 'revised_by')
+                'start_date', 'end_date', 'specification', 'rule_convention_type', 'created_by', 'revised_by',
+                  'published',)
         extra_kwargs = {
             'is_template': {'read_only': True},
             'template': {'read_only': True},

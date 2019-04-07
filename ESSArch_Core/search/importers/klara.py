@@ -527,6 +527,7 @@ class KlaraImporter(BaseImporter):
             name="Arkivförteckning för {}".format(orig_name),
             type=self.STRUCTURE_TYPE,
             is_template=True,
+            published=True,
             version='1.0',
             create_date=create_date,
             rule_convention_type=rule_convention_type,

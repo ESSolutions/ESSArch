@@ -100,6 +100,7 @@ class Structure(models.Model):
         limit_choices_to={'is_template': True}, verbose_name=_('template'),
     )
     is_template = models.BooleanField(_('is template'))
+    published = models.BooleanField(_('published'), default=False)
     version = models.CharField(max_length=255, blank=False, default='1.0')
     version_link = models.UUIDField(default=uuid.uuid4, null=False)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='created_structures')

@@ -331,6 +331,7 @@ class VisualImporter(BaseImporter):
             name="Arkivförteckning för {}".format(name),
             type=cls.STRUCTURE_TYPE,
             is_template=True,
+            published=True,
             version='1.0',
             task=task,
         )

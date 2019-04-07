@@ -75,7 +75,7 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = StructureSerializer
     permission_classes = (DjangoModelPermissions,)
     filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter,)
-    filterset_fields = ('type', 'is_template',)
+    filterset_fields = ('type', 'is_template', 'published',)
     ordering_fields = ('name', 'create_date', 'version', 'type')
     search_fields = ('name',)
 
@@ -84,6 +84,13 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             return StructureWriteSerializer
 
         return self.serializer_class
+
+    @action(detail=True, methods=['post'])
+    def publish(self, request, pk=None):
+        obj = self.get_object()
+        obj.published = True
+        obj.save()
+        return Response()
 
     @action(detail=True, methods=['get'])
     def tree(self, request, pk=None):
