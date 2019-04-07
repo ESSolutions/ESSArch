@@ -367,6 +367,13 @@ class AgentArchiveLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgentTagLink
         fields = ('id', 'archive', 'type', 'description', 'start_date', 'end_date',)
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=model.objects.all(),
+                fields=('tag', 'agent'),
+                message=_('Archive already added')
+            )
+        ]
 
 
 class AgentArchiveLinkWriteSerializer(AgentArchiveLinkSerializer):

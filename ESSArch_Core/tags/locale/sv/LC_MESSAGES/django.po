@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-17 15:02+0100\n"
+"POT-Creation-Date: 2019-04-07 14:23+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,93 +18,108 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: models.py:13
+#: models.py:18
 msgid "identifier"
 msgstr ""
 
-#: models.py:19 models.py:45
+#: models.py:24 models.py:50
 msgid "tag version"
 msgstr ""
 
-#: models.py:26 models.py:52
+#: models.py:31 models.py:57
 msgid "structure unit"
 msgstr ""
 
-#: models.py:28 models.py:54
+#: models.py:33 models.py:59
 msgid "type"
 msgstr ""
 
-#: models.py:32 models.py:62 models.py:69 models.py:76 models.py:83
-#: models.py:273
+#: models.py:37 models.py:67 models.py:74 models.py:81 models.py:88
+#: models.py:345 models.py:354
 msgid "name"
 msgstr ""
 
-#: models.py:55
+#: models.py:60
 msgid "text"
 msgstr ""
 
-#: models.py:56
+#: models.py:61
 msgid "href"
 msgstr ""
 
-#: models.py:57 models.py:142 models.py:265
+#: models.py:62 models.py:175 models.py:337
 msgid "create date"
 msgstr ""
 
-#: models.py:58 models.py:143 models.py:266
+#: models.py:63 models.py:176 models.py:338
 msgid "revise date"
 msgstr ""
 
-#: models.py:139 models.py:262
-#, fuzzy
-#| msgid "Description"
-msgid "description"
-msgstr "Beskrivning"
+#: models.py:98
+msgid "template"
+msgstr ""
 
-#: models.py:140 models.py:263 models.py:485
+#: models.py:172 models.py:334
+msgid "description"
+msgstr "beskrivning"
+
+#: models.py:173 models.py:335 models.py:568
 msgid "start date"
 msgstr ""
 
-#: models.py:141 models.py:264 models.py:486
+#: models.py:174 models.py:336 models.py:569
 msgid "end date"
 msgstr ""
 
-#: models.py:274
+#: models.py:346
 msgid "size"
 msgstr ""
 
-#: models.py:275
+#: models.py:347
 msgid "unit"
 msgstr ""
 
-#: templates/tags/archive.html:65 templates/tags/search_results.html:73
+#: models.py:355
+msgid "archive type"
+msgstr "arkivtyp"
+
+#: serializers.py:181
+#, python-brace-format
+msgid "Type {unit_type.name} not allowed in {structure.type.name}"
+msgstr "Enhetstypen {unit_type.name} är inte tillåten i strukturtypen {structure.type.name}"
+
+#: serializers.py:374
+msgid "Archive already added"
+msgstr "Arkivet har redan lagts till"
+
+#: templates/tags/archive.html:66 templates/tags/search_results.html:73
 msgid "Archive"
 msgstr "Arkiv"
 
-#: templates/tags/archive.html:66 templates/tags/search_results.html:66
+#: templates/tags/archive.html:67 templates/tags/search_results.html:66
 #: templates/tags/search_results.html:77
 msgid "Date"
 msgstr "Datum"
 
-#: templates/tags/archive.html:74
+#: templates/tags/archive.html:75
 msgid "Serie"
 msgstr ""
 
-#: templates/tags/archive.html:75
+#: templates/tags/archive.html:76
 msgid "Serie signum"
 msgstr ""
 
-#: templates/tags/archive.html:82
+#: templates/tags/archive.html:83 templates/tags/archive.html:93
+msgid "Notes"
+msgstr "Anmärkningar"
+
+#: templates/tags/archive.html:91
 msgid "Volume number"
 msgstr "Volymnummer"
 
-#: templates/tags/archive.html:83
+#: templates/tags/archive.html:92
 msgid "Time"
 msgstr ""
-
-#: templates/tags/archive.html:84
-msgid "Notes"
-msgstr "Anmärkningar"
 
 #: templates/tags/search_results.html:63
 msgid "Search results"
