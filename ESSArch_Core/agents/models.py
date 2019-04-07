@@ -117,6 +117,9 @@ class AgentTagLink(models.Model):
     end_date = models.DateField(_('end date'), null=True)
     description = models.TextField(_('description'), blank=True)
 
+    class Meta:
+        unique_together = ('agent', 'tag',)
+
 
 class AgentTagLinkRelationType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
