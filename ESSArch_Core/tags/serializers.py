@@ -173,11 +173,12 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
     )
 
     def validate(self, data):
-        structure = data['structure']
-        unit_type = data['type']
+        structure = data.get('structure')
+        unit_type = data.get('type')
 
-        if structure.type != unit_type.structure_type:
-            raise serializers.ValidationError(_(f'Type {unit_type.name} not allowed in {structure.type.name}'))
+        if structure is not None and unit_type is not None:
+            if structure.type != unit_type.structure_type:
+                raise serializers.ValidationError(_(f'Type {unit_type.name} not allowed in {structure.type.name}'))
 
         return super().validate(data)
 
