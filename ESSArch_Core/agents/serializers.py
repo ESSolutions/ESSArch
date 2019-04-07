@@ -303,10 +303,25 @@ class AgentWriteSerializer(AgentSerializer):
 
     @staticmethod
     def create_relations(agent, agent_relations):
-        AgentRelation.objects.bulk_create([
-            AgentRelation(agent_a=agent, **relation)
-            for relation in agent_relations
-        ])
+        relations = set()
+        for relation in agent_relations:
+            if relation['agent_b'].pk == agent.pk:
+                raise serializers.ValidationError(_("Can't add relation to self"))
+            agent_b = relation.pop('agent_b')
+            rel_type = relation.pop('type')
+
+            rel = (agent_b.pk, rel_type.pk)
+            if rel in relations:
+                raise serializers.ValidationError(_("Can't add the same relation twice"))
+
+            relations.add(rel)
+
+            AgentRelation.objects.get_or_create(
+                agent_a=agent,
+                agent_b=agent_b,
+                type=rel_type,
+                defaults=relation
+            )
 
     @transaction.atomic
     def create(self, validated_data):

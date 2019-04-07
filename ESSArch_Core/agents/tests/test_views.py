@@ -492,3 +492,43 @@ class UpdateAgentTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(AgentRelation.objects.count(), 1)
         self.assertTrue(AgentRelation.objects.filter(agent_a=agent, agent_b=related_agent).exists())
+
+    def test_add_relation_to_self(self):
+        agent = self.create_agent()
+        url = reverse('agent-detail', args=[agent.pk])
+
+        response = self.client.patch(
+            url,
+            data={
+                'related_agents': [{
+                    'agent': agent.pk,
+                    'type': self.relation_type.pk,
+                }],
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(AgentRelation.objects.exists())
+
+    def test_add_same_relation_twice(self):
+        agent = self.create_agent()
+        url = reverse('agent-detail', args=[agent.pk])
+
+        response = self.client.patch(
+            url,
+            data={
+                'related_agents': [
+                    {
+                        'agent': agent.pk,
+                        'type': self.relation_type.pk,
+                    },
+                    {
+                        'agent': agent.pk,
+                        'type': self.relation_type.pk,
+                    }
+                ],
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(AgentRelation.objects.exists())
