@@ -36,6 +36,8 @@ from django_redis import get_redis_connection
 from redis.exceptions import RedisError
 from elasticsearch_dsl.connections import get_connection as get_es_connection
 
+from ESSArch_Core.filters import string_to_bool
+
 try:
     from pip._internal.operations.freeze import freeze as pip_freeze
 except ImportError:  # pip < 10.0
@@ -123,13 +125,6 @@ def get_rabbitmq_info(full=False):
             'version': 'unknown',
             'error': 'Error connecting to RabbitMQ. Check the logs for more detail.'
         }
-
-
-def str_2_bool_convert(s):
-    if isinstance(s, str):
-        return s.lower() == 'true'
-    if isinstance(s, bool):
-        return s
 
 
 class SysInfoView(APIView):
