@@ -490,8 +490,9 @@ class UpdateAgentTests(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(AgentRelation.objects.count(), 1)
+        self.assertEqual(AgentRelation.objects.count(), 2)
         self.assertTrue(AgentRelation.objects.filter(agent_a=agent, agent_b=related_agent).exists())
+        self.assertTrue(AgentRelation.objects.filter(agent_a=related_agent, agent_b=agent).exists())
 
     def test_add_relation_to_self(self):
         agent = self.create_agent()

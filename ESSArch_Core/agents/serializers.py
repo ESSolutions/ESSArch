@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
@@ -100,7 +101,6 @@ class AuthorityTypeSerialzier(serializers.ModelSerializer):
     class Meta:
         model = AuthorityType
         fields = ('id', 'name')
-
 
 
 class SourcesOfAuthoritySerializer(serializers.ModelSerializer):
@@ -323,6 +323,13 @@ class AgentWriteSerializer(AgentSerializer):
                 defaults=relation
             )
 
+            AgentRelation.objects.get_or_create(
+                agent_a=agent_b,
+                agent_b=agent,
+                type=rel_type.mirrored_type or rel_type,
+                defaults=relation
+            )
+
     @transaction.atomic
     def create(self, validated_data):
         identifiers_data = validated_data.pop('identifiers', [])
@@ -374,7 +381,7 @@ class AgentWriteSerializer(AgentSerializer):
             self.create_places(instance, places_data)
 
         if related_agents_data is not None:
-            AgentRelation.objects.filter(agent_a=instance).delete()
+            AgentRelation.objects.filter(Q(agent_a=instance) | Q(agent_b=instance)).delete()
             self.create_relations(instance, related_agents_data)
 
         return super().update(instance, validated_data)
