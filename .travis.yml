@@ -12,8 +12,6 @@ templates:
   postgres: &postgres DB_PACKAGES=",postgres" DATABASE_URL="postgres://postgres@localhost/essarch?isolation_level=read committed"
   mssql: &mssql DB_PACKAGES=",mssql" DATABASE_URL="mssql://SA:MyPassword42@localhost:1433/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server"
 
-env: ""
-
 matrix:
   include:
     - env: FLAKE8
@@ -74,10 +72,6 @@ matrix:
       install: yarn
       script: yarn prettier --check "**/*.{js,scss,html}"
       after_success: skip
-
-  allow_failures: # Temporary allow failure of django tests for mssql, until they are fixed
-    - env: *mssql
-
 
 install:
   - python -m pip install --upgrade pip wheel codecov
