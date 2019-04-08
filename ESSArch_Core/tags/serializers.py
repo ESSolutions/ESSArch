@@ -386,6 +386,22 @@ class AgentArchiveLinkWriteSerializer(AgentArchiveLinkSerializer):
     )
     type = serializers.PrimaryKeyRelatedField(queryset=AgentTagLinkRelationType.objects.all())
 
+    def validate(self, data):
+        tag = data.get('tag')
+        agent = data.get('agent')
+
+        if tag is None or agent is None and self.instance:
+            if tag is None:
+                tag = self.instance.tag
+            if agent is None:
+                agent = self.instance.agent
+
+        if tag.start_date and agent.end_date:
+            if tag.start_date.date() > agent.end_date:
+                raise serializers.ValidationError(_("Archive start date must be before agent start date"))
+
+        return data
+
     class Meta(AgentArchiveLinkSerializer.Meta):
         AgentArchiveLinkSerializer.Meta.fields += ('agent',)
 

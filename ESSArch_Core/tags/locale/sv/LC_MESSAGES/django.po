@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-07 14:23+0200\n"
+"POT-Creation-Date: 2019-04-08 15:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,7 +35,7 @@ msgid "type"
 msgstr ""
 
 #: models.py:37 models.py:67 models.py:74 models.py:81 models.py:88
-#: models.py:345 models.py:354
+#: models.py:401 models.py:410
 msgid "name"
 msgstr ""
 
@@ -47,50 +47,72 @@ msgstr ""
 msgid "href"
 msgstr ""
 
-#: models.py:62 models.py:175 models.py:337
+#: models.py:62 models.py:229 models.py:393
 msgid "create date"
 msgstr ""
 
-#: models.py:63 models.py:176 models.py:338
+#: models.py:63 models.py:230 models.py:394
 msgid "revise date"
 msgstr ""
 
-#: models.py:98
+#: models.py:100
 msgid "template"
 msgstr ""
 
-#: models.py:172 models.py:334
+#: models.py:102
+msgid "is template"
+msgstr ""
+
+#: models.py:103
+msgid "published"
+msgstr ""
+
+#: models.py:153
+msgid "Can only create new versions of templates"
+msgstr ""
+
+#: models.py:156
+msgid "Can only create new versions of published structures"
+msgstr ""
+
+#: models.py:226 models.py:390
 msgid "description"
 msgstr "beskrivning"
 
-#: models.py:173 models.py:335 models.py:568
+#: models.py:227 models.py:391 models.py:624
 msgid "start date"
 msgstr ""
 
-#: models.py:174 models.py:336 models.py:569
+#: models.py:228 models.py:392 models.py:625
 msgid "end date"
 msgstr ""
 
-#: models.py:346
+#: models.py:402
 msgid "size"
 msgstr ""
 
-#: models.py:347
+#: models.py:403
 msgid "unit"
 msgstr ""
 
-#: models.py:355
+#: models.py:411
 msgid "archive type"
 msgstr "arkivtyp"
 
-#: serializers.py:181
+#: serializers.py:183
 #, python-brace-format
 msgid "Type {unit_type.name} not allowed in {structure.type.name}"
-msgstr "Enhetstypen {unit_type.name} är inte tillåten i strukturtypen {structure.type.name}"
+msgstr ""
+"Enhetstypen {unit_type.name} är inte tillåten i strukturtypen {structure."
+"type.name}"
 
-#: serializers.py:374
+#: serializers.py:376
 msgid "Archive already added"
 msgstr "Arkivet har redan lagts till"
+
+#: serializers.py:401
+msgid "Archive start date must be before agent start date"
+msgstr "Arkivets slutdatum måste ske före agentens startdatum"
 
 #: templates/tags/archive.html:66 templates/tags/search_results.html:73
 msgid "Archive"
