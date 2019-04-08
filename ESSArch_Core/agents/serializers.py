@@ -178,7 +178,7 @@ class RelatedAgentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Agent
-        fields = ('id', 'names', 'type',)
+        fields = ('id', 'names', 'type', 'start_date', 'end_date',)
 
 
 class AgentRelationTypeMirroredSerializer(serializers.ModelSerializer):
