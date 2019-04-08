@@ -1,7 +1,8 @@
 from django.db.models import F, Prefetch
 from rest_framework import viewsets
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import SearchFilter
 
+from ESSArch_Core.agents.filters import AgentOrderingFilter
 from ESSArch_Core.agents.models import (
     Agent,
     AgentIdentifier,
@@ -36,8 +37,8 @@ class AgentViewSet(viewsets.ModelViewSet):
         Prefetch('agent_relations_a', AgentRelation.objects.prefetch_related('agent_b').order_by(F('start_date').desc(nulls_first=True))),
     )
     serializer_class = AgentSerializer
-    filter_backends = (OrderingFilter, SearchFilter,)
-    ordering_fields = ('names__part', 'names__main', 'start_date', 'end_date',)
+    filter_backends = (AgentOrderingFilter, SearchFilter,)
+    ordering_fields = ('latest_name', 'names__part', 'names__main', 'start_date', 'end_date',)
     search_fields = ('names__part', 'names__main', 'type__main_type__name',)
 
     def get_serializer_class(self):
