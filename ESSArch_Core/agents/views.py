@@ -38,7 +38,7 @@ class AgentViewSet(viewsets.ModelViewSet):
     )
     serializer_class = AgentSerializer
     filter_backends = (AgentOrderingFilter, SearchFilter,)
-    ordering_fields = ('latest_name', 'names__part', 'names__main', 'start_date', 'end_date',)
+    ordering_fields = ('latest_name', 'names__part', 'names__main', 'start_date', 'end_date', 'type__main_type__name')
     search_fields = ('names__part', 'names__main', 'type__main_type__name',)
 
     def get_serializer_class(self):
