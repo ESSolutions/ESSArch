@@ -104,10 +104,10 @@ def get_redis_info(full=False):
             return props
         return {'version': props['redis_version']}
     except RedisError:
-        logger.exception("Redis seems to be down.")
+        logger.exception("Could not connect to Redis.")
         return {
             'version': 'unknown',
-            'error': 'ERROR on redis. Check the logs for more detail.'
+            'error': 'Error connecting to Redis. Check the logs for more detail.'
         }
 
 
@@ -138,7 +138,7 @@ class SysInfoView(APIView):
     """
 
     def get(self, request):
-        full = str_2_bool_convert(request.query_params.get('full', False))
+        full = string_to_bool(request.query_params.get('full', 'false'))
         context = {}
 
         # Flags in settings: Their expected  and actual values.
