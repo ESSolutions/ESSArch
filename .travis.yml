@@ -10,6 +10,7 @@ templates:
   mariadb: &mariadb DB_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
   mysql: &mysql DB_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
   postgres: &postgres DB_PACKAGES=",postgres" DATABASE_URL="postgres://postgres@localhost/essarch?isolation_level=read committed"
+  mssql: &mssql DB_PACKAGES=",mssql" DATABASE_URL="mssql://SA:MyPassword42@localhost:1433/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server"
 
 matrix:
   include:
@@ -21,6 +22,20 @@ matrix:
 
     - python: "3.6"
       dist: trusty
+
+    - python: "3.6"
+      dist: trusty
+      services: docker
+      before_install:
+        - docker pull mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+        - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+        - curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+        - curl https://packages.microsoft.com/config/ubuntu/14.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+        - sudo apt-get update
+        - sudo ACCEPT_EULA=Y apt-get install msodbcsql17
+      env:
+        - *mssql
+        - PATH="$PATH:/opt/mssql-tools/bin"
 
     - python: "3.6"
       dist: trusty
