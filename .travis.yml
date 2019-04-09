@@ -14,64 +14,79 @@ templates:
 
 matrix:
   include:
-    - env: FLAKE8
-      python: "3.6"
-      install: pip install flake8==3.7.1
-      script: flake8
-      after_success: skip
-
-    - python: "3.6"
-      dist: trusty
-
-    - python: "3.6"
-      dist: trusty
-      services: docker
-      before_install:
-        - docker pull mcr.microsoft.com/mssql/server:2017-latest-ubuntu
-        - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d mcr.microsoft.com/mssql/server:2017-latest-ubuntu
-        - curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-        - curl https://packages.microsoft.com/config/ubuntu/14.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-        - sudo apt-get update
-        - sudo ACCEPT_EULA=Y apt-get install msodbcsql17
-      env:
-        - *mssql
-
-    - python: "3.6"
-      dist: trusty
-      services:
-        - mariadb
-      env: *mariadb
-
-    - python: "3.6"
-      dist: trusty
-      services:
-        - mysql
-      env: *mysql
-
-    - python: "3.6"
-      dist: trusty
-      services:
-        - postgres
-      env: *postgres
+#    - env: FLAKE8
+#      python: "3.6"
+#      install: pip install flake8==3.7.1
+#      script: flake8
+#      after_success: skip
+#
+#    - python: "3.6"
+#      dist: trusty
+#
+#    - python: "3.6"
+#      dist: trusty
+#      services: docker
+#      before_install:
+#        - docker pull mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+#        - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+#        - curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+#        - curl https://packages.microsoft.com/config/ubuntu/14.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+#        - sudo apt-get update
+#        - sudo ACCEPT_EULA=Y apt-get install msodbcsql17
+#      env:
+#        - *mssql
+#
+#    - python: "3.6"
+#      dist: trusty
+#      services:
+#        - mariadb
+#      env: *mariadb
+#
+#    - python: "3.6"
+#      dist: trusty
+#      services:
+#        - mysql
+#      env: *mysql
+#
+#    - python: "3.6"
+#      dist: trusty
+#      services:
+#        - postgres
+#      env: *postgres
+#
+#    - os: windows
+#      language: sh
+#      python: "3.6"
+#      before_install:
+#        - wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe
+#        - powershell 'Start-Process -FilePath "gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
+#        - choco install python3 --version 3.6.6
+#        - choco install imagemagick
+#        - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python36:/c/Python36/Scripts:$PATH"
 
     - os: windows
       language: sh
       python: "3.6"
+      services: docker
       before_install:
+        - docker pull mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+        - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d mcr.microsoft.com/mssql/server:2017-latest-ubuntu
         - wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe
         - powershell 'Start-Process -FilePath "gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
         - choco install python3 --version 3.6.6
         - choco install imagemagick
         - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python36:/c/Python36/Scripts:$PATH"
+      env:
+        - *mssql
 
-    - env: PRETTIER
-      language: node_js
-      node_js: "10"
-      dist: trusty
-      before_install: cd ESSArch_Core/frontend
-      install: yarn
-      script: yarn prettier --check "**/*.{js,scss,html}"
-      after_success: skip
+#    - env: PRETTIER
+#      language: node_js
+#      node_js: "10"
+#      dist: trusty
+#      before_install: cd ESSArch_Core/frontend
+#      install: yarn
+#      script: yarn prettier --check "**/*.{js,scss,html}"
+#      after_success: skip
 
 install:
   - python -m pip install --upgrade pip wheel codecov setuptools
