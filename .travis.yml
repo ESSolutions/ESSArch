@@ -74,7 +74,7 @@ matrix:
       after_success: skip
 
 install:
-  - python -m pip install --upgrade pip wheel codecov
+  - python -m pip install --upgrade pip wheel codecov setuptools
   - pip install -e .["tests,s3$DB_PACKAGES"]
 
 script:
