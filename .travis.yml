@@ -69,10 +69,10 @@ matrix:
       python: "3.6"
       services: docker
       before_install:
-        - powershell 'get-command docker -ShowCommandInfo'
+        - powershell 'get-command docker'
         - which docker
-        - powershell '& $Env:ProgramFiles\Docker\DockerCli.exe -SwitchDaemon'
         - docker --version
+        - powershell '& $Env:ProgramFiles\Docker\DockerCli.exe -SwitchDaemon'
         - docker pull mcr.microsoft.com/mssql/server:2017-latest-ubuntu
         - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d mcr.microsoft.com/mssql/server:2017-latest-ubuntu
         #- docker pull microsoft/mssql-server-windows-developer:2017-latest
