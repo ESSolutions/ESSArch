@@ -69,12 +69,6 @@ matrix:
       python: "3.6"
       services: docker
       before_install:
-        - powershell 'get-command docker'
-        - which docker
-        - docker --version
-        #- powershell '& $Env:ProgramFiles\Docker\DockerCli.exe -SwitchDaemon'
-        # docker pull mcr.microsoft.com/mssql/server:2017-latest-ubuntu
-        # docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d mcr.microsoft.com/mssql/server:2017-latest-ubuntu
         - docker pull christianacca/mssql-server-windows-express:1803
         - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d christianacca/mssql-server-windows-express:1803
         - wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe
