@@ -69,8 +69,8 @@ matrix:
       python: "3.6"
       services: docker
       before_install:
-        - powershell 'cd C:\; ls -r -inc DockerCli.exe > C:\out.txt'
-        - cat /c/out.txt
+        - powershell 'get-command docker -ShowCommandInfo'
+        - which docker
         - powershell '& $Env:ProgramFiles\Docker\Docker\DockerCli.exe -SwitchDaemon'
         - docker --version
         - docker pull mcr.microsoft.com/mssql/server:2017-latest-ubuntu
