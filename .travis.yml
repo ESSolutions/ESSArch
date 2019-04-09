@@ -69,6 +69,7 @@ matrix:
       python: "3.6"
       services: docker
       before_install:
+        - choco install sqlserver-odbcdriver --version 17.3.1.1 -y
         - docker pull christianacca/mssql-server-windows-express:1803
         - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d christianacca/mssql-server-windows-express:1803
         - wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe
