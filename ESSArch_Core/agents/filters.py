@@ -1,8 +1,18 @@
 from django.db.models import F, OuterRef, Subquery, TextField
 from django.db.models.functions import Concat
+from django_filters import rest_framework as filters
 from rest_framework.filters import OrderingFilter
 
-from ESSArch_Core.agents.models import AgentName
+from ESSArch_Core.agents.models import Agent, AgentName
+from ESSArch_Core.filters import UUIDInFilter
+
+
+class AgentFilter(filters.FilterSet):
+    excluded_ids = UUIDInFilter(field_name="id", exclude=True)
+
+    class Meta:
+        model = Agent
+        fields = ['excluded_ids']
 
 
 class AgentOrderingFilter(OrderingFilter):
