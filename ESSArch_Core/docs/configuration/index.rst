@@ -21,6 +21,7 @@ To configure the applications you need to create a local settings file that is a
 .. toctree::
     :maxdepth: 2
 
+    authentication
     databases
     redis
     rabbitmq
