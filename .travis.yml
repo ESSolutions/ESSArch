@@ -11,6 +11,7 @@ templates:
   mariadb: &mariadb DB_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
   mysql: &mysql DB_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
   postgres: &postgres DB_PACKAGES=",postgres" DATABASE_URL="postgres://postgres@localhost/essarch?isolation_level=read committed"
+  mssql: &mssql DB_PACKAGES=",mssql" DATABASE_URL="mssql://SA:MyPassword42@localhost:1433/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server"
 
 matrix:
   include:
@@ -22,6 +23,19 @@ matrix:
 
     - name: "Linux with SQLite"
       python: "3.6"
+
+    - name: "Linux with MSSQL"
+      python: "3.6"
+      services: docker
+      before_install:
+        - docker pull mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+        - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+        - curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+        - curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+        - sudo apt-get update
+        - sudo ACCEPT_EULA=Y apt-get install msodbcsql17
+      env:
+        - *mssql
 
     - name: "Linux with MariaDB"
       python: "3.6"
@@ -56,6 +70,23 @@ matrix:
         - choco install imagemagick
         - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python36:/c/Python36/Scripts:$PATH"
 
+    - name: "Windows with MSSQL"
+      os: windows
+      language: sh
+      python: "3.6"
+      services: docker
+      before_install:
+        - docker pull christianacca/mssql-server-windows-express:1803
+        - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d christianacca/mssql-server-windows-express:1803
+        - wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe
+        - powershell 'Start-Process -FilePath "gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
+        - choco install sqlserver-odbcdriver --version 17.3.1.1
+        - choco install python3 --version 3.6.6
+        - choco install imagemagick
+        - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python36:/c/Python36/Scripts:$PATH"
+      env:
+        - *mssql
+
     - env: PRETTIER
       language: node_js
       node_js: "10"
@@ -65,7 +96,7 @@ matrix:
       after_success: skip
 
 install:
-  - python -m pip install --upgrade pip wheel codecov
+  - python -m pip install --upgrade pip wheel codecov setuptools
   - pip install -e .["tests,s3$DB_PACKAGES"]
 
 script:
