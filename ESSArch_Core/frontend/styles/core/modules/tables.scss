@@ -330,3 +330,10 @@
     }
   }
 }
+td,
+th {
+  &.shrink {
+    width: 0.1%;
+    white-space: nowrap;
+  }
+}

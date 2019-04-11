@@ -100,9 +100,11 @@ class StructureWriteSerializer(StructureSerializer):
 
 
 class RelatedStructureUnitSerializer(serializers.ModelSerializer):
+    structure = StructureSerializer(read_only=True)
+
     class Meta:
         model = StructureUnit
-        fields = ('id', 'name',)
+        fields = ('id', 'name', 'structure')
 
 
 class StructureUnitRelationSerializer(serializers.ModelSerializer):
@@ -111,7 +113,7 @@ class StructureUnitRelationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StructureUnitRelation
-        fields = ('type', 'description', 'start_date', 'end_date', 'create_date', 'revise_date', 'structure_unit',)
+        fields = ('id', 'type', 'description', 'start_date', 'end_date', 'create_date', 'revise_date', 'structure_unit',)
 
 
 class StructureUnitRelationWriteSerializer(StructureUnitRelationSerializer):
