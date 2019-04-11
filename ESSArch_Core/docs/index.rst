@@ -13,6 +13,7 @@ ESSArch Core
     development
     directory_structure
     installation/index
+    permissions
     restapi/index
 
 

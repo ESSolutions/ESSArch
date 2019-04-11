@@ -1,6 +1,7 @@
+from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from mptt.templatetags.mptt_tags import cache_tree_children
-from rest_framework import viewsets
+from rest_framework import exceptions, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import DjangoModelPermissions
@@ -8,6 +9,8 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.agents.models import AgentTagLink
+from ESSArch_Core.auth.decorators import permission_required_or_403
+from ESSArch_Core.filters import OrderingFilterWithNulls
 from ESSArch_Core.tags.filters import StructureUnitFilter, TagFilter
 from ESSArch_Core.tags.models import (
     Structure,
@@ -74,9 +77,9 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Structure.objects.select_related('type').prefetch_related('units')
     serializer_class = StructureSerializer
     permission_classes = (DjangoModelPermissions,)
-    filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter,)
+    filter_backends = (DjangoFilterBackend, OrderingFilterWithNulls, SearchFilter,)
     filterset_fields = ('type', 'is_template', 'published',)
-    ordering_fields = ('name', 'create_date', 'version', 'type')
+    ordering_fields = ('name', 'create_date', 'version', 'type', 'published_date',)
     search_fields = ('name',)
 
     def get_serializer_class(self):
@@ -85,12 +88,28 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         return self.serializer_class
 
+    @transaction.atomic
+    @permission_required_or_403('tags.publish_structure')
     @action(detail=True, methods=['post'])
     def publish(self, request, pk=None):
         obj = self.get_object()
-        obj.published = True
-        obj.save()
+        obj.publish()
         return Response()
+
+    @transaction.atomic
+    @permission_required_or_403('tags.create_new_structure_version')
+    @action(detail=True, methods=['post'], url_path='new-version')
+    def new_version(self, request, pk=None):
+        obj = self.get_object()
+
+        try:
+            version_name = request.data['version_name']
+        except KeyError:
+            raise exceptions.ParseError('No version_name provided')
+
+        new_version = obj.create_new_version(version_name)
+        serializer = self.serializer_class(instance=new_version)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['get'])
     def tree(self, request, pk=None):

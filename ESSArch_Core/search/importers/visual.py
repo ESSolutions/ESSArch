@@ -332,6 +332,7 @@ class VisualImporter(BaseImporter):
             type=cls.STRUCTURE_TYPE,
             is_template=True,
             published=True,
+            published_date=timezone.now(),
             version='1.0',
             task=task,
         )

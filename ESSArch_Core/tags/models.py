@@ -1,7 +1,9 @@
+import logging
 import uuid
 
 import jsonfield
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import F, OuterRef, Subquery
 from django.utils import timezone
@@ -9,8 +11,8 @@ from django.utils.translation import ugettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
 from mptt.models import MPTTModel, TreeForeignKey
 
-
 User = get_user_model()
+logger = logging.getLogger('essarch.tags')
 
 
 class NodeIdentifier(models.Model):
@@ -97,10 +99,11 @@ class Structure(models.Model):
     type = models.ForeignKey(StructureType, on_delete=models.PROTECT)
     template = models.ForeignKey(
         'self', on_delete=models.SET_NULL, null=True,
-        limit_choices_to={'is_template': True}, verbose_name=_('template'),
+        limit_choices_to={'is_template': True}, related_name='instances', verbose_name=_('template'),
     )
     is_template = models.BooleanField(_('is template'))
     published = models.BooleanField(_('published'), default=False)
+    published_date = models.DateTimeField(null=True)
     version = models.CharField(max_length=255, blank=False, default='1.0')
     version_link = models.UUIDField(default=uuid.uuid4, null=False)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='created_structures')
@@ -127,31 +130,116 @@ class Structure(models.Model):
 
         return True
 
+    def _create_template_instance(self):
+        return Structure.objects.create(
+            name=self.name,
+            type=self.type,
+            template=self,
+            is_template=False,
+            published=False,
+            published_date=None,
+            version=self.version,
+            version_link=self.version_link,
+            start_date=self.start_date,
+            end_date=self.end_date,
+            specification=self.specification,
+            rule_convention_type=self.rule_convention_type,
+        )
+
     def create_template_instance(self, archive_tag):
         from ESSArch_Core.tags.documents import StructureUnitDocument
 
-        old_structure_pk = self.pk
-        new_structure = self
-        new_structure.pk = None
-        new_structure.is_template = False
-        new_structure.template_id = old_structure_pk
-        new_structure.save()
+        new_structure = self._create_template_instance()
 
         archive_tagstructure = TagStructure.objects.create(tag=archive_tag, structure=new_structure)
         new_structure.tagstructure_set.add(archive_tagstructure)
 
         # create descendants from structure
-        for unit in StructureUnit.objects.filter(structure_id=old_structure_pk):
+        for unit in StructureUnit.objects.filter(structure=self):
             new_unit = unit.create_template_instance(new_structure)
             StructureUnitDocument.from_obj(new_unit).save()
 
         return new_structure, archive_tagstructure
+
+    def _create_new_version(self, version_name):
+        return Structure.objects.create(
+            name=self.name,
+            type=self.type,
+            template=self.template,
+            is_template=self.is_template,
+            published=False,
+            published_date=None,
+            version=version_name,
+            version_link=self.version_link,
+            start_date=self.start_date,
+            end_date=self.end_date,
+            specification=self.specification,
+            rule_convention_type=self.rule_convention_type,
+        )
+
+    def create_new_version(self, version_name):
+        if not self.is_template:
+            raise ValueError(_('Can only create new versions of templates'))
+
+        if not self.published:
+            raise ValueError(_('Can only create new versions of published structures'))
+
+        new_structure = self._create_new_version(version_name)
+
+        # create descendants from structure
+        for unit in StructureUnit.objects.filter(structure=self):
+            unit.create_new_version(new_structure)
+
+        return new_structure
+
+    def is_new_version(self):
+        return Structure.objects.filter(
+            is_template=True, published=True,
+            version_link=self.version_link
+        ).exclude(
+            pk=self.pk
+        ).exists()
+
+    def get_last_version(self):
+        return Structure.objects.filter(
+            is_template=True, published=True,
+            version_link=self.version_link,
+        ).latest('published_date')
+
+    def is_compatible_with_last_version(self):
+        last_version = self.get_last_version()
+        for old_unit in last_version.units.iterator():
+            assert old_unit.related_structure_units.filter(structure=self).exists()
+
+    def publish(self):
+        if self.is_new_version():
+            # TODO: What if multiple users wants to create a new version in parallel?
+            # Use permissions to stop it?
+
+            self.is_compatible_with_last_version()
+            last_version = self.get_last_version()
+
+            for old_instance in last_version.instances.all():
+                archive_tag_structure = old_instance.tagstructure_set.get(
+                    structure_unit__isnull=True, parent__isnull=True
+                )
+                new_instance, new_archive_tag_structure = self.create_template_instance(archive_tag_structure.tag)
+
+                archive_tag_structure.copy_descendants_to_new_structure(new_instance)
+
+        self.published = True
+        self.published_date = timezone.now()
+        self.save()
 
     def __str__(self):
         return '{} {}'.format(self.name, self.version)
 
     class Meta:
         get_latest_by = 'create_date'
+        permissions = (
+            ('publish_structure', 'Can publish structures'),
+            ('create_new_structure_version', 'Can create new structure versions'),
+        )
 
 
 class StructureUnitType(models.Model):
@@ -189,6 +277,10 @@ class StructureUnit(MPTTModel):
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
     name = models.CharField(max_length=255)
     type = models.ForeignKey('tags.StructureUnitType', on_delete=models.PROTECT)
+    template = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True,
+        limit_choices_to={'structure__is_template': True}, related_name='instances', verbose_name=_('template'),
+    )
     description = models.TextField(blank=True)
     comment = models.TextField(blank=True)
     reference_code = models.CharField(max_length=255)
@@ -207,30 +299,38 @@ class StructureUnit(MPTTModel):
         symmetrical=False,
     )
 
-    def create_template_instance(self, new_structure):
-        old_pk = self.pk
+    def _create_template_instance(self, structure_instance):
+        return StructureUnit.objects.create(
+            structure=structure_instance,
+            parent=None,
+            name=self.name,
+            type=self.type,
+            template=self,
+            description=self.description,
+            comment=self.comment,
+            reference_code=self.reference_code,
+            start_date=self.start_date,
+            end_date=self.end_date,
+        )
+
+    def create_template_instance(self, structure_instance):
         old_parent_ref_code = getattr(self.parent, 'reference_code', None)
-        new_unit = self
-        new_unit.pk = None
-        new_unit.parent = None
-        new_unit.structure = new_structure
+        new_unit = self._create_template_instance(structure_instance)
 
         if old_parent_ref_code is not None:
-            parent = new_structure.units.get(reference_code=old_parent_ref_code)
+            parent = structure_instance.units.get(reference_code=old_parent_ref_code)
             new_unit.parent = parent
 
         new_unit.save()
 
-        old = StructureUnit.objects.get(pk=old_pk)
-
-        for identifier in old.identifiers.all():
+        for identifier in self.identifiers.all():
             NodeIdentifier.objects.create(
                 structure_unit=new_unit,
                 identifier=identifier.identifier,
                 type=identifier.type,
             )
 
-        for note in old.notes.all():
+        for note in self.notes.all():
             NodeNote.objects.create(
                 structure_unit=new_unit,
                 text=note.text,
@@ -241,6 +341,38 @@ class StructureUnit(MPTTModel):
             )
 
         return new_unit
+
+    def create_new_version(self, new_structure):
+        unit = self.create_template_instance(new_structure)
+        unit.template = None
+        unit.save()
+
+        cache_key = 'version_node_relation_type'
+        relation_type = cache.get(cache_key)
+
+        if relation_type is None:
+            relation_type, _ = NodeRelationType.objects.get_or_create(name='new version')
+            cache.set(relation_type, relation_type, timeout=3600)
+
+        StructureUnitRelation.objects.create(
+            structure_unit_a=self,
+            structure_unit_b=unit,
+            type=relation_type,
+        )
+
+        return unit
+
+    def get_related_in_other_structure(self, other_structure):
+        structure = self.structure
+        other_structure_template = other_structure if other_structure.is_template else other_structure.template
+
+        template_unit = self if structure.is_template else self.template
+        template_units = template_unit.related_structure_units.filter(structure=other_structure_template)
+
+        if other_structure.is_template:
+            return template_units
+
+        return StructureUnit.objects.filter(template__in=template_units)
 
     def __str__(self):
         return '{} {}'.format(self.reference_code, self.name)
@@ -571,6 +703,35 @@ class TagStructure(MPTTModel):
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
+
+    def copy_to_new_structure(self, new_structure):
+        new_parent_tag = None
+        new_structure_unit = None
+
+        if self.parent is not None:
+            try:
+                old_parent_tag = self.parent.tag
+                new_parent_tag = old_parent_tag.structures.get(structure=new_structure)
+            except TagStructure.DoesNotExist:
+                logger.exception('Parent tag of {self} does not exist in new structure {new_structure}')
+                raise
+
+        if self.structure_unit is not None:
+            try:
+                new_structure_unit = self.structure_unit.get_related_in_other_structure(new_structure).get()
+            except StructureUnit.DoesNotExist:
+                logger.exception('Structure unit instance of {self} does not exist in new structure {new_structure}')
+                raise
+
+        return TagStructure.objects.create(
+            tag_id=self.tag_id, structure=new_structure,
+            structure_unit=new_structure_unit, parent=new_parent_tag,
+        )
+
+    @transaction.atomic
+    def copy_descendants_to_new_structure(self, new_structure):
+        for old_descendant in self.get_descendants(include_self=False):
+            old_descendant.copy_to_new_structure(new_structure)
 
     def create_new(self, representation):
         tree_id = self.__class__.objects._get_next_tree_id()

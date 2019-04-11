@@ -528,6 +528,7 @@ class KlaraImporter(BaseImporter):
             type=self.STRUCTURE_TYPE,
             is_template=True,
             published=True,
+            published_date=timezone.now(),
             version='1.0',
             create_date=create_date,
             rule_convention_type=rule_convention_type,
