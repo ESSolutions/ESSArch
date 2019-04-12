@@ -178,12 +178,6 @@ class Structure(models.Model):
         )
 
     def create_new_version(self, version_name):
-        if not self.is_template:
-            raise ValueError(_('Can only create new versions of templates'))
-
-        if not self.published:
-            raise ValueError(_('Can only create new versions of published structures'))
-
         new_structure = self._create_new_version(version_name)
 
         # create descendants from structure
@@ -206,10 +200,15 @@ class Structure(models.Model):
             version_link=self.version_link,
         ).latest('published_date')
 
+    def is_compatible_with_other_structure(self, other):
+        for old_unit in other.units.iterator():
+            assert old_unit.related_structure_units.filter(structure=self).exists()
+
+        return True
+
     def is_compatible_with_last_version(self):
         last_version = self.get_last_version()
-        for old_unit in last_version.units.iterator():
-            assert old_unit.related_structure_units.filter(structure=self).exists()
+        return self.is_compatible_with_other_structure(last_version)
 
     def publish(self):
         if self.is_new_version():

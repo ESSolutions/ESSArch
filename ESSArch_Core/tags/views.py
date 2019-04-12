@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from mptt.templatetags.mptt_tags import cache_tree_children
 from rest_framework import exceptions, viewsets
@@ -93,6 +94,13 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def publish(self, request, pk=None):
         obj = self.get_object()
+
+        if not obj.is_template:
+            raise exceptions.ParseError(_('Can only publish templates'))
+
+        if obj.published:
+            raise exceptions.ParseError(_('{obj} is already published'))
+
         obj.publish()
         return Response()
 
@@ -101,6 +109,12 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='new-version')
     def new_version(self, request, pk=None):
         obj = self.get_object()
+
+        if not obj.is_template:
+            raise exceptions.ParseError(_('Can only create new versions of templates'))
+
+        if not obj.published:
+            raise exceptions.ParseError(_('Can only create new versions of published structures'))
 
         try:
             version_name = request.data['version_name']

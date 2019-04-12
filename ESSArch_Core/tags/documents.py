@@ -352,11 +352,11 @@ class StructureUnitDocument(DocumentBase):
     @classmethod
     def from_obj(cls, obj):
         structure_set = obj.structure.tagstructure_set
+        archive_doc = None
         if structure_set.exists():
             archive = structure_set.first().get_root().tag.current_version
-            archive_doc = InnerArchiveDocument.from_obj(archive)
-        else:
-            archive_doc = None
+            if archive is not None:
+                archive_doc = InnerArchiveDocument.from_obj(archive)
 
         if obj.task is None:
             task_id = None
