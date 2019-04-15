@@ -29,6 +29,8 @@ from ESSArch_Core.tags.models import (
     TagVersionType,
 )
 
+PUBLISHED_STRUCTURE_CHANGE_ERROR = _('Published structures cannot be changed')
+
 
 class NodeIdentifierSerializer(serializers.ModelSerializer):
     type = serializers.CharField(source='type.name')
@@ -87,6 +89,12 @@ class StructureWriteSerializer(StructureSerializer):
     rule_convention_type = serializers.PrimaryKeyRelatedField(
         queryset=RuleConventionType.objects.all(), allow_null=True, default=None
     )
+
+    def validate(self, data):
+        if self.instance and self.instance.published:
+            raise serializers.ValidationError(PUBLISHED_STRUCTURE_CHANGE_ERROR)
+
+        return data
 
     def create(self, validated_data):
         validated_data['is_template'] = True
@@ -177,10 +185,16 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
     )
 
     def validate(self, data):
+        if self.instance and self.instance.structure.published:
+            raise serializers.ValidationError(PUBLISHED_STRUCTURE_CHANGE_ERROR)
+
         structure = data.get('structure')
         unit_type = data.get('type')
 
         if structure is not None and unit_type is not None:
+            if structure.published:
+                raise serializers.ValidationError(PUBLISHED_STRUCTURE_CHANGE_ERROR)
+
             if structure.type != unit_type.structure_type:
                 raise serializers.ValidationError(_(f'Type {unit_type.name} not allowed in {structure.type.name}'))
 

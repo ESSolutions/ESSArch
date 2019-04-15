@@ -11,6 +11,7 @@ from ESSArch_Core.tags.models import (
     StructureUnit,
     StructureUnitType,
 )
+from ESSArch_Core.tags.serializers import PUBLISHED_STRUCTURE_CHANGE_ERROR
 
 User = get_user_model()
 
@@ -125,6 +126,25 @@ class UpdateStructureTests(TestCase):
         self.assertEqual(Structure.objects.count(), 1)
         self.assertTrue(Structure.objects.filter(name='bar', created_by=None, revised_by=self.user).exists())
 
+    def test_update_published_structure(self):
+        structure = self.create_structure()
+        structure.published = True
+        structure.save()
+        url = reverse('structure-detail', args=[structure.pk])
+
+        perm = Permission.objects.get(codename='change_structure')
+        self.user.user_permissions.add(perm)
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.patch(
+            url,
+            data={
+                'name': 'bar',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {'non_field_errors': [PUBLISHED_STRUCTURE_CHANGE_ERROR]})
+
 
 class CreateStructureUnitTests(TestCase):
     def setUp(self):
@@ -214,3 +234,20 @@ class UpdateStructureUnitTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(StructureUnit.objects.count(), 1)
         self.assertTrue(StructureUnit.objects.filter(name='bar').exists())
+
+    def test_update_published_structure(self):
+        structure = self.create_structure()
+        structure.published = True
+        structure.save()
+
+        structure_unit = self.create_structure_unit(structure)
+        url = reverse('structure-units-detail', args=[structure.pk, structure_unit.pk])
+
+        response = self.client.patch(
+            url,
+            data={
+                'name': 'bar',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {'non_field_errors': [PUBLISHED_STRUCTURE_CHANGE_ERROR]})

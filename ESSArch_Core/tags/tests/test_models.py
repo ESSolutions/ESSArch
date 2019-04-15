@@ -19,23 +19,7 @@ from ESSArch_Core.tags.models import (
 class StructureTestCase(TestCase):
     def test_create_new_version(self):
         s_type = StructureType.objects.create()
-
-        structure = Structure.objects.create(type=s_type, is_template=False, published=False)
-
-        # structure must be published
-        with self.assertRaises(ValueError):
-            structure.create_new_version('2.0')
-
-        structure.published = True
-        structure.save()
-
-        # structure must be a template
-        with self.assertRaises(ValueError):
-            structure.create_new_version('2.0')
-
-        structure.is_template = True
-        structure.save()
-
+        structure = Structure.objects.create(type=s_type, is_template=True, published=True)
         new_version = structure.create_new_version('2.0')
 
         # version link is the same and the new version is not published
