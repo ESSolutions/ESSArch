@@ -86,6 +86,10 @@ class StructureType(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = _('structure type')
+        verbose_name_plural = _('structure types')
+
 
 class RuleConventionType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
@@ -243,11 +247,15 @@ class Structure(models.Model):
 
 
 class StructureUnitType(models.Model):
-    structure_type = models.ForeignKey('StructureType', on_delete=models.CASCADE)
-    name = models.CharField(max_length=255, blank=False)
+    structure_type = models.ForeignKey('StructureType', on_delete=models.CASCADE, verbose_name=_('structure type'))
+    name = models.CharField(_('name'), max_length=255, blank=False)
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = _('structure unit type')
+        verbose_name_plural = _('structure unit types')
 
 
 class StructureUnitRelation(models.Model):
