@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-08 15:21+0200\n"
+"POT-Creation-Date: 2019-04-15 15:41+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,101 +18,117 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: models.py:18
+#: models.py:20
 msgid "identifier"
 msgstr ""
 
-#: models.py:24 models.py:50
+#: models.py:26 models.py:52
 msgid "tag version"
 msgstr ""
 
-#: models.py:31 models.py:57
+#: models.py:33 models.py:59
 msgid "structure unit"
 msgstr ""
 
-#: models.py:33 models.py:59
+#: models.py:35 models.py:61
 msgid "type"
 msgstr ""
 
-#: models.py:37 models.py:67 models.py:74 models.py:81 models.py:88
-#: models.py:401 models.py:410
+#: models.py:39 models.py:69 models.py:76 models.py:83 models.py:96
+#: models.py:252 models.py:490 models.py:499
 msgid "name"
 msgstr ""
 
-#: models.py:60
+#: models.py:62
 msgid "text"
 msgstr ""
 
-#: models.py:61
+#: models.py:63
 msgid "href"
 msgstr ""
 
-#: models.py:62 models.py:229 models.py:393
+#: models.py:64 models.py:277 models.py:482
 msgid "create date"
 msgstr ""
 
-#: models.py:63 models.py:230 models.py:394
+#: models.py:65 models.py:278 models.py:483
 msgid "revise date"
 msgstr ""
 
-#: models.py:100
+#: models.py:84
+msgid "editable instance units"
+msgstr "redigeringsbara instansenheter"
+
+#: models.py:85
+msgid "movable instance units"
+msgstr "flyttbara instansenheter"
+
+#: models.py:91 models.py:251
+msgid "structure type"
+msgstr "strukturtyp"
+
+#: models.py:92
+msgid "structure types"
+msgstr "strukturtyper"
+
+#: models.py:108 models.py:291
 msgid "template"
-msgstr ""
+msgstr "mall"
 
-#: models.py:102
+#: models.py:110
 msgid "is template"
-msgstr ""
+msgstr "är mall"
 
-#: models.py:103
+#: models.py:111
 msgid "published"
-msgstr ""
+msgstr "publicerad"
 
-#: models.py:153
-msgid "Can only create new versions of templates"
-msgstr ""
+#: models.py:258
+msgid "structure unit type"
+msgstr "strukturenhetstyp"
 
-#: models.py:156
-msgid "Can only create new versions of published structures"
-msgstr ""
+#: models.py:259
+msgid "structure unit types"
+msgstr "strukturenhetstyper"
 
-#: models.py:226 models.py:390
+#: models.py:274 models.py:479
 msgid "description"
 msgstr "beskrivning"
 
-#: models.py:227 models.py:391 models.py:624
+#: models.py:275 models.py:480 models.py:713
 msgid "start date"
 msgstr ""
 
-#: models.py:228 models.py:392 models.py:625
+#: models.py:276 models.py:481 models.py:714
 msgid "end date"
 msgstr ""
 
-#: models.py:402
+#: models.py:491
 msgid "size"
 msgstr ""
 
-#: models.py:403
+#: models.py:492
 msgid "unit"
 msgstr ""
 
-#: models.py:411
+#: models.py:500
 msgid "archive type"
 msgstr "arkivtyp"
 
-#: serializers.py:183
+#: serializers.py:32
+msgid "Published structures cannot be changed"
+msgstr ""
+
+#: serializers.py:202
 #, python-brace-format
 msgid "Type {unit_type.name} not allowed in {structure.type.name}"
 msgstr ""
 "Enhetstypen {unit_type.name} är inte tillåten i strukturtypen {structure."
 "type.name}"
 
-#: serializers.py:376
+#: serializers.py:395
 msgid "Archive already added"
 msgstr "Arkivet har redan lagts till"
-
-#: serializers.py:401
-msgid "Archive start date must be before agent start date"
-msgstr "Arkivets slutdatum måste ske före agentens startdatum"
 
 #: templates/tags/archive.html:66 templates/tags/search_results.html:73
 msgid "Archive"
@@ -166,3 +182,23 @@ msgstr "Titel"
 #: templates/tags/search_results.html:78
 msgid "Description"
 msgstr "Beskrivning"
+
+#: views.py:99
+msgid "Can only publish templates"
+msgstr ""
+
+#: views.py:102
+#, python-brace-format
+msgid "{obj} is already published"
+msgstr ""
+
+#: views.py:114
+msgid "Can only create new versions of templates"
+msgstr ""
+
+#: views.py:117
+msgid "Can only create new versions of published structures"
+msgstr ""
+
+#~ msgid "Archive start date must be before agent start date"
+#~ msgstr "Arkivets slutdatum måste ske före agentens startdatum"
