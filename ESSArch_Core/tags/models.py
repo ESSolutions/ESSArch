@@ -81,6 +81,7 @@ class NodeRelationType(models.Model):
 
 class StructureType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+    movable_instance_units = models.BooleanField(_('movable instance units'), default=False)
 
     def __str__(self):
         return self.name

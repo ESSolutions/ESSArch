@@ -63,7 +63,7 @@ class RuleConventionTypeSerializer(serializers.ModelSerializer):
 class StructureTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = StructureType
-        fields = ('id', 'name',)
+        fields = ('id', 'name', 'movable_instance_units',)
 
 
 class StructureSerializer(serializers.ModelSerializer):
