@@ -121,6 +121,9 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         except KeyError:
             raise exceptions.ParseError('No version_name provided')
 
+        if Structure.objects.filter(is_template=True, version_link=obj.version_link, version=version_name).exists():
+            raise exceptions.ParseError(_(f'Version {version_name} already exists'))
+
         new_version = obj.create_new_version(version_name)
         serializer = self.serializer_class(instance=new_version)
         return Response(serializer.data)
