@@ -185,6 +185,9 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
     )
 
     def validate(self, data):
+        if set(data.keys()) == set(['structure', 'structure_unit_relations_a']):
+            return data
+
         if self.instance and self.instance.structure.published:
             raise serializers.ValidationError(PUBLISHED_STRUCTURE_CHANGE_ERROR)
 

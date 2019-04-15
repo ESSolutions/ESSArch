@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from ESSArch_Core.tags.models import (
+    NodeRelationType,
     Structure,
     StructureType,
     StructureUnit,
@@ -217,12 +218,16 @@ class UpdateStructureUnitTests(TestCase):
     def create_structure(self):
         return Structure.objects.create(type=self.structure_type, is_template=True)
 
-    def create_structure_unit(self, structure):
-        return StructureUnit.objects.create(structure=structure, type=self.structure_unit_type)
+    def create_structure_unit(self, structure, ref_code):
+        return StructureUnit.objects.create(
+            structure=structure,
+            type=self.structure_unit_type,
+            reference_code=ref_code
+        )
 
     def test_update(self):
         structure = self.create_structure()
-        structure_unit = self.create_structure_unit(structure)
+        structure_unit = self.create_structure_unit(structure, "1")
         url = reverse('structure-units-detail', args=[structure.pk, structure_unit.pk])
 
         response = self.client.patch(
@@ -240,13 +245,45 @@ class UpdateStructureUnitTests(TestCase):
         structure.published = True
         structure.save()
 
-        structure_unit = self.create_structure_unit(structure)
+        structure_unit = self.create_structure_unit(structure, "1")
         url = reverse('structure-units-detail', args=[structure.pk, structure_unit.pk])
 
         response = self.client.patch(
             url,
             data={
                 'name': 'bar',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {'non_field_errors': [PUBLISHED_STRUCTURE_CHANGE_ERROR]})
+
+        # relations can be changed even on published structures
+        other_structure_unit = self.create_structure_unit(structure, "2")
+        relation_type = NodeRelationType.objects.create(name="test")
+        response = self.client.patch(
+            url,
+            data={
+                'related_structure_units': [
+                    {
+                        'structure_unit': other_structure_unit.pk,
+                        'type': relation_type.pk,
+                    }
+                ],
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # but not together with other data
+        response = self.client.patch(
+            url,
+            data={
+                'name': 'bar',
+                'related_structure_units': [
+                    {
+                        'structure_unit': other_structure_unit.pk,
+                        'type': relation_type.pk,
+                    }
+                ],
             }
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
