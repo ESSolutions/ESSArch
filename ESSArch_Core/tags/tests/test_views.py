@@ -200,6 +200,49 @@ class CreateStructureUnitTests(TestCase):
         self.assertEqual(StructureUnit.objects.count(), 1)
         self.assertTrue(StructureUnit.objects.filter(structure=structure).exists())
 
+    def test_in_published_structure(self):
+        structure = self.create_structure()
+        structure.published = True
+        structure.save()
+        unit_type = StructureUnitType.objects.create(name="test", structure_type=structure.type)
+
+        url = reverse('structure-units-list', args=[structure.pk])
+
+        response = self.client.post(
+            url,
+            data={
+                'name': 'foo',
+                'type': unit_type.pk,
+                'reference_code': '123',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {'non_field_errors': [PUBLISHED_STRUCTURE_CHANGE_ERROR]})
+
+    def test_in_structure_template_instance(self):
+        template = self.create_structure()
+        template.published = True
+        template.save()
+
+        instance = self.create_structure()
+        instance.is_template = False
+        instance.published = True
+        instance.template = template
+        instance.save()
+
+        unit_type = StructureUnitType.objects.create(name="test", structure_type=instance.type)
+        url = reverse('structure-units-list', args=[instance.pk])
+
+        response = self.client.post(
+            url,
+            data={
+                'name': 'foo',
+                'type': unit_type.pk,
+                'reference_code': '123',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
 
 class UpdateStructureUnitTests(TestCase):
     def setUp(self):

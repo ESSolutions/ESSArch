@@ -188,14 +188,14 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
         if set(data.keys()) == set(['structure', 'structure_unit_relations_a']):
             return data
 
-        if self.instance and self.instance.structure.published:
+        if self.instance and self.instance.structure.is_template and self.instance.structure.published:
             raise serializers.ValidationError(PUBLISHED_STRUCTURE_CHANGE_ERROR)
 
         structure = data.get('structure')
         unit_type = data.get('type')
 
         if structure is not None and unit_type is not None:
-            if structure.published:
+            if structure.is_template and structure.published:
                 raise serializers.ValidationError(PUBLISHED_STRUCTURE_CHANGE_ERROR)
 
             if structure.type != unit_type.structure_type:
