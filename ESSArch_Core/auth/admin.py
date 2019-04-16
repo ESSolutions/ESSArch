@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import logging
 
+from allauth.account.models import EmailAddress
 from django import forms
 from django.contrib import admin
 from django.contrib.auth import get_user_model
@@ -17,6 +18,7 @@ from groups_manager.models import (
     Member as GroupManagerMember,
 )
 from nested_inline.admin import NestedModelAdmin, NestedTabularInline
+from rest_framework.authtoken.models import Token
 
 from ESSArch_Core.admin import NestedStackedInlineWithoutHeader
 from ESSArch_Core.auth.models import (Group, GroupMember, GroupMemberRole, GroupType, Member, ProxyGroup,
@@ -258,6 +260,8 @@ class ProxyPermissionAdmin(admin.ModelAdmin):
 
 
 admin.site.unregister(DjangoGroup)
+admin.site.unregister(EmailAddress)
+admin.site.unregister(Token)
 admin.site.unregister(User)
 admin.site.register(ProxyPermission, ProxyPermissionAdmin)
 admin.site.register(ProxyGroup, GroupAdmin)
