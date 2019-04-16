@@ -18,3 +18,7 @@ tools.db
 # Coverage default folders 
 .coverage
 htmlcov/
+
+# Vagrant files
+.vagrant/
+/*.log
