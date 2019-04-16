@@ -48,7 +48,7 @@ class GroupGenericObjects(models.Model):
 
 
 class GroupMemberRole(GroupMemberRoleMixin):
-    codename = models.CharField(_('codename'), unique=True, max_length=255)
+    codename = models.CharField(_('name'), unique=True, max_length=255)
     label = models.SlugField(_('label'), blank=True, max_length=255)
     permissions = models.ManyToManyField(Permission, related_name='roles', verbose_name=_('permissions'))
 
@@ -250,6 +250,9 @@ class GroupMember(GroupMemberMixin):
     )
     roles = models.ManyToManyField(GroupMemberRole, related_name='group_memberships', verbose_name=_('roles'))
     expiration_date = models.DateTimeField(_('expiration date'), null=True, default=None)
+
+    def __str__(self):
+        return self.group.name
 
     class Meta(GroupMemberMixin.Meta):
         unique_together = ('group', 'member')
