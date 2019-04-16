@@ -160,6 +160,14 @@ intersphinx_mapping = {
     'celery': ('https://celery.readthedocs.org/en/latest/', None),
 }
 
+# Github link
+html_context = {
+    'display_github': True,
+    'github_user': 'essolutions',
+    'github_repo': 'essarch_core',
+    'github_version': 'master/ESSArch_Core/docs/'
+}
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
