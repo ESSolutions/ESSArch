@@ -1,0 +1,181 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-04-16 12:24+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../authentication_authorization/permissions.rst:3
+msgid "Permissions"
+msgstr "Rättigheter"
+
+#: ../../authentication_authorization/permissions.rst:5
+msgid "The following permissions are available"
+msgstr "Följande rättigheter är tillgängliga"
+
+#: ../../authentication_authorization/permissions.rst:11
+msgid "Archival Description"
+msgstr "Arkivredovisning"
+
+#: ../../authentication_authorization/permissions.rst:13
+msgid "``tags.search``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:15
+msgid "Perform searches"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:17
+msgid "``tags.create_archive``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:19
+msgid "Create archives"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:21
+msgid "``tags.delete_archive``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:23
+msgid "Delete archives"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:26
+msgid "Structures"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:28
+#: ../../authentication_authorization/permissions.rst:58
+msgid "``tags.add_structureunit``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:30
+msgid "Create structure units"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:32
+msgid "``tags.change_structureunit``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:34
+msgid "Change structure units"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:36
+msgid "``tags.delete_structureunit``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:38
+msgid "Delete structure units"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:41
+msgid "Structure Types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:43
+msgid "``tags.add_structuretype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:45
+msgid "Create structure types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:47
+msgid "``tags.change_structuretype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:49
+msgid "Change structure types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:51
+msgid "``tags.delete_structuretype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:53
+msgid "Delete structure types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:56
+msgid "Structure Units"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:60
+msgid "Create structures"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:62
+msgid "``tags.change_structure``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:64
+msgid "Change structures"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:66
+msgid "``tags.delete_structure``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:68
+msgid "Delete structures"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:70
+msgid "``tags.publish_structure``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:72
+msgid "Publish structures"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:74
+msgid "``tags.create_new_structure_versions``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:76
+msgid "Create new structure versions"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:79
+msgid "Structure Unit Types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:81
+msgid "``tags.add_structureunittype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:83
+msgid "Create structure unit types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:85
+msgid "``tags.change_structureunittype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:87
+msgid "Change structure unit types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:89
+msgid "``tags.delete_structureunittype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions.rst:91
+msgid "Delete structure unit types"
+msgstr ""
+

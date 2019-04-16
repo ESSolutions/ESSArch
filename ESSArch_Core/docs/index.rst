@@ -9,11 +9,11 @@ ESSArch Core
 .. toctree::
     :maxdepth: 10
 
+    authentication_authorization/index
     configuration/index
     development
     directory_structure
     installation/index
-    permissions
     restapi/index
 
 
