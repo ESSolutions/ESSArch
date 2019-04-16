@@ -21,4 +21,4 @@ htmlcov/
 
 # Vagrant files
 .vagrant/
-/*.log
+/vagrant/*.log

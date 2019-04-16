@@ -6,6 +6,8 @@ get_os_name(){
         OS_NAME='ubuntu'
     elif [[ "$(hostnamectl | grep -i sles | wc -l)" != "0" ]]; then
         OS_NAME='sles'
+    elif [[ "$(hostnamectl | grep -i opensuse | wc -l)" != "0" ]]; then
+	OS_NAME='opensuse'
     elif [[ "$(hostnamectl | grep -i centos | wc -l)" != "0" ]]; then
         OS_NAME='centos'
     else
@@ -34,8 +36,15 @@ install_centos_pre_req(){
     sudo yum update -y && sudo yum install -y git mc ntp gcc gcc-c++ make kernel-devel zlib-devel sg3_utils lsscsi mt-st mtx lzo lzo-devel perl-Config-General
 }
 install_sles_pre_req(){
-    echo "SLES IS NOT YET SUPPORTED!"
-    exit 1
+    echo "SLES/OpenSuse IS NOT YET SUPPORTED! Use it at your own risk!"
+
+    # Workaround so that we install the same kernel-devel and kernel-syms version as the running kernel.
+    UNAME_R=$(echo $(uname -r) | cut -d "-" -f-2)
+    PATCHED_KERNEL_VERSION=$(sudo zypper se -s kernel-devel | grep ${UNAME_R} | cut -d "|" -f4 | tr -d " ")
+    sudo zypper install -y --oldpackage kernel-devel-${PATCHED_KERNEL_VERSION}
+    sudo zypper install -y --oldpackage kernel-syms-${PATCHED_KERNEL_VERSION}
+
+    sudo zypper install -y git mc ntp gcc gcc-c++ make zlib-devel sg3_utils lsscsi mtx lzo lzo-devel perl-Config-General
 }
 
 install_pre_req(){
@@ -43,7 +52,7 @@ install_pre_req(){
         install_ubuntu_pre_req
     elif [[ ${OS_NAME} == 'centos' ]]; then
         install_centos_pre_req
-    elif [[ ${OS_NAME} == 'sles' ]]; then
+    elif [[ ${OS_NAME} == 'sles' ]] || [[ ${OS_NAME} == 'opensuse' ]]; then
         install_sles_pre_req
     fi
 }
@@ -57,9 +66,11 @@ git clone https://github.com/markh794/mhvtl.git /src/mhvtl
 cd /src/mhvtl/
 make distclean
 cd kernel/ 
-make && sudo make install
+make
+sudo make install
 cd .. 
-make && sudo make install
+make
+sudo make install
 sudo rm -rf mhvtl
 
 # Load it

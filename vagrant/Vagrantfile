@@ -2,7 +2,6 @@
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
-#  config.vm.box = "ubuntu/xenial64"
   config.vm.box_check_update = false
 
   config.vm.define "ubuntu" do |instance|
@@ -13,17 +12,18 @@ Vagrant.configure("2") do |config|
     instance.vm.box = "centos7"
   end
 
-  config.vm.define "sles" do |instance|
-    instance.vm.box = "wandisco/sles-12.4-64"
+  config.vm.define "opensuse" do |instance|
+    instance.vm.box = "toni03/opensuse-leap15"
   end
 
   config.vm.provider "virtualbox" do |vb|
     vb.memory = "2048"
-    #config.vm.provision :shell, path: "install.sh"
   end
 
+  config.vm.synced_folder "../", "/vagrant_data"
+
   config.vm.provision "shell", inline: <<-SHELL
-    cd /vagrant
+    cd /vagrant_data/vagrant
     sudo ./install_mhVTL.sh
   SHELL
 end
