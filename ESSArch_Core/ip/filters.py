@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from django_filters import rest_framework as filters
 from rest_framework import exceptions
 
-from ESSArch_Core.filters import ListFilter, MultipleCharFilter
+from ESSArch_Core.api.filters import ListFilter, MultipleCharFilter
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
 
 User = get_user_model()

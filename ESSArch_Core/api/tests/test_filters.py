@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django_filters import rest_framework as filters
 
-from ESSArch_Core.filters import ListFilter
+from ESSArch_Core.api.filters import ListFilter
 from ESSArch_Core.ip.models import InformationPackage
 
 

@@ -36,7 +36,7 @@ from django_redis import get_redis_connection
 from redis.exceptions import RedisError
 from elasticsearch_dsl.connections import get_connection as get_es_connection
 
-from ESSArch_Core.filters import string_to_bool
+from ESSArch_Core.api.filters import string_to_bool
 
 try:
     from pip._internal.operations.freeze import freeze as pip_freeze
