@@ -14,12 +14,3 @@ ESSArch Core
     directory_structure
     installation/index
     restapi/index
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
