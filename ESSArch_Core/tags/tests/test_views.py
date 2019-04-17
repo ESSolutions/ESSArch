@@ -10,6 +10,7 @@ from ESSArch_Core.tags.models import (
     Structure,
     StructureType,
     StructureUnit,
+    StructureUnitRelation,
     StructureUnitType,
 )
 from ESSArch_Core.tags.serializers import PUBLISHED_STRUCTURE_CHANGE_ERROR
@@ -199,6 +200,91 @@ class CreateStructureUnitTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(StructureUnit.objects.count(), 1)
         self.assertTrue(StructureUnit.objects.filter(structure=structure).exists())
+
+    def test_with_related_unit(self):
+        structure = self.create_structure()
+        unit_type = StructureUnitType.objects.create(name="test", structure_type=structure.type)
+        other_unit = StructureUnit.objects.create(name="foo", reference_code="123", type=unit_type, structure=structure)
+
+        relation_type = NodeRelationType.objects.create(name="test")
+        url = reverse('structure-units-list', args=[structure.pk])
+
+        response = self.client.post(
+            url,
+            data={
+                'name': 'bar',
+                'type': unit_type.pk,
+                'reference_code': '456',
+                'related_structure_units': [
+                    {
+                        'structure_unit': other_unit.pk,
+                        'type': relation_type.pk,
+                    }
+                ],
+            }
+        )
+
+        unit = StructureUnit.objects.get(name='bar')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(StructureUnit.objects.count(), 2)
+        self.assertEqual(StructureUnitRelation.objects.count(), 2)
+
+        self.assertTrue(
+            StructureUnitRelation.objects.filter(
+                structure_unit_a=unit, structure_unit_b=other_unit, type=relation_type
+            ).exists()
+        )
+        self.assertTrue(
+            StructureUnitRelation.objects.filter(
+                structure_unit_a=other_unit, structure_unit_b=unit, type=relation_type
+            ).exists()
+        )
+
+    def test_with_related_unit_and_mirrored_type(self):
+        structure = self.create_structure()
+        unit_type = StructureUnitType.objects.create(name="test", structure_type=structure.type)
+        other_unit = StructureUnit.objects.create(name="foo", reference_code="123", type=unit_type, structure=structure)
+
+        relation_type = NodeRelationType.objects.create(name="test")
+        mirrored_relation_type = NodeRelationType.objects.create(name="test_mirrored")
+        relation_type.mirrored_type = mirrored_relation_type
+        relation_type.save()
+
+        url = reverse('structure-units-list', args=[structure.pk])
+
+        response = self.client.post(
+            url,
+            data={
+                'name': 'bar',
+                'type': unit_type.pk,
+                'reference_code': '456',
+                'related_structure_units': [
+                    {
+                        'structure_unit': other_unit.pk,
+                        'type': relation_type.pk,
+                    }
+                ],
+            }
+        )
+
+        unit = StructureUnit.objects.get(name='bar')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(StructureUnit.objects.count(), 2)
+        self.assertEqual(StructureUnitRelation.objects.count(), 2)
+
+        self.assertTrue(
+            StructureUnitRelation.objects.filter(
+                structure_unit_a=unit, structure_unit_b=other_unit, type=relation_type
+            ).exists()
+        )
+        self.assertTrue(
+            StructureUnitRelation.objects.filter(
+                structure_unit_a=other_unit, structure_unit_b=unit, type=mirrored_relation_type
+            ).exists()
+        )
+
 
     def test_in_published_structure(self):
         structure = self.create_structure()

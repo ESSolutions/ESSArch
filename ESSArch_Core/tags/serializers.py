@@ -1,6 +1,7 @@
 import elasticsearch
 from django.core.cache import cache
 from django.db import transaction
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
@@ -205,10 +206,15 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
 
     @staticmethod
     def create_relations(structure_unit, structure_unit_relations):
-        StructureUnitRelation.objects.bulk_create([
-            StructureUnitRelation(structure_unit_a=structure_unit, **relation)
-            for relation in structure_unit_relations
-        ])
+        for relation in structure_unit_relations:
+            relation['structure_unit_a'] = structure_unit
+            rel = StructureUnitRelation.objects.create(**relation)
+
+            mirrored_data = relation.copy()
+            mirrored_data['structure_unit_a'] = relation['structure_unit_b']
+            mirrored_data['structure_unit_b'] = relation['structure_unit_a']
+            mirrored_data['type'] = rel.type.mirrored_type or rel.type
+            StructureUnitRelation.objects.create(**mirrored_data)
 
     @transaction.atomic
     def create(self, validated_data):
@@ -224,7 +230,7 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
         related_units_data = validated_data.pop('structure_unit_relations_a', None)
 
         if related_units_data is not None:
-            StructureUnitRelation.objects.filter(structure_unit_a=instance).delete()
+            StructureUnitRelation.objects.filter(Q(structure_unit_a=instance) | Q(structure_unit_b=instance)).delete()
             self.create_relations(instance, related_units_data)
 
         return super().update(instance, validated_data)
