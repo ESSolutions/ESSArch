@@ -11,7 +11,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.agents.models import AgentTagLink
 from ESSArch_Core.auth.decorators import permission_required_or_403
-from ESSArch_Core.filters import OrderingFilterWithNulls
+from ESSArch_Core.api.filters import OrderingFilterWithNulls
 from ESSArch_Core.tags.filters import StructureUnitFilter, TagFilter
 from ESSArch_Core.tags.models import (
     Structure,

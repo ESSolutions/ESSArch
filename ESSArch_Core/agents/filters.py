@@ -4,7 +4,7 @@ from django_filters import rest_framework as filters
 from rest_framework.filters import OrderingFilter
 
 from ESSArch_Core.agents.models import Agent, AgentName
-from ESSArch_Core.filters import UUIDInFilter
+from ESSArch_Core.api.filters import UUIDInFilter
 
 
 class AgentFilter(filters.FilterSet):
