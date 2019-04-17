@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-15 15:41+0200\n"
+"POT-Creation-Date: 2019-04-16 14:12+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: apps.py:7
+msgid "Archival Description"
+msgstr "Arkivredovisning"
 
 #: models.py:20
 msgid "identifier"
@@ -34,10 +38,10 @@ msgstr ""
 msgid "type"
 msgstr ""
 
-#: models.py:39 models.py:69 models.py:76 models.py:83 models.py:96
-#: models.py:252 models.py:490 models.py:499
+#: models.py:39 models.py:69 models.py:76 models.py:87 models.py:100
+#: models.py:256 models.py:499 models.py:508
 msgid "name"
-msgstr ""
+msgstr "namn"
 
 #: models.py:62
 msgid "text"
@@ -47,86 +51,124 @@ msgstr ""
 msgid "href"
 msgstr ""
 
-#: models.py:64 models.py:277 models.py:482
+#: models.py:64 models.py:281 models.py:491
 msgid "create date"
 msgstr ""
 
-#: models.py:65 models.py:278 models.py:483
+#: models.py:65 models.py:282 models.py:492
 msgid "revise date"
 msgstr ""
 
-#: models.py:84
+#: models.py:82
+msgid "node relation type"
+msgstr "nodrelationstyp"
+
+#: models.py:83
+msgid "node relation types"
+msgstr "nodrelationstyper"
+
+#: models.py:88
 msgid "editable instance units"
 msgstr "redigeringsbara instansenheter"
 
-#: models.py:85
+#: models.py:89
 msgid "movable instance units"
 msgstr "flyttbara instansenheter"
 
-#: models.py:91 models.py:251
+#: models.py:95 models.py:255
 msgid "structure type"
 msgstr "strukturtyp"
 
-#: models.py:92
+#: models.py:96
 msgid "structure types"
 msgstr "strukturtyper"
 
-#: models.py:108 models.py:291
+#: models.py:112 models.py:295
 msgid "template"
 msgstr "mall"
 
-#: models.py:110
+#: models.py:114
 msgid "is template"
 msgstr "är mall"
 
-#: models.py:111
+#: models.py:115
 msgid "published"
 msgstr "publicerad"
 
-#: models.py:258
+#: models.py:262
 msgid "structure unit type"
 msgstr "strukturenhetstyp"
 
-#: models.py:259
+#: models.py:263
 msgid "structure unit types"
 msgstr "strukturenhetstyper"
 
-#: models.py:274 models.py:479
+#: models.py:278 models.py:488
 msgid "description"
 msgstr "beskrivning"
 
-#: models.py:275 models.py:480 models.py:713
+#: models.py:279 models.py:489 models.py:726
 msgid "start date"
 msgstr ""
 
-#: models.py:276 models.py:481 models.py:714
+#: models.py:280 models.py:490 models.py:727
 msgid "end date"
 msgstr ""
 
-#: models.py:491
+#: models.py:396
+msgid "Can add structure unit instances"
+msgstr "Kan skapa instanser av strukturenheter"
+
+#: models.py:397
+msgid "Can edit instances of structure units"
+msgstr "Kan redigera instanser av strukturenheter"
+
+#: models.py:398
+msgid "Can move instances of structure units"
+msgstr "Kan flytta instanser av strukturenheter"
+
+#: models.py:500
 msgid "size"
 msgstr ""
 
-#: models.py:492
+#: models.py:501
 msgid "unit"
 msgstr ""
 
-#: models.py:500
+#: models.py:509
 msgid "archive type"
 msgstr "arkivtyp"
+
+#: models.py:515
+msgid "node type"
+msgstr "nodtyp"
+
+#: models.py:516
+msgid "node types"
+msgstr "nodtyper"
 
 #: serializers.py:32
 msgid "Published structures cannot be changed"
 msgstr ""
 
-#: serializers.py:202
+#: serializers.py:199
+#, python-brace-format
+msgid "Units in instances of type {structure_type} cannot be moved"
+msgstr "Enheter i instanser av typen {structure_type} kan inte flyttas"
+
+#: serializers.py:208
+#, python-brace-format
+msgid "Units in instances of type {structure_type} cannot be edited"
+msgstr "Enheter i instanser av typen {structure_type} kan inte redigeras"
+
+#: serializers.py:222
 #, python-brace-format
 msgid "Type {unit_type.name} not allowed in {structure.type.name}"
 msgstr ""
 "Enhetstypen {unit_type.name} är inte tillåten i strukturtypen {structure."
 "type.name}"
 
-#: serializers.py:395
+#: serializers.py:415
 msgid "Archive already added"
 msgstr "Arkivet har redan lagts till"
 
@@ -183,21 +225,26 @@ msgstr "Titel"
 msgid "Description"
 msgstr "Beskrivning"
 
-#: views.py:99
+#: views.py:104
 msgid "Can only publish templates"
 msgstr ""
 
-#: views.py:102
+#: views.py:107
 #, python-brace-format
 msgid "{obj} is already published"
 msgstr ""
 
-#: views.py:114
+#: views.py:120
 msgid "Can only create new versions of templates"
 msgstr ""
 
-#: views.py:117
+#: views.py:123
 msgid "Can only create new versions of published structures"
+msgstr ""
+
+#: views.py:131
+#, python-brace-format
+msgid "Version {version_name} already exists"
 msgstr ""
 
 #~ msgid "Archive start date must be before agent start date"

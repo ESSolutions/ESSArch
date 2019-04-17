@@ -78,6 +78,10 @@ class NodeRelationType(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = _('node relation type')
+        verbose_name_plural = _('node relation types')
+
 
 class StructureType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
@@ -388,6 +392,11 @@ class StructureUnit(MPTTModel):
 
     class Meta:
         unique_together = (('structure', 'reference_code'),)
+        permissions = (
+            ('add_structure_unit_instance', _('Can add structure unit instances')),
+            ('change_structure_unit_instance', _('Can edit instances of structure units')),
+            ('move_structure_unit_instance', _('Can move instances of structure units')),
+        )
 
 
 class Tag(models.Model):
@@ -501,6 +510,10 @@ class TagVersionType(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = _('node type')
+        verbose_name_plural = _('node types')
 
 
 class TagVersion(models.Model):
