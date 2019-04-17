@@ -172,9 +172,8 @@ class LogoutView(rest_auth_LogoutView):
         if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
             try:
                 return saml2_logout(request)
-            except AttributeError:
-                logger.debug('Failed to logout using SAML, mo active identity found')
-                pass
+            except Exception:
+                logger.exception('Failed to logout using SAML, no active identity found')
 
         self.logout(request)
         next_page = resolve_url(settings.LOGOUT_REDIRECT_URL)
