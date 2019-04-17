@@ -11,6 +11,7 @@ from ESSArch_Core.agents.serializers import (
     AgentTagLinkRelationTypeSerializer,
 )
 from ESSArch_Core.auth.serializers import UserSerializer
+from ESSArch_Core.api.validators import StartDateEndDateValidator
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.tags.models import (
     MediumType,
@@ -106,6 +107,14 @@ class StructureWriteSerializer(StructureSerializer):
     def update(self, instance, validated_data):
         validated_data['revised_by'] = self.context['request'].user
         return super().update(instance, validated_data)
+
+    class Meta(StructureSerializer.Meta):
+        validators = [
+            StartDateEndDateValidator(
+                start_date='start_date',
+                end_date='end_date',
+            )
+        ]
 
 
 class RelatedStructureUnitSerializer(serializers.ModelSerializer):

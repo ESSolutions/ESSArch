@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-05 10:12+0200\n"
+"POT-Creation-Date: 2019-04-17 16:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,253 +22,257 @@ msgstr ""
 msgid "Agents"
 msgstr "Agenter"
 
-#: models.py:12 models.py:122 models.py:149 models.py:173 models.py:181
-#: models.py:199 models.py:211 models.py:227 models.py:275 models.py:298
+#: models.py:12 models.py:128 models.py:155 models.py:179 models.py:187
+#: models.py:205 models.py:217 models.py:233 models.py:281 models.py:304
 msgid "name"
 msgstr "namn"
 
-#: models.py:13
+#: models.py:15
 msgid "mirrored type"
 msgstr "motsatt typ"
 
-#: models.py:19
+#: models.py:22
 msgid "agent relation type"
 msgstr "Agentrelationstyp"
 
-#: models.py:20
+#: models.py:23
 msgid "agent relation types"
 msgstr "Agentrelationstyper"
 
-#: models.py:27 models.py:118 models.py:174 models.py:242 models.py:290
+#: models.py:30 models.py:121 models.py:180 models.py:248 models.py:296
 msgid "description"
 msgstr "beskrivning"
 
-#: models.py:28 models.py:81 models.py:116 models.py:176 models.py:243
-#: models.py:292
+#: models.py:31 models.py:84 models.py:119 models.py:182 models.py:249
+#: models.py:298
 msgid "start date"
 msgstr "startdatum"
 
-#: models.py:29 models.py:82 models.py:117 models.py:177 models.py:244
-#: models.py:293
+#: models.py:32 models.py:85 models.py:120 models.py:183 models.py:250
+#: models.py:299
 msgid "end date"
 msgstr "slutdatum"
 
-#: models.py:30 models.py:78 models.py:144
+#: models.py:33 models.py:81 models.py:150
 msgid "create date"
 msgstr ""
 
-#: models.py:31 models.py:79 models.py:145
+#: models.py:34 models.py:82 models.py:151
 msgid "revise date"
 msgstr ""
 
-#: models.py:42
+#: models.py:45
 msgid "minimal"
 msgstr ""
 
-#: models.py:43
+#: models.py:46
 msgid "partial"
 msgstr ""
 
-#: models.py:44
+#: models.py:47
 msgid "full"
 msgstr ""
 
-#: models.py:50
+#: models.py:53
 msgid "draft"
 msgstr ""
 
-#: models.py:51
+#: models.py:54
 msgid "final"
 msgstr ""
 
-#: models.py:56
+#: models.py:59
 msgid "latin"
 msgstr ""
 
-#: models.py:70
+#: models.py:73
 msgid "level of detail"
 msgstr ""
 
-#: models.py:72
+#: models.py:75
 msgid "record status"
 msgstr ""
 
-#: models.py:73
+#: models.py:76
 msgid "script"
 msgstr ""
 
-#: models.py:75
+#: models.py:78
 msgid "language"
 msgstr "språk"
 
-#: models.py:76
+#: models.py:79
 msgid "mandates"
 msgstr ""
 
-#: models.py:101 models.py:139
+#: models.py:104 models.py:145
 msgid "agent"
 msgstr ""
 
-#: models.py:108
+#: models.py:111
 msgid "tag"
 msgstr ""
 
-#: models.py:114 models.py:141 models.py:195 models.py:213
+#: models.py:117 models.py:147 models.py:201 models.py:219
 msgid "type"
 msgstr "typ"
 
-#: models.py:128
+#: models.py:134
 msgid "agent tag relation type"
 msgstr ""
 
-#: models.py:129
+#: models.py:135
 msgid "agent tag relation types"
 msgstr ""
 
-#: models.py:142
+#: models.py:148
 msgid "text"
 msgstr ""
 
-#: models.py:143 models.py:175
+#: models.py:149 models.py:181
 msgid "href"
 msgstr ""
 
-#: models.py:155
+#: models.py:161
 msgid "agent note type"
 msgstr ""
 
-#: models.py:156
+#: models.py:162
 msgid "agent note types"
 msgstr ""
 
-#: models.py:187
+#: models.py:193
 msgid "authority type"
 msgstr ""
 
-#: models.py:188
+#: models.py:194
 msgid "authority types"
 msgstr ""
 
-#: models.py:193
+#: models.py:199
 msgid "identifier"
 msgstr "identifierare"
 
-#: models.py:205
+#: models.py:211
 msgid "agent identifier type"
 msgstr "agentidentifieringstyp"
 
-#: models.py:206
+#: models.py:212
 msgid "agent identifier types"
 msgstr "agentidentifieringstyper"
 
-#: models.py:212
+#: models.py:218
 msgid "alternative name"
 msgstr "alternativt namn"
 
-#: models.py:214
+#: models.py:220
 msgid "main category"
 msgstr ""
 
-#: models.py:215
+#: models.py:221
 msgid "sub category"
 msgstr ""
 
-#: models.py:216
+#: models.py:222
 msgid "reference code"
 msgstr "referenskod"
 
-#: models.py:217
+#: models.py:223
 msgid "start year"
 msgstr "startår"
 
-#: models.py:218
+#: models.py:224
 msgid "end year"
 msgstr "slutår"
 
-#: models.py:219
+#: models.py:225
 msgid "longitude"
 msgstr "longitud"
 
-#: models.py:220
+#: models.py:226
 msgid "latitude"
 msgstr "latitud"
 
-#: models.py:233
+#: models.py:239
 msgid "agent place type"
 msgstr ""
 
-#: models.py:234
+#: models.py:240
 msgid "agent place types"
 msgstr ""
 
-#: models.py:252
+#: models.py:258
 msgid "corporate body"
 msgstr "företag"
 
-#: models.py:253
+#: models.py:259
 msgid "person"
 msgstr ""
 
-#: models.py:254
+#: models.py:260
 msgid "family"
 msgstr "familj"
 
-#: models.py:260
+#: models.py:266
 msgid "sub type"
 msgstr ""
 
-#: models.py:261
+#: models.py:267
 msgid "legal status"
 msgstr ""
 
-#: models.py:270
+#: models.py:276
 msgid "agent type"
 msgstr "Agenttyp"
 
-#: models.py:271
+#: models.py:277
 msgid "agent types"
 msgstr "Agenttyper"
 
-#: models.py:281
+#: models.py:287
 msgid "main agent type"
 msgstr ""
 
-#: models.py:282
+#: models.py:288
 msgid "main agent types"
 msgstr ""
 
-#: models.py:288
+#: models.py:294
 msgid "main"
 msgstr ""
 
-#: models.py:289
+#: models.py:295
 msgid "part"
 msgstr ""
 
-#: models.py:294
+#: models.py:300
 msgid "certainty"
 msgstr ""
 
-#: models.py:304
+#: models.py:310
 msgid "agent name type"
 msgstr "agentnamntyp"
 
-#: models.py:305
+#: models.py:311
 msgid "agent name types"
 msgstr "agentnamntyper"
 
-#: models.py:315
+#: models.py:321
 msgid "country code"
 msgstr "landskod"
 
-#: models.py:317
+#: models.py:323
 msgid "repository code"
 msgstr "depåkod"
 
-#: serializers.py:372 serializers.py:383
-msgid "end date must occur after start date"
-msgstr "Slutdatum måste ske efter startdatum"
+#: serializers.py:310
+msgid "Relation to self cannot be created"
+msgstr "Relation till sig själv kan inte skapas"
 
-#: serializers.py:375
+#: serializers.py:316
+msgid "Same relation cannot be created twice"
+msgstr "Samma relation kan inte skapas flera gånger"
+
+#: serializers.py:395
 msgid "Agents requires at least one name"
 msgstr "Agenter kräver minst ett namn"

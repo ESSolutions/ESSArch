@@ -24,6 +24,7 @@ from ESSArch_Core.agents.models import (
     SourcesOfAuthority,
     Topography,
 )
+from ESSArch_Core.api.validators import StartDateEndDateValidator
 
 
 class RefCodeSerializer(serializers.ModelSerializer):
@@ -306,13 +307,13 @@ class AgentWriteSerializer(AgentSerializer):
         relations = set()
         for relation in agent_relations:
             if relation['agent_b'].pk == agent.pk:
-                raise serializers.ValidationError(_("Can't add relation to self"))
+                raise serializers.ValidationError(_("Relation to self cannot be created"))
             agent_b = relation.pop('agent_b')
             rel_type = relation.pop('type')
 
             rel = (agent_b.pk, rel_type.pk)
             if rel in relations:
-                raise serializers.ValidationError(_("Can't add the same relation twice"))
+                raise serializers.ValidationError(_("Same relation cannot be created twice"))
 
             relations.add(rel)
 
@@ -388,23 +389,12 @@ class AgentWriteSerializer(AgentSerializer):
 
     def validate_names(self, value):
         for name in value:
-            if name.get('start_date') and name.get('end_date') and \
-               name.get('start_date') > name.get('end_date'):
-
-                raise serializers.ValidationError(_("end date must occur after start date"))
+            StartDateEndDateValidator('start_date', 'end_date')(name)
 
         if len(value) == 0:
             raise serializers.ValidationError(_("Agents requires at least one name"))
 
         return value
-
-    def validate(self, data):
-        if data.get('start_date') and data.get('end_date') and \
-           data.get('start_date') > data.get('end_date'):
-
-            raise serializers.ValidationError(_("end date must occur after start date"))
-
-        return data
 
     class Meta(AgentSerializer.Meta):
         extra_kwargs = {
@@ -412,3 +402,9 @@ class AgentWriteSerializer(AgentSerializer):
                 'default': timezone.now,
             },
         }
+        validators = [
+            StartDateEndDateValidator(
+                start_date='start_date',
+                end_date='end_date',
+            )
+        ]
