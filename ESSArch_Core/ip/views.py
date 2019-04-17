@@ -12,7 +12,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.serializers import ProcessStepChildrenSerializer
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
-from ESSArch_Core.filters import string_to_bool
+from ESSArch_Core.api.filters import string_to_bool
 from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
 from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
 from ESSArch_Core.ip.filters import AgentFilter, EventIPFilter, InformationPackageFilter
