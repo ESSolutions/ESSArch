@@ -2,6 +2,7 @@ import logging
 
 import channels.layers
 from asgiref.sync import async_to_sync
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as DjangoGroup
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
@@ -11,11 +12,25 @@ from django.dispatch import receiver
 from groups_manager.models import group_member_delete as groups_manager_group_member_delete
 from groups_manager.models import group_member_save as groups_manager_group_member_save
 
+from ESSArch_Core.auth.saml.mapping import get_backend as get_saml_mapping_backend
 from ESSArch_Core.auth.models import Group, GroupMember, Member, Notification, ProxyUser, UserProfile
 from ESSArch_Core.auth.util import get_organization_groups
 
 User = get_user_model()
 logger = logging.getLogger('essarch.auth')
+
+if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+    from djangosaml2.signals import pre_user_save as saml_pre_user_save
+
+    @receiver(saml_pre_user_save, sender=User)
+    @receiver(saml_pre_user_save, sender=ProxyUser)
+    def saml2_mapping(sender, instance, attributes, user_modified, **kwargs):
+        backend = get_saml_mapping_backend()
+        if backend is None:
+            return user_modified
+
+        backend.map(instance, attributes)
+        return user_modified
 
 
 @receiver(post_save, sender=User)
@@ -76,7 +91,13 @@ def group_post_save(sender, instance, created, *args, **kwargs):
     if created:
         logger.info(f"Created group '{instance.name}'")
     else:
-        logger.info(f"Group '{instance.name}' was modified.")
+        logger.info(f"Group '{instance.name}' was updated.")
+
+
+@receiver(post_delete, sender=Group)
+def group_post_delete(sender, instance, *args, **kwargs):
+    if hasattr(instance, 'django_group'):
+        instance.django_group.delete()
 
 
 @receiver(m2m_changed, sender=ProxyUser.groups.through)
