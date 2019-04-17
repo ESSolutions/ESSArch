@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-16 12:21+0200\n"
+"POT-Creation-Date: 2019-04-16 14:46+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,15 +18,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.6.0\n"
 
-#: ../../authentication_authorization/groups.rst:3
-msgid "Groups"
-msgstr "Grupper"
+#: ../../authentication_authorization/permissions/index.rst:3
+msgid "Permissions"
+msgstr "Rättigheter"
 
-#: ../../authentication_authorization/groups.rst:7
-msgid "Creating groups"
+#: ../../authentication_authorization/permissions/index.rst:5
+msgid ""
+"The following permissions are available for assigning to users, groups "
+"and/or roles."
 msgstr ""
-
-#: ../../authentication_authorization/groups.rst:12
-msgid "Adding users to groups"
-msgstr ""
-
+"Följande rättigheter är tillgängliga att tilldela användare, grupper "
+"och/eller roller."

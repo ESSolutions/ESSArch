@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-16 11:45+0200\n"
+"POT-Creation-Date: 2019-04-16 14:52+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,8 +19,8 @@ msgstr ""
 "Generated-By: Babel 2.6.0\n"
 
 #: ../../authentication_authorization/index.rst:3
-msgid "Authentication and Authorization"
-msgstr ""
+msgid "Authentication and authorization"
+msgstr "Autentisiering och auktorisering"
 
 #: ../../authentication_authorization/index.rst:5
 msgid ""

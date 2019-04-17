@@ -1,6 +1,6 @@
-================================
- Authentication and Authorization
-================================
+=================================
+ Authentication and authorization
+=================================
 
 Access to information and actions are dictated by permissions assigned to the
 user either directly or through groups and roles. ESSArch is designed such that
@@ -19,10 +19,9 @@ possible to allow either very small and specific roles to be created but tat
 the same time create roles that can do everything.
 
 
-
 .. toctree::
     :maxdepth: 2
 
     groups
-    permissions
+    permissions/index
     roles

@@ -1,0 +1,261 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-04-16 14:48+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../authentication_authorization/permissions/archival_description.rst:3
+msgid "Archival Description"
+msgstr "Arkivredovisning"
+
+#: ../../authentication_authorization/permissions/archival_description.rst:8
+#: ../../authentication_authorization/permissions/archival_description.rst:21
+#: ../../authentication_authorization/permissions/archival_description.rst:34
+#: ../../authentication_authorization/permissions/archival_description.rst:47
+#: ../../authentication_authorization/permissions/archival_description.rst:64
+#: ../../authentication_authorization/permissions/archival_description.rst:77
+#: ../../authentication_authorization/permissions/archival_description.rst:90
+msgid "Name"
+msgstr "Namn"
+
+#: ../../authentication_authorization/permissions/archival_description.rst:8
+#: ../../authentication_authorization/permissions/archival_description.rst:21
+#: ../../authentication_authorization/permissions/archival_description.rst:34
+#: ../../authentication_authorization/permissions/archival_description.rst:47
+#: ../../authentication_authorization/permissions/archival_description.rst:64
+#: ../../authentication_authorization/permissions/archival_description.rst:77
+#: ../../authentication_authorization/permissions/archival_description.rst:90
+msgid "Description"
+msgstr "Beskrivning"
+
+#: ../../authentication_authorization/permissions/archival_description.rst:10
+msgid "``tags.search``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:10
+msgid "Perform searches"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:12
+msgid "``tags.create_archive``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:12
+msgid "Create archives"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:14
+msgid "``tags.delete_archive``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:14
+msgid "Delete archives"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:18
+msgid "Nodes"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:23
+msgid "``tags.add_tagversion``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:23
+msgid "Create nodes in archives"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:25
+msgid "``tags.change_tagversion``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:25
+msgid "Change nodes in archives"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:27
+msgid "``tags.delete_tagversion``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:27
+msgid "Delete nodes in archives"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:31
+msgid "Node Types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:36
+msgid "``tags.add_tagversiontype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:36
+msgid "Create node types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:38
+msgid "``tags.change_tagversiontype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:38
+msgid "Change node types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:40
+msgid "``tags.delete_tagversiontype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:40
+msgid "Delete node types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:44
+msgid "Structures"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:49
+msgid "``tags.add_structure``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:49
+msgid "Create structures"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:51
+msgid "``tags.change_structure``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:51
+msgid "Change structures"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:53
+msgid "``tags.delete_structure``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:53
+msgid "Delete structures"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:55
+msgid "``tags.publish_structure``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:55
+msgid "Publish structures"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:57
+msgid "``tags.create_new_structure_versions``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:57
+msgid "Create new structure versions"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:61
+msgid "Structure Types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:66
+msgid "``tags.add_structuretype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:66
+msgid "Create structure types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:68
+msgid "``tags.change_structuretype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:68
+msgid "Change structure types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:70
+msgid "``tags.delete_structuretype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:70
+msgid "Delete structure types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:74
+msgid "Structure Units"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:79
+msgid "``tags.add_structureunit``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:79
+msgid "Create structure units"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:81
+msgid "``tags.change_structureunit``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:81
+msgid "Change structure units"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:83
+msgid "``tags.delete_structureunit``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:83
+msgid "Delete structure units"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:87
+msgid "Structure Unit Types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:92
+msgid "``tags.add_structureunittype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:92
+msgid "Create structure unit types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:94
+msgid "``tags.change_structureunittype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:94
+msgid "Change structure unit types"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:96
+msgid "``tags.delete_structureunittype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description.rst:96
+msgid "Delete structure unit types"
+msgstr ""
+
+#~ msgid "Permissions"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "The following permissions are available "
+#~ "for assigning to users, groups and/or"
+#~ " roles."
+#~ msgstr ""
+
