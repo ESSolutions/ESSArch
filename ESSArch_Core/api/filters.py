@@ -28,7 +28,7 @@ from django_filters import rest_framework as filters
 from django_filters.constants import EMPTY_VALUES
 from rest_framework.filters import OrderingFilter
 
-from ESSArch_Core.forms.fields import MultipleTextField
+from ESSArch_Core.api.forms.fields import MultipleTextField
 
 
 def string_to_bool(s):

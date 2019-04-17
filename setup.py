@@ -208,7 +208,7 @@ if __name__ == '__main__':
             "mssql": ["django-pyodbc-azure@https://github.com/ESSolutions/django-pyodbc-azure/archive/azure-1.11.zip"],
             "mysql": ["mysqlclient==1.3.13"],
             "postgres": ["psycopg2==2.7.5"],
-            "logstash": ["python-logstash==0.4.6"],
+            "logstash": ["python-logstash-async==1.5.0"],
         },
         packages=find_packages(),
         include_package_data=True,
