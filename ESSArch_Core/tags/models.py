@@ -379,6 +379,29 @@ class StructureUnit(MPTTModel):
 
         return unit
 
+    @transaction.atomic
+    def relate_to(self, other_unit, relation_type, **kwargs):
+        StructureUnitRelation.objects.create(
+            structure_unit_a=self,
+            structure_unit_b=other_unit,
+            type=relation_type,
+            **kwargs,
+        )
+
+        if not self.structure.is_template and not other_unit.structure.is_template:
+            # copy existing tag structures to other unit
+            old_tag_structures = TagStructure.objects.filter(structure_unit=self)
+            for old_tag_structure in old_tag_structures.get_descendants(include_self=True):
+                old_tag_structure.copy_to_new_structure(other_unit.structure, other_unit)
+
+        # create mirrored relation
+        StructureUnitRelation.objects.create(
+            structure_unit_a=other_unit,
+            structure_unit_b=self,
+            type=relation_type.mirrored_type or relation_type,
+            **kwargs,
+        )
+
     def get_related_in_other_structure(self, other_structure):
         structure = self.structure
         other_structure_template = other_structure if other_structure.is_template else other_structure.template
@@ -730,9 +753,8 @@ class TagStructure(MPTTModel):
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
 
-    def copy_to_new_structure(self, new_structure):
+    def copy_to_new_structure(self, new_structure, new_unit=None):
         new_parent_tag = None
-        new_structure_unit = None
 
         if self.parent is not None:
             try:
@@ -742,16 +764,16 @@ class TagStructure(MPTTModel):
                 logger.exception('Parent tag of {self} does not exist in new structure {new_structure}')
                 raise
 
-        if self.structure_unit is not None:
+        if new_unit is None and self.structure_unit is not None:
             try:
-                new_structure_unit = self.structure_unit.get_related_in_other_structure(new_structure).get()
+                new_unit = self.structure_unit.get_related_in_other_structure(new_structure).get()
             except StructureUnit.DoesNotExist:
                 logger.exception('Structure unit instance of {self} does not exist in new structure {new_structure}')
                 raise
 
         return TagStructure.objects.create(
             tag_id=self.tag_id, structure=new_structure,
-            structure_unit=new_structure_unit, parent=new_parent_tag,
+            structure_unit=new_unit, parent=new_parent_tag,
         )
 
     @transaction.atomic

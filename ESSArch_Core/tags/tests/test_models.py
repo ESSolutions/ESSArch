@@ -84,7 +84,6 @@ class StructureTestCase(TestCase):
 
         new_version.publish()
 
-
     @mock.patch('ESSArch_Core.tags.documents.StructureUnitDocument')
     def test_publish_new_version_with_instances(self, mock_unit):
         s_type = StructureType.objects.create()
@@ -111,7 +110,7 @@ class StructureTestCase(TestCase):
 
         tag2 = Tag.objects.create()
         TagVersion.objects.create(name="tag2", tag=tag2, type=tag_type, elastic_index="test")
-        tag2_structure = TagStructure.objects.create(
+        TagStructure.objects.create(
             structure=structure_instance,
             tag=tag2, parent=tag1_structure
         )

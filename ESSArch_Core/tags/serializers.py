@@ -195,8 +195,40 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
     )
 
     def validate(self, data):
+        structure = data.get('structure')
+
+        if not structure.is_template:
+            tag_structure = structure.tagstructure_set.first()
+            if tag_structure is not None:
+                archive = tag_structure.get_root().tag
+                for relation in data.get('structure_unit_relations_a', []):
+                    if relation['structure_unit_b'].structure.tagstructure_set.exclude(tag=archive).exists():
+                        raise serializers.ValidationError(
+                            _(f'Units in instances cannot relate to units in another archive')
+                        )
+
         if set(data.keys()) == set(['structure', 'structure_unit_relations_a']):
             return data
+
+        if self.instance and not self.instance.structure.is_template:
+            structure_type = self.instance.structure.type
+
+            # are we moving?
+            copied = data.copy()
+            if 'parent' in copied:
+                if not structure_type.movable_instance_units:
+                    raise serializers.ValidationError(
+                        _(f'Units in instances of type {structure_type} cannot be moved')
+                    )
+
+                copied.pop('parent', None)
+
+            # are we editing?
+            if len(copied.keys()) > 1:  # always contains structure
+                if not structure_type.editable_instance_units:
+                    raise serializers.ValidationError(
+                        _(f'Units in instances of type {structure_type} cannot be edited')
+                    )
 
         if self.instance and self.instance.structure.is_template and self.instance.structure.published:
             raise serializers.ValidationError(PUBLISHED_STRUCTURE_CHANGE_ERROR)
@@ -216,14 +248,9 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
     @staticmethod
     def create_relations(structure_unit, structure_unit_relations):
         for relation in structure_unit_relations:
-            relation['structure_unit_a'] = structure_unit
-            rel = StructureUnitRelation.objects.create(**relation)
-
-            mirrored_data = relation.copy()
-            mirrored_data['structure_unit_a'] = relation['structure_unit_b']
-            mirrored_data['structure_unit_b'] = relation['structure_unit_a']
-            mirrored_data['type'] = rel.type.mirrored_type or rel.type
-            StructureUnitRelation.objects.create(**mirrored_data)
+            other_unit = relation.pop('structure_unit_b')
+            relation_type = relation.pop('type')
+            structure_unit.relate_to(other_unit, relation_type, **relation)
 
     @transaction.atomic
     def create(self, validated_data):

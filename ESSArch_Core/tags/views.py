@@ -11,6 +11,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.agents.models import AgentTagLink
 from ESSArch_Core.auth.decorators import permission_required_or_403
+from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.api.filters import OrderingFilterWithNulls
 from ESSArch_Core.tags.filters import StructureUnitFilter, TagFilter
 from ESSArch_Core.tags.models import (
@@ -20,6 +21,10 @@ from ESSArch_Core.tags.models import (
     StructureUnitType,
     Tag,
     TagVersionType
+)
+from ESSArch_Core.tags.permissions import (
+    AddStructureUnit,
+    ChangeStructureUnit,
 )
 from ESSArch_Core.tags.serializers import (
     AgentArchiveLinkSerializer,
@@ -154,7 +159,7 @@ class StructureUnitTypeViewSet(viewsets.ModelViewSet):
 class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = StructureUnit.objects.select_related('structure')
     serializer_class = StructureUnitSerializer
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions, AddStructureUnit, ChangeStructureUnit,)
     filter_backends = (DjangoFilterBackend, SearchFilter,)
     filter_class = StructureUnitFilter
     search_fields = ('name',)
