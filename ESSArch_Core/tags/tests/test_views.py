@@ -706,7 +706,8 @@ class RelatedStructureUnitTests(APITestCase):
 
         # ensure unit descendants are copied
         first_level = TagStructure.objects.filter(
-            tag=archive_descendant, parent=other_archive_structure, structure=other_structure_instance
+            tag=archive_descendant, parent=other_archive_structure, structure=other_structure_instance,
+            structure_unit=other_unit,
         )
         self.assertTrue(first_level.exists())
         self.assertTrue(
@@ -714,6 +715,51 @@ class RelatedStructureUnitTests(APITestCase):
                 tag=archive_nested_descendant, parent=first_level.get(), structure=other_structure_instance
             ).exists()
         )
+
+    def test_relate_instance_to_instance_same_structure(self):
+        self.client.force_authenticate(user=self.user)
+
+        structure_instance = create_structure(self.structure_type, template=False)
+        unit = StructureUnit.objects.create(
+            name="foo", reference_code="123", type=self.unit_type,
+            structure=structure_instance,
+        )
+
+        other_unit = StructureUnit.objects.create(
+            name="bar", reference_code="456", type=self.unit_type,
+            structure=structure_instance,
+        )
+
+        archive = Tag.objects.create()
+        archive_descendant = Tag.objects.create()
+        archive_nested_descendant = Tag.objects.create()
+
+        archive_structure = TagStructure.objects.create(tag=archive, structure=structure_instance)
+        archive_descendant_structure = TagStructure.objects.create(
+            tag=archive_descendant, structure=structure_instance, structure_unit=unit,
+            parent=archive_structure,
+        )
+        TagStructure.objects.create(
+            tag=archive_nested_descendant, structure=structure_instance, parent=archive_descendant_structure,
+        )
+
+        url = reverse('structure-units-detail', args=[structure_instance.pk, unit.pk])
+        response = self.client.patch(
+            url,
+            data={
+                'related_structure_units': [
+                    {
+                        'structure_unit': other_unit.pk,
+                        'type': self.relation_type.pk,
+                    }
+                ],
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # ensure unit descendants are not copied
+        self.assertFalse(TagStructure.objects.filter(structure_unit=other_unit).exists())
 
     def test_relate_template_to_template(self):
         self.client.force_authenticate(user=self.user)

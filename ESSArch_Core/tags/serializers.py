@@ -202,10 +202,12 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
             if tag_structure is not None:
                 archive = tag_structure.get_root().tag
                 for relation in data.get('structure_unit_relations_a', []):
-                    if relation['structure_unit_b'].structure.tagstructure_set.exclude(tag=archive).exists():
-                        raise serializers.ValidationError(
-                            _(f'Units in instances cannot relate to units in another archive')
-                        )
+                    related_structure = relation['structure_unit_b'].structure
+                    if structure != related_structure:
+                        if related_structure.tagstructure_set.exclude(tag=archive).exists():
+                            raise serializers.ValidationError(
+                                _(f'Units in instances cannot relate to units in another archive')
+                            )
 
         if set(data.keys()) == set(['structure', 'structure_unit_relations_a']):
             return data

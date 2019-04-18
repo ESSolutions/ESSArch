@@ -388,11 +388,12 @@ class StructureUnit(MPTTModel):
             **kwargs,
         )
 
-        if not self.structure.is_template and not other_unit.structure.is_template:
-            # copy existing tag structures to other unit
-            old_tag_structures = TagStructure.objects.filter(structure_unit=self)
-            for old_tag_structure in old_tag_structures.get_descendants(include_self=True):
-                old_tag_structure.copy_to_new_structure(other_unit.structure, other_unit)
+        if self.structure != other_unit.structure:
+            if not self.structure.is_template and not other_unit.structure.is_template:
+                # copy existing tag structures to other unit
+                old_tag_structures = TagStructure.objects.filter(structure_unit=self)
+                for old_tag_structure in old_tag_structures.get_descendants(include_self=True):
+                    old_tag_structure.copy_to_new_structure(other_unit.structure, other_unit)
 
         # create mirrored relation
         StructureUnitRelation.objects.create(
