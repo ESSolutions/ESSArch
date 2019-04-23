@@ -212,6 +212,12 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
         if set(data.keys()) == set(['structure', 'structure_unit_relations_a']):
             return data
 
+        if not self.instance:
+            if not structure.is_template and not structure.type.editable_instance_units:
+                raise serializers.ValidationError(
+                    _(f'Cannot create units in instances of type {structure.type}')
+                )
+
         if self.instance and not self.instance.structure.is_template:
             structure_type = self.instance.structure.type
 

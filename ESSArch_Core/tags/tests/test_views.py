@@ -359,7 +359,7 @@ class CreateStructureUnitTests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_in_structure_template_instance_with_permission(self):
+    def test_in_structure_template_instance_with_permission_without_editable_flag(self):
         template = create_structure(self.structure_type)
         template.published = True
         template.save()
@@ -369,6 +369,35 @@ class CreateStructureUnitTests(TestCase):
         instance.published = True
         instance.template = template
         instance.save()
+
+        unit_type = StructureUnitType.objects.create(name="test", structure_type=instance.type)
+        url = reverse('structure-units-list', args=[instance.pk])
+
+        perm = Permission.objects.get(codename='add_structure_unit_instance')
+        self.user.user_permissions.add(perm)
+        response = self.client.post(
+            url,
+            data={
+                'name': 'foo',
+                'type': unit_type.pk,
+                'reference_code': '123',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_in_structure_template_instance_with_permission_with_editable_flag(self):
+        template = create_structure(self.structure_type)
+        template.published = True
+        template.save()
+
+        instance = create_structure(self.structure_type)
+        instance.is_template = False
+        instance.published = True
+        instance.template = template
+        instance.save()
+
+        instance.type.editable_instance_units = True
+        instance.type.save()
 
         unit_type = StructureUnitType.objects.create(name="test", structure_type=instance.type)
         url = reverse('structure-units-list', args=[instance.pk])
