@@ -20,6 +20,7 @@ ROOT_URLCONF = 'ESSArch_Core.testapp.urls'
 INSTALLED_APPS = [
     'allauth',
     'allauth.account',
+    'allauth.socialaccount',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',

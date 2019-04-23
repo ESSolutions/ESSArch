@@ -2,6 +2,7 @@
 import logging
 
 from allauth.account.models import EmailAddress
+from allauth.socialaccount.models import SocialAccount, SocialApp, SocialToken
 from django import forms
 from django.contrib import admin
 from django.contrib.auth import get_user_model
@@ -37,7 +38,10 @@ admin.site.unregister([
     GroupManagerGroupMember,
     GroupEntity,
     GroupManagerGroupMemberRole,
-    GroupManagerGroupType
+    GroupManagerGroupType,
+    SocialAccount,
+    SocialApp,
+    SocialToken,
 ])
 
 
