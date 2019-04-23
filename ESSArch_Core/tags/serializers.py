@@ -197,7 +197,7 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
     def validate(self, data):
         structure = data.get('structure')
 
-        if not structure.is_template:
+        if structure is not None and not structure.is_template:
             tag_structure = structure.tagstructure_set.first()
             if tag_structure is not None:
                 archive = tag_structure.get_root().tag
@@ -364,15 +364,22 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
         return None
 
     def get_structure_unit(self, obj):
+        structure = self.context.get('structure')
+
         try:
-            unit = obj.get_active_structure().structure_unit
+            if structure is not None:
+                tag_structure = obj.tag.structures.get(structure=structure)
+            else:
+                tag_structure = obj.get_active_structure()
         except TagStructure.DoesNotExist:
             return None
+
+        unit = tag_structure.structure_unit
 
         if unit is None:
             return None
 
-        archive = obj.get_active_structure().get_root().pk
+        archive = tag_structure.get_root().pk
         context = {'archive_structure': archive}
         return StructureUnitSerializer(unit, context=context).data
 
