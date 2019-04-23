@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-23 09:49+0200\n"
+"POT-Creation-Date: 2019-04-23 16:47+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -151,32 +151,31 @@ msgstr "nodtyp"
 msgid "node types"
 msgstr "nodtyper"
 
-#: serializers.py:34
+#: serializers.py:37
 msgid "Published structures cannot be changed"
-msgstr ""
-
-#: serializers.py:209
-msgid "Units in instances cannot relate to units in another archive"
-msgstr "Enheter i instanser can inte relateras till enheter i andra arkiv"
+msgstr "Publicerade strukturer kan ej ändras"
 
 #: serializers.py:223
-#, python-brace-format
-msgid "Units in instances of type {structure_type} cannot be moved"
-msgstr "Enheter i instanser av typen {structure_type} kan inte flyttas"
+msgid "Units in instances cannot relate to units in another archive"
+msgstr "Enheter i instanser kan inte relateras till enheter i andra arkiv"
 
 #: serializers.py:232
-#, python-brace-format
-msgid "Units in instances of type {structure_type} cannot be edited"
-msgstr "Enheter i instanser av typen {structure_type} kan inte redigeras"
+msgid "Cannot create units in instances of type {}"
+msgstr "Kan ej skapa enheter i instanser av typen {}"
 
-#: serializers.py:246
-#, python-brace-format
-msgid "Type {unit_type.name} not allowed in {structure.type.name}"
-msgstr ""
-"Enhetstypen {unit_type.name} är inte tillåten i strukturtypen {structure."
-"type.name}"
+#: serializers.py:243
+msgid "Units in instances of type {} cannot be moved"
+msgstr "Enheter i instanser av typen {} kan inte flyttas"
 
-#: serializers.py:439
+#: serializers.py:252
+msgid "Units in instances of type {} cannot be edited"
+msgstr "Enheter i instanser av typen {} kan inte redigeras"
+
+#: serializers.py:266
+msgid "Unit type {} is not allowed in structure type {}"
+msgstr "Enhetstypen {} är inte tillåten i strukturtypen {}"
+
+#: serializers.py:468
 msgid "Archive already added"
 msgstr "Arkivet har redan lagts till"
 
@@ -235,25 +234,24 @@ msgstr "Beskrivning"
 
 #: views.py:104
 msgid "Can only publish templates"
-msgstr ""
+msgstr "Endast mallar kan publiceras"
 
 #: views.py:107
-#, python-brace-format
-msgid "{obj} is already published"
-msgstr ""
+msgid "{} is already published"
+msgstr "{} är redan publicerad"
 
-#: views.py:119
+#: views.py:120
 msgid "Can only create new versions of templates"
 msgstr ""
 
-#: views.py:122
+#: views.py:123
 msgid "Can only create new versions of published structures"
 msgstr ""
 
-#: views.py:130
-#, python-brace-format
-msgid "Version {version_name} already exists"
-msgstr ""
+#: views.py:128
+msgid "No version name provided"
+msgstr "Inget versionsnamn har angivits"
 
-#~ msgid "Archive start date must be before agent start date"
-#~ msgstr "Arkivets slutdatum måste ske före agentens startdatum"
+#: views.py:131
+msgid "Version {} already exists"
+msgstr "Version {} existerar redan"

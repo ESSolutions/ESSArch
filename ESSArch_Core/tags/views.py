@@ -104,7 +104,7 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             raise exceptions.ParseError(_('Can only publish templates'))
 
         if obj.published:
-            raise exceptions.ParseError(_('{obj} is already published'))
+            raise exceptions.ParseError(_('{} is already published').format(obj))
 
         obj.publish()
         return Response()
@@ -124,10 +124,10 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         try:
             version_name = request.data['version_name']
         except KeyError:
-            raise exceptions.ParseError('No version_name provided')
+            raise exceptions.ParseError(_('No version name provided'))
 
         if Structure.objects.filter(is_template=True, version_link=obj.version_link, version=version_name).exists():
-            raise exceptions.ParseError(_(f'Version {version_name} already exists'))
+            raise exceptions.ParseError(_('Version {} already exists').format(version_name))
 
         new_version = obj.create_new_version(version_name)
         serializer = self.serializer_class(instance=new_version)

@@ -1,9 +1,12 @@
+import uuid
+
 import elasticsearch
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext as _
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 from ESSArch_Core.agents.models import Agent, AgentTagLink, AgentTagLinkRelationType
 from ESSArch_Core.agents.serializers import (
@@ -91,6 +94,7 @@ class StructureWriteSerializer(StructureSerializer):
     rule_convention_type = serializers.PrimaryKeyRelatedField(
         queryset=RuleConventionType.objects.all(), allow_null=True, default=None
     )
+    version_link = serializers.UUIDField(default=uuid.uuid4, allow_null=False)
 
     def validate(self, data):
         if self.instance and self.instance.published:
@@ -109,12 +113,22 @@ class StructureWriteSerializer(StructureSerializer):
         return super().update(instance, validated_data)
 
     class Meta(StructureSerializer.Meta):
+        fields = StructureSerializer.Meta.fields + ('version_link',)
         validators = [
             StartDateEndDateValidator(
                 start_date='start_date',
                 end_date='end_date',
-            )
+            ),
+            UniqueTogetherValidator(
+                queryset=Structure.objects.all(),
+                fields=('version_link', 'version'),
+            ),
         ]
+        extra_kwargs = {
+            'version': {
+                'default': '1.0',
+            }
+        }
 
 
 class RelatedStructureUnitSerializer(serializers.ModelSerializer):
@@ -195,7 +209,7 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
     )
 
     def validate(self, data):
-        structure = data.get('structure')
+        structure = data.pop('structure', None)
 
         if structure is not None and not structure.is_template:
             tag_structure = structure.tagstructure_set.first()
@@ -209,13 +223,13 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
                                 _(f'Units in instances cannot relate to units in another archive')
                             )
 
-        if set(data.keys()) == set(['structure', 'structure_unit_relations_a']):
+        if set(data.keys()) == set(['structure_unit_relations_a']):
             return data
 
         if not self.instance:
             if not structure.is_template and not structure.type.editable_instance_units:
                 raise serializers.ValidationError(
-                    _(f'Cannot create units in instances of type {structure.type}')
+                    _('Cannot create units in instances of type {}').format(structure.type)
                 )
 
         if self.instance and not self.instance.structure.is_template:
@@ -226,22 +240,21 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
             if 'parent' in copied:
                 if not structure_type.movable_instance_units:
                     raise serializers.ValidationError(
-                        _(f'Units in instances of type {structure_type} cannot be moved')
+                        _('Units in instances of type {} cannot be moved').format(structure_type)
                     )
 
                 copied.pop('parent', None)
 
             # are we editing?
-            if len(copied.keys()) > 1:  # always contains structure
+            if len(copied.keys()) > 0:
                 if not structure_type.editable_instance_units:
                     raise serializers.ValidationError(
-                        _(f'Units in instances of type {structure_type} cannot be edited')
+                        _('Units in instances of type {} cannot be edited').format(structure_type)
                     )
 
         if self.instance and self.instance.structure.is_template and self.instance.structure.published:
             raise serializers.ValidationError(PUBLISHED_STRUCTURE_CHANGE_ERROR)
 
-        structure = data.get('structure')
         unit_type = data.get('type')
 
         if structure is not None and unit_type is not None:
@@ -249,8 +262,11 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
                 raise serializers.ValidationError(PUBLISHED_STRUCTURE_CHANGE_ERROR)
 
             if structure.type != unit_type.structure_type:
-                raise serializers.ValidationError(_(f'Type {unit_type.name} not allowed in {structure.type.name}'))
+                raise serializers.ValidationError(
+                    _('Unit type {} is not allowed in structure type {}').format(unit_type.name, structure.type.name)
+                )
 
+        data['structure'] = structure
         return super().validate(data)
 
     @staticmethod
