@@ -220,7 +220,7 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
                     if structure != related_structure:
                         if related_structure.tagstructure_set.exclude(tag=archive).exists():
                             raise serializers.ValidationError(
-                                _(f'Units in instances cannot relate to units in another archive')
+                                _('Units in instances cannot relate to units in another archive')
                             )
 
         if set(data.keys()) == set(['structure_unit_relations_a']):
