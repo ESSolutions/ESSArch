@@ -402,7 +402,7 @@ class CreateStructureUnitTests(TestCase):
         instance.template = template
         instance.save()
 
-        instance.type.editable_instance_units = True
+        instance.type.editable_instances = True
         instance.type.save()
 
         unit_type = StructureUnitType.objects.create(name="test", structure_type=instance.type)
@@ -553,7 +553,7 @@ class UpdateStructureUnitInstanceTests(TestCase):
         instance.is_template = False
         instance.save()
 
-        instance.type.editable_instance_units = True
+        instance.type.editable_instances = True
         instance.type.save()
 
         structure_unit = create_structure_unit(self.structure_unit_type, instance, "1")
@@ -575,7 +575,7 @@ class UpdateStructureUnitInstanceTests(TestCase):
         instance.is_template = False
         instance.save()
 
-        instance.type.editable_instance_units = True
+        instance.type.editable_instances = True
         instance.type.save()
 
         structure_unit = create_structure_unit(self.structure_unit_type, instance, "1")
@@ -871,7 +871,7 @@ class DeleteStructureUnitInstanceTests(TestCase):
         structure_unit = create_structure_unit(self.structure_unit_type, instance, "1")
         url = reverse('structure-units-detail', args=[instance.pk, structure_unit.pk])
 
-        perm = Permission.objects.get(codename='change_structure_unit_instance')
+        perm = Permission.objects.get(codename='delete_structure_unit_instance')
         self.user.user_permissions.add(perm)
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -881,13 +881,13 @@ class DeleteStructureUnitInstanceTests(TestCase):
         instance.is_template = False
         instance.save()
 
-        instance.type.editable_instance_units = True
+        instance.type.editable_instances = True
         instance.type.save()
 
         structure_unit = create_structure_unit(self.structure_unit_type, instance, "1")
         url = reverse('structure-units-detail', args=[instance.pk, structure_unit.pk])
 
-        perm = Permission.objects.get(codename='change_structure_unit_instance')
+        perm = Permission.objects.get(codename='delete_structure_unit_instance')
         self.user.user_permissions.add(perm)
 
         response = self.client.delete(url)

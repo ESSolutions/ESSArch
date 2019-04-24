@@ -187,7 +187,7 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         instance = self.get_object()
         structure = instance.structure
 
-        if not structure.is_template and not structure.type.editable_instance_units:
+        if not structure.is_template and not structure.type.editable_instances:
             raise exceptions.ValidationError(
                 _('Cannot delete units in instances of type {}').format(structure.type)
             )

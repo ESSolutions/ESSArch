@@ -73,7 +73,7 @@ class RuleConventionTypeSerializer(serializers.ModelSerializer):
 class StructureTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = StructureType
-        fields = ('id', 'name', 'editable_instance_units', 'movable_instance_units',)
+        fields = ('id', 'name', 'editable_instances', 'movable_instance_units',)
 
 
 class StructureSerializer(serializers.ModelSerializer):
@@ -232,7 +232,7 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
             return data
 
         if not self.instance:
-            if not structure.is_template and not structure.type.editable_instance_units:
+            if not structure.is_template and not structure.type.editable_instances:
                 raise serializers.ValidationError(
                     _('Cannot create units in instances of type {}').format(structure.type)
                 )
@@ -252,7 +252,7 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
 
             # are we editing?
             if len(copied.keys()) > 0:
-                if not structure_type.editable_instance_units:
+                if not structure_type.editable_instances:
                     raise serializers.ValidationError(
                         _('Units in instances of type {} cannot be edited').format(structure_type)
                     )

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-23 16:47+0200\n"
+"POT-Creation-Date: 2019-04-24 10:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -39,7 +39,8 @@ msgid "type"
 msgstr ""
 
 #: models.py:39 models.py:69 models.py:76 models.py:91 models.py:104
-#: models.py:260 models.py:527 models.py:536
+#: models.py:260 models.py:528 models.py:537 models.py:548 models.py:561
+#: models.py:572 models.py:583 models.py:600
 msgid "name"
 msgstr "namn"
 
@@ -51,11 +52,11 @@ msgstr ""
 msgid "href"
 msgstr ""
 
-#: models.py:64 models.py:285 models.py:519
+#: models.py:64 models.py:285 models.py:520
 msgid "create date"
 msgstr ""
 
-#: models.py:65 models.py:286 models.py:520
+#: models.py:65 models.py:286 models.py:521
 msgid "revise date"
 msgstr ""
 
@@ -72,8 +73,8 @@ msgid "node relation types"
 msgstr "nodrelationstyper"
 
 #: models.py:92
-msgid "editable instance units"
-msgstr "redigeringsbara instansenheter"
+msgid "editable instances"
+msgstr "redigeringsbara instanser"
 
 #: models.py:93
 msgid "movable instance units"
@@ -107,15 +108,15 @@ msgstr "strukturenhetstyp"
 msgid "structure unit types"
 msgstr "strukturenhetstyper"
 
-#: models.py:282 models.py:516
+#: models.py:282 models.py:517
 msgid "description"
 msgstr "beskrivning"
 
-#: models.py:283 models.py:517 models.py:754
+#: models.py:283 models.py:518 models.py:820
 msgid "start date"
 msgstr ""
 
-#: models.py:284 models.py:518 models.py:755
+#: models.py:284 models.py:519 models.py:821
 msgid "end date"
 msgstr ""
 
@@ -128,54 +129,118 @@ msgid "Can edit instances of structure units"
 msgstr "Kan redigera instanser av strukturenheter"
 
 #: models.py:426
+msgid "Can delete instances of structure units"
+msgstr "Kan radera instanser av strukturenheter"
+
+#: models.py:427
 msgid "Can move instances of structure units"
 msgstr "Kan flytta instanser av strukturenheter"
 
-#: models.py:528
+#: models.py:529
 msgid "size"
 msgstr ""
 
-#: models.py:529
+#: models.py:530
 msgid "unit"
 msgstr ""
 
-#: models.py:537
+#: models.py:543
+msgid "metric type"
+msgstr ""
+
+#: models.py:544
+msgid "metric types"
+msgstr ""
+
+#: models.py:549
+msgid "capacity"
+msgstr ""
+
+#: models.py:550 models.py:587 models.py:630
+msgid "metric"
+msgstr ""
+
+#: models.py:556
+msgid "metric profile"
+msgstr ""
+
+#: models.py:557
+msgid "metric profiles"
+msgstr ""
+
+#: models.py:567
+msgid "location level type"
+msgstr ""
+
+#: models.py:568
+msgid "location level types"
+msgstr ""
+
+#: models.py:578
+msgid "location function type"
+msgstr ""
+
+#: models.py:579
+msgid "location function types"
+msgstr ""
+
+#: models.py:585
+msgid "parent"
+msgstr ""
+
+#: models.py:588
+msgid "level"
+msgstr ""
+
+#: models.py:589
+msgid "function"
+msgstr ""
+
+#: models.py:595 models.py:631
+msgid "location"
+msgstr ""
+
+#: models.py:596
+msgid "locations"
+msgstr ""
+
+#: models.py:601
 msgid "archive type"
 msgstr "arkivtyp"
 
-#: models.py:543
+#: models.py:607
 msgid "node type"
 msgstr "nodtyp"
 
-#: models.py:544
+#: models.py:608
 msgid "node types"
 msgstr "nodtyper"
 
-#: serializers.py:37
+#: serializers.py:42
 msgid "Published structures cannot be changed"
 msgstr "Publicerade strukturer kan ej ändras"
 
-#: serializers.py:223
+#: serializers.py:228
 msgid "Units in instances cannot relate to units in another archive"
 msgstr "Enheter i instanser kan inte relateras till enheter i andra arkiv"
 
-#: serializers.py:232
+#: serializers.py:237
 msgid "Cannot create units in instances of type {}"
 msgstr "Kan ej skapa enheter i instanser av typen {}"
 
-#: serializers.py:243
+#: serializers.py:248
 msgid "Units in instances of type {} cannot be moved"
 msgstr "Enheter i instanser av typen {} kan inte flyttas"
 
-#: serializers.py:252
+#: serializers.py:257
 msgid "Units in instances of type {} cannot be edited"
 msgstr "Enheter i instanser av typen {} kan inte redigeras"
 
-#: serializers.py:266
+#: serializers.py:271
 msgid "Unit type {} is not allowed in structure type {}"
 msgstr "Enhetstypen {} är inte tillåten i strukturtypen {}"
 
-#: serializers.py:468
+#: serializers.py:515
 msgid "Archive already added"
 msgstr "Arkivet har redan lagts till"
 
@@ -232,11 +297,11 @@ msgstr "Titel"
 msgid "Description"
 msgstr "Beskrivning"
 
-#: views.py:104
+#: views.py:105
 msgid "Can only publish templates"
 msgstr "Endast mallar kan publiceras"
 
-#: views.py:107
+#: views.py:108
 msgid "{} is already published"
 msgstr "{} är redan publicerad"
 
@@ -255,3 +320,7 @@ msgstr "Inget versionsnamn har angivits"
 #: views.py:131
 msgid "Version {} already exists"
 msgstr "Version {} existerar redan"
+
+#: views.py:192
+msgid "Cannot delete units in instances of type {}"
+msgstr "Kan ej radera enheter i instanser av typen {}"
