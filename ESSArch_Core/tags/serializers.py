@@ -223,7 +223,7 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
                                 _('Units in instances cannot relate to units in another archive')
                             )
 
-        if set(data.keys()) == set(['structure_unit_relations_a']):
+        if set(data.keys()) == {'structure_unit_relations_a'}:
             return data
 
         if not self.instance:

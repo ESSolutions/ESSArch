@@ -37,3 +37,14 @@ class ChangeStructureUnit(permissions.BasePermission):
             perms.append('tags.change_structure_unit_instance')
 
         return request.user.has_perms(perms)
+
+
+class DeleteStructureUnit(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.method != 'DELETE':
+            return True
+
+        if obj.structure.is_template:
+            return True
+
+        return request.user.has_perm('tags.change_structure_unit_instance')

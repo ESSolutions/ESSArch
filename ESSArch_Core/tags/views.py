@@ -25,6 +25,7 @@ from ESSArch_Core.tags.models import (
 from ESSArch_Core.tags.permissions import (
     AddStructureUnit,
     ChangeStructureUnit,
+    DeleteStructureUnit,
 )
 from ESSArch_Core.tags.serializers import (
     AgentArchiveLinkSerializer,
@@ -159,7 +160,7 @@ class StructureUnitTypeViewSet(viewsets.ModelViewSet):
 class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = StructureUnit.objects.select_related('structure')
     serializer_class = StructureUnitSerializer
-    permission_classes = (ActionPermissions, AddStructureUnit, ChangeStructureUnit,)
+    permission_classes = (ActionPermissions, AddStructureUnit, ChangeStructureUnit, DeleteStructureUnit,)
     filter_backends = (DjangoFilterBackend, SearchFilter,)
     filter_class = StructureUnitFilter
     search_fields = ('name',)
@@ -181,6 +182,17 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if parents_query_dict:
             request.data.update(parents_query_dict)
         return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        structure = instance.structure
+
+        if not structure.is_template and not structure.type.editable_instance_units:
+            raise exceptions.ValidationError(
+                _('Cannot delete units in instances of type {}').format(structure.type)
+            )
+
+        return super().destroy(request, *args, **kwargs)
 
     @action(detail=True, methods=['get'])
     def nodes(self, request, pk=None, parent_lookup_structure=None):

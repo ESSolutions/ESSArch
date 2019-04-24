@@ -236,7 +236,10 @@ class CreateStructureUnitTests(TestCase):
     def test_with_related(self):
         structure = create_structure(self.structure_type)
         unit_type = StructureUnitType.objects.create(name="test", structure_type=structure.type)
-        other_unit = StructureUnit.objects.create(name="foo", reference_code="123", type=unit_type, structure=structure)
+        other_unit = StructureUnit.objects.create(
+            name="foo", reference_code="123", type=unit_type,
+            structure=structure,
+        )
         relation_type = NodeRelationType.objects.create(name="test")
         url = reverse('structure-units-list', args=[structure.pk])
 
@@ -275,7 +278,10 @@ class CreateStructureUnitTests(TestCase):
     def test_with_related_unit_and_mirrored_type(self):
         structure = create_structure(self.structure_type)
         unit_type = StructureUnitType.objects.create(name="test", structure_type=structure.type)
-        other_unit = StructureUnit.objects.create(name="foo", reference_code="123", type=unit_type, structure=structure)
+        other_unit = StructureUnit.objects.create(
+            name="foo", reference_code="123", type=unit_type,
+            structure=structure,
+        )
 
         relation_type = NodeRelationType.objects.create(name="test")
         mirrored_relation_type = NodeRelationType.objects.create(name="test_mirrored")
@@ -830,3 +836,59 @@ class RelatedStructureUnitTests(APITestCase):
                 structure_unit_a=other_unit, structure_unit_b=unit, type=self.relation_type
             ).exists()
         )
+
+
+class DeleteStructureUnitInstanceTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+        self.user = User.objects.create(username='user')
+        self.member = self.user.essauth_member
+
+        perm = Permission.objects.get(codename='delete_structureunit')
+        self.user.user_permissions.add(perm)
+        self.client.force_authenticate(user=self.user)
+
+        self.structure_type = StructureType.objects.create(name='test')
+        self.structure_unit_type = StructureUnitType.objects.create(name='test', structure_type=self.structure_type)
+
+    def test_delete_without_permission(self):
+        instance = create_structure(self.structure_type)
+        instance.is_template = False
+        instance.save()
+
+        structure_unit = create_structure_unit(self.structure_unit_type, instance, "1")
+        url = reverse('structure-units-detail', args=[instance.pk, structure_unit.pk])
+
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_without_editable_flag(self):
+        instance = create_structure(self.structure_type)
+        instance.is_template = False
+        instance.save()
+
+        structure_unit = create_structure_unit(self.structure_unit_type, instance, "1")
+        url = reverse('structure-units-detail', args=[instance.pk, structure_unit.pk])
+
+        perm = Permission.objects.get(codename='change_structure_unit_instance')
+        self.user.user_permissions.add(perm)
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_delete_with_editable_flag(self):
+        instance = create_structure(self.structure_type)
+        instance.is_template = False
+        instance.save()
+
+        instance.type.editable_instance_units = True
+        instance.type.save()
+
+        structure_unit = create_structure_unit(self.structure_unit_type, instance, "1")
+        url = reverse('structure-units-detail', args=[instance.pk, structure_unit.pk])
+
+        perm = Permission.objects.get(codename='change_structure_unit_instance')
+        self.user.user_permissions.add(perm)
+
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
