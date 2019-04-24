@@ -47,4 +47,4 @@ class DeleteStructureUnit(permissions.BasePermission):
         if obj.structure.is_template:
             return True
 
-        return request.user.has_perm('tags.change_structure_unit_instance')
+        return request.user.has_perm('tags.delete_structure_unit_instance')

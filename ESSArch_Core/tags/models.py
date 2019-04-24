@@ -423,6 +423,7 @@ class StructureUnit(MPTTModel):
         permissions = (
             ('add_structure_unit_instance', _('Can add structure unit instances')),
             ('change_structure_unit_instance', _('Can edit instances of structure units')),
+            ('delete_structure_unit_instance', _('Can delete instances of structure units')),
             ('move_structure_unit_instance', _('Can move instances of structure units')),
         )
 
