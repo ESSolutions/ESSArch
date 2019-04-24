@@ -228,6 +228,15 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
                                 _('Units in instances cannot relate to units in another archive')
                             )
 
+        if self.instance and not self.instance.structure.is_template:
+            structure_type = self.instance.structure.type
+
+            if 'structure_unit_relations_a' in data:
+                if not structure_type.editable_instance_relations:
+                    raise serializers.ValidationError(
+                        _('Unit relations in instances of type {} cannot be edited').format(structure_type)
+                    )
+
         if set(data.keys()) == {'structure_unit_relations_a'}:
             return data
 
@@ -249,6 +258,8 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
                     )
 
                 copied.pop('parent', None)
+
+            copied.pop('structure_unit_relations_a', None)
 
             # are we editing?
             if len(copied.keys()) > 0:

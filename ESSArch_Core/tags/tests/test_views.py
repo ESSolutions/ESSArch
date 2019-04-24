@@ -652,7 +652,7 @@ class RelatedStructureUnitTests(APITestCase):
         ])
         cls.user.user_permissions.add(*perms)
 
-        cls.structure_type = StructureType.objects.create(name='test')
+        cls.structure_type = StructureType.objects.create(name='test', editable_instance_relations=True)
         cls.unit_type = StructureUnitType.objects.create(name="test", structure_type=cls.structure_type)
         cls.relation_type = NodeRelationType.objects.create(name="test")
 
