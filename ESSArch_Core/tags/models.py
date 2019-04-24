@@ -532,6 +532,69 @@ class MediumType(models.Model):
         unique_together = ('name', 'size', 'unit')  # Avoid duplicates
 
 
+class MetricType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('metric type')
+        verbose_name_plural = _('metric types')
+
+
+class MetricProfile(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+    capacity = models.IntegerField(_('capacity'))  # FloatField or DecimalField instead?
+    metric = models.ForeignKey(MetricType, on_delete=models.PROTECT, verbose_name=_('metric'))
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('metric profile')
+        verbose_name_plural = _('metric profiles')
+
+
+class LocationLevelType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('location level type')
+        verbose_name_plural = _('location level types')
+
+
+class LocationFunctionType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('location function type')
+        verbose_name_plural = _('location function types')
+
+
+class Location(MPTTModel):
+    name = models.CharField(_('name'), max_length=255, blank=False)
+    parent = TreeForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, related_name='children', verbose_name=_('parent')
+    )
+    metric = models.ForeignKey(MetricProfile, on_delete=models.PROTECT, null=True, verbose_name=_('metric'))
+    level = models.ForeignKey(LocationLevelType, on_delete=models.PROTECT, verbose_name=_('level'))
+    function = models.ForeignKey(LocationFunctionType, on_delete=models.PROTECT, verbose_name=_('function'))
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('location')
+        verbose_name_plural = _('locations')
+
+
 class TagVersionType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
     archive_type = models.BooleanField(_('archive type'))
@@ -563,6 +626,8 @@ class TagVersion(models.Model):
         related_name='tag_versions',
         null=True
     )
+    metric = models.ForeignKey(MetricProfile, on_delete=models.PROTECT, null=True, verbose_name=_('metric'))
+    location = models.ForeignKey(Location, on_delete=models.PROTECT, null=True, verbose_name=_('location'))
     custom_fields = jsonfield.JSONField(default={})
 
     def to_search_doc(self):

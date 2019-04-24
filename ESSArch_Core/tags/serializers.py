@@ -17,7 +17,12 @@ from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.api.validators import StartDateEndDateValidator
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.tags.models import (
+    Location,
+    LocationFunctionType,
+    LocationLevelType,
     MediumType,
+    MetricProfile,
+    MetricType,
     NodeIdentifier,
     NodeNote,
     NodeRelationType,
@@ -362,6 +367,42 @@ class TagVersionTypeSerializer(serializers.ModelSerializer):
         fields = ('pk', 'name', 'archive_type',)
 
 
+class MetricTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MetricType
+        fields = ('pk', 'name',)
+
+
+class MetricProfileSerializer(serializers.ModelSerializer):
+    metric = MetricTypeSerializer()
+
+    class Meta:
+        model = MetricProfile
+        fields = ('pk', 'name', 'capacity', 'metric',)
+
+
+class LocationLevelTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LocationLevelType
+        fields = ('pk', 'name',)
+
+
+class LocationFunctionTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LocationFunctionType
+        fields = ('pk', 'name',)
+
+
+class LocationSerializer(serializers.ModelSerializer):
+    metric = MetricProfileSerializer()
+    level = LocationLevelTypeSerializer()
+    function = LocationFunctionTypeSerializer()
+
+    class Meta:
+        model = Location
+        fields = ('pk', 'name',)
+
+
 class TagVersionNestedSerializer(serializers.ModelSerializer):
     _id = serializers.UUIDField(source='pk')
     _index = serializers.CharField(source='elastic_index')
@@ -376,6 +417,8 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     identifiers = NodeIdentifierSerializer(many=True)
     agents = TagVersionAgentTagLinkSerializer(source='agent_links', many=True)
     type = TagVersionTypeSerializer()
+    metric = MetricProfileSerializer()
+    location = LocationSerializer()
     custom_fields = serializers.JSONField()
 
     def get_root(self, obj):
@@ -449,9 +492,13 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TagVersion
-        fields = ('_id', '_index', 'name', 'type', 'create_date', 'revise_date', 'import_date', 'start_date', 'related_tags', 'notes',
-                  'end_date', 'is_leaf_node', '_source', 'masked_fields', 'structure_unit', 'root', 'medium_type',
-                  'identifiers', 'agents', 'description', 'reference_code', 'custom_fields',)
+        fields = (
+            '_id', '_index', 'name', 'type', 'create_date', 'revise_date',
+            'import_date', 'start_date', 'related_tags', 'notes', 'end_date',
+            'is_leaf_node', '_source', 'masked_fields', 'structure_unit', 'root',
+            'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
+            'custom_fields', 'metric', 'location',
+        )
 
 
 class AgentArchiveLinkSerializer(serializers.ModelSerializer):
