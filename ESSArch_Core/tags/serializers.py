@@ -283,6 +283,13 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
                 )
 
         data['structure'] = structure
+
+        if data['structure'] is not None and 'parent' in data and data['parent'] is not None:
+            if data['parent'].structure != data['structure']:
+                raise serializers.ValidationError(
+                    _('Parent and child structure unit must be in the same structure')
+                )
+
         return super().validate(data)
 
     @staticmethod
