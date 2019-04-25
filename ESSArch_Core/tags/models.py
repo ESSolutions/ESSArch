@@ -317,13 +317,13 @@ class StructureUnit(MPTTModel):
         symmetrical=False,
     )
 
-    def _create_template_instance(self, structure_instance):
-        return StructureUnit.objects.create(
-            structure=structure_instance,
+    @transaction.atomic
+    def copy_to_structure(self, structure):
+        new_unit = StructureUnit.objects.create(
+            structure=structure,
             parent=None,
             name=self.name,
             type=self.type,
-            template=self,
             description=self.description,
             comment=self.comment,
             reference_code=self.reference_code,
@@ -331,12 +331,10 @@ class StructureUnit(MPTTModel):
             end_date=self.end_date,
         )
 
-    def create_template_instance(self, structure_instance):
         old_parent_ref_code = getattr(self.parent, 'reference_code', None)
-        new_unit = self._create_template_instance(structure_instance)
 
         if old_parent_ref_code is not None:
-            parent = structure_instance.units.get(reference_code=old_parent_ref_code)
+            parent = structure.units.get(reference_code=old_parent_ref_code)
             new_unit.parent = parent
 
         new_unit.save()
@@ -357,6 +355,13 @@ class StructureUnit(MPTTModel):
                 create_date=note.create_date,
                 revise_date=note.revise_date,
             )
+
+        return new_unit
+
+    def create_template_instance(self, structure_instance):
+        new_unit = self.copy_to_structure(structure_instance)
+        new_unit.template = self
+        new_unit.save()
 
         new_archive_structure = new_unit.structure.tagstructure_set.first().get_root()
 
@@ -415,9 +420,7 @@ class StructureUnit(MPTTModel):
         return new_unit
 
     def create_new_version(self, new_structure):
-        unit = self.create_template_instance(new_structure)
-        unit.template = None
-        unit.save()
+        unit = self.copy_to_structure(new_structure)
 
         cache_key = 'version_node_relation_type'
         relation_type = cache.get(cache_key)
