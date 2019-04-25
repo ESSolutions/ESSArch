@@ -143,6 +143,66 @@ class StructureTestCase(TestCase):
         ).exists())
 
 
+class StructureUnitTestCase(TestCase):
+    def test_create_template_instance(self):
+        s_type = StructureType.objects.create()
+        su_type = StructureUnitType.objects.create(structure_type=s_type)
+        rel_type = NodeRelationType.objects.create()
+
+        src_structure_instance = Structure.objects.create(type=s_type, is_template=False)
+        src_structure_instance_unit = StructureUnit.objects.create(type=su_type, structure=src_structure_instance)
+        archive_tag = Tag.objects.create()
+        src_archive_tag_structure = TagStructure.objects.create(
+            tag=archive_tag,
+            structure=src_structure_instance,
+        )
+
+        dst_structure_template = Structure.objects.create(type=s_type, is_template=True)
+        dst_structure_template_unit = StructureUnit.objects.create(type=su_type, structure=dst_structure_template)
+        dst_structure_instance = Structure.objects.create(
+            type=s_type, is_template=False,
+            template=dst_structure_template,
+        )
+        TagStructure.objects.create(
+            tag=archive_tag,
+            structure=dst_structure_instance,
+        )
+
+        src_structure_instance_unit.relate_to(dst_structure_template_unit, rel_type)
+        node_tag = Tag.objects.create()
+        TagStructure.objects.create(
+            tag=node_tag,
+            parent=src_archive_tag_structure,
+            structure=src_structure_instance,
+            structure_unit=src_structure_instance_unit,
+        )
+
+        dst_structure_instance_unit = dst_structure_template_unit.create_template_instance(dst_structure_instance)
+
+        # ensure copying of relations
+
+        self.assertTrue(StructureUnitRelation.objects.filter(
+            structure_unit_a=src_structure_instance_unit,
+            structure_unit_b=dst_structure_instance_unit,
+        ).exists())
+        self.assertTrue(StructureUnitRelation.objects.filter(
+            structure_unit_b=src_structure_instance_unit,
+            structure_unit_a=dst_structure_instance_unit,
+        ).exists())
+
+        # ensure copying of tagstructures when creating instance from template in same archive
+
+        self.assertTrue(node_tag.structures.filter(
+            structure=src_structure_instance,
+            structure_unit=src_structure_instance_unit,
+        ).exists())
+
+        self.assertTrue(node_tag.structures.filter(
+            structure=dst_structure_instance,
+            structure_unit=dst_structure_instance_unit,
+        ).exists())
+
+
 class TagStructureTestCase(TestCase):
     def test_new_version_single_node(self):
         s_type = StructureType.objects.create()

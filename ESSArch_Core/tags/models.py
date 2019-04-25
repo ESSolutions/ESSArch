@@ -358,6 +358,60 @@ class StructureUnit(MPTTModel):
                 revise_date=note.revise_date,
             )
 
+        new_archive_structure = new_unit.structure.tagstructure_set.first().get_root()
+
+        for relation in StructureUnitRelation.objects.filter(structure_unit_a=self):
+            if relation.structure_unit_b.structure.is_template:
+                continue
+
+            related_archive_structure = relation.structure_unit_b.structure.tagstructure_set.first().get_root()
+
+            if new_archive_structure.tag != related_archive_structure.tag:
+                continue
+
+            StructureUnitRelation.objects.create(
+                structure_unit_a=new_unit,
+                structure_unit_b=relation.structure_unit_b,
+                type=relation.type,
+                description=relation.description,
+                start_date=relation.start_date,
+                end_date=relation.end_date,
+                create_date=relation.create_date,
+                revise_date=relation.revise_date,
+            )
+
+        for relation in StructureUnitRelation.objects.filter(structure_unit_b=self):
+            if relation.structure_unit_a.structure.is_template:
+                continue
+
+            related_archive_structure = relation.structure_unit_a.structure.tagstructure_set.first().get_root()
+
+            if new_archive_structure.tag != related_archive_structure.tag:
+                continue
+
+            StructureUnitRelation.objects.create(
+                structure_unit_a=relation.structure_unit_a,
+                structure_unit_b=new_unit,
+                type=relation.type,
+                description=relation.description,
+                start_date=relation.start_date,
+                end_date=relation.end_date,
+                create_date=relation.create_date,
+                revise_date=relation.revise_date,
+            )
+
+            # copy existing tag structures to new unit
+            old_tag_structures = TagStructure.objects.filter(
+                structure_unit=relation.structure_unit_a,
+                tree_id=related_archive_structure.tree_id,
+            )
+            for old_tag_structure in old_tag_structures.get_descendants(include_self=True):
+                if old_tag_structure.structure_unit is None:
+                    old_tag_structure.copy_to_new_structure(new_unit.structure)
+                    continue
+
+                old_tag_structure.copy_to_new_structure(new_unit.structure, new_unit)
+
         return new_unit
 
     def create_new_version(self, new_structure):
@@ -394,7 +448,34 @@ class StructureUnit(MPTTModel):
                 # copy existing tag structures to other unit
                 old_tag_structures = TagStructure.objects.filter(structure_unit=self)
                 for old_tag_structure in old_tag_structures.get_descendants(include_self=True):
+                    if old_tag_structure.structure_unit is None:
+                        old_tag_structure.copy_to_new_structure(other_unit.structure)
+                        continue
+
                     old_tag_structure.copy_to_new_structure(other_unit.structure, other_unit)
+
+            if not self.structure.is_template and other_unit.structure.is_template:
+                # copy tagstructures to instance in same archive of related template
+
+                archive_structure = self.structure.tagstructure_set.first().get_root()
+                try:
+                    related_unit_instance = StructureUnit.objects.get(
+                        structure__template=other_unit.structure,
+                        structure__tagstructure__tag=archive_structure.tag,
+                    )
+                except StructureUnit.DoesNotExist:
+                    pass
+                else:
+                    related_structure_instance = related_unit_instance.structure
+
+                    # copy existing tag structures to other unit
+                    old_tag_structures = TagStructure.objects.filter(structure_unit=self)
+                    for old_tag_structure in old_tag_structures.get_descendants(include_self=True):
+                        if old_tag_structure.structure_unit is None:
+                            old_tag_structure.copy_to_new_structure(related_structure_instance)
+                            continue
+
+                        old_tag_structure.copy_to_new_structure(related_structure_instance, related_unit_instance)
 
         # create mirrored relation
         StructureUnitRelation.objects.create(
