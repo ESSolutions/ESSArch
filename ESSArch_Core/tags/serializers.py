@@ -203,7 +203,7 @@ class StructureUnitSerializer(serializers.ModelSerializer):
             'id', 'parent', 'name', 'type', 'description',
             'reference_code', 'start_date', 'end_date', 'is_leaf_node',
             'is_unit_leaf_node', 'structure', 'identifiers', 'notes',
-            'related_structure_units', 'archive',
+            'related_structure_units', 'archive', 'structure',
         )
 
 
