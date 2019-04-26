@@ -264,7 +264,7 @@ class AgentType(models.Model):
     cpf = models.CharField(max_length=20, choices=CPF_CHOICES, blank=False, db_index=True)
     main_type = models.ForeignKey('agents.MainAgentType', on_delete=models.PROTECT, null=False)
     sub_type = models.TextField(_('sub type'), blank=True)
-    legal_status = models.TextField(_('legal status'), blank=False)
+    legal_status = models.TextField(_('legal status'), blank=True)
 
     def __str__(self):
         if self.sub_type:
