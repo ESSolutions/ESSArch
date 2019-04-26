@@ -14,7 +14,7 @@ class AddStructureUnit(permissions.BasePermission):
         if structure.is_template:
             return True
 
-        return request.user.has_perm('tags.add_structure_unit_instance')
+        return request.user.has_perm('tags.add_structureunit_instance')
 
 
 class ChangeStructureUnit(permissions.BasePermission):
@@ -29,12 +29,12 @@ class ChangeStructureUnit(permissions.BasePermission):
         perms = []
 
         if 'parent' in data:
-            perms.append('tags.move_structure_unit_instance')
+            perms.append('tags.move_structureunit_instance')
 
         data.pop('parent', None)
 
         if len(data.keys()) > 1:  # always contains structure
-            perms.append('tags.change_structure_unit_instance')
+            perms.append('tags.change_structureunit_instance')
 
         return request.user.has_perms(perms)
 
@@ -47,4 +47,4 @@ class DeleteStructureUnit(permissions.BasePermission):
         if obj.structure.is_template:
             return True
 
-        return request.user.has_perm('tags.delete_structure_unit_instance')
+        return request.user.has_perm('tags.delete_structureunit_instance')

@@ -507,10 +507,10 @@ class StructureUnit(MPTTModel):
     class Meta:
         unique_together = (('structure', 'reference_code'),)
         permissions = (
-            ('add_structure_unit_instance', _('Can add structure unit instances')),
-            ('change_structure_unit_instance', _('Can edit instances of structure units')),
-            ('delete_structure_unit_instance', _('Can delete instances of structure units')),
-            ('move_structure_unit_instance', _('Can move instances of structure units')),
+            ('add_structureunit_instance', _('Can add structure unit instances')),
+            ('change_structureunit_instance', _('Can edit instances of structure units')),
+            ('delete_structureunit_instance', _('Can delete instances of structure units')),
+            ('move_structureunit_instance', _('Can move instances of structure units')),
         )
 
 
