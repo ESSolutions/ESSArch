@@ -584,6 +584,7 @@ class Tag(models.Model):
         permissions = (
             ('search', 'Can search'),
             ('create_archive', 'Can create new archives'),
+            ('change_archive', 'Can change archives'),
             ('delete_archive', 'Can delete archives'),
         )
 
