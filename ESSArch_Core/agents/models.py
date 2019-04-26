@@ -262,7 +262,10 @@ class AgentType(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     cpf = models.CharField(max_length=20, choices=CPF_CHOICES, blank=False, db_index=True)
-    main_type = models.ForeignKey('agents.MainAgentType', on_delete=models.PROTECT, null=False)
+    main_type = models.ForeignKey(
+        'agents.MainAgentType', on_delete=models.PROTECT, null=False,
+        verbose_name=_('main type'),
+    )
     sub_type = models.TextField(_('sub type'), blank=True)
     legal_status = models.TextField(_('legal status'), blank=True)
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-17 16:01+0200\n"
+"POT-Creation-Date: 2019-04-26 15:02+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,7 +23,7 @@ msgid "Agents"
 msgstr "Agenter"
 
 #: models.py:12 models.py:128 models.py:155 models.py:179 models.py:187
-#: models.py:205 models.py:217 models.py:233 models.py:281 models.py:304
+#: models.py:205 models.py:217 models.py:233 models.py:284 models.py:307
 msgid "name"
 msgstr "namn"
 
@@ -39,17 +39,17 @@ msgstr "Agentrelationstyp"
 msgid "agent relation types"
 msgstr "Agentrelationstyper"
 
-#: models.py:30 models.py:121 models.py:180 models.py:248 models.py:296
+#: models.py:30 models.py:121 models.py:180 models.py:248 models.py:299
 msgid "description"
 msgstr "beskrivning"
 
 #: models.py:31 models.py:84 models.py:119 models.py:182 models.py:249
-#: models.py:298
+#: models.py:301
 msgid "start date"
 msgstr "startdatum"
 
 #: models.py:32 models.py:85 models.py:120 models.py:183 models.py:250
-#: models.py:299
+#: models.py:302
 msgid "end date"
 msgstr "slutdatum"
 
@@ -119,11 +119,11 @@ msgstr "typ"
 
 #: models.py:134
 msgid "agent tag relation type"
-msgstr ""
+msgstr "agentnodrelationstyp"
 
 #: models.py:135
 msgid "agent tag relation types"
-msgstr ""
+msgstr "agentnodrelationstyper"
 
 #: models.py:148
 msgid "text"
@@ -135,19 +135,19 @@ msgstr ""
 
 #: models.py:161
 msgid "agent note type"
-msgstr ""
+msgstr "agentanmärkningstyp"
 
 #: models.py:162
 msgid "agent note types"
-msgstr ""
+msgstr "agentanmärkningstyper"
 
 #: models.py:193
 msgid "authority type"
-msgstr ""
+msgstr "auktoritetstyp"
 
 #: models.py:194
 msgid "authority types"
-msgstr ""
+msgstr "auktoritetstyper"
 
 #: models.py:199
 msgid "identifier"
@@ -195,11 +195,11 @@ msgstr "latitud"
 
 #: models.py:239
 msgid "agent place type"
-msgstr ""
+msgstr "agentplaceringstyp"
 
 #: models.py:240
 msgid "agent place types"
-msgstr ""
+msgstr "agentplaceringstyper"
 
 #: models.py:258
 msgid "corporate body"
@@ -213,55 +213,59 @@ msgstr ""
 msgid "family"
 msgstr "familj"
 
-#: models.py:266
+#: models.py:267
+msgid "main type"
+msgstr "huvudtyp"
+
+#: models.py:269
 msgid "sub type"
 msgstr ""
 
-#: models.py:267
+#: models.py:270
 msgid "legal status"
 msgstr ""
 
-#: models.py:276
+#: models.py:279
 msgid "agent type"
 msgstr "Agenttyp"
 
-#: models.py:277
+#: models.py:280
 msgid "agent types"
 msgstr "Agenttyper"
 
-#: models.py:287
+#: models.py:290
 msgid "main agent type"
-msgstr ""
+msgstr "huvudagenttyp"
 
-#: models.py:288
+#: models.py:291
 msgid "main agent types"
-msgstr ""
+msgstr "huvudagenttyper"
 
-#: models.py:294
+#: models.py:297
 msgid "main"
 msgstr ""
 
-#: models.py:295
+#: models.py:298
 msgid "part"
 msgstr ""
 
-#: models.py:300
+#: models.py:303
 msgid "certainty"
 msgstr ""
 
-#: models.py:310
+#: models.py:313
 msgid "agent name type"
 msgstr "agentnamntyp"
 
-#: models.py:311
+#: models.py:314
 msgid "agent name types"
 msgstr "agentnamntyper"
 
-#: models.py:321
+#: models.py:324
 msgid "country code"
 msgstr "landskod"
 
-#: models.py:323
+#: models.py:326
 msgid "repository code"
 msgstr "depåkod"
 
