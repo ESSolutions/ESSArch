@@ -89,6 +89,7 @@ class NodeRelationType(models.Model):
 
 class StructureType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+    instance_name = models.CharField(_('instance name'), max_length=255, blank=True)
     editable_instances = models.BooleanField(_('editable instances'), default=False)
     editable_instance_relations = models.BooleanField(_('editable instance relations'), default=False)
     movable_instance_units = models.BooleanField(_('movable instance units'), default=False)

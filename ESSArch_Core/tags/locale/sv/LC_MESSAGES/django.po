@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-24 11:36+0200\n"
+"POT-Creation-Date: 2019-04-26 09:45+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,9 +38,9 @@ msgstr ""
 msgid "type"
 msgstr ""
 
-#: models.py:39 models.py:69 models.py:76 models.py:91 models.py:105
-#: models.py:261 models.py:529 models.py:538 models.py:549 models.py:562
-#: models.py:573 models.py:584 models.py:601
+#: models.py:39 models.py:69 models.py:76 models.py:91 models.py:106
+#: models.py:262 models.py:614 models.py:623 models.py:634 models.py:647
+#: models.py:658 models.py:669 models.py:686
 msgid "name"
 msgstr "namn"
 
@@ -52,11 +52,11 @@ msgstr ""
 msgid "href"
 msgstr ""
 
-#: models.py:64 models.py:286 models.py:521
+#: models.py:64 models.py:287 models.py:606
 msgid "create date"
 msgstr ""
 
-#: models.py:65 models.py:287 models.py:522
+#: models.py:65 models.py:288 models.py:607
 msgid "revise date"
 msgstr ""
 
@@ -73,150 +73,154 @@ msgid "node relation types"
 msgstr "nodrelationstyper"
 
 #: models.py:92
+msgid "instance name"
+msgstr "instansnamn"
+
+#: models.py:93
 msgid "editable instances"
 msgstr "redigeringsbara instanser"
 
-#: models.py:93
+#: models.py:94
 msgid "editable instance relations"
 msgstr "redigeringsbara instansrelationer"
 
-#: models.py:94
+#: models.py:95
 msgid "movable instance units"
 msgstr "flyttbara instansenheter"
 
-#: models.py:100 models.py:260
+#: models.py:101 models.py:261
 msgid "structure type"
 msgstr "strukturtyp"
 
-#: models.py:101
+#: models.py:102
 msgid "structure types"
 msgstr "strukturtyper"
 
-#: models.py:117 models.py:300
+#: models.py:118 models.py:301
 msgid "template"
 msgstr "mall"
 
-#: models.py:119
+#: models.py:120
 msgid "is template"
 msgstr "är mall"
 
-#: models.py:120
+#: models.py:121
 msgid "published"
 msgstr "publicerad"
 
-#: models.py:267
+#: models.py:268
 msgid "structure unit type"
 msgstr "strukturenhetstyp"
 
-#: models.py:268
+#: models.py:269
 msgid "structure unit types"
 msgstr "strukturenhetstyper"
 
-#: models.py:283 models.py:518
+#: models.py:284 models.py:603
 msgid "description"
 msgstr "beskrivning"
 
-#: models.py:284 models.py:519 models.py:821
+#: models.py:285 models.py:604 models.py:906
 msgid "start date"
 msgstr ""
 
-#: models.py:285 models.py:520 models.py:822
+#: models.py:286 models.py:605 models.py:907
 msgid "end date"
 msgstr ""
 
-#: models.py:425
+#: models.py:510
 msgid "Can add structure unit instances"
 msgstr "Kan skapa instanser av strukturenheter"
 
-#: models.py:426
+#: models.py:511
 msgid "Can edit instances of structure units"
 msgstr "Kan redigera instanser av strukturenheter"
 
-#: models.py:427
+#: models.py:512
 msgid "Can delete instances of structure units"
 msgstr "Kan radera instanser av strukturenheter"
 
-#: models.py:428
+#: models.py:513
 msgid "Can move instances of structure units"
 msgstr "Kan flytta instanser av strukturenheter"
 
-#: models.py:530
+#: models.py:615
 msgid "size"
 msgstr ""
 
-#: models.py:531
+#: models.py:616
 msgid "unit"
 msgstr ""
 
-#: models.py:544
+#: models.py:629
 msgid "metric type"
 msgstr ""
 
-#: models.py:545
+#: models.py:630
 msgid "metric types"
 msgstr ""
 
-#: models.py:550
+#: models.py:635
 msgid "capacity"
 msgstr ""
 
-#: models.py:551 models.py:588 models.py:631
+#: models.py:636 models.py:673 models.py:716
 msgid "metric"
 msgstr ""
 
-#: models.py:557
+#: models.py:642
 msgid "metric profile"
 msgstr ""
 
-#: models.py:558
+#: models.py:643
 msgid "metric profiles"
 msgstr ""
 
-#: models.py:568
+#: models.py:653
 msgid "location level type"
 msgstr ""
 
-#: models.py:569
+#: models.py:654
 msgid "location level types"
 msgstr ""
 
-#: models.py:579
+#: models.py:664
 msgid "location function type"
 msgstr ""
 
-#: models.py:580
+#: models.py:665
 msgid "location function types"
 msgstr ""
 
-#: models.py:586
+#: models.py:671
 msgid "parent"
 msgstr ""
 
-#: models.py:589
+#: models.py:674
 msgid "level"
 msgstr ""
 
-#: models.py:590
+#: models.py:675
 msgid "function"
 msgstr ""
 
-#: models.py:596 models.py:632
+#: models.py:681 models.py:717
 msgid "location"
 msgstr ""
 
-#: models.py:597
+#: models.py:682
 msgid "locations"
 msgstr ""
 
-#: models.py:602
+#: models.py:687
 msgid "archive type"
 msgstr "arkivtyp"
 
-#: models.py:608
+#: models.py:693
 msgid "node type"
 msgstr "nodtyp"
 
-#: models.py:609
+#: models.py:694
 msgid "node types"
 msgstr "nodtyper"
 
@@ -248,7 +252,11 @@ msgstr "Enheter i instanser av typen {} kan inte redigeras"
 msgid "Unit type {} is not allowed in structure type {}"
 msgstr "Enhetstypen {} är inte tillåten i strukturtypen {}"
 
-#: serializers.py:526
+#: serializers.py:290
+msgid "Parent and child structure unit must be in the same structure"
+msgstr ""
+
+#: serializers.py:533
 msgid "Archive already added"
 msgstr "Arkivet har redan lagts till"
 
