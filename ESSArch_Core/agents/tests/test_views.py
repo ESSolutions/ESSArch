@@ -1,5 +1,7 @@
 from countries_plus.models import Country
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.utils import timezone
 from django.urls import reverse
@@ -27,6 +29,12 @@ from ESSArch_Core.agents.models import (
 )
 
 User = get_user_model()
+
+
+def add_permission(user, codename):
+    agent_ctype = ContentType.objects.get(app_label="agents", model="agent")
+    perm = Permission.objects.get(content_type=agent_ctype, codename=codename)
+    user.user_permissions.add(perm)
 
 
 class ListAgentTests(TestCase):
@@ -119,7 +127,27 @@ class CreateAgentTests(TestCase):
             create_date=timezone.now(),
         )
 
+    def test_create_without_permission(self):
+        response = self.client.post(
+            self.url,
+            data={
+                'level_of_detail': Agent.MINIMAL,
+                'script': Agent.LATIN,
+                'language': 'sv',
+                'record_status': Agent.DRAFT,
+                'type': self.agent_type.pk,
+                'ref_code': self.ref_code.pk,
+                'names': [{
+                    'main': 'test',
+                    'type': self.name_type.pk,
+                }],
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_create_complete(self):
+        add_permission(self.user, 'add_agent')
         related_agent = self.create_agent()
 
         response = self.client.post(
@@ -164,6 +192,7 @@ class CreateAgentTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_start_date_after_end_date(self):
+        add_permission(self.user, 'add_agent')
         response = self.client.post(
             self.url,
             data={
@@ -185,6 +214,7 @@ class CreateAgentTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_start_date_without_end_date(self):
+        add_permission(self.user, 'add_agent')
         response = self.client.post(
             self.url,
             data={
@@ -205,6 +235,7 @@ class CreateAgentTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_name_start_date_after_name_end_date(self):
+        add_permission(self.user, 'add_agent')
         response = self.client.post(
             self.url,
             data={
@@ -230,6 +261,7 @@ class CreateAgentTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_name_start_date_without_name_end_date(self):
+        add_permission(self.user, 'add_agent')
         response = self.client.post(
             self.url,
             data={
@@ -254,6 +286,7 @@ class CreateAgentTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_without_names(self):
+        add_permission(self.user, 'add_agent')
         response = self.client.post(
             self.url,
             data={
@@ -312,7 +345,22 @@ class UpdateAgentTests(TestCase):
             create_date=timezone.now(),
         )
 
+    def test_update_without_permission(self):
+        agent = self.create_agent()
+        url = reverse('agent-detail', args=[agent.pk])
+
+        response = self.client.patch(
+            url,
+            data={
+                'level_of_detail': Agent.PARTIAL,
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_update_names(self):
+        add_permission(self.user, 'change_agent')
+
         agent = self.create_agent()
         url = reverse('agent-detail', args=[agent.pk])
 
@@ -383,6 +431,8 @@ class UpdateAgentTests(TestCase):
         self.assertTrue(AgentName.objects.filter(agent=agent, main='test2').exists())
 
     def test_update_notes(self):
+        add_permission(self.user, 'change_agent')
+
         agent = self.create_agent()
         url = reverse('agent-detail', args=[agent.pk])
 
@@ -417,6 +467,8 @@ class UpdateAgentTests(TestCase):
         self.assertTrue(AgentNote.objects.filter(agent=agent, text='test', create_date='2019-03-01 12:34:56').exists())
 
     def test_update_identifiers(self):
+        add_permission(self.user, 'change_agent')
+
         agent = self.create_agent()
         url = reverse('agent-detail', args=[agent.pk])
 
@@ -435,6 +487,8 @@ class UpdateAgentTests(TestCase):
         self.assertTrue(AgentIdentifier.objects.filter(agent=agent, identifier='test').exists())
 
     def test_update_mandates(self):
+        add_permission(self.user, 'change_agent')
+
         agent = self.create_agent()
         url = reverse('agent-detail', args=[agent.pk])
 
@@ -453,6 +507,8 @@ class UpdateAgentTests(TestCase):
         self.assertTrue(SourcesOfAuthority.objects.filter(agents=agent, name='test').exists())
 
     def test_update_places(self):
+        add_permission(self.user, 'change_agent')
+
         agent = self.create_agent()
         url = reverse('agent-detail', args=[agent.pk])
 
@@ -475,6 +531,8 @@ class UpdateAgentTests(TestCase):
         self.assertTrue(AgentPlace.objects.filter(agent=agent, topography__name='test').exists())
 
     def test_update_related_agents(self):
+        add_permission(self.user, 'change_agent')
+
         agent = self.create_agent()
         related_agent = self.create_agent()
         url = reverse('agent-detail', args=[agent.pk])
@@ -495,6 +553,8 @@ class UpdateAgentTests(TestCase):
         self.assertTrue(AgentRelation.objects.filter(agent_a=related_agent, agent_b=agent).exists())
 
     def test_add_relation_to_self(self):
+        add_permission(self.user, 'change_agent')
+
         agent = self.create_agent()
         url = reverse('agent-detail', args=[agent.pk])
 
@@ -512,6 +572,8 @@ class UpdateAgentTests(TestCase):
         self.assertFalse(AgentRelation.objects.exists())
 
     def test_add_same_relation_twice(self):
+        add_permission(self.user, 'change_agent')
+
         agent = self.create_agent()
         url = reverse('agent-detail', args=[agent.pk])
 
@@ -533,3 +595,58 @@ class UpdateAgentTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(AgentRelation.objects.exists())
+
+
+class DeleteAgentTests(TestCase):
+    fixtures = ['countries_data', 'languages_data']
+
+    def setUp(self):
+        self.client = APIClient()
+        self.url = reverse('agent-list')
+
+        self.user = User.objects.create(username='user')
+        self.member = self.user.essauth_member
+
+        self.client.force_authenticate(user=self.user)
+
+        self.main_agent_type = MainAgentType.objects.create()
+        self.agent_type = AgentType.objects.create(main_type=self.main_agent_type)
+
+        self.authority_type = AuthorityType.objects.create(name='test')
+        self.identifier_type = AgentIdentifierType.objects.create(name='test')
+        self.name_type = AgentNameType.objects.create(name='test')
+        self.note_type = AgentNoteType.objects.create(name='test')
+        self.place_type = AgentPlaceType.objects.create(name='test')
+        self.relation_type = AgentRelationType.objects.create(name='test')
+
+        self.ref_code = RefCode.objects.create(
+            country=Country.objects.get(iso='SE'),
+            repository_code='repo',
+        )
+
+    def create_agent(self):
+        return Agent.objects.create(
+            level_of_detail=Agent.MINIMAL,
+            script=Agent.LATIN,
+            language=Language.objects.get(iso_639_1='sv'),
+            record_status=Agent.DRAFT,
+            type=self.agent_type,
+            ref_code=self.ref_code,
+            create_date=timezone.now(),
+        )
+
+    def test_delete_without_permission(self):
+        agent = self.create_agent()
+        url = reverse('agent-detail', args=[agent.pk])
+
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_with_permission(self):
+        add_permission(self.user, 'delete_agent')
+
+        agent = self.create_agent()
+        url = reverse('agent-detail', args=[agent.pk])
+
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

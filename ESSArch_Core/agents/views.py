@@ -19,6 +19,7 @@ from ESSArch_Core.agents.serializers import (
     AgentTypeSerializer,
     AgentWriteSerializer,
 )
+from ESSArch_Core.auth.permissions import ActionPermissions
 
 
 class AgentTypeViewSet(viewsets.ModelViewSet):
@@ -38,6 +39,7 @@ class AgentViewSet(viewsets.ModelViewSet):
         Prefetch('agent_relations_a', AgentRelation.objects.prefetch_related('agent_b').order_by(F('start_date').desc(nulls_first=True))),
     )
     serializer_class = AgentSerializer
+    permission_classes = (ActionPermissions,)
     filter_backends = (AgentOrderingFilter, DjangoFilterBackend, SearchFilter,)
     filterset_class = AgentFilter
     ordering_fields = ('latest_name', 'names__part', 'names__main', 'start_date', 'end_date', 'type__main_type__name')
