@@ -44,7 +44,7 @@ msgstr ""
 
 #: ../../authentication_authorization/permissions/authorization.rst:13
 msgid "Create users"
-msgstr ""
+msgstr "Skapa användare"
 
 #: ../../authentication_authorization/permissions/authorization.rst:15
 msgid "``auth.change_user``"
@@ -52,7 +52,7 @@ msgstr ""
 
 #: ../../authentication_authorization/permissions/authorization.rst:15
 msgid "Change users"
-msgstr ""
+msgstr "Ändra användare"
 
 #: ../../authentication_authorization/permissions/authorization.rst:17
 msgid "``auth.delete_user``"
@@ -60,7 +60,7 @@ msgstr ""
 
 #: ../../authentication_authorization/permissions/authorization.rst:17
 msgid "Delete users"
-msgstr ""
+msgstr "Radera användare"
 
 #: ../../authentication_authorization/permissions/authorization.rst:23
 msgid "Groups"
@@ -72,7 +72,7 @@ msgstr ""
 
 #: ../../authentication_authorization/permissions/authorization.rst:28
 msgid "Create groups"
-msgstr ""
+msgstr "Skapa grupper"
 
 #: ../../authentication_authorization/permissions/authorization.rst:30
 msgid "``auth.change_group``"
@@ -80,7 +80,7 @@ msgstr ""
 
 #: ../../authentication_authorization/permissions/authorization.rst:30
 msgid "Change groups"
-msgstr ""
+msgstr "Ändra grupper"
 
 #: ../../authentication_authorization/permissions/authorization.rst:32
 msgid "``auth.delete_group``"
@@ -88,7 +88,7 @@ msgstr ""
 
 #: ../../authentication_authorization/permissions/authorization.rst:32
 msgid "Delete groups"
-msgstr ""
+msgstr "Radera grupper"
 
 #: ../../authentication_authorization/permissions/authorization.rst:38
 msgid "Roles"
@@ -100,7 +100,7 @@ msgstr ""
 
 #: ../../authentication_authorization/permissions/authorization.rst:43
 msgid "Create roles"
-msgstr ""
+msgstr "Skapa roller"
 
 #: ../../authentication_authorization/permissions/authorization.rst:45
 msgid "``essauth.change_groupmemberrole``"
@@ -108,7 +108,7 @@ msgstr ""
 
 #: ../../authentication_authorization/permissions/authorization.rst:45
 msgid "Change roles"
-msgstr ""
+msgstr "Ändra roller"
 
 #: ../../authentication_authorization/permissions/authorization.rst:47
 msgid "``essauth.delete_groupmemberrole``"
@@ -116,7 +116,7 @@ msgstr ""
 
 #: ../../authentication_authorization/permissions/authorization.rst:47
 msgid "Delete roles"
-msgstr ""
+msgstr "Radera roller"
 
 #: ../../authentication_authorization/permissions/authorization.rst:49
 msgid "``essauth.assign_groupmemberrole``"
@@ -124,5 +124,5 @@ msgstr ""
 
 #: ../../authentication_authorization/permissions/authorization.rst:49
 msgid "Assign roles"
-msgstr ""
+msgstr "Tilldela roller"
 
