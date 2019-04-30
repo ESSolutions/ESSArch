@@ -8,5 +8,5 @@ roles.
 .. toctree::
    :maxdepth: 10
 
-   archival_description
+   /authentication_authorization/permissions/archival_description/index
    authorization

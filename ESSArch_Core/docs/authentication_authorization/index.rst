@@ -15,12 +15,12 @@ in an installation, this is all setup and configured according to the needs
 that the installation is supposed to meet.
 
 The permissions available are therefore made in as small building blocks as
-possible to allow either very small and specific roles to be created but tat
+possible to allow either very small and specific roles to be created but at
 the same time create roles that can do everything.
 
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 10
 
     groups
     permissions/index
