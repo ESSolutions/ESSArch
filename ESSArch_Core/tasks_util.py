@@ -210,8 +210,8 @@ def validate_files(ip, responsible, rootdir, validate_fileformat, validate_integ
 
 def append_events(ip, events, filename):
     if not filename:
-        ip = InformationPackage.objects.get(pk=ip)
-        filename = os.path.join(ip.object_path, ip.get_events_file_path())
+        ip_obj = InformationPackage.objects.get(pk=ip)
+        filename = os.path.join(ip_obj.object_path, ip_obj.get_events_file_path())
     generator = XMLGenerator(filepath=filename)
     template = get_event_element_spec()
 
