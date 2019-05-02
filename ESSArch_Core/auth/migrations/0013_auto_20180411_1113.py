@@ -22,12 +22,14 @@ class Migration(migrations.Migration):
                 'proxy': True,
                 'indexes': [],
                 'default_permissions': [],
+                'verbose_name': 'group type',
+                'verbose_name_plural': 'group types',
             },
             bases=('groups_manager.grouptype',),
         ),
         migrations.AlterField(
             model_name='group',
             name='group_type',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='essauth_groups', to='essauth.GroupType'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='essauth_groups', to='essauth.GroupType', verbose_name='group type'),
         ),
     ]
