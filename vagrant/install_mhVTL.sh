@@ -7,7 +7,7 @@ get_os_name(){
     elif [[ "$(hostnamectl | grep -i sles | wc -l)" != "0" ]]; then
         OS_NAME='sles'
     elif [[ "$(hostnamectl | grep -i opensuse | wc -l)" != "0" ]]; then
-	OS_NAME='opensuse'
+        OS_NAME='opensuse'
     elif [[ "$(hostnamectl | grep -i centos | wc -l)" != "0" ]]; then
         OS_NAME='centos'
     else
