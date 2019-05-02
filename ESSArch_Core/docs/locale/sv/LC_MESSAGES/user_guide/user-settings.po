@@ -1,0 +1,72 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-04-30 15:48+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../user_guide/user-settings.rst:4
+msgid "User settings"
+msgstr "Användarinställningar"
+
+#: ../../user_guide/user-settings.rst:6
+msgid ""
+"User settings can be found by clicking the user symbol in the top right "
+"corner and selecting \"User settings\"."
+msgstr ""
+"Använarinställningar visas genom att klicka"
+" på användarsymbolen i det övre högra"
+" hörnet och sen välja "
+"\"Användarinställningar\"."
+
+#: ../../user_guide/user-settings.rst:14
+msgid "Column picker"
+msgstr "Tabellkolumner"
+
+#: ../../user_guide/user-settings.rst:16
+msgid ""
+"The user can choose which columns should be shown in all the IP list "
+"views of ESSArch and in which order they appear."
+msgstr ""
+"Användaren kan välja vilka kolumner samt"
+" dess ordning som ska visas i "
+"IP-listorna"
+
+#: ../../user_guide/user-settings.rst:24
+msgid "IP view type"
+msgstr "IP visualisering"
+
+#: ../../user_guide/user-settings.rst:26
+msgid ""
+"In ESSArch Preservation Platform (EPP) there is an additinal setting - "
+"**IP view type** that allows the user to choose what to see in the IP "
+"list view."
+msgstr ""
+"I ESSArch Preservation Platform (EPP) "
+"finns det en extra inställning - "
+"**IP-visualisering** som tillåter användaren "
+"att välja hur IP-listorna presenteras."
+
+#: ../../user_guide/user-settings.rst:29
+msgid "IP - The first generation of each AIC with all other generations nested"
+msgstr ""
+"IP - Den första generationen av "
+"varje AIC med alla andra generationer"
+" nästlade"
+
+#: ../../user_guide/user-settings.rst:30
+msgid "AIC - The AIC with all generations nested"
+msgstr "AIC - AIC:n med alla generationer nästlade"
