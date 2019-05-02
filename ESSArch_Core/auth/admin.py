@@ -117,6 +117,12 @@ class UserAdmin(DjangoUserAdmin, NestedModelAdmin):
         (_('Groups'), {'fields': ('groups',)})
     )
 
+    def get_inline_instances(self, request, obj=None):
+        if not request.user.has_perm("%s.%s" % ('essauth', 'assign_groupmemberrole')):
+            return []
+
+        return super().get_inline_instances(request, obj=obj)
+
     @csrf_protect_m
     @transaction.atomic
     def add_view(self, request, form_url='', extra_context=None):
