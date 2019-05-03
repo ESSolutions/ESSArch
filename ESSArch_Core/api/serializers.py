@@ -23,8 +23,8 @@
 """
 
 from drf_dynamic_fields import DynamicFieldsMixin
-
-from rest_framework import serializers
+from languages_plus.models import Language
+from rest_framework import serializers, validators
 
 
 class DynamicHyperlinkedModelSerializer(DynamicFieldsMixin, serializers.HyperlinkedModelSerializer):
@@ -54,3 +54,14 @@ class DynamicHyperlinkedModelSerializer(DynamicFieldsMixin, serializers.Hyperlin
             existing = set(self.fields.keys())
             for field_name in existing & disallowed:
                 self.fields.pop(field_name)
+
+
+class LanguageSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(
+        source='iso_639_1', max_length=2,
+        validators=[validators.UniqueValidator(queryset=Language.objects.all())],
+    )
+
+    class Meta:
+        model = Language
+        fields = ('id', 'name_en',)
