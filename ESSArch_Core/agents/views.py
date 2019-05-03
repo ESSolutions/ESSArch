@@ -8,23 +8,60 @@ from ESSArch_Core.agents.models import (
     Agent,
     AgentIdentifier,
     AgentName,
+    AgentNameType,
     AgentNote,
+    AgentNoteType,
     AgentPlace,
     AgentRelation,
+    AgentRelationType,
+    AgentTagLinkRelationType,
     AgentType,
+    AuthorityType,
     SourcesOfAuthority,
+    RefCode,
 )
 from ESSArch_Core.agents.serializers import (
     AgentSerializer,
+    AgentNameTypeSerializer,
+    AgentNoteTypeSerializer,
+    AgentRelationTypeSerializer,
+    AgentTagLinkRelationTypeSerializer,
     AgentTypeSerializer,
     AgentWriteSerializer,
+    AuthorityTypeSerializer,
+    RefCodeSerializer,
 )
 from ESSArch_Core.auth.permissions import ActionPermissions
+
+
+class AgentRelationTypeViewSet(viewsets.ModelViewSet):
+    queryset = AgentRelationType.objects.all()
+    serializer_class = AgentRelationTypeSerializer
+    permission_classes = (ActionPermissions,)
+
+
+class AgentTagLinkRelationTypeViewSet(viewsets.ModelViewSet):
+    queryset = AgentTagLinkRelationType.objects.all()
+    serializer_class = AgentTagLinkRelationTypeSerializer
+    permission_classes = (ActionPermissions,)
 
 
 class AgentTypeViewSet(viewsets.ModelViewSet):
     queryset = AgentType.objects.select_related('main_type')
     serializer_class = AgentTypeSerializer
+    permission_classes = (ActionPermissions,)
+
+
+class AgentNameTypeViewSet(viewsets.ModelViewSet):
+    queryset = AgentNameType.objects.all()
+    serializer_class = AgentNameTypeSerializer
+    permission_classes = (ActionPermissions,)
+
+
+class AgentNoteTypeViewSet(viewsets.ModelViewSet):
+    queryset = AgentNoteType.objects.all()
+    serializer_class = AgentNoteTypeSerializer
+    permission_classes = (ActionPermissions,)
 
 
 class AgentViewSet(viewsets.ModelViewSet):
@@ -50,3 +87,15 @@ class AgentViewSet(viewsets.ModelViewSet):
             return AgentWriteSerializer
 
         return self.serializer_class
+
+
+class AuthorityTypeViewSet(viewsets.ModelViewSet):
+    queryset = AuthorityType.objects.all()
+    serializer_class = AuthorityTypeSerializer
+    permission_classes = (ActionPermissions,)
+
+
+class RefCodeViewSet(viewsets.ModelViewSet):
+    queryset = RefCode.objects.all()
+    serializer_class = RefCodeSerializer
+    permission_classes = (ActionPermissions,)

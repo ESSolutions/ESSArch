@@ -33,14 +33,14 @@ class RefCodeSerializer(serializers.ModelSerializer):
         fields = ('id', 'country', 'repository_code',)
 
 
-class AgentIdentifierTypeSerialzier(serializers.ModelSerializer):
+class AgentIdentifierTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgentIdentifierType
         fields = ('id', 'name')
 
 
 class AgentIdentifierSerializer(serializers.ModelSerializer):
-    type = AgentIdentifierTypeSerialzier()
+    type = AgentIdentifierTypeSerializer()
 
     class Meta:
         model = AgentIdentifier
@@ -55,14 +55,14 @@ class AgentIdentifierWriteSerializer(serializers.ModelSerializer):
         fields = ('id', 'identifier', 'type',)
 
 
-class AgentNameTypeSerialzier(serializers.ModelSerializer):
+class AgentNameTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgentNameType
         fields = ('id', 'name')
 
 
 class AgentNameSerializer(serializers.ModelSerializer):
-    type = AgentNameTypeSerialzier()
+    type = AgentNameTypeSerializer()
 
     class Meta:
         model = AgentName
@@ -73,14 +73,14 @@ class AgentNameWriteSerializer(AgentNameSerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=AgentNameType.objects.all())
 
 
-class AgentNoteTypeSerialzier(serializers.ModelSerializer):
+class AgentNoteTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgentNoteType
         fields = ('id', 'name')
 
 
 class AgentNoteSerializer(serializers.ModelSerializer):
-    type = AgentNoteTypeSerialzier()
+    type = AgentNoteTypeSerializer()
 
     class Meta:
         model = AgentNote
@@ -98,14 +98,14 @@ class AgentNoteWriteSerializer(AgentNoteSerializer):
         }
 
 
-class AuthorityTypeSerialzier(serializers.ModelSerializer):
+class AuthorityTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AuthorityType
         fields = ('id', 'name')
 
 
 class SourcesOfAuthoritySerializer(serializers.ModelSerializer):
-    type = AuthorityTypeSerialzier()
+    type = AuthorityTypeSerializer()
 
     class Meta:
         model = SourcesOfAuthority
@@ -134,7 +134,7 @@ class TopographySerializer(serializers.ModelSerializer):
         )
 
 
-class AgentPlaceTypeSerialzier(serializers.ModelSerializer):
+class AgentPlaceTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgentPlaceType
         fields = ('id', 'name')
@@ -142,7 +142,7 @@ class AgentPlaceTypeSerialzier(serializers.ModelSerializer):
 
 class AgentPlaceSerializer(serializers.ModelSerializer):
     topography = TopographySerializer()
-    type = AgentPlaceTypeSerialzier()
+    type = AgentPlaceTypeSerializer()
 
     class Meta:
         model = AgentPlace
