@@ -19,6 +19,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=255, verbose_name='name')),
                 ('lft', models.PositiveIntegerField(db_index=True, editable=False)),
                 ('rght', models.PositiveIntegerField(db_index=True, editable=False)),
+                ('level', models.PositiveIntegerField(db_index=True, editable=False)),
                 ('tree_id', models.PositiveIntegerField(db_index=True, editable=False)),
             ],
             options={
@@ -95,8 +96,8 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='location',
-            name='level',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='tags.LocationLevelType', verbose_name='level'),
+            name='level_type',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='tags.LocationLevelType', verbose_name='level type'),
         ),
         migrations.AddField(
             model_name='location',

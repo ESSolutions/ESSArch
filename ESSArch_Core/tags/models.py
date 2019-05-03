@@ -672,7 +672,7 @@ class Location(MPTTModel):
         'self', on_delete=models.SET_NULL, null=True, related_name='children', verbose_name=_('parent')
     )
     metric = models.ForeignKey(MetricProfile, on_delete=models.PROTECT, null=True, verbose_name=_('metric'))
-    level = models.ForeignKey(LocationLevelType, on_delete=models.PROTECT, verbose_name=_('level'))
+    level_type = models.ForeignKey(LocationLevelType, on_delete=models.PROTECT, verbose_name=_('level type'))
     function = models.ForeignKey(LocationFunctionType, on_delete=models.PROTECT, verbose_name=_('function'))
 
     def __str__(self):
