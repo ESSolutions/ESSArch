@@ -33,7 +33,7 @@ install_ubuntu_pre_req(){
     sudo apt-get update && sudo apt-get install sysstat lzop liblzo2-dev liblzo2-2 mtx mt-st sg3-utils zlib1g-dev git lsscsi build-essential gawk alien fakeroot linux-headers-$(uname -r) -y
 }
 install_centos_pre_req(){
-    sudo yum update -y && sudo yum install -y git mc ntp gcc gcc-c++ make kernel-devel zlib-devel sg3_utils lsscsi mt-st mtx lzo lzo-devel perl-Config-General
+    sudo yum update -y && sudo yum install -y git mc ntp gcc gcc-c++ make kernel-devel-$(uname -r) zlib-devel sg3_utils lsscsi mt-st mtx lzo lzo-devel perl-Config-General
 }
 install_sles_pre_req(){
     echo "SLES/OpenSuse IS NOT YET SUPPORTED! Use it at your own risk!"
@@ -80,4 +80,13 @@ sudo systemctl start mhvtl.target
 
 sleep 3
 echo "Show your tape libraries now!"
-lsscsi
+lsscsi -g
+
+echo ""
+if [[ "$(lsscsi -g | wc -l)" -gt 8 ]]
+then
+    echo "Found some virtual tapes, success!"
+else
+    echo "Could not find the virtual tapes, the installation failed!"
+    exit 1
+fi
