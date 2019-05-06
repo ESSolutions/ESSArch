@@ -22,6 +22,7 @@ class LanguageViewSet(viewsets.ReadOnlyModelViewSet):
             default_order=Case(
                 When(iso_639_1=user_lang, then=Value(1)),
                 When(iso_639_1='en', then=Value(2)),
+                default=Value(3),
                 output_field=IntegerField(),
             )
         ).order_by('default_order')
