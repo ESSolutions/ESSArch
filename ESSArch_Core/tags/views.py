@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import ProtectedError
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from mptt.templatetags.mptt_tags import cache_tree_children
@@ -12,6 +13,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from ESSArch_Core.agents.models import AgentTagLink
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.permissions import ActionPermissions
+from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.api.filters import OrderingFilterWithNulls
 from ESSArch_Core.tags.filters import StructureUnitFilter, TagFilter
 from ESSArch_Core.tags.models import (
@@ -20,7 +22,12 @@ from ESSArch_Core.tags.models import (
     StructureUnit,
     StructureUnitType,
     Tag,
-    TagVersionType
+    TagVersion,
+    TagVersionType,
+    Location,
+    MetricProfile,
+    LocationLevelType,
+    LocationFunctionType,
 )
 from ESSArch_Core.tags.permissions import (
     AddStructureUnit,
@@ -39,6 +46,11 @@ from ESSArch_Core.tags.serializers import (
     StructureUnitSerializer,
     StructureUnitTypeSerializer,
     StructureUnitWriteSerializer,
+    LocationSerializer,
+    MetricProfileSerializer,
+    LocationLevelTypeSerializer,
+    LocationFunctionTypeSerializer,
+    LocationWriteSerializer,
 )
 from ESSArch_Core.util import mptt_to_dict
 
@@ -69,6 +81,76 @@ class ArchiveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if parents_query_dict:
             request.data.update(parents_query_dict)
         return super().update(request, *args, **kwargs)
+
+
+class MetricProfileViewSet(viewsets.ModelViewSet):
+    queryset = MetricProfile.objects.all()
+    serializer_class = MetricProfileSerializer
+    permission_classes = (ActionPermissions,)
+    filter_backends = (OrderingFilter, SearchFilter,)
+    ordering_fields = ('name',)
+    search_fields = ('name',)
+
+
+class LocationLevelTypeViewSet(viewsets.ModelViewSet):
+    queryset = LocationLevelType.objects.all()
+    serializer_class = LocationLevelTypeSerializer
+    permission_classes = (ActionPermissions,)
+    filter_backends = (OrderingFilter, SearchFilter,)
+    ordering_fields = ('name',)
+    search_fields = ('name',)
+
+
+class LocationFunctionTypeViewSet(viewsets.ModelViewSet):
+    queryset = LocationFunctionType.objects.all()
+    serializer_class = LocationFunctionTypeSerializer
+    permission_classes = (ActionPermissions,)
+    filter_backends = (OrderingFilter, SearchFilter,)
+    ordering_fields = ('name',)
+    search_fields = ('name',)
+
+
+class LocationViewSet(viewsets.ModelViewSet):
+    queryset = Location.objects.all()
+    serializer_class = LocationSerializer
+    permission_classes = (ActionPermissions,)
+    filter_backends = (OrderingFilter, SearchFilter,)
+    ordering_fields = ('name',)
+    search_fields = ('name',)
+
+    def get_queryset(self):
+        return get_objects_for_user(self.request.user, Location, [])
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update', 'metadata']:
+            return LocationWriteSerializer
+
+        return self.serializer_class
+
+    def list(self, request):
+        qs = self.filter_queryset(self.get_queryset())
+        root_nodes = cache_tree_children(qs)
+        dicts = []
+        for n in root_nodes:
+            dicts.append(mptt_to_dict(n, LocationSerializer))
+
+        return Response(dicts)
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            resp = super().destroy(request, *args, **kwargs)
+        except ProtectedError:
+            raise exceptions.ParseError(_('Location must be empty before deletion'))
+        else:
+            return resp
+
+class TagVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    queryset = TagVersion.objects.all()
+    serializer_class = TagVersionNestedSerializer
+    permission_classes = (ActionPermissions,)
+    filter_backends = (OrderingFilter, SearchFilter,)
+    ordering_fields = ('name',)
+    search_fields = ('name',)
 
 
 class StructureTypeViewSet(viewsets.ModelViewSet):

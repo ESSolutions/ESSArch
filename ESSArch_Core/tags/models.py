@@ -640,8 +640,8 @@ class MetricProfile(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = _('metric profile')
-        verbose_name_plural = _('metric profiles')
+        verbose_name = _('location profile')
+        verbose_name_plural = _('location profiles')
 
 
 class LocationLevelType(models.Model):

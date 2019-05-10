@@ -116,3 +116,21 @@
 .ml-base {
   margin-left: $padding-base-horizontal;
 }
+
+.m-base,
+.mx-base,
+.mr-base {
+  margin-right: $padding-base-horizontal;
+}
+
+.m-base,
+.my-base,
+.mt-base {
+  margin-top: $padding-base-vertical;
+}
+
+.m-base,
+.my-base,
+.mb-base {
+  margin-bottom: $padding-base-vertical;
+}

@@ -6,6 +6,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils.translation import ugettext as _
 from rest_framework import serializers
+from rest_framework.fields import CurrentUserDefault
 from rest_framework.validators import UniqueTogetherValidator
 
 from ESSArch_Core.agents.models import Agent, AgentTagLink, AgentTagLinkRelationType
@@ -89,7 +90,7 @@ class StructureSerializer(serializers.ModelSerializer):
     class Meta:
         model = Structure
         fields = ('id', 'name', 'type', 'template', 'is_template', 'version', 'create_date', 'revise_date',
-                'start_date', 'end_date', 'specification', 'rule_convention_type', 'created_by', 'revised_by',
+                  'start_date', 'end_date', 'specification', 'rule_convention_type', 'created_by', 'revised_by',
                   'published', 'published_date',)
         extra_kwargs = {
             'is_template': {'read_only': True},
@@ -153,7 +154,8 @@ class StructureUnitRelationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StructureUnitRelation
-        fields = ('id', 'type', 'description', 'start_date', 'end_date', 'create_date', 'revise_date', 'structure_unit',)
+        fields = ('id', 'type', 'description', 'start_date', 'end_date',
+                  'create_date', 'revise_date', 'structure_unit',)
 
 
 class StructureUnitRelationWriteSerializer(StructureUnitRelationSerializer):
@@ -391,7 +393,7 @@ class TagVersionTypeSerializer(serializers.ModelSerializer):
 class MetricTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = MetricType
-        fields = ('pk', 'name',)
+        fields = ('id', 'name',)
 
 
 class MetricProfileSerializer(serializers.ModelSerializer):
@@ -399,29 +401,52 @@ class MetricProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MetricProfile
-        fields = ('pk', 'name', 'capacity', 'metric',)
+        fields = ('id', 'name', 'capacity', 'metric',)
 
 
 class LocationLevelTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = LocationLevelType
-        fields = ('pk', 'name',)
+        fields = ('id', 'name',)
 
 
 class LocationFunctionTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = LocationFunctionType
-        fields = ('pk', 'name',)
+        fields = ('id', 'name',)
 
 
 class LocationSerializer(serializers.ModelSerializer):
     metric = MetricProfileSerializer()
-    level = LocationLevelTypeSerializer()
+    level_type = LocationLevelTypeSerializer()
     function = LocationFunctionTypeSerializer()
 
     class Meta:
         model = Location
-        fields = ('pk', 'name',)
+        fields = ('id', 'name', 'parent', 'level_type', 'function', 'metric',)
+
+
+class LocationWriteSerializer(LocationSerializer):
+    metric = serializers.PrimaryKeyRelatedField(
+        allow_null=True, required=False, default=None,
+        queryset=MetricProfile.objects.all(),
+    )
+    level_type = serializers.PrimaryKeyRelatedField(queryset=LocationLevelType.objects.all())
+    function = serializers.PrimaryKeyRelatedField(queryset=LocationFunctionType.objects.all())
+
+    @transaction.atomic
+    def create(self, validated_data):
+        location = super().create(validated_data)
+        user = self.context['request'].user
+
+        organization = user.user_profile.current_organization
+        organization.assign_object(location)
+        organization.add_object(location)
+
+        return location
+
+    class Meta(LocationSerializer.Meta):
+        fields = ('name', 'parent', 'level_type', 'function', 'metric')
 
 
 class TagVersionNestedSerializer(serializers.ModelSerializer):
