@@ -2,6 +2,7 @@
 import logging
 
 from allauth.account.models import EmailAddress
+from allauth.socialaccount.models import SocialAccount, SocialApp, SocialToken
 from django import forms
 from django.contrib import admin
 from django.contrib.auth import get_user_model
@@ -37,7 +38,10 @@ admin.site.unregister([
     GroupManagerGroupMember,
     GroupEntity,
     GroupManagerGroupMemberRole,
-    GroupManagerGroupType
+    GroupManagerGroupType,
+    SocialAccount,
+    SocialApp,
+    SocialToken,
 ])
 
 
@@ -112,6 +116,12 @@ class UserAdmin(DjangoUserAdmin, NestedModelAdmin):
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
         (_('Groups'), {'fields': ('groups',)})
     )
+
+    def get_inline_instances(self, request, obj=None):
+        if not request.user.has_perm("%s.%s" % ('essauth', 'assign_groupmemberrole')):
+            return []
+
+        return super().get_inline_instances(request, obj=obj)
 
     @csrf_protect_m
     @transaction.atomic
