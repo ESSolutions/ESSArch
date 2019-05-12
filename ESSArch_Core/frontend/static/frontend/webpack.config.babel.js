@@ -3,6 +3,7 @@ const path = require('path');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ManifestPlugin = require('webpack-manifest-plugin');
+const OptimizeCssnanoPlugin = require('@intervolga/optimize-cssnano-plugin');
 
 module.exports = (env, argv) => {
   return {
@@ -53,6 +54,7 @@ module.exports = (env, argv) => {
                 sourceMap: true,
               },
             },
+            {loader: 'postcss-loader', options: {sourceMap: true}},
             'resolve-url-loader',
             {
               loader: 'sass-loader',
@@ -102,6 +104,19 @@ module.exports = (env, argv) => {
       }),
       new ManifestPlugin({fileName: 'rev-manifest.json'}),
       new CleanWebpackPlugin(),
+      new OptimizeCssnanoPlugin({
+        sourceMap: true,
+        cssnanoOptions: {
+          preset: [
+            'default',
+            {
+              discardComments: {
+                removeAll: true,
+              },
+            },
+          ],
+        },
+      }),
     ],
     node: {
       fs: 'empty',
