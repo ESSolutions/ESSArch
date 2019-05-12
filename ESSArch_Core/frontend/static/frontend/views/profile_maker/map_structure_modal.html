@@ -1,0 +1,14 @@
+<div style="margin:10px;">
+  <map-structure-editor profile="$ctrl.template"></map-structure-editor>
+</div>
+<div class="modal-footer">
+  <button
+    class="btn btn-primary"
+    type="button"
+    ng-click="$ctrl.saveStructure($ctrl.template.structure)"
+    ng-disabled="$ctrl.angular.equals($ctrl.oldStructure, $ctrl.template.structure)"
+  >
+    {{'SAVE' | translate}}
+  </button>
+  <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+</div>

@@ -1,0 +1,23 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'APPRAISAL' | translate}}</h3>
+</div>
+<form ng-submit="$ctrl.submitAppraisal($ctrl.appraisalRule)">
+  <div class="modal-body" id="modal-body">
+    <p>{{$ctrl.data.record.name}}</p>
+    <p>{{$ctrl.data.record.type}}</p>
+    <label>
+      <select
+        focused="true"
+        class="form-control"
+        required
+        ng-model="$ctrl.appraisalRule"
+        ng-options="x as x.name for x in $ctrl.appraisalRules"
+        >{{x}}</select
+      >
+    </label>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit">{{'OK' | translate}}</button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+  </div>
+</form>

@@ -1,0 +1,41 @@
+[{
+        "type": "file",
+        "name": "instruktioner.pdf"
+    },
+    {
+        "type": "dir",
+        "name": "img"
+    },
+    {
+        "type": "file",
+        "name": "2015-07-10-115445.jpg"
+    },
+    {
+        "type": "file",
+        "name": "bygglov.pdf"
+    },
+    {
+        "type": "file",
+        "name": "beslut.pdf"
+    },
+    {
+        "type": "file",
+        "name": "dokument.pdf"
+    },
+    {
+        "type": "dir",
+        "name": "5235dg-c6e6-4268-b5cd-0001"
+    },
+    {
+        "type": "dir",
+        "name": "5235dg-c6e6-4268-b5cd-0002"
+    },
+    {
+        "type": "dir",
+        "name": "5235dg-c6e6-4268-b5cd-0003"
+    },
+    {
+        "type": "dir",
+        "name": "5235dg-c6e6-4268-b5cd-0004"
+    }
+]

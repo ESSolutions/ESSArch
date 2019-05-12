@@ -1,0 +1,133 @@
+.profile-maker {
+  @include container(10px);
+  display: inline-block;
+  width: 100%;
+  box-shadow: none;
+  margin-top: 5px;
+
+  .template-select {
+    width: 33%;
+  }
+  .floatingForm {
+    position: absolute;
+    width: 300px;
+    /*height: 100%;*/
+    background-color: white;
+    z-index: 2;
+    border: solid black 1px;
+  }
+
+  .red {
+    color: red;
+  }
+
+  .true {
+    color: lightgrey;
+  }
+
+  .children {
+    width: 400px;
+    height: 40px;
+    p {
+      float: left;
+      font-size: 1.5em;
+    }
+    button {
+      float: right;
+    }
+  }
+
+  .TemplateRow {
+    display: flex;
+    flex-direction: row;
+    * {
+      margin-right: 3px;
+    }
+  }
+
+  .formly-field-input,
+  .formly-field-select {
+    width: 200px;
+  }
+
+  .fa-plus {
+    color: $step-success;
+  }
+  .display-flex {
+    display: flex;
+  }
+
+  .flex-1 {
+    flex: 1;
+  }
+
+  .flex-2 {
+    flex: 2;
+  }
+
+  .flex-3 {
+    flex: 3;
+  }
+
+  .flex-4 {
+    flex: 4;
+  }
+
+  .flex-5 {
+    flex: 5;
+  }
+
+  .flex-6 {
+    flex: 6;
+  }
+
+  [class*='flex-'] {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  [class*='flex-']:first-child {
+    padding-left: 0;
+  }
+
+  [class*='flex-']:nth-last-child(2) {
+    padding-right: 0;
+  }
+
+  /*.tree {
+    width: 500px;
+    height: 500px;
+    background-color: lightgrey;
+    margin-left: 10px;
+  }
+
+  .treerow {
+    margin-left: 15px;
+  }
+
+  .treerow.hidden {
+    display: none;
+  }
+
+  .treerow.deleted {
+    color: lightgrey
+  }*/
+
+  /*.tree p {
+    margin-left: 100px;
+  }*/
+}
+.attribute-form {
+  .flex-wrap {
+    display: flex;
+    flex-direction: row;
+    .attribute-formly {
+      width: 50%;
+      .formly-field {
+        width: 75%;
+      }
+    }
+    .attribute-tree {
+    }
+  }
+}

@@ -1,0 +1,292 @@
+<div class="content-wrapper">
+  <div class="conversion-page">
+    <div class="table-container" st-table="vm.rules" st-pipe="vm.rulePipe">
+      <div class="title-action-button-row">
+        <div class="title">
+          <h4>
+            {{'ARCHIVE_MAINTENANCE.CONVERSION_RULES' | translate}}
+          </h4>
+          <a
+            target="_blank"
+            class="help-button"
+            uib-tooltip="{{'SEE_MORE_INFO_ABOUT_PAGE' | translate}}"
+            tooltip-position="top auto"
+            href="/docs/{{$translate.use()}}/user_guide/maintenance-conversion.html"
+          >
+            <i class="far fa-question-circle"></i>
+          </a>
+        </div>
+        <div class="action-button">
+          <button
+            type="button"
+            ng-click="vm.createRuleModal()"
+            class="btn btn-primary"
+            uib-tooltip="{{'ARCHIVE_MAINTENANCE.PREPARECONVERSIONDESC' | translate}}"
+            tooltip-placement="auto left"
+            tooltip-append-to-body="true"
+          >
+            {{'CREATE' | translate}}
+          </button>
+        </div>
+      </div>
+      <div class="search-prepare-wrapper">
+        <label for items-per-page></label>
+        <select
+          class="form-control items-per-page"
+          ng-model="vm.rulesPerPage"
+          ng-options="x for x in [5,10,20,25,50]"
+          uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        ></select>
+        <div class="global-search">
+          <input
+            id="search-input"
+            st-search=""
+            class="form-control"
+            ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+            type="text"
+            uib-tooltip="{{'GLOBALSEARCHDESC_RULE' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          />
+        </div>
+        <button
+          type="button"
+          ng-click="getListviewData()"
+          class="btn btn-primary btn-small"
+          style="margin-left: 5px;"
+          uib-tooltip="{{'SEARCH' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        >
+          {{'SEARCH' | translate}}&nbsp;<i class="fas fa-search"></i>
+        </button>
+        <div class="refresh-icon">
+          <span
+            ng-click="vm.rulePipe(vm.ruleTableState)"
+            class="clickable angular-animate fas fa-sync-alt fa-lg"
+            ng-class="{'fa-sync-alt-animate': ruleLoading }"
+            uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+            tooltip-placement="auto left"
+            tooltip-append-to-body="true"
+          ></span>
+        </div>
+      </div>
+      <div class="table-x-overflow">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>{{'NAME' | translate}}</th>
+              <th>{{'ARCHIVE_MAINTENANCE.FREQUENCY' | translate}}</th>
+              <th>{{'REMOVE' | translate}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="x in vm.rules">
+              <td class="clickable" ng-click="vm.ruleModal(x)">{{x.name}}</td>
+              <td class="clickable" ng-click="vm.ruleModal(x)">{{x.frequency}}</td>
+              <td>
+                <button
+                  class="fas fa-trash-alt btn btn-default btn-sm"
+                  ng-click="vm.removeConversionRuleModal(x)"
+                  permission
+                  permission-only="'maintenance.delete_conversionrule'"
+                ></button>
+              </td>
+            </tr>
+            <tr ng-if="!vm.rules.length && !ruleLoading" class="empty-table-indicator">
+              <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
+            </tr>
+            <tr ng-if="!vm.rules.length && ruleLoading" class="empty-table-indicator">
+              <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div
+          class="search-pagination"
+          style="float: right;"
+          st-template="static/frontend/views/file_pagination.html"
+          st-pagination=""
+          st-items-by-page="vm.rulesPerPage"
+          st-displayed-pages="7"
+        ></div>
+      </div>
+    </div>
+    <h4>{{"ARCHIVE_MAINTENANCE.ONGOING" | translate}}</h4>
+    <div class="table-container" st-table="vm.ongoing" st-pipe="vm.ongoingPipe">
+      <div class="search-prepare-wrapper">
+        <select
+          class="form-control items-per-page"
+          ng-model="vm.ongoingPerPage"
+          ng-options="x for x in [5,10,20,25,50]"
+          uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        ></select>
+        <div class="refresh-icon">
+          <span
+            ng-click="vm.ongoingPipe(vm.ongoingTableState)"
+            class="clickable angular-animate fas fa-sync-alt fa-lg"
+            ng-class="{'fa-sync-alt-animate': ongoingLoading }"
+            uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+            tooltip-placement="auto left"
+            tooltip-append-to-body="true"
+          ></span>
+        </div>
+      </div>
+      <div class="table-x-overflow">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>{{'ID' | translate}}</th>
+              <th>{{'START' | translate}}</th>
+              <th>{{'ARCHIVE_MAINTENANCE.RULE' | translate}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="x in vm.ongoing">
+              <td>{{x.id}}</td>
+              <td>{{x.start_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+              <td>{{x.rule}}</td>
+            </tr>
+            <tr ng-if="!vm.ongoing.length && !ongoingLoading" class="empty-table-indicator">
+              <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
+            </tr>
+            <tr ng-if="!vm.ongoing.length && ongoingLoading" class="empty-table-indicator">
+              <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div
+          class="search-pagination"
+          style="float: right;"
+          st-template="static/frontend/views/file_pagination.html"
+          st-pagination=""
+          st-items-by-page="vm.ongoingPerPage"
+          st-displayed-pages="7"
+        ></div>
+      </div>
+    </div>
+    <h4>{{"ARCHIVE_MAINTENANCE.NEXT" | translate}}</h4>
+    <div class="table-container" st-table="vm.next" st-pipe="vm.nextPipe">
+      <div class="search-prepare-wrapper">
+        <select
+          class="form-control items-per-page"
+          ng-model="vm.nextPerPage"
+          ng-options="x for x in [5,10,20,25,50]"
+          uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        ></select>
+        <div class="refresh-icon">
+          <span
+            ng-click="vm.nextPipe(vm.nextTableState)"
+            class="clickable angular-animate fas fa-sync-alt fa-lg"
+            ng-class="{'fa-sync-alt-animate': nextLoading }"
+            uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+            tooltip-placement="auto left"
+            tooltip-append-to-body="true"
+          ></span>
+        </div>
+      </div>
+      <div class="table-x-overflow">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>{{'ID' | translate}}</th>
+              <th>{{'START' | translate}}</th>
+              <th>{{'ARCHIVE_MAINTENANCE.RULE' | translate}}</th>
+              <th>{{'ARCHIVE_MAINTENANCE.PREVIEW' | translate}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="x in vm.next">
+              <td>{{x.id}}</td>
+              <td>{{x.start_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+              <td>{{x.rule}}</td>
+              <td>
+                <button class="btn btn-success btn-small" ng-click="vm.previewModal(x)">
+                  {{'ARCHIVE_MAINTENANCE.PREVIEW' | translate}}
+                </button>
+              </td>
+            </tr>
+            <tr ng-if="!vm.next.length && !nextLoading" class="empty-table-indicator">
+              <td colspan="4">{{'NO_RESULTS_FOUND' | translate}}</td>
+            </tr>
+            <tr ng-if="!vm.next.length && nextLoading" class="empty-table-indicator">
+              <td class="loading-column" colspan="4">{{'LOADING' | translate}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div
+          class="search-pagination"
+          style="float: right;"
+          st-template="static/frontend/views/file_pagination.html"
+          st-pagination=""
+          st-items-by-page="vm.nextPerPage"
+          st-displayed-pages="7"
+        ></div>
+      </div>
+    </div>
+    <h4>{{"ARCHIVE_MAINTENANCE.FINISHED" | translate}}</h4>
+    <div class="table-container" st-table="vm.finished" st-pipe="vm.finishedPipe">
+      <div class="search-prepare-wrapper">
+        <select
+          class="form-control items-per-page"
+          ng-model="vm.finishedPerPage"
+          ng-options="x for x in [5,10,20,25,50]"
+          uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        ></select>
+        <div class="refresh-icon">
+          <span
+            ng-click="vm.finishedPipe(vm.finishedTableState)"
+            class="clickable angular-animate fas fa-sync-alt fa-lg"
+            ng-class="{'fa-sync-alt-animate': finishedLoading }"
+            uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+            tooltip-placement="auto left"
+            tooltip-append-to-body="true"
+          ></span>
+        </div>
+      </div>
+      <div class="table-x-overflow">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>{{'ID' | translate}}</th>
+              <th>{{'START' | translate}}</th>
+              <th>{{'END' | translate}}</th>
+              <th>{{'ARCHIVE_MAINTENANCE.REPORT' | translate}}</th>
+              <th>{{'ARCHIVE_MAINTENANCE.RULE' | translate}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="x in vm.finished">
+              <td>{{x.id}}</td>
+              <td>{{x.start_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+              <td>{{x.end_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+              <td><a ng-click="vm.showReport(x)">{{'ARCHIVE_MAINTENANCE.REPORT' | translate}}</a></td>
+              <td>{{x.rule}}</td>
+            </tr>
+            <tr ng-if="!vm.finished.length && !finishedLoading" class="empty-table-indicator">
+              <td colspan="5">{{'NO_RESULTS_FOUND' | translate}}</td>
+            </tr>
+            <tr ng-if="!vm.finished.length && finishedLoading" class="empty-table-indicator">
+              <td class="loading-column" colspan="5">{{'LOADING' | translate}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div
+          class="search-pagination"
+          style="float: right;"
+          st-template="static/frontend/views/file_pagination.html"
+          st-pagination=""
+          st-items-by-page="vm.finishedPerPage"
+          st-displayed-pages="7"
+        ></div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,38 @@
+/*@ngInject*/
+export default $translateProvider => {
+  $translateProvider.translations('en', {
+    NOTIFICATIONS: {
+      NOTIFICATIONS: 'Notifications',
+      POPUP_ENABLED: 'Popup enabled',
+    },
+    a_day_ago: 'yesterday',
+    a_day_from_now: 'tomorrow',
+    a_minute_ago: 'a minute ago',
+    a_minute_from_now: 'a minute from now',
+    a_month_ago: 'a month ago',
+    a_month_from_now: 'a month from now',
+    a_week_ago: 'a week ago',
+    a_week_from_now: 'a week from now',
+    a_year_ago: 'a year ago',
+    a_year_from_now: 'a year from now',
+    an_hour_ago: 'an hour ago',
+    an_hour_from_now: 'an hour from now',
+    days_ago: '{{time}} days ago',
+    days_from_now: '{{time}} days from now',
+    hours_ago: '{{time}} hours ago',
+    hours_from_now: '{{time}} hours from now',
+    just_now: 'just now',
+    minutes_ago: '{{time}} minutes ago',
+    minutes_from_now: '{{time}} minutes from now',
+    months_ago: '{{time}} months ago',
+    months_from_now: '{{time}} months from now',
+    over_a_year_ago: 'over a year ago',
+    over_a_year_from_now: 'over a year from now',
+    seconds_ago: '{{time}} seconds ago',
+    seconds_from_now: '{{time}} seconds from now',
+    weeks_ago: '{{time}} weeks ago',
+    weeks_from_now: '{{time}} weeks from now',
+    years_ago: '{{time}} years ago',
+    years_from_now: '{{time}} years from now',
+  });
+};

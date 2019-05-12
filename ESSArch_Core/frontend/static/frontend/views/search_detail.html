@@ -1,0 +1,81 @@
+<div class="tree-result-wrapper search-detail" id="view-record">
+  <div ng-if="vm.unavailable" class="view-content text-center">
+    <h4>{{'PAGE_DOES_NOT_EXIST' | translate}}</h4>
+    <button class="btn btn-success" ng-click="vm.gotoSearch()">{{'ACCESS.GO_TO_SEARCH' | translate}}</button>
+  </div>
+  <div
+    id="record-tree"
+    resizable
+    r-directions="['right']"
+    r-grabber="<div class='resize-grabber'></div>"
+    r-flex="true"
+    class="record-tree"
+    ng-if="vm.recordTreeData && !vm.unavailable"
+  >
+    <div ng-include src="'static/frontend/views/search_detail_tree.html'"></div>
+  </div>
+  <div ng-if="!vm.unavailable" class="view-content">
+    <div class="detail-header">
+      <div ng-include src="'static/frontend/views/search_detail_breadcrumbs.html'"></div>
+      <div class="version-select-wrapper">
+        <label title="{{'ACCESS.VERSION_HISTORY_DESC' | translate}}">
+          {{'ACCESS.VERSION_HISTORY' | translate}}
+        </label>
+        <div class="flex-row">
+          <select
+            class="form-control version-select"
+            ng-model="vm.currentVersion"
+            ng-change="vm.showVersion(vm.currentVersion)"
+          >
+            <option ng-repeat="version in vm.record.versions" value="{{version._id}}">
+              {{$index+1}}, {{version.create_date | date:"yyyy-MM-dd"}}
+            </option>
+          </select>
+          <button
+            type="button"
+            ng-disabled="vm.record._source.current_version"
+            class="btn btn-success btn-small"
+            ng-click="vm.setCurrentVersion(vm.currentVersion)"
+          >
+            {{'ACCESS.SET_CURRENT_VERSION' | translate}}
+          </button>
+        </div>
+      </div>
+    </div>
+    <hr class="small" />
+    <div class="type-specific-results" ng-switch="vm.record._index">
+      <div ng-switch-when="component">
+        <div ng-switch="vm.record._source.type.toLowerCase()">
+          <div ng-switch-when="ärende">
+            <div ng-include="'static/frontend/views/search_ärende_detail.html'"></div>
+          </div>
+          <div ng-switch-when="handling">
+            <div ng-include="'static/frontend/views/search_handling_detail.html'"></div>
+          </div>
+          <div ng-switch-default>
+            <div ng-include="'static/frontend/views/search_component_detail.html'"></div>
+          </div>
+        </div>
+      </div>
+      <div ng-switch-when="archive">
+        <div ng-include="'static/frontend/views/search_archive_detail.html'"></div>
+      </div>
+      <div ng-switch-when="document">
+        <div ng-include="'static/frontend/views/search_document_detail.html'"></div>
+      </div>
+      <div ng-switch-when="directory">
+        <div ng-include="'static/frontend/views/search_directory_detail.html'"></div>
+      </div>
+      <hr class="mx-0" />
+      <div class="flex-row align-items-end">
+        <button class="btn btn-primary" ng-click="vm.emailDocument(vm.record)">
+          {{'ACCESS.SEND_AS_EMAIL' | translate}}
+        </button>
+        <label class="m-0">
+          <input type="checkbox" ng-model="vm.includeDescendants" />
+          {{'ACCESS.INCLUDE_DESCENDANT_NODES' | translate}}
+        </label>
+      </div>
+    </div>
+  </div>
+</div>

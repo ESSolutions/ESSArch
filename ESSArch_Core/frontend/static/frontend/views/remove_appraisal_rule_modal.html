@@ -1,0 +1,22 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'REMOVE' | translate}}</h3>
+</div>
+<div class="modal-body" id="modal-body">
+  <h4>
+    {{'ARCHIVE_MAINTENANCE.DO_YOU_WANT_TO_REMOVE_APPRAISAL' | translate:$ctrl.data.appraisal}}?
+  </h4>
+</div>
+<div class="modal-footer">
+  <button
+    class="btn btn-primary"
+    type="button"
+    ng-disabled="$ctrl.removingRule"
+    ng-click="$ctrl.removeAppraisal()"
+    focused="true"
+  >
+    {{'OK' | translate}} <i ng-if="$ctrl.removingRule" class="fas fa-spinner fa-spin" />
+  </button>
+  <button class="btn btn-default" type="button" ng-disabled="$ctrl.removingRule" ng-click="$ctrl.cancel()">
+    {{'CANCEL' | translate}}
+  </button>
+</div>

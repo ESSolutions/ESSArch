@@ -1,0 +1,21 @@
+<div>
+  <h3>Package</h3>
+  <div class="file-list">
+    <table st-table="fileListRowCollection" st-safe-src="fileListCollection" class="table table-striped">
+      <thead>
+        <tr>
+          <th class="clickable" st-sort="filename">{{'FILENAME' | translate}}</th>
+          <th class="clickable" st-sort="created">{{'CREATED' | translate}}</th>
+          <th class="clickable" st-sort="size">{{'SIZE' | translate}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="row in fileListRowCollection">
+          <td>{{row.filename}}</td>
+          <td>{{row.created | date:"yyyy-MM-dd hh:mm:ss"}}</td>
+          <td>{{row.size}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,132 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ARCHIVE_MAINTENANCE.CREATE_CONVERSION_RULE' | translate}}</h3>
+</div>
+<form ng-submit="$ctrl.create()">
+  <div class="modal-body" id="modal-body">
+    <label>
+      {{'NAME' | translate}}
+      <input class="form-control" required ng-model="$ctrl.name" />
+    </label>
+    <br />
+    <label>
+      {{'DESCRIPTION' | translate}}
+      <textarea rows="2" maxlength="255" class="form-control" ng-model="$ctrl.description"></textarea>
+    </label>
+    <hr />
+    <label>
+      <input type="checkbox" ng-model="$ctrl.publicRule" />
+      {{'PUBLIC' | translate}}
+    </label>
+    <br />
+    <label>
+      <input type="checkbox" ng-model="$ctrl.manualRule" />
+      {{'ARCHIVE_MAINTENANCE.RUN_MANUALLY' | translate}}
+    </label>
+    <hr />
+    <div class="cron-form" ng-if="!$ctrl.manualRule">
+      <cron-selection
+        ng-model="$ctrl.frequency"
+        my-frequency="$ctrl.myFrequency"
+        template="static/frontend/views/cron_form.html"
+        config="$ctrl.cronConfig"
+      ></cron-selection>
+      <b
+        >{{'ARCHIVE_MAINTENANCE.FREQUENCY' | translate}}:
+        <span ng-class="{'color-red': !$ctrl.validCron($ctrl.frequency)}"
+          >{{$ctrl.prettyFrequency($ctrl.frequency)}}</span
+        ></b
+      >
+      <br />
+      <b>{{'ARCHIVE_MAINTENANCE.NEXT' | translate}}: {{$ctrl.nextPretty($ctrl.frequency)}}</b>
+    </div>
+    <br />
+    <h4>{{'ARCHIVE_MAINTENANCE.SPECIFICATION' | translate}}</h4>
+    <div class="specification">
+      <label>
+        {{'PATH' | translate}}
+        <input class="form-control" ng-model="$ctrl.path" />
+      </label>
+      <label>
+        {{'TARGET' | translate}}
+        <input class="form-control" ng-model="$ctrl.target" />
+      </label>
+      <div>
+        <label>
+          {{'ARCHIVE_MAINTENANCE.TOOL' | translate}}
+          <select
+            class="form-control"
+            ng-enter="$ctrl.addSpecification()"
+            ng-model="$ctrl.tool"
+            ng-init="$ctrl.tool = 'libreoffice'"
+            ng-options="x for x in ['libreoffice']"
+            >{{x}}</select
+          >
+        </label>
+        <button
+          type="button"
+          class="btn btn-success btn-sm"
+          ng-disabled="!$ctrl.path || !$ctrl.target || !$ctrl.tool"
+          ng-click="$ctrl.addSpecification()"
+        >
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
+      <table class="table" style="margin-top: 20px;">
+        <thead>
+          <th>
+            {{'PATH' | translate}}
+          </th>
+          <th>
+            {{'TARGET' | translate}}
+          </th>
+          <th>
+            {{'ARCHIVE_MAINTENANCE.TOOL' | translate}}
+          </th>
+          <th>
+            {{'REMOVE' | translate}}
+          </th>
+        </thead>
+        <tbody>
+          <tr ng-repeat="(key, value) in $ctrl.specifications">
+            <td>
+              {{key}}
+            </td>
+            <td>
+              {{value.target}}
+            </td>
+            <td>
+              {{value.tool}}
+            </td>
+            <td>
+              <button
+                class="fas fa-trash-alt btn btn-default btn-sm"
+                ng-click="$ctrl.deleteSpecification(key)"
+              ></button>
+            </td>
+          </tr>
+          <tr ng-if="$ctrl.angular.equals($ctrl.specifications, {})" class="text-center">
+            <td colspan="4">
+              <span ng-if="!$ctrl.showRequired">{{'ARCHIVE_MAINTENANCE.NO_SPECIFICATIONS_CHOSEN' | translate}}</span>
+              <span ng-if="$ctrl.showRequired" style="color: red;"
+                >{{'ARCHIVE_MAINTENANCE.CHOOSE_AT_LEAST_ONE_SPECIFICATION' | translate}} *</span
+              >
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button
+      class="btn btn-primary"
+      type="submit"
+      ng-disabled="!$ctrl.validCron($ctrl.frequency) || $ctrl.addingRule"
+      focused="true"
+    >
+      {{'CREATE' | translate}} <i ng-if="$ctrl.addingRule" class="fas fa-spinner fa-spin" />
+    </button>
+    <button class="btn btn-default" type="button" ng-disabled="$ctrl.addingRule" ng-click="$ctrl.cancel()">
+      {{'CANCEL' | translate}}
+    </button>
+  </div>
+</form>

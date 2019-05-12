@@ -1,0 +1,203 @@
+<div st-table="vm.displayedIps" st-pipe="vm.callServer">
+  <div class="title-action-button-row">
+    <div class="title">
+      <h4>
+        {{vm.listViewTitle}}
+      </h4>
+      <a
+        target="_blank"
+        class="help-button"
+        uib-tooltip="{{'SEE_MORE_INFO_ABOUT_PAGE' | translate}}"
+        tooltip-position="top auto"
+        href="/docs/{{$translate.use()}}/user_guide/{{vm.getStateDocPage()}}"
+      >
+        <i class="far fa-question-circle"></i>
+      </a>
+    </div>
+    <div class="action-button">
+      <button
+        ng-if="'home.access.createDip' | isState"
+        type="button"
+        ng-click="prepareDipModal()"
+        class="btn btn-primary prepare-dip-button"
+        uib-tooltip="{{'PREPAREDIPDESC' | translate}}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      >
+        {{'PREPAREDIP' | translate}}
+      </button>
+    </div>
+  </div>
+  <div class="search-prepare-wrapper">
+    <select
+      tabindex="-1"
+      id="items-per-page"
+      ng-change="updateIpsPerPage(vm.itemsPerPage)"
+      class="form-control items-per-page"
+      ng-model="vm.itemsPerPage"
+      ng-options="x for x in [5,10,20,25,50]"
+      uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    ></select>
+    <span
+      ng-if="!('home.ingest.reception' | isState)"
+      class="fas fa-md fa-filter filter-icon"
+      ng-class="{'blue-border': showAdvancedFilters, 'filter-active': filterActive()}"
+      ng-click="toggleAdvancedFilters()"
+      uib-tooltip="{{'FILTERS' | translate}}"
+      tooltip-placement="top"
+      tooltip-append-to-body="true"
+    >
+    </span>
+    <div ng-if="!('home.ingest.reception' | isState)" ng-show="showAdvancedFilters" class="advanced-filters">
+      <label>
+        <input type="checkbox" ng-model="filterOwnIps" ng-change="vm.toggleOwnIps(filterOwnIps)" />
+        {{'SEE_MY_IPS' | translate}}
+      </label>
+      <form name="form1" style="position: relative;" novalidate>
+        <div class="formly-buttons-wrapper">
+          <formly-form model="filterModel" fields="fields" options="options"> </formly-form>
+        </div>
+      </form>
+      <div class="pt-base flex-row justify-content-end">
+        <button class="btn btn-primary" ng-click="submitAdvancedFilters()">{{'APPLY' | translate}}</button>
+        <button class="btn btn-default" type="button" ng-click="vm.clearFilters()">{{'CLEAR' | translate}}</button>
+      </div>
+    </div>
+    <div ng-if="!('home.ingest.reception' | isState)" class="global-search">
+      <input
+        id="search-input"
+        st-search=""
+        class="form-control"
+        ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+        type="text"
+        uib-tooltip="{{'GLOBALSEARCHDESC_IP' | translate}}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      />
+    </div>
+    <button
+      ng-if="!('home.ingest.reception' | isState)"
+      type="button"
+      ng-click="getListviewData()"
+      class="btn btn-primary btn-small"
+      style="margin-left: 5px;"
+      uib-tooltip="{{'SEARCH' | translate}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    >
+      {{'SEARCH' | translate}}&nbsp;<i class="fas fa-search"></i>
+    </button>
+    <select
+      ng-if="checkPermission('ip.see_all_in_workspaces') && auth.current_organization && (('home.ingest.workarea' | isState) || ('home.access.workarea' | isState))"
+      class="form-control organization-member-select"
+      ng-model="vm.organizationMember.current"
+      ng-options="x as x.username for x in vm.organizationMember.options track by x.id"
+      ng-change="getListViewData()"
+    ></select>
+    <div class="refresh-icon">
+      <span
+        ng-click="getListViewData()"
+        class="clickable angular-animate fas fa-sync-alt fa-lg"
+        ng-class="{'fa-sync-alt-animate': ipLoading }"
+        uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+        tooltip-placement="auto left"
+        tooltip-append-to-body="true"
+      ></span>
+    </div>
+  </div>
+
+  <div id="list-view" tabindex="0" ng-keydown="vm.ipListKeydownListener($event)" class="list-view-table">
+    <table class="table table-striped" style="margin-bottom: 0px;">
+      <a
+        ng-if="vm.expandAllVisible() && vm.showExpand"
+        class="pr-base"
+        ng-click="vm.expandAll()"
+        translate="EXPAND_ALL"
+      ></a>
+      <a
+        ng-if="vm.expandAllVisible() && !vm.showExpand"
+        class="pr-base"
+        ng-click="vm.collapseAll()"
+        translate="COLLAPSE_ALL"
+      ></a>
+      <a ng-if="(ips.length || ip !== null)" ng-click="vm.deselectAll()" translate="CLEAR_ALL"></a>
+      <a
+        ng-if="ips.length == 0 && ip === null && vm.displayedIps.length > 0"
+        ng-click="vm.selectAll()"
+        translate="SELECT_ALL"
+      ></a>
+      <thead>
+        <tr>
+          <th class="clickable" class="column-label"></th>
+          <th
+            class="clickable"
+            class="column-label"
+            st-sort="{{col.sortString}}"
+            st-sort-default="{{col.sortString == 'create_date'? 'reverse' : ''}}"
+            ng-repeat="col in listViewColumns"
+            uib-tooltip="{{col.label.toUpperCase()+'_DESC' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          >
+            <span ng-hide="col.label=='step_state' || col.label == 'storage_status'" style="white-space: nowrap;">
+              {{col.label.toUpperCase() | translate}}
+            </span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          ng-repeat-start="row in vm.displayedIps"
+          ng-class="{'selected': ip.object_identifier_value == row.object_identifier_value || selectedAmongOthers(row.id)}"
+          class="table-item selectable"
+          ng-click="row.package_type !== 1 ? ipTableClick(row, $event) : expandAic(row)"
+          context-menu="menuOptions('row', row)"
+        >
+          <td ng-if="'home.ingest.reception' | isState" context-menu="menuOptions('row', row)"></td>
+          <td ng-if="!('home.ingest.reception' | isState)" class="clickable" ng-click="expandAic(row)">
+            <i class="fas fa-plus" ng-if="row.collapsed && row.information_packages.length > 0"></i
+            ><i class="fas fa-minus" ng-if="!row.collapsed && row.information_packages.length > 0"></i>
+          </td>
+          <td ng-repeat="col in listViewColumns">
+            <div ng-include src="col.template"></div>
+          </td>
+        </tr>
+        <tr
+          ng-if="!row.collapsed"
+          ng-repeat="subrow in row.information_packages"
+          ng-repeat-end
+          class="table-item selectable"
+          ng-class="{'selected': ip.object_identifier_value == subrow.object_identifier_value || selectedAmongOthers(subrow.id)}"
+          style="background-color:rgba(50,120,255,.1);"
+          ng-click="ipTableClick(subrow, $event)"
+          context-menu="menuOptions('subrow', subrow)"
+        >
+          <td context-menu="menuOptions('subrow', subrow)"></td>
+          <td
+            ng-repeat="col in listViewColumns"
+            ng-if="!((('home.access.createDip' | isState) && col.label == 'filebrowser'))"
+          >
+            <div ng-include src="col.template"></div>
+          </td>
+        </tr>
+        <tr ng-if="!vm.displayedIps.length && !ipLoading" class="empty-table-indicator">
+          <td colspan="{{listViewColumns.length+1}}">{{'NO_RESULTS_FOUND' | translate}}</td>
+        </tr>
+        <tr ng-if="!vm.displayedIps.length && ipLoading" class="empty-table-indicator">
+          <td class="loading-column" colspan="{{listViewColumns.length+1}}">{{'LOADING' | translate}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <td ng-show="!initLoad">
+    <div
+      class="text-center"
+      st-template="static/frontend/views/pagination.html"
+      st-pagination=""
+      st-items-by-page="vm.itemsPerPage"
+      st-displayed-pages="7"
+    ></div>
+  </td>
+</div>

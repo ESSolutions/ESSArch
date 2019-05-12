@@ -1,0 +1,45 @@
+<div ng-if="vm.archive">
+  <h4>{{'ACCESS.CONTENTS' | translate}}</h4>
+  <div st-table="vm.recordChildren" st-pipe="vm.getChildrenTable" class="table-x-overflow table-container">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>{{'ACCESS.REFERENCE_CODE' | translate}}</th>
+          <th>{{'ACCESS.TITLE' | translate}}</th>
+          <th>{{'TIME' | translate}}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="x in vm.recordChildren">
+          <td ng-click="vm.goToNodePage(x._id, x._is_structure_unit)" class="cursor-pointer">
+            <b>{{x.reference_code}}</b>
+          </td>
+          <td ng-click="vm.goToNodePage(x._id, x._is_structure_unit)" class="cursor-pointer">{{x.name}}</td>
+          <td ng-click="vm.goToNodePage(x._id, x._is_structure_unit)" class="cursor-pointer">
+            {{x._source.unit_dates.date}}
+          </td>
+          <td>
+            <button ng-if="x._index == 'document'" class="btn btn-success btn-small" ng-click="vm.viewFile(x._source)">
+              <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
+            </button>
+          </td>
+        </tr>
+        <tr ng-if="vm.recordChildren.length <= 0 && !vm.childrenLoading" class="empty-table-indicator">
+          <td colspan="4">{{'NO_RESULTS_FOUND' | translate}}</td>
+        </tr>
+        <tr ng-if="vm.recordChildren.length <= 0 && vm.childrenLoading" class="empty-table-indicator">
+          <td class="loading-column" colspan="4">{{'LOADING' | translate}}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div
+      class="search-pagination"
+      style="float: right;"
+      st-template="static/frontend/views/file_pagination.html"
+      st-pagination=""
+      st-items-by-page="10"
+      st-displayed-pages="7"
+    ></div>
+  </div>
+</div>

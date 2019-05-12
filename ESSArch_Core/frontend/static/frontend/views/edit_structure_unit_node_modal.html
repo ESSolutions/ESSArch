@@ -1,0 +1,16 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'EDIT' | translate}}&nbsp;<b>{{$ctrl.node.name}}</b></h3>
+</div>
+<form name="$ctrl.form" ng-submit="$ctrl.update()">
+  <div class="modal-body" id="modal-body">
+    <formly-form model="$ctrl.editNode" fields="$ctrl.nodeFields" options="$ctrl.options"></formly-form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" ng-disabled="!$ctrl.changed() || $ctrl.saving" type="submit">
+      {{'SAVE' | translate}} <i ng-if="$ctrl.saving" class="fas fa-spinner fa-spin" />
+    </button>
+    <button class="btn btn-default" type="button" ng-disabled="$ctrl.saving" ng-click="$ctrl.cancel()">
+      {{'CANCEL' | translate}}
+    </button>
+  </div>
+</form>

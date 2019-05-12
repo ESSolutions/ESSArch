@@ -1,0 +1,33 @@
+<div class="new-archive-container">
+  <form
+    ng-submit="vm.createArchive(vm.archiveName, vm.structure.id, vm.nodeType, vm.referenceCode, vm.archiveCreator,  vm.archiveResponsible)"
+  >
+    <label class="margin-top-5">
+      {{'NAME' | translate}}
+      <input type="text" class="form-control" required ng-model="vm.archiveName" />
+    </label>
+    <label class="margin-top-5">
+      {{'ACCESS.CLASSIFICATION_STRUCTURE' | translate}}
+      <select class="form-control" required ng-options="x as x.name for x in vm.structures" ng-model="vm.structure">
+        <option></option>
+      </select>
+    </label>
+    <label class="margin-top-5">
+      {{'ACCESS.ARCHIVE_CREATOR' | translate}}
+      <input type="text" class="form-control" ng-model="vm.archiveCreator" />
+    </label>
+    <label class="margin-top-5">
+      {{'ACCESS.ARCHIVE_RESPONSIBLE' | translate}}
+      <input type="text" class="form-control" ng-model="vm.archiveResponsible" />
+    </label>
+    <label class="margin-top-5">
+      {{'TYPE' | translate}}
+      <input type="text" class="form-control" required ng-model="vm.nodeType" />
+    </label>
+    <label class="margin-top-5">
+      {{'ACCESS.REFERENCE_CODE' | translate}}
+      <input type="text" class="form-control" required ng-model="vm.referenceCode" />
+    </label>
+    <button type="submit" class="btn btn-primary margin-top-5">{{'SAVE' | translate}}</button>
+  </form>
+</div>

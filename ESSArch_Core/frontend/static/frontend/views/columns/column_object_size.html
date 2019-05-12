@@ -1,0 +1,6 @@
+<div ng-if="!subrow && row.package_type != 1" class="white-space-nowrap">
+  {{row.object_size | filesize}}
+</div>
+<div ng-if="subrow" class="white-space-nowrap">
+  {{subrow.object_size | filesize}}
+</div>

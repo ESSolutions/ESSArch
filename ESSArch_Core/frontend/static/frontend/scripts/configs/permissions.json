@@ -1,0 +1,102 @@
+{
+  "permissions": {
+    "permissionConfig": {
+      "home": {
+        "ingest": {
+          "reception": {
+            "_permissions": ["ip.receive"]
+          },
+          "ipApproval": {
+            "_permissions": [
+              "ip.preserve",
+              "ip.add_to_ingest_workarea",
+              "ip.add_to_ingest_workarea_as_new",
+              "ip.diff-check"
+            ]
+          }
+        },
+        "access": {
+          "search": {
+            "_permissions": ["tags.search"]
+          },
+          "accessIp": {
+            "_permissions": ["ip.get_from_storage", "ip.get_tar_from_storage", "ip.get_from_storage_as_new"]
+          },
+          "orders": {
+            "_permissions": ["ip.prepare_order"]
+          },
+          "createDip": {
+            "_permissions": ["ip.preserve_dip"]
+          }
+        },
+        "workarea": {
+          "_permissions": [
+            "ip.move_from_ingest_workarea",
+            "ip.preserve_from_ingest_workarea",
+            "ip.move_from_access_workarea",
+            "ip.preserve_from_access_workarea"
+          ]
+        },
+        "management": {
+          "_permissions": []
+        },
+        "archiveMaintenance": {
+          "appraisal": {
+            "_permissions": ["maintenance.add_appraisalrule"]
+          },
+          "conversion": {
+            "_permissions": ["maintenance.add_conversionrule"]
+          },
+          "mediaMigration": {
+            "_permissions": ["maintenance.add_conversionrule"]
+          },
+          "start": {
+            "_permissions": ["maintenance.add_appraisalrule"]
+          }
+        },
+        "administration": {
+          "searchAdmin": {
+            "archiveManager": {
+              "_permissions": ["tags.search"]
+            },
+            "classificationStructures": {
+              "_permissions": ["tags.search"]
+            }
+          },
+          "mediaInformation": {
+            "_permissions": ["storage.storage_management"]
+          },
+          "robotInformation": {
+            "_permissions": ["storage.storage_management"]
+          },
+          "queues": {
+            "_permissions": ["storage.storage_management"]
+          },
+          "storageMigration": {
+            "_permissions": ["storage.storage_migration"]
+          },
+          "storageMaintenance": {
+            "_permissions": ["storage.storage_maintenance"]
+          },
+          "profileManager": {
+            "saEditor": {
+              "_permissions": ["profiles.add_submissionagreement"]
+            },
+            "profileMaker": {
+              "_permissions": ["profiles.add_profile"]
+            },
+            "import": {
+              "_permissions": ["profiles.add_submissionagreement"]
+            },
+            "export": {
+              "_permissions": ["profiles.export_sa", "profiles.export_profile"]
+            }
+          }
+        },
+        "dashboard": {
+          "_permissions": []
+        }
+      }
+    }
+  }
+}

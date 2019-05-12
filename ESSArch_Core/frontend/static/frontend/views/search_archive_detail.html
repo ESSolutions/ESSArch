@@ -1,0 +1,47 @@
+<div class="archive-result">
+  <h3 title="Namn">
+    <strong title="Namn" ng-if="vm.record._source.name">
+      {{vm.record._source.name}}
+    </strong>
+  </h3>
+  <h4 title="Informationsobjekt">{{vm.record._source.type}}</h4>
+  <result-field
+    label="{{'ACCESS.CLASSIFICATION_STRUCTURE' | translate}}"
+    data="vm.getStructureById(vm.record.structures, vm.structure).name"
+    stronglabel="true"
+  ></result-field>
+  <result-field
+    label="{{'ACCESS.ARCHIVE_REFERENCE' | translate}}"
+    data="vm.record._source.reference_code"
+    stronglabel="true"
+  ></result-field>
+  <result-field
+    label="{{'ACCESS.ARCHIVE_CREATOR' | translate}}"
+    data="vm.record._source.archive_creator"
+    stronglabel="true"
+  ></result-field>
+  <result-field
+    label="{{'ACCESS.ARCHIVE_RESPONSIBLE' | translate}}"
+    data="vm.record._source.archive_responsible"
+    stronglabel="true"
+  ></result-field>
+
+  <div ng-if="vm.record._source.desc">
+    <p ng-if="vm.record._source.desc" class="result-description">
+      {{vm.record._source.desc}}
+    </p>
+  </div>
+  <div
+    ng-if="vm.record._source.create_date || vm.record._source.arrival_date || vm.record._source.dispatch_date || vm.record._source.decision_date || vm.record._source.preparation_date || vm.record._source.ended_date"
+  >
+    <strong>Datum:</strong>
+    <result-field label="Skapad" data="vm.record._source.create_date" type="date"></result-field>
+    <result-field label="Inkommen" data="vm.record._source.arrival_date" type="date"></result-field>
+    <result-field label="Expedierad" data="vm.record._source.dispatch_date" type="date"></result-field>
+    <result-field label="Beslutat" data="vm.record._source.decision_date" type="date"></result-field>
+    <result-field label="Upprättad" data="vm.record._source.preparation_date" type="date"></result-field>
+    <result-field label="Avslutat" data="vm.record._source.ended_date" type="date"></result-field>
+    <br />
+  </div>
+  <div ng-include src="'static/frontend/views/search_detail_contents.html'"></div>
+</div>

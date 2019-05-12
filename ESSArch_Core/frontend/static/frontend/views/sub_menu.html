@@ -1,0 +1,153 @@
+<div
+  ng-if="('home.ingest' | includedByState) || ('home.access' | includedByState) || ('home.administration' | includedByState) || ('home.archiveMaintenance' | includedByState)"
+>
+  <div tabindex="-1" ng-if="'home.ingest' | includedByState" class="sub-menu">
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.ingest.reception')"
+      ui-sref="home.ingest.reception"
+      ng-class="{chosen: $state.current.name == 'home.ingest.reception'}"
+      class="nav-item sliding-middle-out"
+      ng-if="checkPermissions('home.ingest.reception')"
+      >{{'RECEPTION' | translate}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.ingest.ipApproval')"
+      ui-sref="home.ingest.ipApproval"
+      ng-class="{chosen: $state.current.name == 'home.ingest.ipApproval'}"
+      class="nav-item sliding-middle-out"
+      style="margin-left: 5px;"
+      ng-if="checkPermissions('home.ingest.ipApproval')"
+      >{{'APPROVAL' | translate}}</a
+    >
+  </div>
+  <div tabindex="-1" ng-if="'home.access' | includedByState" class="sub-menu">
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.access.search')"
+      class="nav-item sliding-middle-out"
+      ng-class="{'chosen': $state.includes('home.access.search')}"
+      ui-sref="home.access.search"
+      ng-if="checkPermissions('home.access.search')"
+      >{{('SEARCH' | translate)}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.access.accessIp')"
+      ui-sref="home.access.accessIp"
+      ng-class="{chosen: $state.current.name == 'home.access.accessIp'}"
+      class="nav-item sliding-middle-out"
+      ng-if="checkPermissions('home.access.accessIp')"
+      style="margin-left: 5px;"
+      >{{'STORAGE_UNITS' | translate}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.access.orders')"
+      ui-sref="home.access.orders"
+      ng-class="{chosen: $state.current.name =='home.access.orders'}"
+      class="nav-item sliding-middle-out"
+      style="margin-left: 5px;"
+      ng-if="checkPermissions('home.access.orders')"
+      >{{('ORDERS' | translate)}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.access.createDip')"
+      ui-sref="home.access.createDip"
+      ng-class="{chosen: $state.current.name == 'home.access.createDip'}"
+      class="nav-item sliding-middle-out"
+      style="margin-left: 5px;"
+      ng-if="checkPermissions('home.access.createDip')"
+      >{{'DISSEMINATION' | translate}}</a
+    >
+  </div>
+  <div tabindex="-1" ng-if="'home.administration' | includedByState" class="sub-menu">
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.administration.searchAdmin')"
+      ui-sref="home.administration.searchAdmin"
+      ng-class="{chosen: $state.includes('home.administration.searchAdmin')}"
+      class="nav-item sliding-middle-out"
+      ng-if="checkPermissions('home.administration.searchAdmin')"
+      >{{'SEARCH_ADMIN' | translate}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.administration.mediaInformation')"
+      ui-sref="home.administration.mediaInformation"
+      ng-class="{chosen: $state.current.name == 'home.administration.mediaInformation'}"
+      class="nav-item sliding-middle-out"
+      ng-if="checkPermissions('home.administration.mediaInformation')"
+      >{{'MEDIAINFORMATION' | translate}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.administration.robotInformation')"
+      ui-sref="home.administration.robotInformation"
+      ng-class="{chosen: $state.current.name == 'home.administration.robotInformation'}"
+      class="nav-item sliding-middle-out"
+      ng-if="checkPermissions('home.administration.robotInformation')"
+      >{{'ROBOTINFORMATION' | translate}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.administration.queues')"
+      ui-sref="home.administration.queues"
+      ng-class="{chosen: $state.current.name == 'home.administration.queues'}"
+      class="nav-item sliding-middle-out"
+      ng-if="checkPermissions('home.administration.queues')"
+      >{{'QUEUES' | translate}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.administration.storageMigration')"
+      ui-sref="home.administration.storageMigration"
+      ng-class="{chosen: $state.current.name == 'home.administration.storageMigration'}"
+      class="nav-item sliding-middle-out"
+      ng-if="checkPermissions('home.administration.storageMigration')"
+      >{{'STORAGEMIGRATION' | translate}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.administration.storageMaintenance')"
+      ui-sref="home.administration.storageMaintenance"
+      ng-class="{chosen: $state.current.name == 'home.administration.storageMaintenance'}"
+      class="nav-item sliding-middle-out"
+      ng-if="checkPermissions('home.administration.storageMaintenance')"
+      >{{'STORAGEMAINTENANCE' | translate}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.administration.profileManager')"
+      ui-sref="home.administration.profileManager"
+      ng-class="{chosen: $state.includes('home.administration.profileManager')}"
+      class="nav-item sliding-middle-out"
+      ng-if="checkPermissions('home.administration.profileManager')"
+      >{{'PROFILEMANAGER' | translate}}</a
+    >
+  </div>
+  <div tabindex="-1" ng-if="'home.archiveMaintenance' | includedByState" class="sub-menu">
+    <!--<a tabindex="0" ng-keydown="navKeydownListener($event, 'home.archiveMaintenance.start')" ui-sref="home.archiveMaintenance.start" ng-class="{chosen: $state.current.name == 'home.archiveMaintenance.start'}" class="nav-item sliding-middle-out" ng-if="checkPermissions('home.archiveMaintenance.start')">{{'OVERVIEW' | translate}}</a>-->
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.archiveMaintenance.appraisal')"
+      ui-sref="home.archiveMaintenance.appraisal"
+      ng-class="{chosen: $state.current.name == 'home.archiveMaintenance.appraisal'}"
+      class="nav-item sliding-middle-out"
+      ng-if="checkPermissions('home.archiveMaintenance.appraisal')"
+      >{{'APPRAISAL' | translate}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.archiveMaintenance.conversion')"
+      ui-sref="home.archiveMaintenance.conversion"
+      ng-class="{chosen: $state.current.name == 'home.archiveMaintenance.conversion'}"
+      class="nav-item sliding-middle-out"
+      ng-if="checkPermissions('home.archiveMaintenance.conversion')"
+      >{{'FORMAT_CONVERSION' | translate}}</a
+    >
+    <!--<a tabindex="0" ng-keydown="navKeydownListener($event, 'home.archiveMaintenance.appraisal')" ui-sref="home.archiveMaintenance.appraisal" class="nav-item sliding-middle-out" ng-if="checkPermissions('home.archiveMaintenance.mediaMigration')">{{'MEDIA_MIGRATION' | translate}}</a>-->
+  </div>
+</div>

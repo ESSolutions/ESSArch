@@ -7,7 +7,15 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import DjangoModelPermissions, SAFE_METHODS
 
-from ESSArch_Core.profiles.models import Profile, ProfileIP, ProfileIPData, ProfileIPDataTemplate, SubmissionAgreement
+from ESSArch_Core.profiles.models import (
+    Profile,
+    ProfileIP,
+    ProfileIPData,
+    ProfileIPDataTemplate,
+    SubmissionAgreement,
+    ProfileSA,
+)
+from ESSArch_Core.profiles.serializers import ProfileSASerializer, SubmissionAgreementSerializer
 from ESSArch_Core.profiles.serializers import (
     ProfileSerializer,
     ProfileDetailSerializer,
@@ -17,6 +25,7 @@ from ESSArch_Core.profiles.serializers import (
     ProfileIPDataSerializer,
     ProfileIPDataTemplateSerializer,
     ProfileIPWriteSerializer,
+    ProfileSASerializer,
     SubmissionAgreementSerializer,
 )
 
@@ -134,3 +143,8 @@ class ProfileIPDataTemplateViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'head', 'options']
     queryset = ProfileIPDataTemplate.objects.all()
     serializer_class = ProfileIPDataTemplateSerializer
+
+
+class ProfileSAViewSet(viewsets.ModelViewSet):
+    queryset = ProfileSA.objects.all()
+    serializer_class = ProfileSASerializer

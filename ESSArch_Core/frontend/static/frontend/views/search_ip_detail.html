@@ -1,0 +1,13 @@
+<div class="search-detail ip-detail">
+  <h4>IP</h4>
+  <h4>
+    {{vm.ip.label}}
+  </h4>
+  <b>{{'OBJECT_IDENTIFIER_VALUE' | translate}}:</b> {{vm.ip.object_identifier_value}}<br />
+  <b>{{'CREATE_DATE' | translate}}:</b> {{vm.ip.create_date | date:"yyyy-MM-dd HH:mm:ss"}}<br />
+  <b>{{'RESPONSIBLE' | translate}}:</b> {{vm.ip.responsible.username}}<br />
+  <hr />
+  <div ng-if="vm.ip">
+    <filebrowser ip="vm.ip"></filebrowser>
+  </div>
+</div>

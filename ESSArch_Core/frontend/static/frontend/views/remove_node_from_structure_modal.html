@@ -1,0 +1,15 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">
+    {{'ACCESS.REMOVE_NODE' | translate}} <b>{{$ctrl.node._source.name}}</b> {{'FROM' | translate}}
+    <b>{{$ctrl.data.structure.name}}</b>
+  </h3>
+</div>
+<div class="modal-body" id="modal-body">
+  <h4>{{'ACCESS.DO_YOU_WANT_TO_REMOVE_NODE_FROM_CLASSIFICATION_STRUCTURE' | translate}}</h4>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" type="button" ng-click="$ctrl.removeFromStructure()" focused="true">
+    {{'REMOVE' | translate}}
+  </button>
+  <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+</div>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <div class="profile-maker">
+    <div>
+      <div class="TemplateRow">
+        <select
+          class="form-control template-select"
+          ng-change="vm.editTemplate(vm.template)"
+          ng-model="vm.template"
+          ng-options="x as x.name for x in vm.templates"
+          >x</select
+        >
+        <input
+          ng-if="vm.template"
+          class="btn btn-primary"
+          type="button"
+          ng-click="vm.generateModal()"
+          value="Generate"
+        />
+        <input
+          ng-if="vm.template"
+          class="btn btn-primary"
+          type="button"
+          ng-click="vm.addExtensionModal(vm.template)"
+          value="Add extension"
+        />
+        <input
+          ng-if="vm.template"
+          class="btn btn-primary"
+          type="button"
+          ng-click="vm.mapStructureModal(vm.template)"
+          value="Edit map structure"
+        />
+        <input
+          ng-if="vm.template"
+          class="btn btn-danger"
+          type="button"
+          ng-click="vm.delete(vm.template)"
+          value="Delete"
+        />
+        <button class="btn btn-default" ng-click="vm.addTemplateModal()"><i class="fas fa-plus"></i></button>
+      </div>
+    </div>
+    <hr />
+    <div ng-if="vm.edit" ng-include src="'static/frontend/views/profile_maker/edit.html'"></div>
+  </div>
+</html>

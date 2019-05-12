@@ -1,0 +1,40 @@
+<div class="number-per-page-wrapper">
+  <div class="page-number">
+    {{vm.calculatePageNumber()}}
+  </div>
+  <select class="form-control items-per-page" ng-model="vm.resultsPerPage" ng-options="x for x in [10,25,50,100]"
+    >{{x}}</select
+  >
+  <div>
+    <button
+      class="btn btn-default btn-sm"
+      ng-class="{'active': vm.resultViewType == 'list'}"
+      ng-click="vm.resultViewType = 'list';"
+      uib-tooltip="{{'LIST_VIEW' | translate}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    >
+      <i class="fas fa-th-list fa-lg"></i>
+    </button>
+    <button
+      class="btn btn-default btn-sm"
+      ng-class="{'active': vm.resultViewType == 'grid'}"
+      ng-click="vm.resultViewType = 'grid';"
+      uib-tooltip="{{'GRID_VIEW' | translate}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    >
+      <i class="fas fa-th fa-lg"></i>
+    </button>
+  </div>
+  <button class="btn btn-default export-result-button" ng-click="vm.exportResultModal()">
+    {{'EXPORT_RESULT' | translate}}
+  </button>
+</div>
+<div
+  class="search-pagination"
+  st-template="static/frontend/views/file_pagination.html"
+  st-pagination=""
+  st-items-by-page="vm.resultsPerPage"
+  st-displayed-pages="7"
+></div>

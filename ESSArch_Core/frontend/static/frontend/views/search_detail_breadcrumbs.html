@@ -1,0 +1,11 @@
+<div>
+  <label>
+    {{'PATH' | translate}}
+  </label>
+  <ul class="breadcrumb">
+    <li ng-repeat="x in vm.record.breadcrumbs">
+      <a ng-if="$index !== vm.record.breadcrumbs.length-1" ng-click="vm.goToNode(x._id)">{{x.name}}</a>
+      {{$index === vm.record.breadcrumbs.length-1?x.name:''}}
+    </li>
+  </ul>
+</div>

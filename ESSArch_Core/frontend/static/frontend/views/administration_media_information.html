@@ -1,0 +1,236 @@
+<div class="content-wrapper">
+  <div class="list-view" st-table="vm.displayedMediums" st-pipe="vm.callServer">
+    <div class="title-action-button-row">
+      <div class="title">
+        <h4>
+          {{'STORAGE_MEDIUMS' | translate}}
+        </h4>
+      </div>
+    </div>
+    <div class="search-prepare-wrapper">
+      <label for items-per-page></label>
+      <select
+        id="items-per-page"
+        ng-change="updateIpsPerPage(vm.itemsPerPage)"
+        style="margin-right: 10px;"
+        class="form-control items-per-page"
+        ng-model="vm.itemsPerPage"
+        ng-options="x for x in [5,10,20,25,50]"
+        uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      ></select>
+      <input
+        st-search=""
+        class="form-control global-search"
+        ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+        type="text"
+        uib-tooltip="{{'GLOBALSEARCHDESC_MEDIUM' | translate}}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      />
+      <div class="refresh-icon">
+        <span
+          ng-click="vm.getMediumData()"
+          class="clickable angular-animate fas fa-sync-alt fa-lg"
+          ng-class="{'fa-sync-alt-animate': ipLoading }"
+          uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+          tooltip-placement="auto left"
+          tooltip-append-to-body="true"
+        ></span>
+      </div>
+    </div>
+
+    <div id="list-view" class="list-view-table">
+      <table class="table table-striped" style="margin-bottom: 0px;">
+        <thead>
+          <tr>
+            <th class="clickable" st-sort="medium_id" class="column-label">ID</th>
+            <th class="clickable" st-sort="storage_target" class="column-label">{{'STORAGETARGET' | translate}}</th>
+            <th class="clickable" st-sort="create_date" st-sort-default="reverse" class="column-label">
+              {{'CREATED' | translate}}
+            </th>
+            <th class="clickable" st-sort="status" class="column-label">{{'STATUS' | translate}}</th>
+            <th class="clickable" st-sort="location" class="column-label">{{'LOCATION' | translate}}</th>
+            <th class="clickable" st-sort="location_status" class="column-label">{{'LOCATIONSTATUS' | translate}}</th>
+            <th class="clickable" st-sort="used_capacity" class="column-label">{{'USEDCAPACITY' | translate}}</th>
+            <th class="clickable" st-sort="storage_target.max_capacity" class="column-label">
+              {{'MAXCAPACITY' | translate}}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            ng-class="{'selected': storageMedium.id == row.id}"
+            ng-repeat="row in vm.displayedMediums"
+            ng-attr-context-menu="menuOptions"
+            class="table-item selectable"
+          >
+            <td class="clickable" style="white-space: nowrap;" ng-click="storageMediumTableClick(row)">
+              {{row.medium_id}}
+            </td>
+            <td class="clickable" ng-click="storageMediumTableClick(row)">{{row.storage_target.name}}</td>
+            <td class="clickable" style="white-space: nowrap;" ng-click="storageMediumTableClick(row)">
+              {{row.create_date | date:"yyyy-MM-dd HH:mm:ss"}}
+            </td>
+            <td class="clickable" ng-click="storageMediumTableClick(row)">{{row.status}}</td>
+            <td class="clickable" style="white-space: nowrap;" ng-click="storageMediumTableClick(row)">
+              {{row.location}}
+            </td>
+            <td class="clickable" ng-click="storageMediumTableClick(row)">{{row.location_status}}</td>
+            <td class="clickable" ng-click="storageMediumTableClick(row)">{{row.used_capacity | filesize}}</td>
+            <td class="clickable" ng-click="storageMediumTableClick(row)">
+              {{row.storage_target.max_capacity | filesize}}
+            </td>
+          </tr>
+          <tr ng-if="!vm.displayedMediums.length && !ipLoading" class="empty-table-indicator">
+            <td colspan="8">{{'NO_RESULTS_FOUND' | translate}}</td>
+          </tr>
+          <tr ng-if="!vm.displayedMediums.length && ipLoading" class="empty-table-indicator">
+            <td class="loading-column" colspan="8">{{'LOADING' | translate}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <td ng-show="!initLoad">
+      <div
+        class="text-center"
+        st-template="static/frontend/views/pagination.html"
+        st-pagination=""
+        st-items-by-page="vm.itemsPerPage"
+        st-displayed-pages="7"
+      ></div>
+    </td>
+  </div>
+  <div ng-if="select" style="margin-top: 5px;" class="select-sub-edit-eventlog-wrapper">
+    <div ng-if="select" id="select-view" class="select-view">
+      <h4>{{'STORAGEMEDIUM' | translate}}</h4>
+      <div class="table-container">
+        <table class="table table-striped" style="width: 50%;">
+          <thead>
+            <tr>
+              <th>{{'NAME' | translate}}</th>
+              <th>{{'VALUE' | translate}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{'MEDIUMID' | translate}}</td>
+              <td>{{storageMedium.medium_id}}</td>
+            </tr>
+            <tr>
+              <td>{{'STATUS' | translate}}</td>
+              <td>{{storageMedium.status}}</td>
+            </tr>
+            <tr>
+              <td>{{'LOCATION' | translate}}</td>
+              <td>{{storageMedium.location}}</td>
+            </tr>
+            <tr>
+              <td>{{'LOCATIONSTATUS' | translate}}</td>
+              <td>{{storageMedium.location_status}}</td>
+            </tr>
+            <tr>
+              <td>{{'BLOCKSIZE' | translate}}</td>
+              <td>{{storageMedium.block_size}}</td>
+            </tr>
+            <tr>
+              <td>{{'FORMAT' | translate}}</td>
+              <td>{{storageMedium.format}}</td>
+            </tr>
+            <tr>
+              <td>{{'USEDCAPACITY' | translate}}</td>
+              <td>{{storageMedium.used_capacity}}</td>
+            </tr>
+            <tr>
+              <td>{{'NUMBEROFMOUNTS' | translate}}</td>
+              <td>{{storageMedium.num_of_mounts}}</td>
+            </tr>
+            <tr>
+              <td>{{'CREATED' | translate}}</td>
+              <td>{{storageMedium.create_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <br />
+      <h4>{{'MEDIUMCONTENT' | translate}}</h4>
+      <div st-table="vm.storageObjects" st-pipe="vm.objectPipe">
+        <div class="search-prepare-wrapper">
+          <label for items-per-page></label>
+          <select
+            id="items-per-page"
+            style="margin-right: 10px;"
+            class="form-control items-per-page"
+            ng-model="vm.objectsPerPage"
+            ng-options="x for x in [5,10,20,25,50]"
+            uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          ></select>
+          <input
+            st-search=""
+            class="form-control global-search"
+            ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+            type="text"
+            uib-tooltip="{{'GLOBALSEARCHDESC_MEDIUM_CONTENT' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          />
+          <div class="refresh-icon">
+            <span
+              ng-click="vm.getObjectData()"
+              class="clickable angular-animate fas fa-sync-alt fa-lg"
+              ng-class="{'fa-sync-alt-animate': objectLoading }"
+              uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+              tooltip-placement="auto left"
+              tooltip-append-to-body="true"
+            ></span>
+          </div>
+        </div>
+        <div id="list-view" class="table-container table-x-overflow">
+          <table class="table table-striped" style="margin-bottom: 0px;">
+            <thead>
+              <tr>
+                <th st-sort="ip__object_identifier_value" class="clickable" class="column-label">IP</th>
+                <th st-sort="content_location_value" class="clickable" class="column-label">
+                  {{'CONTENTLOCATION' | translate}}
+                </th>
+                <th st-sort="last_changed_local" class="clickable" st-sort-default="reverse" class="column-label">
+                  {{'CREATED' | translate}}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                ng-class="{'selected': ip.id == row.id}"
+                ng-repeat="row in vm.storageObjects"
+                ng-attr-context-menu="menuOptions"
+                class="table-item selectable"
+              >
+                <td>{{row.ip.object_identifier_value}}</td>
+                <td>{{row.content_location_value}}</td>
+                <td>{{row.last_changed_local | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+              </tr>
+              <tr ng-if="!vm.storageObjects.length && !objectLoading" class="empty-table-indicator">
+                <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
+              </tr>
+              <tr ng-if="!vm.storageObjects.length && objectLoading" class="empty-table-indicator">
+                <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <td ng-show="!initObjLoad" colspan="{{colspan}}">
+          <div
+            class="text-center"
+            st-template="static/frontend/views/pagination.html"
+            st-pagination=""
+            st-items-by-page="vm.objectsPerPage"
+            st-displayed-pages="7"
+          ></div>
+        </td>
+      </div>
+    </div>
+  </div>
+</div>

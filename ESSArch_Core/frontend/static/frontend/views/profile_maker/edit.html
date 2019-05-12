@@ -1,0 +1,77 @@
+<div>
+  <treecontrol
+    class="tree-classic"
+    tree-model="treeElements"
+    options="treeOptions"
+    on-selection="showSelected(node.key, selected)"
+    selected-node="node1"
+    expanded-nodes="expandedNodes"
+    style="float:left;"
+  >
+    <span class="{{node.templateOnly}}">{{node.name}}</span>
+  </treecontrol>
+
+  <formly-form
+    model="vm.floatingElementmodel"
+    fields="vm.floatingElementfields"
+    form="vm.floatingElementform"
+    class="floatingForm"
+    ng-show="vm.floatingElementVisable"
+  >
+    <button
+      type="button"
+      class="btn btn-primary"
+      ng-click="vm.saveElement()"
+      ng-disabled="vm.floatingElementform.$invalid"
+    >
+      Add Element
+    </button>
+    <treecontrol
+      class="tree-classic"
+      tree-model="allElementsAvailable"
+      options="treeOptions"
+      on-selection="addEl(node.data)"
+      selected-node="node1"
+      expanded-nodes="expandedNodes"
+      style="float:left;"
+    >
+      <span class="{{node.templateOnly}}">{{node.name}}</span>
+    </treecontrol>
+  </formly-form>
+
+  <div class="container col-md-4">
+    <form onsubmit="return false;">
+      <input type="hidden" name="uuid" value="{{vm.uuid}}" />
+      <input type="hidden" name="schemaName" value="{{vm.schemaName}}" />
+      <h2>{{vm.title}}</h2>
+      <h3>Empty, non-required fields won't be used in the template</h3>
+      <h3>Min: {{vm.min}} Max: {{vm.max}}</h3>
+      <formly-form model="vm.model" fields="vm.fields" form="vm.form">
+        <p ng-show="vm.containsFilesText">Contains Files</p>
+        <button type="button" class="btn btn-primary" ng-click="vm.addAttribute()" ng-show="vm.anyAttribute">
+          Add Attribute
+        </button>
+        <button type="button" class="btn btn-primary" ng-click="vm.submitForm()" ng-disabled="vm.form.$invalid">
+          Submit
+        </button>
+        <button type="button" class="btn btn-danger" ng-show="vm.canDelete" ng-click="vm.removeChild()">Delete</button>
+        <button type="button" class="btn btn-primary" ng-click="vm.containsFiles()">Toggle Contains Files</button>
+      </formly-form>
+      <!-- <h3>Available children</h3> -->
+      <div>
+        <h3 ng-if="vm.possibleChildren.length > 0">PossibleChildren</h3>
+        <div ng-repeat="child in vm.possibleChildren track by $index" class="children">
+          <p>
+            {{child}}
+          </p>
+          <button type="button" class="btn btn-success" ng-click="vm.addChild(child)">Add</button>
+          <!-- <span ng-click="vm.addChild(child)">{{child.name}}
+                    </span> -->
+        </div>
+        <button type="button" class="btn btn-success" ng-click="vm.addElement()" ng-show="vm.anyElement">
+          Add Element
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

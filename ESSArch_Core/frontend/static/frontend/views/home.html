@@ -1,0 +1,203 @@
+<div class="body-wrapper">
+  <header class="header">
+    <div class="logo-search-user-admin-wrapper">
+      <div
+        class="hamburger"
+        ng-show="false && (('home.ingest' | includedByState) || ('home.access' | includedByState) || ('home.orders' | includedByState))"
+      >
+        <i class="fas fa-2x fa-bars" aria-hidden="true" ng-click="hamburgerActive = !hamburgerActive"></i>
+      </div>
+      <div class="logo" ng-controller="UtilCtrl">
+        <div ng-if="!angular.isUndefined(site) && site !== null && site.logo !== null" class="custom-logo">
+          <img src="{{site.logo}}" width="36" alt="logo" />
+        </div>
+        <h3 class="page-title" ng-click="infoPage()">ESSArch</h3>
+        <h3 class="page-title-small" ng-class="{'has-custom-logo': site.logo !== null}" ng-click="infoPage()">
+          ESSArch
+        </h3>
+      </div>
+      <div class="user-admin">
+        <div ng-controller="UtilCtrl" class="mobile-notification">
+          <div class="notification-icon position-relative show-sm">
+            <i
+              ng-click="showAlert()"
+              class="fas fa-bell fa-lg"
+              uib-tooltip="{{'NOTIFICATIONS.NOTIFICATIONS' | translate}}"
+              tooltip-placement="auto top"
+              tooltip-append-to-body="true"
+            ></i>
+            <div
+              ng-click="showAlert()"
+              ng-if="unseenNotifications != 0 && unseenNotifications <= 999"
+              class="unseen-text"
+            >
+              {{unseenNotifications}}
+            </div>
+            <div ng-click="showAlert()" ng-if="unseenNotifications > 999" class="unseen-text">{{999}}+</div>
+          </div>
+        </div>
+        <user-dropdown auth="auth"></user-dropdown>
+      </div>
+    </div>
+    <div class="menu-task-wrapper">
+      <nav class="nav menu" ng-controller="UtilCtrl">
+        <a
+          tabindex="0"
+          ng-keydown="navKeydownListener($event, 'home.ingest')"
+          class="nav-item sliding-middle-out"
+          ng-class="{'chosen': $state.includes('home.ingest')}"
+          ui-sref="home.ingest"
+          ng-if="checkPermissions('home.ingest')"
+          >{{('INGEST' | translate)}}</a
+        >
+        <a
+          tabindex="0"
+          ng-keydown="navKeydownListener($event, 'home.access')"
+          class="nav-item sliding-middle-out"
+          ng-class="{'chosen': $state.includes('home.access')}"
+          ui-sref="home.access"
+          ng-if="checkPermissions('home.access')"
+          >{{('ACCESS.ACCESS' | translate)}}</a
+        >
+        <a
+          tabindex="0"
+          ng-keydown="navKeydownListener($event, 'home.workarea')"
+          class="nav-item sliding-middle-out"
+          ng-class="{'chosen': $state.includes('home.workarea')}"
+          ui-sref="home.workarea"
+          ng-if="checkPermissions('home.workarea')"
+          >{{('WORKAREA' | translate)}}</a
+        >
+        <a
+          tabindex="0"
+          ng-keydown="navKeydownListener($event, 'home.archiveMaintenance')"
+          class="nav-item sliding-middle-out"
+          ng-class="{'chosen': $state.includes('home.archiveMaintenance')}"
+          ui-sref="home.archiveMaintenance"
+          ng-if="checkPermissions('home.archiveMaintenance')"
+          >{{('ARCHIVE_MAINTENANCE.ARCHIVE_MAINTENANCE' | translate)}}</a
+        >
+        <a
+          tabindex="0"
+          ng-keydown="navKeydownListener($event, 'home.administration')"
+          class="nav-item sliding-middle-out"
+          ng-class="{'chosen': $state.includes('home.administration')}"
+          ui-sref="home.administration"
+          ng-if="checkPermissions('home.administration')"
+          >{{('ADMINISTRATION' | translate)}}</a
+        >
+        <a
+          tabindex="0"
+          ng-keydown="navKeydownListener($event, 'home.dashboard')"
+          class="nav-item sliding-middle-out"
+          ng-class="{'chosen': $state.includes('home.dashboard')}"
+          ui-sref="home.dashboard"
+          ng-if="checkPermissions('home.dashboard')"
+          >{{('DASHBOARD' | translate)}}</a
+        >
+      </nav>
+      <div ng-controller="UtilCtrl" class="tasks-icons">
+        <span
+          ng-click="reloadPage()"
+          class="fas fa-sync-alt fa-lg fa-sync-alt-animate-once"
+          uib-tooltip="{{'REFRESHPAGE' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        ></span>
+        <a
+          href="/admin/"
+          class="fas fa-cog fa-lg"
+          uib-tooltip="{{'SETTINGS' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        ></a>
+        <a
+          ui-sref="home.versionInfo"
+          class="fas fa-question-circle fa-lg"
+          uib-tooltip="{{'HELP' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        ></a>
+        <div class="notification-icon">
+          <i
+            ng-click="showAlert()"
+            class="fas fa-bell fa-lg"
+            uib-tooltip="{{'NOTIFICATIONS.NOTIFICATIONS' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          ></i>
+          <div
+            ng-click="showAlert()"
+            ng-if="unseenNotifications != 0 && unseenNotifications <= 999"
+            class="unseen-text"
+          >
+            {{unseenNotifications}}
+          </div>
+          <div ng-click="showAlert()" ng-if="unseenNotifications > 999" class="unseen-text">{{999}}+</div>
+          <notifications></notifications>
+        </div>
+        <div
+          class="organization-select"
+          ng-controller="OrganizationCtrl"
+          uib-tooltip="{{'ORGANIZATION.CHANGE_ORGANIZATION' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        >
+          <select
+            tabindex="-1"
+            style="width: auto; margin-left: 10px;"
+            class="form-control"
+            ng-model="currentOrganization"
+            ng-disabled="availableOrganizations.length === 0"
+            ng-change="changeOrganization(); updateListView()"
+            ng-options="x as x.name for x in availableOrganizations track by x.id"
+          >
+            <option ng-hide="availableOrganizations.length > 0" selected value=""
+              >{{'ORGANIZATION.NO_ORGANIZATIONS' | translate}}</option
+            >
+          </select>
+        </div>
+        <div ng-controller="LanguageCtrl" class="language-select" style="width: 100px; margin-left: 10px;">
+          <select
+            tabindex="-1"
+            class="form-control"
+            ng-model="currentLanguage"
+            ng-change="changeLanguage(currentLanguage)"
+            ng-options="x | translate for x in availableLanguages"
+            style="width: 100%;"
+            uib-tooltip="{{'CHOOSELANGUAGE' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          ></select>
+        </div>
+      </div>
+    </div>
+  </header>
+  <nav ng-controller="UtilCtrl" ng-include src="'static/frontend/views/sub_menu.html'"></nav>
+  <div class="nav-dynamic-wrapper">
+    <div
+      ng-if="false && (('home.ingest' | includedByState) || ('home.access' | includedByState) || ('home.orders' | includedByState) || ('home.appraisal' | includedByState))"
+      class="shortcut-nav-calendar-wrapper"
+      ng-class="{'active-hamburger': hamburgerActive}"
+    >
+      <div ng-controller="AngularTreeCtrl" class="navigation" context-menu="navMenuOptions(item)">
+        <br />
+        <p>
+          <treecontrol
+            class="tree-light"
+            tree-model="tags"
+            options="treeOptions"
+            selected-node="vm.selectedTag"
+            expanded-nodes="expandedNodes"
+            on-selection="showSelectedNode(node)"
+            on-node-toggle="onNodeToggle(node)"
+          >
+            <span context-menu="navMenuItemOptions(item)">{{node.name}}</span>
+          </treecontrol>
+        </p>
+      </div>
+    </div>
+    <main tabindex="-1" ui-view class="dynamic-part"></main>
+  </div>
+</div>
+<essarch-footer title="ESSArch Preservation Platform"></essarch-footer>

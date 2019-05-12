@@ -1,0 +1,127 @@
+<div class="content-wrapper">
+  <div class="queues">
+    <div class="select-sub-edit-eventlog-wrapper">
+      <div ng-if="select" class="select-view">
+        <h4>{{'IOQUEUE' | translate}}</h4>
+        <div class="table-container" st-table="vm.ioQueue" st-pipe="vm.getIoQueue">
+          <div class="search-prepare-wrapper">
+            <label for items-per-page></label>
+            <select
+              id="items-per-page"
+              style="margin-right: 10px;"
+              class="form-control items-per-page"
+              ng-model="vm.ioPerPage"
+              ng-options="x for x in [5,10,20,25,50]"
+              uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+              tooltip-placement="auto top"
+              tooltip-append-to-body="true"
+            ></select>
+            <input
+              st-search=""
+              class="form-control global-search"
+              ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+              type="text"
+              uib-tooltip="{{'GLOBALSEARCHDESC_QUEUE' | translate}}"
+              tooltip-placement="auto top"
+              tooltip-append-to-body="true"
+            />
+          </div>
+          <div id="list-view" class="list-view-table table-x-overflow">
+            <table class="table table-striped" style="margin-bottom: 0px;">
+              <thead>
+                <tr>
+                  <th st-sort="id" class="clickable" class="column-label">ID</th>
+                  <th st-sort="posted" class="clickable" class="column-label">{{'POSTED' | translate}}</th>
+                  <th st-sort="req_type" class="clickable" class="column-label">{{'REQUESTTYPE' | translate}}</th>
+                  <th class="clickable" class="column-label">{{'STATUS' | translate}}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  ng-class="srow.class"
+                  ng-repeat="row in vm.ioQueue"
+                  ng-attr-context-menu="menuOptions"
+                  class="table-item"
+                >
+                  <td>{{row.id}}</td>
+                  <td>{{row.posted | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+                  <td>{{row.req_type_display}}</td>
+                  <td>{{row.status_display}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <td ng-show="!initObjLoad" colspan="4">
+            <div
+              class="text-center"
+              st-template="static/frontend/views/pagination.html"
+              st-pagination=""
+              st-items-by-page="vm.ioPerPage"
+              st-displayed-pages="7"
+            ></div>
+          </td>
+        </div>
+        <hr />
+        <h4>{{'ROBOTQUEUE' | translate}}</h4>
+        <div class="table-container" st-table="vm.robotQueue" st-pipe="vm.getRobotQueue">
+          <div class="search-prepare-wrapper">
+            <label for items-per-page></label>
+            <select
+              id="items-per-page"
+              style="margin-right: 10px;"
+              class="form-control items-per-page"
+              ng-model="vm.robotsPerPage"
+              ng-options="x for x in [5,10,20,25,50]"
+              uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+              tooltip-placement="auto top"
+              tooltip-append-to-body="true"
+            ></select>
+            <input
+              st-search=""
+              class="form-control global-search"
+              ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+              type="text"
+              uib-tooltip="{{'GLOBALSEARCHDESC_QUEUE' | translate}}"
+              tooltip-placement="auto top"
+              tooltip-append-to-body="true"
+            />
+          </div>
+          <div id="list-view" class="list-view-table table-x-overflow">
+            <table class="table table-striped" style="margin-bottom: 0px;">
+              <thead>
+                <tr>
+                  <th st-sort="id" class="clickable" class="column-label">ID</th>
+                  <th st-sort="posted" class="clickable" class="column-label">{{'POSTED' | translate}}</th>
+                  <th st-sort="req_type" class="clickable" class="column-label">{{'REQUESTTYPE' | translate}}</th>
+                  <th class="clickable" class="column-label">{{'STATUS' | translate}}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  ng-class="row.class"
+                  ng-repeat="row in vm.robotQueue"
+                  ng-attr-context-menu="menuOptions"
+                  class="table-item"
+                >
+                  <td>{{row.id}}</td>
+                  <td>{{row.posted | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+                  <td>{{row.req_type}}</td>
+                  <td>{{row.status}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <td ng-show="!initObjLoad" colspan="4">
+            <div
+              class="text-center"
+              st-template="static/frontend/views/pagination.html"
+              st-pagination=""
+              st-items-by-page="vm.robotsPerPage"
+              st-displayed-pages="7"
+            ></div>
+          </td>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

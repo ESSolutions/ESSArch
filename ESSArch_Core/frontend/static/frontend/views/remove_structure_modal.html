@@ -1,0 +1,22 @@
+<div class="modal-heading">
+  <h3 style="margin: 10px;" class="modal-title" id="modal-title">
+    {{'ACCESS.DO_YOU_WANT_TO_REMOVE_STRUCTURE' | translate}}
+  </h3>
+</div>
+<div class="modal-body" id="modal-body">
+  <strong>{{'NAME' | translate}}:</strong>&nbsp;{{$ctrl.data.structure.name}}
+</div>
+<div class="modal-footer">
+  <button
+    class="btn btn-primary"
+    type="button"
+    ng-click="$ctrl.remove($ctrl.data.structure)"
+    focused="true"
+    ng-disabled="$ctrl.removing"
+  >
+    {{'OK' | translate}} <i ng-if="$ctrl.removing" class="fas fa-spinner fa-spin" />
+  </button>
+  <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()" ng-disabled="$ctrl.removing">
+    {{'CANCEL' | translate}}
+  </button>
+</div>

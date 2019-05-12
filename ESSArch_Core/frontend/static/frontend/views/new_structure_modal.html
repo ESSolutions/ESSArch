@@ -1,0 +1,63 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ACCESS.NEW_CLASSIFICATION_STRUCTURE' | translate}}</h3>
+</div>
+<form ng-submit="$ctrl.save()">
+  <div class="modal-body" id="modal-body">
+    <label for="name">{{'NAME' | translate}}</label>
+    <input required focused="true" id="name" class="form-control" ng-model="$ctrl.name" />
+    <div class="flex-row w-100 margin-top-5">
+      <div class="w-50">
+        <div class="dropdown" uib-dropdown is-open="status.startDate">
+          <label for="start-date">{{'START_DATE' | translate}}</label>
+          <a class="dropdown-toggle" id="start-date" role="button" uib-dropdown-toggle>
+            <div class="input-group">
+              <input
+                type="text"
+                data-date-time-input="YYYY-MM-DD"
+                class="form-control"
+                data-ng-model="$ctrl.startDate"
+              /><span class="input-group-addon"><i class="fas fa-calendar-alt"></i></span>
+            </div>
+          </a>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
+            <datetimepicker
+              data-ng-model="$ctrl.startDate"
+              ng-change="status.startDate = false"
+              data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType: 'YYYY-MM-DDTHH:mm:ssZ'}"
+            />
+          </ul>
+        </div>
+      </div>
+      <div class="w-50">
+        <div class="dropdown" uib-dropdown is-open="status.endDate">
+          <label for="end-date">{{'END_DATE' | translate}}</label>
+          <a class="dropdown-toggle" id="end-date" role="button" uib-dropdown-toggle>
+            <div class="input-group">
+              <input
+                type="text"
+                data-date-time-input="YYYY-MM-DD"
+                class="form-control"
+                data-ng-model="$ctrl.endDate"
+              /><span class="input-group-addon"><i class="fas fa-calendar-alt"></i></span>
+            </div>
+          </a>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
+            <datetimepicker
+              data-ng-model="$ctrl.endDate"
+              ng-change="status.endDate = false"
+              data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType: 'YYYY-MM-DDTHH:mm:ssZ'}"
+            />
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit" ng-disabled="$ctrl.saving">
+      {{'OK' | translate}} <i ng-if="$ctrl.saving" class="fas fa-spinner fa-spin" />
+    </button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()" ng-disabled="$ctrl.saving">
+      {{'CANCEL' | translate}}
+    </button>
+  </div>
+</form>

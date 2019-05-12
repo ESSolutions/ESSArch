@@ -1,0 +1,20 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ACCESS.CREATE_NEW_STRUCTURE' | translate}}</h3>
+</div>
+<form ng-submit="$ctrl.createNewStructure($ctrl.node)">
+  <div class="modal-body" id="modal-body">
+    <label>
+      {{'NAME' | translate}}
+      <input focused="true" required type="text" ng-model="$ctrl.structureName" class="form-control" />
+    </label>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit" ng-disabled="$ctrl.creating">
+      {{$ctrl.creating?'ACCESS.CREATING':'CREATE' | translate}}
+      <i ng-if="$ctrl.creating" class="fas fa-spinner fa-spin" />
+    </button>
+    <button class="btn btn-default" type="button" ng-disabled="$ctrl.creating" ng-click="$ctrl.cancel()">
+      {{'CLOSE' | translate}}
+    </button>
+  </div>
+</form>

@@ -1,0 +1,124 @@
+<div class="component-result">
+  <h3 title="Namn">
+    <strong title="Namn" ng-if="vm.record._source.name">
+      {{vm.record._source.name}}
+    </strong>
+  </h3>
+  <h4 ng-if="vm.record.type">{{vm.record.type}}</h4>
+  <div ng-if="vm.record._source.desc">
+    <p ng-if="vm.record._source.desc" class="result-description">
+      {{vm.record._source.desc}}
+    </p>
+  </div>
+  <result-field
+    label="Referenskod"
+    break="true"
+    stronglabel="true"
+    data="vm.record._source.reference_code"
+  ></result-field>
+  <result-field label="Type" stronglabel="true" data="vm.record._source.type"></result-field>
+  <div
+    ng-if="vm.record._source.create_date || vm.record._source.arrival_date || vm.record._source.dispatch_date || vm.record._source.decision_date || vm.record._source.preparation_date || vm.record._source.ended_date"
+  >
+    <strong>Datum:</strong>
+    <result-field label="Skapad" data="vm.record._source.create_date" type="date"></result-field>
+    <result-field label="Inkommen" data="vm.record._source.arrival_date" type="date"></result-field>
+    <result-field label="Expedierad" data="vm.record._source.dispatch_date" type="date"></result-field>
+    <result-field label="Beslutat" data="vm.record._source.decision_date" type="date"></result-field>
+    <result-field label="Upprättad" data="vm.record._source.preparation_date" type="date"></result-field>
+    <result-field label="Avslutat" data="vm.record._source.ended_date" type="date"></result-field>
+    <br />
+  </div>
+  <br />
+  <button
+    ng-if="vm.record.type == 'document' && (vm.record._source.terms_and_condition == null || checkPermission('tags.view_pul'))"
+    class="btn btn-success btn-small"
+    ng-click="vm.viewFile(vm.record._source.name)"
+  >
+    <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
+  </button>
+  <p
+    style="color: red; white-space: nowrap;"
+    ng-if="vm.record.type == 'document' && !(vm.record._source.terms_and_condition == null || checkPermission('tags.view_pul'))"
+  >
+    Ej behörig att visa
+  </p>
+  <div class="metadata-tables-wrapper">
+    <div class="table-x-overflow metadata-table">
+      <div ng-if="vm.record._source.agents && vm.record._source.agents.length > 0">
+        <strong>Agents:</strong>
+        <div ng-repeat="agent in vm.record._source.agents">
+          <result-field label="Role" data="agent.role"></result-field>
+          <result-field label="Name" data="agent.name"></result-field>
+          <br />
+        </div>
+      </div>
+      <div ng-if="vm.record._source.initiators && vm.record._source.initiators.length > 0">
+        <strong>Initiators:</strong>
+        <div ng-repeat="initiator in vm.record._source.initiators">
+          <result-field label="Name" data="initiator.name"></result-field>
+          <result-field label="Address" data="initiator.address"></result-field>
+          <result-field label="Zip code" data="initiator.zipcode"></result-field>
+          <div>City: {{ initiator.city }}</div>
+          <result-field label="City" data="initiator.city"></result-field>
+          <div ng-if="!vm.record.masked_fields.includes('personal_identification_number')">
+            <result-field
+              label="Personal Identification Number"
+              data="initiator.personal_identification_number"
+            ></result-field>
+          </div>
+          <div ng-if="vm.record.masked_fields.includes('personal_identification_number')">
+            <div>
+              <strong>Personal Identification Number:</strong>&nbsp;<span class="masked">***********************</span>
+            </div>
+          </div>
+          <result-field label="Phone" data="initiator.phone"></result-field>
+          <result-field label="Mobile phone" data="initiator.mobile_phone"></result-field>
+          <result-field label="E-mail" data="initiator.email"></result-field>
+          <br />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="detail-fields-wrapper">
+    <!--
+            <div class="detail-field" ng-if="vm.record._source.name">
+                <strong>
+                    {{'NAME' | translate}}
+                </strong>
+                <div ng-class="{masked : vm.record.masked_fields.includes('name')}"
+                ng-bind-html="vm.record._source.name">
+            </div>
+        </div>
+        <div class="detail-field" ng-if="vm.record._source.reference_code">
+            <strong>
+                {{'ACCESS.REFERENCE_CODE' | translate}}
+            </strong>
+            <div ng-class="{masked : vm.record.masked_fields.includes('reference_code')}"
+            ng-bind-html="vm.record._source.reference_code">
+        </div>
+    </div>
+    <div class="detail-field" ng-if="vm.record._source.ip">
+            <strong>
+                {{'IP.IP' | translate}}
+            </strong>
+            <div ng-class="{masked : vm.record.masked_fields.includes('ip')}"
+            ng-bind-html="vm.record._source.ip">
+        </div>
+    </div>
+    <div class="detail-field" ng-if="vm.record._source.super_secret_field">
+        <strong>
+                {{'super_secret_field' | translate}}
+            </strong>
+            <div ng-class="{masked : vm.record.masked_fields.includes('super_secret_field')}"
+            ng-bind-html="vm.record._source.super_secret_field">
+        </div>
+    </div>
+    -->
+  </div>
+  <result-field label="Förvaringsenhet" stronglabel="true" data="vm.record._source.ip_objid"></result-field>
+  <button ng-if="vm.record._index == 'document'" class="btn btn-success btn-small" ng-click="vm.viewFile(vm.record)">
+    <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
+  </button>
+  <div ng-include src="'static/frontend/views/search_detail_contents.html'"></div>
+</div>

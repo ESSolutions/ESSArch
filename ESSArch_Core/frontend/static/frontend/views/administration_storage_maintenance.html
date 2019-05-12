@@ -1,0 +1,197 @@
+<div class="content-wrapper">
+  <div class="migration">
+    <div class="select-sub-edit-eventlog-wrapper">
+      <div ng-if="select" class="select-view">
+        <form ng-submit="vm.submit(vm.migrationForm)" class="migration-form">
+          <div class="form-group">
+            <label for="purpose" translate="PURPOSE"></label>
+            <input class="form-control" name="purpose" ng-model="vm.migrationForm.purpose" />
+          </div>
+          <br />
+          <button
+            class="fa btn btn-default"
+            ng-class="vm.formFiltersShow ? 'fa-minus':'fa-plus'"
+            ng-click="vm.collapseFilters()"
+          >
+            {{'FILTERS' | translate}}
+          </button>
+          <div ng-show="vm.formFiltersShow" class="form-group">
+            <label for="policy-id" translate="POLICYID"></label>
+            <select
+              class="form-control"
+              name="policy-id"
+              ng-model="vm.migrationForm.filters.policyID.value"
+              ng-options="x for x in vm.migrationForm.filters.policyID.options"
+              >x</select
+            >
+            <label for="current-medium-prefix" translate="CURRENTMEDIUMPREFIX"></label>
+            <input
+              class="form-control"
+              name="current-medium-prefix"
+              ng-model="vm.migrationForm.filters.currentMediumPrefix"
+            />
+            <label for="previous-medium-prefix" translate="PREVIOUSMEDIUMPREFIX"></label>
+            <input
+              class="form-control"
+              name="previous-medium-prefix"
+              ng-model="vm.migrationForm.filters.previousMediumPrefix"
+            />
+            <label for="status" translate="STATUS"></label>
+            <select
+              class="form-control"
+              name="status"
+              ng-model="vm.migrationForm.filters.status.value"
+              ng-options="x for x in vm.migrationForm.filters.status.options"
+              >x</select
+            >
+            <br />
+            <button class="btn btn-default">{{'APPLYFILTERS' | translate}}</button>
+          </div>
+          <br />
+        </form>
+        <button
+          ng-class="vm.needToMigrateShow ? 'fa-minus':'fa-plus'"
+          class="fa btn btn-default"
+          ng-click="vm.collapseNeedToMigrate()"
+        >
+          {{'NEEDTOMIGRATE' | translate}}
+        </button>
+        <div ng-if="vm.needToMigrateShow" class="form-group">
+          <br />
+          <div class="table-container" st-table="vm.list" st-safe-src="vm.migrationList">
+            <div class="search-prepare-wrapper">
+              <label for items-per-page></label>
+              <select
+                id="items-per-page"
+                style="margin-right: 10px;"
+                class="form-control items-per-page"
+                ng-model="vm.migratePerPage"
+                ng-options="x for x in [5,10,20,25,50]"
+                uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              ></select>
+              <input
+                st-search=""
+                class="form-control global-search"
+                placeholder="{{'GLOBALSEARCH' | translate}}"
+                type="text"
+                uib-tooltip="{{'GLOBALSEARCHDESC_MIGRATION' | translate}}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              />
+            </div>
+            <div id="list-view" class="list-view-table table-x-overflow">
+              <table class="table table-striped" style="margin-bottom: 0px;">
+                <thead>
+                  <tr>
+                    <th st-sort="status" class="clickable" class="column-label">{{'status' | translate}}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    ng-class="row.class"
+                    ng-repeat="row in vm.list"
+                    ng-attr-context-menu="menuOptions"
+                    class="table-item"
+                  >
+                    <td>{{row.status}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <td ng-show="!initObjLoad" colspan="4">
+              <div
+                class="text-center"
+                st-template="static/frontend/views/pagination.html"
+                st-pagination=""
+                st-items-by-page="vm.slotsPerPage"
+                st-displayed-pages="7"
+              ></div>
+            </td>
+          </div>
+        </div>
+        <br />
+        <button
+          ng-class="vm.deactivateStorageMedium ? 'fa-minus':'fa-plus'"
+          class="fa btn btn-default"
+          ng-click="vm.collapseDeactivateStorageMedium()"
+        >
+          {{'DEACTIVATESTORAGEMEDIUM' | translate}}
+        </button>
+        <div ng-if="vm.deactivateStorageMedium" class="form-group">
+          <br />
+          <div class="table-container table-x-overflow" st-table="vm.list" st-safe-src="vm.deactivateList">
+            <div class="search-prepare-wrapper">
+              <label for items-per-page></label>
+              <select
+                id="items-per-page"
+                style="margin-right: 10px;"
+                class="form-control items-per-page"
+                ng-model="vm.deactivatePerPage"
+                ng-options="x for x in [5,10,20,25,50]"
+                uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              ></select>
+              <input
+                st-search=""
+                class="form-control global-search"
+                placeholder="{{'GLOBALSEARCH' | translate}}"
+                type="text"
+                uib-tooltip="{{'GLOBALSEARCHDESC_IP' | translate}}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              />
+              <div class="action-buttons flex-row">
+                <button class="btn btn-default">{{'SELECTALL' | translate}}</button>
+                <button class="btn btn-default">{{'DESELECTALL' | translate}}</button>
+                <button class="btn btn-default">{{'DEACTIVATEMEDIA' | translate}}</button>
+              </div>
+            </div>
+            <div id="list-view" class="list-view-table">
+              <table class="table table-striped" style="margin-bottom: 0px;">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th st-sort="medium_id" class="clickable" class="column-label">{{'MEDIUMID' | translate}}</th>
+                    <th st-sort="create_date" class="clickable" class="column-label">{{'CREATE_DATE' | translate}}</th>
+                    <th st-sort="location" class="clickable" class="column-label">{{'LOCATION' | translate}}</th>
+                    <th st-sort="object_identifier_value" class="clickable" class="column-label">
+                      {{'OBJECTIDENTIFIERVALUE' | translate}}
+                    </th>
+                    <th st-sort="object_id" class="clickable" class="column-label">{{'OBJECTID' | translate}}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    ng-class="row.class"
+                    ng-repeat="row in vm.list"
+                    ng-attr-context-menu="menuOptions"
+                    class="table-item"
+                  >
+                    <td><input type="checkbox" ng-model="row.included" /></td>
+                    <td>{{row.medium_id}}</td>
+                    <td>{{row.create_date}}</td>
+                    <td>{{row.location}}</td>
+                    <td>{{row.object_identifier_value}}</td>
+                    <td>{{row.object_id}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <td ng-show="!initObjLoad" colspan="4">
+              <div
+                class="text-center"
+                st-template="static/frontend/views/pagination.html"
+                st-pagination=""
+                st-items-by-page="vm.slotsPerPage"
+                st-displayed-pages="7"
+              ></div>
+            </td>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

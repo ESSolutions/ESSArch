@@ -1,0 +1,161 @@
+<div class="content-wrapper">
+  <div class="migration">
+    <div class="select-sub-edit-eventlog-wrapper">
+      <div ng-if="select" class="select-view">
+        <form ng-submit="vm.submit(vm.migrationForm)" class="migration-form">
+          <div class="form-group">
+            <label for="purpose" translate="PURPOSE"></label>
+            <input class="form-control" name="purpose" ng-model="vm.migrationForm.purpose" />
+            <label for="temp-path" translate="TEMPPATH"></label>
+            <input class="form-control" name="temp-path" ng-model="vm.migrationForm.tempPath" />
+            <label for="copy-path" translate="COPYPATH"></label>
+            <input class="form-control" name="copy-path" ng-model="vm.migrationForm.copyPath" />
+          </div>
+          <br />
+          <button
+            class="fa btn btn-default"
+            ng-class="vm.formFiltersShow ? 'fa-minus':'fa-plus'"
+            ng-click="vm.collapseFilters()"
+          >
+            {{'FILTERS' | translate}}
+          </button>
+          <div ng-show="vm.formFiltersShow" class="form-group">
+            <label for="object" translate="OBJECT"></label>
+            <input class="form-control" name="object" ng-model="vm.migrationForm.filters.object" />
+            <label for="object-id" translate="OBJECTID"></label>
+            <input class="form-control" name="object-id" ng-model="vm.migrationForm.filters.objectID" />
+            <label for="status" translate="STATUS"></label>
+            <select
+              class="form-control"
+              name="status"
+              ng-model="vm.migrationForm.filters.status.value"
+              ng-options="x for x in vm.migrationForm.filters.status.options"
+              >x</select
+            >
+            <label for="current-medium-id" translate="CURRENTMEDIUMID"></label>
+            <input class="form-control" name="current-medium-id" ng-model="vm.migrationForm.filters.currentMediumId" />
+            <label for="policy-id" translate="POLICYID"></label>
+            <select
+              class="form-control"
+              name="policy-id"
+              ng-model="vm.migrationForm.filters.policyID.value"
+              ng-options="x for x in vm.migrationForm.filters.policyID.options"
+              >x</select
+            >
+            <br />
+            <button class="btn btn-default">{{'APPLYFILTERS' | translate}}</button>
+          </div>
+          <br />
+          <button
+            ng-class="vm.targetShow ? 'fa-minus':'fa-plus'"
+            class="fa btn btn-default"
+            ng-click="vm.collapseTarget()"
+          >
+            {{'TARGET' | translate}}
+          </button>
+          <div ng-if="vm.targetShow" class="form-group">
+            <label for="medium-prefix" translate="MEDIUMPREFIX"></label>
+            <input type="checkbox" name="medium-prefix" ng-model="vm.migrationForm.mediumPrefix" />
+            <div ng-repeat="prefix in vm.migrationForm.target.prefixes">
+              <label for="{{prefix.name}}">{{prefix.name}}</label>
+              <input name="{{prefix.name}}" ng-model="prefix.value" type="checkbox" />
+            </div>
+            <label for="force-copies" translate="FORCECOPIES"></label>
+            <input name="force-copies" type="checkbox" ng-model="vm.migrationForm.target.forceCopies" />
+          </div>
+        </form>
+        <button
+          ng-class="vm.selectionListShow ? 'fa-minus':'fa-plus'"
+          class="fa btn btn-default"
+          ng-click="vm.collapseSelectionList()"
+        >
+          {{'SELECTIONLIST' | translate}}
+        </button>
+        <div ng-if="vm.selectionListShow" class="form-group">
+          <br />
+          <div class="table-container" st-table="vm.list" st-safe-src="vm.selectionList">
+            <div class="search-prepare-wrapper">
+              <label for items-per-page></label>
+              <select
+                id="items-per-page"
+                style="margin-right: 10px;"
+                class="form-control items-per-page"
+                ng-model="vm.ipsPerPage"
+                ng-options="x for x in [5,10,20,25,50]"
+                uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              ></select>
+              <input
+                st-search=""
+                class="form-control global-search"
+                ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+                type="text"
+                uib-tooltip="{{'GLOBALSEARCHDESC_IP' | translate}}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              />
+              <div class="action-buttons flex-row">
+                <button class="btn btn-default">{{'SELECTALL' | translate}}</button>
+                <button class="btn btn-default">{{'DESELECTALL' | translate}}</button>
+                <button class="btn btn-default">{{'STARTMIGRATION' | translate}}</button>
+              </div>
+            </div>
+            <div id="list-view" class="list-view-table table-x-overflow">
+              <table class="table table-striped" style="margin-bottom: 0px;">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th st-sort="object" class="clickable" class="column-label">{{'OBJECT' | translate}}</th>
+                    <th st-sort="status" class="clickable" class="column-label">{{'STATUS' | translate}}</th>
+                    <th st-sort="current_medium_id" class="clickable" class="column-label">
+                      {{'CURRENTMEDIUMID' | translate}}
+                    </th>
+                    <th st-sort="location" class="clickable" class="column-label">{{'LOCATION' | translate}}</th>
+                    <th st-sort="policy" class="clickable" class="column-label">{{'POLICY' | translate}}</th>
+                    <th st-sort="policy_id" class="clickable" class="column-label">{{'POLICYID' | translate}}</th>
+                    <th st-sort="policy_status" class="clickable" class="column-label">
+                      {{'POLICYSTATUS' | translate}}
+                    </th>
+                    <th st-sort="target_name" class="clickable" class="column-label">{{'TARGETNAME' | translate}}</th>
+                    <th st-sort="target_value" class="clickable" class="column-label">
+                      {{'TARGETVALUE' | translate}}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    ng-class="row.class"
+                    ng-repeat="row in vm.list"
+                    ng-attr-context-menu="menuOptions"
+                    class="table-item"
+                  >
+                    <td><input type="checkbox" ng-model="row.included" /></td>
+                    <td>{{row.object}}</td>
+                    <td>{{row.status}}</td>
+                    <td>{{row.current_medium_id}}</td>
+                    <td>{{row.location}}</td>
+                    <td>{{row.policy}}</td>
+                    <td>{{row.policy_id}}</td>
+                    <td>{{row.policy_status}}</td>
+                    <td>{{row.target_name}}</td>
+                    <td>{{row.target_value}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <td ng-show="!initObjLoad" colspan="4">
+              <div
+                class="text-center"
+                st-template="static/frontend/views/pagination.html"
+                st-pagination=""
+                st-items-by-page="vm.slotsPerPage"
+                st-displayed-pages="7"
+              ></div>
+            </td>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

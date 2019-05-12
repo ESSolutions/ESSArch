@@ -1,0 +1,129 @@
+<div class="access-ip">
+  <div class="content-wrapper">
+    <div class="list-view" ng-include src="'static/frontend/views/list_view_table.html'"></div>
+    <uib-tabset
+      ng-if="(ip !== null || ips.length > 0) && !(vm.specificTabs.length == 0 && ips.length > 0)"
+      active="vm.activeTab"
+      class="tabs tabs-style-bar"
+    >
+      <uib-tab
+        ng-if="ip.state == 'Preserved' || vm.specificTabs.includes('access_ip')"
+        index="'access_ip'"
+        heading="{{'ACCESSIP' | translate}}"
+      >
+        <div ng-if="vm.activeTab === 'access_ip'">
+          <div
+            tabindex="-1"
+            ng-keydown="vm.contentViewsKeydownListener($event)"
+            ng-if="(ips.length || ip != null) && requestForm && (checkPermission('ip.get_from_storage') || checkPermission('ip.get_from_storage_as_new') || checkPermission('ip.get_tar_from_storage') || auth.id == ip.responsible.id)"
+            class="request-layout"
+          >
+            <form id="request-form" name="vm.requestForm" class="request-form" ng-submit="submitRequest(vm.request)">
+              <div class="request-type">
+                <div ng-if="checkPermission('ip.get_from_storage')">
+                  <label>
+                    <input type="radio" ng-model="vm.request.type" value="get" />
+                    {{'GET' | translate}}
+                  </label>
+                </div>
+                <div ng-if="checkPermission('ip.get_tar_from_storage')">
+                  <label>
+                    <input type="radio" ng-model="vm.request.type" value="get_tar" />
+                    {{'GET_AS_CONTAINER' | translate}}
+                  </label>
+                </div>
+                <div ng-if="checkPermission('ip.get_from_storage_as_new')">
+                  <label>
+                    <input type="radio" ng-model="vm.request.type" value="get_as_new" />
+                    {{'GET_AS_NEW_GENERATION' | translate}}
+                  </label>
+                </div>
+              </div>
+              <div class="request-params">
+                <div
+                  class="form-group"
+                  ng-if="vm.request.type == 'get' || vm.request.type == 'get_tar' || vm.request.type == 'get_as_new' || vm.request.type == 'query'"
+                >
+                  <label>
+                    {{'COMMENT' | translate}}
+                  </label>
+                  <input class="form-control" ng-model="vm.request.purpose" />
+                </div>
+                <div
+                  ng-if="vm.request.type == 'get' || vm.request.type == 'get_tar' || vm.request.type == 'get_as_new'"
+                >
+                  <input type="checkbox" ng-model="vm.request.package_xml" />
+                  <label>
+                    {{'INCLUDE_PACKAGE_XML' | translate}}
+                  </label>
+                </div>
+                <div
+                  ng-if="vm.request.type == 'get' || vm.request.type == 'get_tar' || vm.request.type == 'get_as_new'"
+                >
+                  <input type="checkbox" ng-model="vm.request.aic_xml" />
+                  <label>
+                    {{'INCLUDE_AIC_XML' | translate}}
+                  </label>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div
+            tabindex="-1"
+            ng-keydown="vm.contentViewsKeydownListener($event)"
+            ng-if="vm.request.type == 'get' || vm.request.type == 'get_tar' || vm.request.type == 'get_as_new' || vm.request.type == 'query'"
+            class="select-sub-edit-eventlog-wrapper"
+          >
+            <div class="eventlog-view">
+              <form class="eventlog-form">
+                <button
+                  type="button"
+                  ng-click="clickSubmit()"
+                  ng-dblClick=""
+                  ng-disabled="vm.requestForm.$invalid"
+                  class="btn btn-primary submit-button"
+                >
+                  {{'GET' | translate}} <i ng-if="vm.submittingRequest" class="fas fa-spinner fa-spin" />
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
+        <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
+          <div class="status-view">
+            <state-tree-view ip="ip"></state-tree-view>
+          </div>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
+        <div ng-if="vm.activeTab === 'events'" class="events-status-wrapper">
+          <event-table ip="ip"></event-table>
+        </div>
+      </uib-tab>
+      <uib-tab
+        ng-if="ip !== null && ips.length == 0 && (ip.responsible.id == auth.id || ip.responsible == null || ip.permissions.includes('see_other_user_ip_files')) && ip.package_type != 1 && ip.state !== 'Receiving'"
+        index="'filebrowser'"
+        heading="{{'FILEBROWSER.FILEBROWSER' | translate}}"
+      >
+        <div
+          ng-if="vm.activeTab === 'filebrowser'"
+          class="file-browser"
+          tabindex="-1"
+          ng-keydown="vm.contentViewsKeydownListener($event)"
+        >
+          <filebrowser ip="ip"></filebrowser>
+        </div>
+      </uib-tab>
+    </uib-tabset>
+    <div
+      class="no-tabs-available"
+      ng-if="(ip !== null || ips.length > 0) && ((vm.specificTabs.length == 0 && ips.length > 0 ) || vm.activeTab === 'no_tabs')"
+    >
+      <h4>
+        {{'NO_ACTIONS_FOR_SELECTED_IPS' | translate}}
+      </h4>
+    </div>
+  </div>
+</div>

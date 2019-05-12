@@ -1,0 +1,227 @@
+<div class="profile-editor">
+  <div ng-if="select" id="select-view" class="select-view">
+    <div class="sa-table">
+      <table ng-if="!saAlert" style="margin-top: 20px;" class="table">
+        <thead>
+          <tr>
+            <th
+              class="column-entity"
+              uib-tooltip="{{'ENTITYDESC' | translate}}"
+              tooltip-placement="auto top"
+              tooltip-append-to-body="true"
+            >
+              {{'TYPE' | translate}}
+            </th>
+            <th
+              class="column-profile"
+              uib-tooltip="{{'PROFILEDESC' | translate}}"
+              tooltip-placement="auto top"
+              tooltip-append-to-body="true"
+            >
+              {{'PROFILE' | translate}}
+            </th>
+            <th class="column-view"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <p ng-if="!saProfile.profile || !checkPermission('profiles.create_new_sa_generation')" class="table-col">
+                {{'SUBMISSIONAGREEMENT' | translate}}
+              </p>
+            </td>
+            <td>
+              <select
+                class="form-control table-col"
+                ng-disabled="(saProfile.disabled || vm.gettingSas)"
+                ng-model="saProfile.profile"
+                ng-options="x as x.name for x in saProfile.profiles"
+              >
+                <option ng-show="vm.gettingSas" value="" disabled selected
+                  >{{vm.gettingSas?('LOADING' | translate)+'...':''}}</option
+                >
+              </select>
+            </td>
+            <td class="flex-row">
+              <button
+                ng-if="saProfile.profile"
+                class="btn btn-default btn-small btn-sm"
+                ng-click="saClick(saProfile)"
+                uib-tooltip="{{saProfile.profile.name}}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              >
+                <i class="far fa-eye">&nbsp;</i>{{'VIEW' | translate}}
+                <i ng-if="vm.loadingSa" class="fas fa-spinner fa-spin"></i>
+              </button>
+              <button
+                ng-if="!saProfile.disabled"
+                ng-disabled="!saProfile.profile"
+                class="btn btn-success prepare-button btn-sm"
+                ng-click="prepare(ip)"
+              >
+                {{'PREPARE' | translate}} <i ng-if="vm.preparingIp" class="fas fa-spinner fa-spin" />
+              </button>
+            </td>
+            <p>{{'PATH' | translate}}: {{ip.object_path}}</p>
+          </tr>
+        </tbody>
+      </table>
+      <form ng-if="vm.saFields.length" class="edit-form sa-edit">
+        <formly-form
+          ng-if="vm.saFields.length"
+          model="vm.saModel"
+          fields="vm.saFields"
+          options="vm.options"
+          form="vm.editForm"
+        >
+        </formly-form>
+        <div class="button-wrapper">
+          <button
+            ng-if="vm.saFields.length && !vm.disabled"
+            ng-click="vm.saCancel()"
+            class="btn btn-default"
+            translate="CANCEL"
+          ></button>
+        </div>
+      </form>
+      <div uib-alert ng-if="saAlert" style="width: 100%;" ng-class="'alert-' + (saAlert.type || 'warning')">
+        {{saAlert.msg}}
+      </div>
+    </div>
+    <div ng-if="saProfile.profile && saProfile.disabled" id="edit-view" class="edit-view">
+      <form
+        id="edit-form"
+        class="edit-form"
+        ng-submit="vm.saveProfileModel(vm.selectedProfile.profile_type, vm.profileModel, vm.treeEditModel)"
+        name="vm.editForm"
+        novalidate
+      >
+        <div class="table-container">
+          <table
+            ng-if="saProfile.profile"
+            style="margin-top: 10px; margin-bottom: 0px;"
+            st-table="selectCollection"
+            st-skip-natural="true"
+            st-safe-src="selectRowCollection"
+            class="table table-striped"
+          >
+            <thead>
+              <tr>
+                <th
+                  class="column-entity"
+                  uib-tooltip="{{'ENTITYDESC' | translate}}"
+                  tooltip-placement="auto top"
+                  tooltip-append-to-body="true"
+                >
+                  {{'TYPE' | translate}}
+                </th>
+                <th
+                  class="column-profile"
+                  uib-tooltip="{{'PROFILEDESC' | translate}}"
+                  tooltip-placement="auto top"
+                  tooltip-append-to-body="true"
+                >
+                  {{'PROFILE' | translate}}
+                </th>
+                <th class="column-view"></th>
+              </tr>
+
+              <tr />
+            </thead>
+            <tbody>
+              <tr ng-repeat="profileIp in selectRowCollection">
+                <div ng-if="profileIp.name">
+                  <td>
+                    {{vm.mapProfileType(profileIp.profile_type)}}
+                  </td>
+                  <td>
+                    {{profileIp.profile_name}}
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      class="btn btn-default btn-small btn-sm"
+                      ng-click="profileClick(profileIp, {})"
+                      uib-tooltip="{{profileIp.profile_name}}"
+                      tooltip-placement="auto top"
+                      tooltip-append-to-body="true"
+                    >
+                      <i class="fas fa-sm fa-pencil-alt"></i>&nbsp;{{'EDIT' | translate}}
+                      <i ng-if="vm.loadingProfileData[profileIp.profile_type]" class="fas fa-spinner fa-spin"></i>
+                    </button>
+                  </td>
+                </div>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div
+          uib-alert
+          ng-if="!saProfile.profile.profile_aic_description"
+          style="width: 100%;"
+          ng-class="'alert-' + (aicDescriptionAlert.type || 'warning')"
+        >
+          {{aicDescriptionAlert.msg}}
+        </div>
+        <div
+          uib-alert
+          ng-if="!saProfile.profile.profile_aip"
+          style="width: 100%;"
+          ng-class="'alert-' + (aipAlert.type || 'warning')"
+        >
+          {{aipAlert.msg}}
+        </div>
+        <div
+          uib-alert
+          ng-if="!saProfile.profile.profile_aip_description"
+          style="width: 100%;"
+          ng-class="'alert-' + (aipDescriptionAlert.type || 'warning')"
+        >
+          {{aipDescriptionAlert.msg}}
+        </div>
+        <div
+          uib-alert
+          ng-if="!saProfile.profile.profile_dip"
+          style="width: 100%;"
+          ng-class="'alert-' + (dipAlert.type || 'warning')"
+        >
+          {{dipAlert.msg}}
+        </div>
+        <hr />
+        <div ng-if="vm.profileFields.length">
+          <h4 class="profile-name">{{ vm.profileIp.profile_name }}</h4>
+          <div class="data-version-list">
+            {{'VERSIONS' | translate}}
+            <select
+              class="form-control"
+              ng-change="vm.changeDataVersion(vm.profileIp, vm.dataVersion)"
+              ng-model="vm.dataVersion"
+              ng-options="x as vm.profileIp.data_versions.indexOf(x) == 0 ? 'Default' : vm.profileIp.data_versions.indexOf(x) for x in vm.profileIp.data_versions"
+              >{{ x }}</select
+            >
+          </div>
+        </div>
+        <div class="loading-column w-100 text-center position-absolute" ng-if="vm.fieldsLoading()">
+          {{'LOADING' | translate}}
+        </div>
+        <formly-form model="vm.profileModel" fields="vm.profileFields" options="vm.options" form="vm.editForm">
+        </formly-form>
+        <br />
+        <div class="button-wrapper">
+          <button
+            ng-if="vm.profileFields.length"
+            type="submit"
+            class="btn btn-primary"
+            ng-disabled="vm.editForm.$invalid || angular.equals(vm.profileOldModel, vm.profileModel)"
+          >
+            {{'SAVE' | translate}} <i ng-if="vm.savingProfileModel" class="fas fa-spinner fa-spin" />
+          </button>
+          <button ng-if="vm.profileFields.length" ng-click="vm.cancel()" class="btn btn-default">
+            {{'CANCEL' | translate}}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,151 @@
+<div class="access-workarea">
+  <div class="content-wrapper">
+    <div class="list-view" ng-include src="'static/frontend/views/list_view_table.html'"></div>
+    <uib-tabset
+      ng-if="(ip !== null || ips.length > 0) && !(vm.specificTabs.length == 0 && ips.length > 0)"
+      active="vm.activeTab"
+      class="tabs tabs-style-bar"
+    >
+      <uib-tab index="'workarea'" ng-if="vm.specificTabs.includes('workarea')" heading="{{'WORKAREA' | translate}}">
+        <div ng-if="vm.activeTab === 'workarea'">
+          <div
+            ng-if="requestForm"
+            class="request-layout"
+            tabindex="-1"
+            ng-keydown="vm.contentViewsKeydownListener($event)"
+          >
+            <form
+              id="request-form"
+              name="vm.requestForm"
+              class="request-form"
+              ng-submit="submitRequest(ip, vm.request)"
+            >
+              <div class="request-type">
+                <div ng-if="checkPermission('ip.diff_check') && !ip.workarea[0].read_only">
+                  <label>
+                    <input type="radio" ng-model="vm.request.type" value="diff_check" />
+                    {{'DIFFCHECK' | translate}}
+                  </label>
+                </div>
+                <div ng-if="checkPermission('ip.preserve_from_access_workarea') && !ip.workarea[0].read_only">
+                  <label>
+                    <input type="radio" ng-model="vm.request.type" value="preserve" />
+                    {{'PRESERVE' | translate}}
+                  </label>
+                </div>
+                <div ng-if="checkPermission('ip.move_from_access_workarea') && !ip.workarea[0].read_only">
+                  <input type="radio" ng-model="vm.request.type" value="move_to_approval" />
+                  <label>
+                    {{'MOVE_TO_INGEST_APPROVAL' | translate}}
+                  </label>
+                </div>
+              </div>
+              <div class="request-params">
+                <div
+                  class="form-group"
+                  ng-if="vm.request.type == 'view' || vm.request.type == 'edit_as_new' || vm.request.type == 'diff_check' || vm.request.type == 'preserve' || vm.request.type == 'move_to_approval'"
+                >
+                  <label>
+                    {{'COMMENT' | translate}}
+                  </label>
+                  <input class="form-control" ng-model="vm.request.purpose" />
+                </div>
+                <div class="form-group" ng-if="vm.request.type == 'preserve'">
+                  <label>
+                    {{'APPRAISAL_DATE' | translate}}
+                  </label>
+
+                  <div class="dropdown" uib-dropdown dropdown-append-to-body is-open="dropdown_status.appraisal_date">
+                    <a class="dropdown-toggle" id="dropdown-appraisalDate" role="button" uib-dropdown-toggle>
+                      <div class="input-group">
+                        <input
+                          type="text"
+                          data-date-time-input="YYYY-MM-DD"
+                          class="form-control"
+                          data-ng-model="vm.request.appraisal_date"
+                        /><span class="input-group-addon"><i class="fas fa-calendar-alt"></i></span>
+                      </div>
+                    </a>
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
+                      <datetimepicker
+                        data-ng-model="vm.request.appraisal_date"
+                        ng-change="dropdown_status.appraisal_date = false0"
+                        data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType: 'YYYY-MM-DDTHH:mm:ssZ'}"
+                      />
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div
+            tabindex="-1"
+            ng-keydown="vm.contentViewsKeydownListener($event)"
+            ng-if="eventlog && (vm.request.type == 'edit_as_new' || vm.request.type == 'view' || vm.request.type == 'diff_check' || vm.request.type == 'preserve' || vm.request.type == 'move_to_approval')"
+            class="select-sub-edit-eventlog-wrapper"
+          >
+            <div class="eventlog-view">
+              <form class="eventlog-form">
+                <button
+                  type="button"
+                  ng-click="clickSubmit()"
+                  ng-dblClick=""
+                  ng-disabled="vm.requestForm.$invalid || vm.submittingRequest"
+                  class="btn btn-primary submit-button"
+                >
+                  {{'SUBMIT' | translate}} <i ng-if="vm.submittingRequest" class="fas fa-spinner fa-spin" />
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
+        <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
+          <div class="status-view">
+            <state-tree-view ip="ip"></state-tree-view>
+          </div>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
+        <div ng-if="vm.activeTab === 'events'" class="events-status-wrapper">
+          <event-table ip="ip"></event-table>
+        </div>
+      </uib-tab>
+      <uib-tab
+        ng-if="ip !== null && ips.length == 0 && (ip.responsible.id == auth.id || ip.responsible == null || ip.permissions.includes('see_other_user_ip_files')) && ip.package_type != 1 && ip.state !== 'Receiving'"
+        index="'filebrowser'"
+        heading="{{'FILEBROWSER.FILEBROWSER' | translate}}"
+        ng-click="filebrowserClick(ip)"
+      >
+        <div
+          ng-if="vm.activeTab === 'filebrowser'"
+          class="file-browser"
+          tabindex="-1"
+          ng-keydown="vm.contentViewsKeydownListener($event)"
+        >
+          <filebrowser
+            ip="ip"
+            workarea="vm.workarea"
+            user="vm.organizationMember.current"
+            browserstate="vm.browserstate"
+          ></filebrowser>
+          <div
+            id="file-upload"
+            ng-if="!ip.workarea[0].read_only && (ip.responsible.id == auth.id || checkPermission('ip.can_upload')) && showFileUpload"
+            ng-include
+            src="'static/frontend/views/file_upload.html'"
+          ></div>
+        </div>
+      </uib-tab>
+    </uib-tabset>
+    <div
+      class="no-tabs-available"
+      ng-if="(ip !== null || ips.length > 0) && ((vm.specificTabs.length == 0 && ips.length > 0 ) || vm.activeTab === 'no_tabs')"
+    >
+      <h4>
+        {{'NO_ACTIONS_FOR_SELECTED_IPS' | translate}}
+      </h4>
+    </div>
+  </div>
+</div>

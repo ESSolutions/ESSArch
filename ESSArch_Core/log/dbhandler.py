@@ -1,4 +1,4 @@
-from _version import get_versions
+from ESSArch_Core._version import get_versions
 
 from logging import Handler
 

@@ -1,0 +1,166 @@
+<div class="component-result">
+  <h3 title="Namn">
+    <strong title="Namn" ng-if="vm.record._source.reference_code">
+      {{vm.record._source.name}}
+    </strong>
+  </h3>
+  <h4><span title="Informationsobjekt">{{vm.record._source.type}}</span></h4>
+  <div ng-if="vm.record._source.desc">
+    <p ng-if="vm.record._source.desc" class="result-description">
+      {{vm.record._source.desc}}
+    </p>
+  </div>
+
+  <div title="Status" ng-if="vm.record._source.status">
+    <strong ng-if="vm.record._source.status">Status:</strong> {{ vm.record._source.status }}<br />
+    <br />
+  </div>
+
+  <div title="Identifikatorer" ng-if="vm.record._source.extra_ids">
+    <strong>Identifikatorer:</strong>
+    <div ng-repeat="x in vm.record._source.extra_ids"><strong>{{x.typ}}:</strong>&nbsp;{{x.id}}</div>
+    <br />
+  </div>
+
+  <div title="Dokumentnummer" ng-if="vm.record._source.arkivobjekt_id">
+    <strong>Dokumentnummer:</strong> {{ vm.record._source.arkivobjekt_id }}
+    <br />
+  </div>
+
+  <div title="Klassificering" ng-if="vm.record._source.klassreferens">
+    <strong>Klassificering:</strong> {{ vm.record._source.klassreferens }}
+    <br />
+  </div>
+
+  <div title="Handlingstyp" ng-if="vm.record._source.handlingstyp">
+    <strong>Handlingstyp:</strong> {{ vm.record._source.handlingstyp }}
+    <br />
+  </div>
+  <br />
+
+  <div
+    ng-if="vm.record._source.create_date || vm.record._source.arrival_date || vm.record._source.dispatch_date || vm.record._source.decision_date || vm.record._source.preparation_date || vm.record._source.ended_date"
+  >
+    <strong>Datum:</strong>
+    <result-field label="Skapad" data="vm.record._source.create_date" type="date"></result-field>
+    <result-field label="Inkommen" data="vm.record._source.arrival_date" type="date"></result-field>
+    <result-field label="Expedierad" data="vm.record._source.dispatch_date" type="date"></result-field>
+    <result-field label="Beslutat" data="vm.record._source.decision_date" type="date"></result-field>
+    <result-field label="Upprättad" data="vm.record._source.preparation_date" type="date"></result-field>
+    <result-field label="Avslutat" data="vm.record._source.ended_date" type="date"></result-field>
+    <br />
+  </div>
+  <div ng-if="vm.record._source.restriktioner">
+    <div ng-if="vm.record._source.restriktioner">
+      <strong>Restriktioner:</strong>
+      <div ng-repeat="restriktion in vm.record._source.restriktioner">
+        <result-field label="Beskrivning" data="restriktion.beskrivning"></result-field>
+        <result-field label="Lagrum" data="restriktion.lagrum"></result-field>
+        <result-field label="Upphör" data="restriktion.upphor"></result-field>
+        <result-field label="Typ" data="restriktion.typ"></result-field>
+        <br />
+      </div>
+    </div>
+  </div>
+
+  <div ng-if="vm.record._source.gallring">
+    <strong>Gallring:</strong>
+    <result-field label="Gallras" data="vm.record._source.gallring.gallras" type="bool"></result-field>
+    <result-field label="Frist" data="vm.record._source.gallring.frist"></result-field>
+    <result-field label="Förklaring" data="vm.record._source.gallring.forklaring"></result-field>
+    <result-field label="Period slut" data="vm.record._source.gallring.period_slut"></result-field>
+    <br />
+  </div>
+
+  <div ng-if="vm.record._source.avsandare">
+    <strong>Avsändare:</strong>
+    <div ng-repeat="avsandare in vm.record._source.avsandare">
+      <result-field label="Namn" data="avsandare.namn"></result-field>
+      <result-field label="Organisation" data="avsandare.organisation"></result-field>
+      <result-field label="Postadress" data="avsandare.postadress"></result-field>
+      <result-field label="Postnummber" data="avsandare.postnummer"></result-field>
+      <result-field label="Postort" data="avsandare.postort"></result-field>
+      <result-field label="Land" data="avsandare.land"></result-field>
+      <result-field label="ID-nummer" data="avsandare.id"></result-field>
+      <result-field label="Telefon" data="avsandare.telefon"></result-field>
+      <result-field label="Fax" data="avsandare.fax"></result-field>
+      <result-field label="E-post" data="avsandare.epost"></result-field>
+      <result-field label="Skyddad identitet" data="avsandare.skyddad_identitet" type="bool"></result-field>
+    </div>
+    <br />
+  </div>
+
+  <div ng-if="vm.record._source.mottagare">
+    <strong>Mottagare:</strong>
+    <div ng-repeat="mottagare in vm.record._source.mottagare">
+      <result-field label="Namn" data="mottagare.namn"></result-field>
+      <result-field label="Organisation" data="mottagare.organisation"></result-field>
+      <result-field label="Postadress" data="mottagare.postadress"></result-field>
+      <result-field label="Postnummber" data="mottagare.postnummer"></result-field>
+      <result-field label="Postort" data="mottagare.postort"></result-field>
+      <result-field label="Land" data="mottagare.land"></result-field>
+      <result-field label="ID-nummer" data="mottagare.id"></result-field>
+      <result-field label="Telefon" data="mottagare.telefon"></result-field>
+      <result-field label="Fax" data="mottagare.fax"></result-field>
+      <result-field label="E-post" data="mottagare.epost"></result-field>
+      <result-field label="Skyddad identitet" data="mottagare.skyddad_identitet" type="bool"></result-field>
+    </div>
+    <br />
+  </div>
+
+  <div ng-if="vm.record._source.motpart">
+    <strong>Motpart:</strong>
+    <result-field label="Namn" data="vm.record._source.motpart.namn"></result-field>
+    <result-field label="Organisation" data="vm.record._source.motpart.organisation"></result-field>
+    <result-field label="Postadress" data="vm.record._source.motpart.postadress"></result-field>
+    <result-field label="Postnummber" data="vm.record._source.motpart.postnummer"></result-field>
+    <result-field label="Postort" data="vm.record._source.motpart.postort"></result-field>
+    <result-field label="Land" data="vm.record._source.motpart.land"></result-field>
+    <result-field label="ID-nummer" data="vm.record._source.motpart.id"></result-field>
+    <result-field label="Telefon" data="vm.record._source.motpart.telefon"></result-field>
+    <result-field label="Fax" data="vm.record._source.motpart.fax"></result-field>
+    <result-field label="E-post" data="vm.record._source.motpart.epost"></result-field>
+    <result-field
+      label="Skyddad identitet"
+      data="vm.record._source.motpart.skyddad_identitet"
+      type="bool"
+    ></result-field>
+    <br />
+  </div>
+
+  <div ng-if="vm.record._source.relationer">
+    <strong>Relationer:</strong>
+    <div ng-repeat="relation in vm.record._source.relationer">
+      <result-field label="{{relation.typ}}" data="relation.referens"></result-field>
+      <br />
+    </div>
+    <br />
+  </div>
+
+  <div ng-if="vm.record._source.agenter">
+    <strong>Agenter:</strong>
+    <div ng-repeat="agent in vm.record._source.agenter">
+      <result-field label="Namn" data="agent.namn"></result-field>
+      <result-field label="Roll" data="agent.roll"></result-field>
+      <result-field label="Enhet" data="agent.enhet"></result-field>
+      <result-field label="Organisation" data="agent.organisation"></result-field>
+      <br />
+    </div>
+  </div>
+
+  <div ng-if="vm.record._source.egna_element">
+    <strong>Övrigt:</strong>
+    <result-field
+      ng-repeat="x in vm.record._source.egna_element"
+      label="{{x.element[0].namn}}"
+      data="x.element[0].varde"
+    ></result-field>
+    <br />
+  </div>
+
+  <div ng-include="'static/frontend/views/search_detail_contents.html'"></div>
+  <div ng-if="vm.record._source.ip_objid">
+    <strong>Förvaringsenhet:</strong> {{ vm.record._source.ip_objid }}
+    <br />
+  </div>
+</div>

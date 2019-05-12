@@ -1,0 +1,12 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'CREATE_TEMPLATE' | translate}}</h3>
+</div>
+<div id="add">
+  <form ng-submit="$ctrl.addTemplate()" name="$ctrl.form">
+    <formly-form model="$ctrl.model" fields="$ctrl.fields" form="$ctrl.form" options="$ctrl.options"> </formly-form>
+    <div class="modal-footer">
+      <button class="btn btn-primary" type="submit" ng-disabled="$ctrl.form.$invalid">{{'CREATE' | translate}}</button>
+      <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+    </div>
+  </form>
+</div>

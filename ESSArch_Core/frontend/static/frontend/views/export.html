@@ -1,0 +1,17 @@
+<div class="export">
+  <label>
+    {{'SUBMISSION_AGREEMENT' | translate}}
+    <select class="form-control" ng-model="vm.sa" ng-options="x as x.name for x in vm.sas"></select>
+  </label>
+  <button ng-if="vm.sa" class="btn btn-success" ng-click="vm.downloadSa(vm.sa)">
+    {{'EXPORT.EXPORT_SUBMISSION_AGREEMENT' | translate}}
+  </button>
+  <br />
+  <label>
+    {{'PROFILE' | translate}}
+    <select class="form-control" ng-model="vm.profile" ng-options="x as x.name for x in vm.profiles"></select>
+  </label>
+  <button ng-if="vm.profile" class="btn btn-success" ng-click="vm.downloadProfile(vm.profile)">
+    {{'EXPORT.EXPORT_PROFILE' | translate}}
+  </button>
+</div>

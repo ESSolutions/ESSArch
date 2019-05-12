@@ -1,0 +1,10 @@
+<div ng-if="!subrow">
+  <div class="white-space-nowrap">
+    {{row.appraisal_date ? (row.appraisal_date | date:"yyyy-MM-dd"):('UNSPECIFIED' | translate)}}
+  </div>
+</div>
+<div ng-if="subrow">
+  <div class="white-space-nowrap">
+    {{subrow.appraisal_date ? (subrow.appraisal_date | date:"yyyy-MM-dd"):('UNSPECIFIED' | translate)}}
+  </div>
+</div>

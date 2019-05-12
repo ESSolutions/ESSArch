@@ -1,0 +1,12 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ADD_EXTENSION' | translate}}</h3>
+</div>
+<div id="add-extension">
+  <form ng-submit="$ctrl.addExtension()" name="$ctrl.form">
+    <formly-form model="$ctrl.model" fields="$ctrl.fields" form="$ctrl.form" options="$ctrl.options"> </formly-form>
+    <div class="modal-footer">
+      <button class="btn btn-primary" type="submit" ng-disabled="$ctrl.form.$invalid">{{'ADD' | translate}}</button>
+      <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+    </div>
+  </form>
+</div>

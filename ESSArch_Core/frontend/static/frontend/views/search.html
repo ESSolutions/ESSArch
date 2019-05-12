@@ -1,0 +1,214 @@
+<div class="search">
+  <div class="content-wrapper">
+    <div class="search-page">
+      <form ng-submit="vm.searchSubmit()">
+        <div class="search-form">
+          <input
+            class="form-control search-field"
+            ng-change="vm.searchSubmit()"
+            ng-model-options="{debounce: 300}"
+            aria-label="{{ 'SEARCH' | translate }}"
+            ng-model="vm.filterObject.q"
+          />
+          <div class="search-button-column">
+            <button type="submit" class="btn btn-primary">
+              {{'SEARCH' | translate}} <i class="fas fa-search"></i>
+            </button>
+            <button type="button" ng-disabled="vm.clearDisabled()" class="btn btn-default" ng-click="vm.clearSearch()">
+              {{'CLEAR' | translate}}
+            </button>
+          </div>
+        </div>
+      </form>
+      <button ng-if="!vm.showFilters" class="btn btn-default" ng-click="vm.showFilters = true">
+        <i class="fas fa-plus"></i>&nbsp;{{'FILTERS' | translate}}
+      </button>
+      <button ng-if="vm.showFilters" class="btn btn-default" ng-click="vm.showFilters = false">
+        <i class="fas fa-minus"></i>&nbsp;{{'FILTERS' | translate}}
+      </button>
+      <div ng-if="vm.showFilters" class="filters">
+        <!--<label>
+                    {{'START_DATE' | translate}}
+                    <input type="number" class="form-control" ng-enter="vm.searchSubmit(vm.searchString)" ng-model="vm.filterObject.start_date">
+                </label>
+                <label>
+                    {{'END_DATE' | translate}}
+                    <input type="number" class="form-control" ng-enter="vm.searchSubmit(vm.searchString)" ng-model="vm.filterObject.end_date">
+                </label>
+                <br/>-->
+        <br />
+        <hr />
+        <div ng-include src="'static/frontend/views/search_filters.html'"></div>
+        <hr />
+        <div>
+          <label>
+            {{'ACCESS.PERSONAL_IDENTIFICATION_NUMBER' | translate}}
+            <input
+              ng-model="vm.filterObject.personal_identification_number"
+              type="text"
+              maxlength="12"
+              class="form-control"
+              ng-enter="vm.searchSubmit(vm.searchString)"
+            />
+          </label>
+        </div>
+        <hr />
+        <label ng-if="vm.fileExtensions.length">
+          {{'ACCESS.FILE_EXTENSIONS' | translate}}
+        </label>
+        <div class="file-type-filters">
+          <div class="file-filter" ng-repeat="x in vm.fileExtensions">
+            <label>
+              <input
+                type="checkbox"
+                ng-model="vm.extensionFilter[x.key]"
+                ng-change="vm.searchSubmit(vm.searchString)"
+              />
+              {{x.key}}
+            </label>
+          </div>
+        </div>
+        <!--<br/>
+                <span ng-click="vm.showIncludedTypes = !vm.showIncludedTypes" class="clickable no-select">{{'ACCESS.INCLUDED_TYPES' | translate}}
+                    <i ng-if="!vm.showIncludedTypes" class="fas fa-caret-right"></i>
+                    <i ng-if="vm.showIncludedTypes"class="fas fa-caret-down"></i>
+                </span>
+                <div ng-if="vm.showIncludedTypes" class="form-group">
+                    <label>
+                        <input type="checkbox" ng-model="vm.includedTypes.archive">
+                        {{'ACCESS.ARCHIVE' | translate}}
+                    </label><br/>
+                    <label>
+                        <input type="checkbox" ng-model="vm.includedTypes.ip">
+                        IP
+                    </label><br/>
+                    <label>
+                        <input type="checkbox" ng-model="vm.includedTypes.component">
+                        {{'ACCESS.COMPONENT' | translate}}
+                    </label><br/>
+                    <label>
+                        <input type="checkbox" ng-model="vm.includedTypes.file">
+                        {{'FILE' | translate}}
+                    </label>
+                </div>-->
+      </div>
+    </div>
+    <div class="search-detail-wrapper">
+      <div>
+        <uib-tabset
+          ng-if="vm.searchResult.length || vm.showResults || vm.showTree"
+          active="vm.activeTab"
+          class="tabs tabs-style-bar"
+        >
+          <uib-tab ui-sref="home.access.search" index="0" heading="{{'ACCESS.HITS' | translate}}"> </uib-tab>
+          <uib-tab
+            ng-click="vm.goToDetailView()"
+            ng-show="latestRecord || ('home.access.search.detail' | isState) || ('home.access.search.information_package' | isState) || ('home.access.search.component' | isState)|| ('home.access.search.archive' | isState) || ('home.access.search.document' | isState) || ('home.access.search.directory' | isState) || ('home.access.search.structure_unit' | isState)"
+            index="1"
+            heading="{{'ACCESS.RECORD' | translate}}"
+          >
+          </uib-tab>
+        </uib-tabset>
+      </div>
+      <div class="tree-result-wrapper" ng-if="vm.activeTab === 0">
+        <div
+          ng-if="vm.showTree"
+          resizable
+          r-directions="['right']"
+          r-grabber="<div class='resize-grabber'></div>"
+          r-flex="true"
+          class="filter-tree"
+        >
+          <div class="pb-1">
+            <b>
+              {{'ACCESS.NARROW_RESULTS' | translate}}
+            </b>
+          </div>
+          <div
+            js-tree="vm.treeConfig"
+            should-apply="vm.applyModelChanges()"
+            ng-model="vm.tags"
+            tree="vm.treeInstance"
+            tree-events="changed:vm.selectFilter"
+          ></div>
+        </div>
+        <div
+          ng-if="vm.showResults"
+          class="search-results"
+          st-persist="{{vm.tableState}}"
+          st-table="vm.searchResult"
+          st-pipe="vm.search"
+        >
+          <div class="h-100 w-100">
+            <div class="search-toolbar" ng-include src="'static/frontend/views/search_toolbar.html'"></div>
+            <div ng-show="vm.resultViewType == 'list'" class="table-x-overflow table-container search-result-table">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>{{'TYPE' | translate}}</th>
+                    <th st-sort="reference_code" class="clickable">{{'ACCESS.REFERENCE_CODE' | translate}}</th>
+                    <th st-sort="name" class="clickable">{{'ACCESS.TITLE' |translate}}</th>
+                    <th>{{'DATE' |translate}}</th>
+                    <th>{{'DESCRIPTION' | translate}}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    ng-repeat="x in vm.searchResult"
+                    ng-click="vm.openResult(x, $event)"
+                    class="result-item-table clickable"
+                  >
+                    <td>
+                      {{x.type}}
+                    </td>
+                    <td class="search-td-nowrap" ng-bind-html="x.reference_code"></td>
+                    <td ng-bind-html="x.name"></td>
+                    <td class="search-td-nowrap">{{x.unit_dates.date}}</td>
+                    <td ng-bind-html="x.desc"></td>
+                  </tr>
+                  <tr ng-if="!vm.searchResult.length && !ipLoading" class="empty-table-indicator">
+                    <td colspan="6">{{'NO_RESULTS_FOUND' | translate}}</td>
+                  </tr>
+                  <tr ng-if="!vm.searchResult.length && ipLoading" class="empty-table-indicator">
+                    <td class="loading-column" colspan="6">{{'LOADING' | translate}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div ng-show="vm.resultViewType == 'grid'">
+              <div class="grid-view">
+                <div class="flex-grid">
+                  <div ng-repeat="x in vm.searchResult">
+                    <div class="clickable result-item-grid" ng-click="vm.openResult(x, $event)">
+                      <div class="item-image">
+                        <span ng-if="x._index == 'archive'" class="fas fa-3x fa-archive"></span>
+                        <span ng-if="x._index == 'component'" class="far fa-3x fa-folder"></span>
+                        <span ng-if="x._index == 'document'" class="far fa-3x fa-file"></span>
+                      </div>
+                      <div class="metadata-wrapper">
+                        <b>{{x.type}}</b>
+                        <br />
+                        <b>{{x.reference_code}}</b>
+                        <p>
+                          <span class="result-name" ng-bind-html="x.name"></span>
+                          <span ng-if="x.unit_dates.date">({{x.unit_dates.date}})</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              ng-if="vm.searchResult.length >= 10"
+              class="search-toolbar"
+              ng-include
+              src="'static/frontend/views/search_toolbar.html'"
+            ></div>
+          </div>
+        </div>
+      </div>
+      <div ng-if="vm.activeTab !== 0" ui-view></div>
+    </div>
+  </div>
+</div>

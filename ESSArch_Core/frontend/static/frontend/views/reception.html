@@ -1,0 +1,91 @@
+<div class="reception">
+  <div class="content-wrapper">
+    <div class="list-view" ng-include src="'static/frontend/views/list_view_table.html'"></div>
+    <uib-tabset
+      ng-if="(ip !== null || ips.length > 0) && !(vm.specificTabs.length == 0 && ips.length > 0)"
+      active="vm.activeTab"
+      class="tabs tabs-style-bar"
+    >
+      <uib-tab
+        index="'receive'"
+        ng-if="ip.state == 'At reception' || ip.state == 'Prepared' || vm.specificTabs.includes('receive')"
+        heading="{{'RECEIVE' | translate}}"
+      >
+        <div ng-if="vm.activeTab === 'receive'">
+          <div
+            class="select-sub-edit-eventlog-wrapper mb-base"
+            ng-if="(ips.length === 0 && ip !== null && ip.state === 'At reception')"
+          >
+            <div class="edit-view">
+              <h4 style="margin-left: 10px;">Submit Description</h4>
+              <form>
+                <formly-form model="vm.sdModel" fields="vm.sdFields" options="vm.sdOptions"> </formly-form>
+              </form>
+              <div class="file-list">
+                <table st-table="fileListRowCollection" st-safe-src="fileListCollection" class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th class="clickable" st-sort="filename">{{'FILENAME' | translate}}</th>
+                      <th class="clickable" st-sort="created">{{'CREATED' | translate}}</th>
+                      <th class="clickable" st-sort="size">{{'SIZE' | translate}}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="row in fileListRowCollection">
+                      <td>{{row.filename}}</td>
+                      <td>{{row.created | date:"yyyy-MM-dd hh:mm:ss"}}</td>
+                      <td>{{row.size | filesize}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div ng-if="ips.length > 0 || ip !== null" class="receive-button-wrapper">
+            <div id="request-form" class="request-form receive-modal-button">
+              <button class="btn btn-primary" ng-click="receiveModal(ips[0])" ng-disabled="vm.receiveModalLoading">
+                {{'RECEIVE' | translate}} <i ng-if="vm.receiveModalLoading" class="fas fa-spinner fa-spin" />
+              </button>
+              <p style="margin-left: 5px; margin-bottom: 0;">
+                {{ips.length > 0?ips.length:1}} {{'SELECTED' | translate}}
+              </p>
+            </div>
+          </div>
+        </div>
+      </uib-tab>
+      <uib-tab
+        ng-if="ip !== null && ips.length == 0 && ip.state !== 'At reception'"
+        index="'tasks'"
+        heading="{{'TASKS' | translate}}"
+      >
+        <div ng-if="vm.activeTab == 'tasks'" class="events-status-wrapper">
+          <div class="status-view">
+            <state-tree-view ip="ip"></state-tree-view>
+          </div>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
+        <div ng-if="vm.activeTab === 'events'" class="events-status-wrapper">
+          <event-table ip="ip"></event-table>
+        </div>
+      </uib-tab>
+      <uib-tab
+        ng-if="ip !== null && ips.length == 0 && (ip.responsible.id == auth.id || ip.responsible == null || ip.permissions.includes('see_other_user_ip_files')) && ip.package_type != 1 && ip.state !== 'Receiving'"
+        index="'filebrowser'"
+        heading="{{'FILEBROWSER.FILEBROWSER' | translate}}"
+      >
+        <div ng-if="vm.activeTab === 'filebrowser'" class="file-browser">
+          <filebrowser ip="ip"></filebrowser>
+        </div>
+      </uib-tab>
+    </uib-tabset>
+    <div
+      class="no-tabs-available"
+      ng-if="(ip !== null || ips.length > 0) && ((vm.specificTabs.length == 0 && ips.length > 0 ) || vm.activeTab === 'no_tabs' || (ips.length > 0 && vm.specificTabs.includes('create_dip')))"
+    >
+      <h4>
+        {{'NO_ACTIONS_FOR_SELECTED_IPS' | translate}}
+      </h4>
+    </div>
+  </div>
+</div>

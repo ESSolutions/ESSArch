@@ -1,0 +1,56 @@
+<div ng-if="!subrow">
+  <div class="text-oneline-ellipsis">
+    <div class="object-identifier-value">{{row.object_identifier_value}}</div>
+    <div
+      ng-if="row.package_type != 1 && row.package_type != 4 && row.state !== 'At reception'"
+      class="generation-indicator"
+      uib-tooltip="{{'IP_GENERATION' | translate:row}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    >
+      <i class="fas fa-md fa-code-branch"></i> {{row.generation}}
+    </div>
+    <div
+      ng-if="row.new_version_in_progress != null"
+      class="new-version-indicator"
+      uib-tooltip="{{'WORKING_ON_NEW_GENERATION' | translate:row.new_version_in_progress.user}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    >
+      <i class="fas fa-md fa-wrench"></i>
+    </div>
+    <div
+      class="read-only fa-stack fa-lg"
+      ng-if="row.workarea[0].read_only && (('home.ingest.workarea' | isState) || ('home.access.workarea' | isState) || ('home.workarea' | isState))"
+      uib-tooltip="{{'READ_ONLY' | translate:row}}"
+      tooltip-placement="auto"
+      tooltip-append-to-body="true"
+    >
+      <i class="fas fa-pencil-alt fa-stack-1x"></i>
+      <i class="fas fa-ban fa-stack-2x text-danger"></i>
+    </div>
+  </div>
+</div>
+<div ng-if="subrow">
+  <div class="text-oneline-ellipsis" style="padding-left: 30px;">
+    <div style="display: inline-block" class="object-identifier-value">{{subrow.object_identifier_value}}</div>
+    <div
+      class="generation-indicator"
+      uib-tooltip="{{'IP_GENERATION' | translate:subrow}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    >
+      <i class="fas fa-md fa-code-branch"></i> {{subrow.generation}}
+    </div>
+    <div
+      class="read-only fa-stack fa-lg"
+      ng-if="subrow.workarea[0].read_only && (('home.ingest.workarea' | isState) || ('home.access.workarea' | isState) || ('home.workarea' | isState))"
+      uib-tooltip="{{'READ_ONLY' | translate:row}}"
+      tooltip-placement="auto"
+      tooltip-append-to-body="true"
+    >
+      <i class="fas fa-pencil-alt fa-stack-1x"></i>
+      <i class="fas fa-ban fa-stack-2x text-danger"></i>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,32 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">Tag properties</h3>
+</div>
+<form ng-submit="$ctrl.saveTag()">
+  <div class="modal-body" id="modal-body">
+    <fieldset ng-disabled="!$ctrl.editMode">
+      <label for="name">Name</label>
+      <input
+        required
+        focused="true"
+        id="name"
+        class="form-control"
+        ng-model="$ctrl.name"
+        ng-init="$ctrl.name = displayedTag.name"
+      />
+
+      <label for="description">Description</label>
+      <input id="description" class="form-control" ng-model="$ctrl.desc" ng-init="$ctrl.desc = displayedTag.desc" />
+    </fieldset>
+    <br />
+    <button class="btn btn-default" ng-click="$ctrl.editMode = !$ctrl.editMode" ng-if="$ctrl.editMode">
+      Exit edit mode
+    </button>
+    <button class="btn btn-default" ng-click="$ctrl.editMode = !$ctrl.editMode" ng-if="!$ctrl.editMode">
+      Enter edit mode
+    </button>
+  </div>
+  <div class="modal-footer">
+    <button ng-if="$ctrl.editMode" class="btn btn-primary" type="submit">{{'ADD' | translate}}</button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+  </div>
+</form>

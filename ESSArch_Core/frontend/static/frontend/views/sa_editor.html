@@ -1,0 +1,39 @@
+<div class="sa-editor">
+  <div class="flex-row">
+    <select
+      id="submission-agreement"
+      class="form-control sa-select"
+      ng-change="vm.chooseSa(vm.saProfile)"
+      ng-model="vm.saProfile"
+      ng-options="x as x.name + (x.published?' (Published)':'') for x in vm.saProfiles"
+      >x</select
+    >
+    <button class="btn btn-default" ng-click="vm.newSa()"><i class="fas fa-plus"></i></button>
+    <button
+      class="btn btn-default"
+      ng-click="vm.newSa(true)"
+      ng-if="vm.saProfile"
+      uib-tooltip="{{'USE_SELECTED_SA_AS_TEMPLATE' | translate}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    >
+      <i class="fas fa-plus"></i>{{ 'USE_TEMPLATE' | translate }}
+    </button>
+    <button
+      class="btn btn-success"
+      ng-if="vm.saProfile"
+      ng-disabled="vm.saProfile.published || !vm.saProfile.id"
+      translate="PUBLISH"
+      ng-click="vm.publishSa()"
+    ></button>
+  </div>
+  <hr />
+  <div class="loading-column w-100 text-center" ng-if="vm.saLoading">{{'LOADING' | translate}}</div>
+  <div class="edit-view" ng-if="edit">
+    <h4>SA fields</h4>
+    <form name="sa-form" ng-submit="vm.saveSa()" ng-if="vm.saModel">
+      <formly-form model="vm.saModel" fields="vm.saFields" options="vm.validatorOptions"></formly-form>
+      <button class="btn btn-primary" ng-if="!vm.saProfile.published" type="submit" translate="SAVE"></button>
+    </form>
+  </div>
+</div>

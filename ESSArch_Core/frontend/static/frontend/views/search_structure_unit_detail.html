@@ -1,0 +1,28 @@
+<div class="tree-result-wrapper search-detail" id="view-record">
+  <div ng-if="vm.unavailable" class="view-content text-center">
+    <h4>{{'PAGE_DOES_NOT_EXIST' | translate}}</h4>
+    <button class="btn btn-success" ng-click="vm.gotoSearch()">{{'ACCESS.GO_TO_SEARCH' | translate}}</button>
+  </div>
+  <div
+    id="record-tree"
+    resizable
+    r-directions="['right']"
+    r-grabber="<div class='resize-grabber'></div>"
+    r-flex="true"
+    class="record-tree"
+    ng-if="vm.recordTreeData && !vm.unavailable"
+  >
+    <div ng-include src="'static/frontend/views/search_detail_tree.html'"></div>
+  </div>
+  <div ng-if="!vm.unavailable" class="view-content">
+    <div class="detail-header">
+      <div ng-include src="'static/frontend/views/search_detail_breadcrumbs.html'"></div>
+    </div>
+    <hr class="small" />
+    <div class="type-specific-results" ng-switch="vm.record._index">
+      <h3>{{vm.record.reference_code}} {{vm.record.name}}</h3>
+      <p>{{vm.record.description}}</p>
+      <div ng-include src="'static/frontend/views/search_detail_contents.html'"></div>
+    </div>
+  </div>
+</div>

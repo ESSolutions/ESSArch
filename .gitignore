@@ -1,6 +1,9 @@
 *.py[co]
 *.pyo
 *~
+*.swp
+.envrc
+.vscode
 /dist/
 /ESSArch_Core.egg-info/
 MANIFEST
@@ -15,6 +18,6 @@ tools.db
 # JetBrains IDEs
 /.idea/
 
-# Coverage default folders 
+# Coverage default folders
 .coverage
 htmlcov/
