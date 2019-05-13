@@ -22,7 +22,7 @@ Web - http://www.essolutions.se
 Email - essarch@essolutions.se
 */
 
-import 'angular';
+import * as angular from 'angular';
 import 'angular-animate';
 import 'angularjs-bootstrap-datetimepicker';
 import 'angular-bootstrap-grid-tree';
@@ -53,7 +53,7 @@ import 'angular-websocket';
 import 'jquery';
 import 'messenger-hubspot';
 import 'moment';
-import UAParser from 'ua-parser-js';
+import {UAParser} from 'ua-parser-js';
 
 import authentication from './authentication';
 import notifications from './notifications';
@@ -67,13 +67,13 @@ import essarchDirectivesModule from './modules/essarch.directives.module';
 
 import '../styles/styles.scss';
 
-export const resolve = (path, obj) => {
+export const resolve = (path: string, obj: object) => {
   return path.split('.').reduce(function(prev, curr) {
     return prev ? prev[curr] : undefined;
   }, obj || self);
 };
 
-export const nestedPermissions = page => {
+export const nestedPermissions = (page: Array<object> | object) => {
   // If page is an array it means that page is the field _permissions
   if (Array.isArray(page)) {
     return page;
@@ -91,7 +91,7 @@ export const nestedPermissions = page => {
  * Check if state has a sub state that requires no permissions
  * @param {*} page
  */
-export const nestedEmptyPermissions = page => {
+export const nestedEmptyPermissions = (page: Array<object> | object) => {
   if (Array.isArray(page)) {
     return page.length == 0;
   } else if (typeof page == 'object') {

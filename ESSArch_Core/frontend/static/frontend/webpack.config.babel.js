@@ -7,15 +7,19 @@ const OptimizeCssnanoPlugin = require('@intervolga/optimize-cssnano-plugin');
 
 module.exports = (env, argv) => {
   return {
-    entry: './scripts/index.js',
+    entry: './scripts/index.ts',
     output: {
       filename: '[name]-[chunkhash].js',
       path: path.resolve(__dirname, 'build'),
     },
     mode: argv.mode,
     devtool: 'source-map',
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    },
     module: {
       rules: [
+        {test: /\.tsx?$/, use: 'awesome-typescript-loader'},
         {
           test: /\.js$/,
           include: [

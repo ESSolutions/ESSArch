@@ -11,7 +11,7 @@ end_of_line = lf
 charset = utf-8
 max_line_length = 119
 
-[*.{js,html,scss,css,yml,yaml}]
+[*.{js,ts,html,scss,css,yml,yaml}]
 indent_size = 2
 
 [ESSArch_Core/docs/**.rst]

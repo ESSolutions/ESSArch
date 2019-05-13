@@ -4,7 +4,7 @@ cache: pip
 
 branches:
   only:
-  - master
+    - master
 
 templates:
   mariadb: &mariadb DB_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
@@ -87,7 +87,7 @@ matrix:
       dist: trusty
       before_install: cd ESSArch_Core/frontend
       install: yarn
-      script: yarn prettier --check "**/*.{js,scss,html}"
+      script: yarn prettier --check "**/*.{ts,js,scss,html}"
       after_success: skip
 
 install:
