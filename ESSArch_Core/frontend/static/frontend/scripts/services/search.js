@@ -1,4 +1,4 @@
-angular.module('essarch.services').factory('Search', function($http, $sce, appConfig, $translate) {
+export default ($http, $sce, appConfig, $translate) => {
   var service = {};
   var url = appConfig.djangoUrl;
   service.query = function(filters) {
@@ -173,4 +173,4 @@ angular.module('essarch.services').factory('Search', function($http, $sce, appCo
     });
   };
   return service;
-});
+};

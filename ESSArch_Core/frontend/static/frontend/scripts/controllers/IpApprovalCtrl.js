@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('IpApprovalCtrl', function(
+export default class IpApprovalCtrl {
+  constructor(
     $scope,
     $controller,
     $rootScope,
@@ -55,4 +54,5 @@ angular
       );
       return methods;
     };
-  });
+  }
+}

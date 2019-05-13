@@ -17,6 +17,7 @@ import resource from '../services/resource';
 import robot from '../services/robot';
 import robotQueue from '../services/robotQueue';
 import sa from '../services/sa';
+import search from '../services/search';
 import selectedIPUpdater from '../services/SelectedIPUpdater';
 import step from '../services/step';
 import storage from '../services/storage';
@@ -50,6 +51,7 @@ export default angular
   .factory('Robot', robot)
   .factory('RobotQueue', robotQueue)
   .factory('SA', sa)
+  .factory('Search', search)
   .factory('SelectedIPUpdater', selectedIPUpdater)
   .factory('Step', step)
   .factory('Storage', storage)

@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('SearchCtrl', function(
+export default class SearchCtrl {
+  constructor(
     Search,
     $q,
     $scope,
@@ -488,4 +487,5 @@ angular
           $log.info('modal-component dismissed at: ' + new Date());
         });
     };
-  });
+  }
+}

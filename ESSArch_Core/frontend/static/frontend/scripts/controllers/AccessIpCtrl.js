@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('AccessIpCtrl', function(
+export default class AccessIpCtrl {
+  constructor(
     $scope,
     $controller,
     $rootScope,
@@ -208,4 +207,5 @@ angular
         }
       );
     };
-  });
+  }
+}
