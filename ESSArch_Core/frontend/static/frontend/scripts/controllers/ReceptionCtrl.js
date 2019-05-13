@@ -22,9 +22,8 @@ Web - http://www.essolutions.se
 Email - essarch@essolutions.se
 */
 
-angular
-  .module('essarch.controllers')
-  .controller('ReceptionCtrl', function(
+export default class ReceptionCtrl {
+  constructor(
     Notifications,
     IPReception,
     IP,
@@ -557,4 +556,5 @@ angular
         $scope.receive($scope.ips);
       }
     };
-  });
+  }
+}

@@ -1,4 +1,6 @@
 import myService from '../services/myService';
+import archivePolicy from '../services/archivePolicy';
+import contextMenuBase from '../services/ContextMenuBase';
 import validate from '../services/validate';
 import messenger from '../services/messenger';
 import event from '../services/event';
@@ -29,7 +31,9 @@ import {workarea, workareaFiles} from '../services/workarea';
 export default angular
   .module('essarch.services', [])
   .factory('myService', myService)
+  .factory('ArchivePolicy', archivePolicy)
   .factory('ContentTabs', contentTabs)
+  .factory('ContextMenuBase', contextMenuBase)
   .factory('Event', event)
   .factory('EventType', eventType)
   .factory('IOQueue', ioQueue)

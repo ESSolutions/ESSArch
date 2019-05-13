@@ -32,8 +32,10 @@ import 'ui-select';
 import AppCtrl from '../controllers/AppCtrl';
 import BaseCtrl from '../controllers/BaseCtrl';
 import HeadCtrl from '../controllers/HeadCtrl';
+import IngestCtrl from '../controllers/IngestCtrl';
 import LanguageCtrl from '../controllers/LanguageCtrl';
 import MyPageCtrl from '../controllers/MyPageCtrl';
+import ReceptionCtrl from '../controllers/ReceptionCtrl';
 import {organization, OrganizationCtrl} from '../controllers/OrganizationCtrl';
 import UtilCtrl from '../controllers/UtilCtrl';
 import UserDropdownCtrl from '../controllers/UserDropdownCtrl';
@@ -79,9 +81,11 @@ export default angular
   .controller('AppCtrl', AppCtrl)
   .controller('BaseCtrl', BaseCtrl)
   .controller('HeadCtrl', HeadCtrl)
+  .controller('IngestCtrl', IngestCtrl)
   .controller('OrganizationCtrl', OrganizationCtrl)
   .controller('LanguageCtrl', LanguageCtrl)
   .controller('MyPageCtrl', MyPageCtrl)
+  .controller('ReceptionCtrl', ReceptionCtrl)
   .controller('UserDropdownCtrl', UserDropdownCtrl)
   .controller('UtilCtrl', UtilCtrl)
   .factory('Organization', organization).name;
