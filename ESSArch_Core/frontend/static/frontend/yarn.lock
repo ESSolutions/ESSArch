@@ -662,7 +662,14 @@
     cssnano-preset-default "^4.0.0"
     postcss "^7.0.0"
 
-"@types/angular@^1.6.54":
+"@types/angular-translate@^2.16.0":
+  version "2.16.0"
+  resolved "https://registry.yarnpkg.com/@types/angular-translate/-/angular-translate-2.16.0.tgz#673423f8d006d6a44662e71f0e1b9d017924e96e"
+  integrity sha512-ZW7w6+N95EVJSmi+PhIB4gGtl4ABpBOg6wFqk24+vXSIpExqZ88PnfX0O6jQwLDuKUh75rmQZRBy3KvF/JPx3Q==
+  dependencies:
+    "@types/angular" "*"
+
+"@types/angular@*", "@types/angular@^1.6.54":
   version "1.6.54"
   resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.54.tgz#f9d5a03e4da7b021a6dabe5d63e899ed4567a5bd"
   integrity sha512-xA1FuozWXeRQ7FClUbvk8ePL+dydBeDoCWRPFTHU5+8uvVtIIfLGiHA8CMkwsbddFCYnTDVbLxG85a/HBx7LtA==
