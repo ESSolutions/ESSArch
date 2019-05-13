@@ -1,3 +1,5 @@
+import access from './access';
+import archiveMaintenance from './archiveMaintenance';
 import dashboard from './dashboard';
 import email from './email';
 import error from './error';
@@ -17,6 +19,8 @@ import upload from './upload';
 import userSettings from './userSettings';
 
 export default [
+  access,
+  archiveMaintenance,
   dashboard,
   email,
   error,
