@@ -23,11 +23,14 @@ Email - essarch@essolutions.se
 */
 
 import * as angular from 'angular';
+import '@flowjs/ng-flow';
 import 'angular-animate';
 import 'angularjs-bootstrap-datetimepicker';
+import 'angular-bootstrap-contextmenu';
 import 'angular-bootstrap-grid-tree';
 import 'angular-clipboard';
 import 'angular-cookies';
+import 'angular-cron-jobs';
 import 'angular-date-time-input';
 import 'angular-filesize-filter';
 import 'angular-formly';
@@ -40,6 +43,7 @@ import 'angular-permission';
 import 'angular-pretty-xml';
 import 'angular-relative-date';
 import 'angular-resource';
+import 'angular-resizable';
 import 'angular-route';
 import 'angular-sanitize';
 import 'angular-smart-table';
@@ -53,6 +57,8 @@ import 'angular-websocket';
 import 'jquery';
 import 'messenger-hubspot';
 import 'moment';
+//import ngJsTree from 'ng-js-tree';
+import 'ui-select';
 import {UAParser} from 'ua-parser-js';
 
 import authentication from './authentication';
