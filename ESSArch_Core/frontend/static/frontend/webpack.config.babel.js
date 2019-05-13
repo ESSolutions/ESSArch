@@ -121,6 +121,7 @@ module.exports = (env, argv) => {
           ],
         },
       }),
+      new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
     ],
     node: {
       fs: 'empty',
