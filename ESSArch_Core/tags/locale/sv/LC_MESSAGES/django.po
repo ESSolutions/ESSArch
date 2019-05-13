@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-10 09:30+0200\n"
+"POT-Creation-Date: 2019-05-13 14:27+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -39,8 +39,8 @@ msgid "type"
 msgstr ""
 
 #: models.py:39 models.py:69 models.py:76 models.py:91 models.py:106
-#: models.py:262 models.py:615 models.py:624 models.py:635
-#: models.py:648 models.py:659 models.py:670 models.py:687
+#: models.py:262 models.py:615 models.py:624 models.py:635 models.py:648
+#: models.py:659 models.py:670 models.py:687
 msgid "name"
 msgstr "namn"
 
@@ -169,12 +169,10 @@ msgid "metric"
 msgstr "enhet"
 
 #: models.py:643
-#| msgid "metric profile"
 msgid "location profile"
 msgstr "placeringsprofil"
 
 #: models.py:644
-#| msgid "metric profiles"
 msgid "location profiles"
 msgstr "placeringsprofiler"
 
@@ -262,56 +260,56 @@ msgstr ""
 msgid "Archive already added"
 msgstr "Arkivet har redan lagts till"
 
-#: templates\tags\archive.html:66 templates\tags\search_results.html:73
+#: templates/tags/archive.html:66 templates/tags/search_results.html:73
 msgid "Archive"
 msgstr "Arkiv"
 
-#: templates\tags\archive.html:67 templates\tags\search_results.html:66
-#: templates\tags\search_results.html:77
+#: templates/tags/archive.html:67 templates/tags/search_results.html:66
+#: templates/tags/search_results.html:77
 msgid "Date"
 msgstr "Datum"
 
-#: templates\tags\archive.html:75
+#: templates/tags/archive.html:75
 msgid "Serie"
 msgstr ""
 
-#: templates\tags\archive.html:76
+#: templates/tags/archive.html:76
 msgid "Serie signum"
 msgstr ""
 
-#: templates\tags\archive.html:83 templates\tags\archive.html:93
+#: templates/tags/archive.html:83 templates/tags/archive.html:93
 msgid "Notes"
 msgstr "Anmärkningar"
 
-#: templates\tags\archive.html:91
+#: templates/tags/archive.html:91
 msgid "Volume number"
 msgstr "Volymnummer"
 
-#: templates\tags\archive.html:92
+#: templates/tags/archive.html:92
 msgid "Time"
 msgstr ""
 
-#: templates\tags\search_results.html:63
+#: templates/tags/search_results.html:63
 msgid "Search results"
 msgstr "Sökresultat"
 
-#: templates\tags\search_results.html:64
+#: templates/tags/search_results.html:64
 msgid "User"
 msgstr "Användare"
 
-#: templates\tags\search_results.html:74
+#: templates/tags/search_results.html:74
 msgid "Type"
 msgstr "Typ"
 
-#: templates\tags\search_results.html:75
+#: templates/tags/search_results.html:75
 msgid "Reference code"
 msgstr "Referenskod"
 
-#: templates\tags\search_results.html:76
+#: templates/tags/search_results.html:76
 msgid "Title"
 msgstr "Titel"
 
-#: templates\tags\search_results.html:78
+#: templates/tags/search_results.html:78
 msgid "Description"
 msgstr "Beskrivning"
 
