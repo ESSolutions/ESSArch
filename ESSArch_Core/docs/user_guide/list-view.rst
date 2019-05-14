@@ -22,5 +22,11 @@ first level can be administrated in the :ref:`user settings
 
 .. image:: images/list_view_epp.png
 
-The main functionality of a view, such as preparation, creation and
-preservation, is accessed by clicking on a row in the IP list.
+The available functions of a view, like browsing files, jobs or events, and
+main functionality like IP preparation, creation and preservation, is accessed
+by clicking on a row in the IP list and selecting the corresponding tab. In
+many cases, a user can select multiple rows by holding the :kbd:`CTRL` key and
+click each item or click the first item, hold the :kbd:`SHIFT` key and
+click another to select all IPs between including the two selected. Selecting
+multiple items may reduce amount of actions that can be done, since
+any action taken will be done to all selected objects.

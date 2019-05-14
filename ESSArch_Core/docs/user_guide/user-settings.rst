@@ -6,7 +6,7 @@ User settings
 User settings can be found by clicking the user symbol in the top right corner
 and selecting "User settings".
 
-.. image:: images/user_settings1.png
+.. image:: images/user_settings_dropdown.png
 
 .. _user-settings-column-picker:
 

@@ -3,10 +3,9 @@
 State view
 ==========
 
-Clicking the **State** column will show all steps and tasks for an IP. This view
-has information about the progress and/or outcome of each step and task.
-
-.. image:: images/list_view_state_column.png
+Clicking the **Tasks** tab after selecting an IP will show all steps and tasks
+for an IP. This view has information about the progress and/or outcome of each
+step and task.
 
 .. image:: images/state_view.png
 
