@@ -21,10 +21,12 @@ matrix:
       script: flake8
       after_success: skip
 
-    - python: "3.6"
+    - name: "Linux with SQLite"
+      python: "3.6"
       dist: xenial
 
-    - python: "3.6"
+    - name: "Linux with MSSQL"
+      python: "3.6"
       dist: xenial
       services: docker
       before_install:
@@ -37,35 +39,29 @@ matrix:
       env:
         - *mssql
 
-    - python: "3.6"
+    - name: "Linux with MariaDB"
+      python: "3.6"
       dist: xenial
       addons:
         mariadb: '10.3'
       env: *mariadb
 
-    - python: "3.6"
+    - name: "Linux with MySQL"
+      python: "3.6"
       dist: xenial
       services:
         - mysql
       env: *mysql
 
-    - python: "3.6"
+    - name: "Linux with PostgreSQL"
+      python: "3.6"
       dist: xenial
       services:
         - postgresql
       env: *postgres
 
-    - os: windows
-      language: sh
-      python: "3.6"
-      before_install:
-        - wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe
-        - powershell 'Start-Process -FilePath "gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
-        - choco install python3 --version 3.6.6
-        - choco install imagemagick
-        - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python36:/c/Python36/Scripts:$PATH"
-
-    - os: windows
+    - name: "Windows with MSSQL"
+      os: windows
       language: sh
       python: "3.6"
       services: docker
