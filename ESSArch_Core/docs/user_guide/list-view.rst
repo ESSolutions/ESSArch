@@ -5,7 +5,7 @@ List view
 
 The list view is the table of objects that is present in most views in ESSArch.
 The objects listed in this view are always relevant to the current view, and
-filtered depending on state and permissions and provided are additional
+filtered depending on state and permissions. Provided are additional
 optional filter and sorting options.
 
 .. image:: images/list_view.png
