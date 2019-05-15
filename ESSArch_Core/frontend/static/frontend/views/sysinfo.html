@@ -10,33 +10,41 @@
           name="Python"
           version="{{sysInfo.python}}"
           icon="fab fa-python"
-        />
+        ></sys-info-component>
         <sys-info-component
           class="sys-info-component"
           name="{{sysInfo.platform.os}}"
           version="{{sysInfo.platform.version}}"
           icon="{{sysInfo.platform.icon}}"
-        />
+        ></sys-info-component>
         <sys-info-component
           class="sys-info-component"
           name="{{sysInfo.database.vendor}}"
           version="{{sysInfo.database.version}}"
           icon="fas fa-database"
-        />
+        ></sys-info-component>
         <sys-info-component
           class="sys-info-component"
           name="{{'TIME' | translate}}"
           version="{{sysInfo.time_checked | date: 'yyyy-MM-dd HH:mm'}}"
           icon="fas fa-clock"
-        />
-        <sys-info-component class="sys-info-component" name="RabbitMQ" version="{{sysInfo.rabbitmq.version}}" />
-        <sys-info-component class="sys-info-component" name="Redis" version="{{sysInfo.redis.version}}" />
+        ></sys-info-component>
+        <sys-info-component
+          class="sys-info-component"
+          name="RabbitMQ"
+          version="{{sysInfo.rabbitmq.version}}"
+        ></sys-info-component>
+        <sys-info-component
+          class="sys-info-component"
+          name="Redis"
+          version="{{sysInfo.redis.version}}"
+        ></sys-info-component>
         <sys-info-component
           ng-if="sysInfo.elasticsearch"
           class="sys-info-component"
           name="Elasticsearch"
           version="{{sysInfo.elasticsearch.version.number}}"
-        />
+        ></sys-info-component>
       </div>
       <p><b>{{'SYSINFO.HOSTNAME' | translate}}:</b> {{sysInfo.hostname}}</p>
       <h4>{{'SYSINFO.SETTINGSFLAGS' | translate}}</h4>

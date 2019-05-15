@@ -23,6 +23,7 @@ import step from '../services/step';
 import storage from '../services/storage';
 import storageMedium from '../services/storageMedium';
 import storageObject from '../services/storageObject';
+import sysinfo from '../services/sysinfo';
 import tag from '../services/tag';
 import tapeDrive from '../services/tapeDrive';
 import tapeSlot from '../services/tapeSlot';
@@ -57,6 +58,7 @@ export default angular
   .factory('Storage', storage)
   .factory('StorageMedium', storageMedium)
   .factory('StorageObject', storageObject)
+  .factory('Sysinfo', sysinfo)
   .factory('Tag', tag)
   .factory('TapeDrive', tapeDrive)
   .factory('TapeSlot', tapeSlot)

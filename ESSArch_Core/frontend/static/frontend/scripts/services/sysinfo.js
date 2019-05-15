@@ -1,4 +1,4 @@
-angular.module('essarch.services').factory('Sysinfo', function($resource, appConfig) {
+export default ($resource, appConfig) => {
   return $resource(
     appConfig.djangoUrl + 'sysinfo/',
     {},
@@ -8,4 +8,4 @@ angular.module('essarch.services').factory('Sysinfo', function($resource, appCon
       },
     }
   );
-});
+};

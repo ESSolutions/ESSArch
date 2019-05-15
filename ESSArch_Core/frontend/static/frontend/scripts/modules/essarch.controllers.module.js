@@ -20,6 +20,7 @@ import SearchCtrl from '../controllers/SearchCtrl';
 import TagsCtrl from '../controllers/TagsCtrl';
 import UserDropdownCtrl from '../controllers/UserDropdownCtrl';
 import UtilCtrl from '../controllers/UtilCtrl';
+import VersionCtrl from '../controllers/VersionCtrl';
 
 import '../configs/config.json';
 import '../configs/permissions.json';
@@ -81,4 +82,5 @@ export default angular
   .controller('TagsCtrl', TagsCtrl)
   .controller('UserDropdownCtrl', UserDropdownCtrl)
   .controller('UtilCtrl', UtilCtrl)
+  .controller('VersionCtrl', VersionCtrl)
   .factory('Organization', organization).name;

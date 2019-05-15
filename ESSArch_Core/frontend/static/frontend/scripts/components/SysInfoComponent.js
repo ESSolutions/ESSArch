@@ -1,10 +1,13 @@
-angular.module('essarch.components').component('sysInfoComponent', {
-  templateUrl: 'sys_info_component.html',
-  controller: 'SysInfoComponentCtrl',
+import controller from '../controllers/SysInfoComponentCtrl';
+import template from '../../views/sys_info_component.html';
+
+export default {
+  template,
+  controller,
   controllerAs: 'vm',
   bindings: {
     icon: '@',
     name: '@',
     version: '@',
   },
-});
+};
