@@ -718,6 +718,13 @@
   resolved "https://registry.yarnpkg.com/@types/ua-parser-js/-/ua-parser-js-0.7.33.tgz#4a92089511574e12928a7cb6b99a01831acd1dd7"
   integrity sha512-ngUKcHnytUodUCL7C6EZ+lVXUjTMQb+9p/e1JjV5tN9TVzS98lHozWEFRPY1QcCdwFeMsmVWfZ3DPPT/udCyIw==
 
+"@uirouter/angularjs@~0.4.3":
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/@uirouter/angularjs/-/angularjs-0.4.3.tgz#7e2630c59b2bd69ca485ff124f53b0169edddf39"
+  integrity sha512-jLmZ+VcsvS63E01wJWEqNLND6/6Ju9dZP6t21T+v6q8s9+Xzr8RX6QrrnRt35S0ARugFwJxFlmNFZSIef3jvDw==
+  dependencies:
+    angular "^1.0.8"
+
 "@webassemblyjs/ast@1.8.5":
   version "1.8.5"
   resolved "https://registry.yarnpkg.com/@webassemblyjs/ast/-/ast-1.8.5.tgz#51b1c5fe6576a34953bf4b253df9f0d490d9e359"
@@ -1135,13 +1142,6 @@ angular-ui-bootstrap@~2.5.6:
   version "2.5.6"
   resolved "https://registry.yarnpkg.com/angular-ui-bootstrap/-/angular-ui-bootstrap-2.5.6.tgz#23937322ec641a6fbee16498cc32452aa199e7c5"
   integrity sha512-yzcHpPMLQl0232nDzm5P4iAFTFQ9dMw0QgFLuKYbDj9M0xJ62z0oudYD/Lvh1pWfRsukiytP4Xj6BHOSrSXP8A==
-
-angular-ui-router@~0.4.3:
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/angular-ui-router/-/angular-ui-router-0.4.3.tgz#6c29546fe50b8d2f74614dcb8660d6fc40d6e167"
-  integrity sha512-EGBG7G7ArFVkJPM+ZIgPKuMYuT16UQrr3zj3BEiXHKwxss867bGt3u7QD9g4BxR+K2qQOSWok6JGvgTWXAko3A==
-  dependencies:
-    angular "^1.0.8"
 
 angular-ui-tree@~2.22.6:
   version "2.22.6"

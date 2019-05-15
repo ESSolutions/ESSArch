@@ -24,6 +24,7 @@ Email - essarch@essolutions.se
 
 import * as angular from 'angular';
 import '@flowjs/ng-flow';
+import '@uirouter/angularjs';
 import 'angular-animate';
 import 'angularjs-bootstrap-datetimepicker';
 import 'angular-bootstrap-contextmenu';
@@ -52,7 +53,6 @@ import 'angular-translate-loader-static-files';
 import 'angular-translate-storage-cookie';
 import 'angular-tree-control';
 import 'angular-ui-bootstrap';
-import 'angular-ui-router';
 import 'angular-websocket';
 import 'jquery';
 import 'messenger-hubspot';
