@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('CreateDipCtrl', function(
+export default class {
+  constructor(
     IP,
     ArchivePolicy,
     $scope,
@@ -623,4 +622,5 @@ angular
         $scope.createDipFolder(data.dir_name);
       });
     };
-  });
+  }
+}

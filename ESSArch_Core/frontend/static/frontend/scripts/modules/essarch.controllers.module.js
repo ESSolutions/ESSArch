@@ -3,11 +3,16 @@ import AccessIpCtrl from '../controllers/AccessIpCtrl';
 import AdministrationCtrl from '../controllers/AdministrationCtrl';
 import AppCtrl from '../controllers/AppCtrl';
 import BaseCtrl from '../controllers/BaseCtrl';
+import CombinedWorkareaCtrl from '../controllers/CombinedWorkareaCtrl';
+import ConversionCtrl from '../controllers/ConversionCtrl';
+import CreateDipCtrl from '../controllers/CreateDipCtrl';
 import HeadCtrl from '../controllers/HeadCtrl';
 import IngestCtrl from '../controllers/IngestCtrl';
 import IpApprovalCtrl from '../controllers/IpApprovalCtrl';
 import LanguageCtrl from '../controllers/LanguageCtrl';
+import MediaInformationCtrl from '../controllers/MediaInformationCtrl';
 import MyPageCtrl from '../controllers/MyPageCtrl';
+import OrdersCtrl from '../controllers/OrdersCtrl';
 import {organization, OrganizationCtrl} from '../controllers/OrganizationCtrl';
 import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
@@ -59,11 +64,16 @@ export default angular
   .controller('AdministrationCtrl', AdministrationCtrl)
   .controller('AppCtrl', AppCtrl)
   .controller('BaseCtrl', BaseCtrl)
+  .controller('CombinedWorkareaCtrl', CombinedWorkareaCtrl)
+  .controller('ConversionCtrl', ConversionCtrl)
+  .controller('CreateDipCtrl', CreateDipCtrl)
   .controller('HeadCtrl', HeadCtrl)
   .controller('IngestCtrl', IngestCtrl)
   .controller('IpApprovalCtrl', IpApprovalCtrl)
   .controller('LanguageCtrl', LanguageCtrl)
+  .controller('MediaInformationCtrl', MediaInformationCtrl)
   .controller('MyPageCtrl', MyPageCtrl)
+  .controller('OrdersCtrl', OrdersCtrl)
   .controller('OrganizationCtrl', OrganizationCtrl)
   .controller('ProfileManagerCtrl', ProfileManagerCtrl)
   .controller('ReceptionCtrl', ReceptionCtrl)

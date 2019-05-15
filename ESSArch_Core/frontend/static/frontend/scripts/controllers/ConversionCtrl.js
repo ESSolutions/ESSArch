@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('ConversionCtrl', function(
+export default class {
+  constructor(
     ArchivePolicy,
     $scope,
     $controller,
@@ -395,4 +394,5 @@ angular
         }
       );
     };
-  });
+  }
+}

@@ -22,9 +22,8 @@ Web - http://www.essolutions.se
 Email - essarch@essolutions.se
 */
 
-angular
-  .module('essarch.controllers')
-  .controller('MediaInformationCtrl', function(
+export default class {
+  constructor(
     $scope,
     $rootScope,
     $controller,
@@ -213,4 +212,5 @@ angular
       $('#search-input')[0].value = '';
       $scope.getListViewData();
     };
-  });
+  }
+}

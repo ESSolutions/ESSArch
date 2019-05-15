@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('CombinedWorkareaCtrl', function(
+export default class {
+  constructor(
     WorkareaFiles,
     Workarea,
     $scope,
@@ -26,4 +25,5 @@ angular
     vm.workarea = '';
 
     $controller('WorkareaCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString});
-  });
+  }
+}

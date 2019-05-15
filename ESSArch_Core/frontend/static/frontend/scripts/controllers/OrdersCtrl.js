@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('OrdersCtrl', function(
+export default class {
+  constructor(
     $scope,
     $controller,
     $rootScope,
@@ -193,4 +192,5 @@ angular
         }
       );
     };
-  });
+  }
+}
