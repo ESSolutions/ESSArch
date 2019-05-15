@@ -28,9 +28,9 @@ class Migration(migrations.Migration):
             name='GroupMemberRole',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('codename', models.CharField(max_length=255, unique=True)),
-                ('label', models.SlugField(blank=True, max_length=255)),
-                ('permissions', models.ManyToManyField(related_name='roles', to='auth.Permission')),
+                ('codename', models.CharField(max_length=255, unique=True, verbose_name='name')),
+                ('label', models.SlugField(blank=True, max_length=255, verbose_name='label')),
+                ('permissions', models.ManyToManyField(blank=True, related_name='roles', to='auth.Permission', verbose_name='permissions')),
             ],
             options={
                 'verbose_name': 'Role',
@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='groupmember',
             name='roles',
-            field=models.ManyToManyField(related_name='group_memberships', to='essauth.GroupMemberRole'),
+            field=models.ManyToManyField(related_name='group_memberships', to='essauth.GroupMemberRole', verbose_name='roles'),
         ),
         migrations.AlterUniqueTogether(
             name='groupgenericobjects',

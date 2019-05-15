@@ -64,6 +64,9 @@ class GroupMemberRole(GroupMemberRoleMixin):
     class Meta:
         verbose_name = _('role')
         verbose_name_plural = _('roles')
+        permissions = (
+            ('assign_groupmemberrole', 'Can assign roles'),
+        )
 
 
 class ProxyGroup(DjangoGroup):
