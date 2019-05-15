@@ -13,7 +13,7 @@ let language = angular.module('essarch.language', ['pascalprecht.translate']).co
     $translateProvider
       .registerAvailableLanguageKeys(['en', 'sv'], {
         'en*': 'en',
-        'sv*': 'ssv',
+        'sv*': 'sv',
         '*': 'en',
       })
       .fallbackLanguage('en')
