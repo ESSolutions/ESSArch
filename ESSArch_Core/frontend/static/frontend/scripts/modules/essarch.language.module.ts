@@ -1,17 +1,19 @@
+import * as angular from 'angular';
+
 import en from '../../lang/en';
 import sv from '../../lang/sv';
 
 /* @ngInject */
 let language = angular.module('essarch.language', ['pascalprecht.translate']).config([
   '$translateProvider',
-  function($translateProvider) {
+  function($translateProvider: ng.translate.ITranslateProvider) {
     $translateProvider.storageKey('essarch_language');
     $translateProvider.useCookieStorage();
     $translateProvider.useSanitizeValueStrategy('escape');
     $translateProvider
       .registerAvailableLanguageKeys(['en', 'sv'], {
         'en*': 'en',
-        'sv*': 'sv',
+        'sv*': 'ssv',
         '*': 'en',
       })
       .fallbackLanguage('en')
