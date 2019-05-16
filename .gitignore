@@ -5,7 +5,7 @@
 .envrc
 .vscode
 /dist/
-/ESSArch_Core.egg-info/
+*.egg-info
 MANIFEST
 .idea/
 .settings/

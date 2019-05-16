@@ -29,6 +29,9 @@ if DEBUG:
     import mimetypes
     mimetypes.add_type("application/xml", ".xsd", True)
 
+# Set test runner
+TEST_RUNNER = "ESSArch_Core.testing.runner.QuietTestRunner"
+
 ALLOWED_HOSTS = ['*']
 
 REST_FRAMEWORK = {
@@ -65,7 +68,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'channels',
     'corsheaders',
-    'countries_plus',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -76,7 +78,6 @@ INSTALLED_APPS = [
     'django_filters',
     'groups_manager',
     'guardian',
-    'languages_plus',
     'mptt',
     'nested_inline',
     'rest_auth',
