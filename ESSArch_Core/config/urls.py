@@ -8,7 +8,7 @@ from ESSArch_Core.WorkflowEngine.views import ProcessViewSet, ProcessStepViewSet
 from ESSArch_Core.auth.views import GroupViewSet, PermissionViewSet, MeView, UserViewSet, NotificationViewSet
 from ESSArch_Core.configuration.views import ParameterViewSet, PathViewSet, SiteView, SysInfoView
 from ESSArch_Core.fixity.views import ValidationViewSet
-from ESSArch_Core.ip.views import AgentViewSet, EventIPViewSet, InformationPackageViewSet, WorkareaEntryViewSet
+from ESSArch_Core.ip.views import AgentViewSet, EventIPViewSet, InformationPackageViewSet, OrderViewSet, WorkareaEntryViewSet
 from ESSArch_Core.maintenance.views import AppraisalRuleViewSet, AppraisalJobViewSet, ConversionJobViewSet
 from ESSArch_Core.profiles.views import ProfileIPViewSet, ProfileIPDataViewSet, ProfileIPDataTemplateViewSet, \
     InformationPackageProfileIPViewSet
@@ -69,6 +69,8 @@ router.register(r'profile-ip-data', ProfileIPDataViewSet)
 router.register(r'profile-ip-data-templates', ProfileIPDataTemplateViewSet)
 router.register(r'parameters', ParameterViewSet)
 router.register(r'paths', PathViewSet)
+
+router.register(r'orders', OrderViewSet)
 
 router.register(r'appraisal-rules', AppraisalRuleViewSet)
 router.register(r'appraisal-jobs', AppraisalJobViewSet)

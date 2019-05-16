@@ -7,7 +7,7 @@ from rest_framework import serializers
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import EventType
-from ESSArch_Core.ip.models import Agent, AgentNote, EventIP, InformationPackage, Workarea
+from ESSArch_Core.ip.models import Agent, AgentNote, EventIP, InformationPackage, Order, Workarea
 
 VERSION = get_versions()['version']
 
@@ -80,6 +80,27 @@ class InformationPackageSerializer(serializers.ModelSerializer):
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
             'start_date', 'end_date', 'permissions', 'appraisal_date',
+        )
+
+
+class OrderSerializer(serializers.HyperlinkedModelSerializer):
+    responsible = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+
+    information_packages = serializers.HyperlinkedRelatedField(
+        many=True, required=False, view_name='informationpackage-detail',
+        queryset=InformationPackage.objects.filter(
+            package_type=InformationPackage.DIP
+        )
+    )
+
+    def save(self, **kwargs):
+        kwargs["responsible"] = self.fields["responsible"].get_default()
+        return super().save(**kwargs)
+
+    class Meta:
+        model = Order
+        fields = (
+            'url', 'id', 'label', 'responsible', 'information_packages',
         )
 
 

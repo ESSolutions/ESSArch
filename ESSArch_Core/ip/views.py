@@ -16,12 +16,13 @@ from ESSArch_Core.api.filters import string_to_bool
 from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
 from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
 from ESSArch_Core.ip.filters import AgentFilter, EventIPFilter, InformationPackageFilter
-from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
-from ESSArch_Core.ip.permissions import CanChangeSA, CanDeleteIP
+from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Order, Workarea
+from ESSArch_Core.ip.permissions import CanChangeSA, CanDeleteIP, IsOrderResponsibleOrAdmin
 from ESSArch_Core.ip.serializers import (
     AgentSerializer,
     EventIPSerializer,
     InformationPackageSerializer,
+    OrderSerializer,
     WorkareaSerializer
 )
 from ESSArch_Core.profiles.models import ProfileIP
@@ -290,3 +291,21 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             pip.save()
 
         return Response()
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows orders to be viewed or edited.
+    """
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [IsOrderResponsibleOrAdmin]
+
+    def get_queryset(self):
+        if self.action == 'list':
+            if self.request.user.is_superuser:
+                return self.queryset
+
+            return self.queryset.filter(responsible=self.request.user)
+
+        return self.queryset

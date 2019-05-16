@@ -85,7 +85,7 @@ const listViewService = (
       url = tableMap(table);
     }
     return $http.head(appConfig.djangoUrl + url, {params: data}).then(function(response) {
-      count = response.headers('Count');
+      let count = response.headers('Count');
       if (count == null) {
         count = response.length;
       }
@@ -229,7 +229,7 @@ const listViewService = (
       search: searchString,
       tag: $rootScope.selectedTag != null ? $rootScope.selectedTag.id : null,
     }).$promise.then(function(resource) {
-      count = resource.$httpHeaders('Count');
+      let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
       }
@@ -254,7 +254,7 @@ const listViewService = (
         columnFilters
       )
     ).$promise.then(function(resource) {
-      count = resource.$httpHeaders('Count');
+      let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
       }
@@ -290,7 +290,7 @@ const listViewService = (
         columnFilters
       )
     ).$promise.then(function(resource) {
-      count = resource.$httpHeaders('Count');
+      let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
       }
