@@ -11,6 +11,8 @@
     "@types/angular": "^1.6.54",
     "@types/angular-translate": "^2.16.0",
     "@types/ua-parser-js": "^0.7.33",
+    "@typescript-eslint/eslint-plugin": "^1.9.0",
+    "@typescript-eslint/parser": "^1.9.0",
     "@uirouter/angularjs": "~0.4.3",
     "angular": "~1.7",
     "angular-animate": "~1.7",
@@ -51,6 +53,10 @@
     "bufferutil": "^4.0.1",
     "clean-webpack-plugin": "^2.0.2",
     "css-loader": "^2.1.1",
+    "eslint": "^5.16.0",
+    "eslint-config-prettier": "^4.3.0",
+    "eslint-plugin-angular": "^4.0.1",
+    "eslint-plugin-prettier": "^3.1.0",
     "file-loader": "^3.0.1",
     "html-loader": "^0.5.5",
     "jasmine-core": "^3.3.0",
@@ -100,6 +106,7 @@
     "update-webdriver": "webdriver-manager update",
     "pree2e": "yarn run update-webdriver",
     "e2e": "protractor e2e-tests/protractor.conf.js",
-    "prettier": "prettier"
+    "prettier": "prettier",
+    "lint": "eslint \"*/**/*.{js,ts,tsx}\" --quiet"
   }
 }

@@ -219,7 +219,6 @@ const listViewService = (
         data: resource,
       };
     });
-    return promise;
   }
   function getOrderPage(pageNumber, pageSize, filters, sortString, searchString) {
     return Order.query({

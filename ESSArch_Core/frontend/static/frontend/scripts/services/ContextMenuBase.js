@@ -1,4 +1,4 @@
-export default ($translate) => {
+export default $translate => {
   var service = {
     changeOrganization: function(callback) {
       return {

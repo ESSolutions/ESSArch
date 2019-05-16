@@ -1,7 +1,7 @@
 'use strict';
 
 /* @ngInject */
-const djangoAuth = ($q, $http, $cookies, $rootScope, $window, PermPermissionStore, PermRoleStore) => {
+const djangoAuth = ($q, $http, $rootScope, $window) => {
   // AngularJS will instantiate a singleton by calling "new" on this function
   var service = {
     /* START CUSTOMIZATION HERE */
@@ -16,12 +16,11 @@ const djangoAuth = ($q, $http, $cookies, $rootScope, $window, PermPermissionStor
     authPromise: null,
     request: function(args) {
       // Continue
-      params = args.params || {};
       args = args || {};
       var deferred = $q.defer(),
         url = this.API_URL + args.url,
         method = args.method || 'GET',
-        params = params,
+        params = args.params || {},
         data = args.data || {};
       // Fire the request, as configured.
       $http({
@@ -32,7 +31,7 @@ const djangoAuth = ($q, $http, $cookies, $rootScope, $window, PermPermissionStor
         data: data,
       })
         .then(
-          angular.bind(this, function(data, status, headers, config) {
+          angular.bind(this, function(data, status) {
             deferred.resolve(data, status);
           })
         )
@@ -189,7 +188,7 @@ const djangoAuth = ($q, $http, $cookies, $rootScope, $window, PermPermissionStor
       }
       return getAuthStatus.promise;
     },
-    initialize: function(url, sessions) {
+    initialize: function(url) {
       this.API_URL = url;
       return this.authenticationStatus();
     },

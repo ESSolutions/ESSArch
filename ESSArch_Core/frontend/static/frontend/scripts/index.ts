@@ -79,7 +79,7 @@ export const resolve = (path: string, obj: object) => {
   }, obj || self);
 };
 
-export const nestedPermissions = (page: Array<object> | object) => {
+export const nestedPermissions = (page: string[] | object): string[] => {
   // If page is an array it means that page is the field _permissions
   if (Array.isArray(page)) {
     return page;
@@ -97,7 +97,7 @@ export const nestedPermissions = (page: Array<object> | object) => {
  * Check if state has a sub state that requires no permissions
  * @param {*} page
  */
-export const nestedEmptyPermissions = (page: Array<object> | object) => {
+export const nestedEmptyPermissions = (page: object[] | object): boolean => {
   if (Array.isArray(page)) {
     return page.length == 0;
   } else if (typeof page == 'object') {
@@ -1014,7 +1014,7 @@ angular
           }
         });
       })
-      .catch(function(status) {
+      .catch(function() {
         console.log('Got error response from auth api, redirecting to login with requested page:', $location.path());
         $state.go('login', {requestedPage: $location.path()});
       });
