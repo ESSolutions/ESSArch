@@ -17,6 +17,7 @@
     "@typescript-eslint/camelcase": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
     "angular/file-name": "off",
-    "angular/function-type": "off"
+    "angular/function-type": "off",
+    "angular/no-run-logic": "off"
   }
 }

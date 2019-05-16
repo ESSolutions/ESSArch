@@ -193,6 +193,183 @@ angular
           ],
         },
       })
+      .state('home.createSip', {
+        url: 'create-SIP',
+        templateUrl: '/static/frontend/views/create_sip.html',
+        resolve: {
+          authenticated: [
+            'djangoAuth',
+            function(djangoAuth) {
+              return djangoAuth.authenticationStatus();
+            },
+          ],
+        },
+      })
+      .state('home.createSip.prepareIp', {
+        url: '/prepare-IP',
+        templateUrl: '/static/frontend/views/create_sip_prepare_ip.html',
+        controller: 'PrepareIpCtrl as vm',
+        resolve: {
+          authenticated: [
+            'djangoAuth',
+            function(djangoAuth) {
+              return djangoAuth.authenticationStatus();
+            },
+          ],
+        },
+        data: {
+          permissions: {
+            only: nestedPermissions(resolve('home.createSip.prepareIp', permissionConfig)),
+            redirectTo: 'home.restricted',
+          },
+        },
+      })
+      .state('home.createSip.collectContent', {
+        url: '/collect-content',
+        templateUrl: '/static/frontend/views/create_sip_collect_content.html',
+        controller: 'CollectContentCtrl as vm',
+        resolve: {
+          authenticated: [
+            'djangoAuth',
+            function(djangoAuth) {
+              return djangoAuth.authenticationStatus();
+            },
+          ],
+        },
+        data: {
+          permissions: {
+            only: nestedPermissions(resolve('home.createSip.collectContent', permissionConfig)),
+            redirectTo: 'home.restricted',
+          },
+        },
+      })
+      .state('home.createSip.dataSelection', {
+        url: '/data-selection',
+        templateUrl: '/static/frontend/views/create_sip_data_selection.html',
+        controller: 'PrepareIpCtrl as vm',
+        resolve: {
+          authenticated: [
+            'djangoAuth',
+            function(djangoAuth) {
+              return djangoAuth.authenticationStatus();
+            },
+          ],
+        },
+      })
+      .state('home.createSip.dataExtraction', {
+        url: '/data-extraction',
+        templateUrl: '/static/frontend/views/create_sip_data_extraction.html',
+        controller: 'PrepareIpCtrl as vm',
+        resolve: {
+          authenticated: [
+            'djangoAuth',
+            function(djangoAuth) {
+              return djangoAuth.authenticationStatus();
+            },
+          ],
+        },
+      })
+      .state('home.createSip.manageData', {
+        url: '/manage-data',
+        templateUrl: '/static/frontend/views/create_sip_manage_data.html',
+        controller: 'PrepareIpCtrl as vm',
+        resolve: {
+          authenticated: [
+            'djangoAuth',
+            function(djangoAuth) {
+              return djangoAuth.authenticationStatus();
+            },
+          ],
+        },
+      })
+      .state('home.createSip.ipApproval', {
+        url: '/create-SIP',
+        templateUrl: '/static/frontend/views/create_sip_ip_approval.html',
+        controller: 'IpApprovalCtrl as vm',
+        resolve: {
+          authenticated: [
+            'djangoAuth',
+            function(djangoAuth) {
+              return djangoAuth.authenticationStatus();
+            },
+          ],
+        },
+        data: {
+          permissions: {
+            only: nestedPermissions(resolve('home.createSip.ipApproval', permissionConfig)),
+            redirectTo: 'home.restricted',
+          },
+        },
+      })
+      .state('home.submitSip', {
+        url: 'submit-SIP',
+        templateUrl: '/static/frontend/views/submit_sip.html',
+        resolve: {
+          authenticated: [
+            'djangoAuth',
+            function(djangoAuth) {
+              return djangoAuth.authenticationStatus();
+            },
+          ],
+        },
+      })
+      .state('home.submitSip.info', {
+        url: '/info',
+        templateUrl: '/static/frontend/views/submit_sip_info_page.html',
+        resolve: {
+          authenticated: [
+            'djangoAuth',
+            function(djangoAuth) {
+              return djangoAuth.authenticationStatus();
+            },
+          ],
+        },
+      })
+      .state('home.submitSip.prepareSip', {
+        url: '/prepare-SIP',
+        templateUrl: '/static/frontend/views/submit_sip_prepare_sip.html',
+        controller: 'PrepareSipCtrl as vm',
+        resolve: {
+          authenticated: [
+            'djangoAuth',
+            function(djangoAuth) {
+              return djangoAuth.authenticationStatus();
+            },
+          ],
+        },
+        data: {
+          permissions: {
+            only: nestedPermissions(resolve('home.submitSip.prepareSip', permissionConfig)),
+            redirectTo: 'home.restricted',
+          },
+        },
+      })
+      .state('home.submitSip.reuseSip', {
+        url: '/reuse-SIP',
+        templateUrl: '/static/frontend/views/submit_sip_reuse_sip.html',
+        controller: 'IpApprovalCtrl as vm',
+        resolve: {
+          authenticated: [
+            'djangoAuth',
+            function(djangoAuth) {
+              return djangoAuth.authenticationStatus();
+            },
+          ],
+        },
+      })
+      .state('home.submitSip.removeSip', {
+        url: '/remove-SIP',
+        templateUrl: '/static/frontend/views/submit_sip_remove_sip.html',
+        controller: 'IpApprovalCtrl as vm',
+        resolve: {
+          authenticated: [
+            'djangoAuth',
+            function(djangoAuth) {
+              return djangoAuth.authenticationStatus();
+            },
+          ],
+        },
+      })
       .state('home.access.search', {
         url: '/search?{query:json}',
         templateUrl: '/static/frontend/views/search.html',
