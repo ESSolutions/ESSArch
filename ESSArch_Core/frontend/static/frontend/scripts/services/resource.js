@@ -22,7 +22,7 @@ Web - http://www.essolutions.se
 Email - essarch@essolutions.se
 */
 
-const resource = ($q, $filter, $timeout, listViewService, Storage, $rootScope, $http, $cookies, $window) => {
+const resource = (listViewService, Storage, $rootScope) => {
   //Get data for Events table
   function getEventPage(start, number, pageNumber, params, selected, sort, columnFilters, search) {
     var sortString = sort.predicate;

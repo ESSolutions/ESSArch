@@ -1,5 +1,5 @@
 export default class MyPageCtrl {
-  constructor(Notifications, $scope, $controller, $rootScope) {
+  constructor($scope, $controller) {
     var vm = this;
     $scope.visibleRequests = {
       access: false,

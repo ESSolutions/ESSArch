@@ -1,6 +1,6 @@
 export default class HeadCtrl {
   /*@ngInject*/
-  constructor($scope, $rootScope, $timeout, $translate, $state) {
+  constructor($scope, $rootScope, $translate, $state) {
     var vm = this;
     var appName = ' | ESSArch';
     vm.pageTitle = 'ESSArch';

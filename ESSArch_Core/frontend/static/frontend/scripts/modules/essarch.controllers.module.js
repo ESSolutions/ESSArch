@@ -61,26 +61,172 @@ export default angular
     'ui.select',
   ])
   .controller('AccessCtrl', AccessCtrl)
-  .controller('AccessIpCtrl', AccessIpCtrl)
+  .controller('AccessIpCtrl', [
+    '$scope',
+    '$controller',
+    '$rootScope',
+    '$translate',
+    '$uibModal',
+    '$log',
+    'ContextMenuBase',
+    AccessIpCtrl,
+  ])
   .controller('AdministrationCtrl', AdministrationCtrl)
-  .controller('AppCtrl', AppCtrl)
-  .controller('BaseCtrl', BaseCtrl)
-  .controller('CombinedWorkareaCtrl', CombinedWorkareaCtrl)
-  .controller('ConversionCtrl', ConversionCtrl)
-  .controller('CreateDipCtrl', CreateDipCtrl)
-  .controller('HeadCtrl', HeadCtrl)
+  .controller('AppCtrl', ['$rootScope', '$scope', '$uibModal', '$log', 'PermPermissionStore', AppCtrl])
+  .controller('BaseCtrl', [
+    'vm',
+    'ipSortString',
+    '$log',
+    '$uibModal',
+    '$timeout',
+    '$scope',
+    '$window',
+    '$http',
+    'appConfig',
+    '$state',
+    '$rootScope',
+    'listViewService',
+    '$interval',
+    'Resource',
+    '$translate',
+    '$cookies',
+    'PermPermissionStore',
+    'Requests',
+    'ContentTabs',
+    'SelectedIPUpdater',
+    BaseCtrl,
+  ])
+  .controller('CombinedWorkareaCtrl', ['$scope', '$controller', CombinedWorkareaCtrl])
+  .controller('ConversionCtrl', [
+    '$scope',
+    'appConfig',
+    '$http',
+    '$uibModal',
+    '$log',
+    '$sce',
+    '$window',
+    'Notifications',
+    '$interval',
+    'Conversion',
+    '$translate',
+    ConversionCtrl,
+  ])
+  .controller('CreateDipCtrl', [
+    'IP',
+    'ArchivePolicy',
+    '$scope',
+    '$rootScope',
+    '$state',
+    '$controller',
+    '$cookies',
+    '$http',
+    '$interval',
+    'appConfig',
+    '$timeout',
+    '$anchorScroll',
+    '$uibModal',
+    '$translate',
+    'listViewService',
+    'Resource',
+    '$sce',
+    '$window',
+    'ContextMenuBase',
+    'SelectedIPUpdater',
+    CreateDipCtrl,
+  ])
+  .controller('HeadCtrl', ['$scope', '$rootScope', '$translate', '$state', HeadCtrl])
   .controller('IngestCtrl', IngestCtrl)
-  .controller('IpApprovalCtrl', IpApprovalCtrl)
-  .controller('LanguageCtrl', LanguageCtrl)
-  .controller('MediaInformationCtrl', MediaInformationCtrl)
-  .controller('MyPageCtrl', MyPageCtrl)
-  .controller('OrdersCtrl', OrdersCtrl)
-  .controller('OrganizationCtrl', OrganizationCtrl)
-  .controller('ProfileManagerCtrl', ProfileManagerCtrl)
-  .controller('ReceptionCtrl', ReceptionCtrl)
-  .controller('SearchCtrl', SearchCtrl)
-  .controller('TagsCtrl', TagsCtrl)
-  .controller('UserDropdownCtrl', UserDropdownCtrl)
-  .controller('UtilCtrl', UtilCtrl)
-  .controller('VersionCtrl', VersionCtrl)
-  .factory('Organization', organization).name;
+  .controller('IpApprovalCtrl', [
+    '$scope',
+    '$controller',
+    '$rootScope',
+    '$translate',
+    'ContextMenuBase',
+    IpApprovalCtrl,
+  ])
+  .controller('LanguageCtrl', ['appConfig', '$scope', '$http', '$translate', LanguageCtrl])
+  .controller('MediaInformationCtrl', [
+    '$scope',
+    '$rootScope',
+    '$controller',
+    'appConfig',
+    'Resource',
+    '$interval',
+    'SelectedIPUpdater',
+    'listViewService',
+    MediaInformationCtrl,
+  ])
+  .controller('MyPageCtrl', ['$scope', '$controller', MyPageCtrl])
+  .controller('OrdersCtrl', [
+    '$scope',
+    '$controller',
+    '$rootScope',
+    'Resource',
+    '$timeout',
+    'appConfig',
+    '$http',
+    '$uibModal',
+    '$q',
+    '$log',
+    'SelectedIPUpdater',
+    OrdersCtrl,
+  ])
+  .controller('OrganizationCtrl', ['$scope', 'Organization', OrganizationCtrl])
+  .controller('ProfileManagerCtrl', ['$state', '$scope', ProfileManagerCtrl])
+  .controller('ReceptionCtrl', [
+    'IPReception',
+    'IP',
+    'ArchivePolicy',
+    '$log',
+    '$uibModal',
+    '$scope',
+    'appConfig',
+    '$state',
+    '$rootScope',
+    'listViewService',
+    'Resource',
+    '$translate',
+    '$controller',
+    'ContextMenuBase',
+    'SelectedIPUpdater',
+    ReceptionCtrl,
+  ])
+  .controller('SearchCtrl', [
+    'Search',
+    '$scope',
+    '$http',
+    '$rootScope',
+    'appConfig',
+    '$log',
+    'Notifications',
+    '$translate',
+    '$uibModal',
+    'PermPermissionStore',
+    '$window',
+    '$state',
+    '$httpParamSerializer',
+    '$stateParams',
+    SearchCtrl,
+  ])
+  .controller('TagsCtrl', ['$scope', 'vm', '$http', 'appConfig', TagsCtrl])
+  .controller('UserDropdownCtrl', [
+    '$scope',
+    '$log',
+    '$state',
+    'djangoAuth',
+    '$translate',
+    '$uibModal',
+    UserDropdownCtrl,
+  ])
+  .controller('UtilCtrl', [
+    'Notifications',
+    '$scope',
+    '$state',
+    '$timeout',
+    'myService',
+    'permissionConfig',
+    '$anchorScroll',
+    UtilCtrl,
+  ])
+  .controller('VersionCtrl', ['$scope', '$window', '$anchorScroll', '$location', '$translate', 'Sysinfo', VersionCtrl])
+  .factory('Organization', ['$rootScope', '$http', '$state', 'appConfig', 'myService', organization]).name;

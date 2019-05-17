@@ -1,5 +1,5 @@
 export default class UserDropdownCtrl {
-  constructor($scope, $log, $rootScope, $state, djangoAuth, $window, $translate, $uibModal) {
+  constructor($scope, $log, $state, djangoAuth, $translate, $uibModal) {
     var options, optionsAuth;
     var vm = this;
 
@@ -88,3 +88,5 @@ export default class UserDropdownCtrl {
     $scope.appendToEl = angular.element(document.querySelector('#dropdown-long-content'));
   }
 }
+
+UserDropdownCtrl.$inject = ['$scope', '$log', '$state', 'djangoAuth', '$translate', '$uibModal'];

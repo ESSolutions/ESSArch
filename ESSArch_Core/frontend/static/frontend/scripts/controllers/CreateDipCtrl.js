@@ -5,7 +5,6 @@ export default class {
     $scope,
     $rootScope,
     $state,
-    $stateParams,
     $controller,
     $cookies,
     $http,
@@ -17,11 +16,9 @@ export default class {
     $translate,
     listViewService,
     Resource,
-    Requests,
     $sce,
     $window,
     ContextMenuBase,
-    ContentTabs,
     SelectedIPUpdater
   ) {
     var vm = this;

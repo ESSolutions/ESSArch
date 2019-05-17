@@ -1,4 +1,4 @@
-export default ($scope, vm, $http, Notifications, appConfig, $state) => {
+export default ($scope, vm, $http, appConfig) => {
   vm.tags = {
     archive: {
       options: [],

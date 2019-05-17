@@ -32,37 +32,63 @@ import {workarea, workareaFiles} from '../services/workarea';
 
 export default angular
   .module('essarch.services', [])
-  .factory('myService', myService)
-  .factory('ArchivePolicy', archivePolicy)
+  .factory('myService', ['PermPermissionStore', 'djangoAuth', myService])
+  .factory('ArchivePolicy', ['$resource', 'appConfig', archivePolicy])
   .factory('ContentTabs', contentTabs)
-  .factory('ContextMenuBase', contextMenuBase)
-  .factory('Event', event)
-  .factory('EventType', eventType)
-  .factory('IOQueue', ioQueue)
-  .factory('IP', ip)
-  .factory('IPReception', ipReception)
-  .factory('listViewService', listViewService)
-  .factory('Messenger', messenger)
-  .factory('Order', order)
-  .factory('Profile', profile)
+  .factory('ContextMenuBase', ['$translate', contextMenuBase])
+  .factory('Event', ['$resource', 'appConfig', event])
+  .factory('EventType', ['$resource', 'appConfig', eventType])
+  .factory('IOQueue', ['$resource', 'appConfig', ioQueue])
+  .factory('IP', ['$resource', 'appConfig', 'Event', 'Step', 'Task', ip])
+  .factory('IPReception', ['$resource', 'appConfig', ipReception])
+  .factory('listViewService', [
+    'Tag',
+    'Profile',
+    'IP',
+    'Workarea',
+    'WorkareaFiles',
+    'Order',
+    'IPReception',
+    'Event',
+    'EventType',
+    'SA',
+    '$q',
+    '$http',
+    '$state',
+    'appConfig',
+    '$rootScope',
+    listViewService,
+  ])
+  .factory('Messenger', ['$window', messenger])
+  .factory('Order', ['$resource', 'appConfig', order])
+  .factory('Profile', ['$resource', 'appConfig', profile])
   .factory('ProfileIp', profileIp)
   .factory('ProfileIpData', profileIpData)
-  .factory('Requests', requests)
-  .factory('Resource', resource)
-  .factory('Robot', robot)
-  .factory('RobotQueue', robotQueue)
-  .factory('SA', sa)
-  .factory('Search', search)
+  .factory('Requests', ['Notifications', 'IP', requests])
+  .factory('Resource', ['listViewService', 'Storage', '$rootScope', resource])
+  .factory('Robot', ['$resource', 'appConfig', robot])
+  .factory('RobotQueue', ['$resource', 'appConfig', robotQueue])
+  .factory('SA', ['$resource', 'appConfig', sa])
+  .factory('Search', ['$http', '$sce', 'appConfig', search])
   .factory('SelectedIPUpdater', selectedIPUpdater)
-  .factory('Step', step)
-  .factory('Storage', storage)
-  .factory('StorageMedium', storageMedium)
-  .factory('StorageObject', storageObject)
-  .factory('Sysinfo', sysinfo)
-  .factory('Tag', tag)
-  .factory('TapeDrive', tapeDrive)
-  .factory('TapeSlot', tapeSlot)
-  .factory('Task', task)
-  .factory('Workarea', workarea)
-  .factory('WorkareaFiles', workareaFiles)
+  .factory('Step', ['$resource', 'appConfig', 'Task', step])
+  .factory('Storage', [
+    'StorageMedium',
+    'StorageObject',
+    'Robot',
+    'RobotQueue',
+    'IOQueue',
+    'TapeSlot',
+    'TapeDrive',
+    storage,
+  ])
+  .factory('StorageMedium', ['$resource', 'appConfig', storageMedium])
+  .factory('StorageObject', ['$resource', 'appConfig', storageObject])
+  .factory('Sysinfo', ['$resource', 'appConfig', sysinfo])
+  .factory('Tag', ['IP', '$resource', 'appConfig', tag])
+  .factory('TapeDrive', ['$resource', 'appConfig', tapeDrive])
+  .factory('TapeSlot', ['$resource', 'appConfig', tapeSlot])
+  .factory('Task', ['$resource', 'appConfig', task])
+  .factory('Workarea', ['$resource', 'appConfig', workarea])
+  .factory('WorkareaFiles', ['$resource', 'appConfig', workareaFiles])
   .service('Validate', validate).name;

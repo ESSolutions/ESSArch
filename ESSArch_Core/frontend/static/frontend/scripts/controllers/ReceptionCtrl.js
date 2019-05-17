@@ -24,7 +24,6 @@ Email - essarch@essolutions.se
 
 export default class ReceptionCtrl {
   constructor(
-    Notifications,
     IPReception,
     IP,
     ArchivePolicy,

@@ -1,22 +1,5 @@
 export default class IpApprovalCtrl {
-  constructor(
-    $scope,
-    $controller,
-    $rootScope,
-    Resource,
-    $interval,
-    $timeout,
-    appConfig,
-    $cookies,
-    $anchorScroll,
-    $translate,
-    listViewService,
-    $http,
-    $q,
-    $state,
-    Requests,
-    ContextMenuBase
-  ) {
+  constructor($scope, $controller, $rootScope, $translate, ContextMenuBase) {
     var vm = this;
     var ipSortString = ['Received', 'Preserving'];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString});

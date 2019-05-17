@@ -22,11 +22,11 @@ let language = angular.module('essarch.language', ['pascalprecht.translate']).co
   },
 ]);
 en.forEach(x => {
-  language.config(x);
+  language.config(['$translateProvider', x]);
 });
 
 sv.forEach(x => {
-  language.config(x);
+  language.config(['$translateProvider', x]);
 });
 
 export default language.name;

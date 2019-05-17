@@ -24,9 +24,6 @@
 
 export default class BaseCtrl {
   constructor(
-    IP,
-    Task,
-    Step,
     vm,
     ipSortString,
     $log,
@@ -34,25 +31,17 @@ export default class BaseCtrl {
     $timeout,
     $scope,
     $window,
-    $location,
-    $sce,
     $http,
-    myService,
     appConfig,
     $state,
-    $stateParams,
     $rootScope,
     listViewService,
     $interval,
     Resource,
     $translate,
     $cookies,
-    $filter,
-    $anchorScroll,
     PermPermissionStore,
-    $q,
     Requests,
-    Notifications,
     ContentTabs,
     SelectedIPUpdater
   ) {

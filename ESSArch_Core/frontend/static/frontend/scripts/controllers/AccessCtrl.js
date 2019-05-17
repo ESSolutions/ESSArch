@@ -1,1 +1,1 @@
-export default ($state, myService) => {};
+export default () => {};

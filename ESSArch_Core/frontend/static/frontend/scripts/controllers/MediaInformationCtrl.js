@@ -23,19 +23,7 @@ Email - essarch@essolutions.se
 */
 
 export default class {
-  constructor(
-    $scope,
-    $rootScope,
-    $controller,
-    $cookies,
-    $http,
-    appConfig,
-    Resource,
-    $interval,
-    $anchorScroll,
-    $timeout,
-    SelectedIPUpdater
-  ) {
+  constructor($scope, $rootScope, $controller, appConfig, Resource, $interval, SelectedIPUpdater, listViewService) {
     var vm = this;
     var watchers = [];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ''});

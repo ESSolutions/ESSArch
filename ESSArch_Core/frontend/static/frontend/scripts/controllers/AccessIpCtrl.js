@@ -1,22 +1,5 @@
 export default class AccessIpCtrl {
-  constructor(
-    $scope,
-    $controller,
-    $rootScope,
-    Resource,
-    $interval,
-    $timeout,
-    appConfig,
-    $cookies,
-    $anchorScroll,
-    $translate,
-    $http,
-    $state,
-    Requests,
-    $uibModal,
-    $log,
-    ContextMenuBase
-  ) {
+  constructor($scope, $controller, $rootScope, $translate, $uibModal, $log, ContextMenuBase) {
     var vm = this;
     var ipSortString = [];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString});

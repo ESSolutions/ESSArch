@@ -26,20 +26,7 @@ import {nestedEmptyPermissions, nestedPermissions, resolve} from '../index';
 
 export default class UtilCtrl {
   /*@ngInject*/
-  constructor(
-    Notifications,
-    $scope,
-    $state,
-    $location,
-    $window,
-    $rootScope,
-    $timeout,
-    $http,
-    appConfig,
-    myService,
-    permissionConfig,
-    $anchorScroll
-  ) {
+  constructor(Notifications, $scope, $state, $timeout, myService, permissionConfig, $anchorScroll) {
     $scope.angular = angular;
     $scope.$state = $state;
     $scope.reloadPage = function() {

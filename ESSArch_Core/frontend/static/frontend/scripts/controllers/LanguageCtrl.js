@@ -2,7 +2,7 @@ import moment from 'moment';
 
 import 'moment/locale/sv.js';
 
-const LanguageCtrl = (appConfig, $scope, $rootScope, $http, $cookies, $translate) => {
+const LanguageCtrl = (appConfig, $scope, $http, $translate) => {
   const setUserLanguage = lang => {
     return $http({
       method: 'PATCH',

@@ -1,20 +1,13 @@
 export default class {
   constructor(
-    ArchivePolicy,
     $scope,
-    $controller,
-    $rootScope,
-    $cookies,
-    $stateParams,
     appConfig,
     $http,
-    $timeout,
     $uibModal,
     $log,
     $sce,
     $window,
     Notifications,
-    $filter,
     $interval,
     Conversion,
     $translate

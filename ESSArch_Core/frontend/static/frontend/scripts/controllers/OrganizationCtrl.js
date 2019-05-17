@@ -22,7 +22,7 @@
     Email - essarch@essolutions.se
 */
 
-export const OrganizationCtrl = ($scope, $rootScope, $cookies, Organization) => {
+export const OrganizationCtrl = ($scope, Organization) => {
   $scope.changeOrganization = function() {
     var org = $scope.currentOrganization;
     Organization.setOrganization(org);
@@ -39,7 +39,7 @@ export const OrganizationCtrl = ($scope, $rootScope, $cookies, Organization) => 
   $scope.getCurrentOrganization();
 };
 
-export const organization = ($rootScope, $cookies, $http, $state, appConfig, myService) => {
+export const organization = ($rootScope, $http, $state, appConfig, myService) => {
   var service = {
     availableOrganizations: function() {
       return $rootScope.auth.organizations;

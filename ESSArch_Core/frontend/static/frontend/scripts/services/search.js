@@ -1,4 +1,4 @@
-export default ($http, $sce, appConfig, $translate) => {
+export default ($http, $sce, appConfig) => {
   var service = {};
   var url = appConfig.djangoUrl;
   service.query = function(filters) {

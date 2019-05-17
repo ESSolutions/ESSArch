@@ -1,6 +1,6 @@
 {% load rev %}
 <!doctype html>
-<html ng-app="essarch" ng-controller="AppCtrl as vm" ng-keydown="vm.questionMarkListener($event)">
+<html ng-app="essarch" ng-strict-di ng-controller="AppCtrl as vm" ng-keydown="vm.questionMarkListener($event)">
   <head ng-controller="HeadCtrl as vm">
     <link rel="stylesheet" type="text/css" href="{% rev "frontend/build/main.css" %}">
 

@@ -1,4 +1,4 @@
-const contentTabs = ($translate, Notifications) => {
+const contentTabs = () => {
   var disabledStates = ['Creating', 'Submitting', 'Receiving', 'Transferring', 'Preserving'];
   var specialTabs = {
     // ETP

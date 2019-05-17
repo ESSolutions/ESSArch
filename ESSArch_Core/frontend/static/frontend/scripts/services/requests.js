@@ -22,7 +22,7 @@ Web - http://www.essolutions.se
 Email - essarch@essolutions.se
 */
 
-const requests = (Notifications, IPReception, IP, $http, appConfig, $translate) => {
+const requests = (Notifications, IP) => {
   function preserve(ip, request) {
     return IP.preserve(angular.extend(request, {id: ip.id})).$promise.then(function(response) {
       Notifications.add(response.detail, 'success', 3000);

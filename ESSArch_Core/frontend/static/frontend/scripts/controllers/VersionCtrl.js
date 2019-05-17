@@ -1,4 +1,4 @@
-export default ($scope, $window, $state, marked, $anchorScroll, $location, $translate, Sysinfo) => {
+export default ($scope, $window, $anchorScroll, $location, $translate, Sysinfo) => {
   Sysinfo.get().$promise.then(function(result) {
     if (result.platform.os == 'Darwin') {
       result.platform.os = 'macOS';

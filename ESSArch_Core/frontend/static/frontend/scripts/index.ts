@@ -134,926 +134,926 @@ angular
     notifications,
     utils,
   ])
-  .config(function(
-    $routeProvider,
-    formlyConfigProvider,
-    $urlMatcherFactoryProvider,
-    $stateProvider,
-    $urlRouterProvider,
-    $rootScopeProvider,
-    $uibTooltipProvider,
-    permissionConfig
-  ) {
-    $urlMatcherFactoryProvider.strictMode(false);
+  .config([
+    '$urlMatcherFactoryProvider',
+    '$stateProvider',
+    '$urlRouterProvider',
+    'permissionConfig',
+    function($urlMatcherFactoryProvider, $stateProvider, $urlRouterProvider, permissionConfig) {
+      $urlMatcherFactoryProvider.strictMode(false);
 
-    $stateProvider
-      .state('home', {
-        url: '/',
-        templateUrl: '/static/frontend/views/home.html',
-      })
-      .state('login', {
-        url: '/login',
-        params: {
-          requestedPage: '/login',
-        },
-        templateUrl: '/static/frontend/views/login.html',
-        controller: 'LoginCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-      })
-      .state('home.userSettings', {
-        url: 'user-settings',
-        templateUrl: '/static/frontend/views/user_settings.html',
-        controller: 'UserSettingsCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-      })
-      .state('home.info', {
-        url: 'info',
-        templateUrl: '/static/frontend/views/my_page.html',
-        controller: 'MyPageCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-      })
-      .state('home.createSip', {
-        url: 'create-SIP',
-        templateUrl: '/static/frontend/views/create_sip.html',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-      })
-      .state('home.createSip.prepareIp', {
-        url: '/prepare-IP',
-        templateUrl: '/static/frontend/views/create_sip_prepare_ip.html',
-        controller: 'PrepareIpCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.createSip.prepareIp', permissionConfig)),
-            redirectTo: 'home.restricted',
+      $stateProvider
+        .state('home', {
+          url: '/',
+          templateUrl: '/static/frontend/views/home.html',
+        })
+        .state('login', {
+          url: '/login',
+          params: {
+            requestedPage: '/login',
           },
-        },
-      })
-      .state('home.createSip.collectContent', {
-        url: '/collect-content',
-        templateUrl: '/static/frontend/views/create_sip_collect_content.html',
-        controller: 'CollectContentCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.createSip.collectContent', permissionConfig)),
-            redirectTo: 'home.restricted',
+          templateUrl: '/static/frontend/views/login.html',
+          controller: 'LoginCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.createSip.dataSelection', {
-        url: '/data-selection',
-        templateUrl: '/static/frontend/views/create_sip_data_selection.html',
-        controller: 'PrepareIpCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-      })
-      .state('home.createSip.dataExtraction', {
-        url: '/data-extraction',
-        templateUrl: '/static/frontend/views/create_sip_data_extraction.html',
-        controller: 'PrepareIpCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-      })
-      .state('home.createSip.manageData', {
-        url: '/manage-data',
-        templateUrl: '/static/frontend/views/create_sip_manage_data.html',
-        controller: 'PrepareIpCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-      })
-      .state('home.createSip.ipApproval', {
-        url: '/create-SIP',
-        templateUrl: '/static/frontend/views/create_sip_ip_approval.html',
-        controller: 'IpApprovalCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.createSip.ipApproval', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.userSettings', {
+          url: 'user-settings',
+          templateUrl: '/static/frontend/views/user_settings.html',
+          controller: 'UserSettingsCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.submitSip', {
-        url: 'submit-SIP',
-        templateUrl: '/static/frontend/views/submit_sip.html',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-      })
-      .state('home.submitSip.info', {
-        url: '/info',
-        templateUrl: '/static/frontend/views/submit_sip_info_page.html',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-      })
-      .state('home.submitSip.prepareSip', {
-        url: '/prepare-SIP',
-        templateUrl: '/static/frontend/views/submit_sip_prepare_sip.html',
-        controller: 'PrepareSipCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.submitSip.prepareSip', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.info', {
+          url: 'info',
+          templateUrl: '/static/frontend/views/my_page.html',
+          controller: 'MyPageCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.submitSip.reuseSip', {
-        url: '/reuse-SIP',
-        templateUrl: '/static/frontend/views/submit_sip_reuse_sip.html',
-        controller: 'IpApprovalCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-      })
-      .state('home.submitSip.removeSip', {
-        url: '/remove-SIP',
-        templateUrl: '/static/frontend/views/submit_sip_remove_sip.html',
-        controller: 'IpApprovalCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-      })
-      .state('home.access.search', {
-        url: '/search?{query:json}',
-        templateUrl: '/static/frontend/views/search.html',
-        controller: 'SearchCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.createSip', {
+          url: 'create-SIP',
+          templateUrl: '/static/frontend/views/create_sip.html',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.access.search.information_package', {
-        url: '/information_package/:id',
-        templateUrl: '/static/frontend/views/search_ip_detail.html',
-        controller: 'SearchIpCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.createSip.prepareIp', {
+          url: '/prepare-IP',
+          templateUrl: '/static/frontend/views/create_sip_prepare_ip.html',
+          controller: 'PrepareIpCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.access.search.component', {
-        url: '/component/:id',
-        templateUrl: '/static/frontend/views/search_detail.html',
-        controller: 'SearchDetailCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.createSip.prepareIp', permissionConfig)),
+              redirectTo: 'home.restricted',
             },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-            redirectTo: 'home.restricted',
           },
-        },
-      })
-      .state('home.access.search.structure_unit', {
-        url: '/structure-unit/:id?{archive}',
-        templateUrl: '/static/frontend/views/search_structure_unit_detail.html',
-        controller: 'SearchDetailCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.createSip.collectContent', {
+          url: '/collect-content',
+          templateUrl: '/static/frontend/views/create_sip_collect_content.html',
+          controller: 'CollectContentCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.access.search.directory', {
-        url: '/directory/:id',
-        templateUrl: '/static/frontend/views/search_detail.html',
-        controller: 'SearchDetailCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.createSip.collectContent', permissionConfig)),
+              redirectTo: 'home.restricted',
             },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-            redirectTo: 'home.restricted',
           },
-        },
-      })
-      .state('home.access.search.document', {
-        url: '/document/:id',
-        templateUrl: '/static/frontend/views/search_detail.html',
-        controller: 'SearchDetailCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.createSip.dataSelection', {
+          url: '/data-selection',
+          templateUrl: '/static/frontend/views/create_sip_data_selection.html',
+          controller: 'PrepareIpCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.access.search.archive', {
-        url: '/archive/:id',
-        templateUrl: '/static/frontend/views/search_detail.html',
-        controller: 'SearchDetailCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.createSip.dataExtraction', {
+          url: '/data-extraction',
+          templateUrl: '/static/frontend/views/create_sip_data_extraction.html',
+          controller: 'PrepareIpCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.versionInfo', {
-        url: 'version',
-        templateUrl: '/static/frontend/views/version_info.html',
-        controller: 'VersionCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-      })
-      .state('home.ingest', {
-        url: 'ingest',
-        templateUrl: '/static/frontend/views/ingest.html',
-        controller: 'IngestCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-      })
-      .state('home.ingest.reception', {
-        url: '/reception',
-        templateUrl: '/static/frontend/views/reception.html',
-        controller: 'ReceptionCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.ingest.reception', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.createSip.manageData', {
+          url: '/manage-data',
+          templateUrl: '/static/frontend/views/create_sip_manage_data.html',
+          controller: 'PrepareIpCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.ingest.ipApproval', {
-        url: '/approval',
-        templateUrl: '/static/frontend/views/ip_approval.html',
-        controller: 'IpApprovalCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.ingest.ipApproval', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.createSip.ipApproval', {
+          url: '/create-SIP',
+          templateUrl: '/static/frontend/views/create_sip_ip_approval.html',
+          controller: 'IpApprovalCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.access', {
-        url: 'access',
-        templateUrl: '/static/frontend/views/access.html',
-        controller: 'AccessCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.createSip.ipApproval', permissionConfig)),
+              redirectTo: 'home.restricted',
             },
-          ],
-        },
-      })
-      .state('home.access.accessIp', {
-        url: '/access-IP',
-        templateUrl: '/static/frontend/views/access_ip.html',
-        controller: 'AccessIpCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.access.accessIp', permissionConfig)),
-            redirectTo: 'home.restricted',
           },
-        },
-      })
-      .state('home.access.createDip', {
-        url: '/create-DIP',
-        templateUrl: '/static/frontend/views/access_create_dip.html',
-        controller: 'CreateDipCtrl as vm',
-        params: {ip: null},
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.access.createDip', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.submitSip', {
+          url: 'submit-SIP',
+          templateUrl: '/static/frontend/views/submit_sip.html',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.workarea', {
-        url: 'workspace',
-        templateUrl: '/static/frontend/views/combined_workarea.html',
-        controller: 'CombinedWorkareaCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.workarea', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.submitSip.info', {
+          url: '/info',
+          templateUrl: '/static/frontend/views/submit_sip_info_page.html',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.access.orders', {
-        url: '/orders',
-        templateUrl: '/static/frontend/views/orders.html',
-        controller: 'OrdersCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.orders', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.submitSip.prepareSip', {
+          url: '/prepare-SIP',
+          templateUrl: '/static/frontend/views/submit_sip_prepare_sip.html',
+          controller: 'PrepareSipCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.management', {
-        url: 'management',
-        templateUrl: '/static/frontend/views/management.html',
-        controller: 'ManagementCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.submitSip.prepareSip', permissionConfig)),
+              redirectTo: 'home.restricted',
             },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.management', permissionConfig)),
-            redirectTo: 'home.restricted',
           },
-        },
-      })
-      .state('home.archiveMaintenance', {
-        url: 'archive-maintenance',
-        templateUrl: '/static/frontend/views/archive_maintenance.html',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-      })
-      .state('home.archiveMaintenance.start', {
-        url: '/start',
-        templateUrl: '/static/frontend/views/archive_maintenance_start.html',
-        controller: 'AppraisalCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.archiveMaintenance.start', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.submitSip.reuseSip', {
+          url: '/reuse-SIP',
+          templateUrl: '/static/frontend/views/submit_sip_reuse_sip.html',
+          controller: 'IpApprovalCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.archiveMaintenance.appraisal', {
-        url: '/appraisal',
-        templateUrl: '/static/frontend/views/appraisal.html',
-        controller: 'AppraisalCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.archiveMaintenance.appraisal', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.submitSip.removeSip', {
+          url: '/remove-SIP',
+          templateUrl: '/static/frontend/views/submit_sip_remove_sip.html',
+          controller: 'IpApprovalCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.archiveMaintenance.conversion', {
-        url: '/conversion',
-        templateUrl: '/static/frontend/views/conversion.html',
-        controller: 'ConversionCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.archiveMaintenance.appraisal', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.access.search', {
+          url: '/search?{query:json}',
+          templateUrl: '/static/frontend/views/search.html',
+          controller: 'SearchCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.administration', {
-        url: 'administration',
-        templateUrl: '/static/frontend/views/administration.html',
-        controller: 'AdministrationCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
+              redirectTo: 'home.restricted',
             },
-          ],
-        },
-      })
-      .state('home.administration.searchAdmin', {
-        url: '/search-admin',
-        template: '<search-admin></search-admin>',
-        redirectTo: 'home.administration.searchAdmin.archiveManager',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.administration.searchAdmin', permissionConfig)),
-            redirectTo: 'home.restricted',
           },
-        },
-      })
-      .state('home.administration.searchAdmin.classificationStructures', {
-        url: '/classification-structures',
-        template: '<classification-structure-editor></classification-structure-editor>',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.access.search.information_package', {
+          url: '/information_package/:id',
+          templateUrl: '/static/frontend/views/search_ip_detail.html',
+          controller: 'SearchIpCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.administration.searchAdmin.archiveManager', {
-        url: '/archive-manager',
-        template: '<archive-manager></archive-manager>',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
+              redirectTo: 'home.restricted',
             },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-            redirectTo: 'home.restricted',
           },
-        },
-      })
-      .state('home.administration.mediaInformation', {
-        url: '/media-information',
-        templateUrl: '/static/frontend/views/administration_media_information.html',
-        controller: 'MediaInformationCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.administration.mediaInformation', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.access.search.component', {
+          url: '/component/:id',
+          templateUrl: '/static/frontend/views/search_detail.html',
+          controller: 'SearchDetailCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.administration.robotInformation', {
-        url: '/robot-information',
-        templateUrl: '/static/frontend/views/administration_robot_information.html',
-        controller: 'RobotInformationCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
+              redirectTo: 'home.restricted',
             },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.administration.robotInformation', permissionConfig)),
-            redirectTo: 'home.restricted',
           },
-        },
-      })
-      .state('home.administration.queues', {
-        url: '/queues',
-        templateUrl: 'static/frontend/views/administration_queues.html',
-        controller: 'QueuesCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.administration.queues', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.access.search.structure_unit', {
+          url: '/structure-unit/:id?{archive}',
+          templateUrl: '/static/frontend/views/search_structure_unit_detail.html',
+          controller: 'SearchDetailCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.administration.storageMigration', {
-        url: '/storage-migration',
-        templateUrl: 'static/frontend/views/administration_storage_migration.html',
-        controller: 'StorageMigrationCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
+              redirectTo: 'home.restricted',
             },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.administration.storageMigration', permissionConfig)),
-            redirectTo: 'home.restricted',
           },
-        },
-      })
-      .state('home.administration.storageMaintenance', {
-        url: '/storage-maintenance',
-        templateUrl: 'static/frontend/views/administration_storage_maintenance.html',
-        controller: 'StorageMaintenanceCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.administration.storageMaintenance', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.access.search.directory', {
+          url: '/directory/:id',
+          templateUrl: '/static/frontend/views/search_detail.html',
+          controller: 'SearchDetailCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.administration.profileManager', {
-        url: '/profile-manager',
-        templateUrl: 'static/frontend/views/profile_manager.html',
-        controller: 'ProfileManagerCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
+              redirectTo: 'home.restricted',
             },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.administration.profileManager', permissionConfig)),
-            redirectTo: 'home.restricted',
           },
-        },
-      })
-      .state('home.administration.profileManager.saEditor', {
-        url: '/sa-editor',
-        template: '<sa-editor></sa-editor>',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.administration.profileManager.saEditor', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.access.search.document', {
+          url: '/document/:id',
+          templateUrl: '/static/frontend/views/search_detail.html',
+          controller: 'SearchDetailCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.administration.profileManager.profileMaker', {
-        url: '/profile-maker',
-        template: '<profile-maker></profile-maker>',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
+              redirectTo: 'home.restricted',
             },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.administration.profileManager.profileMaker', permissionConfig)),
-            redirectTo: 'home.restricted',
           },
-        },
-      })
-      .state('home.administration.profileManager.import', {
-        url: '/import',
-        template: '<import></import>',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.administration.profileManager.import', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.access.search.archive', {
+          url: '/archive/:id',
+          templateUrl: '/static/frontend/views/search_detail.html',
+          controller: 'SearchDetailCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.administration.profileManager.export', {
-        url: '/export',
-        template: '<export></export>',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
+              redirectTo: 'home.restricted',
             },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.administration.profileManager.export', permissionConfig)),
-            redirectTo: 'home.restricted',
           },
-        },
-      })
-      .state('home.dashboard', {
-        url: 'dashboard',
-        template: '<dashboard-stats></dashboard-stats>',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
-            },
-          ],
-        },
-        data: {
-          permissions: {
-            only: nestedPermissions(resolve('home.dashboard', permissionConfig)),
-            redirectTo: 'home.restricted',
+        })
+        .state('home.versionInfo', {
+          url: 'version',
+          templateUrl: '/static/frontend/views/version_info.html',
+          controller: 'VersionCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
           },
-        },
-      })
-      .state('home.restricted', {
-        url: 'restricted',
-        templateUrl: '/static/frontend/views/restricted.html',
-        controller: 'RestrictedCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
+        })
+        .state('home.ingest', {
+          url: 'ingest',
+          templateUrl: '/static/frontend/views/ingest.html',
+          controller: 'IngestCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+        })
+        .state('home.ingest.reception', {
+          url: '/reception',
+          templateUrl: '/static/frontend/views/reception.html',
+          controller: 'ReceptionCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.ingest.reception', permissionConfig)),
+              redirectTo: 'home.restricted',
             },
-          ],
-        },
-      })
-      .state('authRequired', {
-        url: '/auth-required',
-        templateUrl: '/static/frontend/views/auth_required.html',
-        controller: 'AuthRequiredCtrl as vm',
-        resolve: {
-          authenticated: [
-            'djangoAuth',
-            function(djangoAuth) {
-              return djangoAuth.authenticationStatus();
+          },
+        })
+        .state('home.ingest.ipApproval', {
+          url: '/approval',
+          templateUrl: '/static/frontend/views/ip_approval.html',
+          controller: 'IpApprovalCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.ingest.ipApproval', permissionConfig)),
+              redirectTo: 'home.restricted',
             },
-          ],
-        },
+          },
+        })
+        .state('home.access', {
+          url: 'access',
+          templateUrl: '/static/frontend/views/access.html',
+          controller: 'AccessCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+        })
+        .state('home.access.accessIp', {
+          url: '/access-IP',
+          templateUrl: '/static/frontend/views/access_ip.html',
+          controller: 'AccessIpCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.accessIp', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.access.createDip', {
+          url: '/create-DIP',
+          templateUrl: '/static/frontend/views/access_create_dip.html',
+          controller: 'CreateDipCtrl as vm',
+          params: {ip: null},
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.createDip', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.workarea', {
+          url: 'workspace',
+          templateUrl: '/static/frontend/views/combined_workarea.html',
+          controller: 'CombinedWorkareaCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.workarea', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.access.orders', {
+          url: '/orders',
+          templateUrl: '/static/frontend/views/orders.html',
+          controller: 'OrdersCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.orders', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.management', {
+          url: 'management',
+          templateUrl: '/static/frontend/views/management.html',
+          controller: 'ManagementCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.management', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archiveMaintenance', {
+          url: 'archive-maintenance',
+          templateUrl: '/static/frontend/views/archive_maintenance.html',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+        })
+        .state('home.archiveMaintenance.start', {
+          url: '/start',
+          templateUrl: '/static/frontend/views/archive_maintenance_start.html',
+          controller: 'AppraisalCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archiveMaintenance.start', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archiveMaintenance.appraisal', {
+          url: '/appraisal',
+          templateUrl: '/static/frontend/views/appraisal.html',
+          controller: 'AppraisalCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archiveMaintenance.appraisal', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archiveMaintenance.conversion', {
+          url: '/conversion',
+          templateUrl: '/static/frontend/views/conversion.html',
+          controller: 'ConversionCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archiveMaintenance.appraisal', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.administration', {
+          url: 'administration',
+          templateUrl: '/static/frontend/views/administration.html',
+          controller: 'AdministrationCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+        })
+        .state('home.administration.searchAdmin', {
+          url: '/search-admin',
+          template: '<search-admin></search-admin>',
+          redirectTo: 'home.administration.searchAdmin.archiveManager',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.administration.searchAdmin', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.administration.searchAdmin.classificationStructures', {
+          url: '/classification-structures',
+          template: '<classification-structure-editor></classification-structure-editor>',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.administration.searchAdmin.archiveManager', {
+          url: '/archive-manager',
+          template: '<archive-manager></archive-manager>',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.administration.mediaInformation', {
+          url: '/media-information',
+          templateUrl: '/static/frontend/views/administration_media_information.html',
+          controller: 'MediaInformationCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.administration.mediaInformation', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.administration.robotInformation', {
+          url: '/robot-information',
+          templateUrl: '/static/frontend/views/administration_robot_information.html',
+          controller: 'RobotInformationCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.administration.robotInformation', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.administration.queues', {
+          url: '/queues',
+          templateUrl: 'static/frontend/views/administration_queues.html',
+          controller: 'QueuesCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.administration.queues', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.administration.storageMigration', {
+          url: '/storage-migration',
+          templateUrl: 'static/frontend/views/administration_storage_migration.html',
+          controller: 'StorageMigrationCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.administration.storageMigration', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.administration.storageMaintenance', {
+          url: '/storage-maintenance',
+          templateUrl: 'static/frontend/views/administration_storage_maintenance.html',
+          controller: 'StorageMaintenanceCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.administration.storageMaintenance', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.administration.profileManager', {
+          url: '/profile-manager',
+          templateUrl: 'static/frontend/views/profile_manager.html',
+          controller: 'ProfileManagerCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.administration.profileManager', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.administration.profileManager.saEditor', {
+          url: '/sa-editor',
+          template: '<sa-editor></sa-editor>',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.administration.profileManager.saEditor', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.administration.profileManager.profileMaker', {
+          url: '/profile-maker',
+          template: '<profile-maker></profile-maker>',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.administration.profileManager.profileMaker', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.administration.profileManager.import', {
+          url: '/import',
+          template: '<import></import>',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.administration.profileManager.import', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.administration.profileManager.export', {
+          url: '/export',
+          template: '<export></export>',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.administration.profileManager.export', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.dashboard', {
+          url: 'dashboard',
+          template: '<dashboard-stats></dashboard-stats>',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.dashboard', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.restricted', {
+          url: 'restricted',
+          templateUrl: '/static/frontend/views/restricted.html',
+          controller: 'RestrictedCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+        })
+        .state('authRequired', {
+          url: '/auth-required',
+          templateUrl: '/static/frontend/views/auth_required.html',
+          controller: 'AuthRequiredCtrl as vm',
+          resolve: {
+            authenticated: [
+              'djangoAuth',
+              function(djangoAuth) {
+                return djangoAuth.authenticationStatus();
+              },
+            ],
+          },
+        });
+      $urlRouterProvider.otherwise(function($injector) {
+        var $state = $injector.get('$state');
+        $state.go('home.info');
       });
-    $urlRouterProvider.otherwise(function($injector) {
-      var $state = $injector.get('$state');
-      $state.go('home.info');
-    });
 
-    $urlRouterProvider.deferIntercept();
-  })
-  .config(function($animateProvider) {
-    // Only animate elements with the 'angular-animate' class
-    $animateProvider.classNameFilter(/angular-animate|ui-select-/);
-  })
+      $urlRouterProvider.deferIntercept();
+    },
+  ])
+  .config([
+    '$animateProvider',
+    function($animateProvider) {
+      // Only animate elements with the 'angular-animate' class
+      $animateProvider.classNameFilter(/angular-animate|ui-select-/);
+    },
+  ])
   .config([
     'markedProvider',
     function(markedProvider) {
@@ -1111,12 +1111,18 @@ angular
       $logProvider.debugEnabled(appConfig.logDebug);
     },
   ])
-  .config(function($permissionProvider) {
-    $permissionProvider.suppressUndefinedPermissionWarning(true);
-  })
-  .config(function(stConfig) {
-    stConfig.sort.delay = -1;
-  })
+  .config([
+    '$permissionProvider',
+    function($permissionProvider) {
+      $permissionProvider.suppressUndefinedPermissionWarning(true);
+    },
+  ])
+  .config([
+    'stConfig',
+    function(stConfig) {
+      stConfig.sort.delay = -1;
+    },
+  ])
   .config([
     '$compileProvider',
     function($compileProvider) {
@@ -1140,94 +1146,102 @@ angular
       },
     };
   })
-  .run(function(
-    djangoAuth,
-    $rootScope,
-    $state,
-    $location,
-    $window,
-    $cookies,
-    $timeout,
-    PermPermissionStore,
-    PermRoleStore,
-    $http,
-    myService,
-    formlyConfig,
-    formlyValidationMessages,
-    $urlRouter,
-    permissionConfig,
-    appConfig
-  ) {
-    formlyConfig.extras.errorExistsAndShouldBeVisibleExpression = 'form.$submitted || fc.$touched || fc[0].$touched';
-    formlyValidationMessages.addStringMessage('required', 'This field is required');
-    $rootScope.app = 'ESSArch';
-    $rootScope.flowObjects = {};
-    djangoAuth
-      .initialize('/rest-auth', false)
-      .then(function(response) {
-        $rootScope.auth = response.data;
-        myService.getPermissions(response.data.permissions);
-        // kick-off router and start the application rendering
-        $urlRouter.sync();
-        // Also enable router to listen to url changes
-        $urlRouter.listen();
-        $rootScope.listViewColumns = myService.generateColumns(response.data.ip_list_columns).activeColumns;
-        $http
-          .get(appConfig.djangoUrl + 'site/')
-          .then(function(response) {
-            $rootScope.site = response.data;
-          })
-          .catch(function() {
-            $rootScope.site = null;
+  .run([
+    'djangoAuth',
+    '$rootScope',
+    '$state',
+    '$location',
+    '$http',
+    'myService',
+    'formlyConfig',
+    'formlyValidationMessages',
+    '$urlRouter',
+    'permissionConfig',
+    'appConfig',
+    function(
+      djangoAuth,
+      $rootScope,
+      $state,
+      $location,
+      $http,
+      myService,
+      formlyConfig,
+      formlyValidationMessages,
+      $urlRouter,
+      permissionConfig,
+      appConfig
+    ) {
+      formlyConfig.extras.errorExistsAndShouldBeVisibleExpression = 'form.$submitted || fc.$touched || fc[0].$touched';
+      formlyValidationMessages.addStringMessage('required', 'This field is required');
+      $rootScope.app = 'ESSArch';
+      $rootScope.flowObjects = {};
+      djangoAuth
+        .initialize('/rest-auth', false)
+        .then(function(response) {
+          $rootScope.auth = response.data;
+          myService.getPermissions(response.data.permissions);
+          // kick-off router and start the application rendering
+          $urlRouter.sync();
+          // Also enable router to listen to url changes
+          $urlRouter.listen();
+          $rootScope.listViewColumns = myService.generateColumns(response.data.ip_list_columns).activeColumns;
+          $http
+            .get(appConfig.djangoUrl + 'site/')
+            .then(function(response) {
+              $rootScope.site = response.data;
+            })
+            .catch(function() {
+              $rootScope.site = null;
+            });
+          $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState) {
+            if (toState.name === 'login') {
+              return;
+            }
+            if (djangoAuth.authenticated !== true) {
+              console.log('Not authenticated, redirecting to login');
+              event.preventDefault();
+              $state.go('login'); // go to login
+            }
           });
-        $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState) {
-          if (toState.name === 'login') {
-            return;
-          }
-          if (djangoAuth.authenticated !== true) {
-            console.log('Not authenticated, redirecting to login');
-            event.preventDefault();
-            $state.go('login'); // go to login
-          }
+        })
+        .catch(function() {
+          console.log('Got error response from auth api, redirecting to login with requested page:', $location.path());
+          $state.go('login', {requestedPage: $location.path()});
         });
-      })
-      .catch(function() {
-        console.log('Got error response from auth api, redirecting to login with requested page:', $location.path());
-        $state.go('login', {requestedPage: $location.path()});
-      });
 
-    $rootScope.$on('$stateChangeStart', function(evt, to, params, from) {
-      if (to.redirectTo) {
-        evt.preventDefault();
-        $state.go(to.redirectTo, params, {location: 'replace'});
-      }
-
-      if (to.name == 'login' && djangoAuth.authenticated) {
-        evt.preventDefault();
-        if (from.name != '') {
-          $state.transitionTo(from.name);
-        } else {
-          $state.transitionTo('home.info');
+      $rootScope.$on('$stateChangeStart', function(evt, to, params, from) {
+        if (to.redirectTo) {
+          evt.preventDefault();
+          $state.go(to.redirectTo, params, {location: 'replace'});
         }
-      }
 
-      if (
-        to.name == 'home.ingest' ||
-        to.name == 'home.access' ||
-        to.name == 'home.administration' ||
-        to.name == 'home.administration.profileManager' ||
-        to.name == 'home.archiveMaintenance'
-      ) {
-        evt.preventDefault();
-        var resolved = resolve(to.name, permissionConfig);
-        for (var key in resolved) {
-          if (key != '_permissions' && myService.checkPermissions(nestedPermissions(resolved[key]))) {
-            $state.go(to.name + '.' + key);
-            return;
+        if (to.name == 'login' && djangoAuth.authenticated) {
+          evt.preventDefault();
+          if (from.name != '') {
+            $state.transitionTo(from.name);
+          } else {
+            $state.transitionTo('home.info');
           }
         }
-        $state.go('home.restricted');
-        return;
-      }
-    });
-  });
+
+        if (
+          to.name == 'home.ingest' ||
+          to.name == 'home.access' ||
+          to.name == 'home.administration' ||
+          to.name == 'home.administration.profileManager' ||
+          to.name == 'home.archiveMaintenance'
+        ) {
+          evt.preventDefault();
+          var resolved = resolve(to.name, permissionConfig);
+          for (var key in resolved) {
+            if (key != '_permissions' && myService.checkPermissions(nestedPermissions(resolved[key]))) {
+              $state.go(to.name + '.' + key);
+              return;
+            }
+          }
+          $state.go('home.restricted');
+          return;
+        }
+      });
+    },
+  ]);

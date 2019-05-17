@@ -1,15 +1,4 @@
-const storage = (
-  StorageMedium,
-  StorageObject,
-  Robot,
-  RobotQueue,
-  IOQueue,
-  TapeSlot,
-  TapeDrive,
-  $http,
-  $q,
-  appConfig
-) => {
+const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeSlot, TapeDrive) => {
   // Get storage mediums
   function getStorageMediums(pageNumber, pageSize, filters, sortString, searchString) {
     return StorageMedium.query({

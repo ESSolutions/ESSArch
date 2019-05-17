@@ -1,17 +1,13 @@
 export default class SearchCtrl {
   constructor(
     Search,
-    $q,
     $scope,
     $http,
     $rootScope,
     appConfig,
     $log,
-    $timeout,
     Notifications,
-    $sce,
     $translate,
-    $anchorScroll,
     $uibModal,
     PermPermissionStore,
     $window,
