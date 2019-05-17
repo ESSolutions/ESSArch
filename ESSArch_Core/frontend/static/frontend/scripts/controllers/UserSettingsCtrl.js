@@ -1,17 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('UserSettingsCtrl', function(
-    Me,
-    $scope,
-    $rootScope,
-    $http,
-    appConfig,
-    $controller,
-    $cookies,
-    myService,
-    $q,
-    $window
-  ) {
+export default class UserSettingsCtrl {
+  constructor(Me, $scope, $rootScope, $controller, myService, $window) {
     var vm = this;
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ''});
     vm.activeColumns = {chosen: []};
@@ -108,4 +96,5 @@ angular
     $scope.closeAlert = function() {
       $scope.saveAlert = null;
     };
-  });
+  }
+}

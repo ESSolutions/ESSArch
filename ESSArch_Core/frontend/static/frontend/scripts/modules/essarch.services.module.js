@@ -28,6 +28,7 @@ import tag from '../services/tag';
 import tapeDrive from '../services/tapeDrive';
 import tapeSlot from '../services/tapeSlot';
 import task from '../services/task';
+import {me, user} from '../services/user';
 import {workarea, workareaFiles} from '../services/workarea';
 
 export default angular
@@ -59,6 +60,7 @@ export default angular
     '$rootScope',
     listViewService,
   ])
+  .factory('Me', ['$resource', 'appConfig', me])
   .factory('Messenger', ['$window', messenger])
   .factory('Order', ['$resource', 'appConfig', order])
   .factory('Profile', ['$resource', 'appConfig', profile])
@@ -89,6 +91,7 @@ export default angular
   .factory('TapeDrive', ['$resource', 'appConfig', tapeDrive])
   .factory('TapeSlot', ['$resource', 'appConfig', tapeSlot])
   .factory('Task', ['$resource', 'appConfig', task])
+  .factory('User', ['$resource', 'appConfig', user])
   .factory('Workarea', ['$resource', 'appConfig', workarea])
   .factory('WorkareaFiles', ['$resource', 'appConfig', workareaFiles])
   .service('Validate', validate).name;

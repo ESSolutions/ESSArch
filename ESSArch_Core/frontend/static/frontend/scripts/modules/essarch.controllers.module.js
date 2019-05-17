@@ -19,6 +19,7 @@ import ReceptionCtrl from '../controllers/ReceptionCtrl';
 import SearchCtrl from '../controllers/SearchCtrl';
 import TagsCtrl from '../controllers/TagsCtrl';
 import UserDropdownCtrl from '../controllers/UserDropdownCtrl';
+import UserSettingsCtrl from '../controllers/UserSettingsCtrl';
 import UtilCtrl from '../controllers/UtilCtrl';
 import VersionCtrl from '../controllers/VersionCtrl';
 
@@ -217,6 +218,15 @@ export default angular
     '$translate',
     '$uibModal',
     UserDropdownCtrl,
+  ])
+  .controller('UserSettingsCtrl', [
+    'Me',
+    '$scope',
+    '$rootScope',
+    '$controller',
+    'myService',
+    '$window',
+    UserSettingsCtrl,
   ])
   .controller('UtilCtrl', [
     'Notifications',
