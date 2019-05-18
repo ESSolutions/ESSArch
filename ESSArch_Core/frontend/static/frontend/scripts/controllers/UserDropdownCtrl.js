@@ -69,7 +69,7 @@ export default class UserDropdownCtrl {
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'modals/change_password_modal.html',
+        templateUrl: 'static/frontend/views/modals/change_password_modal.html',
         scope: $scope,
         size: 'md',
         controller: 'ChangePasswordModalCtrl',

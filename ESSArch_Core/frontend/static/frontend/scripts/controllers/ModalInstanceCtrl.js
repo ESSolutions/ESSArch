@@ -22,19 +22,8 @@
     Email - essarch@essolutions.se
 */
 
-angular
-  .module('essarch.controllers')
-  .controller('ModalInstanceCtrl', function(
-    $uibModalInstance,
-    djangoAuth,
-    data,
-    $http,
-    Notifications,
-    IP,
-    appConfig,
-    listViewService,
-    $translate
-  ) {
+export default class ModalInstanceCtrl {
+  constructor($uibModalInstance, djangoAuth, data, $http, Notifications, IP, appConfig, listViewService, $translate) {
     var $ctrl = this;
     if (data) {
       $ctrl.data = data;
@@ -87,7 +76,25 @@ angular
       };
       $uibModalInstance.close($ctrl.data);
     };
-    $ctrl.prepare = function(label, objectIdentifierValue, orders) {
+    $ctrl.prepare = () => {
+      $ctrl.data = {
+        label: $ctrl.label,
+        objectIdentifierValue: $ctrl.objectIdentifierValue,
+      };
+      $ctrl.preparing = true;
+      return IP.prepare({
+        label: $ctrl.data.label,
+        object_identifier_value: $ctrl.data.objectIdentifierValue,
+      })
+        .$promise.then(function(resource) {
+          $ctrl.preparing = false;
+          return $uibModalInstance.close($ctrl.data);
+        })
+        .catch(function(response) {
+          $ctrl.preparing = false;
+        });
+    };
+    $ctrl.prepareDip = function(label, objectIdentifierValue, orders) {
       $ctrl.preparing = true;
       listViewService
         .prepareDip(label, objectIdentifierValue, orders)
@@ -182,4 +189,5 @@ angular
     $ctrl.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}

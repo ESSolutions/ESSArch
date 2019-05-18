@@ -1,4 +1,4 @@
-angular.module('essarch.services').factory('StateTree', function(IP, Step, $filter, linkHeaderParser) {
+export default (IP, Step, $filter, linkHeaderParser) => {
   //Get data for status view. child steps and tasks
   function getTreeData(ip, expandedNodes) {
     return IP.workflow({
@@ -33,7 +33,7 @@ angular.module('essarch.services').factory('StateTree', function(IP, Step, $filt
   // Gets children for a step and processes each child step/task.
   // Returns the updated step
   function getChildrenForStep(step, page_number) {
-    page_size = 10;
+    let page_size = 10;
     if (angular.isUndefined(page_number) || !page_number) {
       step.page_number = 1;
     } else {
@@ -105,4 +105,4 @@ angular.module('essarch.services').factory('StateTree', function(IP, Step, $filt
     getTreeData: getTreeData,
     getChildrenForStep: getChildrenForStep,
   };
-});
+};

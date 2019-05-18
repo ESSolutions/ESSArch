@@ -1,40 +1,32 @@
-angular
-  .module('essarch.controllers')
-  .controller('ProfileCtrl', function(
-    $q,
+import reduce from 'lodash/reduce';
+
+export default class ProfileCtrl {
+  constructor(
     SA,
+    IP,
     Profile,
-    $timeout,
+    PermPermissionStore,
     ProfileIp,
     ProfileIpData,
     $scope,
-    $http,
-    $rootScope,
-    appConfig,
     listViewService,
     $log,
     $uibModal,
     $translate,
-    $filter,
-    IPReception
+    $filter
   ) {
     var vm = this;
     $scope.angular = angular;
     $scope.select = true;
     $scope.alerts = {
-      receiveError: {type: 'danger', msg: $translate.instant('CANNOT_RECEIVE_ERROR')},
-      aicDescriptionError: {type: 'danger', msg: $translate.instant('MISSING_AIC_DESCRIPTION')},
-      aipError: {type: 'danger', msg: $translate.instant('MISSING_AIP')},
-      dipError: {type: 'danger', msg: $translate.instant('MISSING_DIP')},
-      aipDescriptionError: {type: 'danger', msg: $translate.instant('MISSING_AIP_DESCRIPTION')},
+      error: {type: 'danger', msg: $translate.instant('ERROR')},
       noSas: {type: 'danger', msg: $translate.instant('NO_SUBMISSION_AGREEMENT_AVAILABLE')},
     };
     $scope.saAlert = null;
-    $scope.aicDescriptionAlert = $scope.alerts.aicDescriptionError;
     $scope.aipAlert = $scope.alerts.aipError;
     $scope.dipAlert = $scope.alerts.dipError;
-    $scope.aipDescriptionAlert = $scope.alerts.aipDescriptionError;
     vm.dataVersion = null;
+    $scope.selectRowCollapse = [];
     // On init
     vm.$onInit = function() {
       init();
@@ -59,11 +51,13 @@ angular
       listViewService.getSaProfiles($scope.ip).then(function(result) {
         vm.gettingSas = false;
         $scope.saProfile.profiles = result.profiles;
+        $scope.saProfile.locked = result.locked;
         var chosen_sa_id = null;
         if ($scope.ip.submission_agreement) {
           chosen_sa_id = $scope.ip.submission_agreement;
-        } else if ($scope.ip.altrecordids && $scope.ip.altrecordids.SUBMISSIONAGREEMENT) {
-          chosen_sa_id = $scope.ip.altrecordids.SUBMISSIONAGREEMENT[0];
+        } else if ($scope.ip.submission_agreement == null && result.profiles.length > 0) {
+          chosen_sa_id = $scope.saProfile.profiles[0].id;
+          $scope.changeSaProfile($scope.saProfile.profiles[0], $scope.ip);
         }
         if (result.profiles.length <= 0) {
           $scope.saAlert = $scope.alerts.noSas;
@@ -71,53 +65,31 @@ angular
           var found = $filter('filter')(result.profiles, {id: chosen_sa_id}, true);
           if (found.length) {
             $scope.saProfile.profile = found[0];
-            $scope.saProfile.disabled = true;
           } else {
-            $scope.saAlert = $scope.alerts.receiveError;
-            $scope.saProfile.disabled = true;
-            $scope.$emit('disable_receive', {});
+            $scope.saAlert = $scope.alerts.error;
           }
         }
-        vm.shareData({
-          $event: {
-            approved: false,
-            aipProfileId: $scope.saProfile.profile.profile_aip.id,
-            dipProfileId: $scope.saProfile.profile.profile_dip.id,
-            aipModel: vm.savedAip,
-            dipModel: vm.savedDip,
-            submissionAgreement: $scope.saProfile.profile.id,
-            saObject: $scope.saProfile.profile,
-          },
-        });
-        vm.loadProfiles($scope.ip);
+        vm.loadProfiles();
       });
     }
 
-    vm.loadProfiles = function(ip) {
-      $scope.selectRowCollapse = [];
-      return ProfileIp.query({ip: ip.id}).$promise.then(function(resource) {
-        resource.forEach(function(profileIp) {
-          $scope.selectRowCollapse.push(profileIp);
-        });
-        $scope.selectRowCollection = $scope.selectRowCollapse;
-        return $scope.selectRowCollection;
+    vm.loadProfiles = function() {
+      var sa = $scope.saProfile.profile;
+      $scope.selectRowCollection = [];
+      SA.profiles({id: sa.id}).$promise.then(function(resource) {
+        $scope.selectRowCollection = resource;
       });
     };
 
     vm.changeDataVersion = function(profileIp, data) {
       ProfileIp.patch({id: profileIp.id}, {data: data}).$promise.then(function(resource) {
-        ProfileIp.get({id: resource.id}).$promise.then(function(response) {
-          vm.profileIp = response;
-          vm.loadProfiles($scope.ip);
-          vm.getAndShowProfile(vm.profileIp, {});
-        });
+        vm.getAndShowProfile(vm.selectedProfile, {});
       });
     };
 
     $scope.pushData = function() {
       vm.shareData({
         $event: {
-          approved: true,
           aipProfileId: $scope.saProfile.profile.profile_aip.id,
           dipProfileId: $scope.saProfile.profile.profile_dip.id,
           aipModel: vm.savedAip,
@@ -142,7 +114,7 @@ angular
             .$promise.then(function(response) {
               vm.savingProfileModel = false;
               vm.cancel();
-              vm.loadProfiles($scope.ip);
+              return response;
             })
             .catch(function(response) {
               vm.savingProfileModel = false;
@@ -163,11 +135,13 @@ angular
       vm.saModel = {};
       vm.saFields = [];
       $scope.selectedSa = null;
+      $scope.editSa = false;
     };
+
     vm.profileModel = {};
     vm.profileFields = [];
     vm.options = {};
-    //Click funciton for sa view
+    //Click function for sa view
     $scope.saClick = function(row) {
       vm.loadingSa = true;
       if ($scope.selectedSa == row && $scope.editSA) {
@@ -184,40 +158,38 @@ angular
         vm.saFields = [];
         vm.saModel = {};
 
-        // only keep fields defined in template
-        chosen.template.forEach(function(field) {
-          if (!field.hidden) {
-            vm.saModel[field.key] = chosen[field.key];
-            vm.saFields.push(field);
-          }
-        });
-        var toDelete = [];
-        vm.saFields = vm.saFields.map(function(field, idx) {
-          delete field.templateOptions.options;
-          field.type = 'input';
-          field.templateOptions.disabled = true;
-          if (field.key.startsWith('profile_')) {
-            $scope.selectRowCollection.forEach(function(profile) {
-              if (vm.saModel[field.key] == profile.id) {
-                vm.saModel[field.key] = profile.name;
-              }
-            });
-            if (vm.saModel[field.key] == null) {
-              toDelete.push(field);
+        vm.saFields = reduce(
+          chosen.template,
+          function(memo, field) {
+            if (field.hidden) {
+              return memo;
             }
-            field.templateOptions.label = field.key.replace('profile_', '');
-          }
-          return field;
-        });
-        toDelete.forEach(function(field) {
-          vm.saFields.splice(vm.saFields.indexOf(field), 1);
-        });
+            vm.saModel[field.key] = chosen[field.key];
+            delete field.templateOptions.options;
+            field.type = 'input';
+            field.templateOptions.disabled = true;
+            if (field.key.startsWith('profile_')) {
+              $scope.selectRowCollection.forEach(function(profile) {
+                if (vm.saModel[field.key] == profile.id) {
+                  vm.saModel[field.key] = profile.name;
+                }
+              });
+              if (vm.saModel[field.key] == null) {
+                return memo;
+              }
+              field.templateOptions.label = field.key.replace('profile_', '');
+            }
+            memo.push(field);
+            return memo;
+          },
+          []
+        );
         vm.loadingSa = false;
         $scope.editSA = true;
       }
     };
 
-    //Click funciton for profile view
+    //Click function for profile view
     $scope.profileClick = function(row) {
       if (vm.selectedProfile && vm.selectedProfile.id == row.id) {
         $scope.eventlog = false;
@@ -225,11 +197,8 @@ angular
         vm.cancel();
       } else {
         $scope.editSA = false;
-        vm.cancel();
-        $timeout(function() {
-          vm.getAndShowProfile(row, {});
-          $scope.edit = true;
-        });
+        vm.getAndShowProfile(row, {});
+        $scope.edit = true;
       }
     };
 
@@ -246,33 +215,55 @@ angular
     vm.profileIp = null;
     vm.selectedProfile = null;
     vm.loadingProfileData = {};
-    vm.getAndShowProfile = function(profileIp, row) {
-      vm.loadingProfileData[profileIp.profile_type] = true;
-      vm.selectedProfile = profileIp;
-      vm.profileIp = profileIp;
+    vm.getAndShowProfile = function(profile, row) {
+      vm.loadingProfileData[profile.profile_type] = true;
+      vm.selectedProfile = profile;
+      var profileId = profile.id;
       Profile.get({
-        id: profileIp.profile,
+        id: profile.id,
       })
         .$promise.then(function(resource) {
-          resource.profile_name = resource.name;
-          row.active = resource;
-          row.profiles = [resource];
-          $scope.selectProfile = row;
-          if (profileIp.data == null) {
-            profileIp.data = {data: {}};
-          }
-          vm.profileOldModel = angular.copy(profileIp.data.data);
-          vm.profileModel = angular.copy(profileIp.data.data);
-          vm.dataVersion = profileIp.data_versions[profileIp.data_versions.indexOf(profileIp.data.id)];
-          getStructure(row.active);
-          $scope.profileToSave = row.active;
-          vm.profileFields = row.active.template;
-          $scope.edit = true;
-          $scope.eventlog = true;
-          vm.loadingProfileData[profileIp.profile_type] = false;
+          ProfileIp.query({profile: resource.id, ip: $scope.ip.id})
+            .$promise.then(function(profileIp) {
+              resource.profile_name = resource.name;
+              row.active = resource;
+              row.profiles = [resource];
+              $scope.selectProfile = row;
+              if (profileIp[0].data == null) {
+                profileIp[0].data = {data: {}};
+              }
+              vm.profileOldModel = angular.copy(profileIp[0].data.data);
+              vm.profileModel = angular.copy(profileIp[0].data.data);
+              vm.profileIp = profileIp[0];
+              vm.dataVersion = vm.profileIp.data_versions[vm.profileIp.data_versions.indexOf(vm.profileIp.data.id)];
+              getStructure(row.active);
+              var temp = [];
+              row.active.template.forEach(function(x) {
+                if (!x.templateOptions.disabled) {
+                  if (vm.disabled) {
+                    x.templateOptions.disabled = true;
+                    x.type = 'input';
+                  }
+                }
+                if (!x.hidden) {
+                  temp.push(x);
+                }
+              });
+              $scope.profileToSave = row.active;
+              vm.profileFields = temp;
+              $scope.edit = true;
+              $scope.eventlog = true;
+              vm.loadingProfileData[profile.profile_type] = false;
+            })
+            .catch(function(response) {
+              vm.profileFields = [];
+              $scope.edit = true;
+              $scope.eventlog = true;
+              vm.loadingProfileData[profile.profile_type] = false;
+            });
         })
         .catch(function(response) {
-          vm.loadingProfileData[profileIp.profile_type] = false;
+          vm.loadingProfileData[profile.profile_type] = false;
           vm.cancel();
         });
     };
@@ -282,57 +273,23 @@ angular
         vm.profileModel = angular.copy(resource.data);
       });
     };
-    //Gets all submission agreement profiles
-    $scope.getSaProfiles = function(ip) {
-      listViewService.getSaProfiles(ip).then(function(value) {
-        $scope.saProfile = value;
-      });
-    };
 
-    //Create and show modal when saving an SA
-    vm.saveSAModal = function() {
-      if (vm.editForm.$valid) {
-        vm.options.updateInitialValue();
-        var modalInstance = $uibModal.open({
-          animation: true,
-          ariaLabelledBy: 'modal-title',
-          ariaDescribedBy: 'modal-body',
-          templateUrl: 'static/frontend/views/save_sa_modal.html',
-          controller: 'ModalInstanceCtrl',
-          controllerAs: '$ctrl',
-        });
-        modalInstance.result.then(
-          function(data) {
-            vm.onSASubmit(data.name);
-          },
-          function() {
-            $log.info('modal-component dismissed at: ' + new Date());
+    //Changes SA profile for selected ip
+    $scope.changeSaProfile = function(sa, ip, oldSa_idx) {
+      vm.changingSa = true;
+      IP.changeSa({id: ip.id}, {submission_agreement: sa.id})
+        .$promise.then(function(resource) {
+          $scope.ip = resource;
+          $scope.saProfile.profile = sa;
+          vm.loadProfiles();
+          if (vm.saFields.length > 0) {
+            vm.saCancel();
           }
-        );
-      }
-    };
-
-    //Create and show modal when saving a profile
-    vm.saveModal = function() {
-      if (vm.editForm.$valid) {
-        vm.options.updateInitialValue();
-        var modalInstance = $uibModal.open({
-          animation: true,
-          ariaLabelledBy: 'modal-title',
-          ariaDescribedBy: 'modal-body',
-          templateUrl: 'static/frontend/views/enter-profile-name-modal.html',
-          controller: 'ModalInstanceCtrl',
-          controllerAs: '$ctrl',
+          vm.changingSa = false;
+        })
+        .catch(function(response) {
+          vm.changingSa = false;
         });
-        modalInstance.result.then(
-          function(data) {
-            vm.onSubmit(data.name);
-          },
-          function() {
-            $log.info('modal-component dismissed at: ' + new Date());
-          }
-        );
-      }
     };
 
     function showRequiredProfileFields(row) {
@@ -360,7 +317,7 @@ angular
         vm.profileModel = angular.copy(row.active.specification_data);
         vm.profileFields = row.active.template;
         $scope.treeElements = [{name: 'root', type: 'folder', children: angular.copy(row.active.structure)}];
-        $scope.expandedNodes = [$scope.treeElements[0]].concat($scope.treeElements[0].children);
+        $scope.expandedNodes = [];
         $scope.profileToSave = row.active;
         $scope.subSelectProfile = 'profile';
         if (row.locked) {
@@ -382,6 +339,44 @@ angular
         $scope.eventlog = true;
       });
     }
+
+    $scope.checkPermission = function(permissionName) {
+      return !angular.isUndefined(PermPermissionStore.getPermissionDefinition(permissionName));
+    };
+
+    //Creates modal for lock SA
+    $scope.lockSaModal = function(sa) {
+      $scope.saProfile = sa;
+      var modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/lock-sa-profile-modal.html',
+        scope: $scope,
+        controller: 'ModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {data: () => {}},
+      });
+      modalInstance.result.then(
+        function(data) {
+          $scope.lockSa($scope.saProfile);
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+    //Lock a SA
+    $scope.lockSa = function(sa) {
+      SA.lock({
+        id: sa.profile.id,
+        ip: $scope.ip.id,
+      }).$promise.then(function(response) {
+        sa.locked = true;
+        $scope.$emit('REFRESH_LIST_VIEW', {});
+        $scope.$emit('RELOAD_IP', {});
+      });
+    };
 
     // Map for profile types
     var typeMap = {
@@ -500,7 +495,7 @@ angular
     //Populate map structure tree view given tree width and amount of levels
     function getStructure(profile) {
       $scope.treeElements = [{name: 'root', type: 'folder', children: profile.structure}];
-      $scope.expandedNodes = [$scope.treeElements[0]].concat($scope.treeElements[0].children);
+      $scope.expandedNodes = [];
     }
     $scope.treeElements = []; //[{name: "Root", type: "Folder", children: createSubTree(3, 4, "")}];
     $scope.currentNode = null;
@@ -658,18 +653,5 @@ angular
         ],
       ];
     };
-
-    $scope.prepare = function(ip) {
-      vm.preparingIp = true;
-      return IPReception.prepare({id: ip.id, submission_agreement: $scope.saProfile.profile.id})
-        .$promise.then(function(resource) {
-          vm.preparingIp = false;
-          vm.ip = resource;
-          $scope.$emit('update_ip', {ip: resource});
-          return resource;
-        })
-        .catch(function(response) {
-          vm.preparingIp = false;
-        });
-    };
-  });
+  }
+}

@@ -1,17 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('TaskInfoModalInstanceCtrl', function(
-    $uibModalInstance,
-    djangoAuth,
-    data,
-    $http,
-    Notifications,
-    IP,
-    appConfig,
-    listViewService,
-    $scope,
-    $rootScope
-  ) {
+export default class TaskInfoModalInstanceCtrl {
+  constructor($uibModalInstance, data, $rootScope) {
     var $ctrl = this;
     if (data) {
       $ctrl.data = data;
@@ -28,4 +16,5 @@ angular
       $uibModalInstance.dismiss('cancel');
     };
     $ctrl.mapStepStateProgress = $rootScope.mapStepStateProgress;
-  });
+  }
+}

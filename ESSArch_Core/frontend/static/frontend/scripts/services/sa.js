@@ -33,6 +33,11 @@ const sa = ($resource, appConfig) => {
         method: 'POST',
         params: {action: 'lock', id: '@id'},
       },
+      profiles: {
+        method: 'GET',
+        isArray: true,
+        params: {action: 'profiles', id: '@id'},
+      },
     }
   );
 };

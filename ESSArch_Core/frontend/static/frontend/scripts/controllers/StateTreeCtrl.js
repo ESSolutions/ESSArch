@@ -1,6 +1,7 @@
-angular
-  .module('essarch.controllers')
-  .controller('StateTreeCtrl', function(
+import moment from 'moment';
+
+export default class StateTreeCtrl {
+  constructor(
     $scope,
     $translate,
     Step,
@@ -13,7 +14,6 @@ angular
     $uibModal,
     $log,
     StateTree,
-    Notifications,
     $rootScope
   ) {
     var vm = this;
@@ -56,14 +56,18 @@ angular
         {
           field: 'progress',
           displayName: $scope.status,
-          cellTemplate: '<div ng-include src="\'step_task_progressbar.html\'"></div>',
+          cellTemplate: '<div ng-include src="\'static/frontend/views/step_task_progressbar.html\'"></div>',
         },
       ];
       if ($scope.checkPermission('WorkflowEngine.can_undo')) {
-        $scope.col_defs.push({cellTemplate: '<div ng-include src="\'workflow/undo.html\'"></div>'});
+        $scope.col_defs.push({
+          cellTemplate: '<div ng-include src="\'static/frontend/views/workflow/undo.html\'"></div>',
+        });
       }
       if ($scope.checkPermission('WorkflowEngine.can_retry')) {
-        $scope.col_defs.push({cellTemplate: '<div ng-include src="\'workflow/redo.html\'"></div>'});
+        $scope.col_defs.push({
+          cellTemplate: '<div ng-include src="\'static/frontend/views/workflow/redo.html\'"></div>',
+        });
       }
 
       $scope.statusViewUpdate($scope.ip);
@@ -389,7 +393,7 @@ angular
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'modals/task_traceback_modal.html',
+        templateUrl: 'static/frontend/views/modals/task_traceback_modal.html',
         scope: $scope,
         size: 'lg',
         controller: 'ModalInstanceCtrl',
@@ -412,7 +416,7 @@ angular
         size: 'lg',
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'modals/task_info_modal.html',
+        templateUrl: 'static/frontend/views/modals/task_info_modal.html',
         scope: $scope,
         controller: 'TaskInfoModalInstanceCtrl',
         controllerAs: '$ctrl',
@@ -434,7 +438,7 @@ angular
         size: 'lg',
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'modals/step_info_modal.html',
+        templateUrl: 'static/frontend/views/modals/step_info_modal.html',
         scope: $scope,
         controller: 'StepInfoModalInstanceCtrl',
         controllerAs: '$ctrl',
@@ -449,4 +453,5 @@ angular
         }
       );
     };
-  });
+  }
+}

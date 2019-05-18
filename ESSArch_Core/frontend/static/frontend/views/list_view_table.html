@@ -16,6 +16,19 @@
     </div>
     <div class="action-button">
       <button
+        permission
+        permission-only="'ip.prepare_ip'"
+        ng-if="'home.createSip.prepareIp' | isState"
+        type="button"
+        ng-click="newIpModal()"
+        class="btn btn-primary"
+        uib-tooltip="{{'PREPAREIPDESC' | translate}}"
+        tooltip-placement="auto left"
+        tooltip-append-to-body="true"
+      >
+        {{'PREPARE_NEW_IP' | translate}}
+      </button>
+      <button
         ng-if="'home.access.createDip' | isState"
         type="button"
         ng-click="prepareDipModal()"

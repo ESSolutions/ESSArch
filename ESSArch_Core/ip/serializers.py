@@ -8,6 +8,8 @@ from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import EventType
 from ESSArch_Core.ip.models import Agent, AgentNote, EventIP, InformationPackage, Order, Workarea
+from ESSArch_Core.profiles.serializers import ProfileIPSerializer
+from ESSArch_Core.profiles.utils import profile_types
 
 VERSION = get_versions()['version']
 
@@ -58,6 +60,11 @@ class InformationPackageSerializer(serializers.ModelSerializer):
     permissions = serializers.SerializerMethodField()
     package_type = serializers.ChoiceField(choices=InformationPackage.PACKAGE_TYPE_CHOICES)
     package_type_display = serializers.CharField(source='get_package_type_display')
+    profiles = serializers.SerializerMethodField()
+
+    def get_profiles(self, obj):
+        profiles = getattr(obj, 'profiles', obj.profileip_set)
+        return ProfileIPSerializer(profiles, many=True, context=self.context).data
 
     def get_agents(self, obj):
         agents = AgentSerializer(obj.agents.all(), many=True).data
@@ -67,6 +74,21 @@ class InformationPackageSerializer(serializers.ModelSerializer):
         user = getattr(self.context.get('request'), 'user', None)
         checker = self.context.get('perm_checker')
         return obj.get_permissions(user=user, checker=checker)
+
+    def to_representation(self, obj):
+        data = super().to_representation(obj)
+        profiles = data['profiles']
+        data['profiles'] = {}
+
+        for ptype in profile_types:
+            data['profile_%s' % ptype] = None
+
+        for p in profiles:
+            data['profile_%s' % p['profile_type']] = p
+
+        data.pop('profiles', None)
+
+        return data
 
     class Meta:
         model = InformationPackage
@@ -79,7 +101,7 @@ class InformationPackageSerializer(serializers.ModelSerializer):
             'policy', 'message_digest', 'message_digest_algorithm',
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
-            'start_date', 'end_date', 'permissions', 'appraisal_date',
+            'start_date', 'end_date', 'permissions', 'appraisal_date', 'profiles',
         )
 
 

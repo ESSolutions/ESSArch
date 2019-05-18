@@ -1,3 +1,5 @@
+import get from 'lodash/get';
+
 angular
   .module('essarch.controllers')
   .controller('SearchDetailCtrl', function(
@@ -490,7 +492,7 @@ angular
             }
           });
           var type = nodes[0].original.type;
-          return _.get(structure, 'specification.rules.' + type + '.movable', true);
+          return get(structure, 'specification.rules.' + type + '.movable', true);
         },
       },
       contextmenu: {
@@ -1053,7 +1055,7 @@ angular
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'modals/change_node_organization.html',
+        templateUrl: 'static/frontend/views/modals/change_node_organization.html',
         controller: 'NodeOrganizationModalInstanceCtrl',
         controllerAs: '$ctrl',
         size: 'lg',

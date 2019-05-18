@@ -8,7 +8,7 @@ const contentTabs = () => {
     'home.createSip.collectContent': {
       collect_content: ['Prepared', 'Uploading'],
     },
-    'home.createSip.ipApproval': {
+    'home.createSip.createSip': {
       approval: ['Uploaded'],
     },
     'home.submitSip.prepareSip': {

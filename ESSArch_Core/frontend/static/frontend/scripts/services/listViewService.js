@@ -314,6 +314,7 @@ const listViewService = (
     });
   }
   //returns all SA-profiles and current as an object
+  //returns all SA-profiles and current as an object
   function getSaProfiles(ip) {
     var sas = [];
     var saProfile = {
@@ -321,40 +322,21 @@ const listViewService = (
       profile: null,
       profiles: [],
     };
-    return SA.query({
+    var promise = SA.query({
       pager: 'none',
     }).$promise.then(function(resource) {
       sas = resource;
       saProfile.profiles = [];
-      var promises = [];
       sas.forEach(function(sa) {
         saProfile.profiles.push(sa);
-        if (
-          ip.submission_agreement == sa.url ||
-          (ip.altrecordids && ip.altrecordids['SUBMISSIONAGREEMENT'] == sa.id)
-        ) {
+        if (ip.submission_agreement == sa.id) {
           saProfile.profile = sa;
           saProfile.locked = ip.submission_agreement_locked;
-          if (saProfile.profile.profile_aip) {
-            promises.push(
-              Profile.get({id: saProfile.profile.profile_aip}).$promise.then(function(resource) {
-                saProfile.profile.profile_aip = resource;
-              })
-            );
-          }
-          if (saProfile.profile.profile_dip) {
-            promises.push(
-              Profile.get({id: saProfile.profile.profile_dip}).$promise.then(function(resource) {
-                saProfile.profile.profile_dip = resource;
-              })
-            );
-          }
         }
       });
-      return $q.all(promises).then(function() {
-        return saProfile;
-      });
+      return saProfile;
     });
+    return promise;
   }
 
   //Execute prepare ip, which creates a new IP

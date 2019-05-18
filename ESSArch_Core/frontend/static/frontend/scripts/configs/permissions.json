@@ -9,7 +9,7 @@
           "collectContent": {
             "_permissions": ["ip.can_upload", "ip.set_uploaded"]
           },
-          "ipApproval": {
+          "createSip": {
             "_permissions": ["ip.create_sip"]
           }
         },

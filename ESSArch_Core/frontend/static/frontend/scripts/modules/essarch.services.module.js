@@ -19,6 +19,7 @@ import robotQueue from '../services/robotQueue';
 import sa from '../services/sa';
 import search from '../services/search';
 import selectedIPUpdater from '../services/SelectedIPUpdater';
+import stateTree from '../services/StateTree';
 import step from '../services/step';
 import storage from '../services/storage';
 import storageMedium from '../services/storageMedium';
@@ -64,8 +65,8 @@ export default angular
   .factory('Messenger', ['$window', messenger])
   .factory('Order', ['$resource', 'appConfig', order])
   .factory('Profile', ['$resource', 'appConfig', profile])
-  .factory('ProfileIp', profileIp)
-  .factory('ProfileIpData', profileIpData)
+  .factory('ProfileIp', ['$resource', 'appConfig', profileIp])
+  .factory('ProfileIpData', ['$resource', 'appConfig', profileIpData])
   .factory('Requests', ['Notifications', 'IP', requests])
   .factory('Resource', ['listViewService', 'Storage', '$rootScope', resource])
   .factory('Robot', ['$resource', 'appConfig', robot])
@@ -73,6 +74,7 @@ export default angular
   .factory('SA', ['$resource', 'appConfig', sa])
   .factory('Search', ['$http', '$sce', 'appConfig', search])
   .factory('SelectedIPUpdater', selectedIPUpdater)
+  .factory('StateTree', ['IP', 'Step', '$filter', 'linkHeaderParser', stateTree])
   .factory('Step', ['$resource', 'appConfig', 'Task', step])
   .factory('Storage', [
     'StorageMedium',

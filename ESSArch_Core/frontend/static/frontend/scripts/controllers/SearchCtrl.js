@@ -464,7 +464,7 @@ export default class SearchCtrl {
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'modals/export_result_modal.html',
+        templateUrl: 'static/frontend/views/modals/export_result_modal.html',
         controller: 'ExportResultModalInstanceCtrl',
         controllerAs: '$ctrl',
         scope: $scope,

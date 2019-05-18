@@ -19,7 +19,7 @@ angular
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'modals/stats_report_modal.html',
+        templateUrl: 'static/frontend/views/modals/stats_report_modal.html',
         controller: 'StatsReportModalInstanceCtrl',
         controllerAs: '$ctrl',
         size: 'lg',

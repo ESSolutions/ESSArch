@@ -9,7 +9,7 @@
       <uib-tab
         index="'approval'"
         ng-if="ip.state == 'Received' || vm.specificTabs.includes('approval')"
-        heading="{{'APPROVAL' | translate}}"
+        heading="'{{'APPROVAL' | translate}}'"
       >
         <div ng-if="vm.activeTab === 'approval'">
           <div class="request-layout" tabindex="-1" ng-keydown="vm.contentViewsKeydownListener($event)">

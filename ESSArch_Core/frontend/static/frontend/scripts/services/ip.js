@@ -31,6 +31,29 @@ const ip = ($resource, appConfig, Event, Step, Task) => {
           },
         },
       },
+      prepare: {
+        method: 'POST',
+      },
+      create: {
+        method: 'POST',
+        params: {action: 'create', id: '@id'},
+      },
+      submit: {
+        method: 'POST',
+        params: {action: 'submit', id: '@id'},
+      },
+      setUploaded: {
+        method: 'POST',
+        params: {action: 'set-uploaded', id: '@id'},
+      },
+      mergeChunks: {
+        method: 'POST',
+        params: {action: 'merge-uploaded-chunks', id: '@id'},
+      },
+      prepareForUpload: {
+        method: 'POST',
+        params: {action: 'prepare', id: '@id'},
+      },
       prepareDip: {
         method: 'POST',
         params: {action: 'prepare-dip'},

@@ -278,10 +278,10 @@ angular
             ],
           },
         })
-        .state('home.createSip.ipApproval', {
+        .state('home.createSip.createSip', {
           url: '/create-SIP',
           templateUrl: '/static/frontend/views/create_sip_ip_approval.html',
-          controller: 'IpApprovalCtrl as vm',
+          controller: 'CreateSipCtrl as vm',
           resolve: {
             authenticated: [
               'djangoAuth',
@@ -292,7 +292,7 @@ angular
           },
           data: {
             permissions: {
-              only: nestedPermissions(resolve('home.createSip.ipApproval', permissionConfig)),
+              only: nestedPermissions(resolve('home.createSip.createSip', permissionConfig)),
               redirectTo: 'home.restricted',
             },
           },
@@ -338,32 +338,6 @@ angular
               only: nestedPermissions(resolve('home.submitSip.prepareSip', permissionConfig)),
               redirectTo: 'home.restricted',
             },
-          },
-        })
-        .state('home.submitSip.reuseSip', {
-          url: '/reuse-SIP',
-          templateUrl: '/static/frontend/views/submit_sip_reuse_sip.html',
-          controller: 'IpApprovalCtrl as vm',
-          resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
-          },
-        })
-        .state('home.submitSip.removeSip', {
-          url: '/remove-SIP',
-          templateUrl: '/static/frontend/views/submit_sip_remove_sip.html',
-          controller: 'IpApprovalCtrl as vm',
-          resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
           },
         })
         .state('home.access.search', {

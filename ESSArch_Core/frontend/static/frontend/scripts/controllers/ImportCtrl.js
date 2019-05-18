@@ -179,7 +179,7 @@ angular
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'modals/sa-exists-modal.html',
+        templateUrl: 'static/frontend/views/modals/sa-exists-modal.html',
         controller: 'OverwriteModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
@@ -197,7 +197,7 @@ angular
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'modals/profile-exists-modal.html',
+        templateUrl: 'static/frontend/views/modals/profile-exists-modal.html',
         controller: 'OverwriteModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {

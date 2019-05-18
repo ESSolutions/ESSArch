@@ -3,21 +3,28 @@ import AccessIpCtrl from '../controllers/AccessIpCtrl';
 import AdministrationCtrl from '../controllers/AdministrationCtrl';
 import AppCtrl from '../controllers/AppCtrl';
 import BaseCtrl from '../controllers/BaseCtrl';
+import CollectContentCtrl from '../controllers/CollectContentCtrl';
 import CombinedWorkareaCtrl from '../controllers/CombinedWorkareaCtrl';
 import ConversionCtrl from '../controllers/ConversionCtrl';
 import CreateDipCtrl from '../controllers/CreateDipCtrl';
+import CreateSipCtrl from '../controllers/CreateSipCtrl';
+import DataModalInstanceCtrl from '../controllers/DataModalInstanceCtrl';
 import HeadCtrl from '../controllers/HeadCtrl';
 import IngestCtrl from '../controllers/IngestCtrl';
 import IpApprovalCtrl from '../controllers/IpApprovalCtrl';
 import LanguageCtrl from '../controllers/LanguageCtrl';
 import MediaInformationCtrl from '../controllers/MediaInformationCtrl';
+import ModalInstanceCtrl from '../controllers/ModalInstanceCtrl';
 import MyPageCtrl from '../controllers/MyPageCtrl';
 import OrdersCtrl from '../controllers/OrdersCtrl';
 import {organization, OrganizationCtrl} from '../controllers/OrganizationCtrl';
+import PrepareIpCtrl from '../controllers/PrepareIpCtrl';
+import PrepareSipCtrl from '../controllers/PrepareSipCtrl';
 import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
 import SearchCtrl from '../controllers/SearchCtrl';
 import TagsCtrl from '../controllers/TagsCtrl';
+import TaskInfoModalInstanceCtrl from '../controllers/TaskInfoModalInstanceCtrl';
 import UserDropdownCtrl from '../controllers/UserDropdownCtrl';
 import UserSettingsCtrl from '../controllers/UserSettingsCtrl';
 import UtilCtrl from '../controllers/UtilCtrl';
@@ -97,6 +104,22 @@ export default angular
     'SelectedIPUpdater',
     BaseCtrl,
   ])
+  .controller('CollectContentCtrl', [
+    'IP',
+    '$log',
+    '$uibModal',
+    '$timeout',
+    '$scope',
+    '$rootScope',
+    '$window',
+    'appConfig',
+    'listViewService',
+    '$interval',
+    '$anchorScroll',
+    '$cookies',
+    '$controller',
+    CollectContentCtrl,
+  ])
   .controller('CombinedWorkareaCtrl', ['$scope', '$controller', CombinedWorkareaCtrl])
   .controller('ConversionCtrl', [
     '$scope',
@@ -135,6 +158,26 @@ export default angular
     'SelectedIPUpdater',
     CreateDipCtrl,
   ])
+  .controller('CreateSipCtrl', [
+    'Profile',
+    '$log',
+    '$scope',
+    '$rootScope',
+    '$state',
+    '$uibModal',
+    '$anchorScroll',
+    '$controller',
+    CreateSipCtrl,
+  ])
+  .controller('DataModalInstanceCtrl', [
+    'IP',
+    '$scope',
+    '$uibModalInstance',
+    'Notifications',
+    'data',
+    '$q',
+    DataModalInstanceCtrl,
+  ])
   .controller('HeadCtrl', ['$scope', '$rootScope', '$translate', '$state', HeadCtrl])
   .controller('IngestCtrl', IngestCtrl)
   .controller('IpApprovalCtrl', [
@@ -157,6 +200,18 @@ export default angular
     'listViewService',
     MediaInformationCtrl,
   ])
+  .controller('ModalInstanceCtrl', [
+    '$uibModalInstance',
+    'djangoAuth',
+    'data',
+    '$http',
+    'Notifications',
+    'IP',
+    'appConfig',
+    'listViewService',
+    '$translate',
+    ModalInstanceCtrl,
+  ])
   .controller('MyPageCtrl', ['$scope', '$controller', MyPageCtrl])
   .controller('OrdersCtrl', [
     '$scope',
@@ -174,6 +229,33 @@ export default angular
   ])
   .controller('OrganizationCtrl', ['$scope', 'Organization', OrganizationCtrl])
   .controller('ProfileManagerCtrl', ['$state', '$scope', ProfileManagerCtrl])
+  .controller('PrepareIpCtrl', [
+    'IP',
+    'SA',
+    'Profile',
+    '$log',
+    '$uibModal',
+    '$timeout',
+    '$scope',
+    '$rootScope',
+    'listViewService',
+    '$translate',
+    '$controller',
+    PrepareIpCtrl,
+  ])
+  .controller('PrepareSipCtrl', [
+    'Profile',
+    '$log',
+    '$uibModal',
+    '$scope',
+    '$rootScope',
+    '$http',
+    'appConfig',
+    'listViewService',
+    '$anchorScroll',
+    '$controller',
+    PrepareSipCtrl,
+  ])
   .controller('ReceptionCtrl', [
     'IPReception',
     'IP',
@@ -210,6 +292,7 @@ export default angular
     SearchCtrl,
   ])
   .controller('TagsCtrl', ['$scope', 'vm', '$http', 'appConfig', TagsCtrl])
+  .controller('TaskInfoModalInstanceCtrl', ['$uibModalInstance', 'data', '$rootScope', TaskInfoModalInstanceCtrl])
   .controller('UserDropdownCtrl', [
     '$scope',
     '$log',

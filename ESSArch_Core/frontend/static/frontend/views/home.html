@@ -61,11 +61,11 @@
         >
         <a
           tabindex="0"
-          ng-keydown="navKeydownListener($event, 'home.createSip.ipApproval')"
+          ng-keydown="navKeydownListener($event, 'home.createSip.createSip')"
           class="nav-item sliding-middle-out"
-          ng-class="{'chosen': $state.includes('home.createSip.ipApproval')}"
-          ui-sref="home.createSip.ipApproval"
-          ng-if="checkPermissions('home.createSip.ipApproval')"
+          ng-class="{'chosen': $state.includes('home.createSip.createSip')}"
+          ui-sref="home.createSip.createSip"
+          ng-if="checkPermissions('home.createSip.createSip')"
           >{{('CREATESIP' | translate)}}</a
         >
         <a
