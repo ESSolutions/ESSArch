@@ -1,18 +1,20 @@
 export default class HeadCtrl {
   /*@ngInject*/
-  constructor($scope, $rootScope, $translate, $state) {
+  constructor($scope, $rootScope, $translate, $state, $transitions) {
     var vm = this;
     var appName = ' | ESSArch';
     vm.pageTitle = 'ESSArch';
-    $scope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams) {
+    $transitions.onSuccess({}, function($transition) {
       vm.pageTitle =
         $translate.instant(
-          toState.name
-            .split('.')
+          $transition
+            .$to()
+            .name.split('.')
             .pop()
             .toUpperCase()
         ) + appName;
     });
+
     $scope.$on('$translateChangeSuccess', function() {
       vm.pageTitle =
         $translate.instant(

@@ -43,7 +43,8 @@ export default class BaseCtrl {
     PermPermissionStore,
     Requests,
     ContentTabs,
-    SelectedIPUpdater
+    SelectedIPUpdater,
+    $transitions
   ) {
     // Initialize variables
 
@@ -165,7 +166,7 @@ export default class BaseCtrl {
     // Initialize intervals
 
     //Cancel update intervals on state change
-    $scope.$on('$stateChangeStart', function() {
+    $transitions.onSuccess({}, function($transition) {
       $interval.cancel(listViewInterval);
       watchers.forEach(function(watcher) {
         watcher();

@@ -38,7 +38,8 @@ angular
     $translate,
     Storage,
     $uibModal,
-    listViewService
+    listViewService,
+    $transitions
   ) {
     var vm = this;
     $scope.translate = $translate;
@@ -59,7 +60,7 @@ angular
     // Table states
 
     var robotInterval;
-    $scope.$on('$stateChangeStart', function() {
+    $transitions.onSuccess({}, function($transition) {
       $interval.cancel(robotInterval);
     });
     $interval.cancel(robotInterval);

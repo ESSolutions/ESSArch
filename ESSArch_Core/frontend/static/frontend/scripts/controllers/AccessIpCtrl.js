@@ -1,5 +1,5 @@
 export default class AccessIpCtrl {
-  constructor($scope, $controller, $rootScope, $translate, $uibModal, $log, ContextMenuBase) {
+  constructor($scope, $controller, $rootScope, $translate, $uibModal, $log, ContextMenuBase, $transitions) {
     var vm = this;
     var ipSortString = [];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString});
@@ -72,8 +72,8 @@ export default class AccessIpCtrl {
       )
     );
 
-    //Destroy watcers on state change
-    $scope.$on('$stateChangeStart', function() {
+    //Destroy watchers on state change
+    $transitions.onSuccess({}, function($transition) {
       watchers.forEach(function(watcher) {
         watcher();
       });

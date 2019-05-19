@@ -23,7 +23,17 @@ Email - essarch@essolutions.se
 */
 
 export default class {
-  constructor($scope, $rootScope, $controller, appConfig, Resource, $interval, SelectedIPUpdater, listViewService) {
+  constructor(
+    $scope,
+    $rootScope,
+    $controller,
+    appConfig,
+    Resource,
+    $interval,
+    SelectedIPUpdater,
+    listViewService,
+    $transitions
+  ) {
     var vm = this;
     var watchers = [];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ''});
@@ -55,13 +65,13 @@ export default class {
         }
       )
     );
-    $scope.$on('$stateChangeStart', function() {
+    $transitions.onSuccess({}, function($transition) {
       watchers.forEach(function(watcher) {
         watcher();
       });
     });
     //Cancel update intervals on state change
-    $scope.$on('$stateChangeStart', function() {
+    $transitions.onSuccess({}, function($transition) {
       $interval.cancel(mediumInterval);
       $interval.cancel(objectInterval);
     });

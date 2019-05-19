@@ -14,7 +14,8 @@ export default class StateTreeCtrl {
     $uibModal,
     $log,
     StateTree,
-    $rootScope
+    $rootScope,
+    $transitions
   ) {
     var vm = this;
     var stateInterval;
@@ -82,7 +83,7 @@ export default class StateTreeCtrl {
     };
 
     //Cancel update intervals on state change
-    $scope.$on('$stateChangeStart', function() {
+    $transitions.onSuccess({}, function($transition) {
       $interval.cancel(stateInterval);
     });
 

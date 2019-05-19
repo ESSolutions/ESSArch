@@ -38,7 +38,8 @@ export default class ReceptionCtrl {
     $translate,
     $controller,
     ContextMenuBase,
-    SelectedIPUpdater
+    SelectedIPUpdater,
+    $transitions
   ) {
     var vm = this;
     var ipSortString = [];
@@ -66,7 +67,7 @@ export default class ReceptionCtrl {
       };
     };
     $scope.initRequestData();
-    $scope.$on('$stateChangeStart', function() {
+    $transitions.onSuccess({}, function($transition) {
       watchers.forEach(function(watcher) {
         watcher();
       });

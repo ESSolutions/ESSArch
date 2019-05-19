@@ -13,7 +13,8 @@ export default class SearchCtrl {
     $window,
     $state,
     $httpParamSerializer,
-    $stateParams
+    $stateParams,
+    $transitions
   ) {
     var vm = this;
     $scope.angular = angular;
@@ -40,7 +41,7 @@ export default class SearchCtrl {
 
     // When state is changed to search active tab is set to the first tab.
     // Fixing issues when backing from search detail state and no tab would be active
-    $scope.$on('$stateChangeSuccess', function() {
+    $transitions.onSuccess({}, function() {
       if ($state.is('home.access.search')) {
         vm.activeTab = 0;
         vm.search(vm.tableState);

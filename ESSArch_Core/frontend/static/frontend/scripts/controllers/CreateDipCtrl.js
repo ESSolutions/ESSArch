@@ -19,7 +19,8 @@ export default class {
     $sce,
     $window,
     ContextMenuBase,
-    SelectedIPUpdater
+    SelectedIPUpdater,
+    $transitions
   ) {
     var vm = this;
     var ipSortString = [];
@@ -86,7 +87,7 @@ export default class {
     };
 
     //Cancel update intervals on state change
-    $scope.$on('$stateChangeStart', function() {
+    $transitions.onSuccess({}, function($transition) {
       $interval.cancel(fileBrowserInterval);
       watchers.forEach(function(watcher) {
         watcher();

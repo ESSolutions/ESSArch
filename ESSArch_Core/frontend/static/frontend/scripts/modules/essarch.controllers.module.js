@@ -82,6 +82,7 @@ export default angular
     '$uibModal',
     '$log',
     'ContextMenuBase',
+    '$transitions',
     AccessIpCtrl,
   ])
   .controller('AdministrationCtrl', AdministrationCtrl)
@@ -107,6 +108,7 @@ export default angular
     'Requests',
     'ContentTabs',
     'SelectedIPUpdater',
+    '$transitions',
     BaseCtrl,
   ])
   .controller('CollectContentCtrl', [
@@ -123,6 +125,7 @@ export default angular
     '$anchorScroll',
     '$cookies',
     '$controller',
+    '$transitions',
     CollectContentCtrl,
   ])
   .controller('CombinedWorkareaCtrl', ['$scope', '$controller', CombinedWorkareaCtrl])
@@ -138,6 +141,7 @@ export default angular
     '$interval',
     'Conversion',
     '$translate',
+    '$transitions',
     ConversionCtrl,
   ])
   .controller('CreateDipCtrl', [
@@ -161,6 +165,7 @@ export default angular
     '$window',
     'ContextMenuBase',
     'SelectedIPUpdater',
+    '$transitions',
     CreateDipCtrl,
   ])
   .controller('CreateSipCtrl', [
@@ -183,7 +188,7 @@ export default angular
     '$q',
     DataModalInstanceCtrl,
   ])
-  .controller('HeadCtrl', ['$scope', '$rootScope', '$translate', '$state', HeadCtrl])
+  .controller('HeadCtrl', ['$scope', '$rootScope', '$translate', '$state', '$transitions', HeadCtrl])
   .controller('IngestCtrl', IngestCtrl)
   .controller('IpApprovalCtrl', [
     '$scope',
@@ -203,6 +208,7 @@ export default angular
     '$interval',
     'SelectedIPUpdater',
     'listViewService',
+    '$transitions',
     MediaInformationCtrl,
   ])
   .controller('ModalInstanceCtrl', [
@@ -277,6 +283,7 @@ export default angular
     '$controller',
     'ContextMenuBase',
     'SelectedIPUpdater',
+    '$transitions',
     ReceptionCtrl,
   ])
   .controller('SearchCtrl', [
@@ -294,6 +301,7 @@ export default angular
     '$state',
     '$httpParamSerializer',
     '$stateParams',
+    '$transitions',
     SearchCtrl,
   ])
   .controller('TagsCtrl', ['$scope', 'vm', '$http', 'appConfig', TagsCtrl])
@@ -324,6 +332,7 @@ export default angular
     'myService',
     'permissionConfig',
     '$anchorScroll',
+    '$transitions',
     UtilCtrl,
   ])
   .controller('VersionCtrl', ['$scope', '$window', '$anchorScroll', '$location', '$translate', 'Sysinfo', VersionCtrl])

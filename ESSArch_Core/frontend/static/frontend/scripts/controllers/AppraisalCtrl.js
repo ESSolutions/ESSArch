@@ -18,7 +18,8 @@ angular
     $filter,
     $interval,
     Appraisal,
-    $translate
+    $translate,
+    $transitions
   ) {
     var vm = this;
     vm.rulesPerPage = 10;
@@ -33,7 +34,7 @@ angular
     $scope.$translate = $translate;
 
     //Cancel update intervals on state change
-    $scope.$on('$stateChangeStart', function() {
+    $transitions.onSuccess({}, function($transition) {
       $interval.cancel(appraisalInterval);
     });
     var appraisalInterval = $interval(function() {

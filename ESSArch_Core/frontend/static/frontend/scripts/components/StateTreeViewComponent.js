@@ -16,6 +16,7 @@ export default {
     '$log',
     'StateTree',
     '$rootScope',
+    '$transitions',
     StateTreeCtrl,
   ],
   controllerAs: 'vm',

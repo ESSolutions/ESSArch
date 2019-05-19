@@ -22,7 +22,8 @@ angular
     $window,
     $state,
     $interval,
-    $filter
+    $filter,
+    $transitions
   ) {
     var PAGE_SIZE = 10;
 
@@ -38,7 +39,7 @@ angular
     var recordInterval;
 
     // Destroy intervals on state change
-    $scope.$on('$stateChangeStart', function() {
+    $transitions.onSuccess({}, function($transition) {
       $interval.cancel(recordInterval);
     });
 

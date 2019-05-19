@@ -26,7 +26,7 @@ import {nestedEmptyPermissions, nestedPermissions, resolve} from '../index';
 
 export default class UtilCtrl {
   /*@ngInject*/
-  constructor(Notifications, $scope, $state, $timeout, myService, permissionConfig, $anchorScroll) {
+  constructor(Notifications, $scope, $state, $timeout, myService, permissionConfig, $anchorScroll, $transitions) {
     $scope.angular = angular;
     $scope.$state = $state;
     $scope.reloadPage = function() {
@@ -71,8 +71,8 @@ export default class UtilCtrl {
         case enter:
           e.preventDefault();
           stateChangeListeners.push(
-            $scope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
-              event.preventDefault();
+            $transitions.onSuccess({}, function($transition) {
+              $transition.abort();
               if (
                 state == 'home.ingest' ||
                 state == 'home.access' ||

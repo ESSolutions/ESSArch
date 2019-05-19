@@ -38,7 +38,8 @@ export default class CollectContentCtrl {
     $interval,
     $anchorScroll,
     $cookies,
-    $controller
+    $controller,
+    $transitions
   ) {
     var vm = this;
     var ipSortString = ['Prepared', 'Uploading'];
@@ -69,7 +70,7 @@ export default class CollectContentCtrl {
         }
       )
     );
-    $scope.$on('$stateChangeStart', function() {
+    $transitions.onSuccess({}, function($transition) {
       $interval.cancel(fileBrowserInterval);
       watchers.forEach(function(watcher) {
         watcher();

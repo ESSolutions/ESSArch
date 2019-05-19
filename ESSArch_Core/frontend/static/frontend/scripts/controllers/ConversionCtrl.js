@@ -10,7 +10,8 @@ export default class {
     Notifications,
     $interval,
     Conversion,
-    $translate
+    $translate,
+    $transitions
   ) {
     var vm = this;
     vm.rulesPerPage = 10;
@@ -25,7 +26,7 @@ export default class {
     $scope.$translate = $translate;
 
     //Cancel update intervals on state change
-    $scope.$on('$stateChangeStart', function() {
+    $transitions.onSuccess({}, function($transition) {
       $interval.cancel(conversionInterval);
     });
     var conversionInterval = $interval(function() {

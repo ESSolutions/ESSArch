@@ -24,7 +24,7 @@ Email - essarch@essolutions.se
 
 import * as angular from 'angular';
 import {permission, uiPermission} from 'angular-permission';
-import uiRouter, {UrlService, UrlRouterProvider, StateService} from '@uirouter/angularjs';
+import uiRouter, {UrlService, StateService, StateProvider, TransitionService} from '@uirouter/angularjs';
 
 import '@flowjs/ng-flow';
 import 'angular-animate';
@@ -137,9 +137,14 @@ angular
   .config([
     '$urlMatcherFactoryProvider',
     '$stateProvider',
-    '$urlRouterProvider',
+    '$urlServiceProvider',
     'permissionConfig',
-    function($urlMatcherFactoryProvider, $stateProvider, $urlRouterProvider: UrlRouterProvider, permissionConfig) {
+    function(
+      $urlMatcherFactoryProvider,
+      $stateProvider: StateProvider,
+      $urlServiceProvider: UrlService,
+      permissionConfig
+    ) {
       $urlMatcherFactoryProvider.strictMode(false);
 
       $stateProvider
@@ -1013,12 +1018,12 @@ angular
             ],
           },
         });
-      $urlRouterProvider.otherwise(function($injector) {
+      $urlServiceProvider.rules.otherwise(function($injector) {
         var $state = $injector.get('$state');
         $state.go('home.info');
       });
 
-      $urlRouterProvider.deferIntercept();
+      $urlServiceProvider.deferIntercept();
     },
   ])
   .config([
@@ -1132,6 +1137,7 @@ angular
     '$urlService',
     'permissionConfig',
     'appConfig',
+    '$transitions',
     function(
       djangoAuth,
       $rootScope,
@@ -1143,7 +1149,8 @@ angular
       formlyValidationMessages: IValidationMessages,
       $urlService: UrlService,
       permissionConfig,
-      appConfig
+      appConfig,
+      $transitions: TransitionService
     ) {
       formlyConfig.extras.errorExistsAndShouldBeVisibleExpression = 'form.$submitted || fc.$touched || fc[0].$touched';
       formlyValidationMessages.addStringMessage('required', 'This field is required');
@@ -1167,13 +1174,14 @@ angular
             .catch(function() {
               $rootScope.site = null;
             });
-          $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState) {
-            if (toState.name === 'login') {
+          $transitions.onStart({}, function($transition) {
+            let to = $transition.$to();
+            if (to.name === 'login') {
               return;
             }
             if (djangoAuth.authenticated !== true) {
               console.log('Not authenticated, redirecting to login');
-              event.preventDefault();
+              $transition.abort();
               $state.go('login'); // go to login
             }
           });
@@ -1183,14 +1191,18 @@ angular
           $state.go('login', {requestedPage: $location.path()});
         });
 
-      $rootScope.$on('$stateChangeStart', function(evt, to, params, from) {
+      $transitions.onStart({}, function($transition) {
+        let to = $transition.$to();
+        let from = $transition.$from();
+        let params = $transition.params();
+
         if (to.redirectTo) {
-          evt.preventDefault();
-          $state.go(to.redirectTo, params, {location: 'replace'});
+          $transition.abort();
+          $state.go(to.redirectTo.toString(), params, {location: 'replace'});
         }
 
         if (to.name == 'login' && djangoAuth.authenticated) {
-          evt.preventDefault();
+          $transition.abort();
           if (from.name != '') {
             $state.transitionTo(from.name);
           } else {
@@ -1205,7 +1217,7 @@ angular
           to.name == 'home.administration.profileManager' ||
           to.name == 'home.archiveMaintenance'
         ) {
-          evt.preventDefault();
+          $transition.abort();
           var resolved = resolve(to.name, permissionConfig);
           for (var key in resolved) {
             if (key != '_permissions' && myService.checkPermissions(nestedPermissions(resolved[key]))) {

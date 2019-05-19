@@ -1,6 +1,6 @@
 angular
   .module('essarch.controllers')
-  .controller('QueuesCtrl', function(appConfig, $scope, $rootScope, Storage, Resource, $interval) {
+  .controller('QueuesCtrl', function(appConfig, $scope, $rootScope, Storage, Resource, $interval, $transitions) {
     var vm = this;
     $scope.select = true;
     vm.ioQueue = [];
@@ -19,7 +19,7 @@ angular
       vm.getRobotQueue(vm.robotTableState);
     }, appConfig.queueInterval);
 
-    $scope.$on('$stateChangeStart', function() {
+    $transitions.onSuccess({}, function($transition) {
       $interval.cancel(ioInterval);
       $interval.cancel(robotInterval);
     });

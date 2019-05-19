@@ -11,7 +11,8 @@ angular
     $window,
     $translate,
     $http,
-    Notifications
+    Notifications,
+    $transitions
   ) {
     var vm = this;
     $scope.$translate = $translate;
@@ -74,7 +75,7 @@ angular
     $scope.closeAlert = function() {
       $scope.addEventAlert = null;
     };
-    $scope.$on('$stateChangeStart', function() {
+    $transitions.onSuccess({}, function($transition) {
       $interval.cancel(eventInterval);
     });
     $scope.$on('$destroy', function() {
