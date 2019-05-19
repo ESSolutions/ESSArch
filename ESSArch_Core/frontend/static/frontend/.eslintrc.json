@@ -13,9 +13,9 @@
   "rules": {
     "no-unreachable": ["error"],
     "no-unused-expressions": "error",
-    "no-unused-vars": ["error", {"args": "none"}],
     "@typescript-eslint/camelcase": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
+    "angular/controller-name": "off",
     "angular/file-name": "off",
     "angular/function-type": "off",
     "angular/no-run-logic": "off"
