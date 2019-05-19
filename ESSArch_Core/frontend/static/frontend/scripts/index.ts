@@ -111,6 +111,13 @@ export const nestedEmptyPermissions = (page: object[] | object): boolean => {
   }
 };
 
+let resolveAuthenticated = [
+  'djangoAuth',
+  function(djangoAuth) {
+    return djangoAuth.authenticationStatus();
+  },
+];
+
 angular
   .module('essarch', [
     essarchLanguageModule,
@@ -160,12 +167,7 @@ angular
           templateUrl: '/static/frontend/views/login.html',
           controller: 'LoginCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         })
         .state('home.userSettings', {
@@ -173,12 +175,7 @@ angular
           templateUrl: '/static/frontend/views/user_settings.html',
           controller: 'UserSettingsCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         })
         .state('home.info', {
@@ -186,24 +183,14 @@ angular
           templateUrl: '/static/frontend/views/my_page.html',
           controller: 'MyPageCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         })
         .state('home.createSip', {
           url: 'create-SIP',
           templateUrl: '/static/frontend/views/create_sip.html',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         })
         .state('home.createSip.prepareIp', {
@@ -211,12 +198,7 @@ angular
           templateUrl: '/static/frontend/views/create_sip_prepare_ip.html',
           controller: 'PrepareIpCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -230,12 +212,7 @@ angular
           templateUrl: '/static/frontend/views/create_sip_collect_content.html',
           controller: 'CollectContentCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -249,12 +226,7 @@ angular
           templateUrl: '/static/frontend/views/create_sip_data_selection.html',
           controller: 'PrepareIpCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         })
         .state('home.createSip.dataExtraction', {
@@ -262,12 +234,7 @@ angular
           templateUrl: '/static/frontend/views/create_sip_data_extraction.html',
           controller: 'PrepareIpCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         })
         .state('home.createSip.manageData', {
@@ -275,12 +242,7 @@ angular
           templateUrl: '/static/frontend/views/create_sip_manage_data.html',
           controller: 'PrepareIpCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         })
         .state('home.createSip.createSip', {
@@ -288,12 +250,7 @@ angular
           templateUrl: '/static/frontend/views/create_sip_ip_approval.html',
           controller: 'CreateSipCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -306,24 +263,14 @@ angular
           url: 'submit-SIP',
           templateUrl: '/static/frontend/views/submit_sip.html',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         })
         .state('home.submitSip.info', {
           url: '/info',
           templateUrl: '/static/frontend/views/submit_sip_info_page.html',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         })
         .state('home.submitSip.prepareSip', {
@@ -331,12 +278,7 @@ angular
           templateUrl: '/static/frontend/views/submit_sip_prepare_sip.html',
           controller: 'PrepareSipCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -350,12 +292,7 @@ angular
           templateUrl: '/static/frontend/views/search.html',
           controller: 'SearchCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -369,12 +306,7 @@ angular
           templateUrl: '/static/frontend/views/search_ip_detail.html',
           controller: 'SearchIpCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -388,12 +320,7 @@ angular
           templateUrl: '/static/frontend/views/search_detail.html',
           controller: 'SearchDetailCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -407,12 +334,7 @@ angular
           templateUrl: '/static/frontend/views/search_structure_unit_detail.html',
           controller: 'SearchDetailCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -426,12 +348,7 @@ angular
           templateUrl: '/static/frontend/views/search_detail.html',
           controller: 'SearchDetailCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -445,12 +362,7 @@ angular
           templateUrl: '/static/frontend/views/search_detail.html',
           controller: 'SearchDetailCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -464,12 +376,7 @@ angular
           templateUrl: '/static/frontend/views/search_detail.html',
           controller: 'SearchDetailCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -483,12 +390,7 @@ angular
           templateUrl: '/static/frontend/views/version_info.html',
           controller: 'VersionCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         })
         .state('home.ingest', {
@@ -496,12 +398,7 @@ angular
           templateUrl: '/static/frontend/views/ingest.html',
           controller: 'IngestCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         })
         .state('home.ingest.reception', {
@@ -509,12 +406,7 @@ angular
           templateUrl: '/static/frontend/views/reception.html',
           controller: 'ReceptionCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -528,12 +420,7 @@ angular
           templateUrl: '/static/frontend/views/ip_approval.html',
           controller: 'IpApprovalCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -547,12 +434,7 @@ angular
           templateUrl: '/static/frontend/views/access.html',
           controller: 'AccessCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         })
         .state('home.access.accessIp', {
@@ -560,12 +442,7 @@ angular
           templateUrl: '/static/frontend/views/access_ip.html',
           controller: 'AccessIpCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -580,12 +457,7 @@ angular
           controller: 'CreateDipCtrl as vm',
           params: {ip: null},
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -599,12 +471,7 @@ angular
           templateUrl: '/static/frontend/views/combined_workarea.html',
           controller: 'CombinedWorkareaCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -618,12 +485,7 @@ angular
           templateUrl: '/static/frontend/views/orders.html',
           controller: 'OrdersCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -637,12 +499,7 @@ angular
           templateUrl: '/static/frontend/views/management.html',
           controller: 'ManagementCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -655,12 +512,7 @@ angular
           url: 'archive-maintenance',
           templateUrl: '/static/frontend/views/archive_maintenance.html',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         })
         .state('home.archiveMaintenance.start', {
@@ -668,12 +520,7 @@ angular
           templateUrl: '/static/frontend/views/archive_maintenance_start.html',
           controller: 'AppraisalCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -687,12 +534,7 @@ angular
           templateUrl: '/static/frontend/views/appraisal.html',
           controller: 'AppraisalCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -706,12 +548,7 @@ angular
           templateUrl: '/static/frontend/views/conversion.html',
           controller: 'ConversionCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -725,12 +562,7 @@ angular
           templateUrl: '/static/frontend/views/administration.html',
           controller: 'AdministrationCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         })
         .state('home.administration.searchAdmin', {
@@ -738,12 +570,7 @@ angular
           template: '<search-admin></search-admin>',
           redirectTo: 'home.administration.searchAdmin.archiveManager',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -756,12 +583,7 @@ angular
           url: '/classification-structures',
           template: '<classification-structure-editor></classification-structure-editor>',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -774,12 +596,7 @@ angular
           url: '/archive-manager',
           template: '<archive-manager></archive-manager>',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -793,12 +610,7 @@ angular
           templateUrl: '/static/frontend/views/administration_media_information.html',
           controller: 'MediaInformationCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -812,12 +624,7 @@ angular
           templateUrl: '/static/frontend/views/administration_robot_information.html',
           controller: 'RobotInformationCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -831,12 +638,7 @@ angular
           templateUrl: 'static/frontend/views/administration_queues.html',
           controller: 'QueuesCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -850,12 +652,7 @@ angular
           templateUrl: 'static/frontend/views/administration_storage_migration.html',
           controller: 'StorageMigrationCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -869,12 +666,7 @@ angular
           templateUrl: 'static/frontend/views/administration_storage_maintenance.html',
           controller: 'StorageMaintenanceCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -888,12 +680,7 @@ angular
           templateUrl: 'static/frontend/views/profile_manager.html',
           controller: 'ProfileManagerCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -906,12 +693,7 @@ angular
           url: '/sa-editor',
           template: '<sa-editor></sa-editor>',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -924,12 +706,7 @@ angular
           url: '/profile-maker',
           template: '<profile-maker></profile-maker>',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -942,12 +719,7 @@ angular
           url: '/import',
           template: '<import></import>',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -960,12 +732,7 @@ angular
           url: '/export',
           template: '<export></export>',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -978,12 +745,7 @@ angular
           url: 'dashboard',
           template: '<dashboard-stats></dashboard-stats>',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
           data: {
             permissions: {
@@ -997,12 +759,7 @@ angular
           templateUrl: '/static/frontend/views/restricted.html',
           controller: 'RestrictedCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         })
         .state('authRequired', {
@@ -1010,12 +767,7 @@ angular
           templateUrl: '/static/frontend/views/auth_required.html',
           controller: 'AuthRequiredCtrl as vm',
           resolve: {
-            authenticated: [
-              'djangoAuth',
-              function(djangoAuth) {
-                return djangoAuth.authenticationStatus();
-              },
-            ],
+            authenticated: resolveAuthenticated,
           },
         });
       $urlServiceProvider.rules.otherwise(function($injector) {
