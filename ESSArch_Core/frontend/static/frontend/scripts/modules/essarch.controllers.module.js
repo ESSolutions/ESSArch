@@ -1,3 +1,5 @@
+import * as angular from 'angular';
+
 import AccessCtrl from '../controllers/AccessCtrl';
 import AccessIpCtrl from '../controllers/AccessIpCtrl';
 import AdministrationCtrl from '../controllers/AdministrationCtrl';
@@ -30,6 +32,9 @@ import UserSettingsCtrl from '../controllers/UserSettingsCtrl';
 import UtilCtrl from '../controllers/UtilCtrl';
 import VersionCtrl from '../controllers/VersionCtrl';
 
+import {permission, uiPermission} from 'angular-permission';
+import uiRouter from '@uirouter/angularjs';
+
 import '../configs/config.json';
 import '../configs/permissions.json';
 
@@ -55,8 +60,9 @@ export default angular
     'ngWebSocket',
     'pascalprecht.translate',
     'permission.config',
-    'permission.ui',
-    'permission',
+    uiRouter,
+    permission,
+    uiPermission,
     'relativeDate',
     'smart-table',
     'treeControl',
@@ -65,7 +71,6 @@ export default angular
     'ui.bootstrap.datetimepicker',
     'ui.bootstrap',
     'ui.dateTimeInput',
-    'ui.router',
     'ui.select',
   ])
   .controller('AccessCtrl', AccessCtrl)

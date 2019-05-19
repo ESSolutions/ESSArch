@@ -23,8 +23,10 @@ Email - essarch@essolutions.se
 */
 
 import * as angular from 'angular';
+import {permission, uiPermission} from 'angular-permission';
+import uiRouter, {UrlService, UrlRouterProvider, StateService} from '@uirouter/angularjs';
+
 import '@flowjs/ng-flow';
-import '@uirouter/angularjs';
 import 'angular-animate';
 import 'angularjs-bootstrap-datetimepicker';
 import 'angular-bootstrap-contextmenu';
@@ -40,12 +42,10 @@ import 'angular-link-header-parser';
 import 'angular-marked';
 import 'angular-messages';
 import 'angular-mocks';
-import 'angular-permission';
 import 'angular-pretty-xml';
 import 'angular-relative-date';
 import 'angular-resource';
 import 'angular-resizable';
-import 'angular-route';
 import 'angular-sanitize';
 import 'angular-smart-table';
 import 'angular-translate';
@@ -72,6 +72,7 @@ import essarchComponentsModule from './modules/essarch.components.module';
 import essarchDirectivesModule from './modules/essarch.directives.module';
 
 import '../styles/styles.scss';
+import {IFormlyConfig, IValidationMessages} from 'AngularFormly';
 
 export const resolve = (path: string, obj: object) => {
   return path.split('.').reduce(function(prev, curr) {
@@ -118,13 +119,12 @@ angular
     essarchConfigsModule,
     essarchComponentsModule,
     essarchDirectivesModule,
-    'ngRoute',
     'formly',
     'formlyBootstrap',
-    'ui.router',
+    uiRouter,
+    permission,
+    uiPermission,
     'ngCookies',
-    'permission',
-    'permission.ui',
     'pascalprecht.translate',
     'ngSanitize',
     'ui.bootstrap.datetimepicker',
@@ -139,7 +139,7 @@ angular
     '$stateProvider',
     '$urlRouterProvider',
     'permissionConfig',
-    function($urlMatcherFactoryProvider, $stateProvider, $urlRouterProvider, permissionConfig) {
+    function($urlMatcherFactoryProvider, $stateProvider, $urlRouterProvider: UrlRouterProvider, permissionConfig) {
       $urlMatcherFactoryProvider.strictMode(false);
 
       $stateProvider
@@ -1129,19 +1129,19 @@ angular
     'myService',
     'formlyConfig',
     'formlyValidationMessages',
-    '$urlRouter',
+    '$urlService',
     'permissionConfig',
     'appConfig',
     function(
       djangoAuth,
       $rootScope,
-      $state,
-      $location,
-      $http,
+      $state: StateService,
+      $location: ng.ILocationService,
+      $http: ng.IHttpService,
       myService,
-      formlyConfig,
-      formlyValidationMessages,
-      $urlRouter,
+      formlyConfig: IFormlyConfig,
+      formlyValidationMessages: IValidationMessages,
+      $urlService: UrlService,
       permissionConfig,
       appConfig
     ) {
@@ -1155,9 +1155,9 @@ angular
           $rootScope.auth = response.data;
           myService.getPermissions(response.data.permissions);
           // kick-off router and start the application rendering
-          $urlRouter.sync();
+          $urlService.sync();
           // Also enable router to listen to url changes
-          $urlRouter.listen();
+          $urlService.listen();
           $rootScope.listViewColumns = myService.generateColumns(response.data.ip_list_columns).activeColumns;
           $http
             .get(appConfig.djangoUrl + 'site/')

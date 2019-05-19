@@ -19,7 +19,7 @@ module.exports = (env, argv) => {
     },
     module: {
       rules: [
-        {test: /\.tsx?$/, use: 'awesome-typescript-loader'},
+        {test: /\.tsx?$/, use: 'ts-loader'},
         {
           test: /\.js$/,
           include: [
