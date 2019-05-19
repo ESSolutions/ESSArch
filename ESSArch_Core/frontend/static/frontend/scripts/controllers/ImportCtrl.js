@@ -1,17 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('ImportCtrl', function(
-    $q,
-    $rootScope,
-    $scope,
-    $http,
-    IP,
-    Profile,
-    SA,
-    Notifications,
-    $uibModal,
-    $translate
-  ) {
+export default class ImportCtrl {
+  constructor($q, $rootScope, $scope, $http, IP, Profile, SA, Notifications, $uibModal, $translate) {
     var vm = this;
     $scope.angular = angular;
     vm.loadingSas = false;
@@ -216,4 +204,5 @@ angular
     vm.triggerSaUpload = function() {
       document.getElementById('sa-upload').click();
     };
-  });
+  }
+}
