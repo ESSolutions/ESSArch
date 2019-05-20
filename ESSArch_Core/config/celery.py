@@ -31,7 +31,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ESSArch_Core.config.settings')
 
 from django.conf import settings  # noqa
 
-app = Celery('config')
+app = Celery('ESSArch_Core')
 
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.
