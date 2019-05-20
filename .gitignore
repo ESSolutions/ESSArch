@@ -12,6 +12,12 @@ MANIFEST
 tools.db
 .DS_Store
 
+# docker
+
+docker/config
+docker/data
+docker/log
+
 # python virtual environment
 /venv/
 

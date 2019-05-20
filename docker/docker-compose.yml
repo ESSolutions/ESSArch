@@ -1,0 +1,74 @@
+version: "3.3"
+
+services:
+  essarch:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      DATABASE_URL_ESSARCH: postgres://arkiv:password@db:5432/essarch
+      REDIS_URL_ESSARCH: redis://redis/1
+      RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
+    volumes:
+      - ..:/code
+      - ./data:/ESSArch/data
+      - ./config:/ESSArch/config
+      - ./log:/ESSArch/log
+    ports:
+      - 8000:8000
+    tty: true
+    depends_on:
+      - db
+      - rabbitmq
+      - redis
+    networks:
+      - essarch
+
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      DATABASE_URL_ESSARCH: postgres://arkiv:password@db:5432/essarch
+      REDIS_URL_ESSARCH: redis://redis/1
+      RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
+    volumes:
+      - ..:/code
+      - ./data:/ESSArch/data
+      - ./config:/ESSArch/config
+      - ./log:/ESSArch/log
+    tty: true
+    depends_on:
+      - essarch
+      - rabbitmq
+    networks:
+      - essarch
+
+  db:
+    image: "postgres"
+    environment:
+      POSTGRES_DB: essarch
+      POSTGRES_USER: arkiv
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5432
+    networks:
+      - essarch
+
+  redis:
+    image: "redis"
+    networks:
+      - essarch
+    ports:
+      - 6379
+
+  rabbitmq:
+    image: "rabbitmq"
+    ports:
+      - 5672
+    networks:
+      - essarch
+
+networks:
+  essarch:
+    driver: bridge
