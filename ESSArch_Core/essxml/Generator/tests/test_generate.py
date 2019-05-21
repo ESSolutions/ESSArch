@@ -2472,9 +2472,8 @@ class ExternalTestCase(TestCase):
             },
         }
 
-        for _ in self.generator.generate(
-            {self.fname: {'spec': specification, 'data': {'foo': 'bar'}}},
-            folderToParse=self.datadir):
+        for _ in self.generator.generate({self.fname: {'spec': specification, 'data': {'foo': 'bar'}}},
+                                         folderToParse=self.datadir):
             pass
 
         self.assertTrue(os.path.isfile(self.fname))
@@ -2521,9 +2520,8 @@ class ExternalTestCase(TestCase):
                 }
             },
         }
-        for _ in self.generator.generate(
-            {self.fname: {'spec': specification, 'data': {'foo': 'bar'}}},
-            folderToParse=self.datadir):
+        for _ in self.generator.generate({self.fname: {'spec': specification, 'data': {'foo': 'bar'}}},
+                                         folderToParse=self.datadir):
             pass
 
         external1_path = os.path.join(self.external1, 'external.xml')
