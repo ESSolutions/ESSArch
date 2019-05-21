@@ -1,1 +1,20 @@
+# Set the default behavior, in case people don't have core.autocrlf set
+* text=auto
+
+# Force LF
+*.py text eol=lf
+*.sh text eol=lf
+
+*.js text eol=lf
+*.json text eol=lf
+*.ts text eol=lf
+*.html text eol=lf
+*.scss text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.mo binary
+
+# Expand placeholders when adding this file to an archive
 ESSArch_Core/_version.py export-subst
