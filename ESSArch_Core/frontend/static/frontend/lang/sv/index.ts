@@ -14,7 +14,7 @@ import keyboardShortcuts from './keyboardShortcuts';
 import notifications from './notifications';
 import organization from './organization';
 import stateTree from './stateTree';
-import sysInfo from './sysInfo';
+import sysInfo from './sysinfo';
 import upload from './upload';
 import userSettings from './userSettings';
 
