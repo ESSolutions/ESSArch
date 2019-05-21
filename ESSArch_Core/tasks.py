@@ -125,9 +125,9 @@ class GenerateXML(DBTask):
         count = len(filesToCreate)
         self.set_progress(progress, total=count)
         generator = XMLGenerator()
-        for _ in generator.generate(
-            filesToCreate, folderToParse=folderToParse, extra_paths_to_parse=extra_paths_to_parse,
-            parsed_files=parsed_files, algorithm=algorithm):
+        for _ in generator.generate(filesToCreate, folderToParse=folderToParse,
+                                    extra_paths_to_parse=extra_paths_to_parse,
+                                    parsed_files=parsed_files, algorithm=algorithm):
             progress += 1
             self.set_progress(progress, total=count)
 
