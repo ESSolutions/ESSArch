@@ -290,8 +290,6 @@ class XMLElement(object):
         else:
             self.parent_pos = 0
 
-        logger.debug(u'Creating lxml-element for {path}'.format(path=self.get_path()))
-
         full_nsmap = nsmap.copy()
         full_nsmap.update(self.nsmap)
 
