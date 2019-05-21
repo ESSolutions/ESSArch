@@ -17,10 +17,10 @@ RUN apt-get update && \
 RUN python3.6 -m pip install --upgrade pip setuptools
 RUN python3.6 -m pip install -e .[postgres]
 
-RUN mkdir -p /ESSArch/etp/reception
-RUN mkdir -p /ESSArch/etp/prepare
-RUN mkdir -p /ESSArch/eta/reception
+RUN mkdir -p /ESSArch/data/etp/reception
+RUN mkdir -p /ESSArch/data/etp/prepare
+RUN mkdir -p /ESSArch/data/eta/reception
 
-WORKDIR /code
+WORKDIR /code/ESSArch_Core
 
 EXPOSE 8000
