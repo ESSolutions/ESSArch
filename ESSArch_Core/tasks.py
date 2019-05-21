@@ -121,11 +121,15 @@ class GenerateXML(DBTask):
         for _, v in filesToCreate.items():
             v['data'] = fill_specification_data(v['data'], ip=ip, sa=sa)
 
+        progress = 0
+        count = len(filesToCreate)
+        self.set_progress(progress, total=count)
         generator = XMLGenerator()
-        generator.generate(
+        for _ in generator.generate(
             filesToCreate, folderToParse=folderToParse, extra_paths_to_parse=extra_paths_to_parse,
-            parsed_files=parsed_files, algorithm=algorithm,
-        )
+            parsed_files=parsed_files, algorithm=algorithm):
+            progress += 1
+            self.set_progress(progress, total=count)
 
     def undo(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None,
              parsed_files=None, algorithm='SHA-256'):

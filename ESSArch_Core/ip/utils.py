@@ -79,7 +79,8 @@ def generate_content_mets(ip):
     algorithm = ip.get_checksum_algorithm()
 
     generator = XMLGenerator()
-    generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm)
+    for _ in generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm):
+        yield
 
     ip.content_mets_path = mets_path
     ip.content_mets_create_date = timestamp_to_datetime(creation_date(mets_path)).isoformat()
@@ -115,7 +116,8 @@ def generate_package_mets(ip):
     algorithm = ip.get_checksum_algorithm()
 
     generator = XMLGenerator()
-    generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm)
+    for _ in generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm):
+        yield
 
     ip.package_mets_path = normalize_path(xmlpath)
     ip.package_mets_create_date = timestamp_to_datetime(creation_date(xmlpath)).isoformat()
@@ -137,7 +139,8 @@ def generate_premis(ip):
     }
     algorithm = ip.get_checksum_algorithm()
     generator = XMLGenerator()
-    generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm)
+    for _ in generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm):
+        yield
 
 
 def generate_events_xml(ip):
@@ -150,7 +153,8 @@ def generate_events_xml(ip):
     }
     algorithm = ip.get_checksum_algorithm()
     generator = XMLGenerator()
-    generator.generate(files_to_create, algorithm=algorithm)
+    for _ in generator.generate(files_to_create, algorithm=algorithm):
+        yield
 
 
 def download_schemas(ip, logger, verify):

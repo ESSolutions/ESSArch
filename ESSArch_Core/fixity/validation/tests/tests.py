@@ -505,7 +505,8 @@ class DiffCheckValidatorTests(TestCase):
         return files
 
     def generate_xml(self):
-        self.generator.generate(self.filesToCreate, folderToParse=self.datadir)
+        for _ in self.generator.generate(self.filesToCreate, folderToParse=self.datadir):
+            pass
 
     def test_validation_without_files(self):
         root = etree.fromstring('<root></root>')
@@ -985,10 +986,12 @@ class XMLComparisonValidatorTests(TestCase):
         return files
 
     def generate_mets_xml(self):
-        self.generator.generate(self.mets_spec, folderToParse=self.datadir)
+        for _ in self.generator.generate(self.mets_spec, folderToParse=self.datadir):
+            pass
 
     def generate_premis_xml(self):
-        self.generator.generate(self.premis_spec, folderToParse=self.datadir)
+        for _ in self.generator.generate(self.premis_spec, folderToParse=self.datadir):
+            pass
 
     def test_validation_without_files(self):
         root = etree.fromstring('<root></root>')

@@ -88,7 +88,8 @@ class GenerateXMLTestCase(TestCase):
             "xsi:schemaLocation": "http://www.w3.org/1999/xlink schemas/xlink.xsd",
         }
 
-        self.generator.generate({self.fname: {'spec': specification, 'data': info}})
+        for _ in self.generator.generate({self.fname: {'spec': specification, 'data': info}}):
+            pass
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -105,7 +106,8 @@ class GenerateXMLTestCase(TestCase):
         specification = {'-name': "foo"}
 
         with self.assertRaises(AssertionError):
-            self.generator.generate({self.fname: {'spec': specification}})
+            for _ in self.generator.generate({self.fname: {'spec': specification}}):
+                pass
 
         self.assertFalse(os.path.exists(self.fname))
 
@@ -122,7 +124,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         self.assertTrue(os.path.exists(self.fname))
 
     def test_generate_empty_element_with_empty_children(self):
@@ -136,7 +139,8 @@ class GenerateXMLTestCase(TestCase):
         }
 
         with self.assertRaises(AssertionError):
-            self.generator.generate({self.fname: {'spec': specification}})
+            for _ in self.generator.generate({self.fname: {'spec': specification}}):
+                pass
 
         self.assertFalse(os.path.exists(self.fname))
 
@@ -151,7 +155,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         self.assertTrue(os.path.exists(self.fname))
 
     def test_generate_empty_element_with_empty_attribute(self):
@@ -168,7 +173,8 @@ class GenerateXMLTestCase(TestCase):
         }
 
         with self.assertRaises(AssertionError):
-            self.generator.generate({self.fname: {'spec': specification}})
+            for _ in self.generator.generate({self.fname: {'spec': specification}}):
+                pass
 
         self.assertFalse(os.path.exists(self.fname))
 
@@ -184,7 +190,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         root = tree.getroot()
         self.assertEqual(len(root.xpath('//foo[@bar=""]')), 1)
@@ -205,13 +212,15 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertEqual(len(tree.findall('.//bar')), 2)
 
     def test_generate_empty_element_with_allowEmpty(self):
         specification = {'-name': "foo", "-allowEmpty": 1}
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
@@ -238,7 +247,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
@@ -264,7 +274,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
@@ -295,7 +306,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
@@ -321,7 +333,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
@@ -353,7 +366,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification, 'data': data}})
+        for _ in self.generator.generate({self.fname: {'spec': specification, 'data': data}}):
+            pass
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -382,7 +396,8 @@ class GenerateXMLTestCase(TestCase):
             ])
         }
 
-        self.generator.generate({self.fname: {'spec': specification, 'data': data}})
+        for _ in self.generator.generate({self.fname: {'spec': specification, 'data': data}}):
+            pass
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -414,7 +429,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -455,7 +471,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -524,7 +541,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         root = tree.getroot()
         elements = root.xpath('//bar')
@@ -573,7 +591,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification, 'data': data}})
+        for _ in self.generator.generate({self.fname: {'spec': specification, 'data': data}}):
+            pass
         tree = etree.parse(self.fname)
         root = tree.getroot()
         elements = root.xpath('//foo')
@@ -616,7 +635,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification, 'data': data}})
+        for _ in self.generator.generate({self.fname: {'spec': specification, 'data': data}}):
+            pass
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -645,7 +665,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
@@ -681,7 +702,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
@@ -711,7 +733,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
+        for _ in self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir):
+            pass
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
@@ -736,7 +759,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertEqual("<foo>bar</foo>", etree.tostring(tree.getroot(), encoding='unicode'))
 
@@ -749,7 +773,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertEqual("<foo>bar</foo>", etree.tostring(tree.getroot(), encoding='unicode'))
 
@@ -760,7 +785,8 @@ class GenerateXMLTestCase(TestCase):
         }
 
         with self.assertRaises(ValueError):
-            self.generator.generate({self.fname: {'spec': specification}})
+            for _ in self.generator.generate({self.fname: {'spec': specification}}):
+                pass
 
         self.assertFalse(os.path.exists(self.fname))
 
@@ -794,8 +820,8 @@ class GenerateXMLTestCase(TestCase):
 
         with self.assertRaisesRegex(ValueError, re.escape(
                 "Missing value for required element '/foo[0]/bar[1]/baz[2]'")):
-
-            self.generator.generate({self.fname: {'spec': specification}})
+            for _ in self.generator.generate({self.fname: {'spec': specification}}):
+                pass
 
         self.assertFalse(os.path.exists(self.fname))
 
@@ -814,7 +840,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertEqual('<foo bar="baz"/>', etree.tostring(tree.getroot(), encoding='unicode'))
 
@@ -825,7 +852,8 @@ class GenerateXMLTestCase(TestCase):
             '#content': [{'text': 'baz'}],
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertEqual('<foo>baz</foo>', etree.tostring(tree.getroot(), encoding='unicode'))
 
@@ -837,7 +865,8 @@ class GenerateXMLTestCase(TestCase):
         }
 
         with self.assertRaises(ValueError):
-            self.generator.generate({self.fname: {'spec': specification}})
+            for _ in self.generator.generate({self.fname: {'spec': specification}}):
+                pass
 
         self.assertFalse(os.path.isfile(self.fname))
 
@@ -864,7 +893,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertEqual(
             '<foo attr1="bar" attr2="baz"/>',
@@ -887,7 +917,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertEqual('<foo bar="baz"/>', etree.tostring(tree.getroot(), encoding='unicode'))
 
@@ -903,7 +934,8 @@ class GenerateXMLTestCase(TestCase):
         }
 
         with self.assertRaises(ValueError):
-            self.generator.generate({self.fname: {'spec': specification}})
+            for _ in self.generator.generate({self.fname: {'spec': specification}}):
+                pass
 
         self.assertFalse(os.path.exists(self.fname))
 
@@ -943,7 +975,8 @@ class GenerateXMLTestCase(TestCase):
         with self.assertRaisesRegex(ValueError, re.escape(
                 "Missing value for required attribute 'test' on element '/foo[0]/bar[1]/baz[2]'")):
 
-            self.generator.generate({self.fname: {'spec': specification}})
+            for _ in self.generator.generate({self.fname: {'spec': specification}}):
+                pass
 
         self.assertFalse(os.path.exists(self.fname))
 
@@ -963,7 +996,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertEqual(
             '<foo attr1="baz">bar</foo>',
@@ -985,7 +1019,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}})
+        for _ in self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertEqual('<foo attr1="baz"/>', etree.tostring(tree.getroot(), encoding='unicode'))
 
@@ -999,7 +1034,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}})
+        for _ in self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertEqual('<foo>baz</foo>', etree.tostring(tree.getroot(), encoding='unicode'))
 
@@ -1009,7 +1045,8 @@ class GenerateXMLTestCase(TestCase):
             '-nestedXMLContent': 'bar'
         }
 
-        self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': '<bar>baz</bar>'}}})
+        for _ in self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': '<bar>baz</bar>'}}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertEqual('<foo>\n  <bar>baz</bar>\n</foo>', etree.tostring(tree.getroot(), encoding='unicode'))
 
@@ -1034,7 +1071,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}})
+        for _ in self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertEqual(
             '<root>\n  <foo>\n    <bar>baz</bar>\n  </foo>\n</root>',
@@ -1063,7 +1101,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification, 'data': {'foo': 'baz'}}})
+        for _ in self.generator.generate({self.fname: {'spec': specification, 'data': {'foo': 'baz'}}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertEqual('<root/>', etree.tostring(tree.getroot(), encoding='unicode'))
 
@@ -1082,7 +1121,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}})
+        for _ in self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}}):
+            pass
         tree = etree.parse(self.fname)
 
         self.assertEqual(
@@ -1113,7 +1153,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
 
         self.assertEqual(
@@ -1138,7 +1179,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
 
         self.assertEqual(
@@ -1164,7 +1206,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
 
         self.assertEqual(
@@ -1190,7 +1233,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification, 'data': {'baz': 'value'}}})
+        for _ in self.generator.generate({self.fname: {'spec': specification, 'data': {'baz': 'value'}}}):
+            pass
         tree = etree.parse(self.fname)
 
         self.assertEqual(
@@ -1234,7 +1278,8 @@ class GenerateXMLTestCase(TestCase):
             ],
         }
 
-        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
+        for _ in self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir):
+            pass
         tree = etree.parse(self.fname)
 
         num_of_files = 0
@@ -1279,12 +1324,13 @@ class GenerateXMLTestCase(TestCase):
         first_fname = normalize_path(os.path.join(self.xmldir, 'nested', "first.xml"))
         second_fname = normalize_path(os.path.join(self.xmldir, 'nested', "second.xml"))
 
-        self.generator.generate(
+        for _ in self.generator.generate(
             OrderedDict([
                 (first_fname, {'spec': specification}),
                 (second_fname, {'spec': specification})
             ])
-        )
+        ):
+            pass
 
         tree1 = etree.parse(first_fname)
         tree2 = etree.parse(second_fname)
@@ -1298,12 +1344,13 @@ class GenerateXMLTestCase(TestCase):
         self.assertEqual(bars2[0].text, first_fname)
 
         # again, but with relpath set
-        self.generator.generate(
+        for _ in self.generator.generate(
             OrderedDict([
                 (first_fname, {'spec': specification}),
                 (second_fname, {'spec': specification})
             ]), relpath=self.xmldir
-        )
+        ):
+            pass
 
         tree1 = etree.parse(first_fname)
         tree2 = etree.parse(second_fname)
@@ -1354,12 +1401,13 @@ class GenerateXMLTestCase(TestCase):
 
         extra_fname = os.path.join(self.xmldir, "extra.xml")
 
-        self.generator.generate(
+        for _ in self.generator.generate(
             OrderedDict([
                 (self.fname, {'spec': specification}),
                 (extra_fname, {'spec': specification})
             ]), folderToParse=self.datadir
-        )
+        ):
+            pass
 
         tree1 = etree.parse(self.fname)
         tree2 = etree.parse(extra_fname)
@@ -1391,7 +1439,8 @@ class GenerateXMLTestCase(TestCase):
             ],
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         self.assertTrue(os.path.exists(self.fname))
 
     def test_element_with_files_and_namespace(self):
@@ -1437,7 +1486,8 @@ class GenerateXMLTestCase(TestCase):
             ],
         }
 
-        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
+        for _ in self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir):
+            pass
         tree = etree.parse(self.fname)
 
         num_of_files = 0
@@ -1497,7 +1547,8 @@ class GenerateXMLTestCase(TestCase):
             ],
         }
 
-        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
+        for _ in self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir):
+            pass
         tree = etree.parse(self.fname)
 
         num_of_files = 0
@@ -1535,7 +1586,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         root = tree.getroot()
         a = root.find('.//a')
@@ -1558,7 +1610,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         root = tree.getroot()
         a = root.find('.//a')
@@ -1585,7 +1638,8 @@ class GenerateXMLTestCase(TestCase):
             ],
         }
 
-        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
+        for _ in self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir):
+            pass
         tree = etree.parse(self.fname)
         root = tree.getroot()
         a = root.find('.//a')
@@ -1607,7 +1661,8 @@ class GenerateXMLTestCase(TestCase):
             ],
         }
 
-        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
+        for _ in self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir):
+            pass
 
         tree = etree.parse(self.fname)
         root = tree.getroot()
@@ -1630,7 +1685,8 @@ class GenerateXMLTestCase(TestCase):
             ],
         }
 
-        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
+        for _ in self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir):
+            pass
         tree = etree.parse(self.fname)
         root = tree.getroot()
         a = root.find('.//a')
@@ -1652,7 +1708,8 @@ class GenerateXMLTestCase(TestCase):
             ],
         }
 
-        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
+        for _ in self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir):
+            pass
         tree = etree.parse(self.fname)
         root = tree.getroot()
         a = root.find('.//a')
@@ -1694,7 +1751,8 @@ class GenerateXMLTestCase(TestCase):
             ],
         }
 
-        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
+        for _ in self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir):
+            pass
         tree = etree.parse(self.fname)
         root = tree.getroot()
         a = root.find('.//a')
@@ -1719,7 +1777,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         append_xml = '<appended>appended text</appended>'
 
         target = self.generator.find_element('foo')
@@ -1747,7 +1806,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
 
         append_xml = os.path.join(self.xmldir, 'append.xml')
         append_xml_string = '<appended>appended text</appended>'
@@ -1785,7 +1845,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -1828,7 +1889,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -1854,7 +1916,8 @@ class GenerateXMLTestCase(TestCase):
 
         self.assertLess(root.index(appended), root.index(foo))
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -1911,7 +1974,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -1946,7 +2010,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
@@ -1995,7 +2060,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -2030,7 +2096,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -2058,7 +2125,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -2095,7 +2163,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -2145,7 +2214,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -2182,7 +2252,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -2223,7 +2294,8 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        self.generator.generate({self.fname: {'spec': specification}})
+        for _ in self.generator.generate({self.fname: {'spec': specification}}):
+            pass
         tree = etree.parse(self.fname)
         self.assertIsNone(tree.find('.//appended'))
 
@@ -2285,7 +2357,8 @@ class ExternalTestCase(TestCase):
             },
         }
 
-        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
+        for _ in self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir):
+            pass
         self.assertTrue(os.path.isfile(self.fname))
 
         external1_path = os.path.join(self.external1, 'external.xml')
@@ -2349,7 +2422,8 @@ class ExternalTestCase(TestCase):
         with open(os.path.join(self.external2, "file1.pdf"), "w") as f:
             f.write('a pdf file')
 
-        self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
+        for _ in self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir):
+            pass
         self.assertTrue(os.path.isfile(self.fname))
 
         tree = etree.parse(self.fname)
@@ -2398,10 +2472,11 @@ class ExternalTestCase(TestCase):
             },
         }
 
-        self.generator.generate(
+        for _ in self.generator.generate(
             {self.fname: {'spec': specification, 'data': {'foo': 'bar'}}},
-            folderToParse=self.datadir
-        )
+            folderToParse=self.datadir):
+            pass
+
         self.assertTrue(os.path.isfile(self.fname))
 
         external1_path = os.path.join(self.external1, 'external.xml')
@@ -2446,10 +2521,10 @@ class ExternalTestCase(TestCase):
                 }
             },
         }
-        self.generator.generate(
+        for _ in self.generator.generate(
             {self.fname: {'spec': specification, 'data': {'foo': 'bar'}}},
-            folderToParse=self.datadir
-        )
+            folderToParse=self.datadir):
+            pass
 
         external1_path = os.path.join(self.external1, 'external.xml')
         external2_path = os.path.join(self.external2, 'external.xml')
@@ -2498,7 +2573,7 @@ class ExternalTestCase(TestCase):
                 }
             },
         }
-        self.generator.generate(
+        for _ in self.generator.generate(
             {
                 self.fname: {
                     'spec': specification,
@@ -2506,7 +2581,8 @@ class ExternalTestCase(TestCase):
                 }
             },
             folderToParse=self.datadir
-        )
+        ):
+            pass
 
         external1_path = os.path.join(self.external1, 'external.xml')
         external2_path = os.path.join(self.external2, 'external.xml')

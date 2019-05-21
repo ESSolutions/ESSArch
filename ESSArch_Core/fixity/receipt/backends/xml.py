@@ -54,5 +54,6 @@ class XMLReceiptBackend(BaseReceiptBackend):
                     data[u'ärenden'].append(a_data)
 
         files_to_create = {destination: {'spec': spec, 'data': data}}
-        XMLGenerator().generate(files_to_create)
+        for _ in XMLGenerator().generate(files_to_create):
+            pass
         logger.info(u'XML receipt created: {}'.format(destination))
