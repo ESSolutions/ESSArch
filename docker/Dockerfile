@@ -23,7 +23,7 @@ RUN mkdir -p /ESSArch/data/etp/prepare
 RUN mkdir -p /ESSArch/data/eta/reception
 
 WORKDIR /code/ESSArch_Core/frontend/static/frontend
-RUN yarn && yarn build:prod && rm -rf node_modules
+RUN yarn && yarn build:dev
 
 WORKDIR /code/ESSArch_Core
 

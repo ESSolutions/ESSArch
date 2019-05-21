@@ -14,6 +14,8 @@ services:
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
+      - /code/ESSArch_Core/frontend/static/frontend/node_modules
+      - /code/ESSArch_Core/frontend/static/frontend/build
     entrypoint: /code/docker/docker-entrypoint.sh
     ports:
       - 8000:8000
@@ -39,10 +41,13 @@ services:
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
+      - /code/ESSArch_Core/frontend/static/frontend/node_modules
+      - /code/ESSArch_Core/frontend/static/frontend/build
     tty: true
     depends_on:
       - essarch
       - rabbitmq
+      - redis
     networks:
       - essarch
 
