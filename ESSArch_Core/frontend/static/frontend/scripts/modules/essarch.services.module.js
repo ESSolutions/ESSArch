@@ -4,7 +4,7 @@ import contextMenuBase from '../services/ContextMenuBase';
 import validate from '../services/validate';
 import messenger from '../services/messenger';
 import event from '../services/event';
-import contentTabs from '../services/contentTabs';
+import contentTabs from '../services/ContentTabs';
 import eventType from '../services/eventType';
 import ioQueue from '../services/ioQueue';
 import ip from '../services/ip';

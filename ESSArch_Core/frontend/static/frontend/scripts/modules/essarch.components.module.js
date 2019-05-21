@@ -1,6 +1,6 @@
 import essarchFooter from '../components/FooterComponent';
 import importComponent from '../components/ImportComponent';
-import sysInfoComponent from '../components/sysInfoComponent';
+import sysInfoComponent from '../components/SysInfoComponent';
 import UserDropdownComponent from '../components/UserDropdownComponent';
 import ProfileEditorComponent from '../components/ProfileEditorComponent';
 import StateTreeView from '../components/StateTreeViewComponent';
