@@ -76,11 +76,6 @@ router.register(r'orders', OrderViewSet)
 router.register(r'appraisal-rules', AppraisalRuleViewSet)
 router.register(r'appraisal-jobs', AppraisalJobViewSet)
 router.register(r'conversion-jobs', ConversionJobViewSet)
-router.register(r'information-packages', InformationPackageViewSet)
-router.register(r'profiles', ProfileViewSet)
-router.register(r'steps', ProcessStepViewSet)
-router.register(r'submission-agreements', SubmissionAgreementViewSet)
-router.register(r'tasks', ProcessTaskViewSet)
 router.register(r'workarea-entries', WorkareaEntryViewSet, base_name='workarea-entries')
 router.register(r'workareas', WorkareaViewSet, base_name='workarea')
 router.register(r'workareas', WorkareaViewSet, base_name='workarea').register(
@@ -89,7 +84,6 @@ router.register(r'workareas', WorkareaViewSet, base_name='workarea').register(
     base_name='workarea-events',
     parents_query_lookups=['linkingObjectIdentifierValue']
 )
-router.register(r'workarea-entries', WorkareaEntryViewSet, base_name='workarea-entries')
 router.register(r'workarea-files', WorkareaFilesViewSet, base_name='workarea-files')
 
 router.register(r'ip-reception', InformationPackageReceptionViewSet, base_name="ip-reception")
