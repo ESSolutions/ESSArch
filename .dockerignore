@@ -1,3 +1,11 @@
 **/node_modules
-docker
-*.egg-info
+/docker/config/
+/docker/data/
+/docker/log/
+/dist/
+/htmlcov/
+/venv/
+.coverage
+*.egg-info/
+/MANIFEST
+/.idea/

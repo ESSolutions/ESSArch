@@ -19,10 +19,6 @@ RUN apt-get update && \
 RUN python3.6 -m pip install --upgrade pip setuptools
 RUN python3.6 -m pip install -e .[postgres]
 
-RUN mkdir -p /ESSArch/data/etp/reception
-RUN mkdir -p /ESSArch/data/etp/prepare
-RUN mkdir -p /ESSArch/data/eta/reception
-
 WORKDIR /code/ESSArch_Core/frontend/static/frontend
 RUN yarn && yarn build:dev
 
