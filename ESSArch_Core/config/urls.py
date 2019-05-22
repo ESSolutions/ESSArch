@@ -12,11 +12,17 @@ from ESSArch_Core.ip.views import AgentViewSet, EventIPViewSet, InformationPacka
     WorkareaEntryViewSet, WorkareaViewSet, WorkareaFilesViewSet, InformationPackageReceptionViewSet
 from ESSArch_Core.maintenance.views import AppraisalRuleViewSet, AppraisalJobViewSet, ConversionJobViewSet
 from ESSArch_Core.profiles.views import ProfileIPViewSet, ProfileIPDataViewSet, ProfileIPDataTemplateViewSet, \
-    InformationPackageProfileIPViewSet
+    InformationPackageProfileIPViewSet, SubmissionAgreementTemplateView
 from ESSArch_Core.routers import ESSArchRouter
 from ESSArch_Core.stats.views import stats, export as export_stats
 from ESSArch_Core.configuration.views import EventTypeViewSet
-from ESSArch_Core.profiles.views import ProfileViewSet, ProfileSAViewSet, SubmissionAgreementViewSet
+from ESSArch_Core.profiles.views import (
+    ProfileViewSet,
+    ProfileSAViewSet,
+    ProfileMakerExtensionViewSet,
+    ProfileMakerTemplateViewSet,
+    SubmissionAgreementViewSet,
+)
 
 admin.site.site_header = 'ESSArch Administration'
 admin.site.site_title = 'ESSArch Administration'
@@ -26,6 +32,12 @@ router.register(r'users', UserViewSet)
 router.register(r'groups', GroupViewSet)
 router.register(r'agents', AgentViewSet)
 router.register(r'permissions', PermissionViewSet)
+router.register(r'profile-ip', ProfileIPViewSet)
+router.register(r'profile-ip-data', ProfileIPDataViewSet)
+router.register(r'profile-sa', ProfileSAViewSet)
+router.register(r'profiles', ProfileViewSet)
+router.register(r'profilemaker-extensions', ProfileMakerExtensionViewSet)
+router.register(r'profilemaker-templates', ProfileMakerTemplateViewSet)
 router.register(r'information-packages', InformationPackageViewSet)
 router.register(r'information-packages', InformationPackageViewSet).register(
     r'events',
@@ -99,6 +111,7 @@ urlpatterns = [
     url(r'^api/', include(router.urls)),
     url(r'^accounts/changepassword', auth_views.PasswordChangeView.as_view(), {'post_change_redirect': '/'}),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^api/submission-agreement-template/$', SubmissionAgreementTemplateView.as_view()),
     url(r'^docs/', include('ESSArch_Core.docs.urls')),
     url(r'^template/', include('ESSArch_Core.essxml.ProfileMaker.urls')),
     url(r'^accounts/login/$', auth_views.LoginView.as_view()),
