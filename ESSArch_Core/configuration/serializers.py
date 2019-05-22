@@ -88,6 +88,14 @@ class ArchivePolicySerializer(DynamicHyperlinkedModelSerializer):
             "receive_extract_sip", "cache_storage", "ingest_path",
             "storage_methods",
         )
+        extra_kwargs = {
+            'id': {
+                'validators': [],
+            },
+            'policy_id': {
+                'validators': [],
+            },
+        }
 
 
 class SiteSerializer(serializers.ModelSerializer):
