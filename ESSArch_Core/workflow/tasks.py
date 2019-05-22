@@ -76,7 +76,7 @@ from ESSArch_Core.storage.models import (DISK, TAPE, AccessQueue, IOQueue,
 from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
 from ESSArch_Core.util import (creation_date, find_destination, get_tree_size_and_count,
                                timestamp_to_datetime)
-from storage.serializers import IOQueueSerializer
+from ESSArch_Core.storage.serializers import IOQueueSerializer
 
 User = get_user_model()
 logger = logging.getLogger('essarch')

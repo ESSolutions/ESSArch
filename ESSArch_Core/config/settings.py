@@ -101,6 +101,7 @@ INSTALLED_APPS = [
     'ESSArch_Core.storage',
     'ESSArch_Core.tags',
     'ESSArch_Core.WorkflowEngine',
+    'ESSArch_Core.workflow',
 ]
 
 AUTHENTICATION_BACKENDS = [
