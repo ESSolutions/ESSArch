@@ -8,7 +8,8 @@ from ESSArch_Core.WorkflowEngine.views import ProcessViewSet, ProcessStepViewSet
 from ESSArch_Core.auth.views import GroupViewSet, PermissionViewSet, MeView, UserViewSet, NotificationViewSet
 from ESSArch_Core.configuration.views import ParameterViewSet, PathViewSet, SiteView, SysInfoView
 from ESSArch_Core.fixity.views import ValidationViewSet
-from ESSArch_Core.ip.views import AgentViewSet, EventIPViewSet, InformationPackageViewSet, OrderViewSet, WorkareaEntryViewSet
+from ESSArch_Core.ip.views import AgentViewSet, EventIPViewSet, InformationPackageViewSet, OrderViewSet, \
+    WorkareaEntryViewSet, WorkareaViewSet, WorkareaFilesViewSet, InformationPackageReceptionViewSet
 from ESSArch_Core.maintenance.views import AppraisalRuleViewSet, AppraisalJobViewSet, ConversionJobViewSet
 from ESSArch_Core.profiles.views import ProfileIPViewSet, ProfileIPDataViewSet, ProfileIPDataTemplateViewSet, \
     InformationPackageProfileIPViewSet
@@ -81,6 +82,17 @@ router.register(r'steps', ProcessStepViewSet)
 router.register(r'submission-agreements', SubmissionAgreementViewSet)
 router.register(r'tasks', ProcessTaskViewSet)
 router.register(r'workarea-entries', WorkareaEntryViewSet, base_name='workarea-entries')
+router.register(r'workareas', WorkareaViewSet, base_name='workarea')
+router.register(r'workareas', WorkareaViewSet, base_name='workarea').register(
+    r'events',
+    EventIPViewSet,
+    base_name='workarea-events',
+    parents_query_lookups=['linkingObjectIdentifierValue']
+)
+router.register(r'workarea-entries', WorkareaEntryViewSet, base_name='workarea-entries')
+router.register(r'workarea-files', WorkareaFilesViewSet, base_name='workarea-files')
+
+router.register(r'ip-reception', InformationPackageReceptionViewSet, base_name="ip-reception")
 
 urlpatterns = [
     url(r'^', include('ESSArch_Core.frontend.urls'), name='home'),
