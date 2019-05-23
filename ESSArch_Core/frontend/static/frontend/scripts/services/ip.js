@@ -123,10 +123,6 @@ const ip = ($resource, appConfig, Event, Step, Task) => {
         method: 'PATCH',
         params: {id: '@id'},
       },
-      submit: {
-        method: 'POST',
-        params: {action: 'submit', id: '@id'},
-      },
       moveToApproval: {
         method: 'POST',
         params: {action: 'receive', id: '@id'},
