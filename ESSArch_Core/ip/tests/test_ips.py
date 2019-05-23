@@ -2424,7 +2424,7 @@ class FilesActionTests(TestCase):
         data = {}
         resp = self.client.post(self.url, data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(resp.data, "Path parameter missing")
+        self.assertEqual(resp.data['detail'], "Path parameter missing")
 
     def test_post_method_when_ip_state_is_Prepared_and_type_parameter_not_set(self):
         self.ip.state = 'Prepared'
@@ -2434,7 +2434,7 @@ class FilesActionTests(TestCase):
         data = {'path': 'dummy'}
         resp = self.client.post(self.url, data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(resp.data, "Type parameter missing")
+        self.assertEqual(resp.data['detail'], "Type parameter missing")
 
     def test_post_method_when_ip_state_is_Prepared_and_path_is_not_subdir_of_object_path(self):
         self.ip.state = 'Prepared'
@@ -2461,7 +2461,7 @@ class FilesActionTests(TestCase):
 
         resp = self.client.post(self.url, data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(resp.data, 'Type must be either "file" or "dir"')
+        self.assertEqual(resp.data['detail'], 'Type must be either "file" or "dir"')
 
     def test_post_method_when_ip_state_is_Prepared_and_path_type_is_dir_and_already_exists(self):
         self.ip.state = 'Prepared'
@@ -2537,7 +2537,7 @@ class FilesActionTests(TestCase):
         data = {}
         resp = self.client.post(self.url, data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(resp.data, "Path parameter missing")
+        self.assertEqual(resp.data['detail'], "Path parameter missing")
 
     def test_post_method_when_ip_state_is_Uploading_and_type_parameter_not_set(self):
         self.ip.state = 'Uploading'
@@ -2547,7 +2547,7 @@ class FilesActionTests(TestCase):
         data = {'path': 'dummy'}
         resp = self.client.post(self.url, data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(resp.data, "Type parameter missing")
+        self.assertEqual(resp.data['detail'], "Type parameter missing")
 
     def test_post_method_when_ip_state_is_Uploading_and_path_is_not_subdir_of_object_path(self):
         self.ip.state = 'Uploading'
@@ -2574,7 +2574,7 @@ class FilesActionTests(TestCase):
 
         resp = self.client.post(self.url, data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(resp.data, 'Type must be either "file" or "dir"')
+        self.assertEqual(resp.data['detail'], 'Type must be either "file" or "dir"')
 
     def test_post_method_when_ip_state_is_Uploading_and_path_type_is_dir_and_already_exists(self):
         self.ip.state = 'Uploading'
@@ -2672,7 +2672,7 @@ class FilesActionTests(TestCase):
         data = {}
         resp = self.client.delete(self.url, data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(resp.data, "Path parameter missing")
+        self.assertEqual(resp.data['detail'], "Path parameter missing")
 
     def test_delete_method_when_ip_state_is_Prepared_and_passed_path_is_not_subdir_of_object_path(self):
         self.ip.state = 'Prepared'
@@ -2734,7 +2734,7 @@ class FilesActionTests(TestCase):
         data = {}
         resp = self.client.delete(self.url, data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(resp.data, "Path parameter missing")
+        self.assertEqual(resp.data['detail'], "Path parameter missing")
 
     def test_delete_method_when_ip_state_is_Uploading_and_passed_path_is_not_subdir_of_object_path(self):
         self.ip.state = 'Uploading'
