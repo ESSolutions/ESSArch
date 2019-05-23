@@ -57,6 +57,8 @@ def installDefaultEventTypes():
         'Delivery receipt sent': '20400',
         'Delivery ready for hand over': '20500',
         'Delivery transferred': '20600',
+        'Delivery approved': '20700',
+        'Delivery rejected': '20800',
 
         'Received the IP for long-term preservation': '30000',
         'Verified IP against archive information system': '30100',
