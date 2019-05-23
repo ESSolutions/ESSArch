@@ -52,6 +52,7 @@ class InformationPackageFilter(filters.FilterSet):
         label=_("Excluded Package Type"),
         method='exclude_package_type_name'
     )
+    workarea = filters.ChoiceFilter(label=_("Workarea"), field_name='workareas__type', choices=Workarea.TYPE_CHOICES)
 
     def exclude_package_type_name(self, queryset, name, value):
         for package_type_id, package_type_name in InformationPackage.PACKAGE_TYPE_CHOICES:
@@ -63,7 +64,7 @@ class InformationPackageFilter(filters.FilterSet):
         model = InformationPackage
         fields = ['archivist_organization', 'state', 'responsible',
                   'create_date', 'entry_date', 'object_size', 'start_date', 'end_date',
-                  'archived', 'cached', 'package_type', 'package_type_name_exclude']
+                  'archived', 'cached', 'package_type', 'package_type_name_exclude', 'workarea']
 
 
 class EventIPFilter(filters.FilterSet):

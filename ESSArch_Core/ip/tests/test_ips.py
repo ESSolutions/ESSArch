@@ -24,16 +24,19 @@
 
 import errno
 import os
+import shutil
+import tempfile
 import uuid
 
 from django.contrib.auth.models import Permission, User
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 
 from groups_manager.models import GroupType
 
 from unittest import mock
 
+from lxml import etree
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
@@ -43,7 +46,7 @@ from ESSArch_Core.configuration.models import ArchivePolicy, Path
 from ESSArch_Core.ip.models import InformationPackage, Order, Workarea
 from ESSArch_Core.profiles.models import Profile, ProfileSA, SubmissionAgreement
 from ESSArch_Core.tags.models import Structure, Tag, TagStructure
-from ESSArch_Core.WorkflowEngine.models import ProcessStep
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
 class AccessTestCase(TestCase):
@@ -1623,3 +1626,171 @@ class OrderViewSetTestCase(TestCase):
         res = self.client.post(url, {'label': 'foo', 'information_packages': [ip_url]})
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+#TODO: this is moved here from ETA, should be merged with InformationPackageReceptionViewSetTestCase above
+class InformationPackageReceptionViewSetTestCaseETA(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(username="admin", password='admin')
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.url = reverse('ip-reception-list')
+
+        self.reception = tempfile.mkdtemp()
+        self.unidentified = tempfile.mkdtemp()
+
+        Path.objects.create(entity='path_ingest_reception', value=self.reception)
+        Path.objects.create(entity='path_ingest_unidentified', value=self.unidentified)
+
+        tar_filepath = os.path.join(self.reception, '1.tar')
+        xml_filepath = os.path.join(self.reception, '1.xml')
+
+        open(tar_filepath, 'a').close()
+        with open(xml_filepath, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root OBJID="1" LABEL="mylabel">
+                <metsHdr/>
+                <file><FLocat href="file:///1.tar"/></file>
+            </root>
+            ''')
+
+    @mock.patch('ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
+    def test_receive(self, mock_receive):
+        res = self.client.post(self.url + '1/receive/')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        mock_receive.assert_called_once()
+
+    @mock.patch('ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
+    def test_receive_existing(self, mock_receive):
+        InformationPackage.objects.create(object_identifier_value='1')
+        res = self.client.post(self.url + '1/receive/')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        mock_receive.assert_not_called()
+
+    @mock.patch('ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
+    def test_receive_invalid_validator(self, mock_receive):
+        data = {'validators': {'validate_invalid': True}}
+        res = self.client.post(self.url + '1/receive/', data=data)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertFalse(ProcessStep.objects.filter(name='Validate').exists())
+        mock_receive.assert_called_once()
+
+    @mock.patch('ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
+    def test_receive_validator(self, mock_receive):
+        data = {'validators': {'validate_xml_file': True}}
+        res = self.client.post(self.url + '1/receive/', data=data)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertTrue(ProcessStep.objects.filter(name='Validate').exists())
+        self.assertTrue(ProcessTask.objects.filter(name='preingest.tasks.ValidateXMLFile').exists())
+        mock_receive.assert_called_once()
+
+
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+class IdentifyIP(TransactionTestCase):
+    def setUp(self):
+        self.bd = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.bd, "datafiles")
+
+        try:
+            os.mkdir(self.datadir)
+        except BaseException:
+            pass
+
+        mimetypes = Path.objects.create(
+            entity="path_mimetypes_definitionfile",
+            value=os.path.join(self.datadir, "mime.types"),
+        ).value
+        with open(mimetypes, 'w') as f:
+            f.write('application/x-tar tar')
+
+        self.path = Path.objects.create(
+            entity="path_ingest_unidentified", value=self.datadir
+        ).value
+        self.user = User.objects.create(username="admin")
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.reception_url = reverse('ip-reception-list')
+        self.identify_url = '%sidentify-ip/' % self.reception_url
+
+        self.objid = 'unidentified_ip'
+        fpath = os.path.join(self.path, '%s.tar' % self.objid)
+        open(fpath, 'a').close()
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.datadir)
+        except BaseException:
+            pass
+
+    def test_identify_ip(self):
+        data = {
+            'filename': '%s.tar' % self.objid,
+            'specification_data': {
+                'ObjectIdentifierValue': 'my obj',
+                'LABEL': 'my label',
+                'profile': 'my profile',
+                'RECORDSTATUS': 'my recordstatus',
+            },
+        }
+
+        res = self.client.post(self.identify_url, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        xmlfile = os.path.join(self.path, '%s.xml' % self.objid)
+        self.assertTrue(os.path.isfile(xmlfile))
+
+        doc = etree.parse(xmlfile)
+        root = doc.getroot()
+
+        self.assertEqual(root.get('OBJID').split(':')[1], data['specification_data']['ObjectIdentifierValue'])
+        self.assertEqual(root.get('LABEL'), data['specification_data']['LABEL'])
+
+    def test_identify_ip_no_objid(self):
+        data = {
+            'filename': '%s.tar' % self.objid,
+            'specification_data': {
+                'LABEL': 'my label',
+                'profile': 'my profile',
+                'RECORDSTATUS': 'my recordstatus',
+            },
+        }
+
+        res = self.client.post(self.identify_url, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        xmlfile = os.path.join(self.path, '%s.xml' % self.objid)
+        self.assertTrue(os.path.isfile(xmlfile))
+
+        doc = etree.parse(xmlfile)
+        root = doc.getroot()
+
+        self.assertEqual(root.get('OBJID').split(':')[1], self.objid)
+        self.assertEqual(root.get('LABEL'), data['specification_data']['LABEL'])
+
+    def test_identify_ip_no_label(self):
+        data = {
+            'filename': '%s.tar' % self.objid,
+            'specification_data': {
+                'ObjectIdentifierValue': 'my obj',
+                'profile': 'my profile',
+                'RECORDSTATUS': 'my recordstatus',
+            },
+        }
+
+        res = self.client.post(self.identify_url, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        xmlfile = os.path.join(self.path, '%s.xml' % self.objid)
+        self.assertTrue(os.path.isfile(xmlfile))
+
+        doc = etree.parse(xmlfile)
+        root = doc.getroot()
+
+        self.assertEqual(root.get('OBJID').split(':')[1], data['specification_data']['ObjectIdentifierValue'])
+        self.assertEqual(root.get('LABEL'), self.objid)

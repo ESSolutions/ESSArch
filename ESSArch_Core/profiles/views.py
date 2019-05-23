@@ -39,7 +39,7 @@ from ESSArch_Core.profiles.serializers import (
     SubmissionAgreementSerializer,
     ProfileMakerExtensionSerializer,
     ProfileMakerTemplateSerializer,
-)
+    ProfileIPSerializer)
 
 
 def get_sa_template():
@@ -233,6 +233,12 @@ class ProfileIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             raise exceptions.MethodNotAllowed(method=request.method, detail=detail)
 
         return super().update(request, *args, **kwargs)
+
+
+class ProfileIPViewSet(viewsets.ModelViewSet):
+    # TODO: This is moved here from ETA (overriding above)
+    queryset = ProfileIP.objects.all()
+    serializer_class = ProfileIPSerializer
 
 
 class InformationPackageProfileIPViewSet(ProfileIPViewSet):

@@ -65,7 +65,6 @@ class InformationPackageSerializer(serializers.ModelSerializer):
     package_type = serializers.ChoiceField(choices=InformationPackage.PACKAGE_TYPE_CHOICES)
     package_type_display = serializers.CharField(source='get_package_type_display')
     profiles = serializers.SerializerMethodField()
-
     workarea = serializers.SerializerMethodField()
     aic = serializers.PrimaryKeyRelatedField(queryset=InformationPackage.objects.all())
     first_generation = serializers.SerializerMethodField()
@@ -127,6 +126,13 @@ class InformationPackageSerializer(serializers.ModelSerializer):
                 workareas = workareas.filter(user=request.user)
 
         return WorkareaSerializer(workareas, many=True, context=self.context).data
+
+    def get_workarea(self, obj):
+        # TODO: This is moved here from ETA (overriding above)
+        workarea = obj.workareas.first()
+
+        if workarea is not None:
+            return WorkareaSerializer(workarea, context=self.context).data
 
     class Meta:
         model = InformationPackage
@@ -359,3 +365,19 @@ class NestedInformationPackageSerializer(DynamicHyperlinkedModelSerializer):
             },
         }
 
+
+class InformationPackageReadSerializer(InformationPackageSerializer):
+    def to_representation(self, obj):
+        data = super().to_representation(obj)
+        profiles = data['profiles']
+        data['profiles'] = {}
+
+        for ptype in profile_types:
+            data['profile_%s' % ptype.lower().replace(' ', '_')] = None
+
+        for p in profiles:
+            data['profile_%s' % p['profile_type']] = p
+
+        data.pop('profiles', None)
+
+        return data
