@@ -7,7 +7,7 @@ from django.contrib.auth import views as auth_views
 from ESSArch_Core.WorkflowEngine.views import ProcessViewSet, ProcessStepViewSet, ProcessTaskViewSet
 from ESSArch_Core.auth.views import GroupViewSet, PermissionViewSet, MeView, UserViewSet, NotificationViewSet
 from ESSArch_Core.configuration.views import ParameterViewSet, PathViewSet, SiteView, SysInfoView
-from ESSArch_Core.fixity.views import ValidationViewSet
+from ESSArch_Core.fixity.views import ValidationViewSet, ValidationFilesViewSet
 from ESSArch_Core.ip.views import AgentViewSet, EventIPViewSet, InformationPackageViewSet, OrderViewSet, \
     WorkareaEntryViewSet, WorkareaViewSet, WorkareaFilesViewSet, InformationPackageReceptionViewSet
 from ESSArch_Core.maintenance.views import AppraisalRuleViewSet, AppraisalJobViewSet, ConversionJobViewSet
@@ -38,7 +38,7 @@ router.register(r'profile-sa', ProfileSAViewSet)
 router.register(r'profiles', ProfileViewSet)
 router.register(r'profilemaker-extensions', ProfileMakerExtensionViewSet)
 router.register(r'profilemaker-templates', ProfileMakerTemplateViewSet)
-router.register(r'information-packages', InformationPackageViewSet)
+router.register(r'information-packages', InformationPackageViewSet, base_name='informationpackage')
 router.register(r'information-packages', InformationPackageViewSet).register(
     r'events',
     EventIPViewSet,
@@ -50,6 +50,18 @@ router.register(r'information-packages', InformationPackageViewSet).register(
     InformationPackageProfileIPViewSet,
     base_name='ip-profiles',
     parents_query_lookups=['ip']
+)
+router.register(r'information-packages', InformationPackageViewSet).register(
+    r'validations',
+    ValidationViewSet,
+    base_name='ip-validations',
+    parents_query_lookups=['information_package']
+)
+router.register(r'information-packages', InformationPackageViewSet).register(
+    r'validation-files',
+    ValidationFilesViewSet,
+    base_name='ip-validation-files',
+    parents_query_lookups=['information_package']
 )
 router.register(r'notifications', NotificationViewSet)
 router.register(r'steps', ProcessStepViewSet)
@@ -72,6 +84,7 @@ router.register(r'tasks', ProcessTaskViewSet).register(
     base_name='task-validations',
     parents_query_lookups=['task']
 )
+router.register(r'validations', ValidationViewSet)
 router.register(r'events', EventIPViewSet)
 router.register(r'event-types', EventTypeViewSet)
 router.register(r'submission-agreements', SubmissionAgreementViewSet)

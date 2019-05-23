@@ -12,6 +12,13 @@ PROJECT_NAME = 'ESSArch'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
+ESSARCH_WORKFLOW_POLLERS = {
+    'dir': {
+        'class': 'workflow.polling.backends.directory.DirectoryWorkflowPoller',
+        'path': '/ESSArch/data/eta/reception/eft',
+    }
+}
+
 try:
     from local_essarch_settings import REDIS_URL
 except ImportError:
@@ -303,7 +310,12 @@ try:
 except ImportError:
     RABBITMQ_URL = os.environ.get('RABBITMQ_URL_ESSARCH', 'amqp://guest:guest@localhost:5672')
 CELERY_BROKER_URL = RABBITMQ_URL
-CELERY_IMPORTS = ("ESSArch_Core.ip.tasks", "ESSArch_Core.tasks", "ESSArch_Core.WorkflowEngine.tests.tasks")
+CELERY_IMPORTS = (
+    "ESSArch_Core.ip.tasks",
+    "ESSArch_Core.tasks",
+    "ESSArch_Core.WorkflowEngine.tests.tasks",
+    "preingest.tasks"
+)
 CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_BROKER_HEARTBEAT = 0

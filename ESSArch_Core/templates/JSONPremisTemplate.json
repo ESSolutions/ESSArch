@@ -1,0 +1,246 @@
+{
+    "-name": "premis",
+    "-min": "1",
+    "-max": "1",
+    "-allowEmpty": "0",
+    "-namespace": "premis",
+    "-nsmap": {
+        "premis": "http://www.loc.gov/premis/v3",
+        "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+    },
+    "-attr": [
+        {
+            "-name": "version",
+            "#content": [
+                {
+                    "text": "3.0"
+                }
+            ],
+            "-req": 1
+        },
+        {
+            "-name": "schemaLocation",
+            "#content": [
+                {
+                    "text": "http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/premis.xsd"
+                }
+            ],
+            "-namespace": "xsi"
+        }
+    ],
+    "-children":[
+        {
+            "-name": "object",
+            "-namespace": "premis",
+            "-containsFiles": true,
+            "-attr": [
+                {
+                  "-name": "type",
+                  "-namespace": "xsi",
+                  "-req": "1",
+                  "#content": [{"text":"premis:file"}]
+                }
+            ],
+            "-children": [
+                {
+                    "-name": "objectIdentifier",
+                    "-namespace": "premis",
+                    "-children": [
+                        {
+                            "-name": "objectIdentifierType",
+                            "-namespace": "premis",
+                            "#content": [{"var":"FIDType"}]
+                        },
+                        {
+                            "-name": "objectIdentifierValue",
+                            "-namespace": "premis",
+                            "#content": [{"text":"ID"},{"var":"FID"}]
+                        }
+                    ]
+                },
+                {
+                    "-name": "objectCharacteristics",
+                    "-namespace": "premis",
+                    "-children": [
+                        {
+                            "-name": "fixity",
+                            "-namespace": "premis",
+                            "-children": [
+                                {
+                                    "-name": "messageDigestAlgorithm",
+                                    "-namespace": "premis",
+                                    "#content": [{"var": "FChecksumType"}]
+                                },
+                                {
+                                    "-name": "messageDigest",
+                                    "-namespace": "premis",
+                                    "#content": [{"var":"FChecksum"}]
+                                },
+                                {
+                                    "-name": "messageDigestOriginator",
+                                    "-namespace": "premis",
+                                    "#content": [{"var": "FChecksumLib"}]
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "size",
+                            "-namespace": "premis",
+                            "#content": [{"var": "FSize"}]
+                        },
+                        {
+                            "-name": "format",
+                            "-namespace": "premis",
+                            "-children": [
+                                {
+                                    "-name": "formatDesignation",
+                                    "-namespace": "premis",
+                                    "-children": [
+                                        {
+                                            "-name": "formatName",
+                                            "-namespace": "premis",
+                                            "#content": [{"var": "FFormatName"}]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "-name": "storage",
+                    "-namespace": "premis",
+                    "-children": [
+                        {
+                            "-name": "contentLocation",
+                            "-namespace": "premis",
+                            "-children": [
+                                {
+                                    "-name": "contentLocationType",
+                                    "-namespace": "premis",
+                                    "#content": [{"var": "FLocationType"}]
+                                },
+                                {
+                                    "-name": "contentLocationValue",
+                                    "-namespace": "premis",
+                                    "#content": [{"text": "file:///"},{"var": "FName"}]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "-name": "agent",
+            "-namespace": "premis",
+            "-children": [
+                {
+                    "-name": "agentIdentifier",
+                    "-namespace": "premis",
+                    "-children": [
+                        {
+                            "-name": "agentIdentifierType",
+                            "-namespace": "premis",
+                            "#content": [{"text":"URI"}]
+                        },
+                        {
+                            "-name": "agentIdentifierValue",
+                            "-namespace": "premis",
+                            "#content": [{"var":"agentnote1"}]
+                        }
+                    ]
+                },
+                {
+                    "-name": "agentName",
+                    "-namespace": "premis",
+                    "#content": [{"var": "agentname1"}]
+                },
+                {
+                    "-name": "agentType",
+                    "-namespace": "premis",
+                    "#content": [{"text": "ORGANIZATION"}]
+                },
+                {
+                    "-name": "agentNote",
+                    "-namespace": "premis",
+                    "#content": [{"text": "ARCHIVIST"}]
+                }
+            ]
+        },
+        {
+            "-name": "agent",
+            "-namespace": "premis",
+            "-children": [
+                {
+                    "-name": "agentIdentifier",
+                    "-namespace": "premis",
+                    "-children": [
+                        {
+                            "-name": "agentIdentifierType",
+                            "-namespace": "premis",
+                            "#content": [{"text":"URI"}]
+                        },
+                        {
+                            "-name": "agentIdentifierValue",
+                            "-namespace": "premis",
+                            "#content": [{"var":"agentnote2"}]
+                        }
+                    ]
+                },
+                {
+                    "-name": "agentName",
+                    "-namespace": "premis",
+                    "#content": [{"var": "agentname2"}]
+                },
+                {
+                    "-name": "agentType",
+                    "-namespace": "premis",
+                    "#content": [{"text": "SOFTWARE"}]
+                },
+                {
+                    "-name": "agentNote",
+                    "-namespace": "premis",
+                    "#content": [{"text": "ARCHIVIST"}]
+                }
+            ]
+        },
+        {
+            "-name": "agent",
+            "-namespace": "premis",
+            "-children": [
+                {
+                    "-name": "agentIdentifier",
+                    "-namespace": "premis",
+                    "-children": [
+                        {
+                            "-name": "agentIdentifierType",
+                            "-namespace": "premis",
+                            "#content": [{"text":"URI"}]
+                        },
+                        {
+                            "-name": "agentIdentifierValue",
+                            "-namespace": "premis",
+                            "#content": [{"var":"agentnote3"}]
+                        }
+                    ]
+                },
+                {
+                    "-name": "agentName",
+                    "-namespace": "premis",
+                    "#content": [{"var": "agentname3"}]
+                },
+                {
+                    "-name": "agentType",
+                    "-namespace": "premis",
+                    "#content": [{"text": "ORGANIZATION"}]
+                },
+                {
+                    "-name": "agentNote",
+                    "-namespace": "premis",
+                    "#content": [{"text": "CREATOR"}]
+                }
+            ]
+        }
+    ]
+}

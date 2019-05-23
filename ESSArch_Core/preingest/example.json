@@ -1,0 +1,37 @@
+[
+    {
+        "name": "prepareip",
+        "params": {
+            "map_structure": {
+                "uuid": {
+                    "content": {
+                        "data": {
+                        },
+                        "documentation":{
+                        }
+                    },
+                    "metadata": {
+                    }
+                }
+            }
+        }
+    },
+    {
+        "name": "generateipmetadata",
+        "params": {
+            "premis": true
+        }
+    },
+    {
+        "name": "generateipmetadata",
+        "params": {
+            "premis": true
+        }
+    },
+    {
+        "name": "generateipmetadata",
+        "params": {
+            "premis": true
+        }
+    }
+]
