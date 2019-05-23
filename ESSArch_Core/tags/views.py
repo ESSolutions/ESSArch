@@ -21,6 +21,7 @@ from ESSArch_Core.tags.models import (
     StructureType,
     StructureUnit,
     StructureUnitType,
+    NodeRelationType,
     Tag,
     TagVersion,
     TagVersionType,
@@ -45,6 +46,7 @@ from ESSArch_Core.tags.serializers import (
     StructureWriteSerializer,
     StructureUnitSerializer,
     StructureUnitTypeSerializer,
+    NodeRelationTypeSerializer,
     StructureUnitWriteSerializer,
     LocationSerializer,
     MetricProfileSerializer,
@@ -237,6 +239,15 @@ class StructureUnitTypeViewSet(viewsets.ModelViewSet):
     ordering_fields = ('name',)
     search_fields = ('name',)
     filterset_fields = ('structure_type',)
+
+
+class NodeRelationTypeViewSet(viewsets.ModelViewSet):
+    queryset = NodeRelationType.objects.all()
+    serializer_class = NodeRelationTypeSerializer
+    permission_classes = (DjangoModelPermissions,)
+    filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter,)
+    ordering_fields = ('name',)
+    search_fields = ('name',)
 
 
 class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):

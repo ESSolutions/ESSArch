@@ -33,6 +33,7 @@ from ESSArch_Core.tags.models import (
     StructureUnit,
     StructureUnitType,
     StructureUnitRelation,
+    NodeRelationType,
     Tag,
     TagStructure,
     TagVersion,
@@ -164,6 +165,12 @@ class StructureUnitRelationWriteSerializer(StructureUnitRelationSerializer):
     )
     type = serializers.PrimaryKeyRelatedField(queryset=NodeRelationType.objects.all())
 
+
+class NodeRelationTypeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = NodeRelationType
+        fields = ('id', 'name',)
 
 class StructureUnitTypeSerializer(serializers.ModelSerializer):
     structure_type = StructureTypeSerializer()
