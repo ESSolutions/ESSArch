@@ -1011,6 +1011,11 @@ class EventIP(models.Model):
     linkingAgentIdentifierValue = models.CharField(max_length=255, blank=True)
     linkingAgentRole = models.CharField(max_length=255, blank=True)
     linkingObjectIdentifierValue = models.CharField(max_length=255, blank=True)
+    tag_versions = models.ManyToManyField('tags.TagVersion', related_name='events')
+    structure_units = models.ManyToManyField(
+        'tags.StructureUnit', related_name='events',
+        limit_choices_to={'structure__is_template': False},
+    )
 
     objects = EventIPManager()
 

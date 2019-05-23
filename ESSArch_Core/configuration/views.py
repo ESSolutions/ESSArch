@@ -32,9 +32,11 @@ from celery import current_app
 from django.db import connection
 from django.conf import settings
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
 from django_redis import get_redis_connection
-from redis.exceptions import RedisError
 from elasticsearch_dsl.connections import get_connection as get_es_connection
+from redis.exceptions import RedisError
+from rest_framework import filters
 
 from ESSArch_Core.api.filters import string_to_bool
 
@@ -47,6 +49,7 @@ from sqlite3 import sqlite_version
 
 from ESSArch_Core._version import get_versions as get_core_versions
 from ESSArch_Core.WorkflowEngine import get_workers
+from ESSArch_Core.configuration.filters import EventTypeFilter
 from ESSArch_Core.configuration.models import (
     Agent,
     ArchivePolicy,
@@ -191,6 +194,10 @@ class EventTypeViewSet(viewsets.ModelViewSet):
     queryset = EventType.objects.all()
     serializer_class = EventTypeSerializer
     pagination_class = None
+    filterset_class = EventTypeFilter
+    filter_backends = (
+        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
+    )
 
 
 class AgentViewSet(viewsets.ModelViewSet):
