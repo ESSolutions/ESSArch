@@ -82,7 +82,7 @@ from ESSArch_Core.util import (
     generate_file_response,
     parse_content_range_header,
     timestamp_to_datetime,
-    get_value_from_path, flatten, creation_date, get_immediate_subdirectories)
+    get_value_from_path, flatten, creation_date, get_immediate_subdirectories, find_destination)
 
 User = get_user_model()
 
@@ -969,6 +969,27 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
 
         return context
 
+    @action(detail=False, methods=['get'], url_path='get-xsds')
+    def get_xsds(self, request, pk=None):
+        static_path = os.path.join(settings.BASE_DIR, 'static/edead/xsds')
+        filename_list = os.listdir(static_path)
+        return Response(filename_list)
+
+    @transaction.atomic
+    def destroy(self, request, *args, **kwargs):
+        #TODO: This is moved here from ETP
+        ip = self.get_object()
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.ip.tasks.DeleteInformationPackage',
+            params={'from_db': True},
+            eager=False,
+            information_package=ip,
+            responsible=request.user,
+        )
+        t.run()
+        return Response({"detail": "Deleting information package", "task": t.pk}, status=status.HTTP_202_ACCEPTED)
+
     @transaction.atomic
     def destroy(self, request, pk=None):
         logger = logging.getLogger('essarch.epp')
@@ -1107,6 +1128,37 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
         step.run()
 
         return super().destroy(request, pk=pk)
+
+    @action(detail=True, methods=['get', 'post'], url_path='ead-editor')
+    def ead_editor(self, request, pk=None):
+        ip = self.get_object()
+        try:
+            structure = ip.get_profile('sip').structure
+        except AttributeError:
+            return Response("No SIP profile for IP created yet", status=status.HTTP_400_BAD_REQUEST)
+
+        ead_dir, ead_name = find_destination("archival_description_file", structure)
+
+        if ead_name is None:
+            return Response("No EAD file for IP found", status=status.HTTP_404_NOT_FOUND)
+
+        xmlfile = os.path.join(ip.object_path, ead_dir, ead_name)
+
+        if request.method == 'GET':
+
+            try:
+                with open(xmlfile) as f:
+                    s = f.read()
+                    return Response({"data": s})
+            except IOError:
+                open(xmlfile, 'a').close()
+                return Response({"data": ""})
+
+        content = request.POST.get("content", '')
+
+        with open(xmlfile, "w") as f:
+            f.write(str(content))
+            return Response("Content written to %s" % xmlfile)
 
     @action(detail=True, methods=['post'])
     def receive(self, request, pk=None):
@@ -1441,28 +1493,41 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
 
             return Response(results_list)
 
-        if request.method == 'DELETE':
-            if ip.package_type != InformationPackage.DIP:
-                raise exceptions.MethodNotAllowed(request.method)
+        if request.method not in permissions.SAFE_METHODS:
+            if ip.state not in ['Prepared', 'Uploading']:
+                raise exceptions.ParseError(
+                    "Cannot delete or add content of an IP that is not in 'Prepared' or 'Uploading' state"
+                )
 
+        if request.method == 'DELETE':
             try:
-                path = os.path.join(ip.object_path, request.data.__getitem__('path'))
+                path = request.data['path']
             except KeyError:
                 raise exceptions.ParseError('Path parameter missing')
 
+            root = ip.object_path
+            fullpath = os.path.join(root, path)
+
+            if not in_directory(fullpath, root):
+                raise exceptions.ParseError('Illegal path %s' % path)
+
             try:
-                shutil.rmtree(path)
+                shutil.rmtree(fullpath)
             except OSError as e:
+                if e.errno == errno.ENOENT:
+                    raise exceptions.NotFound('Path does not exist')
+
                 if e.errno != errno.ENOTDIR:
                     raise
 
-                os.remove(path)
+                os.remove(fullpath)
 
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         if request.method == 'POST':
-            if ip.package_type != InformationPackage.DIP:
-                raise exceptions.MethodNotAllowed(request.method)
+            # TODO: This was for EPP but is breaking for ETP so commented it out
+            # if ip.package_type != InformationPackage.DIP:
+            #     raise exceptions.MethodNotAllowed(request.method)
 
             try:
                 path = os.path.join(ip.object_path, request.data['path'])
@@ -1481,23 +1546,29 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
                 raise exceptions.ParseError('Illegal path %s' % fullpath)
 
             if pathtype == 'dir':
-                os.mkdir(fullpath)
+                try:
+                    os.makedirs(fullpath)
+                except OSError as e:
+                    if e.errno == errno.EEXIST:
+                        raise exceptions.ParseError('Directory %s already exists' % path)
+
+                    raise
             elif pathtype == 'file':
                 open(fullpath, 'a').close()
             else:
                 raise exceptions.ParseError('Type must be either "file" or "dir"')
 
-            return Response('%s created' % path)
+            return Response(path, status=status.HTTP_201_CREATED)
 
         return ip.get_path_response(path, request, force_download=download, paginator=self.paginator)
 
-    @action(detail=True, methods=['get'], permission_classes=[IsResponsibleOrCanSeeAllFiles])
-    def files(self, request, pk=None):
-        # TODO: This is moved here from ETA (overriding above)
-        ip = self.get_object()
-        path = request.query_params.get('path', '').rstrip('/')
-        download = request.query_params.get('download', False)
-        return ip.get_path_response(path, request, force_download=download, paginator=self.paginator)
+    # @action(detail=True, methods=['get'], permission_classes=[IsResponsibleOrCanSeeAllFiles])
+    # def files(self, request, pk=None):
+    #     # TODO: This is moved here from ETA (overriding above) and breaking for ETP and EPP, so commented it out
+    #     ip = self.get_object()
+    #     path = request.query_params.get('path', '').rstrip('/')
+    #     download = request.query_params.get('download', False)
+    #     return ip.get_path_response(path, request, force_download=download, paginator=self.paginator)
 
     @action(detail=True, methods=['post'], url_path='unlock-profile', permission_classes=[CanUnlockProfile])
     def unlock_profile(self, request, pk=None):
@@ -1515,6 +1586,31 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
 
         return Response({
             'detail': 'Unlocking profile with type "%s" in IP "%s"' % (
+                ptype, ip.pk
+            )
+        })
+
+    @transaction.atomic
+    @action(detail=True, methods=['post'], url_path='unlock-profile', permission_classes=[CanUnlockProfile])
+    def unlock_profile(self, request, pk=None):
+        # TODO: This is moved here from ETP (overriding above)
+        ip = self.get_object()
+
+        if ip.state in ['Submitting', 'Submitted']:
+            raise exceptions.ParseError('Cannot unlock profiles in an IP that is %s' % ip.state)
+
+        try:
+            ptype = request.data["type"]
+        except KeyError:
+            raise exceptions.ParseError('type parameter missing')
+
+        ip.unlock_profile(ptype)
+        prepare_path = Path.objects.get(entity='path_preingest_prepare').value
+        ip.object_path = normalize_path(os.path.join(prepare_path, ip.object_identifier_value))
+        ip.save(update_fields=['object_path'])
+
+        return Response({
+            'status': 'unlocking profile with type "%s" in IP "%s"' % (
                 ptype, ip.pk
             )
         })
@@ -1680,6 +1776,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
         workflow.save()
         workflow.run()
         return Response({'status': 'transferring ip'})
+
+    def update(self, request, *args, **kwargs):
+        ip = self.get_object()
+
+        if 'submission_agreement' in request.data:
+            if ip.submission_agreement_locked:
+                return Response("SA connected to IP is locked", status=status.HTTP_400_BAD_REQUEST)
+
+        return super().update(request, *args, **kwargs)
 
 
 class OrderViewSet(viewsets.ModelViewSet):
