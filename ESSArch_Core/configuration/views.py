@@ -198,6 +198,7 @@ class EventTypeViewSet(viewsets.ModelViewSet):
     filter_backends = (
         filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
     )
+    search_fields = ('eventDetail',)
 
 
 class AgentViewSet(viewsets.ModelViewSet):
