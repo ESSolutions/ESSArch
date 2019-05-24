@@ -182,6 +182,8 @@ def installDefaultUsers():
         ['create_sip', 'ip', 'informationpackage'],                    # Can create SIP
         ['submit_sip', 'ip', 'informationpackage'],                    # Can submit SIP
         ['prepare_ip', 'ip', 'informationpackage'],                    # Can prepare IP
+        ['receive', 'ip', 'informationpackage'],                       # Can receive IP
+        ['transfer_sip', 'ip', 'informationpackage'],                  # Can transfer SIP
         # ---- app: WorkflowEngine ---- model: processtask
         # ['can_undo','WorkflowEngine','processtask'],             # Can undo tasks (other)
         # ['can_retry','WorkflowEngine','processtask'],             # Can retry tasks (other)
@@ -306,9 +308,12 @@ def installDefaultPaths():
     dct = {
         'path_mimetypes_definitionfile': '/ESSArch/config/mime.types',
         'path_definitions': '/ESSArch/etp/env',
+        'path_gate_reception': '/ESSArch/data/gate/reception',
         'path_preingest_prepare': '/ESSArch/data/etp/prepare',
         'path_preingest_reception': '/ESSArch/data/etp/reception',
         'path_ingest_reception': '/ESSArch/data/eta/reception/eft',
+        'path_ingest_unidentified': '/ESSArch/data/eta/uip',
+        'ingest_workarea': '/ESSArch/data/eta/work',
     }
 
     for key in dct:
