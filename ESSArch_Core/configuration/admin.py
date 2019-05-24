@@ -28,6 +28,10 @@
 from .models import Parameter, Path, EventType, Agent, Site
 from django.contrib import admin
 from django.contrib.sites.models import Site as DjangoSite
+from nested_inline.admin import NestedModelAdmin
+
+from ESSArch_Core.configuration.models import ArchivePolicy
+from ESSArch_Core.storage.admin import StorageMethodInline
 
 
 class ParameterAdmin(admin.ModelAdmin):
@@ -87,6 +91,45 @@ class AgentAdmin(admin.ModelAdmin):
     fields = ('agentType', 'agentDetail')
 
 
+class ArchivePolicyAdmin(NestedModelAdmin):
+    """
+    ArchivePolicy
+    """
+    model = ArchivePolicy
+    list_display = ('policy_name', 'policy_id', 'policy_stat', 'ais_project_name', 'ais_project_id', 'mode')
+    fieldsets = (
+        (None, {
+            'fields': (
+                'policy_stat',
+                'policy_name',
+                'policy_id',
+                'ais_project_name',
+                'ais_project_id',
+                'mode',
+                'checksum_algorithm',
+                'ip_type',
+                'preingest_metadata',
+                'ingest_metadata',
+                'information_class',
+                'ingest_path',
+                'cache_storage',
+                'wait_for_approval',
+                'validate_checksum',
+                'validate_xml',
+                'ingest_delete',
+                'index',
+                'receive_extract_sip',
+                'cache_extracted_size',
+                'cache_package_size',
+                'cache_extracted_age',
+                'cache_package_age',
+            )
+        }),
+    )
+    inlines = [StorageMethodInline]
+
+
 admin.site.unregister(DjangoSite)
 admin.site.register(Agent, AgentAdmin)
 admin.site.register(Site)
+admin.site.register(ArchivePolicy, ArchivePolicyAdmin)
