@@ -43,10 +43,12 @@ from ESSArch_Core.storage.models import (AccessQueue, IOQueue, Robot,
                                          StorageObject, StorageTarget,
                                          TAPE, TapeDrive, TapeSlot)
 from ESSArch_Core.util import parse_content_range_header
-from ESSArch_PP.configuration.serializers import (StorageMethodSerializer,
-                                       StorageMethodTargetRelationSerializer,
-                                       StorageTargetSerializer)
-from ESSArch_PP.storage.filters import StorageMediumFilter
+from ESSArch_Core.configuration.serializers import (
+    StorageMethodSerializer,
+    StorageMethodTargetRelationSerializer,
+    StorageTargetSerializer
+)
+from ESSArch_Core.storage.filters import StorageMediumFilter
 from ESSArch_Core.storage.serializers import (AccessQueueSerializer, IOQueueSerializer,
                                  IOQueueWriteSerializer, RobotQueueSerializer,
                                  RobotSerializer, StorageMediumSerializer,
