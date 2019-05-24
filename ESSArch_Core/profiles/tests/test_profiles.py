@@ -31,7 +31,7 @@ from rest_framework.test import APIClient
 
 from ESSArch_Core.ip.models import InformationPackage
 
-from ESSArch_Core.profiles.models import SubmissionAgreement
+from ESSArch_Core.profiles.models import SubmissionAgreement, Profile
 
 
 class SaveSubmissionAgreement(TestCase):
@@ -160,3 +160,316 @@ class SaveSubmissionAgreement(TestCase):
 
         res = self.client.post(self.url, data, format='json')
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class LockSubmissionAgreement(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(username="admin")
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.sa = SubmissionAgreement.objects.create()
+
+        self.url = reverse('submissionagreement-lock', args=[self.sa.pk])
+
+    def test_lock_to_ip_without_permission(self):
+        ip = InformationPackage.objects.create(submission_agreement=self.sa)
+
+        res = self.client.post(self.url, {'ip': str(ip.pk)})
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class SaveProfile(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(username="admin")
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def test_save_no_changes(self):
+        profile = Profile.objects.create(
+            name='first',
+            profile_type='sip',
+            specification_data={'foo': 'initial'},
+        )
+
+        profile_url = reverse('profile-detail', args=(profile.pk,))
+        save_url = '%ssave/' % profile_url
+
+        data = {
+            'new_name': 'second',
+            'specification_data': profile.specification_data,
+            'structure': {},
+        }
+
+        res = self.client.post(save_url, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_save_profile(self):
+        profile = Profile.objects.create(
+            name='first',
+            profile_type='sip',
+            specification_data={'foo': 'initial'},
+            template=[
+                {
+                    "key": "email",
+                    "templateOptions": {
+                        "type": "email"
+                    },
+                },
+                {
+                    "key": "url",
+                    "templateOptions": {
+                        "type": "url"
+                    },
+                },
+                {
+                    "key": "remote",
+                    "templateOptions": {
+                        "type": "url",
+                        "remote": ""
+                    },
+                }
+            ]
+        )
+
+        profile_url = reverse('profile-detail', args=(profile.pk,))
+        save_url = '%ssave/' % profile_url
+
+        data = {
+            'new_name': 'second',
+            'specification_data': {
+                'foo': 'updated', 'email': 'foo@example.com', 'url': 'http://example.com',
+                'remote': 'http://example.com,admin,admin',
+            },
+            'structure': {},
+        }
+
+        res = self.client.post(save_url, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_save_empty_required_value(self):
+        profile = Profile.objects.create(
+            name='first',
+            profile_type='sip',
+            specification_data={'foo': 'initial'},
+            template=[
+                {
+                    "key": "foo",
+                    "templateOptions": {
+                        "required": True,
+                    },
+                }
+            ]
+        )
+
+        profile_url = reverse('profile-detail', args=(profile.pk,))
+        save_url = '%ssave/' % profile_url
+
+        data = {
+            'new_name': 'second',
+            'specification_data': {'foo': ''},
+            'structure': {},
+        }
+
+        res = self.client.post(save_url, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_save_missing_required_value(self):
+        profile = Profile.objects.create(
+            name='first',
+            profile_type='sip',
+            specification_data={'foo': 'initial'},
+            template=[
+                {
+                    "key": "foo",
+                    "templateOptions": {
+                        "required": True,
+                    },
+                }
+            ]
+        )
+
+        profile_url = reverse('profile-detail', args=(profile.pk,))
+        save_url = '%ssave/' % profile_url
+
+        data = {
+            'new_name': 'second',
+            'specification_data': {},
+            'structure': {},
+        }
+
+        res = self.client.post(save_url, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_save_invalid_email(self):
+        profile = Profile.objects.create(
+            name='first',
+            profile_type='sip',
+            specification_data={'foo': 'initial@example.com'},
+            template=[
+                {
+                    "key": "foo",
+                    "templateOptions": {
+                        "type": "email"
+                    },
+                }
+            ]
+        )
+
+        profile_url = reverse('profile-detail', args=(profile.pk,))
+        save_url = '%ssave/' % profile_url
+
+        data = {
+            'new_name': 'second',
+            'specification_data': {'foo': 'invalid'},
+            'structure': {},
+        }
+
+        res = self.client.post(save_url, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_save_invalid_url(self):
+        profile = Profile.objects.create(
+            name='first',
+            profile_type='sip',
+            specification_data={'foo': 'http://example.com'},
+            template=[
+                {
+                    "key": "foo",
+                    "templateOptions": {
+                        "type": "url"
+                    },
+                }
+            ]
+        )
+
+        profile_url = reverse('profile-detail', args=(profile.pk,))
+        save_url = '%ssave/' % profile_url
+
+        data = {
+            'new_name': 'second',
+            'specification_data': {'foo': 'invalid'},
+            'structure': {},
+        }
+
+        res = self.client.post(save_url, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_save_invalid_remote_url(self):
+        profile = Profile.objects.create(
+            name='first',
+            profile_type='sip',
+            specification_data={'foo': 'http://example.com,admin,admin'},
+            template=[
+                {
+                    "key": "foo",
+                    "templateOptions": {
+                        "type": "url",
+                        "remote": ""
+                    },
+                }
+            ]
+        )
+
+        profile_url = reverse('profile-detail', args=(profile.pk,))
+        save_url = '%ssave/' % profile_url
+
+        data = {
+            'new_name': 'second',
+            'specification_data': {'foo': 'invalid'},
+            'structure': {},
+        }
+
+        res = self.client.post(save_url, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class LockProfile(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(username="admin")
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.sa = SubmissionAgreement.objects.create()
+        self.ip = InformationPackage.objects.create(
+            submission_agreement=self.sa,
+            submission_agreement_locked=True,
+        )
+
+    def test_lock_profile(self):
+        profile = Profile.objects.create(
+            name='first',
+            profile_type='test',
+            specification_data={
+                'first': 'initial'
+            },
+            template=[
+                {
+                    "templateOptions": {
+                        "type": "text",
+                    },
+                    "defaultValue": "foo",
+                    "type": "input",
+                    "key": "first"
+                },
+                {
+                    "templateOptions": {
+                        "type": "text",
+                    },
+                    "defaultValue": "bar",
+                    "type": "input",
+                    "key": "second"
+                },
+                {
+                    "templateOptions": {
+                        "type": "text",
+                    },
+                    "type": "input",
+                    "key": "third"
+                },
+            ]
+        )
+
+        url = reverse('profile-detail', args=(profile.pk,))
+        url = url + 'lock/'
+
+        res = self.client.post(url, {'information_package': self.ip.pk})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        profile.refresh_from_db()
+        self.assertEqual(profile.specification_data['first'], 'initial')
+        self.assertEqual(profile.specification_data['second'], 'bar')
+
+    def test_lock_profile_without_ip(self):
+        profile = Profile.objects.create(
+            name='first',
+            profile_type='test',
+            specification_data={},
+            template=[]
+        )
+
+        url = reverse('profile-detail', args=(profile.pk,))
+        url = url + 'lock/'
+
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_lock_profile_twice(self):
+        profile = Profile.objects.create(
+            name='first',
+            profile_type='test',
+            specification_data={},
+            template=[]
+        )
+
+        url = reverse('profile-detail', args=(profile.pk,))
+        url = url + 'lock/'
+
+        res = self.client.post(url, {'information_package': self.ip.pk})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        res = self.client.post(url, {'information_package': self.ip.pk})
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
