@@ -1,0 +1,33 @@
+# Names of nodes to start
+#   most will only start one node:
+CELERYD_NODES="workereta workeretavalidation workeretafileoperation"
+
+# Absolute or relative path to the 'celery' command:
+CELERY_BIN="/ESSArch/pd/python/bin/celery"
+
+# App instance to use
+CELERY_APP="config"
+
+# Where to chdir at start.
+CELERYD_CHDIR="/ESSArch/pd/python/lib/python3.6/site-packages/ESSArch_TA"
+#CELERYD_CHDIR="/ESSArch/alpha/ESSArch_Tools_Archive/ESSArch_TA"
+
+# Extra command-line arguments to the worker
+CELERYD_OPTS="-Q:workereta celery -c:workereta 4 -Q:workeretavalidation validation -c:workeretavalidation 4 -Q:workeretafileoperation file_operation -c:workeretafileoperation 4 --broker=amqp://guest:guest@localhost:5672/eta -Ofair"
+
+# %N will be replaced with the first part of the nodename.
+CELERYD_LOG_LEVEL=INFO
+CELERYD_LOG_FILE="/ESSArch/log/celery_%N.log"
+CELERYD_PID_FILE="/ESSArch/log/proc/celery_%N.pid"
+
+# Workers should run as an unprivileged user.
+CELERYD_USER="arch"
+CELERYD_GROUP="arch"
+
+# CELERYBEAT configuration
+CELERYBEAT_LOG_LEVEL=INFO
+CELERYBEAT_LOG_FILE="/ESSArch/log/celerybeat_eta.log"
+CELERYBEAT_PID_FILE="/ESSArch/log/proc/celerybeat_eta.pid"
+CELERYBEAT_USER=${CELERYD_USER}
+CELERYBEAT_GROUP=${CELERYD_GROUP}
+CELERYBEAT_CHDIR=${CELERYD_CHDIR}
