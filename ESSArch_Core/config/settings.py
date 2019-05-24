@@ -12,6 +12,10 @@ PROJECT_NAME = 'ESSArch'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
+ESSARCH_TRANSFORMERS = {
+    'content': 'fixity.transformation.backends.content.ContentTransformer'
+}
+
 ESSARCH_WORKFLOW_POLLERS = {
     'dir': {
         'class': 'workflow.polling.backends.directory.DirectoryWorkflowPoller',
