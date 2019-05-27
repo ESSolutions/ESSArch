@@ -5,14 +5,39 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
 from ESSArch_Core.WorkflowEngine.views import ProcessViewSet, ProcessStepViewSet, ProcessTaskViewSet
-from ESSArch_Core.auth.views import GroupViewSet, PermissionViewSet, MeView, UserViewSet, NotificationViewSet
+from ESSArch_Core.auth.views import (
+    GroupViewSet,
+    PermissionViewSet,
+    MeView,
+    UserViewSet,
+    NotificationViewSet,
+    OrganizationViewSet,
+)
 from ESSArch_Core.configuration.views import ParameterViewSet, PathViewSet, SiteView, SysInfoView
 from ESSArch_Core.fixity.views import ValidationViewSet, ValidationFilesViewSet
-from ESSArch_Core.ip.views import AgentViewSet, EventIPViewSet, InformationPackageViewSet, OrderViewSet, \
-    WorkareaEntryViewSet, WorkareaViewSet, WorkareaFilesViewSet, InformationPackageReceptionViewSet
-from ESSArch_Core.maintenance.views import AppraisalRuleViewSet, AppraisalJobViewSet, ConversionJobViewSet
-from ESSArch_Core.profiles.views import ProfileIPViewSet, ProfileIPDataViewSet, ProfileIPDataTemplateViewSet, \
-    InformationPackageProfileIPViewSet, SubmissionAgreementTemplateView
+from ESSArch_Core.ip.views import (
+    AgentViewSet,
+    EventIPViewSet,
+    InformationPackageViewSet,
+    OrderViewSet,
+    WorkareaEntryViewSet,
+    WorkareaViewSet,
+    WorkareaFilesViewSet,
+    InformationPackageReceptionViewSet
+)
+from ESSArch_Core.maintenance.views import (
+    AppraisalRuleViewSet,
+    AppraisalJobViewSet,
+    ConversionJobViewSet,
+    ConversionRuleViewSet,
+)
+from ESSArch_Core.profiles.views import (
+    ProfileIPViewSet,
+    ProfileIPDataViewSet,
+    ProfileIPDataTemplateViewSet,
+    InformationPackageProfileIPViewSet,
+    SubmissionAgreementTemplateView,
+)
 from ESSArch_Core.routers import ESSArchRouter
 from ESSArch_Core.stats.views import stats, export as export_stats
 from ESSArch_Core.configuration.views import EventTypeViewSet
@@ -23,6 +48,20 @@ from ESSArch_Core.profiles.views import (
     ProfileMakerTemplateViewSet,
     SubmissionAgreementViewSet,
 )
+from ESSArch_Core.storage.views import (
+    StorageObjectViewSet,
+    IOQueueViewSet,
+    StorageMediumViewSet,
+    StorageMethodViewSet,
+    StorageMethodTargetRelationViewSet,
+    StorageTargetViewSet,
+    TapeDriveViewSet,
+    TapeSlotViewSet,
+    RobotViewSet,
+    RobotQueueViewSet,
+)
+from ESSArch_Core.tags.search import ComponentSearchViewSet
+from ESSArch_Core.tags.views import TagViewSet, TagInformationPackagesViewSet
 
 admin.site.site_header = 'ESSArch Administration'
 admin.site.site_title = 'ESSArch Administration'
@@ -40,6 +79,18 @@ router.register(r'profilemaker-extensions', ProfileMakerExtensionViewSet)
 router.register(r'profilemaker-templates', ProfileMakerTemplateViewSet)
 router.register(r'information-packages', InformationPackageViewSet, base_name='informationpackage')
 router.register(r'information-packages', InformationPackageViewSet).register(
+    r'appraisal-rules',
+    AppraisalRuleViewSet,
+    base_name='ip-appraisal-rules',
+    parents_query_lookups=['information_packages']
+)
+router.register(r'information-packages', InformationPackageViewSet).register(
+    r'conversion-rules',
+    ConversionRuleViewSet,
+    base_name='ip-conversion-rules',
+    parents_query_lookups=['information_packages']
+)
+router.register(r'information-packages', InformationPackageViewSet).register(
     r'events',
     EventIPViewSet,
     base_name='ip-events',
@@ -49,6 +100,12 @@ router.register(r'information-packages', InformationPackageViewSet).register(
     r'profiles',
     InformationPackageProfileIPViewSet,
     base_name='ip-profiles',
+    parents_query_lookups=['ip']
+)
+router.register(r'information-packages', InformationPackageViewSet).register(
+    r'storage-objects',
+    StorageObjectViewSet,
+    base_name='ip-storage-objects',
     parents_query_lookups=['ip']
 )
 router.register(r'information-packages', InformationPackageViewSet).register(
@@ -63,6 +120,9 @@ router.register(r'information-packages', InformationPackageViewSet).register(
     base_name='ip-validation-files',
     parents_query_lookups=['information_package']
 )
+
+router.register(r'io-queue', IOQueueViewSet)
+
 router.register(r'notifications', NotificationViewSet)
 router.register(r'steps', ProcessStepViewSet)
 router.register(r'steps', ProcessStepViewSet, base_name='steps').register(
@@ -77,6 +137,21 @@ router.register(r'steps', ProcessStepViewSet, base_name='steps').register(
     base_name='steps-children',
     parents_query_lookups=['processstep']
 )
+
+router.register(r'tags', TagViewSet)
+router.register(r'tags', TagViewSet, base_name='tags').register(
+    r'information-packages',
+    TagInformationPackagesViewSet,
+    base_name='tags-informationpackages',
+    parents_query_lookups=['tag']
+)
+router.register(r'tags', TagViewSet, base_name='tags').register(
+    r'descendants',
+    TagViewSet,
+    base_name='tags-descendants',
+    parents_query_lookups=['tag']
+)
+
 router.register(r'tasks', ProcessTaskViewSet)
 router.register(r'tasks', ProcessTaskViewSet).register(
     r'validations',
@@ -84,6 +159,13 @@ router.register(r'tasks', ProcessTaskViewSet).register(
     base_name='task-validations',
     parents_query_lookups=['task']
 )
+
+
+router.register(r'organizations', OrganizationViewSet, base_name='organizations')
+router.register(r'appraisal-jobs', AppraisalJobViewSet)
+router.register(r'appraisal-rules', AppraisalRuleViewSet)
+router.register(r'conversion-jobs', ConversionJobViewSet)
+router.register(r'conversion-rules', ConversionRuleViewSet)
 router.register(r'validations', ValidationViewSet)
 router.register(r'events', EventIPViewSet)
 router.register(r'event-types', EventTypeViewSet)
@@ -96,11 +178,24 @@ router.register(r'profile-ip-data-templates', ProfileIPDataTemplateViewSet)
 router.register(r'parameters', ParameterViewSet)
 router.register(r'paths', PathViewSet)
 
+router.register(r'storage-objects', StorageObjectViewSet)
+router.register(r'storage-mediums', StorageMediumViewSet)
+router.register(r'storage-methods', StorageMethodViewSet)
+router.register(r'storage-method-target-relations', StorageMethodTargetRelationViewSet)
+router.register(r'storage-targets', StorageTargetViewSet)
+router.register(r'tape-drives', TapeDriveViewSet)
+router.register(r'tape-slots', TapeSlotViewSet)
+
+
+router.register(r'storage-mediums', StorageMediumViewSet, base_name='storagemedium').register(
+    r'storage-objects',
+    StorageObjectViewSet,
+    base_name='storagemedium-storageobject',
+    parents_query_lookups=['storage_medium']
+)
+
 router.register(r'orders', OrderViewSet)
 
-router.register(r'appraisal-rules', AppraisalRuleViewSet)
-router.register(r'appraisal-jobs', AppraisalJobViewSet)
-router.register(r'conversion-jobs', ConversionJobViewSet)
 router.register(r'workarea-entries', WorkareaEntryViewSet, base_name='workarea-entries')
 router.register(r'workareas', WorkareaViewSet, base_name='workarea')
 router.register(r'workareas', WorkareaViewSet, base_name='workarea').register(
@@ -111,7 +206,32 @@ router.register(r'workareas', WorkareaViewSet, base_name='workarea').register(
 )
 router.register(r'workarea-files', WorkareaFilesViewSet, base_name='workarea-files')
 
+
+router.register(r'robots', RobotViewSet)
+router.register(r'robots', ProcessStepViewSet, base_name='robots').register(
+    r'queue',
+    RobotQueueViewSet,
+    base_name='robots-queue',
+    parents_query_lookups=['robot']
+)
+router.register(r'robot-queue', RobotQueueViewSet)
+
+router.register(r'robots', RobotViewSet, base_name='robots').register(
+    r'tape-slots',
+    TapeSlotViewSet,
+    base_name='robots-tapeslots',
+    parents_query_lookups=['tape_slots']
+)
+router.register(r'robots', RobotViewSet, base_name='robots').register(
+    r'tape-drives',
+    TapeDriveViewSet,
+    base_name='robots-tapedrives',
+    parents_query_lookups=['tape_drives']
+)
+
 router.register(r'ip-reception', InformationPackageReceptionViewSet, base_name="ip-reception")
+
+router.register(r'search', ComponentSearchViewSet, base_name='search')
 
 urlpatterns = [
     url(r'^', include('ESSArch_Core.frontend.urls'), name='home'),

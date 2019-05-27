@@ -1,8 +1,8 @@
-from datetime import timedelta
 import os
+from datetime import timedelta
+from urllib.parse import urlparse
 
 import dj_database_url
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -59,13 +59,6 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
-CELERY_BEAT_SCHEDULE = {
-    'RunWorkflowProfiles-every-10-seconds': {
-        'task': 'ESSArch_Core.tasks.RunWorkflowProfiles',
-        'schedule': timedelta(seconds=10),
-    },
-}
-
 PROXY_PAGINATION_PARAM = 'pager'
 PROXY_PAGINATION_DEFAULT = 'ESSArch_Core.api.pagination.LinkHeaderPagination'
 PROXY_PAGINATION_MAPPING = {'none': 'ESSArch_Core.api.pagination.NoPagination'}
@@ -108,6 +101,7 @@ INSTALLED_APPS = [
     'ESSArch_Core.essxml.ProfileMaker',
     'ESSArch_Core.fixity',
     'ESSArch_Core.maintenance',
+    'ESSArch_Core.search',
     'ESSArch_Core.stats',
     'ESSArch_Core.storage',
     'ESSArch_Core.tags',
@@ -201,6 +195,21 @@ CACHES = {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'REDIS_CLIENT_CLASS': REDIS_CLIENT_CLASS,
         }
+    }
+}
+
+try:
+    from local_essarch_settings import ELASTICSEARCH_URL
+except ImportError:
+    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL_EPP', 'http://localhost:9200')
+elasticsearch_url = urlparse(ELASTICSEARCH_URL)
+ELASTICSEARCH_CONNECTIONS = {
+    'default': {
+        'hosts': [{
+            'host': elasticsearch_url.hostname,
+            'port': elasticsearch_url.port,
+            'timeout': 60,
+        }],
     }
 }
 
@@ -318,12 +327,68 @@ CELERY_IMPORTS = (
     "ESSArch_Core.ip.tasks",
     "ESSArch_Core.tasks",
     "ESSArch_Core.WorkflowEngine.tests.tasks",
-    "preingest.tasks"
+    "preingest.tasks",
+    "workflow.tasks",
 )
 CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_BROKER_HEARTBEAT = 0
 CELERY_BROKER_TRANSPORT_OPTIONS = {'confirm_publish': True}
+
+CELERY_BEAT_SCHEDULE = {
+    'RunWorkflowProfiles-every-10-seconds': {
+        'task': 'ESSArch_Core.tasks.RunWorkflowProfiles',
+        'schedule': timedelta(seconds=10),
+    },
+    'PollAccessQueue-every-10-seconds': {
+        'task': 'workflow.tasks.PollAccessQueue',
+        'schedule': timedelta(seconds=10),
+    },
+    'PollIOQueue-every-10-seconds': {
+        'task': 'workflow.tasks.PollIOQueue',
+        'schedule': timedelta(seconds=10),
+    },
+    'PollRobotQueue-queue-every-10-seconds': {
+        'task': 'workflow.tasks.PollRobotQueue',
+        'schedule': timedelta(seconds=10),
+    },
+    'UnmountIdleDrives-queue-every-10-seconds': {
+        'task': 'workflow.tasks.UnmountIdleDrives',
+        'schedule': timedelta(seconds=10),
+    },
+    'PollAppraisalJobs-every-10-seconds': {
+        'task': 'workflow.tasks.PollAppraisalJobs',
+        'schedule': timedelta(seconds=10),
+    },
+    'ScheduleAppraisalJobs-every-10-seconds': {
+        'task': 'workflow.tasks.ScheduleAppraisalJobs',
+        'schedule': timedelta(seconds=10),
+    },
+    'PollConversionJobs-every-10-seconds': {
+        'task': 'workflow.tasks.PollConversionJobs',
+        'schedule': timedelta(seconds=10),
+    },
+    'ScheduleConversionJobs-every-10-seconds': {
+        'task': 'workflow.tasks.ScheduleConversionJobs',
+        'schedule': timedelta(seconds=10),
+    },
+    'IndexTags': {
+        'task': 'ESSArch_Core.tasks.IndexTags',
+        'schedule': timedelta(seconds=10),
+    },
+    'UpdateTags': {
+        'task': 'ESSArch_Core.tasks.UpdateTags',
+        'schedule': timedelta(seconds=10),
+    },
+    'DeleteTags': {
+        'task': 'ESSArch_Core.tasks.DeleteTags',
+        'schedule': timedelta(seconds=10),
+    },
+    'ClearTagProcessQueue': {
+        'task': 'ESSArch_Core.tasks.ClearTagProcessQueue',
+        'schedule': timedelta(seconds=10),
+    },
+}
 
 # Rest auth settings
 OLD_PASSWORD_FIELD_ENABLED = True
