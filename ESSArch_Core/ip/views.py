@@ -22,7 +22,7 @@ from ESSArch_Core.ip.permissions import CanChangeSA, CanDeleteIP
 from ESSArch_Core.ip.serializers import (
     AgentSerializer,
     EventIPSerializer,
-    EventIPAddNodesSerializer,
+    EventIPEditNodesSerializer,
     InformationPackageSerializer,
     WorkareaSerializer
 )
@@ -58,7 +58,7 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def add_nodes(self, request, pk=None):
         event = self.get_object()
 
-        serializer = EventIPAddNodesSerializer(data=request.data)
+        serializer = EventIPEditNodesSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
@@ -67,6 +67,19 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         return Response()
 
+    @transaction.atomic()
+    @action(detail=True, methods=['post'], url_path='remove-nodes')
+    def remove_nodes(self, request, pk=None):
+        event = self.get_object()
+
+        serializer = EventIPEditNodesSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        event.structure_units.remove(*data['structure_units'])
+        event.tag_versions.remove(*data['tags'])
+
+        return Response()
 
 
 class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewSet):

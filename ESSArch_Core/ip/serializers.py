@@ -53,7 +53,7 @@ class EventIPSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
-class EventIPAddNodesSerializer(serializers.Serializer):
+class EventIPEditNodesSerializer(serializers.Serializer):
     tags = serializers.ListField(
         child=serializers.PrimaryKeyRelatedField(
             queryset=TagVersion.objects.all(),
