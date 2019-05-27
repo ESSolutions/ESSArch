@@ -25,20 +25,20 @@
 """
 
 import django
-from ESSArch_Core.search import alias_migration
-from elasticsearch.client import IngestClient
-from elasticsearch_dsl.connections import get_connection
-
-from ESSArch_Core.storage.models import StorageMethod, DISK, StorageTarget, StorageMethodTargetRelation
-from ESSArch_Core.tags.documents import Archive, Component, Directory, File, InformationPackage
 
 django.setup()
 
 from django.contrib.auth import get_user_model  # noqa
 from django.contrib.auth.models import Permission  # noqa
 from groups_manager.models import GroupType  # noqa
+from elasticsearch.client import IngestClient  # noqa
+from elasticsearch_dsl.connections import get_connection  # noqa
+
+from ESSArch_Core.search import alias_migration  # noqa
 from ESSArch_Core.auth.models import Group, GroupMemberRole  # noqa
 from ESSArch_Core.configuration.models import EventType, Parameter, Path, Site, ArchivePolicy  # noqa
+from ESSArch_Core.storage.models import StorageMethod, DISK, StorageTarget, StorageMethodTargetRelation  # noqa
+from ESSArch_Core.tags.documents import Archive, Component, Directory, File, InformationPackage  # noqa
 
 User = get_user_model()
 
