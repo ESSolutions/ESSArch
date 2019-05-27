@@ -16,55 +16,52 @@ matrix:
   include:
     - env: FLAKE8
       python: "3.6"
+      dist: xenial
       install: pip install flake8==3.7.1
       script: flake8
       after_success: skip
 
-    - python: "3.6"
-      dist: trusty
+    - name: "Linux with SQLite"
+      python: "3.6"
+      dist: xenial
 
-    - python: "3.6"
-      dist: trusty
+    - name: "Linux with MSSQL"
+      python: "3.6"
+      dist: xenial
       services: docker
       before_install:
         - docker pull mcr.microsoft.com/mssql/server:2017-latest-ubuntu
         - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d mcr.microsoft.com/mssql/server:2017-latest-ubuntu
         - curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-        - curl https://packages.microsoft.com/config/ubuntu/14.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+        - curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
         - sudo apt-get update
-        - sudo ACCEPT_EULA=Y apt-get install msodbcsql17
+        - sudo ACCEPT_EULA=Y apt-get install msodbcsql17 unixodbc-dev
       env:
         - *mssql
 
-    - python: "3.6"
-      dist: trusty
-      services:
-        - mariadb
+    - name: "Linux with MariaDB"
+      python: "3.6"
+      dist: xenial
+      addons:
+        mariadb: '10.3'
       env: *mariadb
 
-    - python: "3.6"
-      dist: trusty
+    - name: "Linux with MySQL"
+      python: "3.6"
+      dist: xenial
       services:
         - mysql
       env: *mysql
 
-    - python: "3.6"
-      dist: trusty
+    - name: "Linux with PostgreSQL"
+      python: "3.6"
+      dist: xenial
       services:
-        - postgres
+        - postgresql
       env: *postgres
 
-    - os: windows
-      language: sh
-      python: "3.6"
-      before_install:
-        - wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe
-        - powershell 'Start-Process -FilePath "gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
-        - choco install python3 --version 3.6.6
-        - choco install imagemagick
-        - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python36:/c/Python36/Scripts:$PATH"
-
-    - os: windows
+    - name: "Windows with MSSQL"
+      os: windows
       language: sh
       python: "3.6"
       services: docker
@@ -73,7 +70,8 @@ matrix:
         - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d christianacca/mssql-server-windows-express:1803
         - wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe
         - powershell 'Start-Process -FilePath "gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
-        - choco install sqlserver-odbcdriver --version 17.3.1.1
+        - wget https://download.microsoft.com/download/E/6/B/E6BFDC7A-5BCD-4C51-9912-635646DA801E/en-US/msodbcsql_17.3.1.1_x64.msi
+        - powershell "Start-Process msiexec.exe -Wait -ArgumentList '/I msodbcsql_17.3.1.1_x64.msi /qn /norestart IACCEPTMSODBCSQLLICENSETERMS=YES'"
         - choco install python3 --version 3.6.6
         - choco install imagemagick
         - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python36:/c/Python36/Scripts:$PATH"
@@ -83,7 +81,7 @@ matrix:
     - env: PRETTIER
       language: node_js
       node_js: "10"
-      dist: trusty
+      dist: xenial
       before_install: cd ESSArch_Core/frontend
       install: yarn
       script: yarn prettier --check "**/*.{js,scss,html}"
