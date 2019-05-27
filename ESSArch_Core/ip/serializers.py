@@ -8,6 +8,7 @@ from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import EventType
 from ESSArch_Core.ip.models import Agent, AgentNote, EventIP, InformationPackage, Workarea
+from ESSArch_Core.tags.models import StructureUnit, TagVersion
 
 VERSION = get_versions()['version']
 
@@ -50,6 +51,19 @@ class EventIPSerializer(serializers.HyperlinkedModelSerializer):
                 'default': VERSION
             }
         }
+
+
+class EventIPAddNodesSerializer(serializers.Serializer):
+    tags = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(
+            queryset=TagVersion.objects.all(),
+        )
+    )
+    structure_units = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(
+            queryset=StructureUnit.objects.filter(structure__is_template=False),
+        )
+    )
 
 
 class InformationPackageSerializer(serializers.ModelSerializer):
