@@ -8,6 +8,9 @@ class AddStructureUnit(permissions.BasePermission):
         if request.method not in ('POST') or request._request.method == "OPTIONS":
             return True
 
+        if not 'parent_lookup_structure' in request.parser_context['kwargs']:
+            return False
+
         structure = request.parser_context['kwargs']['parent_lookup_structure']
         structure = Structure.objects.get(pk=structure)
 
