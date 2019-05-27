@@ -25,13 +25,20 @@
 """
 
 import django
+from ESSArch_Core.search import alias_migration
+from elasticsearch.client import IngestClient
+from elasticsearch_dsl.connections import get_connection
+
+from ESSArch_Core.storage.models import StorageMethod, DISK, StorageTarget, StorageMethodTargetRelation
+from ESSArch_Core.tags.documents import Archive, Component, Directory, File, InformationPackage
+
 django.setup()
 
 from django.contrib.auth import get_user_model  # noqa
 from django.contrib.auth.models import Permission  # noqa
 from groups_manager.models import GroupType  # noqa
 from ESSArch_Core.auth.models import Group, GroupMemberRole  # noqa
-from ESSArch_Core.configuration.models import EventType, Parameter, Path, Site  # noqa
+from ESSArch_Core.configuration.models import EventType, Parameter, Path, Site, ArchivePolicy  # noqa
 
 User = get_user_model()
 
@@ -51,6 +58,24 @@ def installDefaultConfiguration():
 
     print("\nInstalling paths...")
     installDefaultPaths()
+
+    print("\nInstalling archive policies...")
+    installDefaultArchivePolicies()
+
+    print("\nInstalling storage methods...")
+    installDefaultStorageMethods()
+
+    print("\nInstalling storage targets...")
+    installDefaultStorageTargets()
+
+    print("\nInstalling storage method target relations...")
+    installDefaultStorageMethodTargetRelations()
+
+    print("\nInstalling Elasticsearch pipelines...")
+    installPipelines()
+
+    print("\nInstalling search indices...")
+    installSearchIndices()
 
     return 0
 
@@ -151,6 +176,7 @@ def installDefaultParameters():
         'site_name': site_name,
         'medium_location': 'Media_%s' % site_name,
         'content_location_type': 'SIP',
+        #'content_location_type': 'AIP', # TODO: this is moved here from EPP, which collides with above line
     }
 
     for key in dct:
@@ -183,10 +209,28 @@ def installDefaultUsers():
         ['submit_sip', 'ip', 'informationpackage'],                    # Can submit SIP
         ['prepare_ip', 'ip', 'informationpackage'],                    # Can prepare IP
         ['receive', 'ip', 'informationpackage'],                       # Can receive IP
+        ['preserve', 'ip', 'informationpackage'],                      # Can preserve IP (Ingest)
+        ['preserve_dip', 'ip', 'informationpackage'],                  # Can preserve DIP (Access)
+        ['get_from_storage', 'ip', 'informationpackage'],              # Can get extracted IP from storage (Access)
+        ['get_tar_from_storage', 'ip', 'informationpackage'],          # Can get packaged IP from storage (Access)
+        ['add_to_ingest_workarea', 'ip', 'informationpackage'],        # Can add IP to ingest workarea "readonly" (Ing)
+        ['diff-check', 'ip', 'informationpackage'],                    # Can diff-check IP (?)
+        # ---- app: ip ---- model: workarea
+        ['move_from_ingest_workarea', 'ip', 'workarea'],               # Can move IP from ingest workarea (Ingest)
+        ['move_from_access_workarea', 'ip', 'workarea'],               # Can move IP from access workarea (Access)
+        ['preserve_from_ingest_workarea', 'ip', 'workarea'],           # Can preserve IP from ingest workarea (Ingest)
+        ['preserve_from_access_workarea', 'ip', 'workarea'],           # Can preserve IP from access workarea (Access)
+        # ---- app: ip ---- model: order
+        ['prepare_order', 'ip', 'order'],                              # Can prepare order (Access)
+        # ---- app: WorkflowEngine ---- model: processtask
+        # ['can_undo','WorkflowEngine','processtask'],                 # Can undo tasks (other)
+        # ['can_retry','WorkflowEngine','processtask'],                # Can retry tasks (other)
+        # ---- app: tags ---- model: Tag
+        ['search', 'tags', 'tag'],  # Can search
         ['transfer_sip', 'ip', 'informationpackage'],                  # Can transfer SIP
         # ---- app: WorkflowEngine ---- model: processtask
-        # ['can_undo','WorkflowEngine','processtask'],             # Can undo tasks (other)
-        # ['can_retry','WorkflowEngine','processtask'],             # Can retry tasks (other)
+        # ['can_undo','WorkflowEngine','processtask'],                 # Can undo tasks (other)
+        # ['can_retry','WorkflowEngine','processtask'],                # Can retry tasks (other)
     ]
 
     for p in permission_list_user:
@@ -202,11 +246,27 @@ def installDefaultUsers():
         ['add_submissionagreement', 'profiles', 'submissionagreement'],  # Can add Submission Agreement (Import)
         ['change_submissionagreement', 'profiles', 'submissionagreement'],  # Can change Submission Agreement
         # ---- app: profiles ---- model: profile
-        ['add_profile', 'profiles', 'profile'],  # Can add Profile (Import)
+        ['add_profile', 'profiles', 'profile'],  # Can add Profile (Import/Administration)
         ['change_profile', 'profiles', 'profile'],  # Can change Profile
         # ---- app: WorkflowEngine ---- model: processtask
         # ['can_undo','WorkflowEngine','processtask'],             # Can undo tasks (other)
         # ['can_retry','WorkflowEngine','processtask'],             # Can retry tasks (other)
+        # ---- app: ip ---- model: informationpackage
+        ['get_from_storage_as_new', 'ip', 'informationpackage'],  # Can get IP "as new" from storage (Access)
+        ['add_to_ingest_workarea_as_new', 'ip', 'informationpackage'],
+        # Can add IP as new generation to ingest workarea (Ingest)
+        # ---- app: ip ---- model: order
+        ['prepare_order', 'ip', 'order'],  # Can prepare order (Access)
+        # ---- app: storage ---- model: storageobject
+        ['storage_migration', 'storage', 'storageobject'],  # Storage migration (Administration)
+        ['storage_maintenance', 'storage', 'storageobject'],  # Storage maintenance (Administration)
+        ['storage_management', 'storage', 'storageobject'],  # Storage management (Administration)
+        # ---- app: maintenance ---- model: AppraisalRule
+        ['add_appraisalrule', 'maintenance', 'appraisalrule'],  # Can add appraisal rule (Administration)
+        # ---- app: maintenance ---- model: ConversionRule
+        ['add_conversionrule', 'maintenance', 'conversionrule'],  # Can add conversion rule (Administration)
+        # ---- app: tags ---- model: Tag
+        ['create_archive', 'tags', 'tag'],  # Can create archives
     ]
 
     for p in permission_list_admin:
@@ -250,6 +310,52 @@ def installDefaultUsers():
         ['add_grouptype', 'groups_manager', 'grouptype'],                    # Can add grouptype
         ['change_grouptype', 'groups_manager', 'grouptype'],                    # Can change grouptype
         ['delete_grouptype', 'groups_manager', 'grouptype'],                    # Can delete grouptype
+
+        # ---- app: configuration ---- model: archivepolicy
+        ['add_archivepolicy', 'configuration', 'archivepolicy'],  # Can add archivepolicy
+        ['change_archivepolicy', 'configuration', 'archivepolicy'],  # Can change archivepolicy
+        ['delete_archivepolicy', 'configuration', 'archivepolicy'],  # Can delete archivepolicy
+        # ---- app: storage ---- model: storagemethod
+        ['add_storagemethod', 'storage', 'storagemethod'],  # Can add storagemethod
+        ['change_storagemethod', 'storage', 'storagemethod'],  # Can change storagemethod
+        ['delete_storagemethod', 'storage', 'storagemethod'],  # Can delete storagemethod
+        # ---- app: storage ---- model: storagetarget
+        ['add_storagetarget', 'storage', 'storagetarget'],  # Can add storagetarget
+        ['change_storagetarget', 'storage', 'storagetarget'],  # Can change storagetarget
+        ['delete_storagetarget', 'storage', 'storagetarget'],  # Can delete storagetarget
+        # ---- app: storage ---- model: storagemethodtargetrelation
+        [
+            'add_storagemethodtargetrelation', 'storage',
+            'storagemethodtargetrelation'
+        ],  # Can add storagemethodtargetrelation
+        [
+            'change_storagemethodtargetrelation', 'storage',
+            'storagemethodtargetrelation'
+        ],  # Can change storagemethodtargetrelation
+
+        [
+            'delete_storagemethodtargetrelation', 'storage',
+            'storagemethodtargetrelation'
+        ],  # Can delete storagemethodtargetrelation
+
+        # ---- app: storage ---- model: storageobject
+        ['storage_migration', 'storage', 'storageobject'],  # Storage migration (Administration)
+        ['storage_maintenance', 'storage', 'storageobject'],  # Storage maintenance (Administration)
+        ['storage_management', 'storage', 'storageobject'],  # Storage management (Administration)
+        # ---- app: storage ---- model: ioqueue
+        ['change_ioqueue', 'storage', 'ioqueue'],  # Can change ioqueue
+        ['delete_ioqueue', 'storage', 'ioqueue'],  # Can delete ioqueue
+        # ---- app: storage ---- model: robot
+        ['add_robot', 'storage', 'robot'],  # Can add robot
+        ['change_robot', 'storage', 'robot'],  # Can change robot
+        ['delete_robot', 'storage', 'robot'],  # Can delete robot
+        # ---- app: storage ---- model: robotqueue
+        ['change_robotqueue', 'storage', 'robotqueue'],  # Can change robotqueue
+        ['delete_robotqueue', 'storage', 'robotqueue'],  # Can delete robotqueue
+        # ---- app: storage ---- model: tapedrive
+        ['add_tapedrive', 'storage', 'tapedrive'],  # Can add tapedrive
+        ['change_tapedrive', 'storage', 'tapedrive'],  # Can change tapedrive
+        ['delete_tapedrive', 'storage', 'tapedrive'],  # Can delete tapedrive
     ]
 
     for p in permission_list_sysadmin:
@@ -314,6 +420,17 @@ def installDefaultPaths():
         'path_ingest_reception': '/ESSArch/data/eta/reception/eft',
         'path_ingest_unidentified': '/ESSArch/data/eta/uip',
         'ingest_workarea': '/ESSArch/data/eta/work',
+        'reception': '/ESSArch/data/gate/reception',
+        'ingest': '/ESSArch/data/epp/ingest',
+        'cache': '/ESSArch/data/epp/cache',
+        'access_workarea': '/ESSArch/data/epp/work',
+        #'ingest_workarea': '/ESSArch/data/epp/work', # TODO: This is copied here from EPP which collides with eta
+        'disseminations': '/ESSArch/data/epp/disseminations',
+        'orders': '/ESSArch/data/epp/orders',
+        'verify': '/ESSArch/data/epp/verify',
+        'temp': '/ESSArch/data/epp/temp',
+        'appraisal_reports': '/ESSArch/data/epp/reports/appraisal',
+        'conversion_reports': '/ESSArch/data/epp/reports/conversion',
     }
 
     for key in dct:
@@ -321,6 +438,127 @@ def installDefaultPaths():
         Path.objects.get_or_create(entity=key, defaults={'value': dct[key]})
 
     return 0
+
+
+def installDefaultArchivePolicies():
+    cache = Path.objects.get(entity='cache')
+    ingest = Path.objects.get(entity='ingest')
+
+    ArchivePolicy.objects.get_or_create(
+        policy_id='1',
+        defaults={
+            'checksum_algorithm': ArchivePolicy.MD5,
+            'policy_name': 'default',
+            'cache_storage': cache, 'ingest_path': ingest,
+            'receive_extract_sip': True
+        }
+    )
+
+    return 0
+
+
+def installDefaultStorageMethods():
+    StorageMethod.objects.get_or_create(
+        name='Default Storage Method 1',
+        defaults={
+            'archive_policy': ArchivePolicy.objects.get(policy_name='default'),
+            'status': True,
+            'type': DISK,
+            'containers': False,
+        }
+    )
+
+    StorageMethod.objects.get_or_create(
+        name='Default Long-term Storage Method 1',
+        defaults={
+            'archive_policy': ArchivePolicy.objects.get(policy_name='default'),
+            'status': True,
+            'type': DISK,
+            'containers': True,
+        }
+    )
+
+    return 0
+
+
+def installDefaultStorageTargets():
+    StorageTarget.objects.get_or_create(
+        name='Default Storage Target 1',
+        defaults={
+            'status': True,
+            'type': DISK,
+            'target': '/ESSArch/data/store/disk1',
+        }
+    )
+
+    StorageTarget.objects.get_or_create(
+        name='Default Long-term Storage Target 1',
+        defaults={
+            'status': True,
+            'type': DISK,
+            'target': '/ESSArch/data/store/longterm_disk1',
+        }
+    )
+
+    return 0
+
+
+def installDefaultStorageMethodTargetRelations():
+    StorageMethodTargetRelation.objects.get_or_create(
+        name='Default Storage Method Target Relation 1',
+        defaults={
+            'status': True,
+            'storage_method': StorageMethod.objects.get(name='Default Storage Method 1'),
+            'storage_target': StorageTarget.objects.get(name='Default Storage Target 1'),
+        }
+    )
+
+    StorageMethodTargetRelation.objects.get_or_create(
+        name='Default Long-term Storage Method Target Relation 1',
+        defaults={
+            'status': True,
+            'storage_method': StorageMethod.objects.get(name='Default Long-term Storage Method 1'),
+            'storage_target': StorageTarget.objects.get(name='Default Long-term Storage Target 1'),
+        }
+    )
+
+    return 0
+
+
+def installPipelines():
+    conn = get_connection()
+    client = IngestClient(conn)
+    client.put_pipeline(id='ingest_attachment', body={
+        'description': "Extract attachment information",
+        'processors': [
+            {
+                "attachment": {
+                    "field": "data"
+                },
+                "remove": {
+                    "field": "data"
+                }
+            }
+        ]
+    })
+    client.put_pipeline(id='add_timestamp', body={
+        'description': "Adds an index_date timestamp",
+        'processors': [
+            {
+                "set": {
+                    "field": "index_date",
+                    "value": "{{_ingest.timestamp}}",
+                },
+            },
+        ]
+    })
+
+
+def installSearchIndices():
+    for doctype in [Archive, Component, Directory, File, InformationPackage]:
+        alias_migration.setup_index(doctype)
+
+    print('done')
 
 
 if __name__ == '__main__':

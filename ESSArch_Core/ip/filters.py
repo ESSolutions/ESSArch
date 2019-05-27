@@ -91,3 +91,21 @@ class WorkareaEntryFilter(filters.FilterSet):
             raise exceptions.ParseError('Workarea of type "%s" does not exist' % value)
 
         return queryset.filter(**{name: workarea_type})
+
+
+class WorkareaFilter(InformationPackageFilter):
+    type = ListFilter(field_name='workareas__type', method='filter_workarea')
+
+    def filter_workarea(self, queryset, name, value):
+        workarea_type_reverse = dict((v.lower(), k) for k, v in Workarea.TYPE_CHOICES)
+
+        try:
+            workarea_type = workarea_type_reverse[value]
+        except KeyError:
+            raise exceptions.ParseError('Workarea of type "%s" does not exist' % value)
+
+        return self.filterset_fields(queryset, name, workarea_type)
+
+    class Meta:
+        model = InformationPackage
+        fields = InformationPackageFilter.Meta.fields + ['type']

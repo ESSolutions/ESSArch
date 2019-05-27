@@ -1,0 +1,652 @@
+{
+    "-name": "mets",
+    "-namespace": "mets",
+    "-nsmap": {
+        "mets": "http://www.loc.gov/METS/",
+        "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "xlink": "http://www.w3.org/1999/xlink",
+        "ext": "ExtensionMETS"
+    },
+    "-schemasToPreserve": [
+        "http://xml.ra.se/e-arkiv/METS/version11/CSPackageMETS.xsd",
+        "http://xml.ra.se/e-arkiv/METS/version11/CSPackageExtensionMETS.xsd",
+        "http://xml.ra.se/e-arkiv/xlink/xlink.xsd"
+    ],
+    "-schemaPreservationLocation": "xsd_files",
+    "-attr": [
+        {
+            "-name": "schemaLocation",
+            "#content": [
+                {
+                    "text": "http://www.loc.gov/METS/ http://xml.ra.se/e-arkiv/METS/version11/CSPackageMETS.xsd ExtensionMETS http://xml.ra.se/e-arkiv/METS/version11/CSPackageExtensionMETS.xsd"
+                }
+            ],
+            "-namespace": "xsi"
+        },
+        {
+            "-name": "ID",
+            "#content": [{"text": "ID"}, {"var": "_UUID"}]
+        },
+        {
+            "#content": [{"text": "UUID:"}, {"var": "_OBJID"}],
+            "-name": "OBJID",
+            "-req": 1
+        },
+        {
+            "-name": "LABEL",
+            "#content": [{"var": "_OBJLABEL"}]
+        },
+        {
+            "-name": "TYPE",
+            "#content": [{"text": "AIP"}],
+            "-req": 1
+        },
+        {
+            "-name": "PROFILE",
+            "#content": [{"text": "http://xml.ra.se/e-arkiv/METS/version11/CommonSpecificationSwedenPackageProfile.xml"}],
+            "-req": 1
+        },
+        {
+            "-name": "OAISTYPE",
+            "-namespace": "ext",
+            "#content": [{"text": "AIP"}],
+            "-req": 1
+        }
+    ],
+    "-children": [
+        {
+            "-name": "metsHdr",
+            "-namespace": "mets",
+            "-attr": [
+                {
+                    "-name": "ID",
+                    "#content": [{"text": "ID"}, {"var": "_UUID"}]
+                },
+                {
+                    "-name": "CREATEDATE",
+                    "#content": [{"var": "_NOW"}],
+                    "-req": 1
+                }
+            ],
+            "-children": [
+                {
+                    "-name": "agent",
+                    "-namespace": "mets",
+                    "-foreach": "_AGENTS",
+                    "-attr": [
+                        {
+                            "-name": "ROLE",
+                            "-req": 1,
+                            "#content": [{"var": "_AGENTS_ROLE"}]
+                        },
+                        {
+                            "-name": "TYPE",
+                            "-req": 1,
+                            "#content": [{"var": "_AGENTS_TYPE"}]
+                        },
+                        {
+                            "-name": "OTHERROLE",
+                            "#content": [{"var": "_AGENTS_OTHERROLE"}]
+                        },
+                        {
+                            "-name": "OTHERTYPE",
+                            "#content": [{"var": "_AGENTS_OTHERTYPE"}]
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "name",
+                            "-namespace": "mets",
+                            "#content": [{"var": "_AGENTS_NAME"}]
+                        },
+                        {
+                            "-name": "note",
+                            "-namespace": "mets",
+                            "-foreach": "_AGENTS_NOTES",
+                            "#content": [{"var": "_AGENTS_NOTE"}]
+                        }
+                    ]
+                },
+                {
+                    "-name": "agent",
+                    "-namespace": "mets",
+                    "-attr": [{
+                        "-name": "ROLE",
+                        "#content": [{"text":"CREATOR"}]
+                    },{
+                        "-name": "TYPE",
+                        "#content": [{"text":"ORGANIZATION"}]
+                    }],
+                    "-children": [
+                        {
+                            "-name": "name",
+                            "-namespace": "mets",
+                            "#content": [{"var":"creator_organization_name"}]
+                        },
+                        {
+                            "-name": "note",
+                            "-namespace": "mets",
+                            "#content": [{"var":"creator_organization_note"}]
+                        }
+                    ]
+                },{
+                    "-name": "agent",
+                    "-namespace": "mets",
+                    "-attr": [{
+                        "-name": "ROLE",
+                        "#content": [{"text":"ARCHIVIST"}]
+                    },{
+                        "-name": "TYPE",
+                        "#content": [{"text":"OTHER"}]
+                    },{
+                        "-name": "OTHERTYPE",
+                        "#content": [{"text":"SOFTWARE"}]
+                    }],
+                    "-children": [
+                        {
+                            "-name": "name",
+                            "-namespace": "mets",
+                            "#content": [{"var":"archivist_software_name"}]
+                        },
+                        {
+                            "-name": "note",
+                            "-namespace": "mets",
+                            "#content": [{"var":"archivist_software_note"}]
+                        }
+                    ]
+                },
+                {
+                    "-name": "agent",
+                    "-namespace": "mets",
+                    "-attr": [{
+                        "-name": "ROLE",
+                        "#content": [{"text":"CREATOR"}]
+                    },{
+                        "-name": "TYPE",
+                        "#content": [{"text":"INDIVIDUAL"}]
+                    }],
+                    "-children": [
+                        {
+                            "-name": "name",
+                            "-namespace": "mets",
+                            "#content": [{"var":"creator_individual_name"}]
+                        },
+                        {
+                            "-name": "note",
+                            "-namespace": "mets",
+                            "#content": [{"var":"creator_individual_note"}]
+                        }
+                    ]
+                },
+                {
+                    "-name": "agent",
+                    "-namespace": "mets",
+                    "-attr": [{
+                        "-name": "ROLE",
+                        "#content": [{"text":"CREATOR"}]
+                    },{
+                        "-name": "TYPE",
+                        "#content": [{"text":"OTHER"}]
+                    },{
+                        "-name": "OTHERTYPE",
+                        "#content": [{"text":"SOFTWARE"}]
+                    }],
+                    "-children": [
+                        {
+                            "-name": "name",
+                            "-namespace": "mets",
+                            "#content": [{"var":"creator_software_name"}]
+                        },
+                        {
+                            "-name": "note",
+                            "-namespace": "mets",
+                            "#content": [{"var":"creator_software_note"}]
+                        }
+                    ]
+                },
+                {
+                    "-name": "agent",
+                    "-namespace": "mets",
+                    "-attr": [{
+                        "-name": "ROLE",
+                        "#content": [{"text":"PRESERVATION"}]
+                    },{
+                        "-name": "TYPE",
+                        "#content": [{"text":"ORGANIZATION"}]
+                    }],
+                    "-children": [
+                        {
+                            "-name": "name",
+                            "-namespace": "mets",
+                            "#content": [{"var":"preservation_organization_name"}]
+                        },
+                        {
+                            "-name": "note",
+                            "-namespace": "mets",
+                            "#content": [{"var":"preservation_organization_note"}]
+                        }
+                    ]
+                },
+                {
+                    "-name": "agent",
+                    "-namespace": "mets",
+                    "-attr": [{
+                        "-name": "ROLE",
+                        "#content": [{"text":"PRESERVATION"}]
+                    },{
+                        "-name": "TYPE",
+                        "#content": [{"text":"OTHER"}]
+                    },{
+                        "-name": "OTHERTYPE",
+                        "#content": [{"text":"SOFTWARE"}]
+                    }],
+                    "-children": [
+                        {
+                            "-name": "name",
+                            "-namespace": "mets",
+                            "#content": [{"var":"preservation_software_name"}]
+                        },
+                        {
+                            "-name": "note",
+                            "-namespace": "mets",
+                            "#content": [{"var":"preservation_software_note"}]
+                        }
+                    ]
+                },
+                {
+                    "#content": [
+                        {
+                            "var": "_SA_NAME"
+                        }
+                    ],
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "SUBMISSIONAGREEMENT"
+                                }
+                            ],
+                            "-name": "TYPE"
+                        }
+                    ],
+                    "-children": [],
+                    "-name": "altRecordID",
+                    "-namespace": "mets"
+                },
+                {
+                    "#content": [{"var": "_INFORMATIONCLASS"}],
+                    "-attr": [
+                        {
+                            "#content": [{ "text": "INFORMATIONCLASS"}],
+                            "-name": "TYPE"
+                        }
+                    ],
+                    "-name": "altRecordID",
+                    "-namespace": "mets"
+                },
+                {
+                    "#content": [{"var": "_POLICYNAME"}],
+                    "-attr": [
+                        {
+                            "#content": [{ "text": "PROJECTNAME"}],
+                            "-name": "TYPE"
+                        }
+                    ],
+                    "-name": "altRecordID",
+                    "-namespace": "mets"
+                },
+                {
+                    "#content": [{"var": "_POLICYID"}],
+                    "-attr": [
+                        {
+                            "#content": [{ "text": "POLICYID"}],
+                            "-name": "TYPE"
+                        }
+                    ],
+                    "-name": "altRecordID",
+                    "-namespace": "mets"
+                },
+                {
+                    "-namespace": "mets",
+                    "-name": "metsDocumentID",
+                    "#content": [
+                        {
+                            "var": "_XML_FILENAME"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "-name": "amdSec",
+            "-namespace": "mets",
+            "-hideEmptyContent": true,
+            "-attr": [
+                {
+                    "-name": "ID",
+                    "#content": [
+                        {
+                            "text": "amdSec001"
+                        }
+                    ]
+                }
+            ],
+            "-children": [
+                {
+                    "-name": "techMD",
+                    "-namespace": "mets",
+                    "-hideEmptyContent": true,
+                    "-attr": [
+                        {
+                            "-name": "ID",
+                            "#content": [
+                                {
+                                    "text": "techMD001"
+                                }
+                            ]
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "mdRef",
+                            "-namespace": "mets",
+                            "-containsFiles": true,
+                            "-filters": {"href": ".xml$"},
+                            "-attr": [
+                                {
+                                    "-name": "MIMETYPE",
+                                    "#content": [{"var": "FMimetype"}]
+                                },
+                                {
+                                    "-name": "href",
+                                    "-namespace": "xlink",
+                                    "#content": [{"text": "file:///"}, {"var": "FParentDir"}, {"text": "/"}, {"var": "href"}]
+                                },
+                                {
+                                    "-name": "LOCTYPE",
+                                    "#content": [{"var": "FLoctype"}]
+                                },
+                                {
+                                    "-name": "CREATED",
+                                    "#content": [{"var": "FCreated"}]
+                                },
+                                {
+                                    "-name": "CHECKSUM",
+                                    "#content": [{"var": "FChecksum"}]
+                                },
+                                {
+                                    "-name": "type",
+                                    "-namespace": "xlink",
+                                    "#content": [{"text": "simple"}]
+                                },
+                                {
+                                    "-name": "ID",
+                                    "#content": [{"text": "ID"}, {"var": "FID"}]
+                                },
+                                {
+                                    "-name": "MDTYPE",
+                                    "#content": [{"text": "OTHER"}]
+                                },
+                                {
+                                    "-name": "OTHERMDTYPE",
+                                    "#content": [{"text": "METS"}]
+                                },
+                                {
+                                    "-name": "CHECKSUMTYPE",
+                                    "#content": [{"var": "FChecksumType"}]
+                                },
+                                {
+                                    "-name": "SIZE",
+                                    "#content": [
+                                        {
+                                            "var": "FSize"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "-name": "fileSec",
+            "-namespace": "mets",
+            "-attr": [
+                {
+                    "-name": "ID",
+                    "#content": [
+                        {
+                            "text": "ID"
+                        },
+                        {
+                            "var": "_UUID"
+                        }
+                    ]
+                }
+            ],
+            "-children": [
+                {
+                    "-name": "fileGrp",
+                    "-namespace": "mets",
+                    "-attr": [
+                        {
+                            "#content": [
+                                {
+                                    "text": "fgrp001"
+                                }
+                            ],
+                            "-name": "ID"
+                        },
+                        {
+                            "#content": [
+                                {
+                                    "text": "FILES"
+                                }
+                            ],
+                            "-name": "USE"
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "file",
+                            "-namespace": "mets",
+                            "-containsFiles": true,
+                            "-filters": {"href":".tar$"},
+                            "-attr": [
+                                {
+                                    "-name": "ID",
+                                    "#content": [{"text": "ID"}, {"var": "FID"}],
+                                    "-req": 1
+                                },
+                                {
+                                    "-name": "MIMETYPE",
+                                    "#content": [
+                                        {
+                                            "var": "FMimetype"
+                                        }
+                                    ],
+                                    "-req": 1
+                                },
+                                {
+                                    "-name": "SIZE",
+                                    "#content": [
+                                        {
+                                            "var": "FSize"
+                                        }
+                                    ],
+                                    "-req": 1
+                                },
+                                {
+                                    "-name": "CREATED",
+                                    "#content": [
+                                        {
+                                            "var": "FCreated"
+                                        }
+                                    ],
+                                    "-req": 1
+                                },
+                                {
+                                    "-name": "CHECKSUM",
+                                    "#content": [
+                                        {
+                                            "var": "FChecksum"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "-name": "CHECKSUMTYPE",
+                                    "#content": [
+                                        {
+                                            "var": "FChecksumType"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "FLocat",
+                                    "-namespace": "mets",
+                                    "-attr": [
+                                        {
+                                            "-name": "LOCTYPE",
+                                            "#content": [
+                                                {
+                                                    "text": "URL"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "-name": "href",
+                                            "-namespace": "xlink",
+                                            "#content": [
+                                                {
+                                                    "text": "file:///"
+                                                },
+                                                {
+                                                    "var": "href"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "-name": "type",
+                                            "-namespace": "xlink",
+                                            "#content": [{"text": "simple"}]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "-name": "structMap",
+            "-namespace": "mets",
+            "-attr": [
+                {
+                    "-name": "ID",
+                    "#content": [
+                        {
+                            "text": "ID"
+                        },
+                        {
+                            "var": "_UUID"
+                        }
+                    ]
+                }
+            ],
+            "-children": [
+                {
+                    "-name": "div",
+                    "-namespace": "mets",
+                    "-attr": [
+                        {
+                            "-name": "LABEL",
+                            "#content": [{"text": "Package"}]
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "div",
+                            "-namespace": "mets",
+                            "-attr": [
+                                {
+                                    "-name": "ADMID",
+                                    "#content": [{"text": "amdSec001"}]
+                                },
+                                {
+                                    "-name": "LABEL",
+                                    "#content": [{"text": "Content Description"}]
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "fptr",
+                                    "-namespace": "mets",
+                                    "-containsFiles": true,
+                                    "-filters": {"href":".xml$"},
+                                    "-attr": [
+                                        {
+                                            "#content": [
+                                                {
+                                                    "text": "ID"
+                                                },
+                                                {
+                                                    "var": "FID"
+                                                }
+                                            ],
+                                            "-name": "FILEID",
+                                            "-req": 1
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "div",
+                            "-namespace": "mets",
+                            "-attr": [
+                                {
+                                    "-name": "ADMID",
+                                    "#content": [{"text": "amdSec001"}]
+                                },
+                                {
+                                    "-name": "LABEL",
+                                    "#content": [
+                                        {
+                                            "text": "Datafiles"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "fptr",
+                                    "-namespace": "mets",
+                                    "-containsFiles": true,
+                                    "-filters": {"href": ".tar$"},
+                                    "-attr": [
+                                        {
+                                            "#content": [
+                                                {
+                                                    "text": "ID"
+                                                },
+                                                {
+                                                    "var": "FID"
+                                                }
+                                            ],
+                                            "-name": "FILEID",
+                                            "-req": 1
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
