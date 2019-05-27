@@ -31,13 +31,6 @@ from ESSArch_Core.maintenance.views import (
     ConversionJobViewSet,
     ConversionRuleViewSet,
 )
-from ESSArch_Core.profiles.views import (
-    ProfileIPViewSet,
-    ProfileIPDataViewSet,
-    ProfileIPDataTemplateViewSet,
-    InformationPackageProfileIPViewSet,
-    SubmissionAgreementTemplateView,
-)
 from ESSArch_Core.routers import ESSArchRouter
 from ESSArch_Core.stats.views import stats, export as export_stats
 from ESSArch_Core.configuration.views import EventTypeViewSet
@@ -47,6 +40,11 @@ from ESSArch_Core.profiles.views import (
     ProfileMakerExtensionViewSet,
     ProfileMakerTemplateViewSet,
     SubmissionAgreementViewSet,
+    ProfileIPViewSet,
+    ProfileIPDataViewSet,
+    ProfileIPDataTemplateViewSet,
+    InformationPackageProfileIPViewSet,
+    SubmissionAgreementTemplateView,
 )
 from ESSArch_Core.storage.views import (
     StorageObjectViewSet,
@@ -71,10 +69,6 @@ router.register(r'users', UserViewSet)
 router.register(r'groups', GroupViewSet)
 router.register(r'agents', AgentViewSet)
 router.register(r'permissions', PermissionViewSet)
-router.register(r'profile-ip', ProfileIPViewSet)
-router.register(r'profile-ip-data', ProfileIPDataViewSet)
-router.register(r'profile-sa', ProfileSAViewSet)
-router.register(r'profiles', ProfileViewSet)
 router.register(r'profilemaker-extensions', ProfileMakerExtensionViewSet)
 router.register(r'profilemaker-templates', ProfileMakerTemplateViewSet)
 router.register(r'information-packages', InformationPackageViewSet, base_name='informationpackage')
