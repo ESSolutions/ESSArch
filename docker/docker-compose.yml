@@ -9,6 +9,7 @@ services:
       DATABASE_URL_ESSARCH: postgres://arkiv:password@db:5432/essarch
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
+      ELASTICSEARCH_URL: http://elasticsearch:9200
     volumes:
       - ..:/code
       - ./data:/ESSArch/data
@@ -24,6 +25,7 @@ services:
       - db
       - rabbitmq
       - redis
+      - elasticsearch
     networks:
       - essarch
 
@@ -36,6 +38,7 @@ services:
       DATABASE_URL_ESSARCH: postgres://arkiv:password@db:5432/essarch
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
+      ELASTICSEARCH_URL: http://elasticsearch:9200
     volumes:
       - ..:/code
       - ./data:/ESSArch/data
@@ -48,6 +51,7 @@ services:
       - essarch
       - rabbitmq
       - redis
+      - elasticsearch
     networks:
       - essarch
 
@@ -73,6 +77,21 @@ services:
     image: "rabbitmq"
     ports:
       - 5672
+    networks:
+      - essarch
+
+  elasticsearch:
+    build:
+      context: elasticsearch
+      args:
+        ELK_VERSION: 6.5.4
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
     networks:
       - essarch
 

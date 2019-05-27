@@ -201,7 +201,7 @@ CACHES = {
 try:
     from local_essarch_settings import ELASTICSEARCH_URL
 except ImportError:
-    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL_EPP', 'http://localhost:9200')
+    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL', 'http://localhost:9200')
 elasticsearch_url = urlparse(ELASTICSEARCH_URL)
 ELASTICSEARCH_CONNECTIONS = {
     'default': {
