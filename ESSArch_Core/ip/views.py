@@ -1,5 +1,6 @@
 import itertools
 
+from django.db import transaction
 from django.db.models import Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import exceptions, filters, mixins, status, viewsets
@@ -21,6 +22,7 @@ from ESSArch_Core.ip.permissions import CanChangeSA, CanDeleteIP
 from ESSArch_Core.ip.serializers import (
     AgentSerializer,
     EventIPSerializer,
+    EventIPAddNodesSerializer,
     InformationPackageSerializer,
     WorkareaSerializer
 )
@@ -50,6 +52,21 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         'linkingAgentIdentifierValue', 'eventDateTime',
     )
     search_fields = ('eventOutcomeDetailNote',)
+
+    @transaction.atomic()
+    @action(detail=True, methods=['post'], url_path='add-nodes')
+    def add_nodes(self, request, pk=None):
+        event = self.get_object()
+
+        serializer = EventIPAddNodesSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        event.structure_units.add(*data['structure_units'])
+        event.tag_versions.add(*data['tags'])
+
+        return Response()
+
 
 
 class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewSet):
