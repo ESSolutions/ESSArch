@@ -17,7 +17,15 @@ services:
       - ./log:/ESSArch/log
       - /code/ESSArch_Core/frontend/static/frontend/node_modules
       - /code/ESSArch_Core/frontend/static/frontend/build
-    entrypoint: /code/docker/docker-entrypoint.sh
+    command:
+      - /bin/bash
+      - -c
+      - |
+        /code/docker/wait_for.sh db 5432
+        /code/docker/wait_for.sh redis 6379
+        /code/docker/wait_for.sh rabbitmq 5672
+        /code/docker/wait_for.sh elasticsearch 9200
+        /code/docker/docker-entrypoint.sh
     ports:
       - 8000:8000
     tty: true
@@ -33,7 +41,15 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    command: celery -A config worker -l info -Q celery,file_operation,validation
+    command:
+      - /bin/bash
+      - -c
+      - |
+        /code/docker/wait_for.sh redis 6379
+        /code/docker/wait_for.sh rabbitmq 5672
+        /code/docker/wait_for.sh essarch 8000
+        /code/docker/wait_for.sh elasticsearch 9200
+        celery -A config worker -l info -Q celery,file_operation,validation
     environment:
       DATABASE_URL_ESSARCH: postgres://arkiv:password@db:5432/essarch
       REDIS_URL_ESSARCH: redis://redis/1

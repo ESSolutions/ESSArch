@@ -2,6 +2,7 @@
 /docker/config/
 /docker/data/
 /docker/log/
+/docker/docker-compose.yml
 /dist/
 /htmlcov/
 /venv/
