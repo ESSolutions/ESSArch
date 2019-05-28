@@ -4,6 +4,7 @@ import AccessCtrl from '../controllers/AccessCtrl';
 import AccessIpCtrl from '../controllers/AccessIpCtrl';
 import AdministrationCtrl from '../controllers/AdministrationCtrl';
 import AppCtrl from '../controllers/AppCtrl';
+import AppraisalCtrl from "../controllers/AppraisalCtrl";
 import BaseCtrl from '../controllers/BaseCtrl';
 import CollectContentCtrl from '../controllers/CollectContentCtrl';
 import CombinedWorkareaCtrl from '../controllers/CombinedWorkareaCtrl';
@@ -334,6 +335,28 @@ export default angular
     '$anchorScroll',
     '$transitions',
     UtilCtrl,
+  ])
+  .controller('AppraisalCtrl',[
+    'ArchivePolicy',
+    '$scope',
+    '$controller',
+    '$rootScope',
+    '$cookies',
+    '$stateParams',
+    'appConfig',
+    '$http',
+    '$timeout',
+    '$uibModal',
+    '$log',
+    '$sce',
+    '$window',
+    'Notifications',
+    '$filter',
+    '$interval',
+    'Appraisal',
+    '$translate',
+    '$transitions',
+    AppraisalCtrl
   ])
   .controller('VersionCtrl', ['$scope', '$window', '$anchorScroll', '$location', '$translate', 'Sysinfo', VersionCtrl])
   .factory('Organization', ['$rootScope', '$http', '$state', 'appConfig', 'myService', organization]).name;

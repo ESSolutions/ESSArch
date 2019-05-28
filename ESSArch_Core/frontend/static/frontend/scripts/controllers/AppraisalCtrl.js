@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('AppraisalCtrl', function(
+export default class AppraisalCtrl {
+  constructor(
     ArchivePolicy,
     $scope,
     $controller,
@@ -392,4 +391,5 @@ angular
         }
       );
     };
-  });
+  }
+};

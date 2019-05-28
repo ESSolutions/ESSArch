@@ -1,4 +1,5 @@
 import myService from '../services/myService';
+import appraisal from '../services/appraisal';
 import archivePolicy from '../services/archivePolicy';
 import contextMenuBase from '../services/ContextMenuBase';
 import validate from '../services/validate';
@@ -35,6 +36,7 @@ import {workarea, workareaFiles} from '../services/workarea';
 export default angular
   .module('essarch.services', [])
   .factory('myService', ['PermPermissionStore', 'djangoAuth', myService])
+  .factory('Appraisal', ['$http', 'appConfig', appraisal])
   .factory('ArchivePolicy', ['$resource', 'appConfig', archivePolicy])
   .factory('ContentTabs', contentTabs)
   .factory('ContextMenuBase', ['$translate', contextMenuBase])
