@@ -22,9 +22,8 @@ Web - http://www.essolutions.se
 Email - essarch@essolutions.se
 */
 
-angular
-  .module('essarch.controllers')
-  .controller('RobotInformationCtrl', function(
+export default class RobotInformationCtrl {
+  constructor(
     StorageMedium,
     $scope,
     $controller,
@@ -439,4 +438,5 @@ angular
         $scope.submitRequest(vm.selectedRobot, vm.request);
       }
     };
-  });
+  }
+};

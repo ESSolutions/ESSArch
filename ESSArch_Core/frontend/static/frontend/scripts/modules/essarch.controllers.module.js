@@ -25,6 +25,7 @@ import PrepareIpCtrl from '../controllers/PrepareIpCtrl';
 import PrepareSipCtrl from '../controllers/PrepareSipCtrl';
 import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
+import RobotInformationCtrl from '../controllers/RobotInformationCtrl';
 import SearchCtrl from '../controllers/SearchCtrl';
 import TagsCtrl from '../controllers/TagsCtrl';
 import TaskInfoModalInstanceCtrl from '../controllers/TaskInfoModalInstanceCtrl';
@@ -357,6 +358,24 @@ export default angular
     '$translate',
     '$transitions',
     AppraisalCtrl
+  ])
+  .controller('RobotInformationCtrl',[
+    'StorageMedium',
+    '$scope',
+    '$controller',
+    '$interval',
+    '$rootScope',
+    '$http',
+    'Resource',
+    'appConfig',
+    '$timeout',
+    '$anchorScroll',
+    '$translate',
+    'Storage',
+    '$uibModal',
+    'listViewService',
+    '$transitions',
+    RobotInformationCtrl
   ])
   .controller('VersionCtrl', ['$scope', '$window', '$anchorScroll', '$location', '$translate', 'Sysinfo', VersionCtrl])
   .factory('Organization', ['$rootScope', '$http', '$state', 'appConfig', 'myService', organization]).name;
