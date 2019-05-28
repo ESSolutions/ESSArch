@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('QueuesCtrl', function(appConfig, $scope, $rootScope, Storage, Resource, $interval, $transitions) {
+export default class QueuesCtrl {
+  constructor(appConfig, $scope, $rootScope, Storage, Resource, $interval, $transitions) {
     var vm = this;
     $scope.select = true;
     vm.ioQueue = [];
@@ -89,4 +88,5 @@ angular
           });
       }
     };
-  });
+  }
+};

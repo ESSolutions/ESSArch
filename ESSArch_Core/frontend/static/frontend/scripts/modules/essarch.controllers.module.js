@@ -21,6 +21,7 @@ import ModalInstanceCtrl from '../controllers/ModalInstanceCtrl';
 import MyPageCtrl from '../controllers/MyPageCtrl';
 import OrdersCtrl from '../controllers/OrdersCtrl';
 import {organization, OrganizationCtrl} from '../controllers/OrganizationCtrl';
+import QueuesCtrl from '../controllers/QueuesCtrl';
 import PrepareIpCtrl from '../controllers/PrepareIpCtrl';
 import PrepareSipCtrl from '../controllers/PrepareSipCtrl';
 import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
@@ -376,6 +377,16 @@ export default angular
     'listViewService',
     '$transitions',
     RobotInformationCtrl
+  ])
+  .controller('QueuesCtrl',[
+    'appConfig',
+    '$scope',
+    '$rootScope',
+    'Storage',
+    'Resource',
+    '$interval',
+    '$transitions',
+    QueuesCtrl,
   ])
   .controller('VersionCtrl', ['$scope', '$window', '$anchorScroll', '$location', '$translate', 'Sysinfo', VersionCtrl])
   .factory('Organization', ['$rootScope', '$http', '$state', 'appConfig', 'myService', organization]).name;
