@@ -71,6 +71,40 @@ services:
     networks:
       - essarch
 
+  beat:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command:
+      - /bin/bash
+      - -c
+      - |
+        /code/docker/wait_for.sh redis 6379
+        /code/docker/wait_for.sh rabbitmq 5672
+        /code/docker/wait_for.sh essarch 8000
+        /code/docker/wait_for.sh elasticsearch 9200
+        celery -A config beat -l info
+    environment:
+      DATABASE_URL_ESSARCH: postgres://arkiv:password@db:5432/essarch
+      REDIS_URL_ESSARCH: redis://redis/1
+      RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    volumes:
+      - ..:/code
+      - ./data:/ESSArch/data
+      - ./config:/ESSArch/config
+      - ./log:/ESSArch/log
+      - /code/ESSArch_Core/frontend/static/frontend/node_modules
+      - /code/ESSArch_Core/frontend/static/frontend/build
+    tty: true
+    depends_on:
+      - essarch
+      - rabbitmq
+      - redis
+      - elasticsearch
+    networks:
+      - essarch
+
   db:
     image: "postgres"
     environment:
