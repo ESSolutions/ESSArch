@@ -11,9 +11,9 @@ MANIFEST
 .settings/
 tools.db
 .DS_Store
+db.sqlite
 
 # docker
-
 docker/config
 docker/data
 docker/log
