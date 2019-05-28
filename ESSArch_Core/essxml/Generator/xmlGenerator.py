@@ -575,7 +575,8 @@ class XMLGenerator(object):
                     external_to_create = {
                         os.path.join(folderToParse, ptr_file_path): {'spec': ext_spec, 'data': ext_info}
                     }
-                    yield from external_gen.generate(external_to_create, os.path.join(folderToParse, ext_dir, sub_dir))
+                    for _ in external_gen.generate(external_to_create, os.path.join(folderToParse, ext_dir, sub_dir)):
+                        yield
 
                     filepath = os.path.join(folderToParse, ptr_file_path)
 
