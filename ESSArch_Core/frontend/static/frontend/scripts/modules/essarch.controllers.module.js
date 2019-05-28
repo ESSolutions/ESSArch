@@ -28,6 +28,8 @@ import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
 import RobotInformationCtrl from '../controllers/RobotInformationCtrl';
 import SearchCtrl from '../controllers/SearchCtrl';
+import StorageMaintenanceCtrl from "../controllers/StorageMaintenanceCtrl";
+import StorageMigrationCtrl from "../controllers/StorageMigrationCtrl";
 import TagsCtrl from '../controllers/TagsCtrl';
 import TaskInfoModalInstanceCtrl from '../controllers/TaskInfoModalInstanceCtrl';
 import UserDropdownCtrl from '../controllers/UserDropdownCtrl';
@@ -387,6 +389,15 @@ export default angular
     '$interval',
     '$transitions',
     QueuesCtrl,
+  ])
+  .controller('StorageMigrationCtrl',[
+    '$scope',
+    StorageMigrationCtrl,
+  ])
+  .controller('StorageMaintenanceCtrl', [
+    '$scope',
+    '$rootScope',
+    StorageMaintenanceCtrl,
   ])
   .controller('VersionCtrl', ['$scope', '$window', '$anchorScroll', '$location', '$translate', 'Sysinfo', VersionCtrl])
   .factory('Organization', ['$rootScope', '$http', '$state', 'appConfig', 'myService', organization]).name;

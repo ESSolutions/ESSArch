@@ -1,4 +1,4 @@
-angular.module('essarch.controllers').controller('StorageMigrationCtrl', function($scope, $rootScope) {
+export default class StorageMigrationCtrl { constructor($scope) {
   var vm = this;
   $scope.select = true;
   vm.formFiltersShow = true;
@@ -42,4 +42,4 @@ angular.module('essarch.controllers').controller('StorageMigrationCtrl', functio
       forceCopies: false,
     },
   };
-});
+}};

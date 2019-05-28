@@ -1,4 +1,4 @@
-angular.module('essarch.controllers').controller('StorageMaintenanceCtrl', function($scope, $rootScope) {
+export default class StorageMaintenanceCtrl { constructor($scope, $rootScope) {
   var vm = this;
   $scope.select = true;
   vm.formFiltersShow = true;
@@ -40,4 +40,4 @@ angular.module('essarch.controllers').controller('StorageMaintenanceCtrl', funct
       },
     },
   };
-});
+}};
