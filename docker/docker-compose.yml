@@ -62,7 +62,7 @@ services:
       POSTGRES_USER: arkiv
       POSTGRES_PASSWORD: password
     ports:
-      - 5432
+      - 5432:5432
     networks:
       - essarch
 
@@ -71,12 +71,12 @@ services:
     networks:
       - essarch
     ports:
-      - 6379
+      - 6379:6379
 
   rabbitmq:
     image: "rabbitmq"
     ports:
-      - 5672
+      - 5672:5672
     networks:
       - essarch
 
