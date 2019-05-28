@@ -29,7 +29,7 @@ from ESSArch_Core.util import (
     get_premis_ip_object_element_spec,
     normalize_path,
     zip_directory,
-)
+    get_tree_size_and_count)
 
 User = get_user_model()
 
@@ -38,7 +38,12 @@ class GenerateContentMets(DBTask):
     event_type = 50600
 
     def run(self):
-        generate_content_mets(self.get_information_package())
+        progress = 0
+        _, count = get_tree_size_and_count(self.get_information_package().object_path)
+        self.set_progress(progress, total=count)
+        for _ in generate_content_mets(self.get_information_package()):
+            progress += 1
+            self.set_progress(progress, total=count)
 
     def event_outcome_success(self):
         ip = self.get_information_package()
@@ -49,7 +54,12 @@ class GeneratePackageMets(DBTask):
     event_type = 50600
 
     def run(self):
-        generate_package_mets(self.get_information_package())
+        progress = 0
+        _, count = get_tree_size_and_count(self.get_information_package().object_path)
+        self.set_progress(progress, total=count)
+        for _ in generate_package_mets(self.get_information_package()):
+            progress += 1
+            self.set_progress(progress, total=count)
 
     def event_outcome_success(self):
         ip = self.get_information_package()
@@ -60,7 +70,12 @@ class GeneratePremis(DBTask):
     event_type = 50600
 
     def run(self):
-        generate_premis(self.get_information_package())
+        progress = 0
+        _, count = get_tree_size_and_count(self.get_information_package().object_path)
+        self.set_progress(progress, total=count)
+        for _ in generate_premis(self.get_information_package()):
+            progress += 1
+            self.set_progress(progress, total=count)
 
     def event_outcome_success(self):
         ip = self.get_information_package()
@@ -71,7 +86,12 @@ class GenerateEventsXML(DBTask):
     event_type = 50600
 
     def run(self):
-        generate_events_xml(self.get_information_package())
+        progress = 0
+        _, count = get_tree_size_and_count(self.get_information_package().object_path)
+        self.set_progress(progress, total=count)
+        for _ in generate_events_xml(self.get_information_package()):
+            progress += 1
+            self.set_progress(progress, total=count)
 
     def event_outcome_success(self):
         ip = self.get_information_package()
