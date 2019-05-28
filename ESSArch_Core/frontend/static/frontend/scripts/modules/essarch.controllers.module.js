@@ -36,6 +36,7 @@ import UserDropdownCtrl from '../controllers/UserDropdownCtrl';
 import UserSettingsCtrl from '../controllers/UserSettingsCtrl';
 import UtilCtrl from '../controllers/UtilCtrl';
 import VersionCtrl from '../controllers/VersionCtrl';
+import WorkareaCtrl from "../controllers/WorkareaCtrl";
 
 import {permission, uiPermission} from 'angular-permission';
 import uiRouter from '@uirouter/angularjs';
@@ -398,6 +399,32 @@ export default angular
     '$scope',
     '$rootScope',
     StorageMaintenanceCtrl,
+  ])
+  .controller('WorkareaCtrl', [
+    'vm',
+    'ipSortString',
+    'WorkareaFiles',
+    'Workarea',
+    '$scope',
+    '$controller',
+    '$rootScope',
+    'Resource',
+    '$interval',
+    '$timeout',
+    'appConfig',
+    '$cookies',
+    '$anchorScroll',
+    '$translate',
+    '$state',
+    '$http',
+    'listViewService',
+    'Requests',
+    '$uibModal',
+    '$sce',
+    '$window',
+    'ContextMenuBase',
+    'SelectedIPUpdater',
+    WorkareaCtrl,
   ])
   .controller('VersionCtrl', ['$scope', '$window', '$anchorScroll', '$location', '$translate', 'Sysinfo', VersionCtrl])
   .factory('Organization', ['$rootScope', '$http', '$state', 'appConfig', 'myService', organization]).name;

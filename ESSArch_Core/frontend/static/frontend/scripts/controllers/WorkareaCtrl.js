@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('WorkareaCtrl', function(
+export default class WorkareaCtrl {
+  constructor(
     vm,
     ipSortString,
     WorkareaFiles,
@@ -281,4 +280,5 @@ angular
       });
       $rootScope.flowObjects[ip.id] = flowObj;
     };
-  });
+  }
+};
