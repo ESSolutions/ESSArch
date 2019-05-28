@@ -2,6 +2,7 @@ import myService from '../services/myService';
 import appraisal from '../services/appraisal';
 import archivePolicy from '../services/archivePolicy';
 import contextMenuBase from '../services/ContextMenuBase';
+import conversion from '../services/conversion';
 import validate from '../services/validate';
 import messenger from '../services/messenger';
 import event from '../services/event';
@@ -40,6 +41,7 @@ export default angular
   .factory('ArchivePolicy', ['$resource', 'appConfig', archivePolicy])
   .factory('ContentTabs', contentTabs)
   .factory('ContextMenuBase', ['$translate', contextMenuBase])
+  .factory('Conversion', ['$http', 'appConfig', conversion])
   .factory('Event', ['$resource', 'appConfig', event])
   .factory('EventType', ['$resource', 'appConfig', eventType])
   .factory('IOQueue', ['$resource', 'appConfig', ioQueue])

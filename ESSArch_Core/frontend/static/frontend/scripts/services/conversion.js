@@ -1,4 +1,4 @@
-angular.module('essarch.services').factory('Conversion', function($http, appConfig) {
+const conversion = ($http, appConfig) => {
   var service = {};
   service.getFinished = function(pageNumber, pageSize, sortString, searchString) {
     var data = {
@@ -99,4 +99,6 @@ angular.module('essarch.services').factory('Conversion', function($http, appConf
     });
   };
   return service;
-});
+};
+
+export default conversion;
