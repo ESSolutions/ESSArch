@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import ProtectedError
+from django.db.models import Q, ProtectedError
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from mptt.templatetags.mptt_tags import cache_tree_children
@@ -15,6 +15,8 @@ from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.api.filters import OrderingFilterWithNulls
+from ESSArch_Core.ip.models import EventIP
+from ESSArch_Core.ip.serializers import EventIPSerializer
 from ESSArch_Core.tags.filters import StructureUnitFilter, TagFilter
 from ESSArch_Core.tags.models import (
     Delivery,
@@ -366,6 +368,17 @@ class DeliveryViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = DeliverySerializer
     permission_classes = (ActionPermissions,)
 
+    @action(detail=True, methods=['GET'], url_path='events')
+    def events(self, request, pk):
+        delivery = self.get_object()
+        qs = EventIP.objects.filter(Q(delivery=delivery) | Q(transfer__delivery=delivery))
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializers = EventIPSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializers.data)
+        serializers = EventIPSerializer(qs, many=True, context={'request': request})
+        return Response(serializers.data)
+
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update', 'metadata']:
             return DeliveryWriteSerializer
@@ -390,7 +403,6 @@ class TransferViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         parents_query_dict = self.get_parents_query_dict()
         if parents_query_dict:
             request.data.update(parents_query_dict)
-        print(request.data)
         return super().create(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
