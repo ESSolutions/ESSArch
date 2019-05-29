@@ -18,6 +18,7 @@ from ESSArch_Core.api.filters import OrderingFilterWithNulls
 from ESSArch_Core.tags.filters import StructureUnitFilter, TagFilter
 from ESSArch_Core.tags.models import (
     Delivery,
+    DeliveryType,
     Structure,
     StructureType,
     StructureUnit,
@@ -41,6 +42,7 @@ from ESSArch_Core.tags.serializers import (
     AgentArchiveLinkSerializer,
     AgentArchiveLinkWriteSerializer,
     DeliverySerializer,
+    DeliveryTypeSerializer,
     DeliveryWriteSerializer,
     TagSerializer,
     TagVersionNestedSerializer,
@@ -369,6 +371,12 @@ class DeliveryViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             return DeliveryWriteSerializer
 
         return self.serializer_class
+
+
+class DeliveryTypeViewSet(viewsets.ModelViewSet):
+    queryset = DeliveryType.objects.all()
+    serializer_class = DeliveryTypeSerializer
+    permission_classes = (ActionPermissions,)
 
 
 class TransferViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
