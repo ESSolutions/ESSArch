@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('SaEditorCtrl', function(
+export default class SaEditorCtrl {
+  constructor(
     Notifications,
     $timeout,
     SA,
@@ -205,7 +204,7 @@ angular
     $http.get(appConfig.djangoUrl + 'submission-agreement-template/').then(function(response) {
       vm.saFields = response.data.map(function(field) {
         if (field.key.startsWith('profile_')) {
-          profile_type = field.key.replace('profile_', '');
+          let profile_type = field.key.replace('profile_', '');
           field.templateOptions.options = vm.profiles[profile_type];
         }
 
@@ -218,4 +217,5 @@ angular
         }
       }
     });
-  });
+  }
+};
