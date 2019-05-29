@@ -1,7 +1,7 @@
 import uuid
 
 from countries_plus.models import Country
-from django.db import models
+from django.db import models, transaction
 from django.db.models import F
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -86,6 +86,42 @@ class Agent(models.Model):
 
     tags = models.ManyToManyField('tags.TagVersion', through='agents.AgentTagLink', related_name='agents')
     task = models.ForeignKey('WorkflowEngine.ProcessTask', on_delete=models.SET_NULL, null=True, related_name='agents')
+
+    @transaction.atomic
+    def relate_to(self, other_agent, relation_type, **kwargs):
+        AgentRelation.objects.create(
+            agent_a=self,
+            agent_b=other_agent,
+            type=relation_type,
+            **kwargs,
+        )
+
+        # create mirrored relation
+        AgentRelation.objects.create(
+            agent_a=other_agent,
+            agent_b=self,
+            type=relation_type.mirrored_type or relation_type,
+            **kwargs,
+        )
+
+    @transaction.atomic
+    def get_or_create_relation_to(self, other_agent, relation_type, **kwargs):
+        rel, _ = AgentRelation.objects.get_or_create(
+            agent_a=self,
+            agent_b=other_agent,
+            type=relation_type,
+            defaults=kwargs,
+        )
+
+        # create mirrored relation
+        AgentRelation.objects.get_or_create(
+            agent_a=other_agent,
+            agent_b=self,
+            type=relation_type.mirrored_type or relation_type,
+            defaults=kwargs,
+        )
+
+        return rel
 
     def __str__(self):
         name = self.names.order_by(F('start_date').asc(nulls_last=True)).last()
