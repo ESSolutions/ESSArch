@@ -17,6 +17,7 @@ from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.api.filters import OrderingFilterWithNulls
 from ESSArch_Core.tags.filters import StructureUnitFilter, TagFilter
 from ESSArch_Core.tags.models import (
+    Delivery,
     Structure,
     StructureType,
     StructureUnit,
@@ -25,6 +26,7 @@ from ESSArch_Core.tags.models import (
     Tag,
     TagVersion,
     TagVersionType,
+    Transfer,
     Location,
     MetricProfile,
     LocationLevelType,
@@ -38,6 +40,8 @@ from ESSArch_Core.tags.permissions import (
 from ESSArch_Core.tags.serializers import (
     AgentArchiveLinkSerializer,
     AgentArchiveLinkWriteSerializer,
+    DeliverySerializer,
+    DeliveryWriteSerializer,
     TagSerializer,
     TagVersionNestedSerializer,
     TagVersionTypeSerializer,
@@ -53,6 +57,8 @@ from ESSArch_Core.tags.serializers import (
     LocationLevelTypeSerializer,
     LocationFunctionTypeSerializer,
     LocationWriteSerializer,
+    TransferEditNodesSerializer,
+    TransferSerializer,
 )
 from ESSArch_Core.util import mptt_to_dict
 
@@ -351,3 +357,66 @@ class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             qs = ancestor.get_descendants(structure)
 
         return qs
+
+
+class DeliveryViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    queryset = Delivery.objects.all()
+    serializer_class = DeliverySerializer
+    permission_classes = (ActionPermissions,)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update', 'metadata']:
+            return DeliveryWriteSerializer
+
+        return self.serializer_class
+
+
+class TransferViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    queryset = Transfer.objects.all()
+    serializer_class = TransferSerializer
+    permission_classes = (ActionPermissions,)
+
+    def create(self, request, *args, **kwargs):
+        # https://github.com/chibisov/drf-extensions/issues/142
+
+        parents_query_dict = self.get_parents_query_dict()
+        if parents_query_dict:
+            request.data.update(parents_query_dict)
+        print(request.data)
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        # https://github.com/chibisov/drf-extensions/issues/142
+
+        parents_query_dict = self.get_parents_query_dict()
+        if parents_query_dict:
+            request.data.update(parents_query_dict)
+        return super().update(request, *args, **kwargs)
+
+    @transaction.atomic()
+    @action(detail=True, methods=['post'], url_path='add-nodes')
+    def add_nodes(self, request, pk=None):
+        transfer = self.get_object()
+
+        serializer = TransferEditNodesSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        transfer.structure_units.add(*data['structure_units'])
+        transfer.tag_versions.add(*data['tags'])
+
+        return Response()
+
+    @transaction.atomic()
+    @action(detail=True, methods=['post'], url_path='remove-nodes')
+    def remove_nodes(self, request, pk=None):
+        transfer = self.get_object()
+
+        serializer = TransferEditNodesSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        transfer.structure_units.remove(*data['structure_units'])
+        transfer.tag_versions.remove(*data['tags'])
+
+        return Response()

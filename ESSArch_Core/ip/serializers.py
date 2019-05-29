@@ -53,19 +53,6 @@ class EventIPSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
-class EventIPEditNodesSerializer(serializers.Serializer):
-    tags = serializers.ListField(
-        child=serializers.PrimaryKeyRelatedField(
-            queryset=TagVersion.objects.all(),
-        )
-    )
-    structure_units = serializers.ListField(
-        child=serializers.PrimaryKeyRelatedField(
-            queryset=StructureUnit.objects.filter(structure__is_template=False),
-        )
-    )
-
-
 class InformationPackageSerializer(serializers.ModelSerializer):
     responsible = UserSerializer(read_only=True)
     agents = serializers.SerializerMethodField()

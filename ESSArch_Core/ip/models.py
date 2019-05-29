@@ -1011,11 +1011,8 @@ class EventIP(models.Model):
     linkingAgentIdentifierValue = models.CharField(max_length=255, blank=True)
     linkingAgentRole = models.CharField(max_length=255, blank=True)
     linkingObjectIdentifierValue = models.CharField(max_length=255, blank=True)
-    tag_versions = models.ManyToManyField('tags.TagVersion', related_name='events')
-    structure_units = models.ManyToManyField(
-        'tags.StructureUnit', related_name='events',
-        limit_choices_to={'structure__is_template': False},
-    )
+    transfer = models.ForeignKey('tags.Transfer', null=True, on_delete=models.SET_NULL, related_name='events', verbose_name=_('transfer'))
+    delivery = models.ForeignKey('tags.Delivery', null=True, on_delete=models.SET_NULL, related_name='events', verbose_name=_('delivery'))
 
     objects = EventIPManager()
 

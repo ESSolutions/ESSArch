@@ -18,6 +18,8 @@ from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.api.validators import StartDateEndDateValidator
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.tags.models import (
+    Delivery,
+    DeliveryType,
     Location,
     LocationFunctionType,
     LocationLevelType,
@@ -39,6 +41,7 @@ from ESSArch_Core.tags.models import (
     TagVersion,
     TagVersionRelation,
     TagVersionType,
+    Transfer,
 )
 
 PUBLISHED_STRUCTURE_CHANGE_ERROR = _('Published structures cannot be changed')
@@ -628,3 +631,40 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'current_version', 'other_versions', 'structures')
+
+
+class DeliveryTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeliveryType
+        fields = ('id', 'name')
+
+
+class DeliverySerializer(serializers.ModelSerializer):
+    type = DeliveryTypeSerializer()
+
+    class Meta:
+        model = Delivery
+        fields = ('id', 'name', 'type', 'description')
+
+
+class DeliveryWriteSerializer(DeliverySerializer):
+    type = serializers.PrimaryKeyRelatedField(queryset=DeliveryType.objects.all())
+
+
+class TransferSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transfer
+        fields = ('id', 'name', 'delivery')
+
+
+class TransferEditNodesSerializer(serializers.Serializer):
+    tags = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(
+            queryset=TagVersion.objects.all(),
+        )
+    )
+    structure_units = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(
+            queryset=StructureUnit.objects.filter(structure__is_template=False),
+        )
+    )

@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from ESSArch_Core.tags.models import (
+    DeliveryType,
     LocationFunctionType,
     LocationLevelType,
     MetricProfile,
@@ -23,6 +24,8 @@ class StructureUnitTypeAdmin(admin.ModelAdmin):
 class TagVersionTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'archive_type')
 
+
+admin.site.register(DeliveryType)
 admin.site.register(LocationFunctionType)
 admin.site.register(LocationLevelType)
 admin.site.register(MetricProfile)

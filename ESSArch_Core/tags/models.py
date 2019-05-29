@@ -305,6 +305,7 @@ class StructureUnit(MPTTModel):
     reference_code = models.CharField(max_length=255)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
+    transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'))
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask',
         on_delete=models.SET_NULL,
@@ -716,6 +717,7 @@ class TagVersion(models.Model):
     )
     metric = models.ForeignKey(MetricProfile, on_delete=models.PROTECT, null=True, verbose_name=_('metric'))
     location = models.ForeignKey(Location, on_delete=models.PROTECT, null=True, verbose_name=_('location'))
+    transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'))
     custom_fields = jsonfield.JSONField(default={})
 
     def to_search_doc(self):
@@ -986,3 +988,36 @@ class Search(models.Model):
     query = jsonfield.JSONField(null=False)
     name = models.CharField(max_length=255, blank=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='searches')
+
+
+class DeliveryType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('delivery type')
+        verbose_name_plural = _('delivery types')
+
+
+class Delivery(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(_('name'), max_length=255, blank=False)
+    type = models.ForeignKey('tags.DeliveryType', on_delete=models.PROTECT, null=False, verbose_name=_('type'))
+    description = models.TextField(_('description'), blank=True)
+
+    class Meta:
+        verbose_name = _('delivery')
+        verbose_name_plural = _('deliveries')
+
+
+class Transfer(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(_('name'), max_length=255, blank=False)
+    delivery = models.ForeignKey('tags.Delivery', on_delete=models.CASCADE, null=False, verbose_name=_('delivery'))
+
+    class Meta:
+        verbose_name = _('transfer')
+        verbose_name_plural = _('transfers')
+
