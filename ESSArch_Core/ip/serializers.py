@@ -8,7 +8,7 @@ from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import EventType
 from ESSArch_Core.ip.models import Agent, AgentNote, EventIP, InformationPackage, Workarea
-from ESSArch_Core.tags.models import StructureUnit, TagVersion
+from ESSArch_Core.tags.models import StructureUnit, TagVersion, Delivery, Transfer
 
 VERSION = get_versions()['version']
 
@@ -32,6 +32,18 @@ class EventIPSerializer(serializers.HyperlinkedModelSerializer):
     information_package = serializers.CharField(required=False, source='linkingObjectIdentifierValue')
     eventType = serializers.PrimaryKeyRelatedField(queryset=EventType.objects.all())
     eventDetail = serializers.SlugRelatedField(slug_field='eventDetail', source='eventType', read_only=True)
+    delivery = serializers.PrimaryKeyRelatedField(required=False, queryset=Delivery.objects.all())
+    transfer = serializers.PrimaryKeyRelatedField(required=False, queryset=Transfer.objects.all())
+
+    def validate(self, data):
+        if data.get('delivery') is not None and data.get('transfer') is not None:
+            delivery = data.get('delivery')
+            transfer = data.get('transfer')
+
+            if transfer.delivery != delivery:
+                raise serializers.ValidationError('Transfer not part of specified delivery')
+
+        return data
 
     def create(self, validated_data):
         if 'linkingAgentIdentifierValue' not in validated_data:
@@ -44,7 +56,7 @@ class EventIPSerializer(serializers.HyperlinkedModelSerializer):
             'url', 'id', 'eventType', 'eventDateTime', 'eventDetail',
             'eventVersion', 'eventOutcome',
             'eventOutcomeDetailNote', 'linkingAgentIdentifierValue',
-            'linkingAgentRole', 'information_package',
+            'linkingAgentRole', 'information_package', 'delivery', 'transfer',
         )
         extra_kwargs = {
             'eventVersion': {
