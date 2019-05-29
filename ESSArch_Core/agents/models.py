@@ -156,7 +156,12 @@ class AgentTagLink(models.Model):
     end_date = models.DateField(_('end date'), null=True)
     description = models.TextField(_('description'), blank=True)
 
+    def __str__(self):
+        return _('Relation between "{}" and "{}"').format(self.agent, self.tag)
+
     class Meta:
+        verbose_name = _('Agent node relation')
+        verbose_name_plural = _('Agent node relations')
         unique_together = ('agent', 'tag',)
 
 
