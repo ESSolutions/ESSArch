@@ -3,6 +3,9 @@ angular.module('essarch.language').config(function($translateProvider) {
     EVENT: {
       EVENTS: 'Event',
       ADDEVENT: 'Lägg till event',
+      CREATE_EVENT: 'Skapa event',
+      DO_YOU_WANT_TO_REMOVE_EVENT: 'Vill du ta bort event?',
+      EDIT_EVENT: 'Redigera event',
       ERROR_MESSAGE: 'Event kunde inte bli tillagt',
       EVENTTIME: 'Event-tid',
       EVENTTYPE: 'Eventtyp',

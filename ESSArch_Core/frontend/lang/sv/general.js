@@ -36,6 +36,8 @@ angular.module('essarch.language').config(function($translateProvider) {
     DATES: 'Datum',
     DAY: 'Dag',
     DELETE: 'Radera',
+    DELIVERY: 'Leverans',
+    DELIVERIES: 'Leveranser',
     DESC: 'Beskrivning',
     DESELECTALL: 'Avvälj alla',
     DOCS: 'Dokumentation',

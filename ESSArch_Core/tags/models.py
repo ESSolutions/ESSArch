@@ -305,7 +305,7 @@ class StructureUnit(MPTTModel):
     reference_code = models.CharField(max_length=255)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
-    transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'))
+    transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='structure_units')
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask',
         on_delete=models.SET_NULL,
@@ -717,7 +717,7 @@ class TagVersion(models.Model):
     )
     metric = models.ForeignKey(MetricProfile, on_delete=models.PROTECT, null=True, verbose_name=_('metric'))
     location = models.ForeignKey(Location, on_delete=models.PROTECT, null=True, verbose_name=_('location'))
-    transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'))
+    transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='tag_versions')
     custom_fields = jsonfield.JSONField(default={})
 
     def to_search_doc(self):

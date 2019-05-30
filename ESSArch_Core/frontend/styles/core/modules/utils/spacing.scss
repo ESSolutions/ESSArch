@@ -33,9 +33,12 @@
   }
 }
 
-.py-1 {
-  padding-top: 10px;
+.pb-1, .py-1 {
   padding-bottom: 10px;
+}
+
+.pt-1, .py-1 {
+  padding-top: 10px;
 }
 
 .py-2 {
@@ -133,4 +136,8 @@
 .my-base,
 .mb-base {
   margin-bottom: $padding-base-vertical;
+}
+
+.mb-1 {
+  margin-bottom: 10px;
 }
