@@ -3,7 +3,7 @@ from django.db.models import Q, ProtectedError
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from mptt.templatetags.mptt_tags import cache_tree_children
-from rest_framework import exceptions, viewsets
+from rest_framework import exceptions, filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import DjangoModelPermissions
@@ -17,6 +17,7 @@ from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.api.filters import OrderingFilterWithNulls
 from ESSArch_Core.ip.models import EventIP
 from ESSArch_Core.ip.serializers import EventIPSerializer
+from ESSArch_Core.ip.views import EventIPViewSet
 from ESSArch_Core.tags.filters import StructureUnitFilter, TagFilter
 from ESSArch_Core.tags.models import (
     Delivery,
@@ -372,6 +373,7 @@ class DeliveryViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def events(self, request, pk):
         delivery = self.get_object()
         qs = EventIP.objects.filter(Q(delivery=delivery) | Q(transfer__delivery=delivery))
+        qs = filters.OrderingFilter().filter_queryset(request, qs, EventIPViewSet)
         page = self.paginate_queryset(qs)
         if page is not None:
             serializers = EventIPSerializer(page, many=True, context={'request': request})
