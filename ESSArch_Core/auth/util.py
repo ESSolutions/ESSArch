@@ -48,8 +48,11 @@ def get_user_roles(user, start_group=None):
     return GroupMemberRole.objects.filter(group_memberships__in=memberships)
 
 
-def get_objects_for_user(user, klass, perms):
+def get_objects_for_user(user, klass, perms=None):
     qs = _get_queryset(klass)
+
+    if perms is None:
+        perms = []
 
     if not user.is_active or user.is_anonymous:
         return qs.none()
@@ -68,13 +71,7 @@ def get_objects_for_user(user, klass, perms):
             codename = perm
         codenames.add(codename)
 
-    roles = get_user_roles(user)
     ctype = ContentType.objects.get_for_model(qs.model)
-
-    owned_codenames = []
-    if len(codenames):
-        owned_codenames = Permission.objects.filter(roles__in=roles).values_list('codename', flat=True)
-
     role_ids = set()
 
     org = user.user_profile.current_organization
@@ -82,9 +79,15 @@ def get_objects_for_user(user, klass, perms):
         # Because of UUIDs we have to first save the IDs in
         # memory and then query against that list, see
         # https://stackoverflow.com/questions/50526873/
-        if not len(set(codenames).difference(set(owned_codenames))):
-            generic_objects = GroupGenericObjects.objects.filter(content_type=ctype, group=org)
-            role_ids = set(generic_objects.values_list('object_id', flat=True))
+        for org_descendant in org.get_descendants(include_self=True):
+            roles = GroupMemberRole.objects.filter(
+                group_memberships__group__in=org_descendant.get_ancestors(include_self=True),
+                group_memberships__member=user.essauth_member,
+            )
+            role_perms_codenames = set(Permission.objects.filter(roles__in=roles).values_list('codename', flat=True))
+            if not len(set(codenames).difference(set(role_perms_codenames))):
+                generic_objects = GroupGenericObjects.objects.filter(content_type=ctype, group=org_descendant)
+                role_ids |= set(generic_objects.values_list('object_id', flat=True))
 
     groups = get_user_groups(user)
     group_ids = set(GroupObjectPermission.objects.filter(group__essauth_group__in=groups,
