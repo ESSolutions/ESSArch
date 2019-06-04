@@ -124,7 +124,7 @@ def installDefaultEventTypes():
 
     for key, val in dct.items():
         print('-> %s: %s' % (key, val['eventType']))
-        EventType.objects.get_or_create(
+        EventType.objects.update_or_create(
             eventType=val['eventType'],
             defaults={
                 'eventDetail': key,
