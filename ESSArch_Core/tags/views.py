@@ -343,7 +343,7 @@ class TagVersionTypeViewSet(viewsets.ModelViewSet):
 
 
 class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = Tag.objects.all()
+    queryset = Tag.objects.none()
     serializer_class = TagSerializer
 
     filter_backends = (DjangoFilterBackend, SearchFilter)
@@ -353,7 +353,8 @@ class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     http_method_names = ('get', 'head', 'options')
 
     def get_queryset(self):
-        qs = self.queryset
+        user = self.request.user
+        qs = Tag.objects.for_user(user, [])
         ancestor = self.kwargs.get('parent_lookup_tag')
 
         if ancestor is not None:

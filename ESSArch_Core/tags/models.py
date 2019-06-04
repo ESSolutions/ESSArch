@@ -11,6 +11,8 @@ from django.utils.translation import ugettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
 from mptt.models import MPTTModel, TreeForeignKey
 
+from ESSArch_Core.managers import OrganizationManager
+
 User = get_user_model()
 logger = logging.getLogger('essarch.tags')
 
@@ -530,6 +532,8 @@ class Tag(models.Model):
         related_name='tags'
     )
     task = models.ForeignKey('WorkflowEngine.ProcessTask', on_delete=models.SET_NULL, null=True, related_name='tags')
+
+    objects = OrganizationManager()
 
     def get_structures(self, structure=None):
         query_filter = {}

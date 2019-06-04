@@ -50,10 +50,10 @@ from rest_framework import exceptions
 from rest_framework.response import Response
 
 from ESSArch_Core.auth.models import GroupGenericObjects, Member
-from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.fixity.format import FormatIdentifier
+from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import ProfileIP, ProfileIPData, ProfileSA
 from ESSArch_Core.profiles.models import SubmissionAgreement as SA
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -134,20 +134,7 @@ class AgentNote(models.Model):
     note = models.CharField(max_length=255)
 
 
-class InformationPackageManager(models.Manager):
-    def for_user(self, user, perms):
-        """
-        Returns information packages for which a given ``users`` groups in the
-        ``users`` current organization has all permissions in ``perms``
-
-        :param user: ``User`` instance for which information packages would be
-        returned
-        :param perms: single permission string, or sequence of permission
-        strings which should be checked
-        """
-
-        return get_objects_for_user(user, self.model, perms)
-
+class InformationPackageManager(OrganizationManager):
     def visible_to_user(self, user):
         return self.for_user(user, 'view_informationpackage')
 
