@@ -994,7 +994,7 @@ class EventIP(models.Model):
     application = models.CharField(max_length=255)
     eventVersion = models.CharField(max_length=255)  # The version number of the application (from versioneer)
     eventOutcome = models.IntegerField(choices=OUTCOME_CHOICES, null=True, default=None)  # Success (0) or Fail (1)
-    eventOutcomeDetailNote = models.CharField(max_length=1024)  # Result or traceback from IP
+    eventOutcomeDetailNote = models.CharField(max_length=1024, blank=True)  # Result or traceback from IP
     linkingAgentIdentifierValue = models.CharField(max_length=255, blank=True)
     linkingAgentRole = models.CharField(max_length=255, blank=True)
     linkingObjectIdentifierValue = models.CharField(max_length=255, blank=True)
