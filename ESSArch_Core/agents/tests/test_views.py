@@ -27,6 +27,7 @@ from ESSArch_Core.agents.models import (
     RefCode,
     SourcesOfAuthority,
 )
+from ESSArch_Core.auth.models import Group, GroupType
 
 User = get_user_model()
 
@@ -40,25 +41,32 @@ def add_permission(user, codename):
 class ListAgentTests(TestCase):
     fixtures = ['countries_data', 'languages_data']
 
-    def setUp(self):
-        self.client = APIClient()
-        self.url = reverse('agent-list')
+    @classmethod
+    def setUpTestData(cls):
+        cls.org_group_type = GroupType.objects.create(codename='organization')
 
-        self.user = User.objects.create(username='user')
-        self.member = self.user.essauth_member
+        cls.user = User.objects.create(username='user')
+        cls.member = cls.user.essauth_member
 
-        self.client.force_authenticate(user=self.user)
+        cls.group = Group.objects.create(name='organization', group_type=cls.org_group_type)
+        cls.group.add_member(cls.member)
 
-        self.main_agent_type = MainAgentType.objects.create()
-        self.agent_type = AgentType.objects.create(main_type=self.main_agent_type)
+        cls.main_agent_type = MainAgentType.objects.create()
+        cls.agent_type = AgentType.objects.create(main_type=cls.main_agent_type)
 
-        self.ref_code = RefCode.objects.create(
+        cls.ref_code = RefCode.objects.create(
             country=Country.objects.get(iso='SE'),
             repository_code='repo',
         )
 
+    def setUp(self):
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.url = reverse('agent-list')
+
     def create_agent(self):
-        return Agent.objects.create(
+        agent = Agent.objects.create(
             level_of_detail=Agent.MINIMAL,
             script=Agent.LATIN,
             language=Language.objects.get(iso_639_1='sv'),
@@ -67,6 +75,9 @@ class ListAgentTests(TestCase):
             ref_code=self.ref_code,
             create_date=timezone.now(),
         )
+        self.group.add_object(agent)
+
+        return agent
 
     def test_empty(self):
         response = self.client.get(self.url)
@@ -92,12 +103,19 @@ class ListAgentTests(TestCase):
 class CreateAgentTests(TestCase):
     fixtures = ['countries_data', 'languages_data']
 
+    @classmethod
+    def setUpTestData(cls):
+        cls.org_group_type = GroupType.objects.create(codename='organization')
+
     def setUp(self):
         self.client = APIClient()
         self.url = reverse('agent-list')
 
         self.user = User.objects.create(username='user')
         self.member = self.user.essauth_member
+
+        group = Group.objects.create(name='organization', group_type=self.org_group_type)
+        group.add_member(self.member)
 
         self.client.force_authenticate(user=self.user)
 
@@ -190,6 +208,9 @@ class CreateAgentTests(TestCase):
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.get(reverse('agent-detail', args=(response.data['id'],)))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_create_start_date_after_end_date(self):
         add_permission(self.user, 'add_agent')
@@ -310,32 +331,37 @@ class CreateAgentTests(TestCase):
 class UpdateAgentTests(TestCase):
     fixtures = ['countries_data', 'languages_data']
 
-    def setUp(self):
-        self.client = APIClient()
-        self.url = reverse('agent-list')
+    @classmethod
+    def setUpTestData(cls):
+        cls.org_group_type = GroupType.objects.create(codename='organization')
 
-        self.user = User.objects.create(username='user')
-        self.member = self.user.essauth_member
+        cls.main_agent_type = MainAgentType.objects.create()
+        cls.agent_type = AgentType.objects.create(main_type=cls.main_agent_type)
 
-        self.client.force_authenticate(user=self.user)
+        cls.authority_type = AuthorityType.objects.create(name='test')
+        cls.identifier_type = AgentIdentifierType.objects.create(name='test')
+        cls.name_type = AgentNameType.objects.create(name='test')
+        cls.note_type = AgentNoteType.objects.create(name='test')
+        cls.place_type = AgentPlaceType.objects.create(name='test')
+        cls.relation_type = AgentRelationType.objects.create(name='test')
 
-        self.main_agent_type = MainAgentType.objects.create()
-        self.agent_type = AgentType.objects.create(main_type=self.main_agent_type)
-
-        self.authority_type = AuthorityType.objects.create(name='test')
-        self.identifier_type = AgentIdentifierType.objects.create(name='test')
-        self.name_type = AgentNameType.objects.create(name='test')
-        self.note_type = AgentNoteType.objects.create(name='test')
-        self.place_type = AgentPlaceType.objects.create(name='test')
-        self.relation_type = AgentRelationType.objects.create(name='test')
-
-        self.ref_code = RefCode.objects.create(
+        cls.ref_code = RefCode.objects.create(
             country=Country.objects.get(iso='SE'),
             repository_code='repo',
         )
 
+    def setUp(self):
+        self.user = User.objects.create(username='user')
+        self.member = self.user.essauth_member
+
+        self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
+        self.group.add_member(self.member)
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
     def create_agent(self):
-        return Agent.objects.create(
+        agent = Agent.objects.create(
             level_of_detail=Agent.MINIMAL,
             script=Agent.LATIN,
             language=Language.objects.get(iso_639_1='sv'),
@@ -344,6 +370,9 @@ class UpdateAgentTests(TestCase):
             ref_code=self.ref_code,
             create_date=timezone.now(),
         )
+        self.group.add_object(agent)
+
+        return agent
 
     def test_update_without_permission(self):
         agent = self.create_agent()
@@ -600,32 +629,37 @@ class UpdateAgentTests(TestCase):
 class DeleteAgentTests(TestCase):
     fixtures = ['countries_data', 'languages_data']
 
-    def setUp(self):
-        self.client = APIClient()
-        self.url = reverse('agent-list')
+    @classmethod
+    def setUpTestData(cls):
+        cls.org_group_type = GroupType.objects.create(codename='organization')
 
-        self.user = User.objects.create(username='user')
-        self.member = self.user.essauth_member
+        cls.main_agent_type = MainAgentType.objects.create()
+        cls.agent_type = AgentType.objects.create(main_type=cls.main_agent_type)
 
-        self.client.force_authenticate(user=self.user)
+        cls.authority_type = AuthorityType.objects.create(name='test')
+        cls.identifier_type = AgentIdentifierType.objects.create(name='test')
+        cls.name_type = AgentNameType.objects.create(name='test')
+        cls.note_type = AgentNoteType.objects.create(name='test')
+        cls.place_type = AgentPlaceType.objects.create(name='test')
+        cls.relation_type = AgentRelationType.objects.create(name='test')
 
-        self.main_agent_type = MainAgentType.objects.create()
-        self.agent_type = AgentType.objects.create(main_type=self.main_agent_type)
-
-        self.authority_type = AuthorityType.objects.create(name='test')
-        self.identifier_type = AgentIdentifierType.objects.create(name='test')
-        self.name_type = AgentNameType.objects.create(name='test')
-        self.note_type = AgentNoteType.objects.create(name='test')
-        self.place_type = AgentPlaceType.objects.create(name='test')
-        self.relation_type = AgentRelationType.objects.create(name='test')
-
-        self.ref_code = RefCode.objects.create(
+        cls.ref_code = RefCode.objects.create(
             country=Country.objects.get(iso='SE'),
             repository_code='repo',
         )
 
+    def setUp(self):
+        self.user = User.objects.create(username='user')
+        self.member = self.user.essauth_member
+
+        self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
+        self.group.add_member(self.member)
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
     def create_agent(self):
-        return Agent.objects.create(
+        agent = Agent.objects.create(
             level_of_detail=Agent.MINIMAL,
             script=Agent.LATIN,
             language=Language.objects.get(iso_639_1='sv'),
@@ -634,6 +668,9 @@ class DeleteAgentTests(TestCase):
             ref_code=self.ref_code,
             create_date=timezone.now(),
         )
+        self.group.add_object(agent)
+
+        return agent
 
     def test_delete_without_permission(self):
         agent = self.create_agent()

@@ -7,6 +7,8 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from languages_plus.models import Language
 
+from ESSArch_Core.managers import OrganizationManager
+
 
 class AgentRelationType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
@@ -86,6 +88,8 @@ class Agent(models.Model):
 
     tags = models.ManyToManyField('tags.TagVersion', through='agents.AgentTagLink', related_name='agents')
     task = models.ForeignKey('WorkflowEngine.ProcessTask', on_delete=models.SET_NULL, null=True, related_name='agents')
+
+    objects = OrganizationManager()
 
     @transaction.atomic
     def relate_to(self, other_agent, relation_type, **kwargs):

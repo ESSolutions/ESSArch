@@ -341,6 +341,9 @@ class AgentWriteSerializer(AgentSerializer):
         related_agents_data = validated_data.pop('agent_relations_a', [])
         agent = Agent.objects.create(**validated_data)
 
+        org = self.context['request'].user.user_profile.current_organization
+        org.add_object(agent)
+
         self.create_identifiers(agent, identifiers_data)
         self.create_mandates(agent, mandates_data)
         self.create_names(agent, names_data)
