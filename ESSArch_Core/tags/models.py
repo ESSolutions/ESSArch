@@ -1011,6 +1011,8 @@ class Delivery(models.Model):
     type = models.ForeignKey('tags.DeliveryType', on_delete=models.PROTECT, null=False, verbose_name=_('type'))
     description = models.TextField(_('description'), blank=True)
 
+    objects = OrganizationManager()
+
     class Meta:
         verbose_name = _('delivery')
         verbose_name_plural = _('deliveries')
@@ -1020,6 +1022,8 @@ class Transfer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_('name'), max_length=255, blank=False)
     delivery = models.ForeignKey('tags.Delivery', on_delete=models.CASCADE, null=False, verbose_name=_('delivery'))
+
+    objects = OrganizationManager()
 
     class Meta:
         verbose_name = _('transfer')

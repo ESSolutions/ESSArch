@@ -650,8 +650,25 @@ class DeliverySerializer(serializers.ModelSerializer):
 class DeliveryWriteSerializer(DeliverySerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=DeliveryType.objects.all())
 
+    def create(self, validated_data):
+        obj = super().create(validated_data)
+
+        org = self.context['request'].user.user_profile.current_organization
+        org.add_object(obj)
+
+        return obj
+
 
 class TransferSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        obj = super().create(validated_data)
+
+        org = self.context['request'].user.user_profile.current_organization
+        org.add_object(obj)
+
+        return obj
+
+
     class Meta:
         model = Transfer
         fields = ('id', 'name', 'delivery')

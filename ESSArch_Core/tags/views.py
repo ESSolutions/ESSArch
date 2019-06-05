@@ -374,7 +374,8 @@ class DeliveryViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return Delivery.objects.for_user(user, [])
+        qs = Delivery.objects.for_user(user, [])
+        return self.filter_queryset_by_parents_lookups(qs)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update', 'metadata']:
@@ -402,9 +403,14 @@ class DeliveryTypeViewSet(viewsets.ModelViewSet):
 
 
 class TransferViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = Transfer.objects.all()
+    queryset = Transfer.objects.none()
     serializer_class = TransferSerializer
     permission_classes = (ActionPermissions,)
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = Transfer.objects.for_user(user, [])
+        return self.filter_queryset_by_parents_lookups(qs)
 
     def create(self, request, *args, **kwargs):
         # https://github.com/chibisov/drf-extensions/issues/142
