@@ -366,11 +366,21 @@ class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
 
 class DeliveryViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = Delivery.objects.all()
+    queryset = Delivery.objects.none()
     serializer_class = DeliverySerializer
     permission_classes = (ActionPermissions,)
     filter_backends = (SearchFilter, filters.OrderingFilter)
     search_fields = ('name', 'id')
+
+    def get_queryset(self):
+        user = self.request.user
+        return Delivery.objects.for_user(user, [])
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update', 'metadata']:
+            return DeliveryWriteSerializer
+
+        return self.serializer_class
 
     @action(detail=True, methods=['GET'], url_path='events')
     def events(self, request, pk):
@@ -383,12 +393,6 @@ class DeliveryViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             return self.get_paginated_response(serializers.data)
         serializers = EventIPSerializer(qs, many=True, context={'request': request})
         return Response(serializers.data)
-
-    def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update', 'metadata']:
-            return DeliveryWriteSerializer
-
-        return self.serializer_class
 
 
 class DeliveryTypeViewSet(viewsets.ModelViewSet):
