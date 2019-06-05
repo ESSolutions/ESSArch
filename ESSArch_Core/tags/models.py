@@ -680,6 +680,8 @@ class Location(MPTTModel):
     level_type = models.ForeignKey(LocationLevelType, on_delete=models.PROTECT, verbose_name=_('level type'))
     function = models.ForeignKey(LocationFunctionType, on_delete=models.PROTECT, verbose_name=_('function'))
 
+    objects = OrganizationManager()
+
     def __str__(self):
         return self.name
 

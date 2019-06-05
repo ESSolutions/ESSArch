@@ -124,7 +124,7 @@ class LocationFunctionTypeViewSet(viewsets.ModelViewSet):
 
 
 class LocationViewSet(viewsets.ModelViewSet):
-    queryset = Location.objects.all()
+    queryset = Location.objects.none()
     serializer_class = LocationSerializer
     permission_classes = (ActionPermissions,)
     filter_backends = (OrderingFilter, SearchFilter,)
@@ -132,7 +132,7 @@ class LocationViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
 
     def get_queryset(self):
-        return get_objects_for_user(self.request.user, Location, [])
+        return Location.objects.for_user(self.request.user, [])
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update', 'metadata']:
@@ -140,7 +140,7 @@ class LocationViewSet(viewsets.ModelViewSet):
 
         return self.serializer_class
 
-    def list(self, request):
+    def list(self, request, *args, **kwargs):
         qs = self.filter_queryset(self.get_queryset())
         root_nodes = cache_tree_children(qs)
         dicts = []
