@@ -18,7 +18,7 @@ from ESSArch_Core.api.filters import OrderingFilterWithNulls
 from ESSArch_Core.ip.models import EventIP
 from ESSArch_Core.ip.serializers import EventIPSerializer
 from ESSArch_Core.ip.views import EventIPViewSet
-from ESSArch_Core.tags.filters import StructureUnitFilter, TagFilter
+from ESSArch_Core.tags.filters import StructureFilter, StructureUnitFilter, TagFilter
 from ESSArch_Core.tags.models import (
     Delivery,
     DeliveryType,
@@ -180,7 +180,7 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = StructureSerializer
     permission_classes = (DjangoModelPermissions,)
     filter_backends = (DjangoFilterBackend, OrderingFilterWithNulls, SearchFilter,)
-    filterset_fields = ('type', 'is_template', 'published',)
+    filter_class = StructureFilter
     ordering_fields = ('name', 'create_date', 'version', 'type', 'published_date',)
     search_fields = ('name',)
 
