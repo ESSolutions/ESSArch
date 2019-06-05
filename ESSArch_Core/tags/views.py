@@ -369,6 +369,8 @@ class DeliveryViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Delivery.objects.all()
     serializer_class = DeliverySerializer
     permission_classes = (ActionPermissions,)
+    filter_backends = (SearchFilter, filters.OrderingFilter)
+    search_fields = ('name', 'id')
 
     @action(detail=True, methods=['GET'], url_path='events')
     def events(self, request, pk):

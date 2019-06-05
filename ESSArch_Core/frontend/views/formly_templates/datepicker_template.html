@@ -34,7 +34,7 @@
       data-ng-model="model[options.key]"
       ng-change="status[options.key] = false"
       ng-required="options.templateOptions.required"
-      data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType: options.templateOptions.dateFormat ? options.templateOptions.dateFormat : 'YYYY-MM-DDTHH:mm:ssZ'}"
+      data-datetimepicker-config="{ minView: to.minView ? to.minView : 'day', startView: 'year', modelType: options.templateOptions.dateFormat ? options.templateOptions.dateFormat : 'YYYY-MM-DDTHH:mm:ssZ'}"
     />
   </ul>
 </div>
