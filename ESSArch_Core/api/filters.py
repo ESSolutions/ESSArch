@@ -23,10 +23,12 @@
 """
 
 import django_filters
+from django.db.models import F
 from django_filters import rest_framework as filters
 from django_filters.constants import EMPTY_VALUES
+from rest_framework.filters import OrderingFilter
 
-from ESSArch_Core.forms.fields import MultipleTextField
+from ESSArch_Core.api.forms.fields import MultipleTextField
 
 
 def string_to_bool(s):
@@ -39,6 +41,23 @@ def string_to_bool(s):
         'true': True,
         'false': False,
     }.get(s.lower(), None)
+
+
+class OrderingFilterWithNulls(OrderingFilter):
+    def filter_queryset(self, request, queryset, view):
+        ordering = self.get_ordering(request, queryset, view)
+        ordered = []
+
+        if ordering:
+            for o in ordering:
+                if not o:
+                    continue
+                if o[0] == '-':
+                    ordered.append(F(o[1:]).desc(nulls_last=True))
+                else:
+                    ordered.append(F(o).asc(nulls_first=True))
+
+        return queryset.order_by(*ordered)
 
 
 class MultipleCharFilter(filters.MultipleChoiceFilter):

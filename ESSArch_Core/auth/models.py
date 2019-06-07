@@ -48,9 +48,10 @@ class GroupGenericObjects(models.Model):
 
 
 class GroupMemberRole(GroupMemberRoleMixin):
-    codename = models.CharField(_('codename'), unique=True, max_length=255)
+    codename = models.CharField(_('name'), unique=True, max_length=255)
     label = models.SlugField(_('label'), blank=True, max_length=255)
-    permissions = models.ManyToManyField(Permission, related_name='roles', verbose_name=_('permissions'))
+    permissions = models.ManyToManyField(Permission, related_name='roles', blank=True, verbose_name=_('permissions'))
+    external_id = models.CharField(_('external id'), max_length=255, blank=True, unique=True, null=True)
 
     def __str__(self):
         return self.label
@@ -63,6 +64,9 @@ class GroupMemberRole(GroupMemberRoleMixin):
     class Meta:
         verbose_name = _('role')
         verbose_name_plural = _('roles')
+        permissions = (
+            ('assign_groupmemberrole', 'Can assign roles'),
+        )
 
 
 class ProxyGroup(DjangoGroup):
@@ -167,6 +171,7 @@ class Group(GroupMixin):
                                            related_name='essauth_groups')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
                             related_name='sub_%(app_label)s_%(class)s_set', verbose_name=_('parent'))
+    external_id = models.CharField(_('external id'), max_length=255, blank=True, unique=True, null=True)
 
     @property
     def member_model(self):
@@ -184,6 +189,22 @@ class Group(GroupMixin):
         if getattr(self, 'group_type') is None or getattr(self.group_type, 'codename') != 'organization':
             raise ValueError('objects cannot be added to non-organization groups')
         return GroupGenericObjects.objects.create(group=self, content_object=obj)
+
+    def add_user(self, user, roles=None, expiration_date=None):
+        """Add a user to the group.
+
+        :Parameters:
+          - `user`: user (required)
+          - `roles`: list of roles. Each role could be a role id, a role label or codename,
+            a role instance (optional, default: ``[]``)
+          - `expiration_date`: A timestamp specifying when the membership
+            expires. Note that this doesn't automatically remove the member
+            from the group but is only an indicator to an external application
+            to check if the membership still is valid
+            (optional, default: ``None``)
+        """
+
+        return self.add_member(user.essauth_member, roles=roles, expiration_date=expiration_date)
 
     def add_member(self, member, roles=None, expiration_date=None):
         """Add a member to the group.
@@ -207,7 +228,9 @@ class Group(GroupMixin):
             raise exceptions_gm.MemberNotSavedError(
                 "You must save the member before to create a relation with groups")
         group_member_model = self.group_member_model
-        group_member = group_member_model.objects.create(member=member, group=self, expiration_date=expiration_date)
+        group_member, _ = group_member_model.objects.get_or_create(
+            member=member, group=self, expiration_date=expiration_date,
+        )
         if roles:
             for role in roles:
                 if isinstance(role, GroupMemberRole):
@@ -250,6 +273,9 @@ class GroupMember(GroupMemberMixin):
     )
     roles = models.ManyToManyField(GroupMemberRole, related_name='group_memberships', verbose_name=_('roles'))
     expiration_date = models.DateTimeField(_('expiration date'), null=True, default=None)
+
+    def __str__(self):
+        return self.group.name
 
     class Meta(GroupMemberMixin.Meta):
         unique_together = ('group', 'member')

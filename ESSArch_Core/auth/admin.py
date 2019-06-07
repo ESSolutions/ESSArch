@@ -1,13 +1,18 @@
 # -*- coding: UTF-8 -*-
 import logging
 
+from allauth.account.models import EmailAddress
+from allauth.socialaccount.models import SocialAccount, SocialApp, SocialToken
 from django import forms
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import GroupAdmin as DjangoGroupAdmin, UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import Group as DjangoGroup
+from django.db import transaction
 from django.db.models import Q
+from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.csrf import csrf_protect
 from groups_manager.models import (
     Group as GroupManagerGroup,
     GroupEntity,
@@ -17,11 +22,13 @@ from groups_manager.models import (
     Member as GroupManagerMember,
 )
 from nested_inline.admin import NestedModelAdmin, NestedTabularInline
+from rest_framework.authtoken.models import Token
 
 from ESSArch_Core.admin import NestedStackedInlineWithoutHeader
 from ESSArch_Core.auth.models import (Group, GroupMember, GroupMemberRole, GroupType, Member, ProxyGroup,
                                       ProxyUser, ProxyPermission)
 
+csrf_protect_m = method_decorator(csrf_protect)
 User = get_user_model()
 logger = logging.getLogger('essarch.auth')
 
@@ -31,7 +38,10 @@ admin.site.unregister([
     GroupManagerGroupMember,
     GroupEntity,
     GroupManagerGroupMemberRole,
-    GroupManagerGroupType
+    GroupManagerGroupType,
+    SocialAccount,
+    SocialApp,
+    SocialToken,
 ])
 
 
@@ -59,7 +69,7 @@ class GroupMemberInline(NestedTabularInline):
     fields = ['group', 'member', 'expiration_date', 'roles']
     model = GroupMember
     extra = 0
-    verbose_name_plural = _('group settings')
+    verbose_name_plural = _('Assigned roles')
 
     def has_add_permission(self, request):
         return False
@@ -106,6 +116,24 @@ class UserAdmin(DjangoUserAdmin, NestedModelAdmin):
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
         (_('Groups'), {'fields': ('groups',)})
     )
+
+    def get_inline_instances(self, request, obj=None):
+        if not request.user.has_perm("%s.%s" % ('essauth', 'assign_groupmemberrole')):
+            return []
+
+        return super().get_inline_instances(request, obj=obj)
+
+    @csrf_protect_m
+    @transaction.atomic
+    def add_view(self, request, form_url='', extra_context=None):
+        extra_context = self.admin_site.each_context(request)
+        return super().add_view(request, form_url=form_url, extra_context=extra_context)
+
+    @csrf_protect_m
+    @transaction.atomic
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = self.admin_site.each_context(request)
+        return super().change_view(request, object_id, form_url=form_url, extra_context=extra_context)
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
         if db_field.name == 'user_permissions':
@@ -234,6 +262,7 @@ class GroupTypeAdmin(admin.ModelAdmin):
 
 class GroupMemberRoleAdmin(admin.ModelAdmin):
     filter_horizontal = ['permissions']
+    exclude = ('label',)
 
     def log_addition(self, request, object, message):
         logger.info(f"User '{request.user}' attempts to create role '{object}' with msg: '{message}'.")
@@ -258,6 +287,8 @@ class ProxyPermissionAdmin(admin.ModelAdmin):
 
 
 admin.site.unregister(DjangoGroup)
+admin.site.unregister(EmailAddress)
+admin.site.unregister(Token)
 admin.site.unregister(User)
 admin.site.register(ProxyPermission, ProxyPermissionAdmin)
 admin.site.register(ProxyGroup, GroupAdmin)

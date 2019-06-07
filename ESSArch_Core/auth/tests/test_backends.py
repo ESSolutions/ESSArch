@@ -61,10 +61,10 @@ class OrganizationRoleTestCase(TestCase):
         self.sthlm.add_member(self.admin_sthlm.essauth_member, roles=[self.admin_role])
 
         # create IPs in organizations
-        self.uppsala_ip = InformationPackage.objects.create()
+        self.uppsala_ip = InformationPackage.objects.create(label='uppsala_ip')
         self.uppsala.add_object(self.uppsala_ip)
 
-        self.sthlm_ip = InformationPackage.objects.create()
+        self.sthlm_ip = InformationPackage.objects.create(label='sthlm_ip')
         self.sthlm.add_object(self.sthlm_ip)
 
     def test_get_permissions(self):
@@ -260,7 +260,7 @@ class OrganizationRoleTestCase(TestCase):
 
         self.assertCountEqual(
             list(get_objects_for_user(admin_uppsala_user_sweden, InformationPackage, [])),
-            []
+            [self.uppsala_ip, self.sthlm_ip]
         )
         self.assertCountEqual(
             list(get_objects_for_user(admin_uppsala_user_sweden, InformationPackage, 'foo')),
@@ -276,17 +276,19 @@ class OrganizationRoleTestCase(TestCase):
         )
         self.assertCountEqual(
             list(get_objects_for_user(admin_uppsala_user_sweden, InformationPackage, self.expected_user_perms)),
-            []
+            [self.uppsala_ip, self.sthlm_ip]
         )
+
         self.assertCountEqual(
             list(get_objects_for_user(admin_uppsala_user_sweden, InformationPackage, self.expected_admin_perms)),
-            []
+            [self.uppsala_ip]
         )
+
         self.assertCountEqual(
             list(get_objects_for_user(
                 admin_uppsala_user_sweden,
                 InformationPackage,
                 self.expected_user_perms + self.expected_admin_perms
             )),
-            []
+            [self.uppsala_ip]
         )

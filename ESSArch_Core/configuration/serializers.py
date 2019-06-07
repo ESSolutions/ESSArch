@@ -24,6 +24,7 @@
 
 from rest_framework import serializers
 
+from ESSArch_Core.api.serializers import DynamicHyperlinkedModelSerializer
 from ESSArch_Core.configuration.models import (
     Agent,
     ArchivePolicy,
@@ -32,8 +33,6 @@ from ESSArch_Core.configuration.models import (
     Path,
     Site,
 )
-
-from ESSArch_Core.serializers import DynamicHyperlinkedModelSerializer
 
 
 class EventTypeSerializer(DynamicHyperlinkedModelSerializer):
