@@ -180,10 +180,10 @@ class GetObjectsForUserTests(TestCase):
         qs = InformationPackage.objects.all()
         self.assertFalse(get_objects_for_user(self.user, qs, []).exists())
 
-    def test_no_objects_for_user_without_permission(self):
+    def test_objects_without_any_permissions_available_for_all(self):
         InformationPackage.objects.create()
         qs = InformationPackage.objects.all()
-        self.assertFalse(get_objects_for_user(self.user, qs, []).exists())
+        self.assertTrue(get_objects_for_user(self.user, qs, []).exists())
 
     def test_objects_added_to_user(self):
         ip = InformationPackage.objects.create()

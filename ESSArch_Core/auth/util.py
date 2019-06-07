@@ -1,6 +1,7 @@
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import F, Min, Q
+from django.db.models import CharField, F, Func, Min, Q, UUIDField, Value
+from django.db.models.functions import Cast
 from django.shortcuts import _get_queryset
 from guardian.models import GroupObjectPermission, UserObjectPermission
 
@@ -48,6 +49,12 @@ def get_user_roles(user, start_group=None):
     return GroupMemberRole.objects.filter(group_memberships__in=memberships)
 
 
+def replace_func(field, field_type):
+    if isinstance(field_type, UUIDField):
+        return Func(F(field), Value('-'), Value(''), function='replace')
+    return F(field)
+
+
 def get_objects_for_user(user, klass, perms=None):
     qs = _get_queryset(klass)
 
@@ -90,12 +97,28 @@ def get_objects_for_user(user, klass, perms=None):
                 role_ids |= set(generic_objects.values_list('object_id', flat=True))
 
     groups = get_user_groups(user)
-    group_ids = set(GroupObjectPermission.objects.filter(group__essauth_group__in=groups,
-                                                         permission__codename__in=codenames)
-                    .values_list('object_pk', flat=True))
+    group_ids = set(GroupObjectPermission.objects.filter(
+        group__essauth_group__in=groups, permission__codename__in=codenames, content_type=ctype)
+    .values_list('object_pk', flat=True))
 
-    user_ids = set(UserObjectPermission.objects.filter(user=user, permission__codename__in=codenames)
-                                               .values_list('object_pk', flat=True))
+    user_ids = set(UserObjectPermission.objects.filter(
+        user=user, permission__codename__in=codenames, content_type=ctype
+    ).values_list('object_pk', flat=True))
 
-    all_ids = role_ids | group_ids | user_ids
+    ids_with_no_auth = set(qs.annotate(casted_pk=Cast('pk', CharField()))
+                             .exclude(
+                                casted_pk__in=UserObjectPermission.objects.filter(content_type=ctype).annotate(
+                                    cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
+                                ).values('cleaned_pk'))
+                             .exclude(
+                                casted_pk__in=GroupObjectPermission.objects.filter(content_type=ctype).annotate(
+                                    cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
+                                ).values('cleaned_pk'))
+                             .exclude(
+                                casted_pk__in=GroupGenericObjects.objects.filter(content_type=ctype).annotate(
+                                    cleaned_pk=replace_func('object_id', qs.model._meta.pk)
+                                ).values('cleaned_pk'))
+                             .values_list('pk', flat=True))
+
+    all_ids = role_ids | group_ids | user_ids | ids_with_no_auth
     return qs.filter(pk__in=all_ids)
