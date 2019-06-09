@@ -41,7 +41,7 @@ matrix:
     - name: "Linux with MariaDB"
       python: "3.6"
       addons:
-        mariadb: 10.2
+        mariadb: "10.3"
       env: *mariadb
 
     - name: "Linux with MySQL"
@@ -52,12 +52,8 @@ matrix:
 
     - name: "Linux with PostgreSQL"
       python: "3.6"
-      addons:
-        postgresql: "10"
-        apt:
-          packages:
-            - postgresql-10
-            - postgresql-client-10
+      services:
+        - postgresql
       env: *postgres
 
     - name: "Windows with MSSQL"
