@@ -1,0 +1,78 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-05-15 11:02+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../user_guide/list-view.rst:4
+msgid "List view"
+msgstr "Listvy"
+
+#: ../../user_guide/list-view.rst:6
+msgid ""
+"The list view is the table of objects that is present in most views in "
+"ESSArch. The objects listed in this view are always relevant to the "
+"current view, and filtered depending on state and permissions. Provided "
+"are additional optional filter and sorting options."
+msgstr ""
+"Listvyn är tabellen med objekt som existerar i de flesta vyer i ESSArch. "
+"Innehållet är alltid relevant för den nuvarande vyn och är filtrerat "
+"efter tillståndet på innehållet samt användarens rättigheter. "
+"Tillgängligt är även ytterliggare frivilliga filter och "
+"sorteringsalternativ."
+
+#: ../../user_guide/list-view.rst:13
+msgid ""
+"The list view can be filtered by clicking the filter icon, which opens a "
+"menu with all available filters."
+msgstr ""
+"Listvyn kan filtreras genom att klicka på filterikonen, som öppnar en "
+"meny med alla tillgängliga filter."
+
+#: ../../user_guide/list-view.rst:18
+msgid ""
+"In ESSArch Preservation Platform (EPP) many list views includes nested "
+"IPs which can be expanded to see the underlying IPs. What should appear "
+"in the first level can be administrated in the :ref:`user settings <user-"
+"settings-ip-view-type>`."
+msgstr ""
+"I ESSArch Preservation Platform (EPP) inkluderar många av listvyerna "
+"nästlade IPn som kan bli expanderade för att se underliggande IPn. Vad "
+"som ska visas på den första nivån kan administreras i "
+":ref:`användarinställningarna <user-settings-ip-view-type>`."
+
+#: ../../user_guide/list-view.rst:25
+msgid ""
+"The available functions of a view, like browsing files, jobs or events, "
+"and main functionality like IP preparation, creation and preservation, is"
+" accessed by clicking on a row in the IP list and selecting the "
+"corresponding tab. In many cases, a user can select multiple rows by "
+"holding the :kbd:`CTRL` key and click each item or click the first item, "
+"hold the :kbd:`SHIFT` key and click another to select all IPs between "
+"including the two selected. Selecting multiple items may reduce amount of"
+" actions that can be done, since any action taken will be done to all "
+"selected objects."
+msgstr ""
+"Tillgängliga funktioner i en vy såsom att bläddra i filhanterare, se jobb"
+" eller händelser och huvudfunktionalitet som att förbereda, skapa eller "
+"arkivera SIP kommer man åt genom att klicka på objektets rad och sedan "
+"välja önskad flik. En användare kan i många fall markera flera objekt "
+"genom att hålla ner :kbd:`CTRL` och välja alla paket ett i  taget eller "
+"genom att välja ett, hålla in :kbd:`SHIFT` och välja ett annat, så "
+"markeras alla paket mellan dessa inklusive de två valda. Väljer man flera"
+" objekt minskar det ofta antalet tillgängliga funktioner eftersom "
+"handligen kommer utföras på alla valda objekt."

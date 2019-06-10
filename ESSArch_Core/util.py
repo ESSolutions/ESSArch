@@ -553,24 +553,19 @@ def generate_file_response(file_obj, content_type, force_download=False, name=No
     charset = get_charset(file_obj.read(128))
     file_obj.seek(0)
 
-    content_type = u'{}; charset={}'.format(content_type, charset)
-    response = FileResponse(file_obj, content_type=content_type)
+    content_type = '{}; charset={}'.format(content_type, charset)
+    response = FileResponse(file_obj, content_type=content_type, as_attachment=force_download)
 
-    filename = get_filename_from_file_obj(file_obj, name)
+    if not force_download:
+        filename = get_filename_from_file_obj(file_obj, name)
 
-    if filename:
-        try:
-            filename.encode('ascii')
-            file_expr = u'filename="{}"'.format(filename)
-        except (UnicodeEncodeError, UnicodeDecodeError):
-            file_expr = u"filename*=utf-8''{}".format(quote(filename))
-        response['Content-Disposition'] = u'inline; {}'.format(file_expr)
-
-    if force_download or content_type is None:
-        if content_type is None:
-            response['Content-Type'] = 'application/octet-stream'
         if filename:
-            response['Content-Disposition'] = u'attachment; {}'.format(file_expr)
+            try:
+                filename.encode('ascii')
+                file_expr = 'filename="{}"'.format(filename)
+            except (UnicodeEncodeError, UnicodeDecodeError):
+                file_expr = "filename*=utf-8''{}".format(quote(filename))
+            response['Content-Disposition'] = 'inline; {}'.format(file_expr)
 
     # disable caching, required for Firefox to be able to load large files multiple times
     # see https://bugzilla.mozilla.org/show_bug.cgi?id=1436593
