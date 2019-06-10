@@ -854,7 +854,6 @@ class InformationPackage(models.Model):
         ordering = ["generation", "-create_date"]
         verbose_name = 'Information Package'
         permissions = (
-            ('view_informationpackage', 'Can view IP'),
             ('can_upload', 'Can upload files to IP'),
             ('set_uploaded', 'Can set IP as uploaded'),
             ('create_sip', 'Can create SIP'),

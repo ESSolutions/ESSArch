@@ -1,10 +1,11 @@
 sudo: required
 language: python
 cache: pip
+dist: xenial
 
 branches:
   only:
-  - master
+    - master
 
 templates:
   mariadb: &mariadb DB_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
@@ -23,11 +24,9 @@ matrix:
 
     - name: "Linux with SQLite"
       python: "3.6"
-      dist: xenial
 
     - name: "Linux with MSSQL"
       python: "3.6"
-      dist: xenial
       services: docker
       before_install:
         - docker pull mcr.microsoft.com/mssql/server:2017-latest-ubuntu
@@ -41,21 +40,18 @@ matrix:
 
     - name: "Linux with MariaDB"
       python: "3.6"
-      dist: xenial
       addons:
-        mariadb: '10.3'
+        mariadb: "10.3"
       env: *mariadb
 
     - name: "Linux with MySQL"
       python: "3.6"
-      dist: xenial
       services:
         - mysql
       env: *mysql
 
     - name: "Linux with PostgreSQL"
       python: "3.6"
-      dist: xenial
       services:
         - postgresql
       env: *postgres
@@ -81,7 +77,6 @@ matrix:
     - env: PRETTIER
       language: node_js
       node_js: "10"
-      dist: xenial
       before_install: cd ESSArch_Core/frontend
       install: yarn
       script: yarn prettier --check "**/*.{js,scss,html}"
