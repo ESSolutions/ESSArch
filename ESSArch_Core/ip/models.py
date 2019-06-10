@@ -135,7 +135,7 @@ class AgentNote(models.Model):
 
 
 class InformationPackageManager(models.Manager):
-    def for_user(self, user, perms):
+    def for_user(self, user, perms, include_no_auth_objs=True):
         """
         Returns information packages for which a given ``users`` groups in the
         ``users`` current organization has all permissions in ``perms``
@@ -146,10 +146,10 @@ class InformationPackageManager(models.Manager):
         strings which should be checked
         """
 
-        return get_objects_for_user(user, self.model, perms)
+        return get_objects_for_user(user, self.model, perms, include_no_auth_objs)
 
     def visible_to_user(self, user):
-        return self.for_user(user, 'view_informationpackage')
+        return self.for_user(user, 'view_informationpackage', include_no_auth_objs=False)
 
 
 class InformationPackage(models.Model):

@@ -1,6 +1,8 @@
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import F, Min, Q
+from django.db import connection
+from django.db.models import CharField, F, Min, Q, UUIDField, Value
+from django.db.models.functions import Cast, Replace
 from django.shortcuts import _get_queryset
 from guardian.models import GroupObjectPermission, UserObjectPermission
 
@@ -48,7 +50,17 @@ def get_user_roles(user, start_group=None):
     return GroupMemberRole.objects.filter(group_memberships__in=memberships)
 
 
-def get_objects_for_user(user, klass, perms=None):
+def replace_func(field, field_type):
+    if connection.vendor == 'postgresql':
+        return F(field)
+
+    if isinstance(field_type, UUIDField):
+        return Replace(field, Value('-'), Value(''))
+
+    return F(field)
+
+
+def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True):
     qs = _get_queryset(klass)
 
     if perms is None:
@@ -90,12 +102,31 @@ def get_objects_for_user(user, klass, perms=None):
                 role_ids |= set(generic_objects.values_list('object_id', flat=True))
 
     groups = get_user_groups(user)
-    group_ids = set(GroupObjectPermission.objects.filter(group__essauth_group__in=groups,
-                                                         permission__codename__in=codenames)
-                    .values_list('object_pk', flat=True))
+    group_ids = set(GroupObjectPermission.objects.filter(
+        group__essauth_group__in=groups, permission__codename__in=codenames, content_type=ctype
+    ).values_list('object_pk', flat=True))
 
-    user_ids = set(UserObjectPermission.objects.filter(user=user, permission__codename__in=codenames)
-                                               .values_list('object_pk', flat=True))
+    user_ids = set(UserObjectPermission.objects.filter(
+        user=user, permission__codename__in=codenames, content_type=ctype
+    ).values_list('object_pk', flat=True))
 
     all_ids = role_ids | group_ids | user_ids
+
+    if include_no_auth_objs:
+        ids_with_no_auth = set(qs.annotate(casted_pk=Cast('pk', CharField()))
+                               .exclude(
+                                   casted_pk__in=UserObjectPermission.objects.filter(content_type=ctype).annotate(
+                                       cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
+                                   ).values('cleaned_pk'))
+                               .exclude(
+                                   casted_pk__in=GroupObjectPermission.objects.filter(content_type=ctype).annotate(
+                                       cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
+                                   ).values('cleaned_pk'))
+                               .exclude(
+                                   casted_pk__in=GroupGenericObjects.objects.filter(content_type=ctype).annotate(
+                                       cleaned_pk=replace_func('object_id', qs.model._meta.pk)
+                                   ).values('cleaned_pk'))
+                               .values_list('pk', flat=True))
+
+        all_ids |= ids_with_no_auth
     return qs.filter(pk__in=all_ids)
