@@ -6,6 +6,7 @@ import datetime
 from subprocess import PIPE
 
 from unittest import mock
+from django.core.files.base import ContentFile
 from django.http.response import FileResponse
 from django.test import TestCase
 from lxml import objectify, etree
@@ -372,9 +373,8 @@ class GenerateFileResponseTests(TestCase):
     @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value="some_file_name.txt")
     def test_when_utf8_and_file_obj_has_name_then_return_inline_file_response(self, get_charset, get_file_name):
         content_type = 'text/plain'
-        mock_file_obj = mock.Mock()
 
-        resp = generate_file_response(mock_file_obj, content_type)
+        resp = generate_file_response(open(__file__, 'rb'), content_type)
         headers = self.get_headers_from_response(resp)
 
         self.assertEqual(
@@ -383,6 +383,7 @@ class GenerateFileResponseTests(TestCase):
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
                 'Pragma': 'no-cache',
                 'Expires': '0',
+                'Content-Length': str(os.path.getsize(__file__)),
                 'Content-Type': 'text/plain; charset=utf-8',
                 'Content-Disposition': 'inline; filename="{}"'.format("some_file_name.txt")
             }
@@ -394,9 +395,8 @@ class GenerateFileResponseTests(TestCase):
     @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value=None)
     def test_when_utf8_and_no_filename_then_return_without_content_dispo(self, get_charset, get_filename):
         content_type = 'text/plain'
-        mock_file_obj = mock.Mock()
 
-        resp = generate_file_response(mock_file_obj, content_type)
+        resp = generate_file_response(open(__file__, 'rb'), content_type)
         headers = self.get_headers_from_response(resp)
         self.assertEqual(
             headers,
@@ -404,6 +404,7 @@ class GenerateFileResponseTests(TestCase):
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
                 'Pragma': 'no-cache',
                 'Expires': '0',
+                'Content-Length': str(os.path.getsize(__file__)),
                 'Content-Type': 'text/plain; charset=utf-8',
             }
         )
@@ -414,9 +415,8 @@ class GenerateFileResponseTests(TestCase):
     @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value="some_file_name.txt")
     def test_win1252_and_file_obj_has_name_then_return_inline_file_response(self, get_charset, get_filename):
         content_type = 'text/plain'
-        mock_file_obj = mock.Mock()
 
-        resp = generate_file_response(mock_file_obj, content_type)
+        resp = generate_file_response(open(__file__, 'rb'), content_type)
         headers = self.get_headers_from_response(resp)
 
         self.assertEqual(
@@ -425,6 +425,7 @@ class GenerateFileResponseTests(TestCase):
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
                 'Pragma': 'no-cache',
                 'Expires': '0',
+                'Content-Length': str(os.path.getsize(__file__)),
                 'Content-Type': 'text/plain; charset=windows-1252',
                 'Content-Disposition': 'inline; filename="{}"'.format("some_file_name.txt")
             }
@@ -436,9 +437,8 @@ class GenerateFileResponseTests(TestCase):
     @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value=None)
     def test_win1252_and_no_filename_then_return_without_content_dispo(self, mock_get_charset, mock_get_filename):
         content_type = 'text/plain'
-        mock_file_obj = mock.Mock()
 
-        resp = generate_file_response(mock_file_obj, content_type)
+        resp = generate_file_response(open(__file__, 'rb'), content_type)
         headers = self.get_headers_from_response(resp)
         self.assertEqual(
             headers,
@@ -446,6 +446,7 @@ class GenerateFileResponseTests(TestCase):
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
                 'Pragma': 'no-cache',
                 'Expires': '0',
+                'Content-Length': str(os.path.getsize(__file__)),
                 'Content-Type': 'text/plain; charset=windows-1252',
             }
         )
@@ -453,12 +454,10 @@ class GenerateFileResponseTests(TestCase):
         self.assertEqual(type(resp), FileResponse)
 
     @mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
-    @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value="some_file_name.txt")
-    def test_when_force_download_and_filename_not_none_then_add_attachment(self, get_charset, get_filename):
-        content_type = "text/plain"
-        mock_file_obj = mock.Mock()
+    def test_when_force_download_and_filename_not_none_then_add_attachment(self, get_charset):
+        content_type = 'text/plain'
 
-        resp = generate_file_response(mock_file_obj, content_type, force_download=True)
+        resp = generate_file_response(open(__file__, 'rb'), content_type, force_download=True)
         headers = self.get_headers_from_response(resp)
 
         self.assertEqual(
@@ -468,19 +467,21 @@ class GenerateFileResponseTests(TestCase):
                 'Pragma': 'no-cache',
                 'Expires': '0',
                 'Content-Type': 'text/plain; charset=utf-8',
-                'Content-Disposition': 'attachment; filename="{}"'.format("some_file_name.txt")
+                'Content-Length': str(os.path.getsize(__file__)),
+                'Content-Disposition': 'attachment; filename="{}"'.format("test_util.py")
             }
         )
 
         self.assertEqual(type(resp), FileResponse)
 
     @mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
-    @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value="none_ascii_å_name.txt")
-    def test_when_filename_is_not_ascii(self, get_charset, get_filename):
-        content_type = "text/plain"
-        mock_file_obj = mock.Mock()
+    def test_when_filename_is_not_ascii(self, get_charset):
+        content_type = 'text/plain'
 
-        resp = generate_file_response(mock_file_obj, content_type)
+        resp = generate_file_response(
+            ContentFile(b'binary content', 'none_ascii_å_name.txt'),
+            content_type,
+        )
         headers = self.get_headers_from_response(resp)
 
         self.assertEqual(
