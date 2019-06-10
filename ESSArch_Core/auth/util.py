@@ -1,7 +1,8 @@
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import CharField, F, Func, Min, Q, UUIDField, Value
-from django.db.models.functions import Cast
+from django.db import connection
+from django.db.models import CharField, F, Min, Q, UUIDField, Value
+from django.db.models.functions import Cast, Replace
 from django.shortcuts import _get_queryset
 from guardian.models import GroupObjectPermission, UserObjectPermission
 
@@ -50,8 +51,12 @@ def get_user_roles(user, start_group=None):
 
 
 def replace_func(field, field_type):
+    if connection.vendor == 'postgresql':
+        return F(field)
+
     if isinstance(field_type, UUIDField):
-        return Func(F(field), Value('-'), Value(''), function='replace')
+        return Replace(field, Value('-'), Value(''))
+
     return F(field)
 
 
