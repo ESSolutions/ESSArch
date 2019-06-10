@@ -127,13 +127,6 @@ class InformationPackageSerializer(serializers.ModelSerializer):
 
         return WorkareaSerializer(workareas, many=True, context=self.context).data
 
-    def get_workarea(self, obj):
-        # TODO: This is moved here from ETA (overriding above)
-        workarea = obj.workareas.first()
-
-        if workarea is not None:
-            return WorkareaSerializer(workarea, context=self.context).data
-
     class Meta:
         model = InformationPackage
         fields = (
