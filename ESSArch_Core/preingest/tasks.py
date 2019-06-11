@@ -30,7 +30,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 
 # noinspection PyUnresolvedReferences
-from ESSArch_Core import tasks  # noqa
+from ESSArch_Core import tasks  # noqa isort:skip
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.fixity.checksum import calculate_checksum

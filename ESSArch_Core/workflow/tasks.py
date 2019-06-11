@@ -50,7 +50,7 @@ from guardian.shortcuts import assign_perm
 from os import walk
 
 # noinspection PyUnresolvedReferences
-from ESSArch_Core import tasks  # noqa
+from ESSArch_Core import tasks  # noqa isort:skip
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.auth.models import Member, Notification

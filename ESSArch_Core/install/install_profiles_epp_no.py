@@ -31,9 +31,9 @@ import os
 import django
 django.setup()
 
-from django.conf import settings  # noqa
+from django.conf import settings  # noqa isort:skip
 
-from ESSArch_Core.profiles.models import (  # noqa
+from ESSArch_Core.profiles.models import (  # noqa isort:skip
     SubmissionAgreement,
     Profile,
 )

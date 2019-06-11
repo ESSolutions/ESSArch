@@ -51,11 +51,11 @@ proj_folder = os.path.realpath(
 sys.path.append(proj_folder)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ESSArch_Core.config.settings')
-import django  # noqa
+import django  # noqa isort:skip
 django.setup()
 
 # Stop Django from executing DB queries
-from django.db.models.query import QuerySet  # noqa
+from django.db.models.query import QuerySet  # noqa isort:skip
 QuerySet.__repr__ = lambda self: self.__class__.__name__
 
 try:

@@ -6,4 +6,4 @@ class WorkflowEngineConfig(AppConfig):
     verbose_name = 'Workflow Engine'
 
     def ready(self):
-        import ESSArch_Core.WorkflowEngine.signals  # noqa
+        import ESSArch_Core.WorkflowEngine.signals  # noqa isort:skip

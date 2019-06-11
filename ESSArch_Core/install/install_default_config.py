@@ -28,17 +28,17 @@ import django
 
 django.setup()
 
-from django.contrib.auth import get_user_model  # noqa
-from django.contrib.auth.models import Permission  # noqa
-from groups_manager.models import GroupType  # noqa
-from elasticsearch.client import IngestClient  # noqa
-from elasticsearch_dsl.connections import get_connection  # noqa
+from django.contrib.auth import get_user_model  # noqa isort:skip
+from django.contrib.auth.models import Permission  # noqa isort:skip
+from groups_manager.models import GroupType  # noqa isort:skip
+from elasticsearch.client import IngestClient  # noqa isort:skip
+from elasticsearch_dsl.connections import get_connection  # noqa isort:skip
 
-from ESSArch_Core.search import alias_migration  # noqa
-from ESSArch_Core.auth.models import Group, GroupMemberRole  # noqa
-from ESSArch_Core.configuration.models import EventType, Parameter, Path, Site, ArchivePolicy  # noqa
-from ESSArch_Core.storage.models import StorageMethod, DISK, StorageTarget, StorageMethodTargetRelation  # noqa
-from ESSArch_Core.tags.documents import Archive, Component, Directory, File, InformationPackage  # noqa
+from ESSArch_Core.search import alias_migration  # noqa isort:skip
+from ESSArch_Core.auth.models import Group, GroupMemberRole  # noqa isort:skip
+from ESSArch_Core.configuration.models import EventType, Parameter, Path, Site, ArchivePolicy  # noqa isort:skip
+from ESSArch_Core.storage.models import StorageMethod, DISK, StorageTarget, StorageMethodTargetRelation  # noqa isort:skip
+from ESSArch_Core.tags.documents import Archive, Component, Directory, File, InformationPackage  # noqa isort:skip
 
 User = get_user_model()
 

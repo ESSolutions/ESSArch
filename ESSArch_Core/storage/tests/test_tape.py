@@ -36,7 +36,7 @@ def retry_mock(*args, **kwargs):
 
 retrying.retry = retry_mock
 
-from ESSArch_Core.storage.tape import (  # noqa: E402
+from ESSArch_Core.storage.tape import (  # noqa isort:skip
     mount_tape,
     unmount_tape,
     rewind_tape,

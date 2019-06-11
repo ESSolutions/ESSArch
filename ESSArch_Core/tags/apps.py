@@ -6,4 +6,4 @@ class TagConfig(AppConfig):
     verbose_name = 'Tags'
 
     def ready(self):
-        import ESSArch_Core.tags.signals  # noqa
+        import ESSArch_Core.tags.signals  # noqa isort:skip

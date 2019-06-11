@@ -7,4 +7,4 @@ class StorageConfig(AppConfig):
     verbose_name = _('Storage')
 
     def ready(self):
-        import ESSArch_Core.storage.signals  # noqa
+        import ESSArch_Core.storage.signals  # noqa isort:skip

@@ -7,4 +7,4 @@ class ConfigurationConfig(AppConfig):
     verbose_name = _('Configuration')
 
     def ready(self):
-        import ESSArch_Core.configuration.signals  # noqa
+        import ESSArch_Core.configuration.signals  # noqa isort:skip

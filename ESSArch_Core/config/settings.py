@@ -394,6 +394,6 @@ CELERY_BEAT_SCHEDULE = {
 OLD_PASSWORD_FIELD_ENABLED = True
 
 try:
-    from local_essarch_settings import *  # noqa
+    from local_essarch_settings import *  # noqa isort:skip
 except ImportError:
     pass
