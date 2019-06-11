@@ -1,10 +1,10 @@
 import logging
 import os
 import traceback
+from os import walk
 
 from django.utils import timezone
 from glob2 import glob, iglob
-from os import walk
 
 from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.models import Validation

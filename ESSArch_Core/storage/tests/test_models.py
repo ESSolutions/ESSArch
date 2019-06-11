@@ -3,18 +3,23 @@ import shutil
 import tempfile
 import uuid
 from unittest import mock
+
 from django.test import TestCase
 
 from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.storage.models import (
+    CAS,
     DISK,
     TAPE,
-    CAS,
+    Robot,
+    StorageMedium,
+    StorageObject,
+    StorageTarget,
+    TapeSlot,
     get_storage_type_from_medium_type,
     medium_type_CHOICES,
-    StorageTarget,
-    StorageMedium, TapeSlot, Robot, StorageObject)
+)
 from ESSArch_Core.util import normalize_path
 
 

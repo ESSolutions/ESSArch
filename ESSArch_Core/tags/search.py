@@ -17,7 +17,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django_filters.constants import EMPTY_VALUES
 from elasticsearch.exceptions import NotFoundError, TransportError
-from elasticsearch_dsl import Q, FacetedSearch, TermsFacet
+from elasticsearch_dsl import FacetedSearch, Q, TermsFacet
 from elasticsearch_dsl.connections import get_connection
 from rest_framework import exceptions, serializers, status
 from rest_framework.decorators import action
@@ -35,15 +35,21 @@ from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
 from ESSArch_Core.tags.documents import Archive, VersionedDocType
-from ESSArch_Core.tags.models import Structure, StructureUnit, Tag, TagStructure, TagVersion
+from ESSArch_Core.tags.models import (
+    Structure,
+    StructureUnit,
+    Tag,
+    TagStructure,
+    TagVersion,
+)
+from ESSArch_Core.tags.permissions import SearchPermissions
 from ESSArch_Core.tags.serializers import (
+    SearchSerializer,
     TagVersionNestedSerializer,
     TagVersionSerializerWithVersions,
     TagVersionWriteSerializer,
-    SearchSerializer,
 )
 from ESSArch_Core.util import generate_file_response, remove_prefix
-from ESSArch_Core.tags.permissions import SearchPermissions
 
 logger = logging.getLogger('essarch.epp.search')
 EXPORT_FORMATS = ('csv', 'pdf')

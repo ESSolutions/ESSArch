@@ -24,38 +24,34 @@
 
 import logging
 
-from ESSArch_Core.auth.serializers import (
-    GroupSerializer,
-    GroupDetailSerializer,
-    LoginSerializer,
-    OrganizationDetailSerializer,
-    NotificationSerializer,
-    NotificationReadSerializer,
-    PermissionSerializer,
-    UserSerializer,
-    UserLoggedInSerializer,
-    UserLoggedInWriteSerializer,
-)
-
-from ESSArch_Core.auth.models import Group, Notification
-
 from django.conf import settings
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import Permission, User
 from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url
-
 from django_filters.rest_framework import DjangoFilterBackend
-
 from rest_auth.views import (
     LoginView as rest_auth_LoginView,
     LogoutView as rest_auth_LogoutView,
 )
-
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from ESSArch_Core.auth.models import Group, Notification
+from ESSArch_Core.auth.serializers import (
+    GroupDetailSerializer,
+    GroupSerializer,
+    LoginSerializer,
+    NotificationReadSerializer,
+    NotificationSerializer,
+    OrganizationDetailSerializer,
+    PermissionSerializer,
+    UserLoggedInSerializer,
+    UserLoggedInWriteSerializer,
+    UserSerializer,
+)
 
 try:
     from djangosaml2.views import logout as saml2_logout

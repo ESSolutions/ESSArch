@@ -1,19 +1,19 @@
 import os
-import tempfile
 import shutil
-
+import tempfile
 from unittest import mock
+
 from django.test import TestCase
 from lxml.etree import DocumentInvalid
 
-from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.xml import (
-    XMLSchemaValidator,
-    XMLSchematronValidator,
     XMLISOSchematronValidator,
+    XMLSchematronValidator,
+    XMLSchemaValidator,
 )
+from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 def create_mocked_error_log(line_number, error_msg):

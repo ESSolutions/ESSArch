@@ -25,15 +25,21 @@
 import os
 import shutil
 import tempfile
-
 from unittest import mock
+
 from django.test import TestCase
 from lxml import etree
 
-from ESSArch_Core.essxml.util import (find_file, find_files, get_agent,
-                                      get_altrecordid, get_altrecordids,
-                                      get_objectpath, parse_reference_code,
-                                      parse_submit_description)
+from ESSArch_Core.essxml.util import (
+    find_file,
+    find_files,
+    get_agent,
+    get_altrecordid,
+    get_altrecordids,
+    get_objectpath,
+    parse_reference_code,
+    parse_submit_description,
+)
 
 
 class FindFilesTestCase(TestCase):

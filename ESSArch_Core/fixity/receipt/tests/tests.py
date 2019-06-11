@@ -1,17 +1,16 @@
-from unittest import mock
-from django.contrib.auth import get_user_model
-from django.test import TestCase
-from django.template.exceptions import TemplateDoesNotExist
-
 import datetime
 import os
 import shutil
+from unittest import mock
+
+from django.contrib.auth import get_user_model
+from django.template.exceptions import TemplateDoesNotExist
+from django.test import TestCase
 from lxml import etree
 
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.receipt.backends import email, xml
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
-
 
 User = get_user_model()
 

@@ -1,9 +1,10 @@
 from unittest import mock
+
 from django.test import TestCase
 
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.fixity.format import FormatIdentifier, DEFAULT_MIMETYPE
 from ESSArch_Core.exceptions import FileFormatNotAllowed
+from ESSArch_Core.fixity.format import DEFAULT_MIMETYPE, FormatIdentifier
 
 
 class FormatIdentifierMimeTypeTests(TestCase):

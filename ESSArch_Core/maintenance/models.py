@@ -6,6 +6,7 @@ import tarfile
 import time
 import uuid
 from collections import OrderedDict
+from os import walk
 
 import jsonfield
 from celery import states as celery_states
@@ -16,10 +17,8 @@ from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils import timezone
 from glob2 import iglob
-from os import walk
 from weasyprint import HTML
 
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import InformationPackage
@@ -30,8 +29,10 @@ from ESSArch_Core.util import (
     convert_file,
     creation_date,
     find_destination,
+    has_write_access,
     timestamp_to_datetime,
-    has_write_access)
+)
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 logger = logging.getLogger('essarch.maintenance')
 User = get_user_model()

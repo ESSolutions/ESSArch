@@ -4,17 +4,20 @@ from unittest import mock
 from django.test import TestCase
 from django.utils import timezone
 
-from ESSArch_Core.storage.exceptions import TapeDriveLockedError, RobotMountTimeoutException
+from ESSArch_Core.storage.exceptions import (
+    RobotMountTimeoutException,
+    TapeDriveLockedError,
+)
 from ESSArch_Core.storage.models import (
-    TapeDrive,
     Robot,
     StorageMedium,
-    TapeSlot,
     StorageTarget,
+    TapeDrive,
+    TapeSlot,
 )
 from ESSArch_Core.tasks_util import (
-    unmount_tape_from_drive,
     mount_tape_medium_into_drive,
+    unmount_tape_from_drive,
 )
 
 

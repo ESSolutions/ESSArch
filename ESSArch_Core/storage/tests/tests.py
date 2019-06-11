@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
 
 import errno
-from unittest import mock
 import uuid
-
-from django.test import TestCase
+from unittest import mock
 
 import pyfakefs.fake_filesystem as fake_fs
-
 import requests
+from django.test import TestCase
 
-from ESSArch_Core.storage.copy import copy_chunk, copy_chunk_locally, copy_chunk_remotely, copy_file, copy_file_locally
+from ESSArch_Core.storage.copy import (
+    copy_chunk,
+    copy_chunk_locally,
+    copy_chunk_remotely,
+    copy_file,
+    copy_file_locally,
+)
 
 
 class CopyChunkTestCase(TestCase):

@@ -2,19 +2,18 @@ import datetime
 import os
 import shutil
 import tempfile
-
 from unittest import mock
+
 from django.test import TestCase
 from django.utils import timezone
 
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
 from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.util import normalize_path
-
 from ESSArch_Core.ip.utils import (
-    parse_submit_description_from_ip,
     download_schema,
+    parse_submit_description_from_ip,
 )
+from ESSArch_Core.util import normalize_path
 
 
 class ParseSubmitDescriptionFromIpTests(TestCase):

@@ -22,6 +22,9 @@
     Email - essarch@essolutions.se
 """
 
+from django.contrib import admin
+from nested_inline.admin import NestedStackedInline
+
 from ESSArch_Core.storage.models import (
     IOQueue,
     Robot,
@@ -32,8 +35,6 @@ from ESSArch_Core.storage.models import (
     StorageTarget,
     TapeDrive,
 )
-from django.contrib import admin
-from nested_inline.admin import NestedStackedInline
 
 
 class StorageTargetInline(NestedStackedInline):

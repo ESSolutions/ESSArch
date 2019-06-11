@@ -25,13 +25,11 @@
 from django.contrib.auth.models import Permission, User
 from django.test import TestCase
 from django.urls import reverse
-
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from ESSArch_Core.ip.models import InformationPackage
-
-from ESSArch_Core.profiles.models import SubmissionAgreement, Profile
+from ESSArch_Core.profiles.models import Profile, SubmissionAgreement
 
 
 class SaveSubmissionAgreement(TestCase):

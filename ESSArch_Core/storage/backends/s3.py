@@ -2,10 +2,10 @@ import errno
 import io
 import logging
 import os
+from os import walk
 
 import boto3
 from django.conf import settings
-from os import walk
 
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
 from ESSArch_Core.storage.models import CAS, StorageObject

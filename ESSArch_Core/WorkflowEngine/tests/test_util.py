@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from ESSArch_Core.WorkflowEngine.models import ProcessTask, ProcessStep
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 

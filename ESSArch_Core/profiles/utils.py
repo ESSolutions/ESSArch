@@ -4,7 +4,6 @@ import os
 from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.util import find_destination
 
-
 profile_types = [
     "Transfer Project",
     "Content Type",

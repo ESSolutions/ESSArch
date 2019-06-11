@@ -25,10 +25,10 @@
     Email - essarch@essolutions.se
 """
 
-from django.contrib import admin
 import os
-
 from os import walk
+
+from django.contrib import admin
 
 # own models ets
 from .models import InformationPackage

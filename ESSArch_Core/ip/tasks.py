@@ -5,36 +5,38 @@ import shutil
 import tarfile
 from urllib.parse import urljoin
 
-
+import requests
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import ugettext as _
-import requests
 
-from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseContent
-from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage
-from ESSArch_Core.ip.utils import (
-    parse_submit_description_from_ip,
-    generate_content_mets,
-    generate_package_mets,
-    generate_premis,
-    generate_events_xml,
-    get_cached_objid,
-    download_schemas,
+from ESSArch_Core.essxml.Generator.xmlGenerator import (
+    XMLGenerator,
+    parseContent,
 )
-from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.fixity.receipt import get_backend as get_receipt_backend
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
+from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage
+from ESSArch_Core.ip.utils import (
+    download_schemas,
+    generate_content_mets,
+    generate_events_xml,
+    generate_package_mets,
+    generate_premis,
+    get_cached_objid,
+    parse_submit_description_from_ip,
+)
+from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.util import (
     get_premis_ip_object_element_spec,
     normalize_path,
     zip_directory,
 )
+from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 
 User = get_user_model()
 

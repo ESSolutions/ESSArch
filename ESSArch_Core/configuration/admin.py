@@ -25,13 +25,14 @@
     Email - essarch@essolutions.se
 """
 
-from .models import Parameter, Path, EventType, Agent, Site
 from django.contrib import admin
 from django.contrib.sites.models import Site as DjangoSite
 from nested_inline.admin import NestedModelAdmin
 
 from ESSArch_Core.configuration.models import ArchivePolicy
 from ESSArch_Core.storage.admin import StorageMethodInline
+
+from .models import Agent, EventType, Parameter, Path, Site
 
 
 class ParameterAdmin(admin.ModelAdmin):

@@ -7,11 +7,21 @@ from lxml import etree
 
 from ESSArch_Core.configuration.models import ArchivePolicy
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
-from ESSArch_Core.essxml.util import parse_submit_description, get_agents
+from ESSArch_Core.essxml.util import get_agents, parse_submit_description
 from ESSArch_Core.fixity.checksum import calculate_checksum
-from ESSArch_Core.ip.models import Agent, MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT, InformationPackage
+from ESSArch_Core.ip.models import (
+    MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
+    Agent,
+    InformationPackage,
+)
 from ESSArch_Core.profiles.utils import fill_specification_data
-from ESSArch_Core.util import timestamp_to_datetime, creation_date, normalize_path, get_event_spec, find_destination
+from ESSArch_Core.util import (
+    creation_date,
+    find_destination,
+    get_event_spec,
+    normalize_path,
+    timestamp_to_datetime,
+)
 
 
 def get_cached_objid(id):

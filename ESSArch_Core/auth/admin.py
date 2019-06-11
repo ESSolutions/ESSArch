@@ -6,7 +6,10 @@ from allauth.socialaccount.models import SocialAccount, SocialApp, SocialToken
 from django import forms
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.contrib.auth.admin import GroupAdmin as DjangoGroupAdmin, UserAdmin as DjangoUserAdmin
+from django.contrib.auth.admin import (
+    GroupAdmin as DjangoGroupAdmin,
+    UserAdmin as DjangoUserAdmin,
+)
 from django.contrib.auth.models import Group as DjangoGroup
 from django.db import transaction
 from django.db.models import Q
@@ -25,8 +28,16 @@ from nested_inline.admin import NestedModelAdmin, NestedTabularInline
 from rest_framework.authtoken.models import Token
 
 from ESSArch_Core.admin import NestedStackedInlineWithoutHeader
-from ESSArch_Core.auth.models import (Group, GroupMember, GroupMemberRole, GroupType, Member, ProxyGroup,
-                                      ProxyUser, ProxyPermission)
+from ESSArch_Core.auth.models import (
+    Group,
+    GroupMember,
+    GroupMemberRole,
+    GroupType,
+    Member,
+    ProxyGroup,
+    ProxyPermission,
+    ProxyUser,
+)
 
 csrf_protect_m = method_decorator(csrf_protect)
 User = get_user_model()

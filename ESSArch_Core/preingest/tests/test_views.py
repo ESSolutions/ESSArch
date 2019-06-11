@@ -3,13 +3,10 @@
 from django.contrib.auth.models import Permission, User
 from django.test import TestCase
 from django.urls import reverse
-
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from ESSArch_Core.WorkflowEngine.models import (
-    ProcessStep, ProcessTask,
-)
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
 class ProcessTaskViewSetTestCase(TestCase):

@@ -22,10 +22,10 @@
     Email - essarch@essolutions.se
 """
 
+import os
+
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
-
-import os
 
 
 class First(DBTask):

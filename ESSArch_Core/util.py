@@ -35,25 +35,21 @@ import shutil
 import tarfile
 import uuid
 import zipfile
+from datetime import datetime
+from os import scandir, walk
+from subprocess import PIPE, Popen
 from urllib.parse import quote
 
 import chardet
-from rest_framework.exceptions import NotFound, ValidationError
-from rest_framework.response import Response
 from django.conf import settings
 from django.core.cache import cache
-from django.utils.timezone import get_current_timezone
 from django.core.validators import RegexValidator
 from django.http.response import FileResponse
-
-from datetime import datetime
-
+from django.utils.timezone import get_current_timezone
 from lxml import etree
 from natsort import natsorted
-
-from os import scandir, walk
-
-from subprocess import Popen, PIPE
+from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.response import Response
 
 from ESSArch_Core.exceptions import NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier

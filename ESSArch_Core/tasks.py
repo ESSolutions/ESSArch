@@ -30,6 +30,7 @@ import shutil
 import tarfile
 import time
 import zipfile
+from os import walk
 
 import requests
 from django.conf import settings
@@ -43,38 +44,60 @@ from elasticsearch import helpers as es_helpers
 from elasticsearch_dsl.connections import get_connection
 from lxml import etree
 from retrying import retry
-from os import walk
 
-from ESSArch_Core.WorkflowEngine.dbtask import DBTask
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
-from ESSArch_Core.WorkflowEngine.polling import get_backend
-from ESSArch_Core.WorkflowEngine.util import create_workflow
 from ESSArch_Core.auth.models import Notification
-from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, findElementWithoutNamespace
+from ESSArch_Core.essxml.Generator.xmlGenerator import (
+    XMLGenerator,
+    findElementWithoutNamespace,
+)
 from ESSArch_Core.fixity import validation
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
-from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLComparisonValidator, XMLSchemaValidator
+from ESSArch_Core.fixity.validation.backends.xml import (
+    DiffCheckValidator,
+    XMLComparisonValidator,
+    XMLSchemaValidator,
+)
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.models import TapeDrive
-from ESSArch_Core.storage.tape import (DEFAULT_TAPE_BLOCK_SIZE,
-                                       get_tape_file_number,
-                                       is_tape_drive_online, read_tape, rewind_tape, robot_inventory,
-                                       set_tape_file_number, write_to_tape)
-from ESSArch_Core.tags import (DELETION_PROCESS_QUEUE, DELETION_QUEUE,
-                               INDEX_PROCESS_QUEUE, INDEX_QUEUE,
-                               UPDATE_PROCESS_QUEUE, UPDATE_QUEUE)
-from ESSArch_Core.util import convert_file, delete_path, get_tree_size_and_count, zip_directory
+from ESSArch_Core.storage.tape import (
+    DEFAULT_TAPE_BLOCK_SIZE,
+    get_tape_file_number,
+    is_tape_drive_online,
+    read_tape,
+    rewind_tape,
+    robot_inventory,
+    set_tape_file_number,
+    write_to_tape,
+)
+from ESSArch_Core.tags import (
+    DELETION_PROCESS_QUEUE,
+    DELETION_QUEUE,
+    INDEX_PROCESS_QUEUE,
+    INDEX_QUEUE,
+    UPDATE_PROCESS_QUEUE,
+    UPDATE_QUEUE,
+)
 from ESSArch_Core.tasks_util import (
-    unmount_tape_from_drive,
+    append_events,
     mount_tape_medium_into_drive,
+    unmount_tape_from_drive,
     validate_file_format,
     validate_files,
-    append_events,
 )
+from ESSArch_Core.util import (
+    convert_file,
+    delete_path,
+    get_tree_size_and_count,
+    zip_directory,
+)
+from ESSArch_Core.WorkflowEngine.dbtask import DBTask
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.WorkflowEngine.polling import get_backend
+from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 User = get_user_model()
 redis = get_redis_connection()

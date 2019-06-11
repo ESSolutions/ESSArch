@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from django.core.validators import validate_email, URLValidator
+from django.core.validators import URLValidator, validate_email
 
 from ESSArch_Core.util import validate_remote_url
 

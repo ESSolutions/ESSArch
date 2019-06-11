@@ -28,22 +28,19 @@ import logging
 import os
 import re
 import uuid
-
-from django.template import Template, Context, TemplateSyntaxError
-
-from lxml import etree
-
-from natsort import natsorted
-
-from django.utils import timezone
-
 from os import walk
+
+from django.template import Context, Template, TemplateSyntaxError
+from django.utils import timezone
+from lxml import etree
+from natsort import natsorted
 
 from ESSArch_Core.essxml.util import parse_file
 from ESSArch_Core.fixity.format import FormatIdentifier
-
 from ESSArch_Core.util import (
-    get_elements_without_namespace, make_unicode, nested_lookup,
+    get_elements_without_namespace,
+    make_unicode,
+    nested_lookup,
 )
 
 logger = logging.getLogger('essarch.essxml.generator')

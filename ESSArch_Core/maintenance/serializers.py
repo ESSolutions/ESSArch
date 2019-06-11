@@ -1,9 +1,14 @@
 from rest_framework import serializers
 
 from ESSArch_Core.auth.serializers import UserSerializer
-from ESSArch_Core.maintenance.models import (AppraisalJob, AppraisalRule,
-                                             ConversionJob, ConversionRule,
-                                             MaintenanceJob, MaintenanceRule)
+from ESSArch_Core.maintenance.models import (
+    AppraisalJob,
+    AppraisalRule,
+    ConversionJob,
+    ConversionRule,
+    MaintenanceJob,
+    MaintenanceRule,
+)
 
 
 class MaintenanceRuleSerializer(serializers.ModelSerializer):

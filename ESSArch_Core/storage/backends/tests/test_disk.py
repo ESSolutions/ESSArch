@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
-import tempfile
 import shutil
-
+import tempfile
 from unittest import mock
+
 from django.test import TestCase
 
 from ESSArch_Core.storage.backends.disk import DiskStorageBackend

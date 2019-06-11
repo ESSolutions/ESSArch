@@ -24,27 +24,19 @@
 
 import os
 import shutil
+from unittest import mock
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
 
-from unittest import mock
-
-from ESSArch_Core.install.install_default_config import installDefaultEventTypes
-
-from ESSArch_Core.configuration.models import (
-    EventType, Path,
+from ESSArch_Core.configuration.models import EventType, Path
+from ESSArch_Core.install.install_default_config import (
+    installDefaultEventTypes,
 )
-
-from ESSArch_Core.ip.models import (
-    EventIP, InformationPackage,
-)
-
-from ESSArch_Core.WorkflowEngine.models import (
-    ProcessTask,
-)
+from ESSArch_Core.ip.models import EventIP, InformationPackage
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 def setUpModule():

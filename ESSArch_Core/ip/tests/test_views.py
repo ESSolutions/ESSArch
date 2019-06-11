@@ -3,9 +3,18 @@ from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient, APIRequestFactory, force_authenticate
+from rest_framework.test import (
+    APIClient,
+    APIRequestFactory,
+    force_authenticate,
+)
 
-from ESSArch_Core.auth.models import Group, GroupMember, GroupMemberRole, GroupType
+from ESSArch_Core.auth.models import (
+    Group,
+    GroupMember,
+    GroupMemberRole,
+    GroupType,
+)
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.ip.models import InformationPackage, Workarea
 from ESSArch_Core.ip.serializers import InformationPackageSerializer

@@ -9,7 +9,10 @@ from rest_framework.test import APIClient, APIRequestFactory
 from ESSArch_Core.auth.models import Group, GroupMember, GroupMemberRole
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
-from ESSArch_Core.WorkflowEngine.serializers import ProcessStepSerializer, ProcessTaskSerializer
+from ESSArch_Core.WorkflowEngine.serializers import (
+    ProcessStepSerializer,
+    ProcessTaskSerializer,
+)
 
 User = get_user_model()
 

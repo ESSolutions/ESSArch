@@ -4,10 +4,10 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils import timezone
 
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.receipt.backends.base import BaseReceiptBackend
 from ESSArch_Core.profiles.utils import fill_specification_data
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 logger = logging.getLogger('essarch.core.fixity.receipt.email')
 

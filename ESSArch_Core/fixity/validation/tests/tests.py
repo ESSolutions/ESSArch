@@ -16,8 +16,14 @@ from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.fixity.validation.backends.format import FormatValidator
-from ESSArch_Core.fixity.validation.backends.structure import StructureValidator
-from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLComparisonValidator, XMLSyntaxValidator
+from ESSArch_Core.fixity.validation.backends.structure import (
+    StructureValidator,
+)
+from ESSArch_Core.fixity.validation.backends.xml import (
+    DiffCheckValidator,
+    XMLComparisonValidator,
+    XMLSyntaxValidator,
+)
 
 
 class ChecksumValidatorTests(TestCase, fake_filesystem_unittest.TestCase):

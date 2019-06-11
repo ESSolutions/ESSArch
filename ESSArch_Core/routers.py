@@ -1,4 +1,4 @@
-from rest_framework.routers import Route, DynamicRoute
+from rest_framework.routers import DynamicRoute, Route
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 

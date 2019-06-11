@@ -22,29 +22,29 @@
     Email - essarch@essolutions.se
 """
 
-from collections import OrderedDict
-
 import copy
 import json
 import logging
 import uuid
+from collections import OrderedDict
 
+import requests
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import redirect, render
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 from lxml import etree
 from rest_framework.generics import get_object_or_404
 
-import requests
-
+from ESSArch_Core.essxml.ProfileMaker.xsdtojson import (
+    generateExtensionRef,
+    generateJsonRes,
+)
 from ESSArch_Core.profiles.models import Profile
-from ESSArch_Core.essxml.ProfileMaker.xsdtojson import generateJsonRes, generateExtensionRef
 
-from .forms import AddTemplateForm, AddExtensionForm
-from .models import templatePackage, extensionPackage
+from .forms import AddExtensionForm, AddTemplateForm
+from .models import extensionPackage, templatePackage
 
 logger = logging.getLogger('code.exceptions')
 

@@ -4,62 +4,71 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
-from ESSArch_Core.WorkflowEngine.views import ProcessViewSet, ProcessStepViewSet, ProcessTaskViewSet
 from ESSArch_Core.auth.views import (
     GroupViewSet,
-    PermissionViewSet,
     MeView,
-    UserViewSet,
     NotificationViewSet,
     OrganizationViewSet,
+    PermissionViewSet,
+    UserViewSet,
 )
-from ESSArch_Core.configuration.views import ParameterViewSet, PathViewSet, SiteView, SysInfoView
-from ESSArch_Core.fixity.views import ValidationViewSet, ValidationFilesViewSet
+from ESSArch_Core.configuration.views import (
+    EventTypeViewSet,
+    ParameterViewSet,
+    PathViewSet,
+    SiteView,
+    SysInfoView,
+)
+from ESSArch_Core.fixity.views import ValidationFilesViewSet, ValidationViewSet
 from ESSArch_Core.ip.views import (
     AgentViewSet,
     EventIPViewSet,
+    InformationPackageReceptionViewSet,
     InformationPackageViewSet,
     OrderViewSet,
     WorkareaEntryViewSet,
-    WorkareaViewSet,
     WorkareaFilesViewSet,
-    InformationPackageReceptionViewSet
+    WorkareaViewSet,
 )
 from ESSArch_Core.maintenance.views import (
-    AppraisalRuleViewSet,
     AppraisalJobViewSet,
+    AppraisalRuleViewSet,
     ConversionJobViewSet,
     ConversionRuleViewSet,
 )
-from ESSArch_Core.routers import ESSArchRouter
-from ESSArch_Core.stats.views import stats, export as export_stats
-from ESSArch_Core.configuration.views import EventTypeViewSet
 from ESSArch_Core.profiles.views import (
-    ProfileViewSet,
-    ProfileSAViewSet,
+    InformationPackageProfileIPViewSet,
+    ProfileIPDataTemplateViewSet,
+    ProfileIPDataViewSet,
+    ProfileIPViewSet,
     ProfileMakerExtensionViewSet,
     ProfileMakerTemplateViewSet,
-    SubmissionAgreementViewSet,
-    ProfileIPViewSet,
-    ProfileIPDataViewSet,
-    ProfileIPDataTemplateViewSet,
-    InformationPackageProfileIPViewSet,
+    ProfileSAViewSet,
+    ProfileViewSet,
     SubmissionAgreementTemplateView,
+    SubmissionAgreementViewSet,
 )
+from ESSArch_Core.routers import ESSArchRouter
+from ESSArch_Core.stats.views import export as export_stats, stats
 from ESSArch_Core.storage.views import (
-    StorageObjectViewSet,
     IOQueueViewSet,
+    RobotQueueViewSet,
+    RobotViewSet,
     StorageMediumViewSet,
-    StorageMethodViewSet,
     StorageMethodTargetRelationViewSet,
+    StorageMethodViewSet,
+    StorageObjectViewSet,
     StorageTargetViewSet,
     TapeDriveViewSet,
     TapeSlotViewSet,
-    RobotViewSet,
-    RobotQueueViewSet,
 )
 from ESSArch_Core.tags.search import ComponentSearchViewSet
-from ESSArch_Core.tags.views import TagViewSet, TagInformationPackagesViewSet
+from ESSArch_Core.tags.views import TagInformationPackagesViewSet, TagViewSet
+from ESSArch_Core.WorkflowEngine.views import (
+    ProcessStepViewSet,
+    ProcessTaskViewSet,
+    ProcessViewSet,
+)
 
 admin.site.site_header = 'ESSArch Administration'
 admin.site.site_title = 'ESSArch Administration'

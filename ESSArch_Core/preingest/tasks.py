@@ -30,13 +30,17 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 
 # noinspection PyUnresolvedReferences
-from ESSArch_Core import tasks  # noqa isort:skip
-from ESSArch_Core.WorkflowEngine.dbtask import DBTask
+from ESSArch_Core import tasks  # noqa
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.fixity.checksum import calculate_checksum
-from ESSArch_Core.ip.models import InformationPackage, Workarea, MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT
+from ESSArch_Core.ip.models import (
+    MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
+    InformationPackage,
+    Workarea,
+)
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.util import creation_date, timestamp_to_datetime
+from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 
 User = get_user_model()
 

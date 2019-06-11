@@ -2,10 +2,10 @@ import errno
 import importlib
 import logging
 import os
+from os import walk
 
 from django.conf import settings
 from glob2 import glob
-from os import walk
 
 logger = logging.getLogger('essarch.fixity.validation')
 

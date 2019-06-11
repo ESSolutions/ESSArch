@@ -1,8 +1,9 @@
-import click
 import csv
 import logging
 import shlex
 from datetime import datetime
+
+import click
 
 from ESSArch_Core.fixity.conversion.backends.base import BaseConverter
 

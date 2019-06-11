@@ -1,9 +1,8 @@
 import uuid
 
+import jsonfield
 from django.contrib.auth import get_user_model
 from django.db import models
-
-import jsonfield
 
 User = get_user_model()
 

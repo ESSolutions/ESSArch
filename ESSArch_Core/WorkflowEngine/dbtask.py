@@ -26,28 +26,19 @@ import logging
 import time
 
 from billiard.einfo import ExceptionInfo
-
 from celery import exceptions, states as celery_states
 from celery.task.base import Task
-
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-
-from django.db import (
-    connection,
-    OperationalError,
-    transaction,
-)
+from django.db import OperationalError, connection, transaction
 from django.utils import timezone, translation
 
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
-
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import get_result
-
 
 User = get_user_model()
 

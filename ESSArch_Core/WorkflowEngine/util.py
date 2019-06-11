@@ -1,6 +1,5 @@
 from celery import states as celery_states
 from celery.result import AsyncResult
-
 from django.db import transaction
 
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask

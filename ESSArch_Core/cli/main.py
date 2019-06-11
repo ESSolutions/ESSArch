@@ -3,6 +3,7 @@ from pydoc import locate
 import click
 import django
 from django.core.management import call_command as dj_call_command
+
 django.setup()
 
 

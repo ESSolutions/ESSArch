@@ -5,19 +5,25 @@ import uuid
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-
-from ESSArch_Core.essxml.ProfileMaker.models import extensionPackage, templatePackage
-from ESSArch_Core.essxml.ProfileMaker.views import calculateChildrenBefore, removeChildren, generateElement
 from django.db import transaction
 from django.db.models import Max, Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import exceptions, serializers, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import SAFE_METHODS, DjangoModelPermissions
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_extensions.mixins import NestedViewSetMixin
-from rest_framework import exceptions, viewsets, status, serializers
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import DjangoModelPermissions, SAFE_METHODS
 
+from ESSArch_Core.essxml.ProfileMaker.models import (
+    extensionPackage,
+    templatePackage,
+)
+from ESSArch_Core.essxml.ProfileMaker.views import (
+    calculateChildrenBefore,
+    generateElement,
+    removeChildren,
+)
 from ESSArch_Core.ip.models import Agent, InformationPackage
 from ESSArch_Core.ip.permissions import CanLockSA
 from ESSArch_Core.profiles.models import (
@@ -25,22 +31,22 @@ from ESSArch_Core.profiles.models import (
     ProfileIP,
     ProfileIPData,
     ProfileIPDataTemplate,
-    SubmissionAgreement,
     ProfileSA,
+    SubmissionAgreement,
 )
 from ESSArch_Core.profiles.serializers import (
-    ProfileSerializer,
     ProfileDetailSerializer,
-    ProfileWriteSerializer,
-    ProfileIPSerializerWithData,
-    ProfileIPSerializerWithProfileAndData,
     ProfileIPDataSerializer,
     ProfileIPDataTemplateSerializer,
+    ProfileIPSerializerWithData,
+    ProfileIPSerializerWithProfileAndData,
     ProfileIPWriteSerializer,
-    ProfileSASerializer,
-    SubmissionAgreementSerializer,
     ProfileMakerExtensionSerializer,
     ProfileMakerTemplateSerializer,
+    ProfileSASerializer,
+    ProfileSerializer,
+    ProfileWriteSerializer,
+    SubmissionAgreementSerializer,
 )
 
 

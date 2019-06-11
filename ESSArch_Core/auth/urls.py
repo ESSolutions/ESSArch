@@ -1,13 +1,12 @@
 from django.conf.urls import url
-
 from rest_auth.views import (
-    UserDetailsView, PasswordChangeView,
-    PasswordResetView, PasswordResetConfirmView
+    PasswordChangeView,
+    PasswordResetConfirmView,
+    PasswordResetView,
+    UserDetailsView,
 )
 
-from ESSArch_Core.auth.views import (
-    LoginView, LogoutView, login_services,
-)
+from ESSArch_Core.auth.views import LoginView, LogoutView, login_services
 
 urlpatterns = [
     # URLs that do not require a session or valid token

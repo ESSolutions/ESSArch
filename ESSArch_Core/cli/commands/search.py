@@ -1,8 +1,7 @@
 from pydoc import locate
 
-from django.conf import settings
-
 import click
+from django.conf import settings
 
 all_indexes = getattr(settings, 'ELASTICSEARCH_INDEXES', {'default': {}})['default']
 

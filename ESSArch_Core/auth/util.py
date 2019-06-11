@@ -6,7 +6,12 @@ from django.db.models.functions import Cast, Replace
 from django.shortcuts import _get_queryset
 from guardian.models import GroupObjectPermission, UserObjectPermission
 
-from ESSArch_Core.auth.models import Group, GroupGenericObjects, GroupMember, GroupMemberRole
+from ESSArch_Core.auth.models import (
+    Group,
+    GroupGenericObjects,
+    GroupMember,
+    GroupMemberRole,
+)
 
 ORGANIZATION_TYPE = 'organization'
 

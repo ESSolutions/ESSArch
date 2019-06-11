@@ -24,15 +24,14 @@
 
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
-from django.contrib.auth.models import Permission, ContentType
+from django.contrib.auth.models import ContentType, Permission
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
-
+from rest_auth.serializers import LoginSerializer as rest_auth_LoginSerializer
 from rest_framework import exceptions, serializers
 
 from ESSArch_Core.auth.models import Group, Notification, UserProfile
 from ESSArch_Core.auth.util import get_organization_groups
-
 
 User = get_user_model()
 
@@ -212,10 +211,6 @@ class NotificationReadSerializer(NotificationSerializer):
     class Meta:
         model = NotificationSerializer.Meta.model
         fields = NotificationSerializer.Meta.fields
-
-
-# Import from rest_auth.app_settings must be after UserLoggedInSerializer
-from rest_auth.app_settings import LoginSerializer as rest_auth_LoginSerializer  # noqa isort:skip
 
 
 class LoginSerializer(rest_auth_LoginSerializer):

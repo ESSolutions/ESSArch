@@ -30,14 +30,11 @@ import uuid
 import jsonfield
 from celery import chain, group, states as celery_states
 from celery.result import EagerResult
-
 from django.core.cache import cache
 from django.db import models
 from django.db.models import Case, Count, Sum, When
 from django.utils.translation import ugettext as _
-
 from mptt.models import MPTTModel, TreeForeignKey
-
 from picklefield.fields import PickledObjectField
 
 logger = logging.getLogger('essarch.WorkflowEngine')

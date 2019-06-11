@@ -7,16 +7,16 @@ from urllib.parse import urljoin
 import requests
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models import Case, When, Value, IntegerField
+from django.db.models import Case, IntegerField, Value, When
 from django.db.models.functions import Cast
 from picklefield.fields import PickledObjectField
 from retrying import retry
 
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.storage.backends import get_backend
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 DISK = 200
 TAPE = 300

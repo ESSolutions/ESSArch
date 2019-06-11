@@ -3,7 +3,9 @@ from unittest import mock
 from click.testing import CliRunner
 from django.test import TestCase
 
-from ESSArch_Core.fixity.transformation.backends.repeated_extension import RepeatedExtensionTransformer
+from ESSArch_Core.fixity.transformation.backends.repeated_extension import (
+    RepeatedExtensionTransformer,
+)
 
 
 @mock.patch("ESSArch_Core.fixity.transformation.backends.repeated_extension.os.rename")

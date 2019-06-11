@@ -1,9 +1,9 @@
 import importlib
+import logging
+import sys
 
 from django.conf import settings
 
-import sys
-import logging
 logger = logging.getLogger('essarch.auth.saml.mapping')
 logger.info(sys.path)
 

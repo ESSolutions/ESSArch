@@ -8,13 +8,15 @@ import shutil
 from django.conf import settings
 from lxml import etree
 
-from ESSArch_Core.WorkflowEngine.polling.backends.base import BaseWorkflowPoller
 from ESSArch_Core.auth.models import Group, GroupMember
 from ESSArch_Core.essxml.util import get_altrecordids
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.profiles.utils import profile_types
 from ESSArch_Core.util import stable_path
+from ESSArch_Core.WorkflowEngine.polling.backends.base import (
+    BaseWorkflowPoller,
+)
 
 logger = logging.getLogger('essarch.epp.workflow.polling.DirectoryWorkflowPoller')
 p_types = [p_type.lower().replace(' ', '_') for p_type in profile_types]

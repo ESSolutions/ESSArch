@@ -2,7 +2,6 @@ import csv
 import logging
 
 import click
-
 from django.utils import timezone
 
 from ESSArch_Core.exceptions import ValidationError

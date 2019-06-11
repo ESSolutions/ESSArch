@@ -23,22 +23,27 @@
 """
 
 import requests
-
 from lxml import etree
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from ESSArch_Core.essxml.ProfileMaker.models import extensionPackage, templatePackage
-from ESSArch_Core.essxml.ProfileMaker.xsdtojson import generateExtensionRef, generateJsonRes
+from ESSArch_Core.essxml.ProfileMaker.models import (
+    extensionPackage,
+    templatePackage,
+)
+from ESSArch_Core.essxml.ProfileMaker.xsdtojson import (
+    generateExtensionRef,
+    generateJsonRes,
+)
 from ESSArch_Core.exceptions import Conflict
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.profiles.models import (
-    SubmissionAgreement,
     Profile,
-    ProfileSA,
     ProfileIP,
     ProfileIPData,
     ProfileIPDataTemplate,
+    ProfileSA,
+    SubmissionAgreement,
 )
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.profiles.validators import validate_template

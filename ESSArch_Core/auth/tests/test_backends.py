@@ -4,7 +4,7 @@ from django.test import TestCase
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
 
-from ESSArch_Core.auth.models import Group, GroupType, GroupMemberRole
+from ESSArch_Core.auth.models import Group, GroupMemberRole, GroupType
 from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.ip.models import InformationPackage
 

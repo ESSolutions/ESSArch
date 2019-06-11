@@ -1,88 +1,129 @@
 import copy
 import errno
+import glob
 import itertools
 import json
 import logging
+import math
 import os
 import shutil
-import glob
 import uuid
 
-import math
-from ESSArch_Core.fixity.format import FormatIdentifier
-from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
-from ESSArch_Core.maintenance.models import AppraisalRule, ConversionRule
-from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
-from ESSArch_Core.tags.models import TagStructure
 from celery import states as celery_states
-from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import (
-    Prefetch, BooleanField, Case, Exists, Max, Min, OuterRef, Q, Subquery, Value, When
+    BooleanField,
+    Case,
+    Exists,
+    Max,
+    Min,
+    OuterRef,
+    Prefetch,
+    Q,
+    Subquery,
+    Value,
+    When,
 )
 from django_filters.constants import EMPTY_VALUES
 from django_filters.rest_framework import DjangoFilterBackend
 from elasticsearch.exceptions import TransportError
-from elasticsearch_dsl import Index, Search
-from elasticsearch_dsl import Q as ElasticQ
+from elasticsearch_dsl import Index, Q as ElasticQ, Search
 from groups_manager.utils import get_permission_name
 from guardian.core import ObjectPermissionChecker
 from guardian.shortcuts import assign_perm
 from lxml import etree
-from rest_framework import exceptions, filters, mixins, status, viewsets, permissions
+from rest_framework import (
+    exceptions,
+    filters,
+    mixins,
+    permissions,
+    status,
+    viewsets,
+)
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
-from ESSArch_Core.WorkflowEngine.serializers import ProcessStepChildrenSerializer
-from ESSArch_Core.WorkflowEngine.util import create_workflow
 from ESSArch_Core.api.filters import string_to_bool
 from ESSArch_Core.auth.decorators import permission_required_or_403
-from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.auth.models import Member
-from ESSArch_Core.configuration.models import Path, ArchivePolicy
-from ESSArch_Core.essxml.util import get_objectpath, parse_submit_description, get_agents
+from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
+from ESSArch_Core.configuration.models import ArchivePolicy, Path
+from ESSArch_Core.essxml.util import (
+    get_agents,
+    get_objectpath,
+    parse_submit_description,
+)
 from ESSArch_Core.exceptions import Conflict, NoFileChunksFound
+from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
 from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
-from ESSArch_Core.ip.filters import AgentFilter, EventIPFilter, InformationPackageFilter, WorkareaEntryFilter
-from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Order, Workarea
+from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
+from ESSArch_Core.ip.filters import (
+    AgentFilter,
+    EventIPFilter,
+    InformationPackageFilter,
+    WorkareaEntryFilter,
+)
+from ESSArch_Core.ip.models import (
+    Agent,
+    EventIP,
+    InformationPackage,
+    Order,
+    Workarea,
+)
 from ESSArch_Core.ip.permissions import (
     CanChangeSA,
     CanCreateSIP,
     CanDeleteIP,
     CanSetUploaded,
     CanSubmitSIP,
+    CanTransferSIP,
     CanUnlockProfile,
     CanUpload,
     IsOrderResponsibleOrAdmin,
     IsResponsibleOrCanSeeAllFiles,
-    IsResponsibleOrReadOnly, CanTransferSIP)
+    IsResponsibleOrReadOnly,
+)
 from ESSArch_Core.ip.serializers import (
     AgentSerializer,
     EventIPSerializer,
+    InformationPackageDetailSerializer,
     InformationPackageSerializer,
+    NestedInformationPackageSerializer,
     OrderSerializer,
     WorkareaSerializer,
-    InformationPackageDetailSerializer,
-    NestedInformationPackageSerializer)
+)
+from ESSArch_Core.maintenance.models import AppraisalRule, ConversionRule
 from ESSArch_Core.mixins import GetObjectForUpdateViewMixin, PaginatedViewMixin
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
+from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
+from ESSArch_Core.tags.models import TagStructure
 from ESSArch_Core.util import (
+    creation_date,
+    find_destination,
+    flatten,
+    generate_file_response,
+    get_immediate_subdirectories,
+    get_value_from_path,
     in_directory,
+    list_files,
     merge_file_chunks,
     normalize_path,
-    remove_prefix,
-    list_files,
-    generate_file_response,
     parse_content_range_header,
+    remove_prefix,
     timestamp_to_datetime,
-    get_value_from_path, flatten, creation_date, get_immediate_subdirectories, find_destination)
+)
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
+from ESSArch_Core.WorkflowEngine.serializers import (
+    ProcessStepChildrenSerializer,
+)
+from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 User = get_user_model()
 

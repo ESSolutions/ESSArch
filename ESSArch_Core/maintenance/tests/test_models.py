@@ -2,12 +2,12 @@ import errno
 import os
 import shutil
 import tempfile
-from unittest import mock
 from stat import S_IWRITE
+from unittest import mock
 
+from celery import states as celery_states
 from django.template import TemplateDoesNotExist
 from django.test import TestCase
-from celery import states as celery_states
 from django.utils import timezone
 
 from ESSArch_Core.configuration.models import Path

@@ -1,11 +1,16 @@
 import elasticsearch
-
 from django.core.cache import cache
 from django.utils.translation import ugettext as _
 from rest_framework import serializers
 
 from ESSArch_Core.ip.utils import get_cached_objid
-from ESSArch_Core.tags.models import Tag, TagVersion, Structure, StructureUnit, TagStructure
+from ESSArch_Core.tags.models import (
+    Structure,
+    StructureUnit,
+    Tag,
+    TagStructure,
+    TagVersion,
+)
 
 
 class StructureSerializer(serializers.ModelSerializer):

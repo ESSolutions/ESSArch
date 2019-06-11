@@ -5,14 +5,19 @@ import shutil
 import tarfile
 import tempfile
 
-from django.db.models.functions import Cast
 from django.db.models import IntegerField
+from django.db.models.functions import Cast
 from django.utils import timezone
 
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
 from ESSArch_Core.storage.copy import copy
-from ESSArch_Core.storage.models import TAPE, TapeDrive, StorageObject
-from ESSArch_Core.storage.tape import read_tape, set_tape_file_number, write_to_tape, DEFAULT_TAPE_BLOCK_SIZE
+from ESSArch_Core.storage.models import TAPE, StorageObject, TapeDrive
+from ESSArch_Core.storage.tape import (
+    DEFAULT_TAPE_BLOCK_SIZE,
+    read_tape,
+    set_tape_file_number,
+    write_to_tape,
+)
 
 logger = logging.getLogger('essarch.storage.backends.tape')
 

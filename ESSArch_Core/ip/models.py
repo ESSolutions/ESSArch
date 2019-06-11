@@ -41,11 +41,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import Count, Max, Min
-from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
-from lxml import etree
+from django.utils.translation import ugettext_lazy as _
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
+from lxml import etree
 from rest_framework import exceptions
 from rest_framework.response import Response
 
@@ -54,8 +54,12 @@ from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.fixity.format import FormatIdentifier
-from ESSArch_Core.profiles.models import ProfileIP, ProfileIPData, ProfileSA
-from ESSArch_Core.profiles.models import SubmissionAgreement as SA
+from ESSArch_Core.profiles.models import (
+    ProfileIP,
+    ProfileIPData,
+    ProfileSA,
+    SubmissionAgreement as SA,
+)
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_backend as get_importer
 from ESSArch_Core.util import (

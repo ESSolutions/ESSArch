@@ -8,16 +8,16 @@ from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from ESSArch_Core.ip.views import InformationPackageViewSet
 from ESSArch_Core.tags.filters import StructureUnitFilter, TagFilter
 from ESSArch_Core.tags.models import Structure, StructureUnit, Tag, TagVersion
 from ESSArch_Core.tags.serializers import (
-    TagSerializer,
-    TagVersionNestedSerializer,
     StructureSerializer,
     StructureUnitSerializer,
+    TagSerializer,
+    TagVersionNestedSerializer,
 )
 from ESSArch_Core.util import mptt_to_dict
-from ESSArch_Core.ip.views import InformationPackageViewSet
 
 
 class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):

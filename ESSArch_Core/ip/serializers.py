@@ -1,17 +1,23 @@
 import errno
 import os
 
-from ESSArch_Core.api.serializers import DynamicHyperlinkedModelSerializer
-from ESSArch_Core.configuration.serializers import ArchivePolicySerializer
-from ESSArch_Core.profiles.models import SubmissionAgreement
 from _version import get_versions
+from rest_framework import filters, serializers
 
-from rest_framework import serializers, filters
-
+from ESSArch_Core.api.serializers import DynamicHyperlinkedModelSerializer
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import EventType
-from ESSArch_Core.ip.models import Agent, AgentNote, EventIP, InformationPackage, Order, Workarea
+from ESSArch_Core.configuration.serializers import ArchivePolicySerializer
+from ESSArch_Core.ip.models import (
+    Agent,
+    AgentNote,
+    EventIP,
+    InformationPackage,
+    Order,
+    Workarea,
+)
+from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.profiles.serializers import ProfileIPSerializer
 from ESSArch_Core.profiles.utils import profile_types
 

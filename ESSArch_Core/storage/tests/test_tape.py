@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
-import os
 import errno
+import os
 import shutil
 import tarfile
 import tempfile
-
-from unittest import mock
 from subprocess import PIPE
+from unittest import mock
+
+import retrying
 from django.test import TestCase
 from django.utils import timezone
 
 from ESSArch_Core.storage.exceptions import (
-    RobotMountException,
-    TapeMountedError,
-    RobotUnmountException,
-    TapeUnmountedError,
-    MTInvalidOperationOrDeviceNameException,
     MTFailedOperationException,
+    MTInvalidOperationOrDeviceNameException,
     RobotException,
+    RobotMountException,
     RobotMountTimeoutException,
+    RobotUnmountException,
+    TapeMountedError,
+    TapeUnmountedError,
 )
-import retrying
 
 
 def retry_mock(*args, **kwargs):

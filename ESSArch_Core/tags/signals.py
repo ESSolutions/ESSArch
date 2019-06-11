@@ -1,9 +1,9 @@
 import logging
 
-from django.db.models.signals import pre_delete, post_save, post_delete
+from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 
-from ESSArch_Core.tags.models import TagVersion, Tag
+from ESSArch_Core.tags.models import Tag, TagVersion
 
 logger = logging.getLogger('essarch.core')
 

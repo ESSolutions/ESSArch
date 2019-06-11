@@ -26,10 +26,10 @@ import copy
 from collections import OrderedDict
 
 from ESSArch_Core.essxml.Generator.xmlStructure import (
-    xmlElement,
     TYPE_CHOISE,
     TYPE_TO,
     TYPE_TO_CHOISE,
+    xmlElement,
 )
 
 complexTypes = OrderedDict()

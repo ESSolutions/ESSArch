@@ -29,25 +29,27 @@ import os
 import shutil
 import tempfile
 import uuid
+from unittest import mock
 
 from django.contrib.auth.models import Permission, User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
-
 from groups_manager.models import GroupType
-
-from unittest import mock
-
 from lxml import etree
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from ESSArch_Core.auth.models import Group, GroupMemberRole, GroupMember
-from ESSArch_Core.configuration.models import ArchivePolicy, Path, EventType
+from ESSArch_Core.auth.models import Group, GroupMember, GroupMemberRole
+from ESSArch_Core.configuration.models import ArchivePolicy, EventType, Path
 from ESSArch_Core.ip.models import InformationPackage, Order, Workarea
-from ESSArch_Core.profiles.models import Profile, ProfileSA, SubmissionAgreement, ProfileIP
+from ESSArch_Core.profiles.models import (
+    Profile,
+    ProfileIP,
+    ProfileSA,
+    SubmissionAgreement,
+)
 from ESSArch_Core.tags.models import Structure, Tag, TagStructure
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 

@@ -25,7 +25,11 @@
 from django_filters import rest_framework as filters
 
 from ESSArch_Core.api.filters import ListFilter
-from ESSArch_Core.storage.models import StorageMedium, medium_type_CHOICES, storage_type_CHOICES
+from ESSArch_Core.storage.models import (
+    StorageMedium,
+    medium_type_CHOICES,
+    storage_type_CHOICES,
+)
 
 
 class StorageMediumFilter(filters.FilterSet):

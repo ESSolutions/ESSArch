@@ -4,17 +4,15 @@ import os
 import re
 import tarfile
 import time
-
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
 from django.utils.timezone import localtime
 from lxml import etree
-
 from retrying import retry
 
 from ESSArch_Core.storage.exceptions import (
-    MTInvalidOperationOrDeviceNameException,
     MTFailedOperationException,
+    MTInvalidOperationOrDeviceNameException,
     RobotException,
     RobotMountException,
     RobotMountTimeoutException,
@@ -22,8 +20,12 @@ from ESSArch_Core.storage.exceptions import (
     TapeMountedError,
     TapeUnmountedError,
 )
-
-from ESSArch_Core.storage.models import Robot, StorageMedium, TapeDrive, TapeSlot
+from ESSArch_Core.storage.models import (
+    Robot,
+    StorageMedium,
+    TapeDrive,
+    TapeSlot,
+)
 
 DEFAULT_TAPE_BLOCK_SIZE = 20 * 512
 logger = logging.getLogger('essarch.storage.tape')

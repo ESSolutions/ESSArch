@@ -30,7 +30,13 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from groups_manager import exceptions_gm
-from groups_manager.models import GroupMixin, MemberMixin, GroupMemberMixin, GroupMemberRoleMixin, GroupType
+from groups_manager.models import (
+    GroupMemberMixin,
+    GroupMemberRoleMixin,
+    GroupMixin,
+    GroupType,
+    MemberMixin,
+)
 from mptt.models import TreeForeignKey
 from picklefield.fields import PickledObjectField
 

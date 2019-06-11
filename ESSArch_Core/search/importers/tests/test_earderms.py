@@ -1,14 +1,17 @@
+import os
 import shutil
 import tempfile
 import uuid
-import os
 from unittest import TestCase, mock
 
 from lxml import etree
 
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
-from ESSArch_Core.search.importers.earderms import EardErmsImporter, get_encoded_content_from_file
+from ESSArch_Core.search.importers.earderms import (
+    EardErmsImporter,
+    get_encoded_content_from_file,
+)
 from ESSArch_Core.tags.models import Structure, StructureUnit
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 def get_xml_example_full():

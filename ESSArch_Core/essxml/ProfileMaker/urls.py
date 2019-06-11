@@ -23,15 +23,9 @@
 """
 
 from django.conf.urls import url
-from .views import (
-    create,
-    edit,
-    index,
-    add,
-    addExtension,
-    generate,
-)
+
 from . import views
+from .views import add, addExtension, create, edit, generate, index
 
 urlpatterns = [
     url(r'^$', index.as_view(), name='template_index'),

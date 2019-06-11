@@ -1,7 +1,21 @@
 from django.utils import timezone
-from elasticsearch_dsl import (Boolean, Date, Document, InnerDoc, Integer, Keyword, Long,
-                               MetaField, Nested, Object, Q, Text, analyzer,
-                               tokenizer, token_filter)
+from elasticsearch_dsl import (
+    Boolean,
+    Date,
+    Document,
+    InnerDoc,
+    Integer,
+    Keyword,
+    Long,
+    MetaField,
+    Nested,
+    Object,
+    Q,
+    Text,
+    analyzer,
+    token_filter,
+    tokenizer,
+)
 
 ngram_tokenizer = tokenizer('custom_ngram_tokenizer', type='ngram', min_gram=3,
                             max_gram=3)

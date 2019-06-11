@@ -22,19 +22,19 @@
     Email - essarch@essolutions.se
 """
 
+import logging
 import os
 import shutil
-import logging
 import uuid
-
 from unittest import mock
+
 from celery import states as celery_states
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 
+from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
-from ESSArch_Core.ip.models import InformationPackage, EventIP
 
 
 class RunTasksNonEagerlyTests(TestCase):

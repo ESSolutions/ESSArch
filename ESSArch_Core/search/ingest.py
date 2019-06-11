@@ -4,7 +4,11 @@ import uuid
 
 from ESSArch_Core.tags.documents import Directory, File
 from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
-from ESSArch_Core.util import get_tree_size_and_count, normalize_path, timestamp_to_datetime
+from ESSArch_Core.util import (
+    get_tree_size_and_count,
+    normalize_path,
+    timestamp_to_datetime,
+)
 
 
 def index_document(ip, filepath, id):

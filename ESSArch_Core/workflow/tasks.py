@@ -32,6 +32,7 @@ import tarfile
 import tempfile
 import uuid
 import zipfile
+from os import walk
 from urllib.parse import urljoin
 
 import requests
@@ -47,36 +48,61 @@ from django.db.models import F
 from django.utils import timezone
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
-from os import walk
 
 # noinspection PyUnresolvedReferences
-from ESSArch_Core import tasks  # noqa isort:skip
-from ESSArch_Core.WorkflowEngine.dbtask import DBTask
-from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
+from ESSArch_Core import tasks  # noqa
 from ESSArch_Core.auth.models import Member, Notification
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
-from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent, XMLGenerator
+from ESSArch_Core.essxml.Generator.xmlGenerator import (
+    XMLGenerator,
+    parseContent,
+)
 from ESSArch_Core.fixity.checksum import calculate_checksum
-from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea, MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT
-from ESSArch_Core.maintenance.models import (AppraisalJob, AppraisalRule,
-                                             ConversionJob, ConversionRule)
+from ESSArch_Core.ip.models import (
+    MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
+    EventIP,
+    InformationPackage,
+    Workarea,
+)
+from ESSArch_Core.maintenance.models import (
+    AppraisalJob,
+    AppraisalRule,
+    ConversionJob,
+    ConversionRule,
+)
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_backend as get_importer
 from ESSArch_Core.search.ingest import index_path
 from ESSArch_Core.storage.copy import copy_file
-from ESSArch_Core.storage.exceptions import (TapeDriveLockedError,
-                                             TapeMountedAndLockedByOtherError,
-                                             TapeMountedError,
-                                             TapeUnmountedError)
-from ESSArch_Core.storage.models import (DISK, TAPE, AccessQueue, IOQueue,
-                                         Robot, RobotQueue, StorageMedium,
-                                         StorageMethod,
-                                         StorageMethodTargetRelation,
-                                         StorageObject, TapeDrive)
-from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
-from ESSArch_Core.util import (creation_date, find_destination, get_tree_size_and_count,
-                               timestamp_to_datetime)
+from ESSArch_Core.storage.exceptions import (
+    TapeDriveLockedError,
+    TapeMountedAndLockedByOtherError,
+    TapeMountedError,
+    TapeUnmountedError,
+)
+from ESSArch_Core.storage.models import (
+    DISK,
+    TAPE,
+    AccessQueue,
+    IOQueue,
+    Robot,
+    RobotQueue,
+    StorageMedium,
+    StorageMethod,
+    StorageMethodTargetRelation,
+    StorageObject,
+    TapeDrive,
+)
 from ESSArch_Core.storage.serializers import IOQueueSerializer
+from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
+from ESSArch_Core.util import (
+    creation_date,
+    find_destination,
+    get_tree_size_and_count,
+    timestamp_to_datetime,
+)
+from ESSArch_Core.WorkflowEngine.dbtask import DBTask
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 User = get_user_model()
 logger = logging.getLogger('essarch')

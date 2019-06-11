@@ -2,10 +2,10 @@ import errno
 import logging
 import os
 import time
+from os import walk
 
 from requests_toolbelt import MultipartEncoder
 from retrying import retry
-from os import walk
 
 from ESSArch_Core.fixity.checksum import calculate_checksum
 

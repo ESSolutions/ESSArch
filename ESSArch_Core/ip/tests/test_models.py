@@ -3,15 +3,15 @@ import os
 import shutil
 import tempfile
 import uuid
-
 from unittest import mock
+
+from celery import states as celery_state
 from django.test import TestCase
 from rest_framework.test import APIRequestFactory
-from celery import states as celery_state
 
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
-from ESSArch_Core.ip.models import InformationPackage, Agent, Workarea
+from ESSArch_Core.ip.models import Agent, InformationPackage, Workarea
 from ESSArch_Core.util import normalize_path, timestamp_to_datetime
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 class InformationPackageListFilesTests(TestCase):

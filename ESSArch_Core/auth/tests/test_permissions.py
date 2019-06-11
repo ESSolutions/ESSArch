@@ -1,11 +1,11 @@
 from unittest import mock
 
-from django.test import TestCase
-from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.db import models
+from django.test import TestCase
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
-from rest_framework import status, viewsets, serializers
 from rest_framework.response import Response
 from rest_framework.test import APIRequestFactory, force_authenticate
 

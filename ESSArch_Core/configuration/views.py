@@ -22,31 +22,26 @@
     Email - essarch@essolutions.se
 """
 
-from _version import get_versions
+import logging
 import platform
 import socket
 import sys
-import logging
-
-from celery import current_app
-from django.db import connection
-from django.conf import settings
-from django.utils import timezone
-from django_redis import get_redis_connection
-from redis.exceptions import RedisError
-from elasticsearch_dsl.connections import get_connection as get_es_connection
-
-from ESSArch_Core.api.filters import string_to_bool
-
-try:
-    from pip._internal.operations.freeze import freeze as pip_freeze
-except ImportError:  # pip < 10.0
-    from pip.operations.freeze import freeze as pip_freeze
-
 from sqlite3 import sqlite_version
 
+from _version import get_versions
+from celery import current_app
+from django.conf import settings
+from django.db import connection
+from django.utils import timezone
+from django_redis import get_redis_connection
+from elasticsearch_dsl.connections import get_connection as get_es_connection
+from redis.exceptions import RedisError
+from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from ESSArch_Core._version import get_versions as get_core_versions
-from ESSArch_Core.WorkflowEngine import get_workers
+from ESSArch_Core.api.filters import string_to_bool
 from ESSArch_Core.configuration.models import (
     Agent,
     ArchivePolicy,
@@ -55,7 +50,6 @@ from ESSArch_Core.configuration.models import (
     Path,
     Site,
 )
-
 from ESSArch_Core.configuration.serializers import (
     AgentSerializer,
     ArchivePolicySerializer,
@@ -64,10 +58,16 @@ from ESSArch_Core.configuration.serializers import (
     PathSerializer,
     SiteSerializer,
 )
+from ESSArch_Core.WorkflowEngine import get_workers
 
-from rest_framework import viewsets
-from rest_framework.response import Response
-from rest_framework.views import APIView
+try:
+    from pip._internal.operations.freeze import freeze as pip_freeze
+except ImportError:  # pip < 10.0
+    from pip.operations.freeze import freeze as pip_freeze
+
+
+
+
 
 logger = logging.getLogger('essarch.configuration')
 

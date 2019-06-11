@@ -23,8 +23,8 @@
 """
 
 
-from django.db import models
 import jsonfield
+from django.db import models
 
 
 class extensionPackage(models.Model):

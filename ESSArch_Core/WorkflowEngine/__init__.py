@@ -22,8 +22,9 @@
     Email - essarch@essolutions.se
 """
 
-import celery
 import logging
+
+import celery
 
 default_app_config = 'ESSArch_Core.WorkflowEngine.apps.WorkflowEngineConfig'
 logger = logging.getLogger('essarch.workflowengine')

@@ -29,6 +29,7 @@ import json
 import os
 
 import django
+
 django.setup()
 
 from django.conf import settings  # noqa isort:skip

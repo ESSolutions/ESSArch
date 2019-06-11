@@ -34,7 +34,11 @@ from ESSArch_Core.configuration.models import (
     Path,
     Site,
 )
-from ESSArch_Core.storage.models import StorageMethod, StorageTarget, StorageMethodTargetRelation
+from ESSArch_Core.storage.models import (
+    StorageMethod,
+    StorageMethodTargetRelation,
+    StorageTarget,
+)
 
 
 class EventTypeSerializer(DynamicHyperlinkedModelSerializer):
