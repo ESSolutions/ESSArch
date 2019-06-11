@@ -15,11 +15,16 @@ templates:
 
 matrix:
   include:
-    - env: FLAKE8
+    - name: "flake8"
       python: "3.6"
-      dist: xenial
       install: pip install flake8==3.7.1
       script: flake8
+      after_success: skip
+
+    - name: "isort"
+      python: "3.6"
+      install: pip install isort==4.3.20
+      script: isort --recursive --check-only --diff ESSArch_Core
       after_success: skip
 
     - name: "Linux with SQLite"
