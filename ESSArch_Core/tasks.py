@@ -67,7 +67,7 @@ from ESSArch_Core.storage.tape import (DEFAULT_TAPE_BLOCK_SIZE,
 from ESSArch_Core.tags import (DELETION_PROCESS_QUEUE, DELETION_QUEUE,
                                INDEX_PROCESS_QUEUE, INDEX_QUEUE,
                                UPDATE_PROCESS_QUEUE, UPDATE_QUEUE)
-from ESSArch_Core.util import convert_file, get_tree_size_and_count, zip_directory
+from ESSArch_Core.util import convert_file, delete_path, get_tree_size_and_count, zip_directory
 from ESSArch_Core.tasks_util import (
     unmount_tape_from_drive,
     mount_tape_medium_into_drive,
@@ -532,19 +532,7 @@ class DeleteFiles(DBTask):
 
     def run(self, path):
         path, = self.parse_params(path)
-        try:
-            shutil.rmtree(path)
-        except OSError as e:
-            if os.name == 'nt':
-                if e.errno == 267:
-                    os.remove(path)
-                elif e.errno != 3:
-                    raise
-
-            elif e.errno == errno.ENOTDIR:
-                os.remove(path)
-            elif e.errno != errno.ENOENT:
-                raise
+        delete_path(path)
 
     def event_outcome_success(self, path):
         return "Deleted %s" % path

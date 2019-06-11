@@ -390,6 +390,22 @@ def get_premis_ip_object_element_spec():
         return json.load(json_file)
 
 
+def delete_path(path):
+    try:
+        shutil.rmtree(path)
+    except OSError as e:
+        if os.name == 'nt':
+            if e.errno == 267:
+                os.remove(path)
+            elif e.errno != 3:
+                raise
+
+        elif e.errno == errno.ENOTDIR:
+            os.remove(path)
+        elif e.errno != errno.ENOENT:
+            raise
+
+
 def delete_content(folder):
     for entry in scandir(folder):
         if entry.is_file():

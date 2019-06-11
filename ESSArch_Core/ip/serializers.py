@@ -357,20 +357,3 @@ class NestedInformationPackageSerializer(DynamicHyperlinkedModelSerializer):
                 'validators': [],
             },
         }
-
-
-class InformationPackageReadSerializer(InformationPackageSerializer):
-    def to_representation(self, obj):
-        data = super().to_representation(obj)
-        profiles = data['profiles']
-        data['profiles'] = {}
-
-        for ptype in profile_types:
-            data['profile_%s' % ptype.lower().replace(' ', '_')] = None
-
-        for p in profiles:
-            data['profile_%s' % p['profile_type']] = p
-
-        data.pop('profiles', None)
-
-        return data

@@ -187,4 +187,3 @@ class StorageMethodSerializer(DynamicHyperlinkedModelSerializer):
                 'default': uuid.uuid4,
             },
         }
-

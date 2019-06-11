@@ -32,28 +32,20 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
+from ESSArch_Core.configuration.serializers import (StorageMethodSerializer, StorageMethodTargetRelationSerializer,
+                                                    StorageTargetSerializer)
 from ESSArch_Core.exceptions import Conflict
 from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.storage.models import (AccessQueue, IOQueue, Robot,
-                                         RobotQueue, StorageMedium,
-                                         StorageMethod,
-                                         StorageMethodTargetRelation,
-                                         StorageObject, StorageTarget,
-                                         TAPE, TapeDrive, TapeSlot)
-from ESSArch_Core.util import parse_content_range_header
-from ESSArch_Core.configuration.serializers import (
-    StorageMethodSerializer,
-    StorageMethodTargetRelationSerializer,
-    StorageTargetSerializer
-)
 from ESSArch_Core.storage.filters import StorageMediumFilter
-from ESSArch_Core.storage.serializers import (AccessQueueSerializer, IOQueueSerializer,
-                                 IOQueueWriteSerializer, RobotQueueSerializer,
-                                 RobotSerializer, StorageMediumSerializer,
-                                 StorageObjectSerializer,
-                                 TapeDriveSerializer, TapeSlotSerializer)
+from ESSArch_Core.storage.models import (TAPE, AccessQueue, IOQueue, Robot, RobotQueue, StorageMedium, StorageMethod,
+                                         StorageMethodTargetRelation, StorageObject, StorageTarget, TapeDrive,
+                                         TapeSlot)
+from ESSArch_Core.storage.serializers import (AccessQueueSerializer, IOQueueSerializer, IOQueueWriteSerializer,
+                                              RobotQueueSerializer, RobotSerializer, StorageMediumSerializer,
+                                              StorageObjectSerializer, TapeDriveSerializer, TapeSlotSerializer)
+from ESSArch_Core.util import parse_content_range_header
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 class IOQueueViewSet(viewsets.ModelViewSet):

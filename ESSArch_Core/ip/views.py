@@ -70,7 +70,7 @@ from ESSArch_Core.ip.serializers import (
     OrderSerializer,
     WorkareaSerializer,
     InformationPackageDetailSerializer,
-    NestedInformationPackageSerializer, InformationPackageReadSerializer)
+    NestedInformationPackageSerializer)
 from ESSArch_Core.mixins import GetObjectForUpdateViewMixin, PaginatedViewMixin
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
 from ESSArch_Core.util import (
@@ -949,12 +949,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
 
         return InformationPackageDetailSerializer
 
-    def get_serializer_class(self):
-        if self.request.method in permissions.SAFE_METHODS:
-            return InformationPackageReadSerializer
-
-        return InformationPackageSerializer
-
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context['view'] = self
@@ -976,30 +970,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
         return Response(filename_list)
 
     @transaction.atomic
-    def destroy(self, request, *args, **kwargs):
-        #TODO: This is moved here from ETP
-        ip = self.get_object()
-
-        t = ProcessTask.objects.create(
-            name='ESSArch_Core.ip.tasks.DeleteInformationPackage',
-            params={'from_db': True},
-            eager=False,
-            information_package=ip,
-            responsible=request.user,
-        )
-        t.run()
-        return Response({"detail": "Deleting information package", "task": t.pk}, status=status.HTTP_202_ACCEPTED)
-
-    @transaction.atomic
     def destroy(self, request, pk=None):
-        logger = logging.getLogger('essarch.epp')
-
         ip = self.get_object()
 
         if not request.user.has_perm('delete_informationpackage', ip):
             raise exceptions.PermissionDenied('You do not have permission to delete this IP')
 
-        logger.info(
+        self.logger.info(
             'Request issued to delete %s %s' % (ip.get_package_type_display(), pk),
             extra={'user': request.user.pk}
         )
@@ -1024,110 +1001,18 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
             if not request.user.has_perm('delete_archived', ip):
                 raise exceptions.PermissionDenied('You do not have permission to delete archived IPs')
 
-            if request.query_params.get('delete-files', True):
-                for storage_obj in ip.storage.all():
-                    storage_obj.delete_files()
-                    storage_obj.delete()
-
-            ip.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-        # delete files if IP is not at reception
-        if ip.state != 'Prepared':
-            if ip.state in 'Receiving':
-                path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
-            else:
-                path = ip.object_path
-
-            if os.path.isdir(path):
-                t = ProcessTask.objects.create(
-                    name='ESSArch_Core.tasks.DeleteFiles',
-                    params={'path': path},
-                    eager=False,
-                    responsible=request.user,
-                    information_package=ip,
-                )
-                t.run()
-            else:
-                no_ext = os.path.splitext(path)[0]
-                step = ProcessStep.objects.create(
-                    name="Delete files",
-                    eager=False,
-                )
-
-                for fl in [no_ext + '.' + ext for ext in ['xml', 'tar', 'zip']]:
-                    t = ProcessTask.objects.create(
-                        name='ESSArch_Core.tasks.DeleteFiles',
-                        params={'path': fl},
-                        processstep=step,
-                        responsible=request.user,
-                    )
-
-                step.run()
-
-        return super().destroy(request, pk=pk)
-
-    @transaction.atomic
-    def destroy(self, request, pk=None):
-        # TODO: This is moved here from ETA (overriding above)
-
-        delete_from_reception = request.data.get('reception', True)
-        delete_from_workarea = request.data.get('workarea', False)
-
-        objid = self.get_object().object_identifier_value
-        paths = []
-
-        if delete_from_reception:
-            reception = Path.objects.get(entity="path_ingest_reception").value
-            uip = Path.objects.get(entity="path_ingest_unidentified").value
-
-            xmlfile = os.path.join(reception, "%s.xml" % objid)
-            srcdir = reception
-
-            if os.path.isdir(os.path.join(srcdir, objid)):
-                paths.append(os.path.join(srcdir, objid))
-
-            if not os.path.isfile(xmlfile):
-                xmlfile = os.path.join(uip, "%s.xml" % objid)
-                srcdir = uip
-
-            if os.path.isfile(xmlfile):
-                doc = etree.parse(xmlfile)
-                root = doc.getroot()
-
-                el = root.xpath('.//*[local-name()="%s"]' % "FLocat")[0]
-                objpath = get_value_from_path(el, "@href").split('file:///')[1]
-                path = os.path.join(srcdir, objpath)
-                no_ext = os.path.splitext(path)[0]
-
-                paths.append(path)
-                paths += [no_ext + '.' + ext for ext in ['xml', 'tar', 'zip']]
-
-        if delete_from_workarea:
-            workarea = Path.objects.get(entity="ingest_workarea").value
-            path = os.path.join(workarea, request.user.username, objid)
-
-            paths.append(path)
-            paths += [path + '.' + ext for ext in ['xml', 'tar', 'zip']]
-
-        step = ProcessStep.objects.create(
-            name="Delete files",
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.ip.tasks.DeleteInformationPackage',
+            params={
+                'from_db': True,
+                'delete_files': request.query_params.get('delete_files', True)
+            },
             eager=False,
-            parallel=True,
+            information_package=ip,
+            responsible=request.user,
         )
-
-        for path in paths:
-            path = normalize_path(path)
-            ProcessTask.objects.create(
-                name='ESSArch_Core.tasks.DeleteFiles',
-                params={'path': path},
-                processstep=step,
-                responsible=request.user,
-            )
-
-        step.run()
-
-        return super().destroy(request, pk=pk)
+        t.run()
+        return Response({"detail": "Deleting information package", "task": t.pk}, status=status.HTTP_202_ACCEPTED)
 
     @action(detail=True, methods=['get', 'post'], url_path='ead-editor')
     def ead_editor(self, request, pk=None):

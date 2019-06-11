@@ -339,10 +339,11 @@ class CreateReceipt(DBTask):
 
 
 class DeleteInformationPackage(DBTask):
-    def run(self, from_db=False):
+    def run(self, from_db=False, delete_files=True):
         ip = self.get_information_package()
         ip.delete_workareas()
-        ip.delete_files()
+        if delete_files:
+            ip.delete_files()
 
         if from_db:
             ip.delete()

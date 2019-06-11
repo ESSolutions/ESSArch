@@ -834,6 +834,13 @@ class InformationPackage(models.Model):
     def delete_files(self):
         path = self.get_path()
 
+        if self.archived:
+            for storage_obj in self.storage.all():
+                storage_obj.delete_files()
+                storage_obj.delete()
+
+            return
+
         if os.path.isdir(path):
             shutil.rmtree(path)
         else:
