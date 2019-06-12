@@ -1,16 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('FilebrowserController', function(
-    $scope,
-    $rootScope,
-    $sce,
-    appConfig,
-    listViewService,
-    $uibModal,
-    $window,
-    $cookies,
-    $state
-  ) {
+export default class FilebrowserController {
+  constructor($scope, $rootScope, $sce, appConfig, listViewService, $uibModal, $window, $cookies, $state) {
     $scope.previousGridArrays = [];
     var vm = this;
     vm.$onInit = function() {
@@ -170,13 +159,6 @@ angular
       }
     };
     $scope.selectedCards = [];
-    $scope.cardSelect = function(card) {
-      if (includesWithProperty($scope.selectedCards, 'name', card.name)) {
-        $scope.selectedCards.splice($scope.selectedCards.indexOf(card), 1);
-      } else {
-        $scope.selectedCards.push(card);
-      }
-    };
 
     function includesWithProperty(array, property, value) {
       for (let i = 0; i < array.length; i++) {
@@ -185,6 +167,56 @@ angular
         }
       }
       return false;
+    }
+
+    $scope.cardSelect = function(card) {
+      if (includesWithProperty($scope.selectedCards, 'name', card.name)) {
+        $scope.selectedCards.splice($scope.selectedCards.indexOf(card), 1);
+      } else {
+        $scope.selectedCards.push(card);
+      }
+    };
+
+    function folderNameExistsModal(index, folder, fileToOverwrite) {
+      var modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/folder-exists-modal.html',
+        scope: $scope,
+        controller: 'OverwriteModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: function() {
+            return {
+              file: folder,
+              type: fileToOverwrite.type,
+            };
+          },
+        },
+      });
+      modalInstance.result.then(function(data) {
+        if ($state.includes('**.workarea.**')) {
+          listViewService
+            .deleteWorkareaFile(
+              vm.workarea,
+              $scope.previousGridArraysString(),
+              fileToOverwrite,
+              vm.user ? vm.user.id : null
+            )
+            .then(function() {
+              listViewService.addNewFolder($scope.ip, $scope.previousGridArraysString(), folder).then(function() {
+                $scope.updateGridArray();
+              });
+            });
+        } else {
+          listViewService.deleteFile($scope.ip, $scope.previousGridArraysString(), fileToOverwrite).then(function() {
+            listViewService.addNewFolder($scope.ip, $scope.previousGridArraysString(), folder).then(function() {
+              $scope.updateGridArray();
+            });
+          });
+        }
+      });
     }
 
     $scope.createFolder = function(folderName) {
@@ -246,47 +278,7 @@ angular
       }
       $window.open(file.content, '_blank');
     };
-    function folderNameExistsModal(index, folder, fileToOverwrite) {
-      var modalInstance = $uibModal.open({
-        animation: true,
-        ariaLabelledBy: 'modal-title',
-        ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/folder-exists-modal.html',
-        scope: $scope,
-        controller: 'OverwriteModalInstanceCtrl',
-        controllerAs: '$ctrl',
-        resolve: {
-          data: function() {
-            return {
-              file: folder,
-              type: fileToOverwrite.type,
-            };
-          },
-        },
-      });
-      modalInstance.result.then(function(data) {
-        if ($state.includes('**.workarea.**')) {
-          listViewService
-            .deleteWorkareaFile(
-              vm.workarea,
-              $scope.previousGridArraysString(),
-              fileToOverwrite,
-              vm.user ? vm.user.id : null
-            )
-            .then(function() {
-              listViewService.addNewFolder($scope.ip, $scope.previousGridArraysString(), folder).then(function() {
-                $scope.updateGridArray();
-              });
-            });
-        } else {
-          listViewService.deleteFile($scope.ip, $scope.previousGridArraysString(), fileToOverwrite).then(function() {
-            listViewService.addNewFolder($scope.ip, $scope.previousGridArraysString(), folder).then(function() {
-              $scope.updateGridArray();
-            });
-          });
-        }
-      });
-    }
+
     $scope.newDirModal = function() {
       var modalInstance = $uibModal.open({
         animation: true,
@@ -335,4 +327,5 @@ angular
         .pop()
         .toUpperCase();
     };
-  });
+  }
+}

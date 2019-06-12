@@ -401,7 +401,7 @@ const listViewService = (
     });
   }
   function getWorkareaDir(workareaType, pathStr, pageNumber, pageSize, user) {
-    var sendData;
+    let sendData;
     if (pathStr == '') {
       sendData = {
         page: pageNumber,
@@ -436,6 +436,7 @@ const listViewService = (
   }
 
   function getDipDir(ip, pathStr, pageNumber, pageSize) {
+    let sendData;
     if (pathStr == '') {
       sendData = {
         id: ip.id,
@@ -523,6 +524,7 @@ const listViewService = (
   }
 
   function getDir(ip, pathStr, pageNumber, pageSize) {
+    let sendData;
     if (pathStr == '') {
       sendData = {
         id: ip.id,

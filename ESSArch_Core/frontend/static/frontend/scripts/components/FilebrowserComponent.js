@@ -1,6 +1,19 @@
-angular.module('essarch.components').component('filebrowser', {
+import controller from '../controllers/FilebrowserController';
+
+export default {
   templateUrl: 'static/frontend/views/filebrowser.html',
-  controller: 'FilebrowserController',
+  controller: [
+    '$scope',
+    '$rootScope',
+    '$sce',
+    'appConfig',
+    'listViewService',
+    '$uibModal',
+    '$window',
+    '$cookies',
+    '$state',
+    controller,
+  ],
   controllerAs: 'vm',
   bindings: {
     ip: '<',
@@ -8,4 +21,4 @@ angular.module('essarch.components').component('filebrowser', {
     user: '<',
     browserstate: '=',
   },
-});
+};
