@@ -91,7 +91,7 @@ class AccessTestCase(TestCase):
         res = self.client.post(self.url, {'tar': True})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('ip.views.ProcessStep.run')
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
     def test_received_ip(self, mock_step):
         self.ip.state = 'Received'
         self.ip.save()
@@ -99,7 +99,7 @@ class AccessTestCase(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         mock_step.assert_called_once()
 
-    @mock.patch('ip.views.ProcessStep.run')
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
     def test_archived_ip(self, mock_step):
         self.ip.archived = True
         self.ip.save()
@@ -417,13 +417,13 @@ class WorkareaFilesViewTestCase(TestCase):
         res = self.client.get(self.url, {'type': 'access', 'path': 'does/not/exist'})
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
-    @mock.patch('ip.views.list_files', return_value=Response())
+    @mock.patch('ESSArch_Core.ip.views.list_files', return_value=Response())
     def test_existing_path(self, mock_list_files):
         path = 'does/exist'
         fullpath = os.path.join('access', self.user.username, path)
 
         exists = os.path.exists
-        with mock.patch('ip.views.os.path.exists', side_effect=lambda x: x == fullpath or exists(x)):
+        with mock.patch('ESSArch_Core.ip.views.os.path.exists', side_effect=lambda x: x == fullpath or exists(x)):
             res = self.client.get(self.url, {'type': 'access', 'path': path})
             self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -458,9 +458,9 @@ class WorkareaFilesViewTestCase(TestCase):
 
         exists = os.path.exists
         isfile = os.path.isfile
-        with mock.patch('ip.views.os.path.exists', side_effect=lambda x: x == fullpath_src or exists(x)), \
-                mock.patch('ip.views.os.path.isfile', side_effect=lambda x: x == fullpath_src or isfile(x)), \
-                mock.patch('ip.views.shutil.copy2') as mock_copy:
+        with mock.patch('ESSArch_Core.ip.views.os.path.exists', side_effect=lambda x: x == fullpath_src or exists(x)), \
+                mock.patch('ESSArch_Core.ip.views.os.path.isfile', side_effect=lambda x: x == fullpath_src or isfile(x)), \
+                mock.patch('ESSArch_Core.ip.views.shutil.copy2') as mock_copy:
 
             res = self.client.post(self.url, {'type': 'access', 'src': src, 'dst': dst, 'dip': str(ip.pk)})
             self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -485,8 +485,8 @@ class WorkareaFilesViewTestCase(TestCase):
         self.member.assign_object(self.group, ip, custom_permissions=perms)
 
         exists = os.path.exists
-        with mock.patch('ip.views.os.path.exists', side_effect=lambda x: x == fullpath_src or exists(x)), \
-                mock.patch('ip.views.shutil.copytree') as mock_copy:
+        with mock.patch('ESSArch_Core.ip.views.os.path.exists', side_effect=lambda x: x == fullpath_src or exists(x)), \
+                mock.patch('ESSArch_Core.ip.views.shutil.copytree') as mock_copy:
 
             res = self.client.post(self.url, {'type': 'access', 'src': src, 'dst': dst, 'dip': str(ip.pk)})
             self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -512,9 +512,9 @@ class WorkareaFilesViewTestCase(TestCase):
 
         exists = os.path.exists
         copytree_side_effects = [OSError(errno.EEXIST, "error"), mock.DEFAULT]
-        with mock.patch('ip.views.os.path.exists', side_effect=lambda x: x == fullpath_src or exists(x)), \
-                mock.patch('ip.views.shutil.copytree', side_effect=copytree_side_effects) as mock_copy, \
-                mock.patch('ip.views.shutil.rmtree') as mock_rmtree:
+        with mock.patch('ESSArch_Core.ip.views.os.path.exists', side_effect=lambda x: x == fullpath_src or exists(x)), \
+                mock.patch('ESSArch_Core.ip.views.shutil.copytree', side_effect=copytree_side_effects) as mock_copy, \
+                mock.patch('ESSArch_Core.ip.views.shutil.rmtree') as mock_rmtree:
 
             res = self.client.post(self.url, {'type': 'access', 'src': src, 'dst': dst, 'dip': str(ip.pk)})
             self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -1225,8 +1225,8 @@ class InformationPackageViewSetTestCase(TestCase):
 
         self.assertEqual(len(res.data), 0)
 
-    @mock.patch('ip.views.ProcessStep.run')
-    def test_delete_ip(self, mock_step):
+    @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
+    def test_delete_ip(self, mock_task):
         cache = Path.objects.create(entity='cache', value='cache')
         ingest = Path.objects.create(entity='ingest', value='ingest')
         policy = ArchivePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
@@ -1248,11 +1248,12 @@ class InformationPackageViewSetTestCase(TestCase):
         perms = {'group': ['view_informationpackage', 'delete_informationpackage']}
         self.member.assign_object(self.group, ip, custom_permissions=perms)
         res = self.client.delete(url)
-        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED)
 
-        mock_step.assert_called_once()
+        mock_task.assert_called_once()
 
-    def test_delete_archived_ip(self):
+    @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
+    def test_delete_archived_ip(self, mock_task):
         ip = InformationPackage.objects.create(object_path='foo', responsible=self.user, archived=True)
         url = reverse('informationpackage-detail', args=(str(ip.pk),))
         res = self.client.delete(url)
@@ -1277,7 +1278,9 @@ class InformationPackageViewSetTestCase(TestCase):
         perms = {'group': ['view_informationpackage', 'delete_informationpackage', 'delete_archived']}
         self.member.assign_object(self.group, ip, custom_permissions=perms)
         res = self.client.delete(url)
-        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED)
+
+        mock_task.assert_called_once()
 
     @mock.patch('workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
     def test_prepare_dip_no_label(self, mock_prepare):
@@ -1407,12 +1410,12 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_receive_ip_with_incorrect_package_type(self):
-        ip = InformationPackage.objects.create(state='Prepared')
+        ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIC)
         url = reverse('ip-reception-receive', args=[ip.pk])
         perms = {'group': ['view_informationpackage', 'ip.receive']}
         self.member.assign_object(self.group, ip, custom_permissions=perms)
 
-        # return 404 when IP is not of type AIP
+        # return 404 when IP is of type AIC
         res = self.client.post(url, data={})
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -1428,8 +1431,8 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         res = self.client.post(url, data={})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('ip.views.InformationPackageReceptionViewSet.get_container_for_xml', return_value='foo.tar')
-    @mock.patch('ip.views.os.path.isfile', return_value=True)
+    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml', return_value='foo.tar')
+    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
     def test_receive_ip_with_missing_policy(self, mock_isfile, mock_get_container):
         ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
         url = reverse('ip-reception-receive', args=[ip.pk])
@@ -1440,8 +1443,8 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         res = self.client.post(url, data={})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('ip.views.InformationPackageReceptionViewSet.get_container_for_xml', return_value='foo.tar')
-    @mock.patch('ip.views.os.path.isfile', return_value=True)
+    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml', return_value='foo.tar')
+    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
     def test_receive_ip_with_missing_tag(self, mock_isfile, mock_get_container):
         ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
         url = reverse('ip-reception-receive', args=[ip.pk])
@@ -1452,9 +1455,9 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         res = self.client.post(url, data={'archive_policy': self.policy.pk})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('ip.views.InformationPackageReceptionViewSet.get_container_for_xml', return_value='foo.tar')
-    @mock.patch('ip.views.os.path.isfile', return_value=True)
-    @mock.patch('ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
+    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml', return_value='foo.tar')
+    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_receive_ip_with_correct_data(self, mock_receive, mock_isfile, mock_get_container):
         ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
         url = reverse('ip-reception-receive', args=[ip.pk])
@@ -1480,17 +1483,17 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('ip.views.parse_submit_description', return_value={})
-    @mock.patch('ip.views.InformationPackageReceptionViewSet.get_container_for_xml', return_value='foo.tar')
-    @mock.patch('ip.views.os.path.isfile', return_value=True)
+    @mock.patch('ESSArch_Core.ip.views.parse_submit_description', return_value={})
+    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml', return_value='foo.tar')
+    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
     def test_prepare_without_sa(self, mock_isfile, mock_get_container, mock_parse_sd):
         url = reverse('ip-reception-prepare', args=[123])
         res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('ip.views.parse_submit_description')
-    @mock.patch('ip.views.InformationPackageReceptionViewSet.get_container_for_xml', return_value='foo.tar')
-    @mock.patch('ip.views.os.path.isfile', return_value=True)
+    @mock.patch('ESSArch_Core.ip.views.parse_submit_description')
+    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml', return_value='foo.tar')
+    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
     def test_prepare_with_invalid_sa_in_xml(self, mock_isfile, mock_get_container, mock_parse_sd):
         mock_parse_sd.return_value = {'altrecordids': {'SUBMISSIONAGREEMENT': [uuid.uuid4()]}}
 
@@ -1498,9 +1501,9 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('ip.views.parse_submit_description')
-    @mock.patch('ip.views.InformationPackageReceptionViewSet.get_container_for_xml', return_value='foo.tar')
-    @mock.patch('ip.views.os.path.isfile', return_value=True)
+    @mock.patch('ESSArch_Core.ip.views.parse_submit_description')
+    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml', return_value='foo.tar')
+    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
     def test_prepare_with_valid_sa_without_profiles_referenced_in_xml(self, mock_isfile, mock_get_container,
                                                                       mock_parse_sd):
         sa = SubmissionAgreement.objects.create()
@@ -1510,9 +1513,9 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('ip.views.parse_submit_description')
-    @mock.patch('ip.views.InformationPackageReceptionViewSet.get_container_for_xml', return_value='foo.tar')
-    @mock.patch('ip.views.os.path.isfile', return_value=True)
+    @mock.patch('ESSArch_Core.ip.views.parse_submit_description')
+    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml', return_value='foo.tar')
+    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
     def test_prepare_with_valid_sa_with_profiles_referenced_in_xml(self, mock_isfile, mock_get_container,
                                                                    mock_parse_sd):
         sa = SubmissionAgreement.objects.create(
@@ -1661,20 +1664,20 @@ class InformationPackageReceptionViewSetTestCaseETA(TestCase):
             </root>
             ''')
 
-    @mock.patch('ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_receive(self, mock_receive):
         res = self.client.post(self.url + '1/receive/')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         mock_receive.assert_called_once()
 
-    @mock.patch('ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_receive_existing(self, mock_receive):
         InformationPackage.objects.create(object_identifier_value='1')
         res = self.client.post(self.url + '1/receive/')
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         mock_receive.assert_not_called()
 
-    @mock.patch('ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_receive_invalid_validator(self, mock_receive):
         data = {'validators': {'validate_invalid': True}}
         res = self.client.post(self.url + '1/receive/', data=data)
@@ -1683,7 +1686,7 @@ class InformationPackageReceptionViewSetTestCaseETA(TestCase):
         self.assertFalse(ProcessStep.objects.filter(name='Validate').exists())
         mock_receive.assert_called_once()
 
-    @mock.patch('ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_receive_validator(self, mock_receive):
         data = {'validators': {'validate_xml_file': True}}
         res = self.client.post(self.url + '1/receive/', data=data)
@@ -2020,8 +2023,8 @@ class test_submit_ip(TestCase):
         res = self.client.post(self.url)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('ip.views.creation_date', return_value=0)
-    @mock.patch('ip.views.ProcessStep.run')
+    @mock.patch('ESSArch_Core.ip.views.creation_date', return_value=0)
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
     def test_no_mail(self, mock_step, mock_time):
         self.ip.responsible = self.user
         self.ip.state = 'Created'
@@ -2064,8 +2067,8 @@ class test_submit_ip(TestCase):
         res = self.client.post(self.url, {'subject': 'foo'})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('ip.views.creation_date', return_value=0)
-    @mock.patch('ip.views.ProcessStep.run')
+    @mock.patch('ESSArch_Core.ip.views.creation_date', return_value=0)
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
     def test_with_mail(self, mock_step, mock_time):
         self.ip.responsible = self.user
         self.ip.state = 'Created'
