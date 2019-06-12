@@ -34,6 +34,8 @@ matrix:
       python: "3.6"
       services: docker
       before_install:
+        - sudo mkdir -p /ESSArch/log/
+        - sudo chmod 777 /ESSArch/log/
         - docker pull mcr.microsoft.com/mssql/server:2017-latest-ubuntu
         - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d mcr.microsoft.com/mssql/server:2017-latest-ubuntu
         - curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
@@ -67,6 +69,7 @@ matrix:
       python: "3.6"
       services: docker
       before_install:
+        - mkdir -p /c/ESSArch/log/
         - docker pull christianacca/mssql-server-windows-express:1803
         - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d christianacca/mssql-server-windows-express:1803
         - wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe
@@ -86,6 +89,10 @@ matrix:
       install: yarn
       script: yarn prettier --check "**/*.{ts,js,scss,html}"
       after_success: skip
+
+before_install:
+  - sudo mkdir -p /ESSArch/log/
+  - sudo chmod 777 /ESSArch/log/
 
 install:
   - python -m pip install --upgrade pip wheel codecov setuptools
