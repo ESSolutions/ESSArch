@@ -3,6 +3,10 @@ language: python
 cache: pip
 dist: xenial
 
+before_cache:
+  - rm -f $HOME/.cache/pip/log/debug.log
+  - rm -rf $HOME/.cache/pip/http
+
 branches:
   only:
     - master
