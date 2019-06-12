@@ -54,11 +54,7 @@ from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.models import Member
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
-from ESSArch_Core.essxml.util import (
-    get_agents,
-    get_objectpath,
-    parse_submit_description,
-)
+from ESSArch_Core.essxml.util import get_objectpath, parse_submit_description
 from ESSArch_Core.exceptions import Conflict, NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
@@ -107,7 +103,6 @@ from ESSArch_Core.tags.models import TagStructure
 from ESSArch_Core.util import (
     creation_date,
     find_destination,
-    flatten,
     generate_file_response,
     get_immediate_subdirectories,
     get_value_from_path,
@@ -388,7 +383,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
                         aic=OuterRef('pk')
                     )
                 )
-            ).filter(Q(package_type=InformationPackage.AIC, has_ip=True) | Q(~Q(package_type=InformationPackage.AIC), Q(aic__isnull=True)))
+            ).filter(
+                Q(package_type=InformationPackage.AIC, has_ip=True) |
+                Q(~Q(package_type=InformationPackage.AIC), Q(aic__isnull=True))
+            )
             aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner)).distinct()
 
             self.queryset = self.apply_ordering_filters(aics) | self.apply_filters(dips)
@@ -1485,6 +1483,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
     #     download = request.query_params.get('download', False)
     #     return ip.get_path_response(path, request, force_download=download, paginator=self.paginator)
 
+    @transaction.atomic
     @action(detail=True, methods=['post'], url_path='unlock-profile', permission_classes=[CanUnlockProfile])
     def unlock_profile(self, request, pk=None):
         ip = self.get_object()
@@ -1501,31 +1500,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
 
         return Response({
             'detail': 'Unlocking profile with type "%s" in IP "%s"' % (
-                ptype, ip.pk
-            )
-        })
-
-    @transaction.atomic
-    @action(detail=True, methods=['post'], url_path='unlock-profile', permission_classes=[CanUnlockProfile])
-    def unlock_profile(self, request, pk=None):
-        # TODO: This is moved here from ETP (overriding above)
-        ip = self.get_object()
-
-        if ip.state in ['Submitting', 'Submitted']:
-            raise exceptions.ParseError('Cannot unlock profiles in an IP that is %s' % ip.state)
-
-        try:
-            ptype = request.data["type"]
-        except KeyError:
-            raise exceptions.ParseError('type parameter missing')
-
-        ip.unlock_profile(ptype)
-        prepare_path = Path.objects.get(entity='path_preingest_prepare').value
-        ip.object_path = normalize_path(os.path.join(prepare_path, ip.object_identifier_value))
-        ip.save(update_fields=['object_path'])
-
-        return Response({
-            'status': 'unlocking profile with type "%s" in IP "%s"' % (
                 ptype, ip.pk
             )
         })
@@ -1732,8 +1706,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             self.logger = logging.getLogger('essarch.reception')
             self.reception = Path.objects.get(entity="path_ingest_reception").value
             self.uip = Path.objects.get(entity="path_ingest_unidentified").value
-        except:
-            #TODO: this is moved here from ETA and does not work with other applications yet
+        except Exception:
+            # TODO: this is moved here from ETA and does not work with other applications yet
             pass
         super().__init__(*args, **kwargs)
 
@@ -2316,50 +2290,6 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             "modified": timestamp_to_datetime(os.path.getmtime(xml)),
         }
         return Response([entry, xmlentry])
-
-    @action(detail=False, methods=['post'])
-    def upload(self, request):
-        if not request.user.has_perm('ip.can_receive_remote_files'):
-            raise exceptions.PermissionDenied
-
-        path = Path.objects.get(entity="path_ingest_reception").value
-
-        f = request.FILES['the_file']
-        content_range = request.META.get('HTTP_CONTENT_RANGE', 'bytes 0-0/0')
-        filename = os.path.join(path, f.name)
-
-        (start, end, total) = parse_content_range_header(content_range)
-
-        if f.size != end - start + 1:
-            raise exceptions.ParseError("File size doesn't match headers")
-
-        if start == 0:
-            with open(filename, 'wb') as dstf:
-                dstf.write(f.read())
-        else:
-            with open(filename, 'ab') as dstf:
-                dstf.seek(start)
-                dstf.write(f.read())
-
-        upload_id = request.data.get('upload_id', uuid.uuid4().hex)
-        return Response({'upload_id': upload_id})
-
-    @action(detail=False, methods=['post'])
-    def upload_complete(self, request):
-        if not request.user.has_perm('ip.can_receive_remote_files'):
-            raise exceptions.PermissionDenied
-
-        path = Path.objects.get(entity="path_ingest_reception").value
-
-        md5 = request.data['md5']
-        filepath = request.data['path']
-        filepath = os.path.join(path, filepath)
-
-        options = {'expected': md5, 'algorithm': 'md5'}
-        validator = ChecksumValidator(context='checksum_str', options=options)
-        validator.validate(filepath)
-
-        return Response('Upload of %s complete' % filepath)
 
     @action(detail=False, methods=['post'], url_path='identify-ip')
     def identify_ip(self, request):
