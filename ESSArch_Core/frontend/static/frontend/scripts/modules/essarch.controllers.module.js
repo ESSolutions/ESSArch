@@ -4,7 +4,7 @@ import AccessCtrl from '../controllers/AccessCtrl';
 import AccessIpCtrl from '../controllers/AccessIpCtrl';
 import AdministrationCtrl from '../controllers/AdministrationCtrl';
 import AppCtrl from '../controllers/AppCtrl';
-import AppraisalCtrl from "../controllers/AppraisalCtrl";
+import AppraisalCtrl from '../controllers/AppraisalCtrl';
 import BaseCtrl from '../controllers/BaseCtrl';
 import CollectContentCtrl from '../controllers/CollectContentCtrl';
 import CombinedWorkareaCtrl from '../controllers/CombinedWorkareaCtrl';
@@ -28,15 +28,15 @@ import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
 import RobotInformationCtrl from '../controllers/RobotInformationCtrl';
 import SearchCtrl from '../controllers/SearchCtrl';
-import StorageMaintenanceCtrl from "../controllers/StorageMaintenanceCtrl";
-import StorageMigrationCtrl from "../controllers/StorageMigrationCtrl";
+import StorageMaintenanceCtrl from '../controllers/StorageMaintenanceCtrl';
+import StorageMigrationCtrl from '../controllers/StorageMigrationCtrl';
 import TagsCtrl from '../controllers/TagsCtrl';
 import TaskInfoModalInstanceCtrl from '../controllers/TaskInfoModalInstanceCtrl';
 import UserDropdownCtrl from '../controllers/UserDropdownCtrl';
 import UserSettingsCtrl from '../controllers/UserSettingsCtrl';
 import UtilCtrl from '../controllers/UtilCtrl';
 import VersionCtrl from '../controllers/VersionCtrl';
-import WorkareaCtrl from "../controllers/WorkareaCtrl";
+import WorkareaCtrl from '../controllers/WorkareaCtrl';
 
 import {permission, uiPermission} from 'angular-permission';
 import uiRouter from '@uirouter/angularjs';
@@ -341,7 +341,7 @@ export default angular
     '$transitions',
     UtilCtrl,
   ])
-  .controller('AppraisalCtrl',[
+  .controller('AppraisalCtrl', [
     'ArchivePolicy',
     '$scope',
     '$controller',
@@ -361,9 +361,9 @@ export default angular
     'Appraisal',
     '$translate',
     '$transitions',
-    AppraisalCtrl
+    AppraisalCtrl,
   ])
-  .controller('RobotInformationCtrl',[
+  .controller('RobotInformationCtrl', [
     'StorageMedium',
     '$scope',
     '$controller',
@@ -379,9 +379,9 @@ export default angular
     '$uibModal',
     'listViewService',
     '$transitions',
-    RobotInformationCtrl
+    RobotInformationCtrl,
   ])
-  .controller('QueuesCtrl',[
+  .controller('QueuesCtrl', [
     'appConfig',
     '$scope',
     '$rootScope',
@@ -391,15 +391,8 @@ export default angular
     '$transitions',
     QueuesCtrl,
   ])
-  .controller('StorageMigrationCtrl',[
-    '$scope',
-    StorageMigrationCtrl,
-  ])
-  .controller('StorageMaintenanceCtrl', [
-    '$scope',
-    '$rootScope',
-    StorageMaintenanceCtrl,
-  ])
+  .controller('StorageMigrationCtrl', ['$scope', StorageMigrationCtrl])
+  .controller('StorageMaintenanceCtrl', ['$scope', '$rootScope', StorageMaintenanceCtrl])
   .controller('WorkareaCtrl', [
     'vm',
     'ipSortString',

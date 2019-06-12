@@ -1,16 +1,5 @@
 export default class SaEditorCtrl {
-  constructor(
-    Notifications,
-    $timeout,
-    SA,
-    Profile,
-    $scope,
-    $rootScope,
-    $http,
-    appConfig,
-    $anchorScroll,
-    $translate
-  ) {
+  constructor(Notifications, $timeout, SA, Profile, $scope, $rootScope, $http, appConfig, $anchorScroll, $translate) {
     var vm = this;
     $scope.edit = false;
     vm.saProfile = null;
@@ -218,4 +207,4 @@ export default class SaEditorCtrl {
       }
     });
   }
-};
+}

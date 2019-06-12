@@ -439,4 +439,4 @@ export default class RobotInformationCtrl {
       }
     };
   }
-};
+}

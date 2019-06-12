@@ -281,4 +281,4 @@ export default class WorkareaCtrl {
       $rootScope.flowObjects[ip.id] = flowObj;
     };
   }
-};
+}
