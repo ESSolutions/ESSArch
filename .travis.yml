@@ -7,6 +7,10 @@ branches:
   only:
     - master
 
+stages:
+  - lint
+  - test
+
 templates:
   mariadb: &mariadb DB_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
   mysql: &mysql DB_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
@@ -16,22 +20,26 @@ templates:
 matrix:
   include:
     - name: "flake8"
+      stage: lint
       python: "3.6"
       install: pip install flake8==3.7.1
       script: flake8
       after_success: skip
 
     - name: "isort"
+      stage: lint
       python: "3.6"
       install: pip install isort==4.3.20
       script: isort --recursive --check-only --diff ESSArch_Core
       after_success: skip
 
     - name: "Linux with SQLite"
+      stage: test
       python: "3.6"
       env: REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
 
     - name: "Linux with MSSQL"
+      stage: test
       python: "3.6"
       services: docker
       before_install:
@@ -48,6 +56,7 @@ matrix:
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
 
     - name: "Linux with MariaDB"
+      stage: test
       python: "3.6"
       addons:
         mariadb: "10.3"
@@ -56,6 +65,7 @@ matrix:
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
 
     - name: "Linux with MySQL"
+      stage: test
       python: "3.6"
       services:
         - mysql
@@ -64,6 +74,7 @@ matrix:
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
 
     - name: "Linux with PostgreSQL"
+      stage: test
       python: "3.6"
       services:
         - postgresql
@@ -72,6 +83,7 @@ matrix:
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
 
     - name: "Windows with MSSQL"
+      stage: test
       os: windows
       language: sh
       python: "3.6"
@@ -92,6 +104,7 @@ matrix:
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
 
     - env: PRETTIER
+      stage: lint
       language: node_js
       node_js: "10"
       before_install: cd ESSArch_Core/frontend/static/frontend
