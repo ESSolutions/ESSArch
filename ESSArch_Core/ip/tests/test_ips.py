@@ -1282,7 +1282,7 @@ class InformationPackageViewSetTestCase(TestCase):
 
         mock_task.assert_called_once()
 
-    @mock.patch('workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
+    @mock.patch('ESSArch_Core.workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
     def test_prepare_dip_no_label(self, mock_prepare):
         self.url = self.url + 'prepare-dip/'
         res = self.client.post(self.url)
@@ -1290,21 +1290,21 @@ class InformationPackageViewSetTestCase(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         mock_prepare.assert_not_called()
 
-    @mock.patch('workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
+    @mock.patch('ESSArch_Core.workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
     def test_prepare_dip_no_object_identifier_value(self, mock_prepare):
         self.url = self.url + 'prepare-dip/'
         self.client.post(self.url, {'label': 'foo'})
 
         mock_prepare.assert_called_once_with(label='foo', object_identifier_value=None, orders=[])
 
-    @mock.patch('workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
+    @mock.patch('ESSArch_Core.workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
     def test_prepare_dip_with_object_identifier_value(self, mock_prepare):
         self.url = self.url + 'prepare-dip/'
         self.client.post(self.url, {'label': 'foo', 'object_identifier_value': 'bar'})
 
         mock_prepare.assert_called_once_with(label='foo', object_identifier_value='bar', orders=[])
 
-    @mock.patch('workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
+    @mock.patch('ESSArch_Core.workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
     def test_prepare_dip_with_existing_object_identifier_value(self, mock_prepare):
         self.url = self.url + 'prepare-dip/'
 
@@ -1313,7 +1313,7 @@ class InformationPackageViewSetTestCase(TestCase):
 
         mock_prepare.assert_not_called()
 
-    @mock.patch('workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
+    @mock.patch('ESSArch_Core.workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
     def test_prepare_dip_with_orders(self, mock_prepare):
         self.url = self.url + 'prepare-dip/'
 
@@ -1322,7 +1322,7 @@ class InformationPackageViewSetTestCase(TestCase):
 
         mock_prepare.assert_called_once_with(label='foo', object_identifier_value=None, orders=orders)
 
-    @mock.patch('workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
+    @mock.patch('ESSArch_Core.workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
     def test_prepare_dip_with_non_existing_order(self, mock_prepare):
         self.url = self.url + 'prepare-dip/'
 
@@ -1331,7 +1331,7 @@ class InformationPackageViewSetTestCase(TestCase):
 
         mock_prepare.assert_not_called()
 
-    @mock.patch('workflow.tasks.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
+    @mock.patch('ESSArch_Core.workflow.tasks.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_preserve_aip(self, mock_step):
         self.ip = InformationPackage.objects.create(package_type=InformationPackage.AIP)
         self.url = reverse('informationpackage-detail', args=(self.ip.pk,))
@@ -1345,7 +1345,7 @@ class InformationPackageViewSetTestCase(TestCase):
 
         self.assertTrue(ProcessStep.objects.filter(information_package=self.ip).exists())
 
-    @mock.patch('workflow.tasks.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
+    @mock.patch('ESSArch_Core.workflow.tasks.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_preserve_dip(self, mock_step):
         cache = Path.objects.create(entity='cache', value='cache')
         ingest = Path.objects.create(entity='ingest', value='ingest')
