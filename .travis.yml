@@ -29,6 +29,7 @@ matrix:
 
     - name: "Linux with SQLite"
       python: "3.6"
+      env: REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
 
     - name: "Linux with MSSQL"
       python: "3.6"
@@ -44,24 +45,31 @@ matrix:
         - sudo ACCEPT_EULA=Y apt-get install msodbcsql17 unixodbc-dev
       env:
         - *mssql
+        - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
 
     - name: "Linux with MariaDB"
       python: "3.6"
       addons:
         mariadb: "10.3"
-      env: *mariadb
+      env:
+        - *mariadb
+        - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
 
     - name: "Linux with MySQL"
       python: "3.6"
       services:
         - mysql
-      env: *mysql
+      env:
+        - *mysql
+        - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
 
     - name: "Linux with PostgreSQL"
       python: "3.6"
       services:
         - postgresql
-      env: *postgres
+      env:
+        - *postgres
+        - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
 
     - name: "Windows with MSSQL"
       os: windows
@@ -81,6 +89,7 @@ matrix:
         - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python36:/c/Python36/Scripts:$PATH"
       env:
         - *mssql
+        - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
 
     - env: PRETTIER
       language: node_js
