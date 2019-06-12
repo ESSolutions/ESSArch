@@ -1,9 +1,11 @@
 a {
   cursor: pointer;
 }
+
 html {
   height: 100%;
 }
+
 body {
   background-color: $body-background;
   margin: 0px auto;
@@ -15,25 +17,31 @@ body {
   min-height: 100vh;
   height: 100%;
 }
+
 main {
   display: block;
 }
+
 .ui-select-dropdown {
   opacity: 1 !important;
 }
+
 .ui-select-toggle {
   display: flex !important;
   flex-direction: row;
   align-items: center;
 }
+
 .st-sort-ascent:before {
   content: '\25B2';
   position: relative;
 }
+
 .unexpected {
   background-color: maroon !important;
   color: white !important;
 }
+
 .st-sort-descent:before {
   content: '\25BC';
   position: relative;
@@ -80,6 +88,7 @@ main {
   opacity: 0;
   top: -10px;
 }
+
 .form-control {
   height: 26px;
   padding-left: 5px;
@@ -87,6 +96,7 @@ main {
   padding-bottom: 0;
   font-size: 13px;
 }
+
 .body-wrapper {
   flex: 1 0 auto;
   display: flex;
@@ -95,9 +105,11 @@ main {
   border-radius: 1px;
   min-height: 1131px;
 }
+
 .receive-modal-button {
   align-items: center;
 }
+
 .request-form {
   display: flex;
   flex-direction: row;
@@ -167,33 +179,43 @@ main {
 .datepicker .btn {
   padding: 8px 8px;
 }
+
 .nav-dynamic-wrapper {
   width: 100%;
   padding: 0 10px 0 10px;
 }
+
 .dynamic-part {
   @include small-screen {
     width: 100%;
   }
+
   &:focus {
     outline: 0;
   }
+
+  display: flex;
 }
+
 .profile-manager-route {
   margin-top: 5px;
   &:focus {
     outline: 0;
   }
 }
+
 .well-sm {
   padding: 0px;
 }
+
 .ui-select-placeholder {
   width: auto !important;
 }
+
 .input-group-addon {
   padding: 0 12px;
 }
+
 .input-group-btn {
   .btn-default {
     height: 26px;
@@ -419,4 +441,277 @@ main {
     margin-right: 3px;
   }
   align-items: center;
+}
+
+.ui-select-match-text {
+  margin-top: 3px;
+}
+
+.pagination {
+  margin: 5px 0;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+}
+
+.column-label {
+  margin: auto;
+}
+
+.content-wrapper > div {
+  margin-bottom: 10px;
+}
+
+@include medium-screen-down {
+  .content-wrapper > div {
+    margin-left: 0;
+  }
+}
+.clickable {
+  cursor: pointer;
+}
+.select-sub-edit-eventlog-wrapper {
+  @include container;
+  position: relative;
+  &:focus {
+    outline: 0;
+  }
+}
+
+.select-view {
+  margin: 5px;
+  padding: 5px;
+  & > .checkbox {
+    height: 10px;
+  }
+}
+.sa-table {
+  padding: 5px;
+  table {
+    table-layout: fixed;
+    tbody {
+      td {
+        border: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+    margin-top: 20px;
+    .flex-row {
+      select {
+        margin-right: 10px;
+      }
+    }
+  }
+}
+.edit-form {
+  padding-bottom: 15px;
+  table {
+    table-layout: fixed;
+    .flex-row {
+      align-items: center;
+      p {
+        word-break: normal;
+        margin: 0 10px 0 0;
+      }
+    }
+    td {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+  .button-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    .btn-default {
+      margin-left: 5px;
+    }
+  }
+}
+.sa-edit {
+  .formly {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    padding: 5px;
+    width: 100%;
+  }
+}
+
+.table-col {
+  margin: 0;
+}
+
+.text-center {
+  text-align: center;
+  margin: auto;
+}
+
+.sub-select-view {
+  @include container(5px);
+  height: 60px;
+  display: flex;
+  flex-direction: row;
+  margin: 5px;
+}
+
+.sub-select-view > select {
+  margin-left: 20px;
+  height: 30px;
+}
+
+.sub-select-profile {
+  width: 25%;
+}
+
+.sub-select-agreement {
+  width: 25%;
+}
+
+.sub-select-nationality {
+  width: 10%;
+}
+
+.edit-view {
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-color: $border-color;
+  margin: 5px;
+  padding: 5px;
+  position: relative;
+  .formly {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    padding: 5px;
+    width: 100%;
+  }
+  .btn-danger {
+    float: right;
+  }
+}
+
+.eventlog-view {
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-color: $border-color;
+  display: flex;
+  flex-direction: row;
+  margin: 5px;
+  padding: 5px;
+  justify-content: space-between;
+}
+
+.eventlog-view .form-group {
+  display: flex;
+  flex-direction: column;
+  width: 33%;
+}
+
+.eventlog-view .btn-primary {
+  float: right;
+  margin-top: 10px;
+}
+
+.eventlog-view .checkbox {
+  margin-top: 20px;
+}
+
+input[type='checkbox'] {
+  transform: scale(1.2, 1.2);
+}
+
+.eventlog-form {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: flex-end;
+  margin-left: 10px;
+}
+
+.formly-field {
+  width: 24%;
+  margin: 5px;
+}
+.submit-button {
+  margin-left: 5px;
+}
+.version-info-page {
+  @include container(10px);
+  margin-top: 10px;
+}
+
+.data-version-list {
+  width: 10%;
+  min-width: 50px;
+  margin-left: 10px;
+  float: right;
+}
+
+.profile-name {
+  float: left;
+}
+
+.profile-editor {
+  overflow: auto;
+  .edit-view {
+    margin: 0;
+    padding-bottom: 0;
+  }
+  .select-view {
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+#items-per-page {
+  width: 100px;
+}
+
+.table-container {
+  position: relative;
+  thead,
+  tbody {
+    border: 1px solid $border-color;
+  }
+}
+
+.sa-select {
+  width: 100% !important;
+}
+
+.workarea-validation,
+.workarea-transformation {
+  .content-wrapper > div {
+    margin-left: 0px;
+  }
+}
+
+.fullscreen-modal {
+  .modal-dialog {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .modal-content {
+    height: auto;
+    min-height: 100%;
+    border-radius: 0;
+  }
+  .modal-footer {
+    max-height: 100px;
+  }
 }
