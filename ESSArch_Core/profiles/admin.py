@@ -60,44 +60,10 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
             'classes': ('wide'),
             'fields': ('id', 'name', 'type', 'status', 'label',)
         }),
-        ('Change management', {
-            'classes': ('collapse', 'wide'),
-            'fields': (
-                'cm_version', 'cm_release_date', 'cm_change_authority',
-                'cm_change_description', 'cm_sections_affected'
-            )
-        }),
-        ('Informaton about Producer organization', {
-            'classes': ('collapse', 'wide'),
-            'fields': (
-                'producer_organization', 'producer_main_name',
-                'producer_main_address', 'producer_main_phone',
-                'producer_main_email', 'producer_main_additional',
-                'producer_individual_name', 'producer_individual_role',
-                'producer_individual_phone', 'producer_individual_email',
-                'producer_individual_additional',
-            )
-        }),
         ('Information about Archival organization', {
             'classes': ('collapse', 'wide'),
             'fields': (
                 'archivist_organization', 'archivist_main_name',
-                'archivist_main_address', 'archivist_main_phone',
-                'archivist_main_email', 'archivist_main_additional',
-                'archivist_individual_name', 'archivist_individual_role',
-                'archivist_individual_phone', 'archivist_individual_email',
-                'archivist_individual_additional',
-            )
-        }),
-        ('Information about designated community', {
-            'classes': ('collapse', 'wide'),
-            'fields': (
-                'designated_community_description',
-                'designated_community_individual_name',
-                'designated_community_individual_role',
-                'designated_community_individual_phone',
-                'designated_community_individual_email',
-                'designated_community_individual_additional',
             )
         }),
         ('Profiles', {
