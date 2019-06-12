@@ -94,7 +94,7 @@ matrix:
     - env: PRETTIER
       language: node_js
       node_js: "10"
-      before_install: cd ESSArch_Core/frontend
+      before_install: cd ESSArch_Core/frontend/static/frontend
       install: yarn
       script: yarn prettier --check "**/*.{ts,js,scss,html}"
       after_success: skip
