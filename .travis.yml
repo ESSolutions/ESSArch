@@ -1,11 +1,11 @@
 sudo: required
 language: python
-cache: pip
 dist: xenial
 
-before_cache:
-  - rm -f $HOME/.cache/pip/log/debug.log
-  - rm -rf $HOME/.cache/pip/http
+cache:
+  yarn: true
+  directories:
+    - "${HOME}/virtualenv/python$(python -c 'import platform; print(platform.python_version())')"
 
 branches:
   only:
