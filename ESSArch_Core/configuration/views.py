@@ -66,9 +66,6 @@ except ImportError:  # pip < 10.0
     from pip.operations.freeze import freeze as pip_freeze
 
 
-
-
-
 logger = logging.getLogger('essarch.configuration')
 
 

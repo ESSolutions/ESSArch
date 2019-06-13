@@ -175,8 +175,6 @@ def installDefaultParameters():
         'related_object_identifier_type': 'ESS',
         'site_name': site_name,
         'medium_location': 'Media_%s' % site_name,
-        'content_location_type': 'SIP',
-        #'content_location_type': 'AIP', # TODO: this is moved here from EPP, which collides with above line
     }
 
     for key in dct:
@@ -419,12 +417,11 @@ def installDefaultPaths():
         'path_preingest_reception': '/ESSArch/data/etp/reception',
         'path_ingest_reception': '/ESSArch/data/eta/reception/eft',
         'path_ingest_unidentified': '/ESSArch/data/eta/uip',
-        'ingest_workarea': '/ESSArch/data/eta/work',
         'reception': '/ESSArch/data/gate/reception',
         'ingest': '/ESSArch/data/epp/ingest',
         'cache': '/ESSArch/data/epp/cache',
         'access_workarea': '/ESSArch/data/epp/work',
-        #'ingest_workarea': '/ESSArch/data/epp/work', # TODO: This is copied here from EPP which collides with eta
+        'ingest_workarea': '/ESSArch/data/epp/work',
         'disseminations': '/ESSArch/data/epp/disseminations',
         'orders': '/ESSArch/data/epp/orders',
         'verify': '/ESSArch/data/epp/verify',

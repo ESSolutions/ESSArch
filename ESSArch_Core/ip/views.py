@@ -1475,14 +1475,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
 
         return ip.get_path_response(path, request, force_download=download, paginator=self.paginator)
 
-    # @action(detail=True, methods=['get'], permission_classes=[IsResponsibleOrCanSeeAllFiles])
-    # def files(self, request, pk=None):
-    #     # TODO: This is moved here from ETA (overriding above) and breaking for ETP and EPP, so commented it out
-    #     ip = self.get_object()
-    #     path = request.query_params.get('path', '').rstrip('/')
-    #     download = request.query_params.get('download', False)
-    #     return ip.get_path_response(path, request, force_download=download, paginator=self.paginator)
-
     @transaction.atomic
     @action(detail=True, methods=['post'], url_path='unlock-profile', permission_classes=[CanUnlockProfile])
     def unlock_profile(self, request, pk=None):
@@ -2122,6 +2114,13 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
     @action(detail=True, methods=['get'])
     def files(self, request, pk=None):
         reception = Path.objects.get(entity="reception").value
+        path = request.query_params.get('path', '').rstrip('/ ')
+        download = request.query_params.get('download', False)
+
+        if os.path.isdir(os.path.join(reception, pk)):
+            path = os.path.join(reception, pk, path)
+            return list_files(path, force_download=download, paginator=self.paginator, request=request)
+
         xml = os.path.join(reception, "%s.xml" % pk)
 
         if not os.path.exists(xml):
@@ -2129,9 +2128,6 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         ip = parse_submit_description(xml, srcdir=reception)
         container = ip['object_path']
-
-        path = request.query_params.get('path', '').rstrip('/ ')
-        download = request.query_params.get('download', False)
 
         if len(path):
             path = os.path.join(os.path.dirname(container), path)
@@ -2253,43 +2249,6 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     def get_directories(self):
         return get_immediate_subdirectories(self.reception)
-
-    @action(detail=True, methods=['get'])
-    def files(self, request, pk=None):
-        reception = Path.objects.get(entity="path_ingest_reception").value
-        path = request.query_params.get('path', '').rstrip('/ ')
-        download = request.query_params.get('download', False)
-
-        if os.path.isdir(os.path.join(reception, pk)):
-            path = os.path.join(reception, pk, path)
-            return list_files(path, force_download=download, paginator=self.paginator, request=request)
-
-        xml = os.path.join(reception, "%s.xml" % pk)
-
-        if not os.path.exists(xml):
-            raise exceptions.NotFound
-
-        ip = parse_submit_description(xml, srcdir=reception)
-        container = ip['object_path']
-
-        if len(path):
-            path = os.path.join(os.path.dirname(container), path)
-            return list_files(path, force_download=download, paginator=self.paginator, request=request)
-
-        entry = {
-            "name": os.path.basename(container),
-            "type": 'file',
-            "size": os.path.getsize(container),
-            "modified": timestamp_to_datetime(os.path.getmtime(container)),
-        }
-
-        xmlentry = {
-            "name": os.path.basename(xml),
-            "type": 'file',
-            "size": os.path.getsize(xml),
-            "modified": timestamp_to_datetime(os.path.getmtime(xml)),
-        }
-        return Response([entry, xmlentry])
 
     @action(detail=False, methods=['post'], url_path='identify-ip')
     def identify_ip(self, request):
