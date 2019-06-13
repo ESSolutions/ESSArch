@@ -15,6 +15,12 @@ stages:
   - lint
   - test
 
+addons:
+  apt:
+    packages:
+      - libluajit-5.1-dev
+      - liblua5.2-dev
+
 templates:
   mariadb: &mariadb DB_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
   mysql: &mysql DB_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
