@@ -452,14 +452,18 @@ class StructureUnit(MPTTModel):
 
         if self.structure != other_unit.structure:
             if not self.structure.is_template and not other_unit.structure.is_template:
-                # copy existing tag structures to other unit
-                old_tag_structures = TagStructure.objects.filter(structure_unit=self)
-                for old_tag_structure in old_tag_structures.get_descendants(include_self=True):
-                    if old_tag_structure.structure_unit is None:
-                        old_tag_structure.copy_to_new_structure(other_unit.structure)
-                        continue
+                src_archive_structure = self.structure.tagstructure_set.first().get_root()
+                dst_archive_structure = other_unit.structure.tagstructure_set.first().get_root()
 
-                    old_tag_structure.copy_to_new_structure(other_unit.structure, other_unit)
+                if src_archive_structure == dst_archive_structure:
+                    # copy existing tag structures to other unit
+                    old_tag_structures = TagStructure.objects.filter(structure_unit=self)
+                    for old_tag_structure in old_tag_structures.get_descendants(include_self=True):
+                        if old_tag_structure.structure_unit is None:
+                            old_tag_structure.copy_to_new_structure(other_unit.structure)
+                            continue
+
+                        old_tag_structure.copy_to_new_structure(other_unit.structure, other_unit)
 
             if not self.structure.is_template and other_unit.structure.is_template:
                 # copy tagstructures to instance in same archive of related template
