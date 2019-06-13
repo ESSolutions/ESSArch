@@ -54,6 +54,7 @@ from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.models import Member
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
+from ESSArch_Core.decorators import lock_obj
 from ESSArch_Core.essxml.util import get_objectpath, parse_submit_description
 from ESSArch_Core.exceptions import Conflict, NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
@@ -96,7 +97,7 @@ from ESSArch_Core.ip.serializers import (
     WorkareaSerializer,
 )
 from ESSArch_Core.maintenance.models import AppraisalRule, ConversionRule
-from ESSArch_Core.mixins import GetObjectForUpdateViewMixin, PaginatedViewMixin
+from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
 from ESSArch_Core.tags.models import TagStructure
@@ -282,7 +283,7 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
         return super().destroy(request, pk, **kwargs)
 
 
-class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMixin):
+class InformationPackageViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows information packages to be viewed or edited.
     """
@@ -589,13 +590,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
 
         return Response({"detail": "Prepared IP"}, status=status.HTTP_201_CREATED)
 
+    @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
     @permission_required_or_403('ip.prepare_ip')
     @action(detail=True, methods=['post'], url_path='prepare')
     def prepare(self, request, pk=None):
-        ip = self.get_object_for_update()
-        if ip.is_locked():
-            raise Conflict('Information package is locked')
+        ip = self.get_object()
         sa = ip.submission_agreement
 
         if ip.state != 'Preparing':
@@ -719,6 +719,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
         ip.save()
         return Response()
 
+    @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
     @action(detail=True, methods=['post'], url_path='create', permission_classes=[CanCreateSIP])
     def create_ip(self, request, pk=None):
@@ -730,9 +731,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
             None
         """
 
-        ip = self.get_object_for_update()
-        if ip.is_locked():
-            raise Conflict('Information package is locked')
+        ip = self.get_object()
 
         if ip.state != "Uploaded":
             raise exceptions.ParseError("The IP (%s) is in the state '%s' but should be 'Uploaded'" % (pk, ip.state))
@@ -843,6 +842,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
         workflow.run()
         return Response({'status': 'creating ip'})
 
+    @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
     @action(detail=True, methods=['post'], url_path='submit', permission_classes=[CanSubmitSIP])
     def submit(self, request, pk=None):
@@ -854,9 +854,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
             None
         """
 
-        ip = self.get_object_for_update()
-        if ip.is_locked():
-            raise Conflict('Information package is locked')
+        ip = self.get_object()
 
         if ip.state != "Created":
             return Response(
@@ -1611,10 +1609,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMix
 
         return Response("Validating IP")
 
+    @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
     @action(detail=True, methods=['post'], url_path='transfer', permission_classes=[CanTransferSIP])
     def transfer(self, request, pk=None):
-        ip = self.get_object_for_update()
+        ip = self.get_object()
 
         workflow_spec = [
             {
