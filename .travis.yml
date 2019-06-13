@@ -137,8 +137,7 @@ install:
   # Pin six to avoid dependency errors,
   # see https://github.com/pypa/pip/issues/4887
 
-  - pip uninstall -y six
-  - pip install six>=1.12.0
+  - python -m pip install six>=1.12.0
   - python -m pip install --upgrade pip wheel codecov setuptools
   - pip install -e .["tests,s3$DB_PACKAGES"]
 
