@@ -2,6 +2,7 @@ version: "3.3"
 
 services:
   essarch:
+    image: essarch
     build:
       context: ..
       dockerfile: docker/Dockerfile
@@ -37,9 +38,7 @@ services:
       - essarch
 
   worker:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
+    image: essarch
     command:
       - /bin/bash
       - -c
@@ -71,9 +70,7 @@ services:
       - essarch
 
   beat:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
+    image: essarch
     command:
       - /bin/bash
       - -c
