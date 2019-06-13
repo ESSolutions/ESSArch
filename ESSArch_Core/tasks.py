@@ -43,7 +43,7 @@ from django_redis import get_redis_connection
 from elasticsearch import helpers as es_helpers
 from elasticsearch_dsl.connections import get_connection
 from lxml import etree
-from retrying import retry
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
@@ -635,7 +635,7 @@ class DownloadFile(DBTask):
 class MountTape(DBTask):
     event_type = 40200
 
-    @retry(stop_max_attempt_number=5, wait_fixed=60000)
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(60000))
     def run(self, medium=None, drive=None, timeout=120):
         mount_tape_medium_into_drive(drive, medium, timeout)
 
@@ -649,7 +649,7 @@ class MountTape(DBTask):
 class UnmountTape(DBTask):
     event_type = 40100
 
-    @retry(stop_max_attempt_number=5, wait_fixed=60000)
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(60000))
     def run(self, drive=None):
         return unmount_tape_from_drive(drive)
 

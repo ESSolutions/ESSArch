@@ -8,7 +8,7 @@ from subprocess import PIPE, Popen
 
 from django.utils.timezone import localtime
 from lxml import etree
-from retrying import retry
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 from ESSArch_Core.storage.exceptions import (
     MTFailedOperationException,
@@ -31,7 +31,7 @@ DEFAULT_TAPE_BLOCK_SIZE = 20 * 512
 logger = logging.getLogger('essarch.storage.tape')
 
 
-@retry(stop_max_attempt_number=5, wait_fixed=60000)
+@retry(stop=stop_after_attempt(5), wait=wait_fixed(60000))
 def mount_tape(robot, slot, drive):
     """
     Mounts tape from slot into drive
@@ -71,7 +71,7 @@ def mount_tape(robot, slot, drive):
     return out
 
 
-@retry(stop_max_attempt_number=5, wait_fixed=60000)
+@retry(stop=stop_after_attempt(5), wait=wait_fixed(60000))
 def unmount_tape(robot, slot, drive):
     """
     Unmounts tape from drive into slot

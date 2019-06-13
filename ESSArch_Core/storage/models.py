@@ -10,7 +10,7 @@ from django.db import models
 from django.db.models import Case, IntegerField, Value, When
 from django.db.models.functions import Cast
 from picklefield.fields import PickledObjectField
-from retrying import retry
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
@@ -708,7 +708,7 @@ class IOQueue(models.Model):
         master_server = self.storage_method_target.storage_target.master_server
         return len(master_server.split(',')) == 3
 
-    @retry(stop_max_attempt_number=5, wait_fixed=60000)
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(60000))
     def sync_with_master(self, data):
         master_server = self.storage_method_target.storage_target.master_server
         host, user, passw = master_server.split(',')

@@ -7,7 +7,7 @@ import tempfile
 from subprocess import PIPE
 from unittest import mock
 
-import retrying
+import tenacity
 from django.test import TestCase
 from django.utils import timezone
 
@@ -34,7 +34,7 @@ def retry_mock(*args, **kwargs):
     return decorator
 
 
-retrying.retry = retry_mock
+tenacity.retry = retry_mock
 
 from ESSArch_Core.storage.tape import (  # noqa isort:skip
     mount_tape,
