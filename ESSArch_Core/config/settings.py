@@ -186,6 +186,8 @@ DATABASES = {'default': dj_database_url.parse(url=DATABASE_URL)}
 
 # Cache
 REDIS_CLIENT_CLASS = os.environ.get('REDIS_CLIENT_CLASS', 'redis.client.StrictRedis')
+DJANGO_REDIS_CONNECTION_FACTORY = os.environ.get('DJANGO_REDIS_CONNECTION_FACTORY',
+                                                 'django_redis.pool.ConnectionFactory')
 
 CACHES = {
     'default': {

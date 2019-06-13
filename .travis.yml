@@ -40,7 +40,9 @@ matrix:
     - name: "Linux with SQLite"
       stage: test
       python: "3.6"
-      env: REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
+      env:
+        - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
+        - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
     - name: "Linux with MSSQL"
       stage: test
@@ -58,6 +60,7 @@ matrix:
       env:
         - *mssql
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
+        - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
     - name: "Linux with MariaDB"
       stage: test
@@ -67,6 +70,7 @@ matrix:
       env:
         - *mariadb
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
+        - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
     - name: "Linux with MySQL"
       stage: test
@@ -76,6 +80,7 @@ matrix:
       env:
         - *mysql
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
+        - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
     - name: "Linux with PostgreSQL"
       stage: test
@@ -85,6 +90,7 @@ matrix:
       env:
         - *postgres
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
+        - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
     - name: "Windows with MSSQL"
       stage: test
@@ -106,6 +112,7 @@ matrix:
       env:
         - *mssql
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
+        - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
     - env: PRETTIER
       stage: lint

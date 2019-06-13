@@ -53,8 +53,8 @@ from ESSArch_Core.api.filters import string_to_bool
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.models import Member
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
+from ESSArch_Core.cache.decorators import lock_obj
 from ESSArch_Core.configuration.models import ArchivePolicy, Path
-from ESSArch_Core.decorators import lock_obj
 from ESSArch_Core.essxml.util import get_objectpath, parse_submit_description
 from ESSArch_Core.exceptions import Conflict, NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
