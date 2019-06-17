@@ -406,6 +406,8 @@ class TransferViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Transfer.objects.none()
     serializer_class = TransferSerializer
     permission_classes = (ActionPermissions,)
+    filter_backends = (SearchFilter, filters.OrderingFilter)
+    search_fields = ('name',)
 
     def get_queryset(self):
         user = self.request.user
