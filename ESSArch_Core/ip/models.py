@@ -153,7 +153,7 @@ class InformationPackageManager(models.Manager):
         return get_objects_for_user(user, self.model, perms, include_no_auth_objs)
 
     def visible_to_user(self, user):
-        return self.for_user(user, 'view_informationpackage', include_no_auth_objs=False)
+        return self.for_user(user, 'view_informationpackage')
 
 
 class InformationPackage(models.Model):
@@ -452,13 +452,10 @@ class InformationPackage(models.Model):
             return False
 
     def get_profile(self, profile_type):
-        if self.submission_agreement is None:
-            return None
-
         try:
-            return getattr(self.submission_agreement, 'profile_%s' % profile_type)
-        except AttributeError:
-            raise AttributeError('No such profile type')
+            return ProfileIP.objects.get(ip=self, profile__profile_type=profile_type)
+        except ProfileIP.DoesNotExist:
+            return None
 
     def get_profile_data(self, profile_type):
         try:

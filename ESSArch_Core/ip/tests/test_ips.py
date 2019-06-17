@@ -47,10 +47,12 @@ from ESSArch_Core.ip.models import InformationPackage, Order, Workarea
 from ESSArch_Core.profiles.models import (
     Profile,
     ProfileIP,
+    ProfileIPData,
     ProfileSA,
     SubmissionAgreement,
 )
 from ESSArch_Core.tags.models import Structure, Tag, TagStructure
+from ESSArch_Core.testing.runner import TaskRunner
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
@@ -140,6 +142,7 @@ class WorkareaViewSetTestCase(TestCase):
     def test_aip_in_workarea_without_permission_to_view_it_and_aic_view_type(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         aip = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=0)
+        self.group.add_object(aip)
         Workarea.objects.create(user=self.user, ip=aip, type=Workarea.ACCESS)
 
         res = self.client.get(self.url, data={'view_type': 'aic'})
@@ -148,6 +151,7 @@ class WorkareaViewSetTestCase(TestCase):
     def test_aip_in_workarea_without_permission_to_view_it_and_ip_view_type(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         aip = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=0)
+        self.group.add_object(aip)
         Workarea.objects.create(user=self.user, ip=aip, type=Workarea.ACCESS, read_only=False)
 
         res = self.client.get(self.url, data={'view_type': 'ip'})
@@ -231,6 +235,9 @@ class AIPInMultipleUsersWorkareaTestCase(TestCase):
         self.aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         self.aip = InformationPackage.objects.create(aic=self.aic, package_type=InformationPackage.AIP, generation=0)
         self.aip2 = InformationPackage.objects.create(aic=self.aic, package_type=InformationPackage.AIP, generation=1)
+
+        self.group.add_object(self.aip)
+        self.group.add_object(self.aip2)
 
         self.other_user = User.objects.create(username="other")
         self.workarea = Workarea.objects.create(user=self.user, ip=self.aip, type=Workarea.ACCESS)
@@ -540,6 +547,8 @@ class InformationPackageViewSetTestCase(TestCase):
         self.client.force_authenticate(user=self.user)
 
         self.url = reverse('informationpackage-list')
+
+        Path.objects.create(entity='disseminations', value='')
 
     def test_empty(self):
         res = self.client.get(self.url)
@@ -1236,7 +1245,7 @@ class InformationPackageViewSetTestCase(TestCase):
 
         # no permission
         res = self.client.delete(url)
-        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
         # view permission
         perms = {'group': ['view_informationpackage']}
@@ -1257,10 +1266,6 @@ class InformationPackageViewSetTestCase(TestCase):
         ip = InformationPackage.objects.create(object_path='foo', responsible=self.user, archived=True)
         url = reverse('informationpackage-detail', args=(str(ip.pk),))
         res = self.client.delete(url)
-
-        # no permission
-        res = self.client.delete(url)
-        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
         # view permission
         perms = {'group': ['view_informationpackage']}
@@ -1283,28 +1288,6 @@ class InformationPackageViewSetTestCase(TestCase):
         mock_task.assert_called_once()
 
     @mock.patch('ESSArch_Core.workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
-    def test_prepare_dip_no_label(self, mock_prepare):
-        self.url = self.url + 'prepare-dip/'
-        res = self.client.post(self.url)
-
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        mock_prepare.assert_not_called()
-
-    @mock.patch('ESSArch_Core.workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
-    def test_prepare_dip_no_object_identifier_value(self, mock_prepare):
-        self.url = self.url + 'prepare-dip/'
-        self.client.post(self.url, {'label': 'foo'})
-
-        mock_prepare.assert_called_once_with(label='foo', object_identifier_value=None, orders=[])
-
-    @mock.patch('ESSArch_Core.workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
-    def test_prepare_dip_with_object_identifier_value(self, mock_prepare):
-        self.url = self.url + 'prepare-dip/'
-        self.client.post(self.url, {'label': 'foo', 'object_identifier_value': 'bar'})
-
-        mock_prepare.assert_called_once_with(label='foo', object_identifier_value='bar', orders=[])
-
-    @mock.patch('ESSArch_Core.workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
     def test_prepare_dip_with_existing_object_identifier_value(self, mock_prepare):
         self.url = self.url + 'prepare-dip/'
 
@@ -1312,15 +1295,6 @@ class InformationPackageViewSetTestCase(TestCase):
         self.client.post(self.url, {'label': 'foo', 'object_identifier_value': 'bar'})
 
         mock_prepare.assert_not_called()
-
-    @mock.patch('ESSArch_Core.workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
-    def test_prepare_dip_with_orders(self, mock_prepare):
-        self.url = self.url + 'prepare-dip/'
-
-        orders = [str(Order.objects.create(responsible=self.user).pk)]
-        self.client.post(self.url, {'label': 'foo', 'orders': orders}, format='json')
-
-        mock_prepare.assert_called_once_with(label='foo', object_identifier_value=None, orders=orders)
 
     @mock.patch('ESSArch_Core.workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
     def test_prepare_dip_with_non_existing_order(self, mock_prepare):
@@ -1643,67 +1617,6 @@ class OrderViewSetTestCase(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-# TODO: this is moved here from ETA, should be merged with InformationPackageReceptionViewSetTestCase above
-class InformationPackageReceptionViewSetTestCaseETA(TestCase):
-    def setUp(self):
-        self.user = User.objects.create(username="admin", password='admin')
-
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        self.url = reverse('ip-reception-list')
-
-        self.reception = tempfile.mkdtemp()
-        self.unidentified = tempfile.mkdtemp()
-
-        Path.objects.create(entity='path_ingest_reception', value=self.reception)
-        Path.objects.create(entity='path_ingest_unidentified', value=self.unidentified)
-
-        tar_filepath = os.path.join(self.reception, '1.tar')
-        xml_filepath = os.path.join(self.reception, '1.xml')
-
-        open(tar_filepath, 'a').close()
-        with open(xml_filepath, 'w') as xml:
-            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
-            <root OBJID="1" LABEL="mylabel">
-                <metsHdr/>
-                <file><FLocat href="file:///1.tar"/></file>
-            </root>
-            ''')
-
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
-    def test_receive(self, mock_receive):
-        res = self.client.post(self.url + '1/receive/')
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        mock_receive.assert_called_once()
-
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
-    def test_receive_existing(self, mock_receive):
-        InformationPackage.objects.create(object_identifier_value='1')
-        res = self.client.post(self.url + '1/receive/')
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        mock_receive.assert_not_called()
-
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
-    def test_receive_invalid_validator(self, mock_receive):
-        data = {'validators': {'validate_invalid': True}}
-        res = self.client.post(self.url + '1/receive/', data=data)
-
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertFalse(ProcessStep.objects.filter(name='Validate').exists())
-        mock_receive.assert_called_once()
-
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
-    def test_receive_validator(self, mock_receive):
-        data = {'validators': {'validate_xml_file': True}}
-        res = self.client.post(self.url + '1/receive/', data=data)
-
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertTrue(ProcessStep.objects.filter(name='Validate').exists())
-        self.assertTrue(ProcessTask.objects.filter(name='preingest.tasks.ValidateXMLFile').exists())
-        mock_receive.assert_called_once()
-
-
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class IdentifyIP(TransactionTestCase):
     def setUp(self):
@@ -1944,46 +1857,6 @@ class CreateIPTestCase(TestCase):
         self.assertEqual(InformationPackage.objects.filter(label='label').count(), 2)
 
 
-class test_delete_ip(TestCase):
-    def setUp(self):
-        self.user = User.objects.create(username="admin")
-
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, 'datadir')
-
-        self.ip = InformationPackage.objects.create(object_path=self.datadir)
-        self.url = reverse('informationpackage-detail', args=(str(self.ip.pk),))
-
-        try:
-            os.mkdir(self.datadir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
-
-    def tearDown(self):
-        try:
-            shutil.rmtree(self.datadir)
-        except BaseException:
-            pass
-
-    def test_delete_ip_without_permission(self):
-        res = self.client.delete(self.url)
-        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertTrue(os.path.exists(self.datadir))
-
-    def test_delete_ip_with_permission(self):
-        InformationPackage.objects.filter(pk=self.ip.pk).update(
-            responsible=self.user
-        )
-
-        res = self.client.delete(self.url)
-        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(os.path.exists(self.datadir))
-
-
 class test_submit_ip(TestCase):
     def setUp(self):
         self.user = User.objects.create(username="admin")
@@ -1997,9 +1870,9 @@ class test_submit_ip(TestCase):
         Path.objects.create(entity='path_preingest_prepare', value=self.datadir)
         Path.objects.create(entity='path_preingest_reception', value=self.datadir)
 
-        self.ip = InformationPackage.objects.create()
-        self.url = reverse('informationpackage-detail', args=(self.ip.pk,))
-        self.url = self.url + 'submit/'
+        self.sa = SubmissionAgreement.objects.create()
+        self.ip = InformationPackage.objects.create(submission_agreement=self.sa)
+        self.url = reverse('informationpackage-submit', args=(self.ip.pk,))
 
         try:
             os.mkdir(self.datadir)
@@ -2053,9 +1926,15 @@ class test_submit_ip(TestCase):
 
         tp = Profile.objects.create(
             profile_type='transfer_project',
-            specification_data={'preservation_organization_receiver_email': 'foo'}
         )
-        ProfileIP.objects.create(ip=self.ip, profile=tp)
+        tp_ip = ProfileIP.objects.create(ip=self.ip, profile=tp)
+        tp_ip_data = ProfileIPData.objects.create(
+            relation=tp_ip,
+            data={'preservation_organization_receiver_email': 'foo'},
+            user=self.user,
+        )
+        tp_ip.data = tp_ip_data
+        tp_ip.save()
 
         res = self.client.post(self.url, {'body': 'foo'})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
@@ -2067,9 +1946,15 @@ class test_submit_ip(TestCase):
 
         tp = Profile.objects.create(
             profile_type='transfer_project',
-            specification_data={'preservation_organization_receiver_email': 'foo'}
         )
-        ProfileIP.objects.create(ip=self.ip, profile=tp)
+        tp_ip = ProfileIP.objects.create(ip=self.ip, profile=tp)
+        tp_ip_data = ProfileIPData.objects.create(
+            relation=tp_ip,
+            data={'preservation_organization_receiver_email': 'foo'},
+            user=self.user,
+        )
+        tp_ip.data = tp_ip_data
+        tp_ip.save()
 
         res = self.client.post(self.url, {'subject': 'foo'})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
@@ -2083,9 +1968,15 @@ class test_submit_ip(TestCase):
 
         tp = Profile.objects.create(
             profile_type='transfer_project',
-            specification_data={'preservation_organization_receiver_email': 'foo'}
         )
-        ProfileIP.objects.create(ip=self.ip, profile=tp)
+        tp_ip = ProfileIP.objects.create(ip=self.ip, profile=tp)
+        tp_ip_data = ProfileIPData.objects.create(
+            relation=tp_ip,
+            data={'preservation_organization_receiver_email': 'foo'},
+            user=self.user,
+        )
+        tp_ip.data = tp_ip_data
+        tp_ip.save()
 
         sd = Profile.objects.create(profile_type='submit_description')
         ProfileIP.objects.create(ip=self.ip, profile=sd)
@@ -2104,22 +1995,23 @@ class test_set_uploaded(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-        self.ip = InformationPackage.objects.create()
-        self.url = reverse('informationpackage-detail', args=(str(self.ip.pk),))
+        self.ip = InformationPackage.objects.create(state='Uploading')
+        self.url = reverse('informationpackage-set-uploaded', args=(self.ip.pk,))
 
     def test_set_uploaded_without_permission(self):
-        res = self.client.post('%sset-uploaded/' % self.url)
+        res = self.client.post(self.url)
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
         self.ip.refresh_from_db()
-        self.assertEqual(self.ip.state, '')
+        self.assertEqual(self.ip.state, 'Uploading')
 
+    @TaskRunner()
     def test_set_uploaded_with_permission(self):
         InformationPackage.objects.filter(pk=self.ip.pk).update(
             responsible=self.user
         )
 
-        res = self.client.post('%sset-uploaded/' % self.url)
+        res = self.client.post(self.url)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         self.ip.refresh_from_db()
@@ -2239,96 +2131,6 @@ class UploadTestCase(TestCase):
             data = {'path': dstfile}
             self.client.post(self.baseurl + 'merge-uploaded-chunks/', data)
             self.assertTrue(filecmp.cmp(srcfile, dstfile, False))
-
-
-class test_change_sa(TestCase):
-    def setUp(self):
-        self.user = User.objects.create(username="admin")
-
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        self.ip = InformationPackage.objects.create(responsible=self.user)
-        self.url = reverse('informationpackage-detail', args=(str(self.ip.pk),))
-
-        self.sa = SubmissionAgreement.objects.create()
-        self.sa_url = reverse('submissionagreement-detail', args=(str(self.sa.pk),))
-
-    def test_no_sa(self):
-        res = self.client.patch(self.url, {'submission_agreement': self.sa_url}, format='json')
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-
-        self.ip.refresh_from_db()
-        self.assertEqual(self.ip.submission_agreement, self.sa)
-
-    def test_unlocked_sa(self):
-        self.ip.submission_agreement = SubmissionAgreement.objects.create()
-        self.ip.save()
-
-        res = self.client.patch(self.url, {'submission_agreement': self.sa_url}, format='json')
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-
-        self.ip.refresh_from_db()
-        self.assertEqual(self.ip.submission_agreement, self.sa)
-
-    def test_locked_sa(self):
-        self.ip.submission_agreement = SubmissionAgreement.objects.create()
-        self.ip.submission_agreement_locked = True
-        self.ip.save()
-
-        res = self.client.patch(self.url, {'submission_agreement': self.sa_url}, format='json')
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-        self.ip.refresh_from_db()
-        self.assertNotEqual(self.ip.submission_agreement, self.sa)
-
-    def test_not_responsible_for_ip(self):
-        self.ip.responsible = User.objects.create(username="stranger")
-        self.ip.submission_agreement = SubmissionAgreement.objects.create()
-        self.ip.save()
-
-        res = self.client.patch(self.url, {'submission_agreement': self.sa_url}, format='json')
-        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
-
-        self.ip.refresh_from_db()
-        self.assertNotEqual(self.ip.submission_agreement, self.sa)
-
-
-class test_change_profile(TestCase):
-    def setUp(self):
-        self.user = User.objects.create(username="admin")
-
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        self.ip = InformationPackage.objects.create(responsible=self.user)
-        self.url = reverse('informationpackage-detail', args=(str(self.ip.pk),))
-        self.url = '%schange-profile/' % self.url
-
-        self.profile_type = 'foo'
-        self.profile = Profile.objects.create(profile_type=self.profile_type)
-
-    def test_no_profile(self):
-        res = self.client.put(self.url, {'new_profile': str(self.profile.pk)}, format='json')
-
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertTrue(ProfileIP.objects.filter(profile=self.profile, ip=self.ip).exists())
-
-    def test_unlocked_profile(self):
-        ProfileIP.objects.create(profile=Profile.objects.create(profile_type=self.profile_type), ip=self.ip)
-        res = self.client.put(self.url, {'new_profile': str(self.profile.pk)}, format='json')
-
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertTrue(ProfileIP.objects.filter(profile=self.profile, ip=self.ip).exists())
-
-    def test_locked_profile(self):
-        ProfileIP.objects.create(
-            profile=Profile.objects.create(profile_type=self.profile_type), ip=self.ip, LockedBy=self.user
-        )
-        res = self.client.put(self.url, {'new_profile': str(self.profile.pk)}, format='json')
-
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(ProfileIP.objects.filter(profile=self.profile, ip=self.ip).exists())
 
 
 class FilesActionTests(TestCase):
