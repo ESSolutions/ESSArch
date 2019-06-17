@@ -4,6 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from rest_framework import exceptions, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from rest_framework.permissions import DjangoModelPermissions, SAFE_METHODS
 
@@ -27,8 +28,9 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
     )
     serializer_class = SubmissionAgreementSerializer
     permission_classes = (DjangoModelPermissions,)
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_fields = ('published',)
+    search_fields = ('name',)
 
     @action(detail=True)
     def profiles(self, request, pk=None):
