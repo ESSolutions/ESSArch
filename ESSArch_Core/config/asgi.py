@@ -32,6 +32,6 @@ ASGI config for ESSArch project.
 
 """
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ESSArch_Core.config.settings")
 django.setup()
 application = get_default_application()

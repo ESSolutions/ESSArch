@@ -156,7 +156,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
-ROOT_URLCONF = 'config.urls'
+ROOT_URLCONF = 'ESSArch_Core.config.urls'
 
 TEMPLATES = [
     {
@@ -174,7 +174,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
+WSGI_APPLICATION = 'ESSArch_Core.config.wsgi.application'
 
 
 # Database

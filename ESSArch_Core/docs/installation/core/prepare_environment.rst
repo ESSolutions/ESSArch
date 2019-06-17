@@ -43,7 +43,7 @@ Add the following rows to ``/home/arch/.bash_profile`` :
    export EC=/ESSArch/pd/python/lib/python3.6/site-packages
    export EC_PYTHONPATH=$EC:/ESSArch/config
    export PYTHONPATH=$EC_PYTHONPATH
-   export DJANGO_SETTINGS_MODULE=config.settings
+   export DJANGO_SETTINGS_MODULE=ESSArch_Core.config.settings
    alias log='cd /ESSArch/log'
    ##
    ### ESSArch Core end

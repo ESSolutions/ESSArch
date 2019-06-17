@@ -35,6 +35,6 @@ For more information on this file, see
 https://docs.djangoproject.com/en/1.9/howto/deployment/wsgi/
 """
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ESSArch_Core.config.settings")
 
 application = get_wsgi_application()

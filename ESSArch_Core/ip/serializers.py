@@ -1,9 +1,9 @@
 import errno
 import os
 
-from _version import get_versions
 from rest_framework import filters, serializers
 
+from ESSArch_Core._version import get_versions
 from ESSArch_Core.api.serializers import DynamicHyperlinkedModelSerializer
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import UserSerializer

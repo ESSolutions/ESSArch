@@ -28,7 +28,6 @@ import socket
 import sys
 from sqlite3 import sqlite_version
 
-from _version import get_versions
 from celery import current_app
 from django.conf import settings
 from django.db import connection
@@ -40,7 +39,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ESSArch_Core._version import get_versions as get_core_versions
+from ESSArch_Core._version import get_versions
 from ESSArch_Core.api.filters import string_to_bool
 from ESSArch_Core.configuration.models import (
     Agent,
@@ -151,7 +150,6 @@ class SysInfoView(APIView):
         }
         context['hostname'] = socket.gethostname()
         context['version'] = get_versions()
-        context['core_version'] = get_core_versions()
         context['time_checked'] = timezone.now()
         context['database'] = get_database_info()
 
