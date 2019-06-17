@@ -21,6 +21,7 @@ from ESSArch_Core.ip.permissions import CanChangeSA, CanDeleteIP
 from ESSArch_Core.ip.serializers import (
     AgentSerializer,
     EventIPSerializer,
+    EventIPWriteSerializer,
     InformationPackageSerializer,
     WorkareaSerializer
 )
@@ -50,6 +51,12 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         'linkingAgentIdentifierValue', 'eventDateTime',
     )
     search_fields = ('eventOutcomeDetailNote',)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update', 'metadata']:
+            return EventIPWriteSerializer
+
+        return self.serializer_class
 
 
 class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewSet):
