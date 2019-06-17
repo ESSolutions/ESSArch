@@ -383,18 +383,6 @@ class DeliveryViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         return self.serializer_class
 
-    @action(detail=True, methods=['GET'], url_path='events')
-    def events(self, request, pk):
-        delivery = self.get_object()
-        qs = EventIP.objects.filter(Q(delivery=delivery) | Q(transfer__delivery=delivery))
-        qs = filters.OrderingFilter().filter_queryset(request, qs, EventIPViewSet)
-        page = self.paginate_queryset(qs)
-        if page is not None:
-            serializers = EventIPSerializer(page, many=True, context={'request': request})
-            return self.get_paginated_response(serializers.data)
-        serializers = EventIPSerializer(qs, many=True, context={'request': request})
-        return Response(serializers.data)
-
 
 class DeliveryTypeViewSet(viewsets.ModelViewSet):
     queryset = DeliveryType.objects.all()
