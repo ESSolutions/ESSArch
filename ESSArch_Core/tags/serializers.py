@@ -654,7 +654,7 @@ class DeliverySerializer(serializers.ModelSerializer):
 
 class DeliveryWriteSerializer(DeliverySerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=DeliveryType.objects.all())
-    submission_agreement = serializers.PrimaryKeyRelatedField(queryset=SubmissionAgreement.objects.all())
+    submission_agreement = serializers.PrimaryKeyRelatedField(queryset=SubmissionAgreement.objects.filter(published=True))
     producer_organization = serializers.PrimaryKeyRelatedField(queryset=Agent.objects.all())
 
     def create(self, validated_data):
