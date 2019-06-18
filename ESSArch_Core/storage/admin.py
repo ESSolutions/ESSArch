@@ -26,7 +26,6 @@ from django.contrib import admin
 from nested_inline.admin import NestedStackedInline
 
 from ESSArch_Core.storage.models import (
-    IOQueue,
     Robot,
     StorageMedium,
     StorageMethod,
@@ -71,7 +70,7 @@ class StorageMethodInline(NestedStackedInline):
         (None, {
             'fields': (
                 'name',
-                'status',
+                'enabled',
                 'type',
                 'containers',
             )
@@ -106,12 +105,37 @@ class StorageTargetsAdmin(admin.ModelAdmin):
 
 
 class StorageMediumAdmin(admin.ModelAdmin):
-    exclude = ('last_changed_local', 'last_changed_external')
+    exclude = (
+        'create_date',
+        'last_changed_local',
+        'last_changed_external',
+        'num_of_mounts',
+        'used_capacity',
+    )
 
 
-admin.site.register(StorageTarget, StorageTargetsAdmin)
+class StorageMethodAdmin(admin.ModelAdmin):
+    list_display = ('name', 'enabled', 'type', 'containers',)
+
+
+class StorageMethodTargetRelationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'status', 'storage_method', 'storage_target')
+
+
+class StorageObjectAdmin(admin.ModelAdmin):
+    list_display = ('ip', 'storage_medium',)
+    exclude = ('last_changed_local', 'last_changed_external',)
+
+
+class TapeDriveAdmin(admin.ModelAdmin):
+    exclude = ('last_change', 'num_of_mounts',)
+
+
 admin.site.register(Robot)
-admin.site.register(TapeDrive)
-admin.site.register(IOQueue)
+admin.site.register(TapeDrive, TapeDriveAdmin)
+
 admin.site.register(StorageMedium, StorageMediumAdmin)
-admin.site.register(StorageObject)
+admin.site.register(StorageMethod, StorageMethodAdmin)
+admin.site.register(StorageMethodTargetRelation, StorageMethodTargetRelationAdmin)
+admin.site.register(StorageObject, StorageObjectAdmin)
+admin.site.register(StorageTarget, StorageTargetsAdmin)

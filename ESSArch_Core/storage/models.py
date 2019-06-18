@@ -9,6 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import Case, IntegerField, Value, When
 from django.db.models.functions import Cast
+from django.utils import timezone
 from picklefield.fields import PickledObjectField
 from tenacity import retry, stop_after_attempt, wait_fixed
 
@@ -159,7 +160,7 @@ class StorageMethod(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField('Name', max_length=255, blank=True)
-    status = models.BooleanField('Storage method status', default=False)
+    enabled = models.BooleanField('Enabled', default=True)
     type = models.IntegerField('Type', choices=storage_type_CHOICES, default=200)
     containers = models.BooleanField('Long-term', default=False)
     archive_policy = models.ForeignKey(
@@ -206,7 +207,7 @@ class StorageMethodTargetRelation(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Storage Target/Method Relation'
+        verbose_name = 'Storage Method/Target Relation'
         ordering = ['name']
 
     def __str__(self):
@@ -368,7 +369,7 @@ class StorageMedium(models.Model):
     used_capacity = models.BigIntegerField(default=0)
     num_of_mounts = models.IntegerField(default=0)
 
-    create_date = models.DateTimeField(auto_now_add=True)
+    create_date = models.DateTimeField(default=timezone.now)
     last_changed_local = models.DateTimeField(null=True)
     last_changed_external = models.DateTimeField(null=True)
 
@@ -472,11 +473,13 @@ class StorageObject(models.Model):
     content_location_type = models.IntegerField(choices=storage_type_CHOICES)
     content_location_value = models.CharField(max_length=255, blank=True)
 
-    last_changed_local = models.DateTimeField(null=True, auto_now_add=True)
+    last_changed_local = models.DateTimeField(null=True, default=timezone.now)
     last_changed_external = models.DateTimeField(null=True)
 
-    ip = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, related_name='storage')
-    storage_medium = models.ForeignKey('StorageMedium', on_delete=models.CASCADE, related_name='storage')
+    ip = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, related_name='storage',
+                           verbose_name='information package')
+    storage_medium = models.ForeignKey('StorageMedium', on_delete=models.CASCADE, related_name='storage',
+                                       verbose_name='medium')
 
     objects = StorageObjectQueryset.as_manager()
 
@@ -616,7 +619,7 @@ class TapeDrive(models.Model):
     io_queue_entry = models.OneToOneField('IOQueue', models.PROTECT, related_name='tape_drive', null=True, blank=True)
     num_of_mounts = models.IntegerField(default=0)
     idle_time = models.DurationField(default=timedelta(hours=1))
-    last_change = models.DateTimeField(auto_now_add=True)
+    last_change = models.DateTimeField(default=timezone.now)
     robot = models.ForeignKey('Robot', models.PROTECT, related_name='tape_drives')
     locked = models.BooleanField(default=False)
     status = models.IntegerField(choices=STATUS_CHOICES, default=20)
@@ -665,7 +668,7 @@ class Robot(models.Model):
 class RobotQueue(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='robot_queue_entries')
-    posted = models.DateTimeField(auto_now_add=True)
+    posted = models.DateTimeField(default=timezone.now)
     robot = models.OneToOneField('Robot', on_delete=models.CASCADE, related_name='robot_queue', null=True)
     io_queue_entry = models.ForeignKey('IOQueue', models.SET_NULL, null=True)
     storage_medium = models.ForeignKey('StorageMedium', models.PROTECT)
@@ -687,7 +690,7 @@ class IOQueue(models.Model):
     result = PickledObjectField(blank=True, null=True)
     status = models.IntegerField(blank=True, default=0, choices=req_status_CHOICES)
     task_id = models.CharField(max_length=36, blank=True)
-    posted = models.DateTimeField(auto_now_add=True)
+    posted = models.DateTimeField(default=timezone.now)
     ip = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, null=True)
     storage_method_target = models.ForeignKey('StorageMethodTargetRelation', on_delete=models.CASCADE)
     storage_medium = models.ForeignKey('StorageMedium', on_delete=models.CASCADE, blank=True, null=True)
@@ -751,7 +754,7 @@ class AccessQueue(models.Model):
     )
     status = models.IntegerField(null=True, blank=True, default=0, choices=req_status_CHOICES)
     path = models.CharField(max_length=255)
-    posted = models.DateTimeField(auto_now_add=True)
+    posted = models.DateTimeField(default=timezone.now)
 
     class Meta:
         get_latest_by = 'posted'
