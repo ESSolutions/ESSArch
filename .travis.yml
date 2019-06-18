@@ -104,6 +104,9 @@ matrix:
       language: sh
       python: "3.6"
       services: docker
+      cache:
+        directories:
+          - "${HOME}/AppData/Local/pip/Cache/wheels"
       before_install:
         - mkdir -p /c/ESSArch/log/
         - docker pull christianacca/mssql-server-windows-express:1803
