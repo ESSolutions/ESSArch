@@ -27,12 +27,17 @@
 
 from django.contrib import admin
 from django.contrib.sites.models import Site as DjangoSite
+from django.db import transaction
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect
 from nested_inline.admin import NestedModelAdmin
 
 from ESSArch_Core.configuration.models import ArchivePolicy
 from ESSArch_Core.storage.admin import StorageMethodInline
 
 from .models import Agent, EventType, Parameter, Path, Site
+
+csrf_protect_m = method_decorator(csrf_protect)
 
 
 class ParameterAdmin(admin.ModelAdmin):
@@ -128,6 +133,18 @@ class ArchivePolicyAdmin(NestedModelAdmin):
         }),
     )
     inlines = [StorageMethodInline]
+
+    @csrf_protect_m
+    @transaction.atomic
+    def add_view(self, request, form_url='', extra_context=None):
+        extra_context = self.admin_site.each_context(request)
+        return super().add_view(request, form_url=form_url, extra_context=extra_context)
+
+    @csrf_protect_m
+    @transaction.atomic
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = self.admin_site.each_context(request)
+        return super().change_view(request, object_id, form_url=form_url, extra_context=extra_context)
 
 
 admin.site.unregister(DjangoSite)
