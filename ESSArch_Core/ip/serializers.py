@@ -9,6 +9,7 @@ from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import EventType
 from ESSArch_Core.ip.models import Agent, AgentNote, EventIP, InformationPackage, Workarea
 from ESSArch_Core.tags.models import StructureUnit, TagVersion, Delivery, Transfer
+from ESSArch_Core.tags.serializers import TransferSerializer
 
 VERSION = get_versions()['version']
 
@@ -33,6 +34,25 @@ class EventIPSerializer(serializers.HyperlinkedModelSerializer):
     eventType = serializers.PrimaryKeyRelatedField(queryset=EventType.objects.all())
     eventDetail = serializers.SlugRelatedField(slug_field='eventDetail', source='eventType', read_only=True)
     delivery = serializers.PrimaryKeyRelatedField(required=False, queryset=Delivery.objects.all())
+    transfer = TransferSerializer()
+
+
+    class Meta:
+        model = EventIP
+        fields = (
+            'url', 'id', 'eventType', 'eventDateTime', 'eventDetail',
+            'eventVersion', 'eventOutcome',
+            'eventOutcomeDetailNote', 'linkingAgentIdentifierValue',
+            'linkingAgentRole', 'information_package', 'delivery', 'transfer',
+        )
+        extra_kwargs = {
+            'eventVersion': {
+                'default': VERSION
+            }
+        }
+
+
+class EventIPWriteSerializer(EventIPSerializer):
     transfer = serializers.PrimaryKeyRelatedField(required=False, queryset=Transfer.objects.all())
 
     def validate(self, data):
@@ -50,19 +70,6 @@ class EventIPSerializer(serializers.HyperlinkedModelSerializer):
             validated_data['linkingAgentIdentifierValue'] = self.context['request'].user
         return super().create(validated_data)
 
-    class Meta:
-        model = EventIP
-        fields = (
-            'url', 'id', 'eventType', 'eventDateTime', 'eventDetail',
-            'eventVersion', 'eventOutcome',
-            'eventOutcomeDetailNote', 'linkingAgentIdentifierValue',
-            'linkingAgentRole', 'information_package', 'delivery', 'transfer',
-        )
-        extra_kwargs = {
-            'eventVersion': {
-                'default': VERSION
-            }
-        }
 
 
 class InformationPackageSerializer(serializers.ModelSerializer):

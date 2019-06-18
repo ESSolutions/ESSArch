@@ -11,6 +11,8 @@ from django.utils.translation import ugettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
 from mptt.models import MPTTModel, TreeForeignKey
 
+from ESSArch_Core.agents.models import Agent
+from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.managers import OrganizationManager
 
 User = get_user_model()
@@ -1013,9 +1015,26 @@ class DeliveryType(models.Model):
 
 class Delivery(models.Model):
     id = models.BigAutoField(primary_key=True)
+    reference_code = models.CharField(_('name'), max_length=255, blank=True)
     name = models.CharField(_('name'), max_length=255, blank=False)
     type = models.ForeignKey('tags.DeliveryType', on_delete=models.PROTECT, null=False, verbose_name=_('type'))
     description = models.TextField(_('description'), blank=True)
+
+    producer_organization = models.ForeignKey(
+        Agent,
+        on_delete=models.PROTECT,
+        related_name='deliveries',
+        default=None,
+        null=True,
+    )
+
+    submission_agreement = models.ForeignKey(
+        SubmissionAgreement,
+        on_delete=models.PROTECT,
+        related_name='deliveries',
+        default=None,
+        null=True,
+    )
 
     objects = OrganizationManager()
 
@@ -1028,6 +1047,11 @@ class Transfer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_('name'), max_length=255, blank=False)
     delivery = models.ForeignKey('tags.Delivery', on_delete=models.CASCADE, null=False, verbose_name=_('delivery'))
+    submitter_organization =  models.CharField(blank=True, max_length=255)
+    submitter_organization_main_address =  models.CharField(blank=True, max_length=255)
+    submitter_individual_name =  models.CharField(blank=True, max_length=255)
+    submitter_individual_phone =  models.CharField(blank=True, max_length=255)
+    submitter_individual_email =  models.CharField(blank=True, max_length=255)
 
     objects = OrganizationManager()
 

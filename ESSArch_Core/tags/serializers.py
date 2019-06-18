@@ -11,12 +11,15 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from ESSArch_Core.agents.models import Agent, AgentTagLink, AgentTagLinkRelationType
 from ESSArch_Core.agents.serializers import (
+    AgentSerializer,
     AgentNameSerializer,
     AgentTagLinkRelationTypeSerializer,
 )
 from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.api.validators import StartDateEndDateValidator
 from ESSArch_Core.ip.utils import get_cached_objid
+from ESSArch_Core.profiles.models import SubmissionAgreement
+from ESSArch_Core.profiles.serializers import SubmissionAgreementSerializer
 from ESSArch_Core.tags.models import (
     Delivery,
     DeliveryType,
@@ -641,14 +644,18 @@ class DeliveryTypeSerializer(serializers.ModelSerializer):
 
 class DeliverySerializer(serializers.ModelSerializer):
     type = DeliveryTypeSerializer()
+    submission_agreement = SubmissionAgreementSerializer()
+    producer_organization = AgentSerializer()
 
     class Meta:
         model = Delivery
-        fields = ('id', 'name', 'type', 'description')
+        fields = ('id', 'name', 'type', 'description', 'submission_agreement', 'producer_organization')
 
 
 class DeliveryWriteSerializer(DeliverySerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=DeliveryType.objects.all())
+    submission_agreement = serializers.PrimaryKeyRelatedField(queryset=SubmissionAgreement.objects.filter(published=True))
+    producer_organization = serializers.PrimaryKeyRelatedField(queryset=Agent.objects.all())
 
     def create(self, validated_data):
         obj = super().create(validated_data)
@@ -671,7 +678,8 @@ class TransferSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Transfer
-        fields = ('id', 'name', 'delivery')
+        fields = ('id', 'name', 'delivery', 'submitter_organization', 'submitter_organization_main_address',
+                'submitter_individual_name', 'submitter_individual_phone', 'submitter_individual_email')
 
 
 class TransferEditNodesSerializer(serializers.Serializer):
