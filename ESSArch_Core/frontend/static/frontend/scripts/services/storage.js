@@ -7,7 +7,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       ordering: sortString,
       search: searchString,
     }).$promise.then(function successCallback(resource) {
-      count = resource.$httpHeaders('Count');
+      let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
       }
@@ -27,7 +27,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       ordering: sortString,
       search: searchString,
     }).$promise.then(function(resource) {
-      count = resource.$httpHeaders('Count');
+      let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
       }
@@ -46,7 +46,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       ordering: sortString,
       search: searchString,
     }).$promise.then(function successCallback(resource) {
-      count = resource.$httpHeaders('Count');
+      let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
       }
@@ -65,7 +65,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       ordering: sortString,
       search: searchString,
     }).$promise.then(function(resource) {
-      count = resource.$httpHeaders('Count');
+      let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
       }
@@ -84,7 +84,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       ordering: sortString,
       search: searchString,
     }).$promise.then(function(resource) {
-      count = resource.$httpHeaders('Count');
+      let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
       }
@@ -103,7 +103,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       ordering: sortString,
       search: searchString,
     }).$promise.then(function(resource) {
-      count = resource.$httpHeaders('Count');
+      let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
       }
@@ -122,7 +122,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       ordering: sortString,
       search: searchString,
     }).$promise.then(function(resource) {
-      count = resource.$httpHeaders('Count');
+      let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
       }
@@ -140,7 +140,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       ordering: sortString,
       search: searchString,
     }).$promise.then(function(resource) {
-      count = resource.$httpHeaders('Count');
+      let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
       }
@@ -158,7 +158,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       ordering: sortString,
       search: searchString,
     }).$promise.then(function(resource) {
-      count = resource.$httpHeaders('Count');
+      let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
       }

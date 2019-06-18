@@ -229,6 +229,8 @@ export default class RobotInformationCtrl {
                 tableState.pagination.start = result.numberOfPages * number - number;
                 $scope.loadRobots(tableState);
               });
+            } else {
+              $scope.ipLoading = false;
             }
           });
       }

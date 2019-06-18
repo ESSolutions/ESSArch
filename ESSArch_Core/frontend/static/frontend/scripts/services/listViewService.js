@@ -184,7 +184,7 @@ const listViewService = (
         columnFilters
       )
     ).$promise.then(function(resource) {
-      count = resource.$httpHeaders('Count');
+      let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
       }
@@ -210,7 +210,7 @@ const listViewService = (
         columnFilters
       )
     ).$promise.then(function(resource) {
-      count = resource.$httpHeaders('Count');
+      let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
       }

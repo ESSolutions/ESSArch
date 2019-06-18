@@ -22,7 +22,7 @@ Web - http://www.essolutions.se
 Email - essarch@essolutions.se
 */
 
-export default class {
+export default class MediaInformationCtrl {
   constructor(
     $scope,
     $rootScope,
@@ -138,6 +138,8 @@ export default class {
                 tableState.pagination.start = result.numberOfPages * number - number;
                 vm.callServer(tableState);
               });
+            } else {
+              $scope.ipLoading = false;
             }
           });
       }
