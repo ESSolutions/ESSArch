@@ -309,10 +309,10 @@ def installDefaultUsers():
         ['change_grouptype', 'groups_manager', 'grouptype'],                    # Can change grouptype
         ['delete_grouptype', 'groups_manager', 'grouptype'],                    # Can delete grouptype
 
-        # ---- app: configuration ---- model: archivepolicy
-        ['add_archivepolicy', 'configuration', 'archivepolicy'],  # Can add archivepolicy
-        ['change_archivepolicy', 'configuration', 'archivepolicy'],  # Can change archivepolicy
-        ['delete_archivepolicy', 'configuration', 'archivepolicy'],  # Can delete archivepolicy
+        # ---- app: configuration ---- model: storagepolicy
+        ['add_storagepolicy', 'configuration', 'storagepolicy'],  # Can add storagepolicy
+        ['change_storagepolicy', 'configuration', 'storagepolicy'],  # Can change storagepolicy
+        ['delete_storagepolicy', 'configuration', 'storagepolicy'],  # Can delete storagepolicy
         # ---- app: storage ---- model: storagemethod
         ['add_storagemethod', 'storage', 'storagemethod'],  # Can add storagemethod
         ['change_storagemethod', 'storage', 'storagemethod'],  # Can change storagemethod
@@ -419,7 +419,6 @@ def installDefaultPaths():
         'path_ingest_unidentified': '/ESSArch/data/eta/uip',
         'reception': '/ESSArch/data/gate/reception',
         'ingest': '/ESSArch/data/epp/ingest',
-        'cache': '/ESSArch/data/epp/cache',
         'access_workarea': '/ESSArch/data/epp/work',
         'ingest_workarea': '/ESSArch/data/epp/work',
         'disseminations': '/ESSArch/data/epp/disseminations',
@@ -438,42 +437,56 @@ def installDefaultPaths():
 
 
 def installDefaultArchivePolicies():
-    cache = Path.objects.get(entity='cache')
-    ingest = Path.objects.get(entity='ingest')
-
-    StoragePolicy.objects.get_or_create(
-        policy_id='1',
+    cache, created_cache = StorageMethod.objects.get_or_create(
+        name='Default Cache Storage Method',
         defaults={
-            'checksum_algorithm': StoragePolicy.MD5,
-            'policy_name': 'default',
-            'cache_storage': cache, 'ingest_path': ingest,
-            'receive_extract_sip': True
-        }
-    )
-
-    return 0
-
-
-def installDefaultStorageMethods():
-    StorageMethod.objects.get_or_create(
-        name='Default Storage Method 1',
-        defaults={
-            'storage_policy': StoragePolicy.objects.get(policy_name='default'),
-            'status': True,
+            'enabled': True,
             'type': DISK,
             'containers': False,
         }
     )
 
-    StorageMethod.objects.get_or_create(
+    ingest = Path.objects.get(entity='ingest')
+
+    policy, created_policy = StoragePolicy.objects.get_or_create(
+        policy_id='1',
+        defaults={
+            'checksum_algorithm': StoragePolicy.MD5,
+            'policy_name': 'default',
+            'cache_storage': cache, 'ingest_path': ingest,
+            'receive_extract_sip': True,
+            'cache_minimum_capacity': 0,
+            'cache_maximum_age': 0,
+        }
+    )
+
+    if created_policy or created_cache:
+        policy.storage_methods.add(cache)
+
+    return 0
+
+
+def installDefaultStorageMethods():
+    sm1, _ = StorageMethod.objects.get_or_create(
+        name='Default Storage Method 1',
+        defaults={
+            'enabled': True,
+            'type': DISK,
+            'containers': False,
+        }
+    )
+
+    sm2, _ = StorageMethod.objects.get_or_create(
         name='Default Long-term Storage Method 1',
         defaults={
-            'storage_policy': StoragePolicy.objects.get(policy_name='default'),
-            'status': True,
+            'enabled': True,
             'type': DISK,
             'containers': True,
         }
     )
+
+    default_policy = StoragePolicy.objects.get(policy_name='default')
+    default_policy.storage_methods.add(sm1, sm2)
 
     return 0
 
