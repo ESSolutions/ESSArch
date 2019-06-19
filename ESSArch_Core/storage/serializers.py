@@ -5,7 +5,7 @@ from rest_framework import serializers, validators
 
 from ESSArch_Core.api.serializers import DynamicHyperlinkedModelSerializer
 from ESSArch_Core.auth.serializers import UserSerializer
-from ESSArch_Core.configuration.models import StoragePolicy, Path
+from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.ip.serializers import (
     InformationPackageDetailSerializer,

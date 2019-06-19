@@ -42,7 +42,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from ESSArch_Core.auth.models import Group, GroupMember, GroupMemberRole
-from ESSArch_Core.configuration.models import StoragePolicy, EventType, Path
+from ESSArch_Core.configuration.models import EventType, Path, StoragePolicy
 from ESSArch_Core.ip.models import InformationPackage, Order, Workarea
 from ESSArch_Core.profiles.models import (
     Profile,

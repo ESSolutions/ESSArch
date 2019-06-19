@@ -52,7 +52,7 @@ from guardian.shortcuts import assign_perm
 # noinspection PyUnresolvedReferences
 from ESSArch_Core import tasks  # noqa
 from ESSArch_Core.auth.models import Member, Notification
-from ESSArch_Core.configuration.models import StoragePolicy, Path
+from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator,
     parseContent,

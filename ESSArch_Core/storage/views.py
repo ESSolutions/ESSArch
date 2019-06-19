@@ -32,7 +32,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from ESSArch_Core.configuration.models import StoragePolicy, Path
+from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.configuration.serializers import (
     StorageMethodSerializer,
     StorageMethodTargetRelationSerializer,

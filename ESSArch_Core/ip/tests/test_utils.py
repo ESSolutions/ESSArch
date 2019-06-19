@@ -7,7 +7,7 @@ from unittest import mock
 from django.test import TestCase
 from django.utils import timezone
 
-from ESSArch_Core.configuration.models import StoragePolicy, Path
+from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.ip.utils import (
     download_schema,

@@ -28,11 +28,11 @@ from rest_framework import serializers
 from ESSArch_Core.api.serializers import DynamicHyperlinkedModelSerializer
 from ESSArch_Core.configuration.models import (
     Agent,
-    StoragePolicy,
     EventType,
     Parameter,
     Path,
     Site,
+    StoragePolicy,
 )
 from ESSArch_Core.storage.models import (
     StorageMethod,

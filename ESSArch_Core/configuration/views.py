@@ -43,19 +43,19 @@ from ESSArch_Core._version import get_versions
 from ESSArch_Core.api.filters import string_to_bool
 from ESSArch_Core.configuration.models import (
     Agent,
-    StoragePolicy,
     EventType,
     Parameter,
     Path,
     Site,
+    StoragePolicy,
 )
 from ESSArch_Core.configuration.serializers import (
     AgentSerializer,
-    StoragePolicySerializer,
     EventTypeSerializer,
     ParameterSerializer,
     PathSerializer,
     SiteSerializer,
+    StoragePolicySerializer,
 )
 from ESSArch_Core.WorkflowEngine import get_workers
 
