@@ -178,6 +178,7 @@ class NodeRelationTypeSerializer(serializers.ModelSerializer):
         model = NodeRelationType
         fields = ('id', 'name',)
 
+
 class StructureUnitTypeSerializer(serializers.ModelSerializer):
     structure_type = StructureTypeSerializer()
 
@@ -654,8 +655,9 @@ class DeliverySerializer(serializers.ModelSerializer):
 
 class DeliveryWriteSerializer(DeliverySerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=DeliveryType.objects.all())
-    submission_agreement = serializers.PrimaryKeyRelatedField(queryset=SubmissionAgreement.objects.filter(published=True))
-    producer_organization = serializers.PrimaryKeyRelatedField(queryset=Agent.objects.all())
+    submission_agreement = serializers.PrimaryKeyRelatedField(
+        queryset=SubmissionAgreement.objects.filter(published=True), allow_null=True)
+    producer_organization = serializers.PrimaryKeyRelatedField(queryset=Agent.objects.all(), allow_null=True)
 
     def create(self, validated_data):
         obj = super().create(validated_data)
@@ -675,11 +677,10 @@ class TransferSerializer(serializers.ModelSerializer):
 
         return obj
 
-
     class Meta:
         model = Transfer
         fields = ('id', 'name', 'delivery', 'submitter_organization', 'submitter_organization_main_address',
-                'submitter_individual_name', 'submitter_individual_phone', 'submitter_individual_email')
+                  'submitter_individual_name', 'submitter_individual_phone', 'submitter_individual_email')
 
 
 class TransferEditNodesSerializer(serializers.Serializer):
