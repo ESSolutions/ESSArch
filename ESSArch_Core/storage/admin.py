@@ -96,6 +96,7 @@ class StorageMediumAdmin(admin.ModelAdmin):
 
 class StorageMethodAdmin(admin.ModelAdmin):
     list_display = ('name', 'enabled', 'type', 'containers',)
+    filter_horizontal = ['storage_policies']
 
 
 class StorageMethodTargetRelationAdmin(admin.ModelAdmin):
