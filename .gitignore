@@ -24,6 +24,9 @@ docker/log
 # JetBrains IDEs
 /.idea/
 
+# PyDev (Python IDE for Eclipse)
+*.pydevproject
+
 # Coverage default folders
 .coverage
 htmlcov/
