@@ -26,7 +26,18 @@ import {nestedEmptyPermissions, nestedPermissions, resolve} from '../index';
 
 export default class UtilCtrl {
   /*@ngInject*/
-  constructor(Notifications, $scope, $state, $timeout, myService, permissionConfig, $anchorScroll, $transitions) {
+  constructor(
+    Notifications,
+    $scope,
+    $state,
+    $timeout,
+    myService,
+    permissionConfig,
+    $anchorScroll,
+    $transitions,
+    $window,
+    $translate
+  ) {
     $scope.angular = angular;
     $scope.$state = $state;
     $scope.reloadPage = function() {
@@ -49,6 +60,10 @@ export default class UtilCtrl {
 
     $scope.navigateToState = function(state) {
       $state.go(state);
+    };
+
+    $scope.gotoDocs = function() {
+      $window.open('/docs/' + $translate.use() + '/user_guide/index.html', '_blank');
     };
 
     var enter = 13;

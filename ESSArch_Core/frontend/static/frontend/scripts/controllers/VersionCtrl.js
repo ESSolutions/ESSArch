@@ -25,23 +25,4 @@ export default ($scope, $window, $anchorScroll, $location, $translate, Sysinfo) 
     $location.hash(link);
     $anchorScroll();
   };
-
-  $scope.gotoDocs = function() {
-    $window.open('/docs/' + $translate.use() + '/user_guide/index.html', '_blank');
-  };
-
-  $scope.tabs = [
-    {
-      label: $translate.instant('DOCS'),
-      templateUrl: 'static/frontend/views/docs.html',
-    },
-    {
-      label: $translate.instant('SYSINFO.SYSTEMINFORMATION'),
-      templateUrl: 'static/frontend/views/sysinfo.html',
-    },
-    {
-      label: $translate.instant('SYSINFO.SUPPORT'),
-      templateUrl: 'static/frontend/views/support.html',
-    },
-  ];
 };

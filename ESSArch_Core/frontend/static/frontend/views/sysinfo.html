@@ -1,5 +1,6 @@
-<div class="version-info pt-base" ng-if="sysInfo">
-  <div class="row m-0">
+<div class="version-info-page w-100">
+  <h3 class="py-base m-0">{{'SYSINFO.SYSTEMINFORMATION' | translate}}</h3>
+  <div class="row m-0" ng-if="sysInfo">
     <div class="col-12 col-lg-6 p-0 pr-lg-base">
       <p><b>{{'VERSION' | translate}}:</b> {{sysInfo.version.version}} - {{sysInfo.version.full}}</p>
       <p><b>ESSArch Core:</b> {{sysInfo.core_version.version}} - {{sysInfo.core_version.full}}</p>
@@ -127,7 +128,7 @@
       </div>
     </div>
   </div>
-</div>
-<div ng-if="!sysInfo" style="width: 50%;">
-  <p>{{'LOADING' | translate}}...</p>
+  <div ng-if="!sysInfo" class="w-50 float-right">
+    <p>{{'LOADING' | translate}}...</p>
+  </div>
 </div>

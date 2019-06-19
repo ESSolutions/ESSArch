@@ -18,7 +18,7 @@
       </div>
       <div class="user-admin">
         <div ng-controller="UtilCtrl" class="mobile-notification">
-          <div class="notification-icon position-relative show-sm">
+          <div class="notification-icon position-relative">
             <i
               ng-click="showAlert()"
               class="fas fa-bell fa-lg"
@@ -34,6 +34,7 @@
               {{unseenNotifications}}
             </div>
             <div ng-click="showAlert()" ng-if="unseenNotifications > 999" class="unseen-text">{{999}}+</div>
+            <notifications></notifications>
           </div>
         </div>
         <user-dropdown auth="auth"></user-dropdown>
@@ -133,13 +134,13 @@
         >
       </nav>
       <div ng-controller="UtilCtrl" class="tasks-icons">
-        <span
-          ng-click="reloadPage()"
-          class="fas fa-sync-alt fa-lg fa-sync-alt-animate-once"
-          uib-tooltip="{{'REFRESHPAGE' | translate}}"
+        <i
+          ng-click="gotoDocs()"
+          class="fas fa-book fa-lg"
+          uib-tooltip="{{'DOCS' | translate}}"
           tooltip-placement="auto top"
           tooltip-append-to-body="true"
-        ></span>
+        ></i>
         <a
           href="/admin/"
           class="fas fa-cog fa-lg"
@@ -148,29 +149,13 @@
           tooltip-append-to-body="true"
         ></a>
         <a
-          ui-sref="home.versionInfo"
+          ui-sref="home.system"
           class="fas fa-question-circle fa-lg"
-          uib-tooltip="{{'HELP' | translate}}"
+          uib-tooltip="{{'SYSINFO.SYSTEMINFORMATION' | translate}}"
           tooltip-placement="auto top"
           tooltip-append-to-body="true"
         ></a>
         <div class="notification-icon">
-          <i
-            ng-click="showAlert()"
-            class="fas fa-bell fa-lg"
-            uib-tooltip="{{'NOTIFICATIONS.NOTIFICATIONS' | translate}}"
-            tooltip-placement="auto top"
-            tooltip-append-to-body="true"
-          ></i>
-          <div
-            ng-click="showAlert()"
-            ng-if="unseenNotifications != 0 && unseenNotifications <= 999"
-            class="unseen-text"
-          >
-            {{unseenNotifications}}
-          </div>
-          <div ng-click="showAlert()" ng-if="unseenNotifications > 999" class="unseen-text">{{999}}+</div>
-          <notifications></notifications>
         </div>
         <div
           class="organization-select"
@@ -192,19 +177,6 @@
               >{{'ORGANIZATION.NO_ORGANIZATIONS' | translate}}</option
             >
           </select>
-        </div>
-        <div ng-controller="LanguageCtrl" class="language-select" style="width: 100px; margin-left: 10px;">
-          <select
-            tabindex="-1"
-            class="form-control"
-            ng-model="currentLanguage"
-            ng-change="changeLanguage(currentLanguage)"
-            ng-options="x | translate for x in availableLanguages"
-            style="width: 100%;"
-            uib-tooltip="{{'CHOOSELANGUAGE' | translate}}"
-            tooltip-placement="auto top"
-            tooltip-append-to-body="true"
-          ></select>
         </div>
       </div>
     </div>

@@ -339,6 +339,8 @@ export default angular
     'permissionConfig',
     '$anchorScroll',
     '$transitions',
+    '$window',
+    '$translate',
     UtilCtrl,
   ])
   .controller('AppraisalCtrl', [

@@ -326,6 +326,8 @@ const general = $translateProvider => {
     SUBMITDESCRIPTION: 'Submit description',
     SUBMITSIP: 'Submit SIP',
     SUCCESS: 'Success',
+    SUPPORT: 'Support',
+    SYSTEM: 'System',
     TAGS: 'Tags',
     TAPEDRIVES: 'Tape drives',
     TAPELIBRARY: 'Tape library',

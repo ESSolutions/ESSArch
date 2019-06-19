@@ -328,6 +328,8 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     SUBMITDESCRIPTION: 'Submit description',
     SUBMITSIP: 'Skicka SIP',
     SUCCESS: 'Slutförd',
+    SUPPORT: 'Support',
+    SYSTEM: 'System',
     TAGS: 'Taggar',
     TAPEDRIVES: 'Bandenheter',
     TAPELIBRARY: 'Bandbibliotek',

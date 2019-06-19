@@ -17,6 +17,9 @@
     justify-content: space-around;
   }
   .company-info-wrapper {
+    a {
+      color: white;
+    }
     ul {
       list-style-type: none;
       padding: 0;
@@ -38,5 +41,8 @@
     a {
       color: white;
     }
+  }
+  .vertical-line-separator {
+    border-left: 1px solid white;
   }
 }

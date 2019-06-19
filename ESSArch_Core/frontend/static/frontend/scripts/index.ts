@@ -385,9 +385,17 @@ angular
             },
           },
         })
-        .state('home.versionInfo', {
-          url: 'version',
-          templateUrl: '/static/frontend/views/version_info.html',
+        .state('home.system', {
+          url: 'system',
+          templateUrl: '/static/frontend/views/sysinfo.html',
+          controller: 'VersionCtrl as vm',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+        })
+        .state('home.support', {
+          url: 'support',
+          templateUrl: '/static/frontend/views/support.html',
           controller: 'VersionCtrl as vm',
           resolve: {
             authenticated: resolveAuthenticated,
