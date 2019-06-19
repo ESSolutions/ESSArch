@@ -83,9 +83,9 @@ class StoragePolicySerializer(DynamicHyperlinkedModelSerializer):
     class Meta:
         model = StoragePolicy
         fields = (
-            "url", "id", "index", "cache_extracted_size",
-            "cache_package_size", "cache_extracted_age",
-            "cache_package_age", "policy_id", "policy_name",
+            "url", "id", "index",
+            "cache_minimum_capacity", "cache_maximum_age",
+            "policy_id", "policy_name",
             "policy_stat", "ais_project_name", "ais_project_id",
             "mode", "wait_for_approval", "checksum_algorithm",
             "validate_checksum", "validate_xml", "ip_type",
@@ -114,9 +114,9 @@ class StoragePolicyNestedSerializer(StoragePolicySerializer):
     class Meta:
         model = StoragePolicy
         fields = (
-            "id", "index", "cache_extracted_size",
-            "cache_package_size", "cache_extracted_age",
-            "cache_package_age", "policy_id", "policy_name",
+            "id", "index",
+            "cache_minimum_capacity", "cache_maximum_age",
+            "policy_id", "policy_name",
             "policy_stat", "ais_project_name", "ais_project_id",
             "mode", "wait_for_approval", "checksum_algorithm",
             "validate_checksum", "validate_xml", "ip_type",

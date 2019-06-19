@@ -210,17 +210,11 @@ class StoragePolicy(models.Model):
 
     index = models.BooleanField(default=True)
 
-    cache_extracted_size = models.BigIntegerField(
-        'Maximum size (bytes) of extracted package before deletion from cache', null=True
+    cache_minimum_capacity = models.IntegerField(
+        'Minimum size (bytes) available on cache before deleting content', default=0,
     )
-    cache_package_size = models.BigIntegerField(
-        'Maximum size (bytes) of package before deletion from cache', null=True
-    )
-    cache_extracted_age = models.IntegerField(
-        'Maximum age (days) of extracted package before deletion from cache', null=True
-    )
-    cache_package_age = models.IntegerField(
-        'Maximum age (days) of package before deletion from cache', null=True
+    cache_maximum_age = models.IntegerField(
+        'Maximum age (days) of content before deletion from cache, resets on access', default=0,
     )
 
     policy_id = models.CharField('Policy ID', max_length=32, unique=True)

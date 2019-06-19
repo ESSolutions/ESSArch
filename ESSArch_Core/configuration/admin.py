@@ -124,10 +124,8 @@ class StoragePolicyAdmin(NestedModelAdmin):
                 'ingest_delete',
                 'index',
                 'receive_extract_sip',
-                'cache_extracted_size',
-                'cache_package_size',
-                'cache_extracted_age',
-                'cache_package_age',
+                'cache_minimum_capacity',
+                'cache_maximum_age',
             )
         }),
     )
