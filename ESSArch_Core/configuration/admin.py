@@ -25,14 +25,17 @@
     Email - essarch@essolutions.se
 """
 
+from django import forms
 from django.contrib import admin
 from django.contrib.sites.models import Site as DjangoSite
 from django.db import transaction
 from django.utils.decorators import method_decorator
+from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import csrf_protect
 from nested_inline.admin import NestedModelAdmin
 
 from ESSArch_Core.configuration.models import StoragePolicy
+from ESSArch_Core.storage.models import DISK, StorageMethod
 
 from .models import Agent, EventType, Parameter, Path, Site
 
@@ -96,11 +99,28 @@ class AgentAdmin(admin.ModelAdmin):
     fields = ('agentType', 'agentDetail')
 
 
+class StoragePolicyAdminForm(forms.ModelForm):
+    cache_storage = forms.ModelChoiceField(
+        queryset=StorageMethod.objects.filter(type=DISK, remote=False, containers=False),
+    )
+
+    def clean_cache_storage(self):
+        data = self.cleaned_data['cache_storage']
+
+        if data.type != DISK or data.remote or data.containers:
+            raise forms.ValidationError(
+                _('Cache must be a local disk without containers'),
+                code='invalid',
+            )
+        return data
+
+
 class StoragePolicyAdmin(NestedModelAdmin):
     """
     StoragePolicy
     """
     model = StoragePolicy
+    form = StoragePolicyAdminForm
     list_display = ('policy_name', 'policy_id', 'policy_stat', 'ais_project_name', 'ais_project_id', 'mode')
     fieldsets = (
         (None, {
