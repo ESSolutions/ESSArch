@@ -5,7 +5,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       BROKER: 'Broker',
       CONTACT: 'Contact',
       HOSTNAME: 'Hostname',
-      'MAX CONCURRENCY': 'Max concurrency',
+      MAX_CONCURRENCY: 'Max concurrency',
       MYSQLVERSION: 'MySQL version',
       PID: 'PID',
       PYTHONPACKAGES: 'Python packages',
