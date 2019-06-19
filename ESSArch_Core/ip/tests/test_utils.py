@@ -13,6 +13,7 @@ from ESSArch_Core.ip.utils import (
     download_schema,
     parse_submit_description_from_ip,
 )
+from ESSArch_Core.storage.models import StorageMethod
 from ESSArch_Core.util import normalize_path
 
 
@@ -23,7 +24,7 @@ class ParseSubmitDescriptionFromIpTests(TestCase):
         self.policy = StoragePolicy.objects.create(
             policy_id="some_unique_id",
             policy_name="dummy_name",
-            cache_storage=Path.objects.create(entity='some unique entity', value="some value"),
+            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(entity='some other unique entity', value="some other value"),
             information_class=2,
         )

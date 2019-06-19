@@ -51,6 +51,7 @@ from ESSArch_Core.profiles.models import (
     ProfileSA,
     SubmissionAgreement,
 )
+from ESSArch_Core.storage.models import StorageMethod
 from ESSArch_Core.tags.models import Structure, Tag, TagStructure
 from ESSArch_Core.testing.runner import TaskRunner
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
@@ -1236,7 +1237,7 @@ class InformationPackageViewSetTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
     def test_delete_ip(self, mock_task):
-        cache = Path.objects.create(entity='cache', value='cache')
+        cache = StorageMethod.objects.create()
         ingest = Path.objects.create(entity='ingest', value='ingest')
         policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
 
@@ -1321,7 +1322,7 @@ class InformationPackageViewSetTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.workflow.tasks.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_preserve_dip(self, mock_step):
-        cache = Path.objects.create(entity='cache', value='cache')
+        cache = StorageMethod.objects.create()
         ingest = Path.objects.create(entity='ingest', value='ingest')
         policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
 
@@ -1340,7 +1341,7 @@ class InformationPackageViewSetTestCase(TestCase):
 
 class InformationPackageReceptionViewSetTestCase(TestCase):
     def setUp(self):
-        self.cache = Path.objects.create(entity='cache', value='cache')
+        self.cache = StorageMethod.objects.create()
         self.ingest = Path.objects.create(entity='ingest', value='ingest')
 
         self.user = User.objects.create(username="admin", password='admin')
