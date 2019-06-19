@@ -22,11 +22,7 @@
     Email - essarch@essolutions.se
 """
 
-import sys
-
 from setuptools import find_packages, setup
-from setuptools.command.install import install as _install
-from pkg_resources import require as pkg_check, DistributionNotFound, VersionConflict
 import versioneer
 
 
@@ -36,95 +32,12 @@ versioneer.versionfile_build = None
 versioneer.tag_prefix = ''  # tags are like 1.2.0
 versioneer.parentdir_prefix = 'ESSArch_Core-'
 
-try:
-    input = raw_input
-except NameError:
-    pass
-
-# ESSArch_Core dependencies
-dependencies = [
-    'ESSArch-EPP>=2.8.4,<=2.8.5',
-    'ESSArch-PP>=3.0.0.*,<=3.0.1.*',
-    'ESSArch-TA>=1.0.3.*,<=1.2.1.*',
-    'ESSArch-TP>=1.0.3.*,<=1.2.1.*',
-]
-
-
-def query_yes_no(question, default="yes"):
-    """Ask a yes/no question via raw_input() and return their answer.
-
-    "question" is a string that is presented to the user.
-    "default" is the presumed answer if the user just hits <Enter>.
-        It must be "yes" (the default), "no" or None (meaning
-        an answer is required of the user).
-
-    The "answer" return value is True for "yes" or False for "no".
-    """
-    valid = {"yes": True, "y": True, "ye": True,
-             "no": False, "n": False}
-    if default is None:
-        prompt = " [y/n] "
-    elif default == "yes":
-        prompt = " [Y/n] "
-    elif default == "no":
-        prompt = " [y/N] "
-    else:
-        raise ValueError("invalid default answer: '%s'" % default)
-
-    while True:
-        sys.stdout.write('\n' + question + prompt)
-        choice = input().lower()
-        if default is not None and choice == '':
-            return valid[default]
-        elif choice in valid:
-            return valid[choice]
-        else:
-            sys.stdout.write("Please respond with 'yes' or 'no' "
-                             "(or 'y' or 'n').\n")
-
-
-def dependencies_check(dependencies):
-    try:
-        pkg_check(dependencies)
-    except VersionConflict as e:
-        print('Warning! You are trying to install a version of ESSArch_Core \
-incompatible with other software versions. If you continue, you \
-will also need to upgrade other software versions as: %s' % e)
-        if not query_yes_no('Do you want to continue with the installation?'):
-            print('Cancel the installation...')
-            sys.exit(1)
-    except DistributionNotFound:
-        pass
-
-
-def _pre_install():
-    print('Running inside _pre_install')
-    dependencies_check(dependencies)
-
-
-def _post_install():
-    print('Running inside _post_install')
-
-
-class my_install(_install):
-    def run(self):
-        self.execute(_pre_install, [],
-                     msg="Running pre install task")
-
-        _install.run(self)
-
-        # the second parameter, [], can be replaced with a set of parameters if _post_install needs any
-        self.execute(_post_install, [],
-                     msg="Running post install task")
-
-
 if __name__ == '__main__':
     cmdclass = versioneer.get_cmdclass()
-    cmdclass.update({'install': my_install})
     setup(
-        name='ESSArch_Core',
+        name='ESSArch',
         version=versioneer.get_version(),
-        description='ESSArch Core',
+        description='ESSArch',
         long_description=open("README.md").read(),
         long_description_content_type='text/markdown',
         author='Henrik Ek',
@@ -137,8 +50,8 @@ if __name__ == '__main__':
         },
         project_urls={
             'Documentation': 'http://docs.essarch.org/',
-            'Source Code': 'https://github.com/ESSolutions/ESSArch_Core/tree/%s' % versioneer.get_versions()['full'],
-            'Travis CI': 'https://travis-ci.org/ESSolutions/ESSArch_Core',
+            'Source Code': 'https://github.com/ESSolutions/ESSArch/tree/%s' % versioneer.get_versions()['full'],
+            'Travis CI': 'https://travis-ci.org/ESSolutions/ESSArch',
         },
         classifiers=[
             "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
