@@ -35,7 +35,6 @@ from django.views.decorators.csrf import csrf_protect
 from nested_inline.admin import NestedModelAdmin
 
 from ESSArch_Core.configuration.models import StoragePolicy
-from ESSArch_Core.storage.admin import StorageMethodTargetRelationInline
 from ESSArch_Core.storage.models import DISK, StorageMethod
 
 from .models import Agent, EventType, Parameter, Path, Site

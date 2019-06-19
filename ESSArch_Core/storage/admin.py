@@ -28,6 +28,7 @@ from django.utils.translation import ugettext as _
 from nested_inline.admin import NestedStackedInline
 
 from ESSArch_Core.storage.models import (
+    STORAGE_TARGET_STATUS_ENABLED,
     Robot,
     StorageMedium,
     StorageMethod,
@@ -35,7 +36,6 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     StorageTarget,
     TapeDrive,
-    STORAGE_TARGET_STATUS_ENABLED
 )
 
 
