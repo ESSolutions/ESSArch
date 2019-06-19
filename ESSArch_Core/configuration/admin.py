@@ -32,7 +32,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
 from nested_inline.admin import NestedModelAdmin
 
-from ESSArch_Core.configuration.models import ArchivePolicy
+from ESSArch_Core.configuration.models import StoragePolicy
 from ESSArch_Core.storage.admin import StorageMethodInline
 
 from .models import Agent, EventType, Parameter, Path, Site
@@ -97,11 +97,11 @@ class AgentAdmin(admin.ModelAdmin):
     fields = ('agentType', 'agentDetail')
 
 
-class ArchivePolicyAdmin(NestedModelAdmin):
+class StoragePolicyAdmin(NestedModelAdmin):
     """
-    ArchivePolicy
+    StoragePolicy
     """
-    model = ArchivePolicy
+    model = StoragePolicy
     list_display = ('policy_name', 'policy_id', 'policy_stat', 'ais_project_name', 'ais_project_id', 'mode')
     fieldsets = (
         (None, {
@@ -150,4 +150,4 @@ class ArchivePolicyAdmin(NestedModelAdmin):
 admin.site.unregister(DjangoSite)
 admin.site.register(Agent, AgentAdmin)
 admin.site.register(Site)
-admin.site.register(ArchivePolicy, ArchivePolicyAdmin)
+admin.site.register(StoragePolicy, StoragePolicyAdmin)

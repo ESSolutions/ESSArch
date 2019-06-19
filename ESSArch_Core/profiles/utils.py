@@ -105,9 +105,9 @@ def fill_specification_data(data=None, sa=None, ip=None):
                 pass
             else:
                 transfer_project_data = ip.get_profile_data('transfer_project')
-                data['_POLICYUUID'] = transfer_project_data.get('archive_policy_uuid')
-                data['_POLICYID'] = transfer_project_data.get('archive_policy_id')
-                data['_POLICYNAME'] = transfer_project_data.get('archive_policy_name')
+                data['_POLICYUUID'] = transfer_project_data.get('storage_policy_uuid')
+                data['_POLICYID'] = transfer_project_data.get('storage_policy_id')
+                data['_POLICYNAME'] = transfer_project_data.get('storage_policy_name')
 
         data['_AGENTS'] = {}
         for a in ip.agents.all():

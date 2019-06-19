@@ -160,7 +160,7 @@ class DefaultColumnVisible(models.Model):
     visible = models.BooleanField(default=True)
 
 
-class ArchivePolicy(models.Model):
+class StoragePolicy(models.Model):
     """Specifies how an IP should be archived"""
 
     MODE_CHOICES = (

@@ -28,11 +28,11 @@ from rest_framework import serializers
 from ESSArch_Core.api.serializers import DynamicHyperlinkedModelSerializer
 from ESSArch_Core.configuration.models import (
     Agent,
-    ArchivePolicy,
     EventType,
     Parameter,
     Path,
     Site,
+    StoragePolicy,
 )
 from ESSArch_Core.storage.models import (
     StorageMethod,
@@ -76,12 +76,12 @@ class PathSerializer(DynamicHyperlinkedModelSerializer):
         }
 
 
-class ArchivePolicySerializer(DynamicHyperlinkedModelSerializer):
+class StoragePolicySerializer(DynamicHyperlinkedModelSerializer):
     cache_storage = PathSerializer()
     ingest_path = PathSerializer()
 
     class Meta:
-        model = ArchivePolicy
+        model = StoragePolicy
         fields = (
             "url", "id", "index", "cache_extracted_size",
             "cache_package_size", "cache_extracted_age",
@@ -110,9 +110,9 @@ class SiteSerializer(serializers.ModelSerializer):
         fields = ('name', 'logo',)
 
 
-class ArchivePolicyNestedSerializer(ArchivePolicySerializer):
+class StoragePolicyNestedSerializer(StoragePolicySerializer):
     class Meta:
-        model = ArchivePolicy
+        model = StoragePolicy
         fields = (
             "id", "index", "cache_extracted_size",
             "cache_package_size", "cache_extracted_age",
@@ -171,7 +171,7 @@ class StorageMethodTargetRelationSerializer(serializers.HyperlinkedModelSerializ
 
 
 class StorageMethodSerializer(DynamicHyperlinkedModelSerializer):
-    archive_policy = ArchivePolicyNestedSerializer()
+    storage_policy = StoragePolicyNestedSerializer()
     targets = serializers.PrimaryKeyRelatedField(
         pk_field=serializers.UUIDField(format='hex_verbose'),
         many=True, read_only=True
@@ -181,7 +181,7 @@ class StorageMethodSerializer(DynamicHyperlinkedModelSerializer):
     class Meta:
         model = StorageMethod
         fields = (
-            'url', 'id', 'name', 'status', 'type', 'archive_policy', 'targets',
+            'url', 'id', 'name', 'status', 'type', 'storage_policy', 'targets',
             'storage_method_target_relations',
         )
         extra_kwargs = {
