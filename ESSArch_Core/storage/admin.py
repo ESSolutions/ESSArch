@@ -64,7 +64,7 @@ class StorageMethodInline(NestedStackedInline):
     StorageMethod configuration
     """
     model = StorageMethod
-    fk_name = 'archive_policy'
+    fk_name = 'storage_policy'
     extra = 0
     fieldsets = (
         (None, {

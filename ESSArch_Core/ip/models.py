@@ -51,7 +51,7 @@ from rest_framework.response import Response
 
 from ESSArch_Core.auth.models import GroupGenericObjects, Member
 from ESSArch_Core.auth.util import get_objects_for_user
-from ESSArch_Core.configuration.models import ArchivePolicy, Path
+from ESSArch_Core.configuration.models import StoragePolicy, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.profiles.models import (
@@ -75,12 +75,12 @@ from ESSArch_Core.util import (
 logger = logging.getLogger('essarch.ip')
 
 MESSAGE_DIGEST_ALGORITHM_CHOICES = (
-    (ArchivePolicy.MD5, 'MD5'),
-    (ArchivePolicy.SHA1, 'SHA-1'),
-    (ArchivePolicy.SHA224, 'SHA-224'),
-    (ArchivePolicy.SHA256, 'SHA-256'),
-    (ArchivePolicy.SHA384, 'SHA-384'),
-    (ArchivePolicy.SHA512, 'SHA-512'),
+    (StoragePolicy.MD5, 'MD5'),
+    (StoragePolicy.SHA1, 'SHA-1'),
+    (StoragePolicy.SHA224, 'SHA-224'),
+    (StoragePolicy.SHA256, 'SHA-256'),
+    (StoragePolicy.SHA384, 'SHA-384'),
+    (StoragePolicy.SHA512, 'SHA-512'),
 )
 MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT = {v: k for k, v in MESSAGE_DIGEST_ALGORITHM_CHOICES}
 
@@ -246,7 +246,7 @@ class InformationPackage(models.Model):
     )
 
     policy = models.ForeignKey(
-        'configuration.ArchivePolicy',
+        'configuration.StoragePolicy',
         on_delete=models.PROTECT,
         related_name='information_packages',
         null=True,

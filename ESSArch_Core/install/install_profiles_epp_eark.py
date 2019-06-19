@@ -168,7 +168,7 @@ def installProfileTransferProject(sa):
                     "desc": "xxx",
                 },
                 "type": "input",
-                "key": "archive_policy"
+                "key": "storage_policy"
             }, {
                 'key': 'container_format',
                 'type': 'select',
@@ -219,7 +219,7 @@ def installProfileTransferProject(sa):
             "archival_institution": "Riksarkivet",
             "archival_type": "document",
             "archival_location": "sweden-stockholm-nacka",
-            "archive_policy": "archive policy 1",
+            "storage_policy": "archive policy 1",
             "container_format": "tar",
             "checksum_algorithm": "MD5",
         },

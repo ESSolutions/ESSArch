@@ -5,7 +5,7 @@ from rest_framework import serializers, validators
 
 from ESSArch_Core.api.serializers import DynamicHyperlinkedModelSerializer
 from ESSArch_Core.auth.serializers import UserSerializer
-from ESSArch_Core.configuration.models import ArchivePolicy, Path
+from ESSArch_Core.configuration.models import StoragePolicy, Path
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.ip.serializers import (
     InformationPackageDetailSerializer,
@@ -224,12 +224,12 @@ class IOQueueWriteSerializer(IOQueueSerializer):
         policy_data['cache_storage'], _ = cache_storage
         policy_data['ingest_path'], _ = ingest_path
 
-        policy, _ = ArchivePolicy.objects.update_or_create(policy_id=policy_data['policy_id'],
+        policy, _ = StoragePolicy.objects.update_or_create(policy_id=policy_data['policy_id'],
                                                            defaults=policy_data)
 
         for storage_method_data in storage_method_set_data:
             storage_method_target_set_data = storage_method_data.pop('storage_method_target_relations')
-            storage_method_data['archive_policy'] = policy
+            storage_method_data['storage_policy'] = policy
             storage_method, _ = StorageMethod.objects.update_or_create(
                 id=storage_method_data['id'],
                 defaults=storage_method_data

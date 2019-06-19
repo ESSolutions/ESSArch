@@ -36,7 +36,7 @@ from elasticsearch_dsl.connections import get_connection  # noqa isort:skip
 
 from ESSArch_Core.search import alias_migration  # noqa isort:skip
 from ESSArch_Core.auth.models import Group, GroupMemberRole  # noqa isort:skip
-from ESSArch_Core.configuration.models import EventType, Parameter, Path, Site, ArchivePolicy  # noqa isort:skip
+from ESSArch_Core.configuration.models import EventType, Parameter, Path, Site, StoragePolicy  # noqa isort:skip
 from ESSArch_Core.storage.models import StorageMethod, DISK, StorageTarget, StorageMethodTargetRelation  # noqa isort:skip
 from ESSArch_Core.tags.documents import Archive, Component, Directory, File, InformationPackage  # noqa isort:skip
 
@@ -441,10 +441,10 @@ def installDefaultArchivePolicies():
     cache = Path.objects.get(entity='cache')
     ingest = Path.objects.get(entity='ingest')
 
-    ArchivePolicy.objects.get_or_create(
+    StoragePolicy.objects.get_or_create(
         policy_id='1',
         defaults={
-            'checksum_algorithm': ArchivePolicy.MD5,
+            'checksum_algorithm': StoragePolicy.MD5,
             'policy_name': 'default',
             'cache_storage': cache, 'ingest_path': ingest,
             'receive_extract_sip': True
@@ -458,7 +458,7 @@ def installDefaultStorageMethods():
     StorageMethod.objects.get_or_create(
         name='Default Storage Method 1',
         defaults={
-            'archive_policy': ArchivePolicy.objects.get(policy_name='default'),
+            'storage_policy': StoragePolicy.objects.get(policy_name='default'),
             'status': True,
             'type': DISK,
             'containers': False,
@@ -468,7 +468,7 @@ def installDefaultStorageMethods():
     StorageMethod.objects.get_or_create(
         name='Default Long-term Storage Method 1',
         defaults={
-            'archive_policy': ArchivePolicy.objects.get(policy_name='default'),
+            'storage_policy': StoragePolicy.objects.get(policy_name='default'),
             'status': True,
             'type': DISK,
             'containers': True,

@@ -43,7 +43,7 @@ from ESSArch_Core._version import get_versions
 from ESSArch_Core.api.filters import string_to_bool
 from ESSArch_Core.configuration.models import (
     Agent,
-    ArchivePolicy,
+    StoragePolicy,
     EventType,
     Parameter,
     Path,
@@ -51,7 +51,7 @@ from ESSArch_Core.configuration.models import (
 )
 from ESSArch_Core.configuration.serializers import (
     AgentSerializer,
-    ArchivePolicySerializer,
+    StoragePolicySerializer,
     EventTypeSerializer,
     ParameterSerializer,
     PathSerializer,
@@ -212,12 +212,12 @@ class PathViewSet(viewsets.ModelViewSet):
     serializer_class = PathSerializer
 
 
-class ArchivePolicyViewSet(viewsets.ModelViewSet):
+class StoragePolicyViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows archive policies to be viewed or edited.
     """
-    queryset = ArchivePolicy.objects.all()
-    serializer_class = ArchivePolicySerializer
+    queryset = StoragePolicy.objects.all()
+    serializer_class = StoragePolicySerializer
 
 
 class SiteView(APIView):

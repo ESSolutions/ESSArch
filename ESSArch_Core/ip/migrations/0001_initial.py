@@ -32,6 +32,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('guardian', '0001_initial')
     ]
 
     operations = [

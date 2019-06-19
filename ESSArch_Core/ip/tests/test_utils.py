@@ -7,7 +7,7 @@ from unittest import mock
 from django.test import TestCase
 from django.utils import timezone
 
-from ESSArch_Core.configuration.models import ArchivePolicy, Path
+from ESSArch_Core.configuration.models import StoragePolicy, Path
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.ip.utils import (
     download_schema,
@@ -20,7 +20,7 @@ class ParseSubmitDescriptionFromIpTests(TestCase):
 
     def setUp(self):
         self.ip = InformationPackage.objects.create()
-        self.policy = ArchivePolicy.objects.create(
+        self.policy = StoragePolicy.objects.create(
             policy_id="some_unique_id",
             policy_name="dummy_name",
             cache_storage=Path.objects.create(entity='some unique entity', value="some value"),

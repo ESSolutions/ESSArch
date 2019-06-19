@@ -5,7 +5,7 @@ import requests
 from django.core.cache import cache
 from lxml import etree
 
-from ESSArch_Core.configuration.models import ArchivePolicy
+from ESSArch_Core.configuration.models import StoragePolicy
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.essxml.util import get_agents, parse_submit_description
 from ESSArch_Core.fixity.checksum import calculate_checksum
@@ -57,7 +57,7 @@ def parse_submit_description_from_ip(ip):
 
     if ip.policy is None:
         parsed_policy = parsed.get('altrecordids', {}).get('POLICYID')[0]
-        ip.policy = ArchivePolicy.objects.get(policy_id=parsed_policy)
+        ip.policy = StoragePolicy.objects.get(policy_id=parsed_policy)
 
     ip.information_class = parsed.get('information_class') or ip.policy.information_class
     if ip.information_class != ip.policy.information_class:

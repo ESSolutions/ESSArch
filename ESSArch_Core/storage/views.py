@@ -32,7 +32,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from ESSArch_Core.configuration.models import ArchivePolicy, Path
+from ESSArch_Core.configuration.models import StoragePolicy, Path
 from ESSArch_Core.configuration.serializers import (
     StorageMethodSerializer,
     StorageMethodTargetRelationSerializer,
@@ -119,7 +119,7 @@ class IOQueueViewSet(viewsets.ModelViewSet):
 
             policy_data.pop('url', None)
 
-            policy, _ = ArchivePolicy.objects.update_or_create(
+            policy, _ = StoragePolicy.objects.update_or_create(
                 id=policy_data.pop('id'), defaults=policy_data
             )
 
@@ -161,7 +161,7 @@ class IOQueueViewSet(viewsets.ModelViewSet):
 
             try:
                 storage_method_data = storage_method_target_data.pop('storage_method')
-                storage_method_data['archive_policy'] = policy
+                storage_method_data['storage_policy'] = policy
                 storage_method_data.pop('url', None)
                 storage_method, _ = StorageMethod.objects.get_or_create(
                     id=storage_method_data['id'], defaults=storage_method_data

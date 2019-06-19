@@ -165,7 +165,7 @@ def installProfileTransferProject(sa):
                 },
                 "type": "input",
                 "defaultValue": "1",
-                "key": "archive_policy_id"
+                "key": "storage_policy_id"
             }, {
                 "templateOptions": {
                     "disabled": True,
@@ -174,7 +174,7 @@ def installProfileTransferProject(sa):
                 },
                 "type": "input",
                 "defaultValue": "default",
-                "key": "archive_policy_name"
+                "key": "storage_policy_name"
             }, {
                 'key': 'container_format',
                 'type': 'select',

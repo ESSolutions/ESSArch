@@ -42,7 +42,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from ESSArch_Core.auth.models import Group, GroupMember, GroupMemberRole
-from ESSArch_Core.configuration.models import ArchivePolicy, EventType, Path
+from ESSArch_Core.configuration.models import StoragePolicy, EventType, Path
 from ESSArch_Core.ip.models import InformationPackage, Order, Workarea
 from ESSArch_Core.profiles.models import (
     Profile,
@@ -1238,7 +1238,7 @@ class InformationPackageViewSetTestCase(TestCase):
     def test_delete_ip(self, mock_task):
         cache = Path.objects.create(entity='cache', value='cache')
         ingest = Path.objects.create(entity='ingest', value='ingest')
-        policy = ArchivePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
+        policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
 
         ip = InformationPackage.objects.create(object_path='foo', policy=policy)
         url = reverse('informationpackage-detail', args=(str(ip.pk),))
@@ -1323,7 +1323,7 @@ class InformationPackageViewSetTestCase(TestCase):
     def test_preserve_dip(self, mock_step):
         cache = Path.objects.create(entity='cache', value='cache')
         ingest = Path.objects.create(entity='ingest', value='ingest')
-        policy = ArchivePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
+        policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
 
         self.ip = InformationPackage.objects.create(package_type=InformationPackage.DIP)
         self.url = reverse('informationpackage-detail', args=(self.ip.pk,))
@@ -1344,7 +1344,7 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         self.ingest = Path.objects.create(entity='ingest', value='ingest')
 
         self.user = User.objects.create(username="admin", password='admin')
-        self.policy = ArchivePolicy.objects.create(cache_storage=self.cache, ingest_path=self.ingest)
+        self.policy = StoragePolicy.objects.create(cache_storage=self.cache, ingest_path=self.ingest)
 
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
@@ -1428,7 +1428,7 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         self.member.assign_object(self.group, ip, custom_permissions=perms)
 
         # return 400 when no tag is provided
-        res = self.client.post(url, data={'archive_policy': self.policy.pk})
+        res = self.client.post(url, data={'storage_policy': self.policy.pk})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
@@ -1444,7 +1444,7 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         tag = Tag.objects.create()
         structure = Structure.objects.create()
         tag_structure = TagStructure.objects.create(tag=tag, structure=structure)
-        res = self.client.post(url, data={'archive_policy': self.policy.pk, 'tag': tag_structure.pk})
+        res = self.client.post(url, data={'storage_policy': self.policy.pk, 'tag': tag_structure.pk})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         mock_receive.assert_called_once()

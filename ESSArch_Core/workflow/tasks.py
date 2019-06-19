@@ -52,7 +52,7 @@ from guardian.shortcuts import assign_perm
 # noinspection PyUnresolvedReferences
 from ESSArch_Core import tasks  # noqa
 from ESSArch_Core.auth.models import Member, Notification
-from ESSArch_Core.configuration.models import ArchivePolicy, Path
+from ESSArch_Core.configuration.models import StoragePolicy, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator,
     parseContent,
@@ -395,7 +395,7 @@ class StoreAIP(DBTask):
         policy = InformationPackage.objects.prefetch_related('policy__storage_methods__targets').get(pk=self.ip).policy
 
         if not policy:
-            raise ArchivePolicy.DoesNotExist("No policy found in IP: '%s'" % objid)
+            raise StoragePolicy.DoesNotExist("No policy found in IP: '%s'" % objid)
 
         storage_methods = policy.storage_methods.secure_storage().filter(status=True)
 

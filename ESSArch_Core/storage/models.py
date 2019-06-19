@@ -163,8 +163,8 @@ class StorageMethod(models.Model):
     enabled = models.BooleanField('Enabled', default=True)
     type = models.IntegerField('Type', choices=storage_type_CHOICES, default=200)
     containers = models.BooleanField('Long-term', default=False)
-    archive_policy = models.ForeignKey(
-        'configuration.ArchivePolicy',
+    storage_policy = models.ForeignKey(
+        'configuration.StoragePolicy',
         on_delete=models.CASCADE,
         related_name='storage_methods',
     )
@@ -505,10 +505,10 @@ class StorageObject(models.Model):
 
         policy = self.ip.policy
         target_medium = StorageMedium.objects.archival_storage().writeable().fastest().filter(
-            storage_target__methods__archive_policy=policy).first()
+            storage_target__methods__storage_policy=policy).first()
 
         if target_medium is None:
-            target = StorageTarget.objects.archival_storage().fastest().filter(methods__archive_policy=policy).first()
+            target = StorageTarget.objects.archival_storage().fastest().filter(methods__storage_policy=policy).first()
             qs = StorageMedium.objects.archival_storage().writeable().fastest()
             target_medium, _ = target.get_or_create_storage_medium(qs=qs)
 

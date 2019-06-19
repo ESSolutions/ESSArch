@@ -8,7 +8,7 @@ from ESSArch_Core.api.serializers import DynamicHyperlinkedModelSerializer
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import EventType
-from ESSArch_Core.configuration.serializers import ArchivePolicySerializer
+from ESSArch_Core.configuration.serializers import StoragePolicySerializer
 from ESSArch_Core.ip.models import (
     Agent,
     AgentNote,
@@ -234,7 +234,7 @@ class InformationPackageAICSerializer(DynamicHyperlinkedModelSerializer):
 
 class InformationPackageDetailSerializer(InformationPackageSerializer):
     aic = InformationPackageAICSerializer(omit=['information_packages'])
-    policy = ArchivePolicySerializer()
+    policy = StoragePolicySerializer()
     submission_agreement = serializers.PrimaryKeyRelatedField(queryset=SubmissionAgreement.objects.all())
     archive = serializers.SerializerMethodField()
     has_cts = serializers.SerializerMethodField()
