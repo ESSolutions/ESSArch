@@ -51,7 +51,7 @@ from rest_framework.response import Response
 
 from ESSArch_Core.auth.models import GroupGenericObjects, Member
 from ESSArch_Core.auth.util import get_objects_for_user
-from ESSArch_Core.configuration.models import StoragePolicy, Path
+from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.profiles.models import (
