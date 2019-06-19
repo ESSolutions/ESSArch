@@ -108,11 +108,16 @@ medium_block_size_CHOICES = (
     (2048, '1024K'),
 )
 
+STORAGE_TARGET_STATUS_DISABLED = 0
+STORAGE_TARGET_STATUS_ENABLED = 1
+STORAGE_TARGET_STATUS_READ_ONLY = 2
+STORAGE_TARGET_STATUS_MIGRATE = 3
+
 storage_target_status_CHOICES = (
-    (0, 'Disabled'),
-    (1, 'Enabled'),
-    (2, 'ReadOnly'),
-    (3, 'Migrate'),
+    (STORAGE_TARGET_STATUS_DISABLED, 'Disabled'),
+    (STORAGE_TARGET_STATUS_ENABLED, 'Enabled'),
+    (STORAGE_TARGET_STATUS_READ_ONLY, 'ReadOnly'),
+    (STORAGE_TARGET_STATUS_MIGRATE, 'Migrate'),
 )
 
 min_chunk_size_CHOICES = (
@@ -186,19 +191,14 @@ class StorageMethod(models.Model):
     type = models.IntegerField('Type', choices=storage_type_CHOICES, default=200)
     remote = models.BooleanField('remote', default=False)
     containers = models.BooleanField('Long-term', default=False)
-    storage_policies = models.ManyToManyField(
-        'configuration.StoragePolicy',
-        related_name='storage_methods',
-    )
     targets = models.ManyToManyField('StorageTarget', through='StorageMethodTargetRelation', related_name='methods')
 
     objects = StorageMethodQueryset.as_manager()
 
-    @property
-    def active_targets(self):
-        return StorageTarget.objects.filter(
+    def enabled_target(self):
+        return StorageTarget.objects.get(
             storagemethodtargetrelation__storage_method=self,
-            storagemethodtargetrelation__status=1
+            storagemethodtargetrelation__status=STORAGE_TARGET_STATUS_ENABLED,
         )
 
     class Meta:
@@ -216,7 +216,11 @@ class StorageMethodTargetRelation(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField('Name', max_length=255, blank=True)
-    status = models.IntegerField('Storage target status', choices=storage_target_status_CHOICES, default=0)
+    status = models.IntegerField(
+        'Storage target status',
+        choices=storage_target_status_CHOICES,
+        default=STORAGE_TARGET_STATUS_DISABLED,
+    )
     storage_target = models.ForeignKey(
         'StorageTarget',
         on_delete=models.CASCADE,

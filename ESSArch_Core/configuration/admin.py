@@ -35,6 +35,7 @@ from django.views.decorators.csrf import csrf_protect
 from nested_inline.admin import NestedModelAdmin
 
 from ESSArch_Core.configuration.models import StoragePolicy
+from ESSArch_Core.storage.admin import StorageMethodTargetRelationInline
 from ESSArch_Core.storage.models import DISK, StorageMethod
 
 from .models import Agent, EventType, Parameter, Path, Site
@@ -122,6 +123,7 @@ class StoragePolicyAdmin(NestedModelAdmin):
     model = StoragePolicy
     form = StoragePolicyAdminForm
     list_display = ('policy_name', 'policy_id', 'policy_stat', 'ais_project_name', 'ais_project_id', 'mode')
+    filter_horizontal = ['storage_methods']
     fieldsets = (
         (None, {
             'fields': (
@@ -146,6 +148,7 @@ class StoragePolicyAdmin(NestedModelAdmin):
                 'receive_extract_sip',
                 'cache_minimum_capacity',
                 'cache_maximum_age',
+                'storage_methods',
             )
         }),
     )

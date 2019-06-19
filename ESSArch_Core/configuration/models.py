@@ -228,6 +228,10 @@ class StoragePolicy(models.Model):
     validate_checksum = models.BooleanField('Validate checksum', default=True)
     validate_xml = models.BooleanField('Validate XML', default=True)
     ip_type = models.IntegerField('IP type', choices=IP_TYPE_CHOICES, default=1)
+    storage_methods = models.ManyToManyField(
+        'storage.StorageMethod',
+        related_name='storage_policies',
+    )
     cache_storage = models.ForeignKey('storage.StorageMethod', on_delete=models.PROTECT, related_name='cache_policy')
     preingest_metadata = models.IntegerField('Pre ingest metadata', choices=PREINGEST_METADATA_CHOICES, default=0)
     ingest_metadata = models.IntegerField('Ingest metadata', choices=INGEST_METADATA_CHOICES, default=4)
@@ -238,8 +242,8 @@ class StoragePolicy(models.Model):
 
     class Meta:
         ordering = ['policy_name']
-        verbose_name = _('archive policy')
-        verbose_name_plural = _('archive policies')
+        verbose_name = _('storage policy')
+        verbose_name_plural = _('storage policies')
 
     def __str__(self):
         if len(self.policy_name):

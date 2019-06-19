@@ -22,7 +22,9 @@
     Email - essarch@essolutions.se
 """
 
+from django import forms
 from django.contrib import admin
+from django.utils.translation import ugettext as _
 from nested_inline.admin import NestedStackedInline
 
 from ESSArch_Core.storage.models import (
@@ -33,6 +35,7 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     StorageTarget,
     TapeDrive,
+    STORAGE_TARGET_STATUS_ENABLED
 )
 
 
@@ -57,6 +60,33 @@ class StorageTargetInline(NestedStackedInline):
         form.base_fields['storage_target'].widget.can_add_related = False
         form.base_fields['storage_target'].widget.can_change_related = False
         return formset
+
+
+class StorageMethodTargetRelationInlineForm(forms.ModelForm):
+    def clean_status(self):
+        data = self.cleaned_data['status']
+        if data == STORAGE_TARGET_STATUS_ENABLED:
+            storage_method = self.instance.storage_method
+            enabled_target = StorageMethodTargetRelation.objects.filter(
+                storage_method=storage_method,
+                status=STORAGE_TARGET_STATUS_ENABLED,
+            ).first()
+
+            if enabled_target != self.instance and enabled_target is not None:
+                raise forms.ValidationError(
+                    _('Only 1 target can be enabled for a storage method at a time'),
+                    code='invalid',
+                )
+        return data
+
+
+class StorageMethodTargetRelationInline(admin.TabularInline):
+    """
+    StorageMethodTargetRelation configuration
+    """
+    model = StorageMethod.targets.through
+    form = StorageMethodTargetRelationInlineForm
+    extra = 0
 
 
 class StorageTargetsAdmin(admin.ModelAdmin):
@@ -96,11 +126,8 @@ class StorageMediumAdmin(admin.ModelAdmin):
 
 class StorageMethodAdmin(admin.ModelAdmin):
     list_display = ('name', 'enabled', 'type', 'containers',)
-    filter_horizontal = ['storage_policies']
-
-
-class StorageMethodTargetRelationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'status', 'storage_method', 'storage_target')
+    exclude = ('storage_policies',)
+    inlines = [StorageMethodTargetRelationInline]
 
 
 class StorageObjectAdmin(admin.ModelAdmin):
@@ -117,6 +144,5 @@ admin.site.register(TapeDrive, TapeDriveAdmin)
 
 admin.site.register(StorageMedium, StorageMediumAdmin)
 admin.site.register(StorageMethod, StorageMethodAdmin)
-admin.site.register(StorageMethodTargetRelation, StorageMethodTargetRelationAdmin)
 admin.site.register(StorageObject, StorageObjectAdmin)
 admin.site.register(StorageTarget, StorageTargetsAdmin)
