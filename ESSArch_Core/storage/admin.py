@@ -59,26 +59,6 @@ class StorageTargetInline(NestedStackedInline):
         return formset
 
 
-class StorageMethodInline(NestedStackedInline):
-    """
-    StorageMethod configuration
-    """
-    model = StorageMethod
-    fk_name = 'storage_policy'
-    extra = 0
-    fieldsets = (
-        (None, {
-            'fields': (
-                'name',
-                'enabled',
-                'type',
-                'containers',
-            )
-        }),
-    )
-    inlines = [StorageTargetInline]
-
-
 class StorageTargetsAdmin(admin.ModelAdmin):
     """
     StorageTargets configuration

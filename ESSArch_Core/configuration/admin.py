@@ -33,7 +33,6 @@ from django.views.decorators.csrf import csrf_protect
 from nested_inline.admin import NestedModelAdmin
 
 from ESSArch_Core.configuration.models import StoragePolicy
-from ESSArch_Core.storage.admin import StorageMethodInline
 
 from .models import Agent, EventType, Parameter, Path, Site
 
@@ -132,7 +131,6 @@ class StoragePolicyAdmin(NestedModelAdmin):
             )
         }),
     )
-    inlines = [StorageMethodInline]
 
     @csrf_protect_m
     @transaction.atomic

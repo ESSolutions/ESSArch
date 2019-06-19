@@ -234,7 +234,7 @@ class StoragePolicy(models.Model):
     validate_checksum = models.BooleanField('Validate checksum', default=True)
     validate_xml = models.BooleanField('Validate XML', default=True)
     ip_type = models.IntegerField('IP type', choices=IP_TYPE_CHOICES, default=1)
-    cache_storage = models.ForeignKey(Path, on_delete=models.PROTECT, related_name='cache_policy')
+    cache_storage = models.ForeignKey('storage.StorageMethod', on_delete=models.PROTECT, related_name='cache_policy')
     preingest_metadata = models.IntegerField('Pre ingest metadata', choices=PREINGEST_METADATA_CHOICES, default=0)
     ingest_metadata = models.IntegerField('Ingest metadata', choices=INGEST_METADATA_CHOICES, default=4)
     information_class = models.IntegerField('Information class', choices=INFORMATION_CLASS_CHOICES, default=0)

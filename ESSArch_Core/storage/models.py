@@ -154,6 +154,28 @@ class StorageMethodQueryset(models.QuerySet):
     def secure_storage(self):
         return self.filter(containers=True)
 
+    def fastest(self):
+        container = Case(
+            When(containers=False, then=Value(1)),
+            When(containers=True, then=Value(2)),
+            output_field=IntegerField(),
+        )
+        remote = Case(
+            When(remote=True, then=Value(1)),
+            When(remote=False, then=Value(2)),
+            output_field=IntegerField(),
+        )
+        storage_type = Case(
+            When(type=DISK, then=Value(1)),
+            When(type=TAPE, then=Value(2)),
+            output_field=IntegerField(),
+        )
+        return self.annotate(
+            container_order=container,
+            remote_order=remote,
+            storage_type=storage_type
+        ).order_by('remote_order', 'container_order', 'storage_type')
+
 
 class StorageMethod(models.Model):
     """Disk, tape or CAS"""
@@ -162,10 +184,10 @@ class StorageMethod(models.Model):
     name = models.CharField('Name', max_length=255, blank=True)
     enabled = models.BooleanField('Enabled', default=True)
     type = models.IntegerField('Type', choices=storage_type_CHOICES, default=200)
+    remote = models.BooleanField('remote', default=False)
     containers = models.BooleanField('Long-term', default=False)
-    storage_policy = models.ForeignKey(
+    storage_policies = models.ManyToManyField(
         'configuration.StoragePolicy',
-        on_delete=models.CASCADE,
         related_name='storage_methods',
     )
     targets = models.ManyToManyField('StorageTarget', through='StorageMethodTargetRelation', related_name='methods')
