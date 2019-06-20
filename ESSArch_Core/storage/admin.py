@@ -29,6 +29,7 @@ from nested_inline.admin import NestedStackedInline
 
 from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_ENABLED,
+    TAPE,
     Robot,
     StorageMedium,
     StorageMethod,
@@ -124,7 +125,17 @@ class StorageMediumAdmin(admin.ModelAdmin):
     )
 
 
+class StorageMethodAdminForm(forms.ModelForm):
+    def clean(self):
+        cleaned_data = super().clean()
+        storage_type = cleaned_data.get('type')
+        containers = cleaned_data.get('containers')
+
+        if storage_type == TAPE and not containers:
+            raise forms.ValidationError('Tapes can only be used for containers')
+
 class StorageMethodAdmin(admin.ModelAdmin):
+    form = StorageMethodAdminForm
     list_display = ('name', 'enabled', 'type', 'containers',)
     exclude = ('storage_policies',)
     inlines = [StorageMethodTargetRelationInline]
