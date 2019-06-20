@@ -134,6 +134,7 @@ class StorageMethodAdminForm(forms.ModelForm):
         if storage_type == TAPE and not containers:
             raise forms.ValidationError('Tapes can only be used for containers')
 
+
 class StorageMethodAdmin(admin.ModelAdmin):
     form = StorageMethodAdminForm
     list_display = ('name', 'enabled', 'type', 'containers',)
