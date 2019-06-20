@@ -1052,10 +1052,10 @@ class Transfer(models.Model):
     submitter_individual_name =  models.CharField(blank=True, max_length=255)
     submitter_individual_phone =  models.CharField(blank=True, max_length=255)
     submitter_individual_email =  models.CharField(blank=True, max_length=255)
+    description =  models.CharField(blank=True, max_length=255)
 
     objects = OrganizationManager()
 
     class Meta:
         verbose_name = _('transfer')
         verbose_name_plural = _('transfers')
-

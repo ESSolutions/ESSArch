@@ -680,7 +680,7 @@ class TransferSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transfer
         fields = ('id', 'name', 'delivery', 'submitter_organization', 'submitter_organization_main_address',
-                  'submitter_individual_name', 'submitter_individual_phone', 'submitter_individual_email')
+                  'submitter_individual_name', 'submitter_individual_phone', 'submitter_individual_email', 'description')
 
 
 class TransferEditNodesSerializer(serializers.Serializer):
