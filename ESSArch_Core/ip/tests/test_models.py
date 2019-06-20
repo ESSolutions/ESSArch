@@ -711,8 +711,6 @@ class InformationPackageGenerationTests(TestCase):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         aip_1 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
         aip_2 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=13)
-        aip_1.save()
-        aip_2.save()
 
         self.assertEqual(aip_1.is_first_generation(), False)
         self.assertEqual(aip_2.is_first_generation(), True)
@@ -722,8 +720,6 @@ class InformationPackageGenerationTests(TestCase):
         aip_1 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
         aip_2 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=13)
         Workarea.objects.create(ip=aip_2, read_only=False, user=self.user)
-        aip_1.save()
-        aip_2.save()
 
         self.assertEqual(aip_1.is_first_generation(), True)
         self.assertEqual(aip_2.is_first_generation(), False)
@@ -732,7 +728,6 @@ class InformationPackageGenerationTests(TestCase):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         aip = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
         Workarea.objects.create(ip=aip, read_only=False, user=self.user)
-        aip.save()
 
         self.assertEqual(aip.is_first_generation(), False)
 
@@ -751,8 +746,6 @@ class InformationPackageGenerationTests(TestCase):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         aip_1 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
         aip_2 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=13)
-        aip_1.save()
-        aip_2.save()
 
         self.assertEqual(aip_1.is_last_generation(), True)
         self.assertEqual(aip_2.is_last_generation(), False)
@@ -762,8 +755,6 @@ class InformationPackageGenerationTests(TestCase):
         aip_1 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
         aip_2 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=13)
         Workarea.objects.create(ip=aip_1, read_only=False, user=self.user)
-        aip_1.save()
-        aip_2.save()
 
         self.assertEqual(aip_1.is_last_generation(), False)
         self.assertEqual(aip_2.is_last_generation(), True)
@@ -772,6 +763,5 @@ class InformationPackageGenerationTests(TestCase):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         aip = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
         Workarea.objects.create(ip=aip, read_only=False, user=self.user)
-        aip.save()
 
         self.assertEqual(aip.is_last_generation(), False)
