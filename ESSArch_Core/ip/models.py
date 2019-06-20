@@ -1061,6 +1061,7 @@ class Workarea(models.Model):
         return self.path
 
     class Meta:
+        ordering = ["ip"]
         unique_together = ('user', 'ip', 'type')
         permissions = (
             ('move_from_ingest_workarea', 'Can move IP from ingest workarea'),
@@ -1077,6 +1078,7 @@ class Order(models.Model):
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='orders', blank=True)
 
     class Meta:
+        ordering = ["label"]
         permissions = (
             ('prepare_order', 'Can prepare order'),
         )
