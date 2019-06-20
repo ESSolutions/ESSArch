@@ -60,6 +60,10 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
+DRF_DYNAMIC_FIELDS = {
+    'SUPPRESS_CONTEXT_WARNING': True,
+}
+
 PROXY_PAGINATION_PARAM = 'pager'
 PROXY_PAGINATION_DEFAULT = 'ESSArch_Core.api.pagination.LinkHeaderPagination'
 PROXY_PAGINATION_MAPPING = {'none': 'ESSArch_Core.api.pagination.NoPagination'}
