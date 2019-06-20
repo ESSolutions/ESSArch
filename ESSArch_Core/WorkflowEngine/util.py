@@ -1,3 +1,6 @@
+import importlib
+
+
 from celery import states as celery_states
 from celery.result import AsyncResult
 from django.db import transaction
@@ -56,10 +59,16 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
 
             _create_step(child_s, flow_entry['children'], ip, responsible, context=context)
         else:
+            name = flow_entry['name']
+
+            [module, klass] = name.rsplit('.', 1)
+            if not hasattr(importlib.import_module(module), klass):
+                raise ValueError('Unknown task "{}"'.format(name))
+
             args = flow_entry.get('args', [])
             params = flow_entry.get('params', {})
             task = ProcessTask.objects.create(
-                name=flow_entry['name'],
+                name=name,
                 label=flow_entry.get('label'),
                 args=args,
                 params=params,

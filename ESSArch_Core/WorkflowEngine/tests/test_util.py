@@ -8,13 +8,13 @@ class CreateWorkflowTestCase(TestCase):
     def test_tasks(self):
         spec = [
             {
-                "name": "foo.bar.task",
+                "name": "ESSArch_Core.WorkflowEngine.tests.tasks.First",
                 "label": "Foo Bar Task",
                 "args": [1, 2, 3],
                 "params": {'a': 'b'}
             },
             {
-                "name": "foo.bar.task2",
+                "name": "ESSArch_Core.WorkflowEngine.tests.tasks.Second",
                 "label": "Foo Bar Task2",
                 "args": [3, 2, 1],
                 "params": {'b': 'a'}
@@ -39,13 +39,13 @@ class CreateWorkflowTestCase(TestCase):
                 "name": "My step",
                 "children": [
                     {
-                        "name": "foo.bar.task",
+                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.First",
                         "label": "Foo Bar Task",
                         "args": [1, 2, 3],
                         "params": {'a': 'b'}
                     },
                     {
-                        "name": "foo.bar.task2",
+                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.Second",
                         "label": "Foo Bar Task2",
                         "args": [3, 2, 1],
                         "params": {'b': 'a'}
@@ -74,13 +74,13 @@ class CreateWorkflowTestCase(TestCase):
     def test_on_error_task(self):
         spec = [
             {
-                "name": "foo.bar.task",
+                "name": "ESSArch_Core.WorkflowEngine.tests.tasks.First",
                 "label": "Foo Bar Task",
                 "args": [1, 2, 3],
                 "params": {'a': 'b'},
                 "on_error": [
                     {
-                        "name": "foo.bar.task2",
+                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.Second",
                         "label": "Foo Bar Task2",
                         "args": [3, 2, 1],
                         "params": {'b': 'a'}
@@ -111,7 +111,7 @@ class CreateWorkflowTestCase(TestCase):
                 "name": "My step",
                 "on_error": [
                     {
-                        "name": "on_error.task",
+                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.First",
                         "label": "On-error Task",
                         "args": [1, 2, 3],
                         "params": {'a': 'b'},
@@ -119,7 +119,7 @@ class CreateWorkflowTestCase(TestCase):
                 ],
                 "children": [
                     {
-                        "name": "foo.bar.task",
+                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.Second",
                         "label": "Foo Bar Task",
                         "args": [1, 2, 3],
                         "params": {'a': 'b'},
