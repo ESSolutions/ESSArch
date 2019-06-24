@@ -289,7 +289,7 @@ class DBTask(Task):
             ProcessTask.objects.filter(pk=task_id).update(**updated)
 
         if self.event_type:
-            self.create_event(task_id, celery_states.SUCCESS, args, kwargs, None, retval)
+            self.create_event(task_id, celery_states.SUCCESS, args, kwargs, retval, None)
 
     def set_progress(self, progress, total=None):
         if not self.track:
