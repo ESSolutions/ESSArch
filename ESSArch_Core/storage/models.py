@@ -15,7 +15,6 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
-from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.storage.backends import get_backend
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
@@ -502,7 +501,7 @@ class StorageObject(models.Model):
     last_changed_local = models.DateTimeField(null=True, default=timezone.now)
     last_changed_external = models.DateTimeField(null=True)
 
-    ip = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, related_name='storage',
+    ip = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, related_name='storage',
                            verbose_name='information package')
     storage_medium = models.ForeignKey('StorageMedium', on_delete=models.CASCADE, related_name='storage',
                                        verbose_name='medium')
@@ -717,7 +716,7 @@ class IOQueue(models.Model):
     status = models.IntegerField(blank=True, default=0, choices=req_status_CHOICES)
     task_id = models.CharField(max_length=36, blank=True)
     posted = models.DateTimeField(default=timezone.now)
-    ip = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, null=True)
+    ip = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
     storage_method_target = models.ForeignKey('StorageMethodTargetRelation', on_delete=models.CASCADE)
     storage_medium = models.ForeignKey('StorageMedium', on_delete=models.CASCADE, blank=True, null=True)
     storage_object = models.ForeignKey('StorageObject', on_delete=models.CASCADE, blank=True, null=True)
@@ -771,9 +770,9 @@ class AccessQueue(models.Model):
     object_identifier_value = models.CharField(max_length=255, blank=True)
     req_purpose = models.CharField(max_length=255)
     user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='access_queues')
-    ip = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, null=False, related_name='access_queues')
+    ip = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=False, related_name='access_queues')
     new_ip = models.ForeignKey(
-        InformationPackage,
+        'ip.InformationPackage',
         on_delete=models.CASCADE,
         null=True,
         related_name='access_queues_new_ip'
