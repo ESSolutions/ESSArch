@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 
 
-class BaseStorageBackend(object):
+class BaseStorageBackend:
     @contextmanager
     def open(self, storage_object, file, *args, **kwargs):
         raise NotImplementedError('subclasses of BaseStorageBackend must provide an open() method')

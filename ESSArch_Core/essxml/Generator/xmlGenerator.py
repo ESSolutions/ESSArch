@@ -142,7 +142,7 @@ def findElementWithoutNamespace(tree, el_name):
         return root.find(".//{*}%s" % el_name)
 
 
-class XMLElement(object):
+class XMLElement:
     def __init__(self, template, nsmap=None):
         if nsmap is None:
             nsmap = {}
@@ -422,7 +422,7 @@ class XMLElement(object):
         return self.el
 
 
-class XMLAttribute(object):
+class XMLAttribute:
     """
         Args:
             template: The template for the attribute, example:
@@ -494,7 +494,7 @@ def parse_files(fid, path, external, algorithm, rootdir):
     return files
 
 
-class XMLGenerator(object):
+class XMLGenerator:
     def __init__(self, filepath=None):
         self.parser = etree.XMLParser(remove_blank_text=True)
         self.fid = FormatIdentifier(allow_unknown_file_types=False)

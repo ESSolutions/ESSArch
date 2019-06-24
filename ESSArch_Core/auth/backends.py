@@ -24,7 +24,7 @@ def _get_permission_objs(user, obj=None):
     return perms.distinct()
 
 
-class GroupRoleBackend(object):
+class GroupRoleBackend:
     supports_object_permissions = True
 
     def authenticate(self, *args, **kwargs):

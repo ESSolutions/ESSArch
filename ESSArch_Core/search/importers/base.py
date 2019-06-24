@@ -5,7 +5,7 @@ from ESSArch_Core.tags.documents import Component
 from ESSArch_Core.tags.models import TagVersion
 
 
-class BaseImporter(object):
+class BaseImporter:
     def __init__(self):
         self.xmlparser = etree.XMLParser(remove_blank_text=True)
 

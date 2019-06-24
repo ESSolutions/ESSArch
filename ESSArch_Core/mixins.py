@@ -2,7 +2,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.settings import api_settings
 
 
-class PaginatedViewMixin(object):
+class PaginatedViewMixin:
     pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
 
     @property
@@ -33,7 +33,7 @@ class PaginatedViewMixin(object):
         return self.paginator.get_paginated_response(data)
 
 
-class GetObjectForUpdateViewMixin(object):
+class GetObjectForUpdateViewMixin:
     def get_object_for_update(self):
         """
         Returns the object the view is displaying using a queryset with

@@ -220,7 +220,7 @@ def parse_submit_description(xmlfile, srcdir=''):
     return ip
 
 
-class XMLFileElement():
+class XMLFileElement:
     def __init__(self, el, props, path=None, rootdir=None):
         '''
         args:
