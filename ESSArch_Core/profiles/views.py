@@ -48,6 +48,7 @@ from ESSArch_Core.profiles.serializers import (
     ProfileWriteSerializer,
     SubmissionAgreementSerializer,
 )
+from ESSArch_Core.profiles.utils import profile_types
 
 
 def get_sa_template():
@@ -158,7 +159,7 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     def get_profile_types(self):
-        return 'sip', 'transfer_project', 'submit_description', 'preservation_metadata'
+        return [x.lower().replace(' ', '_') for x in profile_types]
 
     @transaction.atomic
     @action(detail=True, methods=["post"])
