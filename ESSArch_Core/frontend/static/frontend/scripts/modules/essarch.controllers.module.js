@@ -28,6 +28,7 @@ import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
 import RobotInformationCtrl from '../controllers/RobotInformationCtrl';
 import SearchCtrl from '../controllers/SearchCtrl';
+import StepInfoModalInstanceCtrl from '../controllers/StepInfoModalInstanceCtrl';
 import StorageMaintenanceCtrl from '../controllers/StorageMaintenanceCtrl';
 import StorageMigrationCtrl from '../controllers/StorageMigrationCtrl';
 import TagsCtrl from '../controllers/TagsCtrl';
@@ -310,6 +311,7 @@ export default angular
     '$transitions',
     SearchCtrl,
   ])
+  .controller('StepInfoModalInstanceCtrl', ['$uibModalInstance', 'data', '$rootScope', StepInfoModalInstanceCtrl])
   .controller('TagsCtrl', ['$scope', 'vm', '$http', 'appConfig', TagsCtrl])
   .controller('TaskInfoModalInstanceCtrl', ['$uibModalInstance', 'data', '$rootScope', TaskInfoModalInstanceCtrl])
   .controller('UserDropdownCtrl', [
