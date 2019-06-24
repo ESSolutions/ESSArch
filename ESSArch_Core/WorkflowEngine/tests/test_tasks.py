@@ -306,7 +306,7 @@ class DBTaskTests(TestCase):
         db_task.success(retval, task_id, args, kwargs)
 
         mock_process_task.assert_called_once()
-        mock_create_event.assert_called_once_with(task_id, celery_states.SUCCESS, args, kwargs, None, retval)
+        mock_create_event.assert_called_once_with(task_id, celery_states.SUCCESS, args, kwargs, retval, None)
 
     @mock.patch("ESSArch_Core.WorkflowEngine.models.ProcessTask.objects.filter")
     @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
