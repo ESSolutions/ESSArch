@@ -11,10 +11,10 @@ extra_receipt_backends = getattr(settings, 'ESSARCH_RECEIPT_BACKENDS', {})
 AVAILABLE_RECEIPT_BACKENDS.update(extra_receipt_backends)
 
 
-def get_backend(name, *args, **kwargs):
+def get_backend(name):
     try:
         module_name, klass = AVAILABLE_RECEIPT_BACKENDS[name].rsplit('.', 1)
     except KeyError:
         raise ValueError('Receipt backend "%s" not found' % name)
 
-    return getattr(importlib.import_module(module_name), klass)(*args, **kwargs)
+    return getattr(importlib.import_module(module_name), klass)()
