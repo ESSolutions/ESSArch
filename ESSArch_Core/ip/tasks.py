@@ -68,7 +68,7 @@ class ReceiveSIP(DBTask):
         ip.end_date = submit_description_data.get('end_date')
         ip.save()
 
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         return "Received IP"
 
 
@@ -126,7 +126,7 @@ class SubmitSIP(DBTask):
         os.remove(tar)
         os.remove(xml)
 
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         return "Submitted %s" % get_cached_objid(self.ip)
 
 
@@ -136,7 +136,7 @@ class GenerateContentMets(DBTask):
     def run(self):
         generate_content_mets(self.get_information_package())
 
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
         return 'Generated {xml}'.format(xml=ip.content_mets_path)
 
@@ -147,9 +147,9 @@ class GeneratePackageMets(DBTask):
     def run(self):
         generate_package_mets(self.get_information_package())
 
-    def event_outcome_success(self):
         ip = self.get_information_package()
-        return 'Generated {xml}'.format(xml=ip.package_mets_path)
+    def event_outcome_success(self, result, *args, **kwargs):
+        return 'Generated {xml}'.format(xml=result)
 
 
 class GeneratePremis(DBTask):
@@ -158,7 +158,7 @@ class GeneratePremis(DBTask):
     def run(self):
         generate_premis(self.get_information_package())
 
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
         return 'Generated {xml}'.format(xml=ip.get_premis_file_path())
 
@@ -169,7 +169,7 @@ class GenerateEventsXML(DBTask):
     def run(self):
         generate_events_xml(self.get_information_package())
 
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
         return 'Generated {xml}'.format(xml=ip.get_events_file_path())
 
@@ -251,7 +251,7 @@ class CreatePhysicalModel(DBTask):
 
         self.set_progress(1, total=1)
 
-    def event_outcome_success(self, *args, **kwargs):
+    def event_outcome_success(self, result, *args, **kwargs):
         return "Created physical model for %s" % self.ip_objid
 
 
@@ -282,7 +282,7 @@ class CreateContainer(DBTask):
         shutil.rmtree(src)
         return dst
 
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
         return "Created {path}".format(path=ip.object_path)
 
@@ -292,7 +292,7 @@ class ParseSubmitDescription(DBTask):
     def run(self):
         parse_submit_description_from_ip(self.get_information_package())
 
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
         return "Parsed submit description at {}".format(ip.package_mets_path)
 
@@ -310,7 +310,7 @@ class ParseEvents(DBTask):
         events = EventIP.objects.from_premis_file(xmlfile, save=False)
         EventIP.objects.bulk_create(events, 100)
 
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
         return "Parsed events from %s" % self.get_path(ip)
 

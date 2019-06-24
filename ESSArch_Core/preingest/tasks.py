@@ -79,10 +79,7 @@ class ReceiveSIP(DBTask):
 
         Workarea.objects.create(ip=ip, user_id=self.responsible, type=Workarea.INGEST, read_only=False)
 
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         return "Received IP"
 
 
@@ -153,5 +150,5 @@ class TransferSIP(DBTask):
         os.remove(os.path.join(gate_reception, ipfile))
         os.remove(os.path.join(gate_reception, "%s.xml" % objid))
 
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         return "Transferred IP"

@@ -22,10 +22,8 @@
     Email - essarch@essolutions.se
 """
 
-import datetime
 import itertools
 
-import pytz
 from celery import states as celery_states
 from django.db import transaction
 from django.db.models import Q

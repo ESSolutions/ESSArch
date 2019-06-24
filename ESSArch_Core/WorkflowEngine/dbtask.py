@@ -194,7 +194,7 @@ class DBTask(Task):
             outcome = EventIP.SUCCESS
             level = logging.INFO
             kwargs.pop('_options', {})
-            outcome_detail_note = self.event_outcome_success(*args, **kwargs)
+            outcome_detail_note = self.event_outcome_success(retval, *args, **kwargs)
         else:
             outcome = EventIP.FAILURE
             level = logging.ERROR
@@ -280,7 +280,7 @@ class DBTask(Task):
             ProcessTask.objects.filter(pk=task_id).update(**updated)
 
         if self.event_type:
-            self.create_event(task_id, celery_states.SUCCESS, args, kwargs, None, retval)
+            self.create_event(task_id, celery_states.SUCCESS, args, kwargs, retval, None)
 
     def set_progress(self, progress, total=None):
         if not self.track:
@@ -305,7 +305,7 @@ class DBTask(Task):
     def get_information_package(self):
         return InformationPackage.objects.get(pk=self.ip)
 
-    def event_outcome_success(self, *args, **kwargs):
+    def event_outcome_success(self, result, *args, **kwargs):
         pass
 
     def run(self, *args, **kwargs):

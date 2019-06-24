@@ -32,25 +32,16 @@ class First(DBTask):
     def run(self, foo=None):
         return foo
 
-    def undo(self, foo=None):
-        pass
-
 
 class Second(DBTask):
     def run(self, foo=None):
         self.set_progress(1, total=2)
         return foo
 
-    def undo(self, foo=None):
-        pass
-
 
 class Third(DBTask):
     def run(self, foo=None):
         return foo
-
-    def undo(self, foo=None):
-        pass
 
 
 class Add(DBTask):
@@ -65,25 +56,16 @@ class Fail(DBTask):
     def run(self):
         raise Exception('An error occurred!')
 
-    def undo(self):
-        pass
-
 
 class FailDoesNotExist(DBTask):
     def run(self):
         raise InformationPackage.DoesNotExist
-
-    def undo(self):
-        pass
 
 
 class FailIfFileNotExists(DBTask):
     def run(self, filename=None):
         assert os.path.isfile(filename)
         return filename
-
-    def undo(self, filename=None):
-        pass
 
 
 class WithEvent(DBTask):
@@ -92,8 +74,5 @@ class WithEvent(DBTask):
     def run(self, bar, foo=None):
         return foo
 
-    def undo(self, bar, foo=None):
-        pass
-
-    def event_outcome_success(self, bar, foo=None):
+    def event_outcome_success(self, result, bar, foo=None):
         return "Task completed successfully with bar=%s and foo=%s" % (bar, foo)

@@ -205,7 +205,7 @@ class InsertXML(DBTask):
 
         tree.write(filename, pretty_print=True, xml_declaration=True, encoding='UTF-8')
 
-    def event_outcome_success(self, filename=None, elementToAppendTo=None, spec=None, info=None, index=None):
+    def event_outcome_success(self, result, filename=None, elementToAppendTo=None, spec=None, info=None, index=None):
         return "Inserted XML to element %s in %s" % (elementToAppendTo, filename)
 
 
@@ -215,7 +215,7 @@ class AppendEvents(DBTask):
     def run(self, filename="", events=None):
         append_events(self.ip, events, filename)
 
-    def event_outcome_success(self, filename="", events=None):
+    def event_outcome_success(self, result, filename="", events=None):
         if not filename:
             ip = InformationPackage.objects.get(pk=self.ip)
             filename = ip.get_events_file_path()
@@ -232,7 +232,7 @@ class ParseEvents(DBTask):
         if delete_file:
             os.remove(xmlfile)
 
-    def event_outcome_success(self, xmlfile, delete_file=False):
+    def event_outcome_success(self, result, xmlfile, delete_file=False):
         return "Parsed events from %s" % xmlfile
 
 
@@ -265,7 +265,7 @@ class CreateTAR(DBTask):
 
         os.remove(tarname)
 
-    def event_outcome_success(self, dirname=None, tarname=None, compress=False):
+    def event_outcome_success(self, result, dirname=None, tarname=None, compress=False):
         return "Created %s from %s" % (tarname, dirname)
 
 
@@ -293,7 +293,7 @@ class CreateZIP(DBTask):
 
         os.remove(zipname)
 
-    def event_outcome_success(self, dirname=None, zipname=None, compress=False):
+    def event_outcome_success(self, result, dirname=None, zipname=None, compress=False):
         return "Created %s from %s" % (zipname, dirname)
 
 
@@ -301,7 +301,7 @@ class ValidateFiles(DBTask):
     def run(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
         validate_files(self.ip, self.responsible, rootdir, validate_fileformat, validate_integrity, xmlfile)
 
-    def event_outcome_success(self, ip, xmlfile, validate_fileformat=True, validate_integrity=True, rootdir=None):
+    def event_outcome_success(self, result, ip, xmlfile, validate_fileformat=True, validate_integrity=True, rootdir=None):
         return "Validated files in %s" % xmlfile
 
 
@@ -311,10 +311,7 @@ class ValidateFileFormat(DBTask):
     def run(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
         return validate_file_format(filename, format_name, format_registry_key, format_version)
 
-    def undo(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
-        pass
-
-    def event_outcome_success(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
+    def event_outcome_success(self, result, filename=None, format_name=None, format_version=None, format_registry_key=None):
         return "Validated format of %s to be: format name: %s, format version: %s, format registry key: %s" % (
             filename, format_name, format_version, format_registry_key
         )
@@ -414,10 +411,7 @@ class ValidateXMLFile(DBTask):
         validator.validate(xml_filename)
         return "Success"
 
-    def undo(self, xml_filename=None, schema_filename=None, rootdir=None):
-        pass
-
-    def event_outcome_success(self, xml_filename=None, schema_filename=None, rootdir=None):
+    def event_outcome_success(self, result, xml_filename=None, schema_filename=None, rootdir=None):
         xml_filename = self.parse_params(xml_filename)
         return "Validated %s against schema" % xml_filename
 
@@ -451,7 +445,7 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
                                        task=self.task_id, ip=self.ip, responsible=ip.responsible)
         validator.validate(path)
 
-    def event_outcome_success(self, path, xmlfile, skip_files=None, relpath=None):
+    def event_outcome_success(self, result, path, xmlfile, skip_files=None, relpath=None):
         path, xmlfile = self.parse_params(path, xmlfile)
         return "Successfully validated logical and physical structure of {path} against {xml}".format(
             path=path, xml=xmlfile
@@ -475,10 +469,7 @@ class CompareXMLFiles(DBTask):
                                            responsible=ip.responsible)
         validator.validate(second)
 
-    def undo(self, first, second, rootdir=None):
-        pass
-
-    def event_outcome_success(self, first, second, rootdir=None):
+    def event_outcome_success(self, result, first, second, rootdir=None):
         first, second = self.parse_params(first, second)
         return "%s and %s has the same set of files" % (first, second)
 
@@ -502,7 +493,7 @@ class UpdateIPStatus(DBTask):
     def undo(self, status, prev=None):
         InformationPackage.objects.filter(pk=self.ip).update(state=prev)
 
-    def event_outcome_success(self, status, prev=None):
+    def event_outcome_success(self, result, status, prev=None):
         status, = self.parse_params(status)
         return u"Updated status of {} to {}".format(get_cached_objid(str(self.ip)), status)
 
@@ -524,7 +515,7 @@ class UpdateIPPath(DBTask):
     def undo(self, status, prev=None):
         InformationPackage.objects.filter(pk=self.ip).update(path=prev)
 
-    def event_outcome_success(self, path, prev=None):
+    def event_outcome_success(self, result, path, prev=None):
         path, = self.parse_params(path)
         return "Updated path of %s to %s" % (get_cached_objid(str(self.ip)), path)
 
@@ -543,10 +534,7 @@ class UpdateIPSizeAndCount(DBTask):
 
         return size, count
 
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         return "Updated size and count of IP"
 
 
@@ -557,7 +545,7 @@ class DeleteFiles(DBTask):
         path, = self.parse_params(path)
         delete_path(path)
 
-    def event_outcome_success(self, path):
+    def event_outcome_success(self, result, path):
         return "Deleted %s" % path
 
 
@@ -565,10 +553,7 @@ class CopyDir(DBTask):
     def run(self, src, dst):
         shutil.copytree(src, dst)
 
-    def undo(self, src, dst):
-        pass
-
-    def event_outcome_success(self, src, dst):
+    def event_outcome_success(self, result, src, dst):
         return "Copied %s to %s" % (src, dst)
 
 
@@ -588,10 +573,7 @@ class CopyFile(DBTask):
 
         copy_file(src, dst, requests_session=requests_session, block_size=block_size)
 
-    def undo(self, src, dst, requests_session=None, block_size=65536):
-        pass
-
-    def event_outcome_success(self, src, dst, requests_session=None, block_size=65536):
+    def event_outcome_success(self, result, src, dst, requests_session=None, block_size=65536):
         return "Copied %s to %s" % (src, dst)
 
 
@@ -625,12 +607,6 @@ class DownloadFile(DBTask):
                 for chunk in r:
                     f.write(chunk)
 
-    def undo(self, src=None, dst=None):
-        pass
-
-    def event_outcome_success(self, src=None, dst=None):
-        pass
-
 
 class MountTape(DBTask):
     event_type = 40200
@@ -639,12 +615,6 @@ class MountTape(DBTask):
     def run(self, medium=None, drive=None, timeout=120):
         mount_tape_medium_into_drive(drive, medium, timeout)
 
-    def undo(self, medium=None, drive=None, timeout=120):
-        pass
-
-    def event_outcome_success(self, medium=None, drive=None, timeout=120):
-        pass
-
 
 class UnmountTape(DBTask):
     event_type = 40100
@@ -652,12 +622,6 @@ class UnmountTape(DBTask):
     @retry(stop=stop_after_attempt(5), wait=wait_fixed(60000))
     def run(self, drive=None):
         return unmount_tape_from_drive(drive)
-
-    def undo(self, robot=None, slot=None, drive=None):
-        pass
-
-    def event_outcome_success(self, robot=None, slot=None, drive=None):
-        pass
 
 
 class RewindTape(DBTask):
@@ -673,12 +637,6 @@ class RewindTape(DBTask):
 
         return rewind_tape(drive.device)
 
-    def undo(self, medium=None):
-        pass
-
-    def event_outcome_success(self, medium=None):
-        pass
-
 
 class IsTapeDriveOnline(DBTask):
     def run(self, drive=None):
@@ -693,12 +651,6 @@ class IsTapeDriveOnline(DBTask):
         """
 
         return is_tape_drive_online(drive)
-
-    def undo(self, drive=None):
-        pass
-
-    def event_outcome_success(self, drive=None):
-        pass
 
 
 class ReadTape(DBTask):
@@ -719,12 +671,6 @@ class ReadTape(DBTask):
 
         return res
 
-    def undo(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
-        pass
-
-    def event_outcome_success(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
-        pass
-
 
 class WriteToTape(DBTask):
     def run(self, medium, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
@@ -744,12 +690,6 @@ class WriteToTape(DBTask):
 
         return res
 
-    def undo(self, medium, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
-        pass
-
-    def event_outcome_success(self, medium, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
-        pass
-
 
 class GetTapeFileNumber(DBTask):
     def run(self, medium=None):
@@ -763,12 +703,6 @@ class GetTapeFileNumber(DBTask):
             raise ValueError("Tape not mounted")
 
         return get_tape_file_number(drive.device)
-
-    def undo(self, medium=None):
-        pass
-
-    def event_outcome_success(self, medium=None):
-        pass
 
 
 class SetTapeFileNumber(DBTask):
@@ -784,12 +718,6 @@ class SetTapeFileNumber(DBTask):
 
         return set_tape_file_number(drive.device, num)
 
-    def undo(self, medium=None, num=0):
-        pass
-
-    def event_outcome_success(self, medium=None, num=0):
-        pass
-
 
 class RobotInventory(DBTask):
     def run(self, robot):
@@ -804,12 +732,6 @@ class RobotInventory(DBTask):
         """
 
         robot_inventory(robot)
-
-    def undo(self, robot):
-        pass
-
-    def event_outcome_success(self, robot):
-        pass
 
 
 class ConvertFile(DBTask):
@@ -844,10 +766,7 @@ class ConvertFile(DBTask):
                     if delete_original:
                         os.remove(filepath)
 
-    def undo(self, path, format_map, delete_original=True):
-        pass
-
-    def event_outcome_success(self, path, format_map, delete_original=True):
+    def event_outcome_success(self, result, path, format_map, delete_original=True):
         path, = self.parse_params(path)
         return "Converted %s file(s) at %s" % (self.files_count, path,)
 
@@ -865,12 +784,6 @@ class ClearTagProcessQueue(DBTask):
         _clear_process_tag_queue(keys=[INDEX_PROCESS_QUEUE, INDEX_QUEUE], args=[max_time])
         _clear_process_tag_queue(keys=[UPDATE_PROCESS_QUEUE, UPDATE_QUEUE], args=[max_time])
         _clear_process_tag_queue(keys=[DELETION_PROCESS_QUEUE, DELETION_QUEUE], args=[max_time])
-
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
-        pass
 
 
 class ProcessTags(DBTask):
@@ -925,12 +838,6 @@ class ProcessTags(DBTask):
         if errors:
             raise es_helpers.BulkIndexError('%d document(s) failed to index.' % len(errors),
                                             errors)
-
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
-        pass
 
 
 class IndexTags(ProcessTags):

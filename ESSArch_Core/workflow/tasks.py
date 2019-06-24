@@ -180,7 +180,7 @@ class ReceiveSIP(DBTask):
         self.logger.debug(u'sip_path set to {}'.format(aip.sip_path))
         aip.save()
 
-    def event_outcome_success(self, purpose=None, allow_unknown_files=False):
+    def event_outcome_success(self, result, purpose=None, allow_unknown_files=False):
         return "Received SIP"
 
 
@@ -204,12 +204,6 @@ class ReceiveAIP(DBTask):
         ip.save()
 
         workarea.delete()
-
-    def undo(self, workarea):
-        pass
-
-    def event_outcome_success(self, workarea):
-        pass
 
 
 class CacheAIP(DBTask):
@@ -381,7 +375,7 @@ class CacheAIP(DBTask):
                         raise
         return self.ip
 
-    def event_outcome_success(self, *args, **kwargs):
+    def event_outcome_success(self, result, *args, **kwargs):
         return "Cached AIP '%s'" % self.get_information_package().object_identifier_value
 
 
@@ -435,7 +429,7 @@ class StoreAIP(DBTask):
                     entry.step = step
                     entry.save(update_fields=['step'])
 
-    def event_outcome_success(self, *args, **kwargs):
+    def event_outcome_success(self, result, *args, **kwargs):
         return "Created entries in IO queue for AIP '%s'" % self.get_information_package().object_identifier_value
 
 
@@ -492,10 +486,7 @@ class AccessAIP(DBTask):
         )
         return
 
-    def undo(self, aip):
-        pass
-
-    def event_outcome_success(self, aip):
+    def event_outcome_success(self, result, aip):
         return "Created entries in IO queue for AIP '%s'" % aip
 
 
@@ -544,10 +535,7 @@ class PrepareDIP(DBTask):
 
         return ip.pk
 
-    def undo(self, label, object_identifier_value=None, orders=[]):
-        pass
-
-    def event_outcome_success(self, label, object_identifier_value=None, orders=[]):
+    def event_outcome_success(self, result, label, object_identifier_value=None, orders=[]):
         return 'Prepared DIP "%s"' % self.ip
 
 
@@ -577,10 +565,7 @@ class CreateDIP(DBTask):
         ip.state = 'Created'
         ip.save(update_fields=['state'])
 
-    def undo(self, ip):
-        pass
-
-    def event_outcome_success(self, ip):
+    def event_outcome_success(self, result, ip):
         return 'Created DIP "%s"' % ip
 
 
@@ -809,12 +794,6 @@ class PollAccessQueue(DBTask):
             entry.save(update_fields=['status'])
 
             return str(io_entry.pk)
-
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
-        pass
 
 
 class PollIOQueue(DBTask):
@@ -1095,12 +1074,6 @@ class PollIOQueue(DBTask):
 
                 t.run()
 
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
-        pass
-
 
 class IO(DBTask):
     abstract = True
@@ -1190,12 +1163,6 @@ class IO(DBTask):
                 entry, cache, cache_obj, cache_obj_xml, cache_obj_aic_xml,
                 storage_medium, storage_method, storage_target
             )
-
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
-        pass
 
 
 class IOTape(IO):
@@ -1398,12 +1365,6 @@ class PollRobotQueue(DBTask):
                         entry.robot = None
                         entry.save(update_fields=['robot', 'status'])
 
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
-        pass
-
 
 class UnmountIdleDrives(DBTask):
     track = False
@@ -1428,12 +1389,6 @@ class UnmountIdleDrives(DBTask):
                     storage_medium=drive.storage_medium,
                     req_type=20, status=0,
                 )
-
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
-        pass
 
 
 class ScheduleAppraisalJobs(DBTask):
@@ -1463,12 +1418,6 @@ class ScheduleAppraisalJobs(DBTask):
             next_date = last + datetime.timedelta(seconds=delay)
             AppraisalJob.objects.create(rule=rule, start_date=next_date)
 
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
-        pass
-
 
 class PollAppraisalJobs(DBTask):
     track = False
@@ -1479,12 +1428,6 @@ class PollAppraisalJobs(DBTask):
 
         for job in jobs.iterator():
             job.run()
-
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
-        pass
 
 
 class ScheduleConversionJobs(DBTask):
@@ -1513,12 +1456,6 @@ class ScheduleConversionJobs(DBTask):
             next_date = last + datetime.timedelta(seconds=delay)
             ConversionJob.objects.create(rule=rule, start_date=next_date)
 
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
-        pass
-
 
 class PollConversionJobs(DBTask):
     track = False
@@ -1529,9 +1466,3 @@ class PollConversionJobs(DBTask):
 
         for job in jobs.iterator():
             job.run()
-
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
-        pass
