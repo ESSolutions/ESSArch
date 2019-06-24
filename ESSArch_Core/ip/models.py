@@ -418,6 +418,8 @@ class InformationPackage(models.Model):
         sa = self.submission_agreement
         extra_data = fill_specification_data(ip=self, sa=sa)
         for p_type in profile_types:
+            if ProfileIP.objects.filter(ip=self, profile__profile_type=p_type).exists():
+                continue
             profile = getattr(sa, 'profile_%s' % p_type, None)
 
             if profile is None:
@@ -453,7 +455,7 @@ class InformationPackage(models.Model):
 
     def get_profile(self, profile_type):
         try:
-            return ProfileIP.objects.get(ip=self, profile__profile_type=profile_type)
+            return ProfileIP.objects.get(ip=self, profile__profile_type=profile_type).profile
         except ProfileIP.DoesNotExist:
             return None
 
