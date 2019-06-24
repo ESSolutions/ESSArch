@@ -66,8 +66,7 @@ class ProcessViewSet(GenericAPIView, viewsets.ViewSet):
 
         queryset = sorted(
             itertools.chain(child_steps, tasks),
-            key=lambda instance: instance.time_started or
-            datetime.datetime(datetime.MAXYEAR, 1, 1, 1, 1, 1, 1, pytz.UTC)
+            key=lambda instance: instance.get_pos()
         )
 
         page = self.paginate_queryset(queryset)

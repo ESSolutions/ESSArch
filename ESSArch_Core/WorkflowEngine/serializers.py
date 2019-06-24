@@ -81,9 +81,7 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
         return obj.user
 
     def get_step_position(self, obj):
-        if type(obj).__name__ == 'ProcessTask':
-            return obj.processstep_pos
-        return obj.parent_step_pos
+        return obj.get_pos()
 
 
 class ProcessTaskSerializer(serializers.ModelSerializer):
