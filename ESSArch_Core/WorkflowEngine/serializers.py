@@ -86,7 +86,7 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
         return obj.parent_step_pos
 
 
-class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
+class ProcessTaskSerializer(serializers.ModelSerializer):
     args = serializers.JSONField(required=False)
     responsible = serializers.SlugRelatedField(
         slug_field='username', read_only=True
@@ -143,7 +143,7 @@ class ProcessTaskSetSerializer(ProcessTaskSerializer):
         )
 
 
-class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
+class ProcessStepSerializer(serializers.ModelSerializer):
     user = serializers.CharField(read_only=True, default=CurrentUsernameDefault())
 
     def create(self, validated_data):

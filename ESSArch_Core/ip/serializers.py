@@ -4,7 +4,7 @@ import os
 from rest_framework import filters, serializers
 
 from ESSArch_Core._version import get_versions
-from ESSArch_Core.api.serializers import DynamicHyperlinkedModelSerializer
+from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import EventType
@@ -38,7 +38,7 @@ class AgentSerializer(serializers.ModelSerializer):
         fields = ('id', 'role', 'type', 'name', 'code', 'notes')
 
 
-class EventIPSerializer(serializers.HyperlinkedModelSerializer):
+class EventIPSerializer(serializers.ModelSerializer):
     linkingAgentIdentifierValue = serializers.CharField(read_only=True, default=CurrentUsernameDefault())
     information_package = serializers.CharField(required=False, source='linkingObjectIdentifierValue')
     eventType = serializers.PrimaryKeyRelatedField(queryset=EventType.objects.all())
@@ -52,7 +52,7 @@ class EventIPSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = EventIP
         fields = (
-            'url', 'id', 'eventType', 'eventDateTime', 'eventDetail',
+            'id', 'eventType', 'eventDateTime', 'eventDetail',
             'eventVersion', 'eventOutcome',
             'eventOutcomeDetailNote', 'linkingAgentIdentifierValue',
             'linkingAgentRole', 'information_package',
@@ -136,7 +136,7 @@ class InformationPackageSerializer(serializers.ModelSerializer):
     class Meta:
         model = InformationPackage
         fields = (
-            'url', 'id', 'label', 'object_identifier_value', 'object_size',
+            'id', 'label', 'object_identifier_value', 'object_size',
             'object_path', 'submission_agreement', 'submission_agreement_locked',
             'package_type', 'package_type_display', 'responsible', 'create_date',
             'object_num_items', 'entry_date', 'state', 'status', 'step_state',
@@ -159,7 +159,7 @@ class InformationPackageSerializer(serializers.ModelSerializer):
         }
 
 
-class OrderSerializer(serializers.HyperlinkedModelSerializer):
+class OrderSerializer(serializers.ModelSerializer):
     responsible = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
 
     information_packages = serializers.HyperlinkedRelatedField(
@@ -176,7 +176,7 @@ class OrderSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Order
         fields = (
-            'url', 'id', 'label', 'responsible', 'information_packages',
+            'id', 'label', 'responsible', 'information_packages',
         )
 
 
@@ -209,7 +209,7 @@ class WorkareaSerializer(serializers.ModelSerializer):
         )
 
 
-class InformationPackageAICSerializer(DynamicHyperlinkedModelSerializer):
+class InformationPackageAICSerializer(DynamicModelSerializer):
     information_packages = InformationPackageSerializer(read_only=True, many=True)
     package_type = serializers.ChoiceField(choices=((1, 'AIC'),))
 
@@ -270,7 +270,7 @@ class InformationPackageDetailSerializer(InformationPackageSerializer):
         }
 
 
-class NestedInformationPackageSerializer(DynamicHyperlinkedModelSerializer):
+class NestedInformationPackageSerializer(serializers.ModelSerializer):
     responsible = UserSerializer(read_only=True)
     package_type = serializers.ChoiceField(choices=InformationPackage.PACKAGE_TYPE_CHOICES)
     package_type_display = serializers.SerializerMethodField()
@@ -344,7 +344,7 @@ class NestedInformationPackageSerializer(DynamicHyperlinkedModelSerializer):
     class Meta:
         model = InformationPackage
         fields = (
-            'url', 'id', 'label', 'object_identifier_value', 'package_type', 'package_type_display',
+            'id', 'label', 'object_identifier_value', 'package_type', 'package_type_display',
             'responsible', 'create_date', 'entry_date', 'state', 'status',
             'step_state', 'archived', 'cached', 'aic', 'information_packages',
             'generation', 'policy', 'message_digest', 'agents',

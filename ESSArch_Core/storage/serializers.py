@@ -3,7 +3,7 @@ import os
 from django.contrib.auth import get_user_model
 from rest_framework import serializers, validators
 
-from ESSArch_Core.api.serializers import DynamicHyperlinkedModelSerializer
+from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.ip.models import InformationPackage
@@ -58,7 +58,7 @@ class StorageMediumSerializer(serializers.ModelSerializer):
     class Meta:
         model = StorageMedium
         fields = (
-            'url', 'id', 'medium_id', 'status', 'status_display', 'location', 'location_status',
+            'id', 'medium_id', 'status', 'status_display', 'location', 'location_status',
             'location_status_display', 'block_size', 'format', 'used_capacity', 'num_of_mounts', 'create_date',
             'agent', 'storage_target', 'tape_slot', 'tape_drive',
         )
@@ -88,7 +88,7 @@ class StorageObjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = StorageObject
         fields = (
-            'url', 'id', 'content_location_type', 'content_location_value', 'last_changed_local',
+            'id', 'content_location_type', 'content_location_value', 'last_changed_local',
             'last_changed_external', 'ip', 'medium_id', 'target_name', 'target_target', 'storage_medium'
         )
         extra_kwargs = {
@@ -107,15 +107,15 @@ class StorageObjectWithIPSerializer(StorageObjectSerializer):
     ip = InformationPackageSerializer(read_only=True)
 
 
-class RobotSerializer(serializers.HyperlinkedModelSerializer):
+class RobotSerializer(serializers.ModelSerializer):
     class Meta:
         model = Robot
         fields = (
-            'url', 'id', 'label', 'device', 'online',
+            'id', 'label', 'device', 'online',
         )
 
 
-class TapeSlotSerializer(serializers.HyperlinkedModelSerializer):
+class TapeSlotSerializer(serializers.ModelSerializer):
     storage_medium = StorageMediumSerializer()
     locked = serializers.SerializerMethodField()
     mounted = serializers.SerializerMethodField()
@@ -135,12 +135,12 @@ class TapeSlotSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = TapeSlot
         fields = (
-            'url', 'id', 'slot_id', 'medium_id', 'robot', 'status', 'status_display', 'locked', 'mounted',
+            'id', 'slot_id', 'medium_id', 'robot', 'status', 'status_display', 'locked', 'mounted',
             'storage_medium',
         )
 
 
-class TapeDriveSerializer(serializers.HyperlinkedModelSerializer):
+class TapeDriveSerializer(serializers.ModelSerializer):
     storage_medium = StorageMediumSerializer(read_only=True)
     status_display = serializers.SerializerMethodField()
 
@@ -150,12 +150,12 @@ class TapeDriveSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = TapeDrive
         fields = (
-            'url', 'id', 'drive_id', 'device', 'io_queue_entry', 'num_of_mounts', 'idle_time', 'robot', 'status',
+            'id', 'drive_id', 'device', 'io_queue_entry', 'num_of_mounts', 'idle_time', 'robot', 'status',
             'status_display', 'storage_medium', 'locked', 'last_change',
         )
 
 
-class IOQueueSerializer(DynamicHyperlinkedModelSerializer):
+class IOQueueSerializer(DynamicModelSerializer):
     ip = InformationPackageDetailSerializer()
     result = serializers.ModelField(model_field=IOQueue()._meta.get_field('result'), read_only=False)
     user = UserSerializer()
@@ -183,7 +183,7 @@ class IOQueueSerializer(DynamicHyperlinkedModelSerializer):
     class Meta:
         model = IOQueue
         fields = (
-            'url', 'id', 'req_type', 'req_type_display', 'req_purpose', 'user', 'object_path',
+            'id', 'req_type', 'req_type_display', 'req_purpose', 'user', 'object_path',
             'write_size', 'result', 'status', 'status_display', 'task_id', 'posted',
             'ip', 'storage_method_target', 'storage_medium', 'storage_object', 'access_queue',
             'remote_status', 'transfer_task_id'
@@ -321,16 +321,16 @@ class IOQueueWriteSerializer(IOQueueSerializer):
         return instance
 
 
-class AccessQueueSerializer(serializers.HyperlinkedModelSerializer):
+class AccessQueueSerializer(serializers.ModelSerializer):
     class Meta:
         model = AccessQueue
         fields = (
-            'url', 'id', 'user', 'posted', 'ip', 'package', 'extracted',
+            'id', 'user', 'posted', 'ip', 'package', 'extracted',
             'new', 'object_identifier_value', 'new_ip', 'status',
         )
 
 
-class RobotQueueSerializer(serializers.HyperlinkedModelSerializer):
+class RobotQueueSerializer(serializers.ModelSerializer):
     io_queue_entry = IOQueueSerializer(read_only=True)
     robot = RobotSerializer(read_only=True)
     storage_medium = StorageMediumSerializer(read_only=True)
@@ -347,6 +347,6 @@ class RobotQueueSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = RobotQueue
         fields = (
-            'url', 'id', 'user', 'posted', 'robot', 'io_queue_entry',
+            'id', 'user', 'posted', 'robot', 'io_queue_entry',
             'storage_medium', 'req_type', 'status'
         )

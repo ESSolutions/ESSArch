@@ -25,7 +25,7 @@ import uuid
 
 from rest_framework import serializers
 
-from ESSArch_Core.api.serializers import DynamicHyperlinkedModelSerializer
+from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.configuration.models import (
     Agent,
     EventType,
@@ -41,13 +41,13 @@ from ESSArch_Core.storage.models import (
 )
 
 
-class EventTypeSerializer(DynamicHyperlinkedModelSerializer):
+class EventTypeSerializer(DynamicModelSerializer):
     class Meta:
         model = EventType
-        fields = ('url', 'eventType', 'eventDetail',)
+        fields = ('eventType', 'eventDetail',)
 
 
-class AgentSerializer(DynamicHyperlinkedModelSerializer):
+class AgentSerializer(DynamicModelSerializer):
     id = serializers.UUIDField(read_only=True)
 
     class Meta:
@@ -55,7 +55,7 @@ class AgentSerializer(DynamicHyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class ParameterSerializer(DynamicHyperlinkedModelSerializer):
+class ParameterSerializer(DynamicModelSerializer):
     id = serializers.UUIDField(read_only=True)
 
     class Meta:
@@ -63,7 +63,7 @@ class ParameterSerializer(DynamicHyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class PathSerializer(DynamicHyperlinkedModelSerializer):
+class PathSerializer(DynamicModelSerializer):
     id = serializers.UUIDField(read_only=True)
 
     class Meta:
@@ -76,14 +76,13 @@ class PathSerializer(DynamicHyperlinkedModelSerializer):
         }
 
 
-class StoragePolicySerializer(DynamicHyperlinkedModelSerializer):
-    cache_storage = PathSerializer()
+class StoragePolicySerializer(serializers.ModelSerializer):
     ingest_path = PathSerializer()
 
     class Meta:
         model = StoragePolicy
         fields = (
-            "url", "id", "index",
+            "id", "index",
             "cache_minimum_capacity", "cache_maximum_age",
             "policy_id", "policy_name",
             "policy_stat", "ais_project_name", "ais_project_id",
@@ -134,11 +133,11 @@ class StoragePolicyNestedSerializer(StoragePolicySerializer):
         }
 
 
-class StorageTargetSerializer(serializers.HyperlinkedModelSerializer):
+class StorageTargetSerializer(serializers.ModelSerializer):
     class Meta:
         model = StorageTarget
         fields = (
-            'url', 'id', 'name', 'status', 'type', 'default_block_size', 'default_format', 'min_chunk_size',
+            'id', 'name', 'status', 'type', 'default_block_size', 'default_format', 'min_chunk_size',
             'min_capacity_warning', 'max_capacity', 'remote_server', 'master_server', 'target'
         )
         extra_kwargs = {
@@ -152,14 +151,14 @@ class StorageTargetSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
-class StorageMethodTargetRelationSerializer(serializers.HyperlinkedModelSerializer):
+class StorageMethodTargetRelationSerializer(serializers.ModelSerializer):
     storage_method = serializers.UUIDField(format='hex_verbose', source='storage_method.id', validators=[])
     storage_target = StorageTargetSerializer()
 
     class Meta:
         model = StorageMethodTargetRelation
         fields = (
-            'url', 'id', 'name', 'status', 'storage_target', 'storage_method',
+            'id', 'name', 'status', 'storage_target', 'storage_method',
         )
         extra_kwargs = {
             'id': {
@@ -170,8 +169,7 @@ class StorageMethodTargetRelationSerializer(serializers.HyperlinkedModelSerializ
         }
 
 
-class StorageMethodSerializer(DynamicHyperlinkedModelSerializer):
-    storage_policy = StoragePolicyNestedSerializer()
+class StorageMethodSerializer(serializers.ModelSerializer):
     targets = serializers.PrimaryKeyRelatedField(
         pk_field=serializers.UUIDField(format='hex_verbose'),
         many=True, read_only=True
@@ -181,8 +179,8 @@ class StorageMethodSerializer(DynamicHyperlinkedModelSerializer):
     class Meta:
         model = StorageMethod
         fields = (
-            'url', 'id', 'name', 'status', 'type', 'storage_policy', 'targets',
-            'storage_method_target_relations',
+            'id', 'name', 'enabled', 'type', 'targets',
+            'containers', 'storage_method_target_relations',
         )
         extra_kwargs = {
             'id': {

@@ -26,7 +26,7 @@ from drf_dynamic_fields import DynamicFieldsMixin
 from rest_framework import serializers
 
 
-class DynamicHyperlinkedModelSerializer(DynamicFieldsMixin, serializers.HyperlinkedModelSerializer):
+class DynamicModelSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     """
     A ModelSerializer that takes an additional `fields` argument that
     controls which fields should be displayed.
