@@ -59,8 +59,8 @@ def installDefaultConfiguration():
     print("\nInstalling paths...")
     installDefaultPaths()
 
-    print("\nInstalling archive policies...")
-    installDefaultArchivePolicies()
+    print("\nInstalling storage policies...")
+    installDefaultStoragePolicies()
 
     print("\nInstalling storage methods...")
     installDefaultStorageMethods()
@@ -436,7 +436,7 @@ def installDefaultPaths():
     return 0
 
 
-def installDefaultArchivePolicies():
+def installDefaultStoragePolicies():
     cache, created_cache = StorageMethod.objects.get_or_create(
         name='Default Cache Storage Method',
         defaults={
