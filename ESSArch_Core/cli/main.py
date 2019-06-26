@@ -1,18 +1,64 @@
+import os
 from pydoc import locate
 
 import click
 import django
 from django.core.management import call_command as dj_call_command
 
+from ESSArch_Core.cli import deactivate_prompts
+from ESSArch_Core.config import generate_local_settings
+
 django.setup()
+
+from ESSArch_Core.configuration.models import Path  # noqa isort:skip
 
 
 def _migrate(interactive, verbosity):
+    click.secho('Applying database migrations:', fg='green')
+
     dj_call_command(
         'migrate',
         interactive=interactive,
         verbosity=verbosity,
     )
+
+
+def create_local_settings_file(path, overwrite=None):
+    content = generate_local_settings()
+
+    if os.path.isfile(path) and overwrite is None:
+        overwrite = click.confirm("File at '%s' already exists, should we overwrite it?" % click.format_filename(path))
+
+    if not os.path.isfile(path) or overwrite:
+        with click.open_file(path, 'w') as fp:
+            fp.write(content)
+
+
+def create_data_directories(base_dir):
+    dirs = [
+        'etp/prepare',
+        'etp/prepare_reception',
+        'etp/reception',
+        'gate/reception',
+        'epp/ingest',
+        'epp/cache',
+        'epp/work',
+        'epp/disseminations',
+        'epp/orders',
+        'epp/verify',
+        'epp/temp',
+        'epp/reports/appraisal',
+        'epp/reports/conversion',
+        'eta/reception/eft',
+        'eta/uip',
+        'eta/work',
+    ]
+
+    click.secho('Creating data directories:', fg='green')
+    for d in dirs:
+        full_path = os.path.join(base_dir, d)
+        click.echo(' - %s' % full_path)
+        os.makedirs(full_path, exist_ok=True)
 
 
 @click.group()
@@ -21,6 +67,21 @@ def cli(ctx):
     """ESSArch is an open source archival solution
     compliant to the OAIS ISO-standard
     """
+
+
+@cli.command()
+@click.option('-q/--quiet', default=False, is_eager=True, expose_value=False, callback=deactivate_prompts)
+@click.option('--overwrite/--no-overwrite', default=None)
+@click.option('--data-directory', prompt=True,
+              default='/ESSArch/data', show_default='/ESSArch/data')
+@click.option('--settings-path', prompt=True,
+              default='/ESSArch/config/local_essarch_settings.py',
+              show_default='/ESSArch/config/local_essarch_settings.py')
+def install(settings_path, data_directory, overwrite):
+    create_local_settings_file(settings_path, overwrite=overwrite)
+    create_data_directories(data_directory)
+
+    _migrate(False, 1)
 
 
 list(
