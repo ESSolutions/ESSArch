@@ -147,7 +147,6 @@ class GeneratePackageMets(DBTask):
     def run(self):
         generate_package_mets(self.get_information_package())
 
-        ip = self.get_information_package()
     def event_outcome_success(self, result, *args, **kwargs):
         return 'Generated {xml}'.format(xml=result)
 

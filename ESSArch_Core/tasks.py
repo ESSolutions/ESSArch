@@ -301,7 +301,7 @@ class ValidateFiles(DBTask):
     def run(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
         validate_files(self.ip, self.responsible, rootdir, validate_fileformat, validate_integrity, xmlfile)
 
-    def event_outcome_success(self, result, ip, xmlfile, validate_fileformat=True, validate_integrity=True, rootdir=None):
+    def event_outcome_success(self, result, ip, xmlfile, **kwargs):
         return "Validated files in %s" % xmlfile
 
 
@@ -311,7 +311,8 @@ class ValidateFileFormat(DBTask):
     def run(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
         return validate_file_format(filename, format_name, format_registry_key, format_version)
 
-    def event_outcome_success(self, result, filename=None, format_name=None, format_version=None, format_registry_key=None):
+    def event_outcome_success(self, result, filename=None, format_name=None,
+                              format_version=None, format_registry_key=None):
         return "Validated format of %s to be: format name: %s, format version: %s, format registry key: %s" % (
             filename, format_name, format_version, format_registry_key
         )
