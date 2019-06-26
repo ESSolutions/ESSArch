@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 from django.core.management.utils import get_random_secret_key
+from ESSArch_Core.crypto import generate_key
 
 # This will make sure the app is always imported when
 # Django starts so that shared_task will use this app.
@@ -38,6 +39,7 @@ def load_config_template(path, version='default'):
 def generate_local_settings():
     context = {
         'secret_key': get_random_secret_key(),
+        'encryption_key': generate_key(),
     }
 
     content = load_config_template('local_settings').format(**context)
