@@ -31,7 +31,7 @@ RUN yarn build:prod
 
 FROM python:3.6-slim
 
-WORKDIR /code/ESSArch_Core
+WORKDIR /code
 EXPOSE 8000
 
 ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
@@ -63,8 +63,8 @@ RUN apt-get update \
         postgresql-client \
         python3-cffi \
         shared-mime-info \
-    && pip install --upgrade pip setuptools pywatchman \
-    && pip install -e ..[postgres,tests] \
+    && pip install --no-cache-dir --upgrade pip setuptools pywatchman \
+    && pip install --no-cache-dir -e .[postgres,tests] \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get purge -y --auto-remove gcc
 

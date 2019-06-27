@@ -332,10 +332,10 @@ except ImportError:
 CELERY_BROKER_URL = RABBITMQ_URL
 CELERY_IMPORTS = (
     "ESSArch_Core.ip.tasks",
+    "ESSArch_Core.preingest.tasks",
     "ESSArch_Core.tasks",
+    "ESSArch_Core.workflow.tasks",
     "ESSArch_Core.WorkflowEngine.tests.tasks",
-    "preingest.tasks",
-    "workflow.tasks",
 )
 CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_BROKER_HEARTBEAT = 0
