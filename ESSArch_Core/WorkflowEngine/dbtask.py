@@ -23,14 +23,13 @@
 """
 
 import logging
-import time
 
 from billiard.einfo import ExceptionInfo
 from celery import exceptions, states as celery_states
 from celery.task.base import Task
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.db import OperationalError, connection, transaction
+from django.db import connection, transaction
 from django.utils import timezone, translation
 
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
@@ -131,8 +130,6 @@ class DBTask(Task):
         if self.track:
             ProcessTask.objects.filter(pk=self.task_id).update(
                 hidden=self.hidden,
-                status=celery_states.STARTED,
-                time_started=timezone.now()
             )
 
         try:
@@ -140,10 +137,10 @@ class DBTask(Task):
             if user.user_profile is not None:
                 with translation.override(user.user_profile.language):
                     return self._run(*args, **kwargs)
-            else:
-                return self._run(*args, **kwargs)
         except User.DoesNotExist:
-            return self._run(*args, **kwargs)
+            pass
+
+        return self._run(*args, **kwargs)
 
     def _run(self, *args, **kwargs):
         lock = None
@@ -179,6 +176,12 @@ class DBTask(Task):
                 lock.release()
 
         return res
+
+    def update_state(self, task_id=None, state=None, meta=None, **kwargs):
+        if task_id is None:
+            task_id = self.request.id
+
+        self.backend.update_state(task_id, meta, state, request=self.request, **kwargs)
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
         try:
@@ -225,31 +228,7 @@ class DBTask(Task):
         timestamps
         '''
 
-        if not self.track:
-            return
-
-        time_done = timezone.now()
-        tb = einfo.traceback
-        exception = u"%s: %s" % (einfo.type.__name__, einfo.exception)
-
-        try:
-            ProcessTask.objects.filter(pk=task_id).update(
-                traceback=tb,
-                exception=exception,
-                status=celery_states.FAILURE,
-                time_done=time_done,
-            )
-        except OperationalError:
-            print("Database locked, trying again after 2 seconds")
-            time.sleep(2)
-            ProcessTask.objects.filter(pk=task_id).update(
-                traceback=tb,
-                exception=exception,
-                status=celery_states.FAILURE,
-                time_done=time_done,
-            )
-
-        if not self.chunk and self.event_type:
+        if self.event_type:
             self.create_event(task_id, celery_states.FAILURE, args, kwargs, None, einfo)
 
     def success(self, retval, task_id, args, kwargs):
@@ -260,25 +239,6 @@ class DBTask(Task):
         timestamps
         '''
 
-        if not self.track or self.chunk:
-            return
-
-        time_done = timezone.now()
-
-        updated = {
-            'result': retval,
-            'status': celery_states.SUCCESS,
-            'time_done': time_done,
-            'progress': 100
-        }
-
-        try:
-            ProcessTask.objects.filter(pk=task_id).update(**updated)
-        except OperationalError:
-            print("Database locked, trying again after 2 seconds")
-            time.sleep(2)
-            ProcessTask.objects.filter(pk=task_id).update(**updated)
-
         if self.event_type:
             self.create_event(task_id, celery_states.SUCCESS, args, kwargs, retval, None)
 
@@ -286,18 +246,8 @@ class DBTask(Task):
         if not self.track:
             return
 
-        if not self.eager:
-            self.update_state(state=celery_states.PENDING,
-                              meta={'current': progress, 'total': total})
-
-        percent = (progress / total) * 100
-
-        if self.chunk:
-            self.progress = percent
-        else:
-            ProcessTask.objects.filter(pk=self.task_id).update(
-                progress=percent
-            )
+        self.update_state(state=celery_states.PENDING,
+                          meta={'current': progress, 'total': total})
 
     def parse_params(self, *params):
         return tuple([parseContent(param, self.extra_data) for param in params])

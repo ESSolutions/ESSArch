@@ -561,7 +561,7 @@ class ProcessTask(Process):
     time_started = models.DateTimeField(_('started at'), null=True, blank=True)
     time_done = models.DateTimeField(_('done at'), null=True, blank=True)
     traceback = models.TextField(blank=True)
-    exception = models.TextField(blank=True)
+    exception = PickledObjectField(null=True, default=None)
     meta = PickledObjectField(null=True, default=None, editable=False)
     processstep = models.ForeignKey(
         'ProcessStep', related_name='tasks', on_delete=models.CASCADE,

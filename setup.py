@@ -47,6 +47,9 @@ if __name__ == '__main__':
             'console_scripts': [
                 'essarch = ESSArch_Core.cli.main:cli',
             ],
+            'celery.result_backends': [
+                'processtask = ESSArch_Core.celery.backends.database:DatabaseBackend',
+            ],
         },
         project_urls={
             'Documentation': 'http://docs.essarch.org/',
@@ -64,7 +67,7 @@ if __name__ == '__main__':
             "Topic :: System :: Archiving",
         ],
         install_requires=[
-            "celery==4.3.0",
+            "celery[tblib]==4.3.0",
             "cffi==1.11.5",
             "channels==2.1.7",
             "channels_redis==2.3.3",

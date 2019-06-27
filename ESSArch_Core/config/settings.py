@@ -337,9 +337,11 @@ CELERY_IMPORTS = (
     "ESSArch_Core.workflow.tasks",
     "ESSArch_Core.WorkflowEngine.tests.tasks",
 )
-CELERY_RESULT_BACKEND = REDIS_URL
+CELERY_RESULT_BACKEND = 'processtask'
 CELERY_BROKER_HEARTBEAT = 0
 CELERY_BROKER_TRANSPORT_OPTIONS = {'confirm_publish': True}
+CELERY_TASK_REMOTE_TRACEBACKS = True
+CELERY_TASK_TRACK_STARTED = True
 
 CELERY_BEAT_SCHEDULE = {
     'RunWorkflowProfiles-every-10-seconds': {
