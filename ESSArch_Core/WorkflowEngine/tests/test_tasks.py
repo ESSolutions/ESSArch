@@ -122,8 +122,15 @@ class OnFailureTests(TestCase):
 
         task.refresh_from_db()
         self.assertIsNone(task.result)
-        self.assertIsNotNone(task.traceback)
-        self.assertEqual(u"Exception: An error occurred!", task.exception)
+        self.assertNotEqual(task.traceback, '')
+        self.assertEqual(
+            task.exception,
+            {
+                'exc_type': 'Exception',
+                'exc_message': ('An error occurred!',),
+                'exc_module': 'builtins'
+            }
+        )
 
     def test_on_failure_does_not_exist(self):
         """
@@ -293,9 +300,8 @@ class DBTaskTests(TestCase):
         }
         mock_logger_log.assert_called_once_with(logging.ERROR, mock.ANY, extra=expected_extra)
 
-    @mock.patch("ESSArch_Core.WorkflowEngine.models.ProcessTask.objects.filter")
     @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_success_when_event_type_not_none_then_create_event(self, mock_create_event, mock_process_task):
+    def test_success_when_event_type_not_none_then_create_event(self, mock_create_event):
         db_task = DBTask()
         db_task.event_type = 123
         task_id = uuid.uuid4()
@@ -305,12 +311,10 @@ class DBTaskTests(TestCase):
 
         db_task.success(retval, task_id, args, kwargs)
 
-        mock_process_task.assert_called_once()
         mock_create_event.assert_called_once_with(task_id, celery_states.SUCCESS, args, kwargs, retval, None)
 
-    @mock.patch("ESSArch_Core.WorkflowEngine.models.ProcessTask.objects.filter")
     @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_success_when_event_type_is_none_dont_create_event(self, mock_create_event, mock_process_task):
+    def test_success_when_event_type_is_none_dont_create_event(self, mock_create_event):
         db_task = DBTask()
         db_task.event_type = None
         task_id = uuid.uuid4()
@@ -321,11 +325,9 @@ class DBTaskTests(TestCase):
         db_task.success(retval, task_id, args, kwargs)
 
         mock_create_event.assert_not_called()
-        mock_process_task.assert_called_once()
 
-    @mock.patch("ESSArch_Core.WorkflowEngine.models.ProcessTask.objects.filter")
     @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_success_when_track_is_False_then_return(self, mock_create_event, mock_process_task):
+    def test_success_when_track_is_False_then_return(self, mock_create_event):
         db_task = DBTask()
         db_task.track = False
         task_id = uuid.uuid4()
@@ -336,11 +338,9 @@ class DBTaskTests(TestCase):
         db_task.success(retval, task_id, args, kwargs)
 
         mock_create_event.assert_not_called()
-        mock_process_task.assert_not_called()
 
-    @mock.patch("ESSArch_Core.WorkflowEngine.models.ProcessTask.objects.filter")
     @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_success_when_chunk_is_True_then_return(self, mock_create_event, mock_process_task):
+    def test_success_when_chunk_is_True_then_return(self, mock_create_event):
         db_task = DBTask()
         db_task.chunk = True
         task_id = uuid.uuid4()
@@ -351,12 +351,10 @@ class DBTaskTests(TestCase):
         db_task.success(retval, task_id, args, kwargs)
 
         mock_create_event.assert_not_called()
-        mock_process_task.assert_not_called()
 
     @mock.patch("billiard.einfo.ExceptionInfo")
-    @mock.patch("ESSArch_Core.WorkflowEngine.models.ProcessTask.objects.filter")
     @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_failure_when_event_type_not_none_then_create_event(self, mock_create_event, mock_proc_task, mock_einfo):
+    def test_failure_when_event_type_not_none_then_create_event(self, mock_create_event, mock_einfo):
         db_task = DBTask()
         db_task.event_type = 123
         task_id = uuid.uuid4()
@@ -367,13 +365,11 @@ class DBTaskTests(TestCase):
 
         db_task.failure(None, task_id, args, kwargs, mock_einfo)
 
-        mock_proc_task.assert_called_once()
         mock_create_event.assert_called_once_with(task_id, celery_states.FAILURE, args, kwargs, None, mock_einfo)
 
     @mock.patch("billiard.einfo.ExceptionInfo")
-    @mock.patch("ESSArch_Core.WorkflowEngine.models.ProcessTask.objects.filter")
     @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_failure_when_event_type_is_none_then_dont_create_event(self, create_event, mock_proc_task, mock_einfo):
+    def test_failure_when_event_type_is_none_then_dont_create_event(self, create_event, mock_einfo):
         db_task = DBTask()
         db_task.event_type = None
         task_id = uuid.uuid4()
@@ -384,13 +380,11 @@ class DBTaskTests(TestCase):
 
         db_task.failure(None, task_id, args, kwargs, mock_einfo)
 
-        mock_proc_task.assert_called_once()
         create_event.assert_not_called()
 
     @mock.patch("billiard.einfo.ExceptionInfo")
-    @mock.patch("ESSArch_Core.WorkflowEngine.models.ProcessTask.objects.filter")
     @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_failure_when_track_is_False_then_return(self, mock_create_event, mock_proc_task, mock_einfo):
+    def test_failure_when_track_is_False_then_return(self, mock_create_event, mock_einfo):
         db_task = DBTask()
         db_task.track = False
         task_id = uuid.uuid4()
@@ -399,13 +393,11 @@ class DBTaskTests(TestCase):
 
         db_task.failure(None, task_id, args, kwargs, mock_einfo)
 
-        mock_proc_task.assert_not_called()
         mock_create_event.assert_not_called()
 
     @mock.patch("billiard.einfo.ExceptionInfo")
-    @mock.patch("ESSArch_Core.WorkflowEngine.models.ProcessTask.objects.filter")
     @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_failure_when_chunk_is_True_dont_create_event(self, mock_create_event, mock_proc_task, mock_einfo):
+    def test_failure_when_chunk_is_True_dont_create_event(self, mock_create_event, mock_einfo):
         db_task = DBTask()
         db_task.chunk = False
         task_id = uuid.uuid4()
@@ -416,5 +408,4 @@ class DBTaskTests(TestCase):
 
         db_task.failure(None, task_id, args, kwargs, mock_einfo)
 
-        mock_proc_task.assert_called_once()
         mock_create_event.assert_not_called()

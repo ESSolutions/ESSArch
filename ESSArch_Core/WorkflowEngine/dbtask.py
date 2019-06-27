@@ -26,11 +26,15 @@ import logging
 
 from billiard.einfo import ExceptionInfo
 from celery import exceptions, states as celery_states
+from celery.result import EagerResult
 from celery.task.base import Task
+from celery.utils.functional import maybe_list
+from celery.utils.nodenames import gethostname
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db import connection, transaction
 from django.utils import timezone, translation
+from kombu.utils.uuid import uuid
 
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.ip.models import EventIP, InformationPackage
@@ -219,6 +223,61 @@ class DBTask(Task):
             'outcome': outcome
         }
         logger.log(level, outcome_detail_note, extra=extra)
+
+    @classmethod
+    def apply(self, args=None, kwargs=None,
+              link=None, link_error=None,
+              task_id=None, retries=None, throw=None,
+              logfile=None, loglevel=None, headers=None, **options):
+        """Execute this task locally, by blocking until the task returns.
+        We override this simply to be able to call build_tracer with eager=False
+
+        Arguments:
+            args (Tuple): positional arguments passed on to the task.
+            kwargs (Dict): keyword arguments passed on to the task.
+            throw (bool): Re-raise task exceptions.
+                Defaults to the :setting:`task_eager_propagates` setting.
+
+        Returns:
+            celery.result.EagerResult: pre-evaluated result.
+        """
+        # trace imports Task, so need to import inline.
+        from celery.app.trace import build_tracer
+
+        app = self._get_app()
+        args = args or ()
+        kwargs = kwargs or {}
+        task_id = task_id or uuid()
+        retries = retries or 0
+        if throw is None:
+            throw = app.conf.task_eager_propagates
+
+        # Make sure we get the task instance, not class.
+        task = app._tasks[self.name]
+
+        request = {
+            'id': task_id,
+            'retries': retries,
+            'is_eager': True,
+            'logfile': logfile,
+            'loglevel': loglevel or 0,
+            'hostname': gethostname(),
+            'callbacks': maybe_list(link),
+            'errbacks': maybe_list(link_error),
+            'headers': headers,
+            'delivery_info': {'is_eager': True},
+        }
+        tb = None
+        tracer = build_tracer(
+            task.name, task, eager=False,
+            propagate=throw, app=self._get_app(),
+        )
+        ret = tracer(task_id, args, kwargs, request)
+        retval = ret.retval
+        if isinstance(retval, ExceptionInfo):
+            retval, tb = retval.exception, retval.traceback
+        state = celery_states.SUCCESS if ret.info is None else ret.info.state
+        return EagerResult(task_id, retval, state, traceback=tb)
 
     def failure(self, exc, task_id, args, kwargs, einfo):
         '''

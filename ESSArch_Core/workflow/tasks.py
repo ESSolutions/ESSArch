@@ -1042,7 +1042,7 @@ class PollIOQueue(DBTask):
                 entry.status = 5
                 entry.save(update_fields=['status'])
                 t = ProcessTask.objects.create(
-                    name="workflow.tasks.IOTape",
+                    name="ESSArch_Core.workflow.tasks.IOTape",
                     args=[entry.pk, storage_medium.pk],
                     eager=False,
                     information_package=entry.ip,
@@ -1060,7 +1060,7 @@ class PollIOQueue(DBTask):
                 entry.status = 5
                 entry.save(update_fields=['status'])
                 t = ProcessTask.objects.create(
-                    name="workflow.tasks.IODisk",
+                    name="ESSArch_Core.workflow.tasks.IODisk",
                     args=[entry.pk, storage_medium.pk],
                     eager=False,
                     information_package=entry.ip,

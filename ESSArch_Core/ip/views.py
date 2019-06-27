@@ -1243,7 +1243,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         )
 
         task = ProcessTask.objects.create(
-            name="workflow.tasks.CreateDIP",
+            name="ESSArch_Core.workflow.tasks.CreateDIP",
             params={
                 'ip': str(dip.pk),
             },
@@ -2040,7 +2040,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                                 'params': {'root': '{{POLICY_INGEST_PATH}}/{{_OBJID}}'}
                             },
                             {
-                                "name": "workflow.tasks.ReceiveSIP",
+                                "name": "ESSArch_Core.workflow.tasks.ReceiveSIP",
                                 "label": "Receive SIP",
                                 "params": {
                                     'purpose': request.data.get('purpose'),
