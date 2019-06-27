@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 from django.core.management.utils import get_random_secret_key
+
 from ESSArch_Core.crypto import generate_key
 
 # This will make sure the app is always imported when
