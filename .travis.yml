@@ -145,7 +145,7 @@ install:
   - pip install -e .["tests,s3$DB_PACKAGES"]
 
 script:
-  - coverage run manage.py test -v2
+  - coverage run manage.py test
 
 after_success:
   - bash <(curl -s https://codecov.io/bash) -c -F backend
