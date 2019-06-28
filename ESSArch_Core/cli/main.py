@@ -6,7 +6,7 @@ import django
 from django.core.management import call_command as dj_call_command
 
 from ESSArch_Core.cli import deactivate_prompts
-from ESSArch_Core.config import generate_local_settings
+from ESSArch_Core.cli.commands.settings import create_local_settings_file
 
 django.setup()
 
@@ -21,17 +21,6 @@ def _migrate(interactive, verbosity):
         interactive=interactive,
         verbosity=verbosity,
     )
-
-
-def create_local_settings_file(path, overwrite=None):
-    content = generate_local_settings()
-
-    if os.path.isfile(path) and overwrite is None:
-        overwrite = click.confirm("File at '%s' already exists, should we overwrite it?" % click.format_filename(path))
-
-    if not os.path.isfile(path) or overwrite:
-        with click.open_file(path, 'w') as fp:
-            fp.write(content)
 
 
 def create_data_directories(base_dir):
@@ -107,6 +96,22 @@ list(
         lambda cmd: search.add_command(locate(cmd)), (
             'ESSArch_Core.cli.commands.search.clear',
             'ESSArch_Core.cli.commands.search.rebuild',
+        )
+    )
+)
+
+
+@cli.group()
+def settings():
+    """Manage settings
+    """
+    pass
+
+
+list(
+    map(
+        lambda cmd: settings.add_command(locate(cmd)), (
+            'ESSArch_Core.cli.commands.settings.generate',
         )
     )
 )
