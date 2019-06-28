@@ -736,7 +736,7 @@ class IOQueue(models.Model):
         master_server = self.storage_method_target.storage_target.master_server
         return len(master_server.split(',')) == 3
 
-    @retry(stop=stop_after_attempt(5), wait=wait_fixed(60000))
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(60))
     def sync_with_master(self, data):
         master_server = self.storage_method_target.storage_target.master_server
         host, user, passw = master_server.split(',')

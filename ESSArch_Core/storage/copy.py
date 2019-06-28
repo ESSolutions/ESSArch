@@ -96,7 +96,7 @@ def copy_chunk(src, dst, offset, file_size, requests_session=None, upload_id=Non
     def local(src, dst, offset, file_size, block_size=65536):
         return copy_chunk_locally(src, dst, offset, file_size, block_size=block_size)
 
-    @retry(stop=stop_after_attempt(5), wait=wait_fixed(60000))
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(60))
     def remote(src, dst, offset, file_size, requests_session, upload_id=None, block_size=65536):
         return copy_chunk_remotely(src, dst, offset, file_size,
                                    requests_session=requests_session, upload_id=upload_id,
@@ -156,7 +156,7 @@ def copy_file_remotely(src, dst, requests_session=None, block_size=65536):
     )
     headers = {'Content-Type': m.content_type}
 
-    @retry(stop=stop_after_attempt(5), wait=wait_fixed(60000))
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(60))
     def send_completion_request():
         response = requests_session.post(completion_url, data=m, headers=headers)
         response.raise_for_status()
