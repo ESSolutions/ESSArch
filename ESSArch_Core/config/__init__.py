@@ -31,6 +31,8 @@ from .celery import app as celery_app  # noqa
 
 __all__ = ('celery_app',)
 
+default_app_config = 'ESSArch_Core.config.apps.ConfigConfig'
+
 
 def load_config_template(path, version='default'):
     from pkg_resources import resource_string
