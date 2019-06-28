@@ -29,8 +29,6 @@ try:
 except ImportError:
     REDIS_URL = os.environ.get('REDIS_URL_ESSARCH', 'redis://localhost/1')
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'essarch_secret_key'
 SESSION_COOKIE_NAME = 'essarch'
 
 # SECURITY WARNING: don't run with debug turned on in production!
