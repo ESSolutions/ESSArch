@@ -4,7 +4,6 @@ import binascii
 from django.conf import settings
 from django.core.checks import Error, register
 
-
 E001 = Error(
     'The ENCRYPTION_KEY setting must not be empty',
     id="essarch.E001"
