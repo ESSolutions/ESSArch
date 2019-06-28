@@ -339,19 +339,6 @@ class DBTaskTests(TestCase):
 
         mock_create_event.assert_not_called()
 
-    @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_success_when_chunk_is_True_then_return(self, mock_create_event):
-        db_task = DBTask()
-        db_task.chunk = True
-        task_id = uuid.uuid4()
-        retval = uuid.uuid4()
-        args = uuid.uuid4()
-        kwargs = uuid.uuid4()
-
-        db_task.success(retval, task_id, args, kwargs)
-
-        mock_create_event.assert_not_called()
-
     @mock.patch("billiard.einfo.ExceptionInfo")
     @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
     def test_failure_when_event_type_not_none_then_create_event(self, mock_create_event, mock_einfo):
@@ -390,21 +377,6 @@ class DBTaskTests(TestCase):
         task_id = uuid.uuid4()
         args = uuid.uuid4()
         kwargs = uuid.uuid4()
-
-        db_task.failure(None, task_id, args, kwargs, mock_einfo)
-
-        mock_create_event.assert_not_called()
-
-    @mock.patch("billiard.einfo.ExceptionInfo")
-    @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_failure_when_chunk_is_True_dont_create_event(self, mock_create_event, mock_einfo):
-        db_task = DBTask()
-        db_task.chunk = False
-        task_id = uuid.uuid4()
-        args = uuid.uuid4()
-        kwargs = uuid.uuid4()
-
-        mock_einfo.type.__name__ = "exception name"
 
         db_task.failure(None, task_id, args, kwargs, mock_einfo)
 

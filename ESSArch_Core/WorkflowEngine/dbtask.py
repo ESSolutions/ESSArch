@@ -32,8 +32,7 @@ from celery.utils.functional import maybe_list
 from celery.utils.nodenames import gethostname
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.db import connection, transaction
-from django.utils import timezone, translation
+from django.utils import translation
 from kombu.utils.uuid import uuid
 
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
@@ -60,12 +59,10 @@ class DBTask(Task):
     ip_objid = None
     step = None
     step_pos = None
-    chunk = False
     track = True
 
     def __call__(self, *args, **kwargs):
         options = kwargs.pop('_options', {})
-        self.chunk = options.get('chunk', False)
 
         self.args = options.get('args', [])
         self.responsible = options.get('responsible')
@@ -79,54 +76,6 @@ class DBTask(Task):
         self.result_params = options.get('result_params', {}) or {}
         self.task_id = options.get('task_id') or self.request.id
         self.eager = options.get('eager') or self.request.is_eager
-
-        if self.chunk:
-            res = []
-            if not connection.features.autocommits_when_autocommit_is_off:
-                transaction.set_autocommit(False)
-            try:
-                for a in args:
-                    a_options = a.pop('_options')
-                    self.eager = True
-                    self.task_id = a_options['task_id']
-                    self.args = a_options['args']
-
-                    self.progress = 0
-                    hidden = a_options.get('hidden', False) or self.hidden
-                    time_started = timezone.now()
-                    try:
-                        retval = self._run(*self.args, **a)
-                    except BaseException:
-                        ProcessTask.objects.filter(celery_id=self.task_id).update(
-                            hidden=hidden,
-                            time_started=time_started,
-                            progress=self.progress
-                        )
-                        einfo = ExceptionInfo()
-                        if self.event_type:
-                            self.create_event(self.task_id, celery_states.FAILURE, args, a, None, einfo)
-                        raise
-                    else:
-                        self.success(retval, self.task_id, None, kwargs)
-                        ProcessTask.objects.filter(celery_id=self.task_id).update(
-                            result=retval,
-                            status=celery_states.SUCCESS,
-                            hidden=hidden,
-                            time_started=time_started,
-                            time_done=timezone.now(),
-                            progress=100
-                        )
-                        res.append(retval)
-                        if self.event_type:
-                            self.create_event(self.task_id, celery_states.SUCCESS, self.args, a, retval, None)
-            except BaseException:
-                raise
-            else:
-                return res
-            finally:
-                if not connection.features.autocommits_when_autocommit_is_off:
-                    transaction.commit()
-                    transaction.set_autocommit(True)
 
         for k, v in self.result_params.items():
             kwargs[k] = get_result(v, self.eager)
