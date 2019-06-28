@@ -34,13 +34,13 @@ class DatabaseBackend(BaseDictBackend):
         if status in EXCEPTION_STATES:
             updated['exception'] = result
 
-        ProcessTask.objects.filter(pk=task_id).update(**updated)
+        ProcessTask.objects.filter(celery_id=task_id).update(**updated)
         return result
 
     def update_state(self, task_id, meta, status, request=None):
         progress = (meta['current'] / meta['total']) * 100
 
-        ProcessTask.objects.filter(pk=task_id).update(
+        ProcessTask.objects.filter(celery_id=task_id).update(
             status=status,
             meta=meta,
             progress=progress,
@@ -48,7 +48,7 @@ class DatabaseBackend(BaseDictBackend):
         return status
 
     def _get_task_meta_for(self, task_id):
-        obj = ProcessTask.objects.get(pk=task_id)
+        obj = ProcessTask.objects.get(celery_id=task_id)
         meta = obj.meta or {}
         meta.update({
             'exception': obj.exception,

@@ -34,7 +34,7 @@ class EmailReceiptBackendTests(TestCase):
         user = User.objects.create(email="user@example.com")
         task = ProcessTask.objects.create(responsible=user)
 
-        self.backend.create('receipts/email.txt', None, 'outcome', 'short msg', 'msg', task=task.pk)
+        self.backend.create('receipts/email.txt', None, 'outcome', 'short msg', 'msg', task=task)
         mock_send_mail.assert_called_once_with('short msg', mock.ANY, None, [user.email], fail_silently=False)
 
     @mock.patch('ESSArch_Core.fixity.receipt.backends.email.send_mail')
@@ -50,7 +50,7 @@ class EmailReceiptBackendTests(TestCase):
         user = User.objects.create(email="user@example.com")
         task = ProcessTask.objects.create(responsible=user)
 
-        self.backend.create('receipts/email.txt', 'custom@example.com', 'outcome', 'short msg', 'msg', task=task.pk)
+        self.backend.create('receipts/email.txt', 'custom@example.com', 'outcome', 'short msg', 'msg', task=task)
         mock_mail.assert_called_once_with('short msg', mock.ANY, None, ['custom@example.com'], fail_silently=False)
 
     @mock.patch('ESSArch_Core.fixity.receipt.backends.email.send_mail', return_value=0)
@@ -60,7 +60,7 @@ class EmailReceiptBackendTests(TestCase):
         task = ProcessTask.objects.create(responsible=user)
 
         with self.assertRaises(email.NoEmailSentError):
-            self.backend.create('receipts/email.txt', 'example', 'outcome', 'short msg', 'msg', task=task.pk)
+            self.backend.create('receipts/email.txt', 'example', 'outcome', 'short msg', 'msg', task=task)
 
 
 class XMLReceiptBackendTests(TestCase):

@@ -37,6 +37,7 @@ from ESSArch_Core.util import (
     zip_directory,
 )
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
 
@@ -325,7 +326,7 @@ class Transform(DBTask):
 
 
 class CreateReceipt(DBTask):
-    def run(self, task, backend, template, destination, outcome, short_message, message, date=None):
+    def run(self, task_id, backend, template, destination, outcome, short_message, message, date=None):
         ip = self.get_information_package()
         template, destination, outcome, short_message, message, date = self.parse_params(
             template, destination, outcome, short_message, message, date
@@ -334,8 +335,10 @@ class CreateReceipt(DBTask):
             date = timezone.now()
 
         backend = get_receipt_backend(backend)
-        if task is None:
-            task = self.task_id
+        if task_id is None:
+            task = self.get_processtask()
+        else:
+            task = ProcessTask.objects.get(pk=task_id)
         backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task)
 
 

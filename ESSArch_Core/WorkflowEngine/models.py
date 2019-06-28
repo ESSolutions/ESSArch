@@ -68,12 +68,10 @@ def create_sub_task(t, step=None, immutable=True, link_error=None):
     # signature to be called when an error occurs in a task
     repr(link_error)
 
-    if immutable:
-        res = created.si(*t.args, **t.params).set(task_id=str(t.pk), link_error=link_error, queue=created.queue)
-        logger.info('Created immutable sub task signature')
-    else:
-        res = created.s(*t.args, **t.params).set(task_id=str(t.pk), link_error=link_error, queue=created.queue)
-        logger.info('Created sub task signature')
+    res = created.signature(t.args, t.params, immutable=immutable).set(
+        task_id=str(t.celery_id), link_error=link_error, queue=created.queue
+    )
+    logger.info('Created {} sub task signature'.format('immutable' if immutable else ''))
 
     return res
 
@@ -83,6 +81,7 @@ class Process(models.Model):
         abstract = True
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    celery_id = models.UUIDField(default=uuid.uuid4, unique=True)
     name = models.CharField(max_length=255)
     hidden = models.BooleanField(editable=False, default=False, db_index=True)
     eager = models.BooleanField(default=True)
@@ -200,7 +199,7 @@ class ProcessStep(MPTTModel, Process):
 
         if not tasks.exists() and not steps.exists():
             if direct:
-                return EagerResult(self.pk, [], celery_states.SUCCESS)
+                return EagerResult(self.celery_id, [], celery_states.SUCCESS)
 
             return group()
 
@@ -285,7 +284,7 @@ class ProcessStep(MPTTModel, Process):
 
         if not tasks.exists() and not child_steps.exists():
             if direct:
-                return EagerResult(self.pk, [], celery_states.SUCCESS)
+                return EagerResult(self.celery_id, [], celery_states.SUCCESS)
 
             return group()
 
@@ -330,7 +329,7 @@ class ProcessStep(MPTTModel, Process):
 
         if not tasks.exists() and not child_steps.exists():
             if direct:
-                return EagerResult(self.pk, [], celery_states.SUCCESS)
+                return EagerResult(self.celery_id, [], celery_states.SUCCESS)
 
             return group()
 
@@ -599,6 +598,7 @@ class ProcessTask(Process):
         return parent
 
     def reset(self):
+        self.celery_id = uuid.uuid4()
         self.status = celery_states.PENDING
         self.time_started = None
         self.time_done = None
@@ -630,13 +630,13 @@ class ProcessTask(Process):
         if self.eager:
             self.params['_options']['result_params'] = self.result_params
             logging.debug('Running task eagerly ({})'.format(self.pk))
-            res = t.apply(args=self.args, kwargs=self.params, task_id=str(self.pk), link_error=on_error_group)
+            res = t.apply(args=self.args, kwargs=self.params, task_id=str(self.celery_id), link_error=on_error_group)
         else:
             logging.debug('Running task non-eagerly ({})'.format(self.pk))
             res = t.apply_async(
                 args=self.args,
                 kwargs=self.params,
-                task_id=str(self.pk),
+                task_id=str(self.celery_id),
                 link_error=on_error_group,
                 queue=t.queue
             )
@@ -661,10 +661,11 @@ class ProcessTask(Process):
         if undoobj.eager:
             undoobj.params['_options']['result_params'] = undoobj.result_params
             logging.debug('Undoing task eagerly ({})'.format(self.pk))
-            res = t.apply(args=undoobj.args, kwargs=undoobj.params, task_id=str(undoobj.pk))
+            res = t.apply(args=undoobj.args, kwargs=undoobj.params, task_id=str(undoobj.celery_id))
         else:
             logging.debug('Undoing task non-eagerly ({})'.format(self.pk))
-            res = t.apply_async(args=undoobj.args, kwargs=undoobj.params, task_id=str(undoobj.pk), queue=t.queue)
+            res = t.apply_async(args=undoobj.args, kwargs=undoobj.params, task_id=str(undoobj.celery_id),
+                                queue=t.queue)
 
         return res
 

@@ -242,7 +242,7 @@ class CacheAIP(DBTask):
                     logger.exception('No content type importer specified in profile')
                     raise
                 ct_importer = get_importer(ct_importer_name)()
-                indexed_files = ct_importer.import_content(self.task_id, cts, ip=aip_obj)
+                indexed_files = ct_importer.import_content(self.get_processtask(), cts, ip=aip_obj)
             else:
                 err = "Content type specification not found"
                 logger.error('{err}: {path}'.format(err=err, path=cts))
@@ -1182,7 +1182,7 @@ class IOTape(IO):
         agent = entry.user.username
         extra = {
             'event_type': 40700, 'object': entry.ip.pk, 'agent': agent,
-            'task': self.task_id, 'outcome': EventIP.SUCCESS
+            'task': self.get_processtask().pk, 'outcome': EventIP.SUCCESS
         }
         logger.info(msg, extra=extra)
 
@@ -1197,7 +1197,7 @@ class IOTape(IO):
         agent = entry.user.username
         extra = {
             'event_type': 40710, 'object': entry.ip.pk, 'agent': agent,
-            'task': self.task_id, 'outcome': EventIP.SUCCESS
+            'task': self.get_processtask().pk, 'outcome': EventIP.SUCCESS
         }
         logger.info(msg, extra=extra)
 
@@ -1225,7 +1225,7 @@ class IODisk(IO):
         agent = entry.user.username
         extra = {
             'event_type': 40600, 'object': entry.ip.pk, 'agent': agent,
-            'task': self.task_id, 'outcome': EventIP.SUCCESS
+            'task': self.get_processtask().pk, 'outcome': EventIP.SUCCESS
         }
         logger.info(msg, extra=extra)
 
@@ -1240,7 +1240,7 @@ class IODisk(IO):
         agent = entry.user.username
         extra = {
             'event_type': 40610, 'object': entry.ip.pk, 'agent': agent,
-            'task': self.task_id, 'outcome': EventIP.SUCCESS
+            'task': self.get_processtask().pk, 'outcome': EventIP.SUCCESS
         }
         logger.info(msg, extra=extra)
 

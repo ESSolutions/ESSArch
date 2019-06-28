@@ -97,7 +97,7 @@ class DBTask(Task):
                     try:
                         retval = self._run(*self.args, **a)
                     except BaseException:
-                        ProcessTask.objects.filter(pk=self.task_id).update(
+                        ProcessTask.objects.filter(celery_id=self.task_id).update(
                             hidden=hidden,
                             time_started=time_started,
                             progress=self.progress
@@ -108,7 +108,7 @@ class DBTask(Task):
                         raise
                     else:
                         self.success(retval, self.task_id, None, kwargs)
-                        ProcessTask.objects.filter(pk=self.task_id).update(
+                        ProcessTask.objects.filter(celery_id=self.task_id).update(
                             result=retval,
                             status=celery_states.SUCCESS,
                             hidden=hidden,
@@ -132,7 +132,7 @@ class DBTask(Task):
             kwargs[k] = get_result(v, self.eager)
 
         if self.track:
-            ProcessTask.objects.filter(pk=self.task_id).update(
+            ProcessTask.objects.filter(celery_id=self.task_id).update(
                 hidden=self.hidden,
             )
 
@@ -219,7 +219,7 @@ class DBTask(Task):
             'event_type': self.event_type,
             'object': self.ip,
             'agent': agent,
-            'task': task_id,
+            'task': ProcessTask.objects.get(celery_id=task_id).pk,
             'outcome': outcome
         }
         logger.log(level, outcome_detail_note, extra=extra)
@@ -310,6 +310,14 @@ class DBTask(Task):
 
     def parse_params(self, *params):
         return tuple([parseContent(param, self.extra_data) for param in params])
+
+    def get_processtask(self):
+        try:
+            celery_id = self.request.id
+        except AttributeError:
+            celery_id = self.task_id
+
+        return ProcessTask.objects.get(celery_id=celery_id)
 
     def get_information_package(self):
         return InformationPackage.objects.get(pk=self.ip)

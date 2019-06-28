@@ -42,7 +42,7 @@ class XMLSchemaValidatorTests(TestCase):
             context="dummy_schema.xsd",
             options={'rootdir': "dummy_rootdir"},
             ip=ip.id,
-            task=task.id
+            task=task
         )
         with self.assertRaises(DocumentInvalid):
             validator.validate("some_xml_file_path")
@@ -62,7 +62,7 @@ class XMLSchemaValidatorTests(TestCase):
             context="dummy_schema.xsd",
             options={'rootdir': "dummy_rootdir"},
             ip=ip.id,
-            task=task.id
+            task=task
         )
 
         with self.assertRaises(Exception):
@@ -86,7 +86,7 @@ class XMLSchemaValidatorTests(TestCase):
             context="dummy_schema.xsd",
             options={'rootdir': "dummy_rootdir"},
             ip=ip.id,
-            task=task.id
+            task=task
         )
 
         validator.validate("some_xml_file_path")
@@ -179,7 +179,7 @@ class XMLSchematronValidatorTests(TestCase):
             context="dummy_schema.xsl",
             options={'rootdir': "dummy_rootdir"},
             ip=ip.id,
-            task=task.id
+            task=task
         )
         with self.assertRaises(DocumentInvalid):
             validator.validate("some_xml_file_path")
@@ -199,7 +199,7 @@ class XMLSchematronValidatorTests(TestCase):
             context="dummy_schema.xsl",
             options={'rootdir': "dummy_rootdir"},
             ip=ip.id,
-            task=task.id
+            task=task
         )
 
         with self.assertRaises(Exception):
@@ -223,7 +223,7 @@ class XMLSchematronValidatorTests(TestCase):
             context="dummy_schema.xsl",
             options={'rootdir': "dummy_rootdir"},
             ip=ip.id,
-            task=task.id
+            task=task
         )
 
         validator.validate("some_xml_file_path")
@@ -380,7 +380,7 @@ class XMLISOSchematronValidatorTests(TestCase):
             context="dummy_schema.xsl",
             options={'rootdir': "dummy_rootdir"},
             ip=ip.id,
-            task=task.id
+            task=task
         )
         with self.assertRaises(DocumentInvalid):
             validator.validate("some_xml_file_path")
@@ -400,7 +400,7 @@ class XMLISOSchematronValidatorTests(TestCase):
             context="dummy_schema.xsl",
             options={'rootdir': "dummy_rootdir"},
             ip=ip.id,
-            task=task.id
+            task=task
         )
 
         with self.assertRaises(Exception):
@@ -424,7 +424,7 @@ class XMLISOSchematronValidatorTests(TestCase):
             context="dummy_schema.xsl",
             options={'rootdir': "dummy_rootdir"},
             ip=ip.id,
-            task=task.id
+            task=task
         )
 
         validator.validate("some_xml_file_path")

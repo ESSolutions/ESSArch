@@ -88,7 +88,7 @@ class DiffCheckValidator(BaseValidator):
             time_done=timezone.now(),
             validator=self.__class__.__name__,
             required=self.required,
-            task_id=self.task,
+            task=self.task,
             information_package_id=self.ip,
             responsible=self.responsible,
             message=msg,
@@ -325,7 +325,7 @@ class XMLSchemaValidator(BaseValidator):
                     time_started=started,
                     time_done=done,
                     information_package_id=self.ip,
-                    task_id=self.task,
+                    task=self.task,
                 ))
 
             Validation.objects.bulk_create(validation_objs, 100)
@@ -341,7 +341,7 @@ class XMLSchemaValidator(BaseValidator):
                 time_started=started,
                 time_done=done,
                 information_package_id=self.ip,
-                task_id=self.task,
+                task=self.task,
             )
             raise
 
@@ -352,7 +352,7 @@ class XMLSchemaValidator(BaseValidator):
             time_started=started,
             time_done=timezone.now(),
             information_package_id=self.ip,
-            task_id=self.task,
+            task=self.task,
         )
         logger.info(u"Successful schema validation of {xml}".format(xml=filepath))
 
@@ -383,7 +383,7 @@ class XMLSyntaxValidator(BaseValidator):
                     time_started=started,
                     time_done=done,
                     information_package_id=self.ip,
-                    task_id=self.task,
+                    task=self.task,
                 ))
 
             Validation.objects.bulk_create(validation_objs, 100)
@@ -399,7 +399,7 @@ class XMLSyntaxValidator(BaseValidator):
                 time_started=started,
                 time_done=done,
                 information_package_id=self.ip,
-                task_id=self.task,
+                task=self.task,
             )
             raise
 
@@ -410,7 +410,7 @@ class XMLSyntaxValidator(BaseValidator):
             time_started=started,
             time_done=timezone.now(),
             information_package_id=self.ip,
-            task_id=self.task,
+            task=self.task,
         )
         logger.info(
             "Successful syntax validation of {xml}".format(xml=filepath)
@@ -458,7 +458,7 @@ class XMLSchematronValidator(BaseValidator):
                     time_started=started,
                     time_done=done,
                     information_package_id=self.ip,
-                    task_id=self.task,
+                    task=self.task,
                 ))
 
             Validation.objects.bulk_create(validation_objs, 100)
@@ -478,7 +478,7 @@ class XMLSchematronValidator(BaseValidator):
                 time_started=started,
                 time_done=done,
                 information_package_id=self.ip,
-                task_id=self.task,
+                task=self.task,
             )
             raise
 
@@ -489,7 +489,7 @@ class XMLSchematronValidator(BaseValidator):
             time_started=started,
             time_done=timezone.now(),
             information_package_id=self.ip,
-            task_id=self.task,
+            task=self.task,
         )
         logger.info(
             "Successful schematron validation of {xml} against {schema}".format(
@@ -530,7 +530,7 @@ class XMLISOSchematronValidator(BaseValidator):
                     time_started=started,
                     time_done=done,
                     information_package_id=self.ip,
-                    task_id=self.task,
+                    task=self.task,
                 ))
 
             Validation.objects.bulk_create(validation_objs, 100)
@@ -550,7 +550,7 @@ class XMLISOSchematronValidator(BaseValidator):
                 time_started=started,
                 time_done=done,
                 information_package_id=self.ip,
-                task_id=self.task,
+                task=self.task,
             )
             raise
 
@@ -561,7 +561,7 @@ class XMLISOSchematronValidator(BaseValidator):
             time_started=started,
             time_done=timezone.now(),
             information_package_id=self.ip,
-            task_id=self.task,
+            task=self.task,
         )
         logger.info(
             "Successful iso-schematron validation of {xml} against {schema}".format(

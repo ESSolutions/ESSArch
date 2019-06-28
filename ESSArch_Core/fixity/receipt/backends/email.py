@@ -7,7 +7,6 @@ from django.utils import timezone
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.receipt.backends.base import BaseReceiptBackend
 from ESSArch_Core.profiles.utils import fill_specification_data
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 logger = logging.getLogger('essarch.core.fixity.receipt.email')
 
@@ -22,13 +21,8 @@ class NoEmailSentError(Exception):
 
 class EmailReceiptBackend(BaseReceiptBackend):
     def create(self, template, destination, outcome, short_message, message, date=None, ip=None, task=None):
-        try:
-            task_obj = ProcessTask.objects.get(pk=task)
-        except ProcessTask.DoesNotExist:
-            task_obj = None
-        else:
-            if destination is None:
-                destination = task_obj.responsible.email
+        if task is not None and destination is None:
+            destination = task.responsible.email
 
         if not destination:
             msg = 'No recipient set for email'
@@ -44,9 +38,9 @@ class EmailReceiptBackend(BaseReceiptBackend):
         data['outcome'] = outcome
         data['message'] = message
         data['date'] = date or timezone.now()
-        if task_obj is not None:
-            data['task_traceback'] = task_obj.traceback
-            data['task_exception'] = task_obj.exception
+        if task is not None:
+            data['task_traceback'] = task.traceback
+            data['task_exception'] = task.exception
             data['validations'] = Validation.objects.filter(task=task).order_by('time_started')
 
         body = render_to_string(template, data)

@@ -52,7 +52,7 @@ class RunTasksNonEagerlyTests(TestCase):
 
         expected_options = {'responsible': None, 'ip': None, 'step': None, 'step_pos': 0, 'hidden': False}
         apply_async.assert_called_once_with(args=[5, 10], kwargs={'_options': expected_options}, link_error=None,
-                                            queue='celery', task_id=str(t.pk))
+                                            queue='celery', task_id=str(t.celery_id))
 
     @mock.patch('ESSArch_Core.tasks.DBTask.apply_async')
     def test_run_with_params(self, apply_async):
@@ -65,7 +65,7 @@ class RunTasksNonEagerlyTests(TestCase):
 
         expected_options = {'responsible': None, 'ip': None, 'step': None, 'step_pos': 0, 'hidden': False}
         apply_async.assert_called_once_with(args=[], kwargs={'foo': 'bar', '_options': expected_options},
-                                            link_error=None, queue='celery', task_id=str(t.pk))
+                                            link_error=None, queue='celery', task_id=str(t.celery_id))
 
     @mock.patch('ESSArch_Core.tasks.DBTask.apply_async')
     def test_run_with_step(self, apply_async):
@@ -80,7 +80,7 @@ class RunTasksNonEagerlyTests(TestCase):
 
         expected_options = {'responsible': None, 'ip': None, 'step': step.pk, 'step_pos': 2, 'hidden': False}
         apply_async.assert_called_once_with(args=[], kwargs={'_options': expected_options},
-                                            link_error=None, queue='celery', task_id=str(t.pk))
+                                            link_error=None, queue='celery', task_id=str(t.celery_id))
 
 
 class OnSuccessTests(TestCase):
@@ -254,10 +254,10 @@ class DBTaskTests(TestCase):
     @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.logger.log")
     def test_create_event_when_success(self, mocked_logger_log, mocked_get_cached_objid):
         db_task = DBTask()
-        task_id = uuid.uuid4()
+        t = ProcessTask.objects.create()
 
         db_task.create_event(
-            task_id=task_id,
+            task_id=t.celery_id,
             status=celery_states.SUCCESS,
             args=["1", "2"],
             kwargs={'some_key': 'some_value', '_options': 'opt_val'},
@@ -270,7 +270,7 @@ class DBTaskTests(TestCase):
             'event_type': db_task.event_type,
             'object': db_task.ip,
             'agent': None,
-            'task': task_id,
+            'task': t.pk,
             'outcome': EventIP.SUCCESS
         }
         mocked_logger_log.assert_called_once_with(logging.INFO, outcome_detail_note, extra=expected_extra)
@@ -280,10 +280,10 @@ class DBTaskTests(TestCase):
     @mock.patch("billiard.einfo.ExceptionInfo")
     def test_create_event_when_failure(self, mock_einfo, mock_logger_log, mock_get_cached_objid):
         db_task = DBTask()
-        task_id = uuid.uuid4()
+        t = ProcessTask.objects.create()
 
         db_task.create_event(
-            task_id=task_id,
+            task_id=t.celery_id,
             status=celery_states.PENDING,
             args=["1", "2"],
             kwargs={'some_key': 'some_value', '_options': 'opt_val'},
@@ -295,7 +295,7 @@ class DBTaskTests(TestCase):
             'event_type': db_task.event_type,
             'object': db_task.ip,
             'agent': None,
-            'task': task_id,
+            'task': t.pk,
             'outcome': EventIP.FAILURE
         }
         mock_logger_log.assert_called_once_with(logging.ERROR, mock.ANY, extra=expected_extra)

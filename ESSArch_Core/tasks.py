@@ -95,7 +95,6 @@ from ESSArch_Core.util import (
     zip_directory,
 )
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.WorkflowEngine.polling import get_backend
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 
@@ -359,7 +358,8 @@ class ValidateWorkarea(DBTask):
 
         try:
             validation.validate_path(workarea.path, validators, validation_profile, data=profile_data, ip=ip,
-                                     task=self.task_id, stop_at_failure=stop_at_failure, responsible=responsible)
+                                     task=self.get_processtask(), stop_at_failure=stop_at_failure,
+                                     responsible=responsible)
         except ValidationError:
             self.create_notification(ip)
         else:
@@ -395,7 +395,7 @@ class ValidateXMLFile(DBTask):
         Validates (using LXML) an XML file using a specified schema file
         """
 
-        Validation.objects.filter(task=self.task_id).delete()
+        Validation.objects.filter(task=self.get_processtask()).delete()
         xml_filename, schema_filename = self.parse_params(xml_filename, schema_filename)
         if rootdir is None and self.ip is not None:
             ip = InformationPackage.objects.get(pk=self.ip)
@@ -407,7 +407,7 @@ class ValidateXMLFile(DBTask):
             context=schema_filename,
             options={'rootdir': rootdir},
             ip=self.ip,
-            task=self.task_id
+            task=self.get_processtask()
         )
         validator.validate(xml_filename)
         return "Success"
@@ -426,7 +426,7 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
     queue = 'validation'
 
     def run(self, path, xmlfile, skip_files=None, relpath=None):
-        Validation.objects.filter(task=self.task_id).delete()
+        Validation.objects.filter(task=self.get_processtask()).delete()
         path, xmlfile, = self.parse_params(path, xmlfile)
         if skip_files is None:
             skip_files = []
@@ -443,7 +443,7 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 
         ip = InformationPackage.objects.get(pk=self.ip)
         validator = DiffCheckValidator(context=xmlfile, exclude=skip_files, options={'rootdir': rootdir},
-                                       task=self.task_id, ip=self.ip, responsible=ip.responsible)
+                                       task=self.get_processtask(), ip=self.ip, responsible=ip.responsible)
         validator.validate(path)
 
     def event_outcome_success(self, result, path, xmlfile, skip_files=None, relpath=None):
@@ -458,7 +458,7 @@ class CompareXMLFiles(DBTask):
     queue = 'validation'
 
     def run(self, first, second, rootdir=None):
-        Validation.objects.filter(task=self.task_id).delete()
+        Validation.objects.filter(task=self.get_processtask()).delete()
         first, second = self.parse_params(first, second)
         ip = InformationPackage.objects.get(pk=self.ip)
         if rootdir is None:
@@ -466,8 +466,8 @@ class CompareXMLFiles(DBTask):
         else:
             rootdir, = self.parse_params(rootdir)
 
-        validator = XMLComparisonValidator(context=first, options={'rootdir': rootdir}, task=self.task_id, ip=self.ip,
-                                           responsible=ip.responsible)
+        validator = XMLComparisonValidator(context=first, options={'rootdir': rootdir}, task=self.get_processtask(),
+                                           ip=self.ip, responsible=ip.responsible)
         validator.validate(second)
 
     def event_outcome_success(self, result, first, second, rootdir=None):
@@ -483,7 +483,7 @@ class UpdateIPStatus(DBTask):
         status, = self.parse_params(status)
         ip = InformationPackage.objects.get(pk=self.ip)
         if prev is None:
-            t = ProcessTask.objects.get(pk=self.task_id)
+            t = self.get_processtask()
             t.params['prev'] = ip.state
             t.save()
         ip.state = status
@@ -507,7 +507,7 @@ class UpdateIPPath(DBTask):
         path, = self.parse_params(path)
         ip = InformationPackage.objects.get(pk=self.ip)
         if prev is None:
-            t = ProcessTask.objects.get(pk=self.task_id)
+            t = self.get_processtask()
             t.params['prev'] = ip.object_path
             t.save()
         ip.object_path = path
