@@ -143,7 +143,7 @@ install:
   - pip install --upgrade pip wheel codecov setuptools
   - pip install --upgrade six>=1.12.0
   - pip install -e .["tests,s3$DB_PACKAGES"]
-  - essarch settings generate -p local_essarch_settings.py --overwrite
+  - essarch settings generate -p local_essarch_settings.py
 
 script:
   - coverage run manage.py test
