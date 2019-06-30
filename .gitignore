@@ -13,6 +13,9 @@ tools.db
 .DS_Store
 db.sqlite
 
+# celery
+celerybeat-schedule
+
 # docker
 docker/config
 docker/data
