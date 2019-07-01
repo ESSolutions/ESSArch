@@ -13,13 +13,9 @@ PROJECT_NAME = 'ESSArch'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
-ESSARCH_TRANSFORMERS = {
-    'content': 'fixity.transformation.backends.content.ContentTransformer'
-}
-
 ESSARCH_WORKFLOW_POLLERS = {
     'dir': {
-        'class': 'workflow.polling.backends.directory.DirectoryWorkflowPoller',
+        'class': 'ESSArch_Core.workflow.polling.backends.directory.DirectoryWorkflowPoller',
         'path': '/ESSArch/data/eta/reception/eft',
     }
 }
@@ -218,6 +214,20 @@ ELASTICSEARCH_CONNECTIONS = {
     }
 }
 
+ELASTICSEARCH_INDEXES = {
+    'default': {
+        'agent': 'ESSArch_Core.agents.documents.AgentDocument',
+        'archive': 'ESSArch_Core.tags.documents.Archive',
+        'component': 'ESSArch_Core.tags.documents.Component',
+        'directory': 'ESSArch_Core.tags.documents.Directory',
+        'document': 'ESSArch_Core.tags.documents.File',
+        'information_package': 'ESSArch_Core.tags.documents.InformationPackageDocument',
+        'structure_unit': 'ESSArch_Core.tags.documents.StructureUnitDocument',
+    }
+}
+
+ELASTICSEARCH_BATCH_SIZE = 1000
+
 # Logging
 LOGGING = {
     'version': 1,
@@ -347,35 +357,35 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': timedelta(seconds=10),
     },
     'PollAccessQueue-every-10-seconds': {
-        'task': 'workflow.tasks.PollAccessQueue',
+        'task': 'ESSArch_Core.workflow.tasks.PollAccessQueue',
         'schedule': timedelta(seconds=10),
     },
     'PollIOQueue-every-10-seconds': {
-        'task': 'workflow.tasks.PollIOQueue',
+        'task': 'ESSArch_Core.workflow.tasks.PollIOQueue',
         'schedule': timedelta(seconds=10),
     },
     'PollRobotQueue-queue-every-10-seconds': {
-        'task': 'workflow.tasks.PollRobotQueue',
+        'task': 'ESSArch_Core.workflow.tasks.PollRobotQueue',
         'schedule': timedelta(seconds=10),
     },
     'UnmountIdleDrives-queue-every-10-seconds': {
-        'task': 'workflow.tasks.UnmountIdleDrives',
+        'task': 'ESSArch_Core.workflow.tasks.UnmountIdleDrives',
         'schedule': timedelta(seconds=10),
     },
     'PollAppraisalJobs-every-10-seconds': {
-        'task': 'workflow.tasks.PollAppraisalJobs',
+        'task': 'ESSArch_Core.workflow.tasks.PollAppraisalJobs',
         'schedule': timedelta(seconds=10),
     },
     'ScheduleAppraisalJobs-every-10-seconds': {
-        'task': 'workflow.tasks.ScheduleAppraisalJobs',
+        'task': 'ESSArch_Core.workflow.tasks.ScheduleAppraisalJobs',
         'schedule': timedelta(seconds=10),
     },
     'PollConversionJobs-every-10-seconds': {
-        'task': 'workflow.tasks.PollConversionJobs',
+        'task': 'ESSArch_Core.workflow.tasks.PollConversionJobs',
         'schedule': timedelta(seconds=10),
     },
     'ScheduleConversionJobs-every-10-seconds': {
-        'task': 'workflow.tasks.ScheduleConversionJobs',
+        'task': 'ESSArch_Core.workflow.tasks.ScheduleConversionJobs',
         'schedule': timedelta(seconds=10),
     },
     'IndexTags': {

@@ -2,15 +2,18 @@ from pydoc import locate
 
 import click
 
-from ESSArch_Core.fixity.conversion import AVAILABLE_CONVERTERS
-
 
 class ConversionCLI(click.MultiCommand):
+    @classmethod
+    def get_converters(cls):
+        from ESSArch_Core.fixity.conversion import AVAILABLE_CONVERTERS
+        return AVAILABLE_CONVERTERS
+
     def list_commands(self, ctx):
-        return sorted(list(AVAILABLE_CONVERTERS))
+        return sorted(list(self.get_converters()))
 
     def get_command(self, ctx, name):
-        return locate(AVAILABLE_CONVERTERS[name]).cli
+        return locate(self.get_converters()[name]).cli
 
 
 @click.command(cls=ConversionCLI)

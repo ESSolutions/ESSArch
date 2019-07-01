@@ -3,10 +3,10 @@ from pydoc import locate
 import click
 from django.conf import settings
 
-all_indexes = getattr(settings, 'ELASTICSEARCH_INDEXES', {'default': {}})['default']
-
 
 def get_indexes(indexes):
+    all_indexes = getattr(settings, 'ELASTICSEARCH_INDEXES', {'default': {}})['default']
+
     if indexes:
         indexes = {key: all_indexes[key] for key in indexes}
     else:

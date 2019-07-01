@@ -21,17 +21,21 @@
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
+
+import os
+
+import django
 from django.core.management.utils import get_random_secret_key
 
 from ESSArch_Core.crypto import generate_key
 
-# This will make sure the app is always imported when
-# Django starts so that shared_task will use this app.
-from .celery import app as celery_app  # noqa
-
-__all__ = ('celery_app',)
-
 default_app_config = 'ESSArch_Core.config.apps.ConfigConfig'
+
+
+def initialize():
+    from ESSArch_Core.config.celery import app  # noqa
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ESSArch_Core.config.settings')
+    django.setup()
 
 
 def load_config_template(path, version='default'):

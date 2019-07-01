@@ -1,18 +1,18 @@
 import os
+import sys
 from pydoc import locate
 
 import click
-import django
 from django.core.management import call_command as dj_call_command
 
 from ESSArch_Core.cli import deactivate_prompts
 from ESSArch_Core.cli.commands.settings import create_local_settings_file
+from ESSArch_Core.config.decorators import initialize
 
-django.setup()
-
-from ESSArch_Core.configuration.models import Path  # noqa isort:skip
+LOG_LEVELS = ('DEBUG', 'INFO', 'WARNING', 'WARN', 'ERROR', 'CRITICAL', 'FATAL')
 
 
+@initialize
 def _migrate(interactive, verbosity):
     click.secho('Applying database migrations:', fg='green')
 
@@ -71,6 +71,31 @@ def install(settings_path, data_directory, overwrite):
     create_data_directories(data_directory)
 
     _migrate(False, 1)
+
+
+@click.option('-l', '--loglevel', default='INFO', type=click.Choice(LOG_LEVELS, case_sensitive=False))
+@click.option('-c', '--concurrency', default=None, type=int)
+@click.option('-q', '--queues', default=None)
+@cli.command()
+@initialize
+def worker(queues, concurrency, loglevel):
+    from ESSArch_Core.config.celery import app
+
+    worker = app.Worker(
+        loglevel=loglevel,
+        concurrency=concurrency,
+        queues=queues,
+    )
+    worker.start()
+    sys.exit(worker.exitcode)
+
+
+@click.option('-l', '--loglevel', default='INFO', type=click.Choice(LOG_LEVELS, case_sensitive=False))
+@cli.command()
+@initialize
+def beat(loglevel):
+    from ESSArch_Core.config.celery import app
+    app.Beat(loglevel=loglevel).run()
 
 
 list(

@@ -2,15 +2,18 @@ from pydoc import locate
 
 import click
 
-from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
-
 
 class TransformationCLI(click.MultiCommand):
+    @classmethod
+    def get_transformers(cls):
+        from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
+        return AVAILABLE_TRANSFORMERS
+
     def list_commands(self, ctx):
-        return sorted(list(AVAILABLE_TRANSFORMERS))
+        return sorted(list(self.get_transformers()))
 
     def get_command(self, ctx, name):
-        return locate(AVAILABLE_TRANSFORMERS[name]).cli
+        return locate(self.get_transformers()[name]).cli
 
 
 @click.command(cls=TransformationCLI)

@@ -140,7 +140,7 @@ install:
   # Pin six to avoid dependency errors,
   # see https://github.com/pypa/pip/issues/4887
 
-  - pip install --upgrade pip wheel codecov setuptools
+  - python -m pip install --upgrade pip wheel codecov setuptools
   - pip install --upgrade six>=1.12.0
   - pip install -e .["tests,s3$DB_PACKAGES"]
   - essarch settings generate -p local_essarch_settings.py
