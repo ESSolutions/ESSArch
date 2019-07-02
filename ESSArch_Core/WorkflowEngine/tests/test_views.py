@@ -240,6 +240,22 @@ class GetAuthorizedStepsTests(TestCase):
         self.assertEqual(response.data, [])
 
 
+class GetStepTasksTests(TestCase):
+    def test_get_step_tasks(self):
+        client = APIClient()
+        user = User.objects.create(username='user')
+        client.force_authenticate(user=user)
+
+        step = ProcessStep.objects.create()
+        task_in_step = ProcessTask.objects.create(processstep=step)
+        ProcessTask.objects.create(name="task outside of step")
+
+        url = reverse('steps-tasks-list', args=(step.pk,))
+        response = client.get(url)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], str(task_in_step.pk))
+
+
 class CreateStepTests(TestCase):
     def setUp(self):
         self.client = APIClient()
