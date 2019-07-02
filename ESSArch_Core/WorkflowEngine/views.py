@@ -132,7 +132,7 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         queryset = ProcessTask.objects.select_related('responsible').filter(
             Q(information_package__in=ips) | Q(information_package__isnull=True)
         ).distinct()
-        return queryset
+        return self.filter_queryset_by_parents_lookups(queryset)
 
     def get_serializer_class(self):
         if self.action == 'list':
