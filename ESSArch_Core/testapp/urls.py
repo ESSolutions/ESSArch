@@ -12,7 +12,12 @@ router.register(r'appraisal-jobs', AppraisalJobViewSet)
 router.register(r'conversion-jobs', ConversionJobViewSet)
 router.register(r'information-packages', InformationPackageViewSet)
 router.register(r'profiles', ProfileViewSet)
-router.register(r'steps', ProcessStepViewSet)
+router.register(r'steps', ProcessStepViewSet).register(
+    r'tasks',
+    ProcessTaskViewSet,
+    base_name='steps-tasks',
+    parents_query_lookups=['processstep']
+)
 router.register(r'submission-agreements', SubmissionAgreementViewSet)
 router.register(r'tasks', ProcessTaskViewSet)
 router.register(r'workarea-entries', WorkareaEntryViewSet, base_name='workarea-entries')
