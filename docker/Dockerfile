@@ -52,6 +52,7 @@ RUN apt-get update \
         libcairo2 \
         libffi-dev \
         libgdk-pixbuf2.0-0 \
+        libmagickwand-dev \
         libpango-1.0-0 \
         libpangocairo-1.0-0 \
         libpq-dev \
