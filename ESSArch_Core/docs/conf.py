@@ -52,7 +52,6 @@ sys.path.append(proj_folder)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ESSArch_Core.config.settings')
 import django  # noqa
-django.setup()
 
 # Stop Django from executing DB queries
 from django.db.models.query import QuerySet  # noqa
