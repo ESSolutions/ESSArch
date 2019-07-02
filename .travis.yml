@@ -126,7 +126,7 @@ matrix:
     - env: PRETTIER
       stage: lint
       language: node_js
-      node_js: "10"
+      node_js: "lts/*"
       before_install: cd ESSArch_Core/frontend/static/frontend
       install: yarn
       script: yarn prettier --check "**/*.{ts,js,scss,html}"
