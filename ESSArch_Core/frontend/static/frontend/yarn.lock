@@ -1074,10 +1074,10 @@ angular-bootstrap-grid-tree@~0.4.0:
   resolved "https://registry.yarnpkg.com/angular-bootstrap-grid-tree/-/angular-bootstrap-grid-tree-0.4.0.tgz#e8a14c83d117233aad3d1921326562817566469b"
   integrity sha1-6KFMg9EXIzqtPRkhMmVigXVmRps=
 
-angular-clipboard@^1.6.2:
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/angular-clipboard/-/angular-clipboard-1.6.2.tgz#4708e5a1dc94f3940ab89861ea1e19b26754154f"
-  integrity sha512-T5kK6X6fFigLPd2szxW8ETEOLNW9z/9RqdlXtLAY7nakrI62BH8FGOxIes36tvAP/9numwokEWKVLy0WpNkB7w==
+angular-clipboard@^1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/angular-clipboard/-/angular-clipboard-1.7.0.tgz#9621a6ce66eab1ea9549aa8bfb3b71352307554f"
+  integrity sha512-4/eg3zZw1MJpIsMc+mWzeVNyWBu8YWpXPTdmbgyPRp/6f0xB6I3XR2iC6Mb4mg/5E9q6exCd0sX2yiIsw+ZLJw==
 
 "angular-cookies@>=1.2.26 <1.8", angular-cookies@~1.7:
   version "1.7.8"

@@ -21,7 +21,7 @@
     "angular-animate": "~1.7",
     "angular-bootstrap-contextmenu": "~1.1.0",
     "angular-bootstrap-grid-tree": "~0.4.0",
-    "angular-clipboard": "^1.6.2",
+    "angular-clipboard": "^1.7.0",
     "angular-cookies": "~1.7",
     "angular-cron-jobs": "^3.2.0",
     "angular-date-time-input": "^1.2.1",
