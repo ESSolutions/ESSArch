@@ -137,8 +137,8 @@ if __name__ == '__main__':
         },
         project_urls={
             'Documentation': 'http://docs.essarch.org/',
-            'Source Code': 'https://github.com/ESSolutions/ESSArch_Core/tree/%s' % versioneer.get_versions()['full'],
-            'Travis CI': 'https://travis-ci.org/ESSolutions/ESSArch_Core',
+            'Source Code': 'https://github.com/ESSolutions/ESSArch/tree/%s' % versioneer.get_versions()['full'],
+            'Travis CI': 'https://travis-ci.org/ESSolutions/ESSArch',
         },
         classifiers=[
             "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
