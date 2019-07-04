@@ -1,4 +1,4 @@
-# ESSArch Core [![Build Status](https://travis-ci.org/ESSolutions/ESSArch_Core.svg?branch=master)](https://travis-ci.org/ESSolutions/ESSArch_Core)  [![codecov](https://codecov.io/gh/ESSolutions/ESSArch_Core/branch/master/graph/badge.svg)](https://codecov.io/gh/ESSolutions/ESSArch_Core)
+# ESSArch Core [![Build Status](https://travis-ci.org/ESSolutions/ESSArch.svg?branch=master)](https://travis-ci.org/ESSolutions/ESSArch)  [![codecov](https://codecov.io/gh/ESSolutions/ESSArch/branch/master/graph/badge.svg)](https://codecov.io/gh/ESSolutions/ESSArch)
 
 The core component of [ESSArch Tools Producer](https://github.com/ESSolutions/ESSArch_Tools_Producer), [ESSArch Tools Archive](https://github.com/ESSolutions/ESSArch_Tools_Archive) and [ESSArch Preservation Platform](https://github.com/ESSolutions/ESSArch_EPP)
 
@@ -6,7 +6,7 @@ The core component of [ESSArch Tools Producer](https://github.com/ESSolutions/ES
 
 Instructions for preparing for, installing and setting up ESSArch Core can be found at http://doc.essarch.org/
 
-# Documentation 
+# Documentation
 
 Source for the documentation can be found in the `docs` folder
 
