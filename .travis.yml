@@ -10,6 +10,7 @@ cache:
 branches:
   only:
     - master
+    - the-big-merge
 
 stages:
   - lint
