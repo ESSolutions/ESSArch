@@ -106,7 +106,7 @@ if __name__ == '__main__':
             "requests_toolbelt==0.9.1",
             "tenacity==5.0.4",
             "wand==0.5.1",
-            "weasyprint==46",
+            "weasyprint==47",
         ],
         extras_require={
             "docs": ["sphinx==1.8.5", "sphinx-intl==0.9.11",
