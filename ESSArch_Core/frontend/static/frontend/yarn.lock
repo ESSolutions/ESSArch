@@ -1064,10 +1064,10 @@ angular-animate@~1.7:
   resolved "https://registry.yarnpkg.com/angular-animate/-/angular-animate-1.7.8.tgz#c95f237efe7ecfe0e6003adb5e2c7ef0e5a2b9d4"
   integrity sha512-bINtzizq7TbJzfVrDpwLfTxVl0Qd7fRNWFb5jKYI1vaFZobQNX/QONXlLow6ySsDbZ6eLECycB7mvWtfh1YYaw==
 
-angular-bootstrap-contextmenu@~1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/angular-bootstrap-contextmenu/-/angular-bootstrap-contextmenu-1.1.0.tgz#200d8e8357c3a47ad49fd7b5286f03a8b3a0206a"
-  integrity sha512-t/iAPBKq9ghAcGL4NblCwv2Zl2BFOkekmbW+qpyHD8ik1EEFLym4+fn7Qnz0KwqGFJEaHIHmu3UshOEVxnDQiw==
+angular-bootstrap-contextmenu@~1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/angular-bootstrap-contextmenu/-/angular-bootstrap-contextmenu-1.2.1.tgz#51d627ed0886e2afc49e3578f474204caf89ca72"
+  integrity sha512-Jqm5ESXUJxzp5oYCuV2LO2FDyOIZJdJ6Bf7ZmoEcM0iEiGLAcqe+fArleBTeF6jhCFX4NqHFq00nEiF1XhvlKw==
 
 angular-bootstrap-grid-tree@~0.4.0:
   version "0.4.0"
