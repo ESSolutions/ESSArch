@@ -4,8 +4,15 @@ import os
 import time
 from os import walk
 
+from requests import RequestException
 from requests_toolbelt import MultipartEncoder
-from tenacity import retry, stop_after_attempt, wait_fixed
+from tenacity import (
+    before_sleep_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_fixed,
+)
 
 from ESSArch_Core.fixity.checksum import calculate_checksum
 
@@ -43,6 +50,8 @@ def copy_chunk_locally(src, dst, offset, file_size, block_size=DEFAULT_BLOCK_SIZ
         )
 
 
+@retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+       wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
 def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id=None, block_size=DEFAULT_BLOCK_SIZE):
     filename = os.path.basename(src)
 
@@ -63,7 +72,12 @@ def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id
     files = {'the_file': (filename, chunk)}
 
     response = requests_session.post(dst, data=data, files=files, headers=headers, timeout=60)
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+    except RequestException:
+        logger.exception("Failed to copy chunk to {}: {}".format(dst, response.content))
+        raise
+
     response_time = response.elapsed.total_seconds()
     request_size = (end - start) / MB
     try:
@@ -94,22 +108,15 @@ def copy_chunk(src, dst, offset, file_size, requests_session=None, upload_id=Non
         None
     """
 
-    def local(src, dst, offset, file_size, block_size=DEFAULT_BLOCK_SIZE):
-        return copy_chunk_locally(src, dst, offset, file_size, block_size=block_size)
-
-    @retry(stop=stop_after_attempt(5), wait=wait_fixed(60))
-    def remote(src, dst, offset, file_size, requests_session, upload_id=None, block_size=65536):
-        return copy_chunk_remotely(src, dst, offset, file_size,
-                                   requests_session=requests_session, upload_id=upload_id,
-                                   block_size=block_size)
-
     if requests_session is not None:
         if file_size is None:
             raise ValueError('file_size required on remote transfers')
 
-        return remote(src, dst, offset, file_size, requests_session, upload_id, block_size)
+        return copy_chunk_remotely(src, dst, offset, file_size,
+                                   requests_session=requests_session, upload_id=upload_id,
+                                   block_size=block_size)
     else:
-        local(src, dst, offset, file_size, block_size=block_size)
+        return copy_chunk_locally(src, dst, offset, file_size, block_size=block_size)
 
 
 def copy_file_locally(src, dst, block_size=DEFAULT_BLOCK_SIZE):
@@ -157,9 +164,10 @@ def copy_file_remotely(src, dst, requests_session=None, block_size=DEFAULT_BLOCK
     )
     headers = {'Content-Type': m.content_type}
 
-    @retry(stop=stop_after_attempt(5), wait=wait_fixed(60))
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
     def send_completion_request():
-        response = requests_session.post(completion_url, data=m, headers=headers)
+        response = requests_session.post(completion_url, data=m, headers=headers, timeout=60)
         response.raise_for_status()
 
     send_completion_request()
