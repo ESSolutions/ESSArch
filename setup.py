@@ -87,7 +87,7 @@ if __name__ == '__main__':
             "django-picklefield==2.0",
             "django-redis==4.10.0",
             "django-rest-auth[with_social]==0.9.5",
-            "djangorestframework==3.9.2",
+            "djangorestframework==3.9.4",
             "drf-dynamic-fields==0.3.1",
             "drf-extensions==0.4.0",
             "drf-proxy-pagination==0.2.0",
