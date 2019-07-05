@@ -82,7 +82,7 @@ if __name__ == '__main__':
             "django-filter==2.1.0",
             "django-groups-manager==0.6.2",
             "django-guardian==2.0.0",
-            "django-mptt==0.9.1",
+            "django-mptt==0.10.0",
             "django-nested-inline==0.3.7",
             "django-picklefield==2.0",
             "django-redis==4.10.0",
