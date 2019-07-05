@@ -96,15 +96,21 @@ class DBTask(Task):
         return self._run(*args, **kwargs)
 
     def _run(self, *args, **kwargs):
-        lock = None
         self.extra_data = {}
         if self.ip:
             ip = InformationPackage.objects.select_related('submission_agreement').get(pk=self.ip)
             self.extra_data.update(fill_specification_data(ip=ip, sa=ip.submission_agreement))
-            lock = ip.get_lock()
-            lock.acquire(blocking=True)
 
-        if self.step:
+            logger.debug('{} acquiring lock for IP {}'.format(self.task_id, str(ip.pk)))
+            with cache.lock(ip.get_lock_key(), blocking_timeout=300):
+                logger.info('{} acquired lock for IP {}'.format(self.task_id, str(ip.pk)))
+                return self._run_task(*args, **kwargs)
+            logger.info('{} released lock for IP {}'.format(self.task_id, str(ip.pk)))
+
+        return self._run_task(*args, **kwargs)
+
+    def _run_task(self, *args, **kwargs):
+        if self.step is not None:
             step = ProcessStep.objects.get(pk=self.step)
             for ancestor in step.get_ancestors(include_self=True):
                 self.extra_data.update(ancestor.context)
@@ -124,9 +130,6 @@ class DBTask(Task):
             raise
         else:
             self.success(res, self.task_id, args, kwargs)
-        finally:
-            if lock is not None:
-                lock.release()
 
         return res
 
@@ -137,6 +140,9 @@ class DBTask(Task):
         self.backend.update_state(task_id, meta, state, request=self.request, **kwargs)
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
+        if self.step is None:
+            return
+
         try:
             step = ProcessStep.objects.get(pk=self.step)
         except ProcessStep.DoesNotExist:
