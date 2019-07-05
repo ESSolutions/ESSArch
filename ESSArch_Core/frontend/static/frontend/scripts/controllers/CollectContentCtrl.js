@@ -319,7 +319,7 @@ export default class CollectContentCtrl {
     };
     $scope.createNewFlow = function(ip) {
       var flowObj = new Flow({
-        target: ip.url + 'upload/',
+        target: appConfig.djangoUrl + 'information-packages/' + ip.id + '/upload/',
         simultaneousUploads: 15,
         maxChunkRetries: 5,
         chunkRetryInterval: 1000,

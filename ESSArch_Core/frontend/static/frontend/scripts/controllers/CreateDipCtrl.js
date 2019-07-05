@@ -527,7 +527,12 @@ export default class {
         );
       } else {
         file.content = $sce.trustAsResourceUrl(
-          $scope.ip.url + 'files/?path=' + $scope.previousGridArraysString(2) + file.name
+          appConfig.djangoUrl +
+            'information-packages/' +
+            $scope.ip.id +
+            '/files/?path=' +
+            $scope.previousGridArraysString(2) +
+            file.name
         );
       }
       $window.open(file.content, '_blank');
