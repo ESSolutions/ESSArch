@@ -10,11 +10,12 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 from ESSArch_Core.fixity.checksum import calculate_checksum
 
 MB = 1024 * 1024
+DEFAULT_BLOCK_SIZE = 10 * MB
 
 logger = logging.getLogger('essarch.storage.copy')
 
 
-def copy_chunk_locally(src, dst, offset, file_size, block_size=65536):
+def copy_chunk_locally(src, dst, offset, file_size, block_size=DEFAULT_BLOCK_SIZE):
     with open(src, 'rb') as srcf, open(dst, 'ab') as dstf:
         srcf.seek(offset)
         dstf.seek(offset)
@@ -42,7 +43,7 @@ def copy_chunk_locally(src, dst, offset, file_size, block_size=65536):
         )
 
 
-def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id=None, block_size=65536):
+def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id=None, block_size=DEFAULT_BLOCK_SIZE):
     filename = os.path.basename(src)
 
     with open(src, 'rb') as srcf:
@@ -79,7 +80,7 @@ def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id
     return response.json()['upload_id']
 
 
-def copy_chunk(src, dst, offset, file_size, requests_session=None, upload_id=None, block_size=65536):
+def copy_chunk(src, dst, offset, file_size, requests_session=None, upload_id=None, block_size=DEFAULT_BLOCK_SIZE):
     """
     Copies the given chunk to the given destination
 
@@ -93,7 +94,7 @@ def copy_chunk(src, dst, offset, file_size, requests_session=None, upload_id=Non
         None
     """
 
-    def local(src, dst, offset, file_size, block_size=65536):
+    def local(src, dst, offset, file_size, block_size=DEFAULT_BLOCK_SIZE):
         return copy_chunk_locally(src, dst, offset, file_size, block_size=block_size)
 
     @retry(stop=stop_after_attempt(5), wait=wait_fixed(60))
@@ -111,7 +112,7 @@ def copy_chunk(src, dst, offset, file_size, requests_session=None, upload_id=Non
         local(src, dst, offset, file_size, block_size=block_size)
 
 
-def copy_file_locally(src, dst, block_size=65536):
+def copy_file_locally(src, dst, block_size=DEFAULT_BLOCK_SIZE):
     fsize = os.stat(src).st_size
     idx = 0
 
@@ -130,7 +131,7 @@ def copy_file_locally(src, dst, block_size=65536):
         idx += 1
 
 
-def copy_file_remotely(src, dst, requests_session=None, block_size=65536):
+def copy_file_remotely(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
     file_size = os.stat(src).st_size
     idx = 0
 
@@ -164,7 +165,7 @@ def copy_file_remotely(src, dst, requests_session=None, block_size=65536):
     send_completion_request()
 
 
-def copy_file(src, dst, requests_session=None, block_size=65536):
+def copy_file(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
     """
     Copies the given file to the given destination
 
@@ -191,7 +192,7 @@ def copy_file(src, dst, requests_session=None, block_size=65536):
     return dst
 
 
-def copy_dir(src, dst, requests_session=None, block_size=65536):
+def copy_dir(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
     for root, dirs, files in walk(src):
         for f in files:
             src_filepath = os.path.join(root, f)
@@ -218,7 +219,7 @@ def copy_dir(src, dst, requests_session=None, block_size=65536):
     return dst
 
 
-def copy(src, dst, requests_session=None, block_size=65536):
+def copy(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
     if os.path.isfile(src):
         return copy_file(src, dst, requests_session=requests_session, block_size=block_size)
 

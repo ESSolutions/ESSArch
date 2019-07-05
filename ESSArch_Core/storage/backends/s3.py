@@ -8,6 +8,7 @@ import boto3
 from django.conf import settings
 
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
+from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE
 from ESSArch_Core.storage.models import CAS, StorageObject
 
 logger = logging.getLogger('essarch.storage.backends.s3')
@@ -34,7 +35,7 @@ class S3StorageBackend(BaseStorageBackend):
         data.seek(0)
         return data
 
-    def read(self, storage_object, dst, extract=False, include_xml=True, block_size=65536):
+    def read(self, storage_object, dst, extract=False, include_xml=True, block_size=DEFAULT_BLOCK_SIZE):
         ip = storage_object.ip
 
         bucket_name, key = storage_object.content_location_value.split('/', 1)
@@ -62,7 +63,7 @@ class S3StorageBackend(BaseStorageBackend):
                 bucket.download_file(object_summary.key, dst_file)
             return dst
 
-    def write(self, src, ip, storage_method, storage_medium, block_size=65536):
+    def write(self, src, ip, storage_method, storage_medium, block_size=DEFAULT_BLOCK_SIZE):
         if isinstance(src, str):
             src = [src]
         dst = storage_medium.storage_target.target

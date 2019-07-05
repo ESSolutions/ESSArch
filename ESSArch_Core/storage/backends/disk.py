@@ -5,7 +5,7 @@ import shutil
 import tarfile
 
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
-from ESSArch_Core.storage.copy import copy
+from ESSArch_Core.storage.copy import copy, DEFAULT_BLOCK_SIZE
 from ESSArch_Core.storage.models import DISK, StorageObject
 
 logger = logging.getLogger('essarch.storage.backends.disk')
@@ -28,7 +28,7 @@ class DiskStorageBackend(BaseStorageBackend):
         path = os.path.join(storage_object.content_location_value, file)
         return open(path, *args, **kwargs)
 
-    def read(self, storage_object, dst, extract=False, include_xml=True, block_size=65536):
+    def read(self, storage_object, dst, extract=False, include_xml=True, block_size=DEFAULT_BLOCK_SIZE):
         src = storage_object.get_full_path()
 
         if storage_object.container:
@@ -48,7 +48,7 @@ class DiskStorageBackend(BaseStorageBackend):
         else:
             return copy(src, dst, block_size=block_size)
 
-    def write(self, src, ip, storage_method, storage_medium, block_size=65536):
+    def write(self, src, ip, container, storage_medium, block_size=DEFAULT_BLOCK_SIZE):
         if isinstance(src, str):
             src = [src]
         dst = storage_medium.storage_target.target
