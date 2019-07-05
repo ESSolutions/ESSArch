@@ -5,7 +5,7 @@ import shutil
 import tarfile
 
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
-from ESSArch_Core.storage.copy import copy, DEFAULT_BLOCK_SIZE
+from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy
 from ESSArch_Core.storage.models import DISK, StorageObject
 
 logger = logging.getLogger('essarch.storage.backends.disk')
