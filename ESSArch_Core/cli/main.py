@@ -75,7 +75,7 @@ def install(settings_path, data_directory, overwrite):
 
 @click.option('-l', '--loglevel', default='INFO', type=click.Choice(LOG_LEVELS, case_sensitive=False))
 @click.option('-c', '--concurrency', default=None, type=int)
-@click.option('-q', '--queues', default=None)
+@click.option('-q', '--queues', default='celery,file_operation,validation')
 @cli.command()
 @initialize
 def worker(queues, concurrency, loglevel):
@@ -85,6 +85,7 @@ def worker(queues, concurrency, loglevel):
         loglevel=loglevel,
         concurrency=concurrency,
         queues=queues,
+        optimization='fair',
     )
     worker.start()
     sys.exit(worker.exitcode)
