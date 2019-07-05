@@ -89,7 +89,7 @@
     "source-map-loader": "^0.2.4",
     "ts-loader": "^6.0.1",
     "typescript": "^3.4.5",
-    "ua-parser-js": "^0.7.18",
+    "ua-parser-js": "^0.7.20",
     "ui-select": "~0.19.6",
     "uri-util": "^1.1.0",
     "url-loader": "^1.1.2",
