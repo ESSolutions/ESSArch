@@ -70,7 +70,7 @@ if __name__ == '__main__':
             "celery[tblib]==4.3.0",
             "cffi==1.11.5",
             "channels==2.1.7",
-            "channels_redis==2.3.3",
+            "channels_redis==2.4.0",
             "chardet==3.0.4",
             "click==7.0",
             "crontab==0.22.5",
