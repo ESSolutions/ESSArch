@@ -48,7 +48,7 @@ class DiskStorageBackend(BaseStorageBackend):
         else:
             return copy(src, dst, block_size=block_size)
 
-    def write(self, src, ip, container, storage_medium, block_size=DEFAULT_BLOCK_SIZE):
+    def write(self, src, ip, storage_method, storage_medium, block_size=DEFAULT_BLOCK_SIZE):
         if isinstance(src, str):
             src = [src]
         dst = storage_medium.storage_target.target
