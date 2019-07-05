@@ -48,7 +48,7 @@
     "angular-websocket": "^2.0.1",
     "angularjs-bootstrap-datetimepicker": "^1.1.4",
     "api-check": "^7.5.5",
-    "babel-loader": "^8.0.5",
+    "babel-loader": "^8.0.6",
     "babel-plugin-angularjs-annotate": "^0.10.0",
     "bootstrap-sass": "~3.4.1",
     "bufferutil": "^4.0.1",
