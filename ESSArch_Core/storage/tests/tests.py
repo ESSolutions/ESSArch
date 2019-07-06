@@ -86,9 +86,10 @@ class CopyChunkTestCase(TestCase):
             timeout=60,
         )
 
+    @mock.patch('ESSArch_Core.storage.copy.copy_chunk_remotely.retry.sleep')
     @mock.patch('ESSArch_Core.storage.copy.open', fake_open)
     @mock.patch('requests.Session.post')
-    def test_copy_chunk_remotely_server_error(self, mock_post):
+    def test_copy_chunk_remotely_server_error(self, mock_post, mock_sleep):
         attrs = {'raise_for_status.side_effect': requests.exceptions.HTTPError}
         mock_response = mock.Mock()
         mock_response.configure_mock(**attrs)
@@ -103,12 +104,14 @@ class CopyChunkTestCase(TestCase):
         with self.assertRaises(requests.exceptions.HTTPError):
             copy_chunk_remotely(self.src, dst, 1, 3, upload_id=upload_id, requests_session=session, block_size=1)
 
-        mock_post.assert_called_once_with(
+        calls = [mock.call(
             dst, files={'the_file': ('src.txt', b'o')},
             data={'upload_id': upload_id},
             headers={'Content-Range': 'bytes 1-1/3'},
             timeout=60,
-        )
+        ) if x % 2 == 0 else mock.call().raise_for_status() for x in range(10)]
+
+        mock_post.assert_has_calls(calls)
 
     @mock.patch('ESSArch_Core.storage.copy.open', fake_open)
     def test_local_non_ascii_file_name(self):
