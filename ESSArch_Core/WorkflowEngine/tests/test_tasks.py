@@ -78,7 +78,7 @@ class RunTasksNonEagerlyTests(TestCase):
         )
         t.run()
 
-        expected_options = {'responsible': None, 'ip': None, 'step': step.pk, 'step_pos': 2, 'hidden': False}
+        expected_options = {'responsible': None, 'ip': None, 'step': str(step.pk), 'step_pos': 2, 'hidden': False}
         apply_async.assert_called_once_with(args=[], kwargs={'_options': expected_options},
                                             link_error=None, queue='celery', task_id=str(t.celery_id))
 
