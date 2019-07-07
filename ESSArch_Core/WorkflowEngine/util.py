@@ -96,4 +96,16 @@ def create_workflow(workflow_spec, ip=None, name='', on_error=None, eager=False,
         root_step.on_error.add(on_error_task)
 
     _create_step(root_step, workflow_spec, ip, responsible)
+
+    # remove steps without any tasks in any of its descendants
+    empty_steps = root_step.get_descendants(include_self=True).filter(tasks=None).exists()
+    while empty_steps:
+        root_step.get_descendants(include_self=True).filter(
+            child_steps__isnull=True,
+            tasks=None,
+        ).delete()
+        empty_steps = root_step.get_descendants(
+            include_self=True
+        ).filter(tasks=None, child_steps__isnull=True).exists()
+
     return root_step

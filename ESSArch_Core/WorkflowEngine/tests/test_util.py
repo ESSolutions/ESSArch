@@ -71,6 +71,79 @@ class CreateWorkflowTestCase(TestCase):
         self.assertEqual(child_step.tasks.latest('processstep_pos').name, spec[0]['children'][1]['name'])
         self.assertEqual(child_step.on_error.count(), 0)
 
+    def test_empty_child_steps_are_removed(self):
+        spec = [
+            {
+                "step": True,
+                "name": "My step",
+                "children": [
+                    {
+                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.First",
+                        "label": "Foo Bar Task",
+                        "args": [1, 2, 3],
+                        "params": {'a': 'b'}
+                    },
+                    {
+                        "step": True,
+                        "name": "step_a",
+                        "children": [
+                            {
+                                "step": True,
+                                "name": "step_aa",
+                                "children": [
+                                    {
+                                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.First",
+                                        "label": "Foo Bar Task 2",
+                                        "args": [1, 2, 3],
+                                        "params": {'a': 'b'}
+                                    },
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "step": True,
+                        "name": "step_b",
+                        "children": [
+                            {
+                                "step": True,
+                                "name": "step_ba",
+                                "children": []
+                            },
+                            {
+                                "name": "ESSArch_Core.WorkflowEngine.tests.tasks.First",
+                                "label": "Foo Bar Task 2",
+                                "args": [1, 2, 3],
+                                "params": {'a': 'b'}
+                            },
+                        ]
+                    },
+                    {
+                        "step": True,
+                        "name": "step_c",
+                        "children": [
+                            {
+                                "step": True,
+                                "name": "step_ca",
+                                "children": []
+                            },
+                        ]
+                    },
+                ]
+            }
+        ]
+
+        create_workflow(spec)
+
+        # verify that only step_ba, step_c and step_ca has been deleted
+
+        self.assertEqual(ProcessStep.objects.count(), 5)
+        self.assertEqual(ProcessTask.objects.count(), 3)
+
+        self.assertFalse(ProcessStep.objects.filter(name="step_ba").exists())
+        self.assertFalse(ProcessStep.objects.filter(name="step_c").exists())
+        self.assertFalse(ProcessStep.objects.filter(name="step_ca").exists())
+
     def test_on_error_task(self):
         spec = [
             {
