@@ -30,4 +30,14 @@ class Migration(migrations.Migration):
             field=models.UUIDField(default=uuid.uuid4),
         ),
         migrations.RunPython(set_celery_id, migrations.RunPython.noop),
+        migrations.AlterField(
+            model_name='processstep',
+            name='celery_id',
+            field=models.UUIDField(default=uuid.uuid4, unique=True),
+        ),
+        migrations.AlterField(
+            model_name='processtask',
+            name='celery_id',
+            field=models.UUIDField(default=uuid.uuid4, unique=True),
+        ),
     ]
