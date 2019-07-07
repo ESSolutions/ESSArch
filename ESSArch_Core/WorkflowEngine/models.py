@@ -48,7 +48,7 @@ def create_task(name):
         name: The name of the task, including package and module
     """
     [module, task] = name.rsplit('.', 1)
-    logger.debug('Importing task {} from module {}'.format(module, task))
+    logger.debug('Importing task {} from module {}'.format(task, module))
     return getattr(importlib.import_module(module), task)()
 
 
@@ -629,10 +629,10 @@ class ProcessTask(Process):
 
         if self.eager:
             self.params['_options']['result_params'] = self.result_params
-            logging.debug('Running task eagerly ({})'.format(self.pk))
+            logger.debug('Running task eagerly ({})'.format(self.pk))
             res = t.apply(args=self.args, kwargs=self.params, task_id=str(self.celery_id), link_error=on_error_group)
         else:
-            logging.debug('Running task non-eagerly ({})'.format(self.pk))
+            logger.debug('Running task non-eagerly ({})'.format(self.pk))
             res = t.apply_async(
                 args=self.args,
                 kwargs=self.params,
@@ -660,10 +660,10 @@ class ProcessTask(Process):
 
         if undoobj.eager:
             undoobj.params['_options']['result_params'] = undoobj.result_params
-            logging.debug('Undoing task eagerly ({})'.format(self.pk))
+            logger.debug('Undoing task eagerly ({})'.format(self.pk))
             res = t.apply(args=undoobj.args, kwargs=undoobj.params, task_id=str(undoobj.celery_id))
         else:
-            logging.debug('Undoing task non-eagerly ({})'.format(self.pk))
+            logger.debug('Undoing task non-eagerly ({})'.format(self.pk))
             res = t.apply_async(args=undoobj.args, kwargs=undoobj.params, task_id=str(undoobj.celery_id),
                                 queue=t.queue)
 
@@ -674,7 +674,7 @@ class ProcessTask(Process):
         Retries the task
         """
 
-        logging.debug('Retrying task ({})'.format(self.pk))
+        logger.debug('Retrying task ({})'.format(self.pk))
         self.reset()
         return self.run()
 
