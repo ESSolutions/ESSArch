@@ -40,7 +40,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import models, transaction
-from django.db.models import Count, Max, Min
+from django.db.models import Count, Max, Min, Q, Sum
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from groups_manager.utils import get_permission_name
@@ -651,10 +651,23 @@ class InformationPackage(models.Model):
 
             return progress
 
-        steps = self.steps.all()
+        step_progress = None
+        task_progress = None
+
+        steps = self.steps.filter(Q(parent_step__isnull=True) | Q(parent_step__information_package__isnull=True))
         if steps.exists():
-            progress = sum([s.progress for s in steps])
-            return progress / steps.count()
+            step_progress = sum([s.progress for s in steps])
+
+        tasks = self.processtask_set.filter(Q(processstep__isnull=True) |
+                                            Q(processstep__information_package__isnull=True))
+        if tasks.exists():
+            task_progress = tasks.aggregate(Sum('progress'))['progress__sum']
+
+        if task_progress or step_progress:
+            progress = task_progress or 0
+            progress += step_progress or 0
+
+            return progress / (steps.count() + tasks.count())
 
         return 100
 
