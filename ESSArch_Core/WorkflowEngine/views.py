@@ -41,7 +41,7 @@ from ESSArch_Core.WorkflowEngine.filters import (
     ProcessTaskFilter,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
-from ESSArch_Core.WorkflowEngine.permissions import CanRetry, CanUndo
+from ESSArch_Core.WorkflowEngine.permissions import CanRetry, CanRun, CanUndo
 from ESSArch_Core.WorkflowEngine.serializers import (
     ProcessStepChildrenSerializer,
     ProcessStepDetailSerializer,
@@ -135,6 +135,12 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             return ProcessTaskSerializer
 
         return ProcessTaskDetailSerializer
+
+    @transaction.atomic
+    @action(detail=True, methods=['post'], permission_classes=[CanRun])
+    def run(self, request, pk=None):
+        self.get_object().run()
+        return Response({'status': 'running task'})
 
     @transaction.atomic
     @action(detail=True, methods=['post'], permission_classes=[CanRetry])

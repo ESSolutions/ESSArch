@@ -22,20 +22,32 @@
     Email - essarch@essolutions.se
 """
 
+import copy
 import importlib
 import itertools
 import logging
 import uuid
+from urllib.parse import urljoin
 
 import jsonfield
+import tblib
 from celery import chain, group, states as celery_states
 from celery.result import EagerResult
 from django.core.cache import cache
 from django.db import models
 from django.db.models import Case, Count, Sum, When
+from django.urls import reverse
 from django.utils.translation import ugettext as _
 from mptt.models import MPTTModel, TreeForeignKey
 from picklefield.fields import PickledObjectField
+from requests import RequestException
+from tenacity import (
+    before_sleep_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_fixed,
+)
 
 logger = logging.getLogger('essarch.WorkflowEngine')
 
@@ -54,10 +66,11 @@ def create_task(name):
 
 def create_sub_task(t, step=None, immutable=True, link_error=None):
     logger.debug('Creating sub task')
-    step_id = step.id if step is not None else None
+    ip_id = str(t.information_package_id) if t.information_package_id is not None else None
+    step_id = str(step.id) if step is not None else None
     t.params['_options'] = {
         'args': t.args,
-        'responsible': t.responsible_id, 'ip': t.information_package_id,
+        'responsible': t.responsible_id, 'ip': ip_id,
         'step': step_id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
         'undo': t.undo_type, 'result_params': t.result_params,
     }
@@ -365,6 +378,20 @@ class ProcessStep(MPTTModel, Process):
 
         logger.debug('Resuming step {} ({})'.format(self.name, self.pk))
         child_steps = self.get_children()
+
+        step_descendants = self.get_descendants(include_self=True)
+        recursive_tasks = ProcessTask.objects.filter(
+            processstep__in=step_descendants,
+            undone__isnull=True, undo_type=False,
+            status=celery_states.PENDING,
+        )
+
+        if not recursive_tasks.exists():
+            if direct:
+                return EagerResult(self.celery_id, [], celery_states.SUCCESS)
+
+            return group()
+
         tasks = self.tasks(manager='by_step_pos').filter(
             undone__isnull=True, undo_type=False, status=celery_states.PENDING
         )
@@ -597,6 +624,58 @@ class ProcessTask(Process):
 
         return parent
 
+    def create_traceback(self):
+        return tblib.Traceback.from_string(self.traceback).as_traceback()
+
+    def reraise(self):
+        from ESSArch_Core.celery.backends.database import DatabaseBackend
+
+        tb = self.create_traceback()
+        exc = DatabaseBackend.exception_to_python(self.exception)
+
+        raise exc.with_traceback(tb)
+
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+    def create_remote_copy(self, session, host):
+        create_remote_task_url = urljoin(host, reverse('processtask-list'))
+        params = copy.deepcopy(self.params)
+        params.pop('_options', None)
+        ip_id = str(self.information_package.pk) if self.information_package.pk is not None else None
+        data = {
+            'id': str(self.pk),
+            'name': self.name,
+            'args': self.args,
+            'params': self.params,
+            'eager': self.eager,
+            'information_package': ip_id,
+        }
+        r = session.post(create_remote_task_url, json=data, timeout=60)
+
+        if r.status_code == 409:
+            update_remote_task_url = urljoin(host, reverse('processtask-detail', args=(str(self.pk),)))
+            r = session.patch(update_remote_task_url, json=data)
+
+        r.raise_for_status()
+        return r
+
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+    def run_remote_copy(self, session, host):
+        run_remote_task_url = urljoin(host, reverse('processtask-run', args=(str(self.pk),)))
+        r = session.post(run_remote_task_url, timeout=60)
+        r.raise_for_status()
+        return r
+
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+    def get_remote_copy(self, session, host):
+        remote_task_url = urljoin(host, reverse('processtask-detail', args=(str(self.pk),)))
+        r = session.get(remote_task_url, timeout=60)
+        if r.status_code >= 400 and r.status_code != 404:
+            r.raise_for_status()
+        return r
+
     def reset(self):
         self.celery_id = uuid.uuid4()
         self.status = celery_states.PENDING
@@ -615,9 +694,11 @@ class ProcessTask(Process):
 
         t = create_task(self.name)
 
+        ip_id = str(self.information_package_id) if self.information_package_id is not None else None
+        step_id = str(self.processstep_id) if self.processstep_id is not None else None
         self.params['_options'] = {
             'responsible': self.responsible_id, 'ip':
-            self.information_package_id, 'step': self.processstep_id,
+            ip_id, 'step': step_id,
             'step_pos': self.processstep_pos, 'hidden': self.hidden,
         }
 
@@ -651,9 +732,11 @@ class ProcessTask(Process):
         t = create_task(self.name)
 
         undoobj = self.create_undo_obj()
+        ip_id = str(self.information_package_id) if self.information_package_id is not None else None
+        step_id = str(self.processstep_id) if self.processstep_id is not None else None
         self.params['_options'] = {
             'responsible': self.responsible_id, 'ip':
-            self.information_package_id, 'step': self.processstep_id,
+            ip_id, 'step': step_id,
             'step_pos': self.processstep_pos, 'hidden': self.hidden, 'undo':
             True,
         }
@@ -722,6 +805,7 @@ class ProcessTask(Process):
         get_latest_by = "time_created"
 
         permissions = (
+            ('can_run', 'Can run tasks'),
             ('can_undo', 'Can undo tasks'),
             ('can_retry', 'Can retry tasks'),
         )
