@@ -124,7 +124,7 @@ matrix:
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
         - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
-    - env: PRETTIER
+    - name: "prettier"
       stage: lint
       language: node_js
       node_js: "lts/*"
