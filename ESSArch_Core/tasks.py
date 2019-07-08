@@ -62,7 +62,7 @@ from ESSArch_Core.fixity.validation.backends.xml import (
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
-from ESSArch_Core.storage.copy import copy_file, DEFAULT_BLOCK_SIZE
+from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy_file
 from ESSArch_Core.storage.models import TapeDrive
 from ESSArch_Core.storage.tape import (
     DEFAULT_TAPE_BLOCK_SIZE,
