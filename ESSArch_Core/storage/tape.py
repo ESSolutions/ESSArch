@@ -20,12 +20,6 @@ from ESSArch_Core.storage.exceptions import (
     TapeMountedError,
     TapeUnmountedError,
 )
-from ESSArch_Core.storage.models import (
-    Robot,
-    StorageMedium,
-    TapeDrive,
-    TapeSlot,
-)
 
 DEFAULT_TAPE_BLOCK_SIZE = 20 * 512
 logger = logging.getLogger('essarch.storage.tape')
@@ -365,6 +359,13 @@ def robot_inventory(robot):
     Returns:
         None
     """
+
+    from ESSArch_Core.storage.models import (
+        Robot,
+        StorageMedium,
+        TapeDrive,
+        TapeSlot,
+    )
 
     cmd = 'mtx -f %s status' % robot
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
