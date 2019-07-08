@@ -46,6 +46,7 @@ from lxml import etree
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from ESSArch_Core.auth.models import Notification
+from ESSArch_Core.crypto import decrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator,
     findElementWithoutNamespace,
@@ -61,7 +62,7 @@ from ESSArch_Core.fixity.validation.backends.xml import (
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
-from ESSArch_Core.storage.copy import copy_file
+from ESSArch_Core.storage.copy import copy_file, DEFAULT_BLOCK_SIZE
 from ESSArch_Core.storage.models import TapeDrive
 from ESSArch_Core.storage.tape import (
     DEFAULT_TAPE_BLOCK_SIZE,
@@ -559,18 +560,24 @@ class CopyDir(DBTask):
 
 
 class CopyFile(DBTask):
-    def run(self, src, dst, requests_session=None, block_size=65536):
+    def run(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
         """
         Copies the given file to the given destination
 
         Args:
             src: The file to copy
             dst: Where the file should be copied to
-            requests_session: The request session to be used
+            remote_credentials: Credentials for remote server
             block_size: Size of each block to copy
         Returns:
             None
         """
+
+        requests_session = None
+        if remote_credentials:
+            user, passw = decrypt_remote_credentials(remote_credentials)
+            requests_session = requests.Session()
+            requests_session.auth = (user, passw)
 
         copy_file(src, dst, requests_session=requests_session, block_size=block_size)
 
