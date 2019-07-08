@@ -1,5 +1,9 @@
+import sys
+
+import celery.exceptions
 from celery.backends.base import BaseDictBackend
 from celery.states import EXCEPTION_STATES, READY_STATES, STARTED, SUCCESS
+from celery.utils.serialization import create_exception_cls
 from django.utils import timezone
 
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
@@ -57,6 +61,25 @@ class DatabaseBackend(BaseDictBackend):
             'traceback': obj.traceback,
         })
         return meta
+
+    @classmethod
+    def exception_to_python(cls, exc):
+        """Convert serialized exception to Python exception."""
+        if exc:
+            if not isinstance(exc, BaseException):
+                exc_module = exc.get('exc_module')
+                if exc_module is None:
+                    cls = create_exception_cls(exc['exc_type'], __name__)
+                else:
+                    exc_module = exc_module
+                    exc_type = exc['exc_type']
+                    try:
+                        cls = getattr(sys.modules[exc_module], exc_type)
+                    except KeyError:
+                        cls = create_exception_cls(exc_type, celery.exceptions.__name__)
+                exc_msg = exc['exc_message']
+                exc = cls(*exc_msg if isinstance(exc_msg, tuple) else exc_msg)
+        return exc
 
     def meta_from_decoded(self, meta):
         if meta['status'] in self.EXCEPTION_STATES:
