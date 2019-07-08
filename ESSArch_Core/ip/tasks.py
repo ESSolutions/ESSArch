@@ -32,6 +32,7 @@ from ESSArch_Core.ip.utils import (
 )
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.copy import copy_file
+from ESSArch_Core.storage.models import StorageMethod, StorageTarget
 from ESSArch_Core.util import (
     get_premis_ip_object_element_spec,
     normalize_path,
@@ -272,16 +273,14 @@ class CreatePhysicalModel(DBTask):
 
 
 class CreateContainer(DBTask):
-    def run(self):
+    def run(self, dst):
         ip = self.get_information_package()
         container_format = ip.get_container_format().lower()
         tpp = ip.get_profile_rel('transfer_project').profile
         compress = tpp.specification_data.get('container_format_compression', False)
 
         src = ip.object_path
-        dst_dir = Path.objects.cached('entity', 'path_preingest_reception', 'value')
-        dst_filename = ip.object_identifier_value + '.' + container_format
-        dst = normalize_path(os.path.join(dst_dir, dst_filename))
+        dst = normalize_path(dst)
 
         if container_format == 'zip':
             self.event_type = 50410
@@ -293,9 +292,6 @@ class CreateContainer(DBTask):
             with tarfile.open(dst, 'w%s' % compression) as new_tar:
                 new_tar.add(src, base_dir)
 
-        ip.object_path = dst
-        ip.save()
-        shutil.rmtree(src)
         return dst
 
     def event_outcome_success(self, result, *args, **kwargs):
@@ -339,6 +335,34 @@ class Transform(DBTask):
         if path is None and ip is not None:
             path = ip.object_path
         backend.transform(path)
+
+
+class PreserveInformationPackage(DBTask):
+    def run(self, storage_method_pk):
+        ip = self.get_information_package()
+        policy = ip.policy
+
+        if policy is None:
+            raise ValueError('{} has no policy'.format(ip))
+
+        storage_method = StorageMethod.objects.get(pk=storage_method_pk)
+        policy_methods = policy.storage_methods.all()
+
+        if storage_method not in policy_methods and storage_method != policy.cache_storage:
+            raise ValueError('{} not part of {}'.format(storage_method, policy))
+
+        try:
+            storage_target = storage_method.enabled_target
+        except StorageTarget.DoesNotExist:
+            raise ValueError('No writeable target available for {}'.format(storage_method))
+
+        return ip.preserve(storage_target, storage_method.containers, self.get_processtask())
+
+
+class WriteInformationPackageToSearchIndex(DBTask):
+    def run(self):
+        ip = self.get_information_package()
+        ip.write_to_search_index()
 
 
 class CreateReceipt(DBTask):

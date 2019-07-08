@@ -71,7 +71,7 @@ class TapeStorageBackend(BaseStorageBackend):
                 raise
         return new
 
-    def write(self, src, ip, storage_method, storage_medium, block_size=DEFAULT_TAPE_BLOCK_SIZE):
+    def write(self, src, ip, container, storage_medium, block_size=DEFAULT_TAPE_BLOCK_SIZE):
         block_size = storage_medium.block_size * 512
 
         last_written_obj = StorageObject.objects.filter(
@@ -96,6 +96,13 @@ class TapeStorageBackend(BaseStorageBackend):
         except OSError as e:
             if e.errno == errno.ENOSPC:
                 storage_medium.mark_as_full()
+                # TODO:
+                # * unmount this tape, do this in mark_as_full(?)
+                # * mount new tape
+                # * write to new mounted tape
+                # (something like, return self.write(*args, medium=new_medium, **kwrags))
+                # can we limit retries of this using tenacity? not super important right now,
+                # we might do this in old epp already.
             else:
                 raise
 
@@ -106,7 +113,7 @@ class TapeStorageBackend(BaseStorageBackend):
             content_location_value=tape_pos,
             content_location_type=TAPE,
             ip=ip, storage_medium=storage_medium,
-            container=storage_method.containers
+            container=container
         )
 
     def delete(self, storage_object):

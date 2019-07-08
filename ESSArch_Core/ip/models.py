@@ -33,25 +33,39 @@ import uuid
 import zipfile
 from copy import deepcopy
 from datetime import datetime
+from os import walk
+from time import sleep
+from urllib.parse import urljoin
 
 import jsonfield
+import requests
 from celery import states as celery_states
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import models, transaction
-from django.db.models import Count, Max, Min, Q, Sum
+from django.db.models import Count, F, Max, Min, Q, Sum
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
 from lxml import etree
+from requests import RequestException
 from rest_framework import exceptions
 from rest_framework.response import Response
+from tenacity import (
+    before_sleep_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_fixed,
+)
 
 from ESSArch_Core.auth.models import GroupGenericObjects, Member
 from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.configuration.models import Path, StoragePolicy
+from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.profiles.models import (
@@ -62,6 +76,8 @@ from ESSArch_Core.profiles.models import (
 )
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_backend as get_importer
+from ESSArch_Core.search.ingest import index_path
+from ESSArch_Core.storage.models import StorageMedium, StorageObject
 from ESSArch_Core.util import (
     find_destination,
     generate_file_response,
@@ -71,9 +87,11 @@ from ESSArch_Core.util import (
     normalize_path,
     timestamp_to_datetime,
 )
+from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 logger = logging.getLogger('essarch.ip')
 
+IP_LOCK_PREFIX = 'lock_ip_'
 MESSAGE_DIGEST_ALGORITHM_CHOICES = (
     (StoragePolicy.MD5, 'MD5'),
     (StoragePolicy.SHA1, 'SHA-1'),
@@ -287,14 +305,15 @@ class InformationPackage(models.Model):
         except Agent.DoesNotExist:
             return None
 
+    @classmethod
+    def clear_locks(cls):
+        return cache.delete_pattern(IP_LOCK_PREFIX + '*')
+
     def get_lock_key(self):
-        return 'lock_ip_{}'.format(str(self.pk))
+        return '{}{}'.format(IP_LOCK_PREFIX, str(self.pk))
 
     def is_locked(self):
         return self.get_lock_key() in cache
-
-    def get_lock(self):
-        return cache.lock(self.get_lock_key())
 
     def get_permissions(self, user, checker=None):
         return user.get_all_permissions(self)
@@ -802,6 +821,402 @@ class InformationPackage(models.Model):
             paginated = paginator.paginate_queryset(entries, request)
             return paginator.get_paginated_response(paginated)
         return Response(entries)
+
+    def create_preservation_workflow(self):
+        cache_storage = self.policy.cache_storage
+        container_methods = self.policy.storage_methods.secure_storage().filter(
+            remote=False,
+        ).exclude(pk=cache_storage.pk)
+        non_container_methods = self.policy.storage_methods.archival_storage().filter(
+            remote=False
+        ).exclude(pk=cache_storage.pk)
+        remote_methods = self.policy.storage_methods.filter(
+            remote=True
+        ).exclude(pk=cache_storage.pk)
+
+        remote_servers = set([
+            method.enabled_target.remote_server
+            for method in remote_methods
+        ])
+
+        temp_container_path = self.get_temp_container_path()
+        temp_mets_path = self.get_temp_container_xml_path()
+        temp_aic_mets_path = self.get_temp_container_aic_xml_path() if self.aic else None
+
+        reception_dir = Path.objects.get(entity='reception').value
+        ingest_dir = self.policy.ingest_path.value
+
+        ip_reception_path = os.path.join(reception_dir, self.object_identifier_value)
+        ip_ingest_path = os.path.join(ingest_dir, self.object_identifier_value)
+
+        remote_temp_container_transfer = {
+            "step": True,
+            "parallel": True,
+            "name": "Write temporary files to remote hosts",
+            "children": [
+                {
+                    "step": True,
+                    "parallel": True,
+                    "name": "Write temporary files to remote host",
+                    "children": [
+                        {
+                            "name": "ESSArch_Core.tasks.CopyFile",
+                            "label": "Transfer temporary container to {}".format(remote_server.split(',')[0]),
+                            "args": [
+                                temp_container_path,
+                                urljoin(
+                                    remote_server.split(',')[0],
+                                    reverse('informationpackage-add-file-from-master')
+                                ),
+                                encrypt_remote_credentials(remote_server),
+                            ],
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.CopyFile",
+                            "label": "Transfer temporary AIP xml to {}".format(remote_server.split(',')[0]),
+                            "args": [
+                                temp_mets_path,
+                                urljoin(
+                                    remote_server.split(',')[0],
+                                    reverse('informationpackage-add-file-from-master')
+                                ),
+                                encrypt_remote_credentials(remote_server),
+                            ],
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.CopyFile",
+                            "if": temp_aic_mets_path is not None,
+                            "label": "Transfer temporary AIC xml to {}".format(remote_server.split(',')[0]),
+                            "args": [
+                                temp_aic_mets_path,
+                                urljoin(
+                                    remote_server.split(',')[0],
+                                    reverse('informationpackage-add-file-from-master')
+                                ),
+                                encrypt_remote_credentials(remote_server),
+                            ],
+                        },
+                    ]
+                } for remote_server in remote_servers
+            ]
+        }
+
+        remote_temp_container_to_storage_method = {
+            "step": True,
+            "parallel": True,
+            "name": "Write temporary container to storage_methods",
+            "children": [
+                {
+                    "step": True,
+                    "name": "Write container to {}".format(method.pk),
+                    "children": [
+                        {
+                            "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
+                            "label": "Write to storage method",
+                            "args": [str(method.pk)],
+                        }
+                    ]
+                } for method in remote_methods
+            ]
+        }
+
+        remote_containers_step = {
+            "step": True,
+            "name": "Write remote containers",
+            "children": [
+                remote_temp_container_transfer,
+                remote_temp_container_to_storage_method,
+            ],
+        }
+
+        workflow = [
+            {
+                "step": True,
+                "name": "Write to storage",
+                "children": [
+                    {
+                        "step": True,
+                        "name": "Write to cache",
+                        "children": [
+                            {
+                                "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
+                                "label": "Write to storage medium",
+                                "args": [str(cache_storage.pk)],
+                            },
+                            {
+                                "name": "ESSArch_Core.ip.tasks.WriteInformationPackageToSearchIndex",
+                                "label": "Write to search index",
+                            },
+                            {
+                                "name": "ESSArch_Core.ip.tasks.CreateReceipt",
+                                "label": "Create receipt",
+                                "args": [
+                                    None,
+                                    "xml",
+                                    "receipts/xml.json",
+                                    "/ESSArch/data/receipts/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
+                                    "success",
+                                    "Cached and indexed {{OBJID}}",
+                                    "Cached and indexed {{OBJID}}",
+                                ],
+                            }
+                        ]
+                    },
+                    {
+                        "step": True,
+                        "name": "Write to storage methods",
+                        "parallel": True,
+                        "children": [
+                            {
+                                "step": True,
+                                "parallel": True,
+                                "name": "Write non-containers to storage methods",
+                                "children": [
+                                    {
+                                        "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
+                                        "label": "Write to storage method",
+                                        "args": [str(method.pk)],
+                                    } for method in non_container_methods
+                                ]
+                            },
+                            {
+                                "step": True,
+                                "name": "Write containers",
+                                "children": [
+                                    {
+                                        "name": "ESSArch_Core.ip.tasks.CreateContainer",
+                                        "label": "Create temporary container",
+                                        "args": [temp_container_path],
+                                    },
+                                    {
+                                        "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
+                                        "label": "Create container mets",
+                                        "args": [
+                                            temp_container_path,
+                                            temp_mets_path,
+                                        ]
+                                    },
+                                    {
+                                        "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
+                                        "label": "Create container aic mets",
+                                        "args": [temp_aic_mets_path]
+                                    },
+
+                                    {
+                                        "step": True,
+                                        "parallel": True,
+                                        "name": "Write containers to storage methods",
+                                        "children": [
+                                            {
+                                                "step": True,
+                                                "parallel": True,
+                                                "name": "Write local containers",
+                                                "children": [
+                                                    {
+                                                        "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
+                                                        "label": "Write to storage method",
+                                                        "args": [str(method.pk)],
+                                                    } for method in container_methods
+                                                ],
+                                            },
+                                            remote_containers_step,
+                                        ],
+                                    },
+                                    {
+                                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "label": "Delete temporary container",
+                                        "args": [temp_container_path]
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                "name": "ESSArch_Core.tasks.DeleteFiles",
+                "label": "Delete from reception",
+                "args": [ip_reception_path]
+            },
+            {
+                "name": "ESSArch_Core.tasks.DeleteFiles",
+                "label": "Delete from ingest",
+                "args": [ip_ingest_path]
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.CreateReceipt",
+                "label": "Create receipt",
+                "args": [
+                    None,
+                    "xml",
+                    "receipts/xml.json",
+                    "/ESSArch/data/receipts/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
+                    "success",
+                    "Preserved {{OBJID}}",
+                    "{{OBJID}} is now preserved",
+                ],
+            }
+        ]
+
+        return create_workflow(workflow, self, name='Preserve Information Package')
+
+    def write_to_search_index(self):
+        data = fill_specification_data(self.get_profile_data('aip'), ip=self, sa=self.submission_agreement)
+        srcdir = self.object_path
+        ctsdir, ctsfile = find_destination('content_type_specification', self.get_profile('aip').structure, srcdir)
+        ct_profile = self.get_profile('content_type')
+        indexed_files = []
+
+        if ct_profile is not None:
+            cts = parseContent(os.path.join(ctsdir, ctsfile), data)
+            if os.path.isfile(cts):
+                logger.info('Found content type specification: {path}'.format(path=cts))
+                try:
+                    ct_importer_name = ct_profile.specification['name']
+                except KeyError:
+                    logger.exception('No content type importer specified in profile')
+                    raise
+                ct_importer = get_importer(ct_importer_name)()
+                indexed_files = ct_importer.import_content(self.task_id, cts, ip=self)
+            else:
+                err = "Content type specification not found"
+                logger.error('{err}: {path}'.format(err=err, path=cts))
+                raise OSError(errno.ENOENT, err, cts)
+
+        for root, dirs, files in walk(srcdir):
+            for d in dirs:
+                src = os.path.join(root, d)
+                index_path(self, src)
+
+            for f in files:
+                src = os.path.join(root, f)
+                try:
+                    # check if file has already been indexed
+                    indexed_files.remove(src)
+                except ValueError:
+                    # file has not been indexed, index it
+                    index_path(self, src)
+
+    def get_temp_container_path(self):
+        temp_dir = Path.objects.get(entity='temp').value
+        container_format = self.get_container_format()
+        return os.path.join(temp_dir, self.object_identifier_value + '.{}'.format(container_format))
+
+    def get_temp_container_xml_path(self):
+        temp_dir = Path.objects.get(entity='temp').value
+        return os.path.join(temp_dir, self.object_identifier_value + '.xml')
+
+    def get_temp_container_aic_xml_path(self):
+        temp_dir = Path.objects.get(entity='temp').value
+        return os.path.join(temp_dir, self.aic.object_identifier_value + '.xml')
+
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+    def update_remote_ip(self, host, session):
+        from ESSArch_Core.ip.serializers import InformationPackageFromMasterSerializer
+
+        remote_ip = urljoin(host, reverse('informationpackage-add-from-master'))
+        data = InformationPackageFromMasterSerializer(instance=self).data
+        response = session.post(remote_ip, json=data, timeout=10)
+        response.raise_for_status()
+
+    def preserve(self, storage_target, container: bool, task):
+        expected_task_name = "ESSArch_Core.ip.tasks.PreserveInformationPackage"
+        if task.name != expected_task_name:
+            raise ValueError("Task must be an instance of {}".format(expected_task_name))
+
+        qs = StorageMedium.objects.filter(
+            storage_target__methods__containers=container,
+        ).writeable().order_by('last_changed_local')
+
+        ##########################
+        # TODO:
+        # * mount tape (or general prepare of medium, might need something else
+        # for other future storage backends)
+        #
+        # * ensure that we check available storage when getting/creating storage mediums
+        #
+
+        # t = ProcessTask.objects.create(
+        #     name="tasks.MountTape",
+        #     args,
+        #     params,
+        #     queue="robot-{}".format(str(storage_medium.robot.pk)),
+        # )
+
+        # with allow_join_result():
+        #     t.run().get()
+        ############################
+
+        write_size = self.object_size
+
+        if container:
+            aip_xml = self.get_temp_container_xml_path()
+            aic_xml = self.get_temp_container_aic_xml_path()
+            aip_xml_size = os.path.getsize(aip_xml)
+            aic_xml_size = os.path.getsize(aic_xml)
+            write_size += aip_xml_size + aic_xml_size
+
+        with transaction.atomic():
+            if container or storage_target.remote_server:
+                src = [self.get_temp_container_path(), aip_xml, aic_xml]
+            else:
+                src = [self.object_path]
+
+            if storage_target.remote_server:
+                host, user, passw = storage_target.remote_server.split(',')
+                session = requests.Session()
+                session.verify = False  # TODO: we probably want to enable this
+                session.auth = (user, passw)
+
+                self.update_remote_ip(host, session)
+
+                # if the remote server already has completed
+                # then we only want to get the result from it,
+                # not run it again. If it has failed then
+                # we want to retry it
+
+                r = task.get_remote_copy(session, host)
+                if r.status_code == 404:
+                    # the task does not exist
+                    task.create_remote_copy(session, host)
+                    task.run_remote_copy(session, host)
+                else:
+                    if r.json()['status'] != celery_states.SUCCESS:
+                        task.retry_remote_copy(session, host)
+
+                while task.status not in celery_states.READY_STATES:
+                    r = task.get_remote_copy(session, host)
+
+                    remote_data = r.json()
+                    task.status = remote_data['status']
+                    task.progress = remote_data['progress']
+                    task.result = remote_data['result']
+                    task.traceback = remote_data['traceback']
+                    task.exception = remote_data['exception']
+                    task.save()
+
+                    sleep(5)
+
+                if task.status in celery_states.EXCEPTION_STATES:
+                    task.reraise()
+
+                storage_object = StorageObject.create_from_remote_copy(host, session, task.result)
+            else:
+                storage_medium, created = storage_target.get_or_create_storage_medium(qs=qs)
+                new_size = storage_medium.used_capacity + write_size
+                if new_size > storage_target.max_capacity > 0:
+                    storage_medium.mark_as_full()
+                    raise ValueError("Storage medium is full")
+
+                storage_backend = storage_target.get_storage_backend()
+
+                storage_object = storage_backend.write(src, self, container, storage_medium)
+                StorageMedium.objects.filter(pk=storage_medium.pk).update(
+                    used_capacity=F('used_capacity') + write_size
+                )
+
+        return str(storage_object.pk)
 
     def open_file(self, path='', *args, **kwargs):
         if self.archived:

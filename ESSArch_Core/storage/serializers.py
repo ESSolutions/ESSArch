@@ -89,7 +89,8 @@ class StorageObjectSerializer(serializers.ModelSerializer):
         model = StorageObject
         fields = (
             'id', 'content_location_type', 'content_location_value', 'last_changed_local',
-            'last_changed_external', 'ip', 'medium_id', 'target_name', 'target_target', 'storage_medium'
+            'last_changed_external', 'ip', 'medium_id', 'target_name', 'target_target', 'storage_medium',
+            'container',
         )
         extra_kwargs = {
             'id': {

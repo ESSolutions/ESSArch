@@ -6,12 +6,19 @@ from urllib.parse import urljoin
 
 import requests
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Case, IntegerField, Value, When
 from django.db.models.functions import Cast
+from django.urls import reverse
 from django.utils import timezone
 from picklefield.fields import PickledObjectField
-from tenacity import retry, stop_after_attempt, wait_fixed
+from requests import RequestException
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_fixed,
+)
 
 from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
@@ -194,10 +201,11 @@ class StorageMethod(models.Model):
 
     objects = StorageMethodQueryset.as_manager()
 
+    @property
     def enabled_target(self):
         return StorageTarget.objects.get(
-            storagemethodtargetrelation__storage_method=self,
-            storagemethodtargetrelation__status=STORAGE_TARGET_STATUS_ENABLED,
+            storage_method_target_relations__storage_method=self,
+            storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
         )
 
     class Meta:
@@ -417,6 +425,26 @@ class StorageMedium(models.Model):
 
     objects = StorageMediumQueryset.as_manager()
 
+    @classmethod
+    @transaction.atomic
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60))
+    def create_from_remote_copy(cls, host, session, object_id):
+        remote_obj_url = urljoin(host, reverse('storagemedium-detail', args=(object_id,)))
+        r = session.get(remote_obj_url, timeout=60)
+        r.raise_for_status()
+
+        data = r.json()
+        data.pop('location_status_display', None)
+        data.pop('status_display', None)
+        data['storage_target_id'] = data.pop('storage_target')
+        storage_medium, _ = StorageMedium.objects.update_or_create(
+            pk=data.pop('id'),
+            medium_id=data.pop('medium_id'),
+            defaults=data,
+        )
+        return storage_medium
+
     def get_type(self):
         return get_storage_type_from_medium_type(self.storage_target.type)
 
@@ -507,6 +535,29 @@ class StorageObject(models.Model):
                                        verbose_name='medium')
 
     objects = StorageObjectQueryset.as_manager()
+
+    @classmethod
+    @transaction.atomic
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60))
+    def create_from_remote_copy(cls, host, session, object_id):
+        remote_obj_url = urljoin(host, reverse('storageobject-detail', args=(object_id,)))
+        r = session.get(remote_obj_url, timeout=60)
+        r.raise_for_status()
+
+        data = r.json()
+        data['ip_id'] = data.pop('ip')
+        data['storage_medium'] = StorageMedium.create_from_remote_copy(
+            host, session, data['storage_medium']
+        )
+        data.pop('medium_id', None)
+        data.pop('target_name', None)
+        data.pop('target_target', None)
+        obj, _ = StorageObject.objects.update_or_create(
+            pk=data.pop('id'),
+            defaults=data,
+        )
+        return obj
 
     def get_root(self):
         target = self.storage_medium.storage_target.target

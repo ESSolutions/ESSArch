@@ -9,7 +9,15 @@ from celery import states as celery_state
 from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 
+from ESSArch_Core.configuration.models import Parameter, Path, StoragePolicy
 from ESSArch_Core.ip.models import Agent, InformationPackage, Workarea
+from ESSArch_Core.storage.backends.disk import DiskStorageBackend
+from ESSArch_Core.storage.models import (
+    STORAGE_TARGET_STATUS_ENABLED,
+    StorageMethod,
+    StorageMethodTargetRelation,
+    StorageTarget,
+)
 from ESSArch_Core.util import normalize_path, timestamp_to_datetime
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
@@ -777,3 +785,104 @@ class InformationPackageGenerationTests(TestCase):
         Workarea.objects.create(ip=aip, read_only=False, user=self.user)
 
         self.assertEqual(aip.is_last_generation(), False)
+
+
+class InformationPackageCreatePreservationWorkflowTests(TestCase):
+    def test_preserve_container(self):
+        Path.objects.create(entity='reception', value='reception')
+        Path.objects.create(entity='temp', value='temp')
+        cache_storage = StorageMethod.objects.create()
+        cache_storage_target = StorageTarget.objects.create(name='cache target')
+        StorageMethodTargetRelation.objects.create(
+            storage_method=cache_storage,
+            storage_target=cache_storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+        policy = StoragePolicy.objects.create(
+            cache_storage=cache_storage,
+            ingest_path=Path.objects.create(),
+        )
+        aic = InformationPackage.objects.create()
+        ip = InformationPackage.objects.create(aic=aic, policy=policy)
+
+        storage_method = StorageMethod.objects.create()
+        storage_target = StorageTarget.objects.create()
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method,
+            storage_target=storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+        ip.create_preservation_workflow()
+
+
+class InformationPackagePreserveTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Parameter.objects.create(entity='medium_location', value='')
+        Parameter.objects.create(entity='agent_identifier_value', value='')
+
+    @mock.patch('os.path.getsize', return_value=1024)
+    @mock.patch.object(InformationPackage, 'get_temp_container_aic_xml_path', return_value='aic.xml')
+    @mock.patch.object(InformationPackage, 'get_temp_container_xml_path', return_value='aip.xml')
+    @mock.patch.object(DiskStorageBackend, 'write', return_value=None)
+    def test_preserve_container(self, mock_write, mock_aip_xml, mock_aic_xml, mock_getsize):
+        Path.objects.create(entity='reception', value='reception')
+        Path.objects.create(entity='temp', value='temp')
+        cache_storage = StorageMethod.objects.create()
+        policy = StoragePolicy.objects.create(
+            cache_storage=cache_storage,
+            ingest_path=Path.objects.create(),
+        )
+        aic = InformationPackage.objects.create()
+        ip = InformationPackage.objects.create(aic=aic, policy=policy)
+
+        storage_method = StorageMethod.objects.create()
+        storage_target = StorageTarget.objects.create()
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method,
+            storage_target=storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+        task = ProcessTask.objects.create(name="ESSArch_Core.ip.tasks.PreserveInformationPackage")
+
+        mock_write.return_value = mock.MagicMock()
+        mock_write.return_value.pk = None
+
+        ip.preserve(storage_target, True, task)
+
+        mock_write.assert_called_once_with(
+            [os.path.join('temp', ip.object_identifier_value + '.tar'), 'aip.xml', 'aic.xml'], ip, True, mock.ANY
+        )
+
+    @mock.patch.object(DiskStorageBackend, 'write', return_value=None)
+    def test_preserve_non_container(self, mock_write):
+        cache_storage = StorageMethod.objects.create()
+        policy = StoragePolicy.objects.create(
+            cache_storage=cache_storage,
+            ingest_path=Path.objects.create(),
+        )
+        ip = InformationPackage.objects.create(
+            policy=policy, object_path='path/to/ip/dir'
+        )
+
+        storage_method = StorageMethod.objects.create()
+        storage_target = StorageTarget.objects.create()
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method,
+            storage_target=storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+        task = ProcessTask.objects.create(name="ESSArch_Core.ip.tasks.PreserveInformationPackage")
+
+        mock_write.return_value = mock.MagicMock()
+        mock_write.return_value.pk = None
+
+        ip.preserve(storage_target, False, task)
+
+        mock_write.assert_called_once_with(
+            [ip.object_path], ip, False, mock.ANY
+        )

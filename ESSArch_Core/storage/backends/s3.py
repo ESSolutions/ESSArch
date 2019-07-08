@@ -63,7 +63,7 @@ class S3StorageBackend(BaseStorageBackend):
                 bucket.download_file(object_summary.key, dst_file)
             return dst
 
-    def write(self, src, ip, storage_method, storage_medium, block_size=DEFAULT_BLOCK_SIZE):
+    def write(self, src, ip, container, storage_medium, block_size=DEFAULT_BLOCK_SIZE):
         if isinstance(src, str):
             src = [src]
         dst = storage_medium.storage_target.target
@@ -97,7 +97,7 @@ class S3StorageBackend(BaseStorageBackend):
             content_location_value=content_location_value,
             content_location_type=CAS,
             ip=ip, storage_medium=storage_medium,
-            container=storage_method.containers,
+            container=container,
         )
 
     def delete(self, storage_object):

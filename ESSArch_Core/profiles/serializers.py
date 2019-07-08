@@ -108,8 +108,20 @@ class ProfileIPDataTemplateSerializer(serializers.ModelSerializer):
 
 
 class ProfileIPSerializer(serializers.ModelSerializer):
+    profile = serializers.PrimaryKeyRelatedField(
+        queryset=Profile.objects.all(), required=True,
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+    )
+    ip = serializers.PrimaryKeyRelatedField(
+        queryset=InformationPackage.objects.all(), required=True,
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+    )
     profile_type = serializers.SlugRelatedField(slug_field='profile_type', source='profile', read_only=True)
     profile_name = serializers.SlugRelatedField(slug_field='name', source='profile', read_only=True)
+    data_versions = serializers.PrimaryKeyRelatedField(
+        many=True, read_only=True,
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+    )
 
     class Meta:
         model = ProfileIP

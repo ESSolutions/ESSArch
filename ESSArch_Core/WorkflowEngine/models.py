@@ -669,6 +669,14 @@ class ProcessTask(Process):
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
            wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+    def retry_remote_copy(self, session, host):
+        retry_remote_task_url = urljoin(host, reverse('processtask-retry', args=(str(self.pk),)))
+        r = session.post(retry_remote_task_url, timeout=60)
+        r.raise_for_status()
+        return r
+
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
     def get_remote_copy(self, session, host):
         remote_task_url = urljoin(host, reverse('processtask-detail', args=(str(self.pk),)))
         r = session.get(remote_task_url, timeout=60)

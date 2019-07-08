@@ -42,7 +42,7 @@ class DiskStorageBackendTests(TestCase):
             disk_storage_backend.write(
                 src="some_src",
                 ip=mock.ANY,
-                storage_method=mock_storage_method,
+                container=mock_storage_method.containers,
                 storage_medium=mock_storage_medium
             )
 
@@ -50,7 +50,7 @@ class DiskStorageBackendTests(TestCase):
             disk_storage_backend.write(
                 src=["some_src"],
                 ip=mock.ANY,
-                storage_method=mock_storage_method,
+                container=mock_storage_method.containers,
                 storage_medium=mock_storage_medium
             )
 
@@ -66,7 +66,7 @@ class DiskStorageBackendTests(TestCase):
         disk_storage_backend.write(
             src="some_src",
             ip=mock.ANY,
-            storage_method=mock_st_method,
+            container=mock_st_method.containers,
             storage_medium=mock_st_medium
         )
 
@@ -86,7 +86,7 @@ class DiskStorageBackendTests(TestCase):
         disk_storage_backend.write(
             src=src_list,
             ip=mock.ANY,
-            storage_method=mock_st_method,
+            container=mock_st_method.containers,
             storage_medium=mock_st_medium
         )
 
@@ -112,7 +112,7 @@ class DiskStorageBackendTests(TestCase):
         disk_storage_backend.write(
             src=src_list,
             ip=ip,
-            storage_method=mock_st_method,
+            container=mock_st_method.containers,
             storage_medium=st_medium
         )
 

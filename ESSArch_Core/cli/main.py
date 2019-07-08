@@ -86,6 +86,7 @@ def worker(queues, concurrency, loglevel):
         concurrency=concurrency,
         queues=queues,
         optimization='fair',
+        prefetch_multiplier=1,
     )
     worker.start()
     sys.exit(worker.exitcode)

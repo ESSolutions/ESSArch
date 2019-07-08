@@ -1308,7 +1308,13 @@ class InformationPackageViewSetTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.workflow.tasks.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_preserve_aip(self, mock_step):
-        self.ip = InformationPackage.objects.create(package_type=InformationPackage.AIP)
+        Path.objects.create(entity='temp', value='temp')
+        Path.objects.create(entity='reception', value='reception')
+        cache = StorageMethod.objects.create()
+        ingest = Path.objects.create(entity='ingest', value='ingest')
+        policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        self.ip = InformationPackage.objects.create(package_type=InformationPackage.AIP, aic=aic, policy=policy)
         self.url = reverse('informationpackage-detail', args=(self.ip.pk,))
         self.url = self.url + 'preserve/'
 
@@ -1322,6 +1328,8 @@ class InformationPackageViewSetTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.workflow.tasks.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_preserve_dip(self, mock_step):
+        Path.objects.create(entity='temp', value='temp')
+        Path.objects.create(entity='reception', value='reception')
         cache = StorageMethod.objects.create()
         ingest = Path.objects.create(entity='ingest', value='ingest')
         policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)

@@ -27,6 +27,7 @@ from django.db.models import (
     Value,
     When,
 )
+from django.urls import reverse
 from django_filters.constants import EMPTY_VALUES
 from django_filters.rest_framework import DjangoFilterBackend
 from elasticsearch.exceptions import TransportError
@@ -91,6 +92,7 @@ from ESSArch_Core.ip.serializers import (
     AgentSerializer,
     EventIPSerializer,
     InformationPackageDetailSerializer,
+    InformationPackageFromMasterSerializer,
     InformationPackageSerializer,
     NestedInformationPackageSerializer,
     OrderSerializer,
@@ -995,6 +997,17 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         filename_list = os.listdir(static_path)
         return Response(filename_list)
 
+    @transaction.atomic
+    @action(detail=False, methods=['post'], url_path='add-from-master')
+    def add_from_master(self, request, pk=None):
+        serializer = InformationPackageFromMasterSerializer(
+            data=request.data, context={'request': request},
+        )
+        serializer.is_valid(raise_exception=True)
+        ip = serializer.save()
+
+        return Response(reverse('informationpackage-detail', args=(ip.pk,)))
+
     @action(detail=False, methods=['post'], url_path='add-file-from-master')
     def add_file_from_master(self, request, pk=None):
         temp_dir = Path.objects.get(entity='temp').value
@@ -1166,34 +1179,16 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 raise exceptions.ParseError(e)
 
             ip.save(update_fields=['policy'])
+        elif ip.policy is None:
+            raise ValueError('{} has no policy')
 
         ip.state = "Preserving"
         ip.appraisal_date = request.data.get('appraisal_date', None)
         ip.save()
 
-        main_step = ProcessStep.objects.create(
-            name='Preserve AIP',
-            information_package_id=pk,
-            eager=False,
-        )
-
-        ProcessTask.objects.create(
-            name='workflow.tasks.CacheAIP',
-            information_package_id=pk,
-            processstep=main_step,
-            processstep_pos=10,
-            responsible=self.request.user,
-        )
-
-        ProcessTask.objects.create(
-            name='workflow.tasks.StoreAIP',
-            information_package_id=pk,
-            processstep=main_step,
-            processstep_pos=20,
-            responsible=self.request.user,
-        )
-        main_step.run()
-        return Response({'detail': 'Preserving %s...' % ip.object_identifier_value})
+        workflow = ip.create_preservation_workflow()
+        workflow.run()
+        return Response({'detail': 'Preserving %s...' % ip.object_identifier_value, 'step': workflow.pk})
 
     @transaction.atomic
     @action(detail=True, methods=['post'])

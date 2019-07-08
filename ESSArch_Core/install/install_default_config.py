@@ -437,7 +437,7 @@ def installDefaultPaths():
 
 
 def installDefaultStoragePolicies():
-    cache, created_cache = StorageMethod.objects.get_or_create(
+    cache_method, created_cache_method = StorageMethod.objects.get_or_create(
         name='Default Cache Storage Method',
         defaults={
             'enabled': True,
@@ -446,6 +446,25 @@ def installDefaultStoragePolicies():
         }
     )
 
+    if created_cache_method:
+        cache_target = StorageTarget.objects.create(
+            name='Default Cache Storage Target 1',
+            defaults={
+                'status': True,
+                'type': DISK,
+                'target': '/ESSArch/data/store/cache',
+            }
+        )
+
+        StorageMethodTargetRelation.objects.create(
+            name='Default Cache Storage Method Target Relation 1',
+            defaults={
+                'status': True,
+                'storage_method': cache_method,
+                'storage_target': cache_target,
+            }
+        )
+
     ingest = Path.objects.get(entity='ingest')
 
     policy, created_policy = StoragePolicy.objects.get_or_create(
@@ -453,15 +472,15 @@ def installDefaultStoragePolicies():
         defaults={
             'checksum_algorithm': StoragePolicy.MD5,
             'policy_name': 'default',
-            'cache_storage': cache, 'ingest_path': ingest,
+            'cache_storage': cache_method, 'ingest_path': ingest,
             'receive_extract_sip': True,
             'cache_minimum_capacity': 0,
             'cache_maximum_age': 0,
         }
     )
 
-    if created_policy or created_cache:
-        policy.storage_methods.add(cache)
+    if created_policy or created_cache_method:
+        policy.storage_methods.add(cache_method)
 
     return 0
 
@@ -516,19 +535,19 @@ def installDefaultStorageTargets():
 def installDefaultStorageMethodTargetRelations():
     StorageMethodTargetRelation.objects.get_or_create(
         name='Default Storage Method Target Relation 1',
+        storage_method=StorageMethod.objects.get(name='Default Storage Method 1'),
+        storage_target=StorageTarget.objects.get(name='Default Storage Target 1'),
         defaults={
             'status': True,
-            'storage_method': StorageMethod.objects.get(name='Default Storage Method 1'),
-            'storage_target': StorageTarget.objects.get(name='Default Storage Target 1'),
         }
     )
 
     StorageMethodTargetRelation.objects.get_or_create(
         name='Default Long-term Storage Method Target Relation 1',
+        storage_method=StorageMethod.objects.get(name='Default Long-term Storage Method 1'),
+        storage_target=StorageTarget.objects.get(name='Default Long-term Storage Target 1'),
         defaults={
             'status': True,
-            'storage_method': StorageMethod.objects.get(name='Default Long-term Storage Method 1'),
-            'storage_target': StorageTarget.objects.get(name='Default Long-term Storage Target 1'),
         }
     )
 

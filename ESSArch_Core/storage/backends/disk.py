@@ -48,7 +48,7 @@ class DiskStorageBackend(BaseStorageBackend):
         else:
             return copy(src, dst, block_size=block_size)
 
-    def write(self, src, ip, storage_method, storage_medium, block_size=DEFAULT_BLOCK_SIZE):
+    def write(self, src, ip, container, storage_medium, block_size=DEFAULT_BLOCK_SIZE):
         if isinstance(src, str):
             src = [src]
         dst = storage_medium.storage_target.target
@@ -59,7 +59,7 @@ class DiskStorageBackend(BaseStorageBackend):
             logger.error(msg)
             raise ValueError(msg)
 
-        if not storage_method.containers:
+        if not container:
             dst = os.path.join(dst, ip.object_identifier_value)
 
         for idx, f in enumerate(src):
@@ -71,7 +71,7 @@ class DiskStorageBackend(BaseStorageBackend):
             content_location_value=content_location_value,
             content_location_type=DISK,
             ip=ip, storage_medium=storage_medium,
-            container=storage_method.containers,
+            container=container,
         )
 
     def delete(self, storage_object):

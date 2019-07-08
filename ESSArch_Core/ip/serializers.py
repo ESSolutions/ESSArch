@@ -1,13 +1,14 @@
 import errno
 import os
 
+from django.contrib.auth import get_user_model
 from rest_framework import filters, serializers
 
 from ESSArch_Core._version import get_versions
 from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import UserSerializer
-from ESSArch_Core.configuration.models import EventType
+from ESSArch_Core.configuration.models import EventType, Path, StoragePolicy
 from ESSArch_Core.configuration.serializers import StoragePolicySerializer
 from ESSArch_Core.ip.models import (
     Agent,
@@ -20,7 +21,13 @@ from ESSArch_Core.ip.models import (
 from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.profiles.serializers import ProfileIPSerializer
 from ESSArch_Core.profiles.utils import profile_types
+from ESSArch_Core.storage.models import (
+    StorageMethod,
+    StorageMethodTargetRelation,
+    StorageTarget,
+)
 
+User = get_user_model()
 VERSION = get_versions()['version']
 
 
@@ -90,6 +97,9 @@ class InformationPackageSerializer(serializers.ModelSerializer):
 
     def get_permissions(self, obj):
         user = getattr(self.context.get('request'), 'user', None)
+        if user is None:
+            return None
+
         checker = self.context.get('perm_checker')
         return obj.get_permissions(user=user, checker=checker)
 
@@ -125,6 +135,8 @@ class InformationPackageSerializer(serializers.ModelSerializer):
             workareas = obj.prefetched_workareas
         except AttributeError:
             request = self.context.get('request')
+            if request is None:
+                return []
             see_all = request.user.has_perm('ip.see_all_in_workspaces')
             workareas = obj.workareas.all()
 
@@ -235,7 +247,10 @@ class InformationPackageAICSerializer(DynamicModelSerializer):
 class InformationPackageDetailSerializer(InformationPackageSerializer):
     aic = InformationPackageAICSerializer(omit=['information_packages'])
     policy = StoragePolicySerializer()
-    submission_agreement = serializers.PrimaryKeyRelatedField(queryset=SubmissionAgreement.objects.all())
+    submission_agreement = serializers.PrimaryKeyRelatedField(
+        queryset=SubmissionAgreement.objects.all(),
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+    )
     archive = serializers.SerializerMethodField()
     has_cts = serializers.SerializerMethodField()
 
@@ -257,6 +272,95 @@ class InformationPackageDetailSerializer(InformationPackageSerializer):
         model = InformationPackageSerializer.Meta.model
         fields = InformationPackageSerializer.Meta.fields + (
             'submission_agreement', 'submission_agreement_locked', 'archive', 'has_cts',
+        )
+        extra_kwargs = {
+            'id': {
+                'read_only': False,
+                'validators': [],
+            },
+            'object_identifier_value': {
+                'read_only': False,
+                'validators': [],
+            },
+        }
+
+
+class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
+    aic = InformationPackageAICSerializer(omit=['information_packages'])
+    policy = StoragePolicySerializer()
+
+    def create_storage_method(self, data):
+        storage_method_target_set_data = data.pop('storage_method_target_relations')
+        storage_method, _ = StorageMethod.objects.update_or_create(
+            id=data['id'],
+            defaults=data
+        )
+
+        for storage_method_target_data in storage_method_target_set_data:
+            storage_target_data = storage_method_target_data.pop('storage_target')
+            storage_target_data.pop('remote_server', None)
+            storage_target, _ = StorageTarget.objects.update_or_create(
+                id=storage_target_data['id'],
+                defaults=storage_target_data
+            )
+            storage_method_target_data['storage_method'] = storage_method
+            storage_method_target_data['storage_target'] = storage_target
+            storage_method_target, _ = StorageMethodTargetRelation.objects.update_or_create(
+                id=storage_method_target_data['id'],
+                defaults=storage_method_target_data
+            )
+
+        return storage_method
+
+    def create(self, validated_data):
+        aic_data = validated_data.pop('aic')
+        policy_data = validated_data.pop('policy')
+        storage_method_set_data = policy_data.pop('storage_methods')
+
+        cache_storage_data = policy_data.pop('cache_storage')
+        ingest_path_data = policy_data.pop('ingest_path')
+
+        cache_storage = self.create_storage_method(cache_storage_data)
+        ingest_path, _ = Path.objects.update_or_create(entity=ingest_path_data['entity'], defaults=ingest_path_data)
+
+        policy_data['cache_storage'] = cache_storage
+        policy_data['ingest_path'] = ingest_path
+
+        policy, _ = StoragePolicy.objects.update_or_create(policy_id=policy_data['policy_id'],
+                                                           defaults=policy_data)
+
+        for storage_method_data in storage_method_set_data:
+            storage_method = self.create_storage_method(storage_method_data)
+            policy.storage_methods.add(storage_method)
+            # add to policy, dummy
+
+        aic, _ = InformationPackage.objects.update_or_create(id=aic_data['id'], defaults=aic_data)
+
+        user = None
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            user = request.user
+        else:
+            user = User.objects.get(username="system")
+
+        validated_data['aic'] = aic
+        validated_data['policy'] = policy
+        validated_data['responsible'] = user
+        ip, _ = InformationPackage.objects.update_or_create(id=validated_data['id'], defaults=validated_data)
+
+        return ip
+
+    class Meta:
+        model = InformationPackage
+        fields = (
+            'id', 'label', 'object_identifier_value', 'object_size',
+            'object_path', 'package_type', 'responsible', 'create_date',
+            'object_num_items', 'entry_date', 'state', 'status', 'step_state',
+            'archived', 'cached', 'aic', 'generation', 'policy',
+            'message_digest', 'message_digest_algorithm',
+            'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
+            'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
+            'start_date', 'end_date', 'appraisal_date',
         )
         extra_kwargs = {
             'id': {
