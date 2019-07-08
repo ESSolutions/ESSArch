@@ -203,7 +203,7 @@ class IOQueueViewSet(viewsets.ModelViewSet):
 
         path = entry.ip.policy.cache_storage.value
 
-        f = request.FILES['the_file']
+        f = request.FILES['file']
         content_range = request.META.get('HTTP_CONTENT_RANGE', 'bytes 0-0/0')
         filename = os.path.join(path, f.name)
 

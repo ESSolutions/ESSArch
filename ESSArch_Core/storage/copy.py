@@ -69,7 +69,7 @@ def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id
     headers = {'Content-Range': HTTP_CONTENT_RANGE}
 
     data = {'upload_id': upload_id}
-    files = {'the_file': (filename, chunk)}
+    files = {'file': (filename, chunk)}
 
     response = requests_session.post(dst, data=data, files=files, headers=headers, timeout=60)
     try:

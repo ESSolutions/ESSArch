@@ -995,6 +995,50 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         filename_list = os.listdir(static_path)
         return Response(filename_list)
 
+    @action(detail=False, methods=['post'], url_path='add-file-from-master')
+    def add_file_from_master(self, request, pk=None):
+        temp_dir = Path.objects.get(entity='temp').value
+
+        if not request.user.has_perm('ip.can_receive_remote_files'):
+            raise exceptions.PermissionDenied
+
+        f = request.FILES['file']
+        content_range = request.META.get('HTTP_CONTENT_RANGE', 'bytes 0-0/0')
+        filename = os.path.join(temp_dir, f.name)
+
+        (start, end, total) = parse_content_range_header(content_range)
+
+        if f.size != end - start + 1:
+            raise exceptions.ParseError("File size doesn't match headers")
+
+        if start == 0:
+            with open(filename, 'wb') as dstf:
+                dstf.write(f.read())
+        else:
+            with open(filename, 'ab') as dstf:
+                dstf.seek(start)
+                dstf.write(f.read())
+
+        upload_id = request.data.get('upload_id', uuid.uuid4().hex)
+        return Response({'upload_id': upload_id})
+
+    @action(detail=False, methods=['post'], url_path='add-file-from-master_complete')
+    def add_file_from_master_complete(self, request, pk=None):
+        temp_dir = Path.objects.get(entity='temp').value
+
+        if not request.user.has_perm('ip.can_receive_remote_files'):
+            raise exceptions.PermissionDenied
+
+        md5 = request.data['md5']
+        filepath = request.data['path']
+        filepath = os.path.join(temp_dir, filepath)
+
+        options = {'expected': md5, 'algorithm': 'md5'}
+        validator = ChecksumValidator(context='checksum_str', options=options)
+        validator.validate(filepath)
+
+        return Response('Upload of %s complete' % filepath)
+
     @transaction.atomic
     def destroy(self, request, pk=None):
         ip = self.get_object()
@@ -2154,7 +2198,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         path = Path.objects.get(entity="reception").value
 
-        f = request.FILES['the_file']
+        f = request.FILES['file']
         content_range = request.META.get('HTTP_CONTENT_RANGE', 'bytes 0-0/0')
         filename = os.path.join(path, f.name)
 
