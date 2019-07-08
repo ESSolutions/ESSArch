@@ -22,6 +22,7 @@ from ESSArch_Core.fixity.transformation import get_backend as get_transformer
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage
 from ESSArch_Core.ip.utils import (
     download_schemas,
+    generate_aic_mets,
     generate_content_mets,
     generate_events_xml,
     generate_package_mets,
@@ -147,6 +148,13 @@ class GeneratePackageMets(DBTask):
 
     def run(self):
         generate_package_mets(self.get_information_package())
+
+
+class GenerateAICMets(DBTask):
+    def run(self, xml_path):
+        ip = self.get_information_package()
+        generate_aic_mets(ip, xml_path)
+        return xml_path
 
     def event_outcome_success(self, result, *args, **kwargs):
         return 'Generated {xml}'.format(xml=result)

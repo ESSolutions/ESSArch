@@ -135,6 +135,48 @@ def generate_package_mets(ip):
     ip.save()
 
 
+def generate_aic_mets(ip, xml_path):
+    aicinfo = fill_specification_data(ip.get_profile_data('aic_description'), ip=ip.aic)
+    aic_desc_profile = ip.get_profile('aic_description')
+    algorithm = ip.policy.get_checksum_algorithm_display().upper()
+
+    filesToCreate = {
+        xml_path: {
+            'spec': aic_desc_profile.specification,
+            'data': aicinfo
+        }
+    }
+
+    parsed_files = []
+
+    for aic_ip in ip.aic.information_packages.order_by('generation'):
+        parsed_files.append({
+            'FName': aic_ip.object_identifier_value + '.tar',
+            'FExtension': 'tar',
+            'FDir': '',
+            'FParentDir': '',
+            'FChecksum': aic_ip.message_digest,
+            'FID': str(aic_ip.pk),
+            'daotype': "borndigital",
+            'href': aic_ip.object_identifier_value + '.tar',
+            'FMimetype': 'application/x-tar',
+            'FCreated': aic_ip.create_date,
+            'FFormatName': 'Tape Archive Format',
+            'FFormatVersion': 'None',
+            'FFormatRegistryKey': 'x-fmt/265',
+            'FSize': str(aic_ip.object_size),
+            'FUse': 'Datafile',
+            'FChecksumType': aic_ip.get_message_digest_algorithm_display(),
+            'FLoctype': 'URL',
+            'FLinkType': 'simple',
+            'FChecksumLib': 'ESSArch',
+            'FIDType': 'UUID',
+        })
+
+    generator = XMLGenerator()
+    generator.generate(filesToCreate, parsed_files=parsed_files, algorithm=algorithm)
+
+
 def generate_premis(ip):
     premis_path = ip.get_premis_file_path()
     premis_profile_rel = ip.get_profile_rel('preservation_metadata')
