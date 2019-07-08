@@ -76,63 +76,6 @@ class PathSerializer(DynamicModelSerializer):
         }
 
 
-class StoragePolicySerializer(serializers.ModelSerializer):
-    ingest_path = PathSerializer()
-
-    class Meta:
-        model = StoragePolicy
-        fields = (
-            "id", "index",
-            "cache_minimum_capacity", "cache_maximum_age",
-            "policy_id", "policy_name",
-            "policy_stat", "ais_project_name", "ais_project_id",
-            "mode", "wait_for_approval", "checksum_algorithm",
-            "validate_checksum", "validate_xml", "ip_type",
-            "preingest_metadata", "ingest_metadata",
-            "information_class", "ingest_delete",
-            "receive_extract_sip", "cache_storage", "ingest_path",
-            "storage_methods",
-        )
-        extra_kwargs = {
-            'id': {
-                'validators': [],
-            },
-            'policy_id': {
-                'validators': [],
-            },
-        }
-
-
-class SiteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Site
-        fields = ('name', 'logo',)
-
-
-class StoragePolicyNestedSerializer(StoragePolicySerializer):
-    class Meta:
-        model = StoragePolicy
-        fields = (
-            "id", "index",
-            "cache_minimum_capacity", "cache_maximum_age",
-            "policy_id", "policy_name",
-            "policy_stat", "ais_project_name", "ais_project_id",
-            "mode", "wait_for_approval", "checksum_algorithm",
-            "validate_checksum", "validate_xml", "ip_type",
-            "preingest_metadata", "ingest_metadata",
-            "information_class", "ingest_delete",
-            "receive_extract_sip", "cache_storage", "ingest_path",
-        )
-        extra_kwargs = {
-            'id': {
-                'validators': [],
-            },
-            'policy_id': {
-                'validators': [],
-            },
-        }
-
-
 class StorageTargetSerializer(serializers.ModelSerializer):
     class Meta:
         model = StorageTarget
@@ -189,3 +132,53 @@ class StorageMethodSerializer(serializers.ModelSerializer):
                 'default': uuid.uuid4,
             },
         }
+
+
+class StoragePolicySerializer(serializers.ModelSerializer):
+    cache_storage = StorageMethodSerializer()
+    storage_methods = StorageMethodSerializer(many=True)
+    ingest_path = PathSerializer()
+
+    class Meta:
+        model = StoragePolicy
+        fields = (
+            "id", "index",
+            "cache_minimum_capacity", "cache_maximum_age",
+            "policy_id", "policy_name",
+            "policy_stat", "ais_project_name", "ais_project_id",
+            "mode", "wait_for_approval", "checksum_algorithm",
+            "validate_checksum", "validate_xml", "ip_type",
+            "preingest_metadata", "ingest_metadata",
+            "information_class", "ingest_delete",
+            "receive_extract_sip", "cache_storage", "ingest_path",
+            "storage_methods",
+        )
+        extra_kwargs = {
+            'id': {
+                'validators': [],
+            },
+            'policy_id': {
+                'validators': [],
+            },
+        }
+
+
+class StoragePolicyNestedSerializer(StoragePolicySerializer):
+    class Meta(StoragePolicySerializer.Meta):
+        fields = (
+            "id", "index",
+            "cache_minimum_capacity", "cache_maximum_age",
+            "policy_id", "policy_name",
+            "policy_stat", "ais_project_name", "ais_project_id",
+            "mode", "wait_for_approval", "checksum_algorithm",
+            "validate_checksum", "validate_xml", "ip_type",
+            "preingest_metadata", "ingest_metadata",
+            "information_class", "ingest_delete",
+            "receive_extract_sip", "cache_storage", "ingest_path",
+        )
+
+
+class SiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Site
+        fields = ('name', 'logo',)
