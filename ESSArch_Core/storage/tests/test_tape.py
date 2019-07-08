@@ -7,7 +7,6 @@ import tempfile
 from subprocess import PIPE
 from unittest import mock
 
-import tenacity
 from django.test import TestCase
 from django.utils import timezone
 
@@ -21,20 +20,6 @@ from ESSArch_Core.storage.exceptions import (
     TapeMountedError,
     TapeUnmountedError,
 )
-
-
-def retry_mock(*args, **kwargs):
-    """
-    This is a dummy decorator to override the functionalities of retrying.retry
-    """
-    def decorator(f):
-        def decorator_function(*args, **kwargs):
-            return f(*args, **kwargs)
-        return decorator_function
-    return decorator
-
-
-tenacity.retry = retry_mock
 
 from ESSArch_Core.storage.tape import (  # noqa isort:skip
     mount_tape,
@@ -53,8 +38,10 @@ from ESSArch_Core.storage.tape import (  # noqa isort:skip
 
 class TapeTests(TestCase):
 
+    @mock.patch('ESSArch_Core.storage.tape.mount_tape.retry.stop')
+    @mock.patch('ESSArch_Core.storage.tape.mount_tape.retry.sleep')
     @mock.patch('ESSArch_Core.storage.tape.Popen')
-    def test_mount_tape_non_zero_returncode(self, mock_popen):
+    def test_mount_tape_non_zero_returncode(self, mock_popen, mock_sleep, mock_stop):
         attrs = {'communicate.return_value': ('output', 'error'), 'returncode': 1}
         mock_popen.return_value.configure_mock(**attrs)
 
@@ -64,8 +51,10 @@ class TapeTests(TestCase):
         cmd = 'mtx -f device_to_mount load 21 42'
         mock_popen.assert_called_once_with(cmd, shell=True, stderr=PIPE, stdout=PIPE)
 
+    @mock.patch('ESSArch_Core.storage.tape.mount_tape.retry.stop')
+    @mock.patch('ESSArch_Core.storage.tape.mount_tape.retry.sleep')
     @mock.patch('ESSArch_Core.storage.tape.Popen')
-    def test_mount_tape_non_zero_returncode_and_drive_is_full_error_msg(self, mock_popen):
+    def test_mount_tape_non_zero_returncode_and_drive_is_full_error_msg(self, mock_popen, mock_sleep, mock_stop):
         attrs = {'communicate.return_value': ('output', 'Drive 42 Full (Storage Element 21 loaded)'), 'returncode': 1}
         mock_popen.return_value.configure_mock(**attrs)
 
@@ -85,8 +74,10 @@ class TapeTests(TestCase):
         cmd = 'mtx -f device_to_mount load 21 42'
         mock_popen.assert_called_once_with(cmd, shell=True, stderr=PIPE, stdout=PIPE)
 
+    @mock.patch('ESSArch_Core.storage.tape.unmount_tape.retry.stop')
+    @mock.patch('ESSArch_Core.storage.tape.unmount_tape.retry.sleep')
     @mock.patch('ESSArch_Core.storage.tape.Popen')
-    def test_unmount_tape_non_zero_returncode(self, mock_popen):
+    def test_unmount_tape_non_zero_returncode(self, mock_popen, mock_sleep, mock_stop):
         attrs = {'communicate.return_value': ('output', 'error'), 'returncode': 1}
         mock_popen.return_value.configure_mock(**attrs)
 
@@ -96,8 +87,10 @@ class TapeTests(TestCase):
         cmd = 'mtx -f device_to_unmount unload 21 42'
         mock_popen.assert_called_once_with(cmd, shell=True, stderr=PIPE, stdout=PIPE)
 
+    @mock.patch('ESSArch_Core.storage.tape.unmount_tape.retry.stop')
+    @mock.patch('ESSArch_Core.storage.tape.unmount_tape.retry.sleep')
     @mock.patch('ESSArch_Core.storage.tape.Popen')
-    def test_unmount_tape_non_zero_returncode_and_drive_is_empty_error_msg(self, mock_popen):
+    def test_unmount_tape_non_zero_returncode_and_drive_is_empty_error_msg(self, mock_popen, mock_sleep, mock_stop):
         attrs = {'communicate.return_value': ('output', 'Data Transfer Element 42 is Empty'), 'returncode': 1}
         mock_popen.return_value.configure_mock(**attrs)
 

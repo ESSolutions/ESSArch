@@ -25,7 +25,7 @@ DEFAULT_TAPE_BLOCK_SIZE = 20 * 512
 logger = logging.getLogger('essarch.storage.tape')
 
 
-@retry(stop=stop_after_attempt(5), wait=wait_fixed(60))
+@retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
 def mount_tape(robot, slot, drive):
     """
     Mounts tape from slot into drive
@@ -65,7 +65,7 @@ def mount_tape(robot, slot, drive):
     return out
 
 
-@retry(stop=stop_after_attempt(5), wait=wait_fixed(60))
+@retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
 def unmount_tape(robot, slot, drive):
     """
     Unmounts tape from drive into slot

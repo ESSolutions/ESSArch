@@ -619,7 +619,7 @@ class DownloadFile(DBTask):
 class MountTape(DBTask):
     event_type = 40200
 
-    @retry(stop=stop_after_attempt(5), wait=wait_fixed(60))
+    @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
     def run(self, medium=None, drive=None, timeout=120):
         mount_tape_medium_into_drive(drive, medium, timeout)
 
@@ -627,7 +627,7 @@ class MountTape(DBTask):
 class UnmountTape(DBTask):
     event_type = 40100
 
-    @retry(stop=stop_after_attempt(5), wait=wait_fixed(60))
+    @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
     def run(self, drive=None):
         return unmount_tape_from_drive(drive)
 
