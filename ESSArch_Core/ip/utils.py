@@ -99,7 +99,7 @@ def generate_content_mets(ip):
     ip.save()
 
 
-def generate_package_mets(ip):
+def generate_package_mets(ip, package_path, xml_path):
     sa = ip.submission_agreement
     if ip.package_type == InformationPackage.SIP:
         profile_type = 'submit_description'
@@ -113,11 +113,10 @@ def generate_package_mets(ip):
         )
     profile_rel = ip.get_profile_rel(profile_type)
     profile_data = ip.get_profile_data(profile_type)
-    xmlpath = os.path.splitext(ip.object_path)[0] + '.xml'
     data = fill_specification_data(profile_data, ip=ip, sa=sa)
-    data["_IP_CREATEDATE"] = timestamp_to_datetime(creation_date(ip.object_path)).isoformat()
+    data["_IP_CREATEDATE"] = timestamp_to_datetime(creation_date(package_path)).isoformat()
     files_to_create = {
-        xmlpath: {
+        xml_path: {
             'spec': profile_rel.profile.specification,
             'data': data
         }
@@ -125,13 +124,13 @@ def generate_package_mets(ip):
     algorithm = ip.get_checksum_algorithm()
 
     generator = XMLGenerator()
-    generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm)
+    generator.generate(files_to_create, folderToParse=package_path, algorithm=algorithm)
 
-    ip.package_mets_path = normalize_path(xmlpath)
-    ip.package_mets_create_date = timestamp_to_datetime(creation_date(xmlpath)).isoformat()
-    ip.package_mets_size = os.path.getsize(xmlpath)
+    ip.package_mets_path = normalize_path(xml_path)
+    ip.package_mets_create_date = timestamp_to_datetime(creation_date(xml_path)).isoformat()
+    ip.package_mets_size = os.path.getsize(xml_path)
     ip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
-    ip.package_mets_digest = calculate_checksum(xmlpath, algorithm=algorithm)
+    ip.package_mets_digest = calculate_checksum(xml_path, algorithm=algorithm)
     ip.save()
 
 

@@ -146,8 +146,16 @@ class GenerateContentMets(DBTask):
 class GeneratePackageMets(DBTask):
     event_type = 50600
 
-    def run(self):
-        generate_package_mets(self.get_information_package())
+    def run(self, package_path=None, xml_path=None):
+        ip = self.get_information_package()
+        package_path = package_path if package_path is not None else ip.object_path
+        xml_path = xml_path if xml_path is not None else os.path.splitext(package_path)[0] + '.xml'
+
+        generate_package_mets(ip, package_path, xml_path)
+        return xml_path
+
+    def event_outcome_success(self, result, *args, **kwargs):
+        return 'Generated {xml}'.format(xml=result)
 
 
 class GenerateAICMets(DBTask):
