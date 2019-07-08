@@ -27,13 +27,6 @@ import os
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 
-from celery import shared_task
-
-
-@shared_task
-def add(x, y):
-    return x + y
-
 
 class First(DBTask):
     def run(self, foo=None):

@@ -23,7 +23,7 @@ from tenacity import (
 from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.storage.backends import get_backend
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.storage.tape import read_tape, set_tape_file_number
 
 DISK = 200
 TAPE = 300
@@ -636,24 +636,15 @@ class StorageObject(models.Model):
                     if e.errno != errno.EEXIST:
                         raise
 
-            ProcessTask.objects.create(
-                name='ESSArch_Core.tasks.SetTapeFileNumber',
-                params={
-                    'medium': self.storage_medium_id,
-                    'num': int(self.content_location_value)
-                },
-                information_package=self.ip,
-            ).run().get()
+            drive = self.storage_medium.tape_drive
+            if drive is None:
+                raise ValueError("Tape not mounted")
 
-            ProcessTask.objects.create(
-                name='ESSArch_Core.tasks.ReadTape',
-                params={
-                    'medium': self.storage_medium_id,
-                    'path': tmppath,
-                    'block_size': self.storage_medium.block_size * 512,
-                },
-                information_package=self.ip,
-            ).run().get()
+            set_tape_file_number(drive.device, int(self.content_location_value))
+            read_tape(drive.device, path=tmppath, block_size=self.storage_medium.block_size * 512)
+
+            drive.last_change = timezone.now()
+            drive.save(update_fields=['last_change'])
 
             filename = os.path.join(tmppath, self.ip.object_identifier_value + '.tar'),
             algorithm = self.ip.get_message_digest_algorithm_display()
