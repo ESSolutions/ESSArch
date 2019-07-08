@@ -22,10 +22,13 @@
     Email - essarch@essolutions.se
 """
 
+import uuid
+
 from celery import states as celery_states
 from rest_framework import serializers
 
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
+from ESSArch_Core.exceptions import Conflict
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import get_result
 
@@ -90,25 +93,45 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
         slug_field='username', read_only=True
     )
 
+    def update(self, instance, validated_data):
+        if 'id' in validated_data:
+            raise serializers.ValidationError({
+                'id': 'You must not change this field.',
+            })
+
+        return super().update(instance, validated_data)
+
+    def validate(self, data):
+        if self.instance is None and ProcessTask.objects.filter(pk=data.get('id')).exists():
+            raise Conflict('Task already exists')
+
+        return data
+
     class Meta:
         model = ProcessTask
         fields = (
             'url', 'id', 'name', 'label', 'status', 'progress',
             'processstep', 'processstep_pos', 'time_created', 'time_started',
             'time_done', 'undone', 'undo_type', 'retried',
-            'responsible', 'hidden', 'args',
+            'responsible', 'hidden', 'args', 'information_package',
         )
-
         read_only_fields = (
             'status', 'progress', 'time_created', 'time_started', 'time_done', 'undone',
             'undo_type', 'retried', 'hidden',
         )
+        extra_kwargs = {
+            'id': {
+                'read_only': False,
+                'default': uuid.uuid4,
+            },
+        }
 
 
 class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     args = serializers.JSONField(required=False)
     params = serializers.SerializerMethodField()
     result = serializers.SerializerMethodField()
+    exception = serializers.JSONField(read_only=True)
 
     def get_params(self, obj):
         params = obj.params
@@ -126,11 +149,12 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     class Meta:
         model = ProcessTaskSerializer.Meta.model
         fields = ProcessTaskSerializer.Meta.fields + (
-            'args', 'params', 'result', 'traceback', 'exception',
+            'args', 'params', 'result', 'traceback', 'exception', 'eager',
         )
         read_only_fields = ProcessTaskSerializer.Meta.read_only_fields + (
             'args', 'params', 'result', 'traceback', 'exception',
         )
+        extra_kwargs = ProcessTaskSerializer.Meta.extra_kwargs
 
 
 class ProcessTaskSetSerializer(ProcessTaskSerializer):
