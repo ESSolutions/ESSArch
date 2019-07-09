@@ -101,7 +101,7 @@ if __name__ == '__main__':
             "python-dateutil==2.8.0",
             "pywin32==224;platform_system=='Windows'",
             "redis==3.2.1",
-            "regex==2018.08.29",
+            "regex==2019.06.08",
             "requests==2.22.0",
             "requests_toolbelt==0.9.1",
             "tenacity==5.0.4",
