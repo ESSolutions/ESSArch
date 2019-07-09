@@ -2,7 +2,8 @@
 
 set -e
 
-essarch install -q --no-overwrite
+essarch settings generate -q --no-overwrite
+essarch install -q
 
 echo "Installing defaults"
 python ESSArch_Core/install/install_default_config.py

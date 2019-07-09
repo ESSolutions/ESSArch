@@ -449,20 +449,16 @@ def installDefaultStoragePolicies():
     if created_cache_method:
         cache_target = StorageTarget.objects.create(
             name='Default Cache Storage Target 1',
-            defaults={
-                'status': True,
-                'type': DISK,
-                'target': '/ESSArch/data/store/cache',
-            }
+            status=True,
+            type=DISK,
+            target='/ESSArch/data/store/cache',
         )
 
         StorageMethodTargetRelation.objects.create(
             name='Default Cache Storage Method Target Relation 1',
-            defaults={
-                'status': True,
-                'storage_method': cache_method,
-                'storage_target': cache_target,
-            }
+            status=True,
+            storage_method=cache_method,
+            storage_target=cache_target,
         )
 
     ingest = Path.objects.get(entity='ingest')

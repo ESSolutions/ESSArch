@@ -6,7 +6,6 @@ import click
 from django.core.management import call_command as dj_call_command
 
 from ESSArch_Core.cli import deactivate_prompts
-from ESSArch_Core.cli.commands.settings import create_local_settings_file
 from ESSArch_Core.config.decorators import initialize
 
 LOG_LEVELS = ('DEBUG', 'INFO', 'WARNING', 'WARN', 'ERROR', 'CRITICAL', 'FATAL')
@@ -60,14 +59,17 @@ def cli(ctx):
 
 @cli.command()
 @click.option('-q/--quiet', default=False, is_eager=True, expose_value=False, callback=deactivate_prompts)
-@click.option('--overwrite/--no-overwrite', default=None)
-@click.option('--data-directory', prompt=True,
+@click.option('--data-directory', type=click.Path(),
               default='/ESSArch/data', show_default='/ESSArch/data')
-@click.option('--settings-path', prompt=True,
-              default='/ESSArch/config/local_essarch_settings.py',
-              show_default='/ESSArch/config/local_essarch_settings.py')
-def install(settings_path, data_directory, overwrite):
-    create_local_settings_file(settings_path, overwrite=overwrite)
+def install(data_directory):
+    # verify that a local settings file has been created
+    try:
+        import local_essarch_settings
+    except ImportError:
+        exit('No settings file found, create one by running `essarch settings generate`')
+
+    if data_directory is None:
+        data_directory = click.prompt('Data directory', default='/ESSArch/data', type=click.Path())
     create_data_directories(data_directory)
 
     _migrate(False, 1)

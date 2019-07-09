@@ -2,6 +2,7 @@ import os
 
 import click
 
+from ESSArch_Core.cli import deactivate_prompts
 from ESSArch_Core.config import generate_local_settings
 
 
@@ -17,6 +18,7 @@ def create_local_settings_file(path, overwrite=None):
 
 
 @click.command()
+@click.option('-q/--quiet', default=False, is_eager=True, expose_value=False, callback=deactivate_prompts)
 @click.option('--overwrite/--no-overwrite', default=None)
 @click.option('-p', '--path', type=str, prompt=True, default='/ESSArch/config/local_essarch_settings.py',
               show_default='/ESSArch/config/local_essarch_settings.py')

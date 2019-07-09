@@ -106,6 +106,7 @@ INSTALLED_APPS = [
     'ESSArch_Core.tags',
     'ESSArch_Core.WorkflowEngine',
     'ESSArch_Core.workflow',
+    'test_without_migrations',
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -412,4 +413,4 @@ OLD_PASSWORD_FIELD_ENABLED = True
 try:
     from local_essarch_settings import *  # noqa isort:skip
 except ImportError:
-    pass
+    raise ImportError('No settings file found, create one by running `essarch settings generate`')
