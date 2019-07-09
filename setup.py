@@ -102,7 +102,7 @@ if __name__ == '__main__':
             "pywin32==224;platform_system=='Windows'",
             "redis==3.2.1",
             "regex==2018.08.29",
-            "requests==2.21.0",
+            "requests==2.22.0",
             "requests_toolbelt==0.9.1",
             "tenacity==5.0.4",
             "wand==0.5.1",
