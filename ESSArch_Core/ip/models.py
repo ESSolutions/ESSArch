@@ -77,6 +77,7 @@ from ESSArch_Core.profiles.models import (
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_backend as get_importer
 from ESSArch_Core.search.ingest import index_path
+from ESSArch_Core.storage.exceptions import StorageMediumFull
 from ESSArch_Core.storage.models import StorageMedium, StorageObject
 from ESSArch_Core.util import (
     find_destination,
@@ -1120,6 +1121,8 @@ class InformationPackage(models.Model):
         response = session.post(remote_ip, json=data, timeout=10)
         response.raise_for_status()
 
+    @retry(retry=retry_if_exception_type(StorageMediumFull), reraise=True, stop=stop_after_attempt(2),
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
     def preserve(self, storage_target, container: bool, task):
         expected_task_name = "ESSArch_Core.ip.tasks.PreserveInformationPackage"
         if task.name != expected_task_name:
@@ -1128,25 +1131,6 @@ class InformationPackage(models.Model):
         qs = StorageMedium.objects.filter(
             storage_target__methods__containers=container,
         ).writeable().order_by('last_changed_local')
-
-        ##########################
-        # TODO:
-        # * mount tape (or general prepare of medium, might need something else
-        # for other future storage backends)
-        #
-        # * ensure that we check available storage when getting/creating storage mediums
-        #
-
-        # t = ProcessTask.objects.create(
-        #     name="tasks.MountTape",
-        #     args,
-        #     params,
-        #     queue="robot-{}".format(str(storage_medium.robot.pk)),
-        # )
-
-        # with allow_join_result():
-        #     t.run().get()
-        ############################
 
         write_size = self.object_size
 
@@ -1207,9 +1191,10 @@ class InformationPackage(models.Model):
                 new_size = storage_medium.used_capacity + write_size
                 if new_size > storage_target.max_capacity > 0:
                     storage_medium.mark_as_full()
-                    raise ValueError("Storage medium is full")
+                    raise StorageMediumFull('No space left on storage medium "{}"'.format(str(storage_medium.pk)))
 
                 storage_backend = storage_target.get_storage_backend()
+                storage_medium.prepare_for_write()
 
                 storage_object = storage_backend.write(src, self, container, storage_medium)
                 StorageMedium.objects.filter(pk=storage_medium.pk).update(

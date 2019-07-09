@@ -22,6 +22,10 @@ class MTFailedOperationException(Exception):
     pass
 
 
+class StorageMediumFull(Exception):
+    pass
+
+
 class TapeDriveLockedError(Exception):
     """The tape drive is locked"""
     pass

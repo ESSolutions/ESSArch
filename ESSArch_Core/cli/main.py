@@ -64,7 +64,7 @@ def cli(ctx):
 def install(data_directory):
     # verify that a local settings file has been created
     try:
-        import local_essarch_settings
+        import local_essarch_settings  # noqa isort:skip
     except ImportError:
         exit('No settings file found, create one by running `essarch settings generate`')
 

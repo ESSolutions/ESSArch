@@ -1,4 +1,5 @@
 import errno
+import logging
 import os
 import uuid
 from datetime import timedelta
@@ -24,6 +25,8 @@ from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.storage.backends import get_backend
 from ESSArch_Core.storage.tape import read_tape, set_tape_file_number
+
+logger = logging.getLogger('essarch.storage.models')
 
 DISK = 200
 TAPE = 300
@@ -448,7 +451,12 @@ class StorageMedium(models.Model):
     def get_type(self):
         return get_storage_type_from_medium_type(self.storage_target.type)
 
+    def prepare_for_write(self):
+        storage_backend = self.storage_target.get_storage_backend()
+        storage_backend.prepare_for_write(self)
+
     def mark_as_full(self):
+        logger.debug('Marking storage medium as full: "{}"'.format(str(self.pk)))
         objs = self.storage.annotate(
             content_location_value_int=Cast('content_location_value', models.IntegerField())
         ).order_by('content_location_value_int')
@@ -461,9 +469,12 @@ class StorageMedium(models.Model):
                 obj.verify()
         except AssertionError:
             self.status = 100
+            logger.exception('Failed to verify storage medium: "{}"'.format(str(self.pk)))
             raise
         else:
             self.status = 30
+            storage_backend = self.storage_target.get_storage_backend()
+            storage_backend.post_mark_as_full(self)
         finally:
             self.save(update_fields=['status'])
 

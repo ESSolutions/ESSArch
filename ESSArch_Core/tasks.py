@@ -618,18 +618,30 @@ class DownloadFile(DBTask):
 
 class MountTape(DBTask):
     event_type = 40200
+    queue = 'robot'
 
     @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
-    def run(self, medium=None, drive=None, timeout=120):
-        mount_tape_medium_into_drive(drive, medium, timeout)
+    def run(self, medium_id, drive_id=None, timeout=120):
+        if drive_id is None:
+            drive = TapeDrive.objects.filter(
+                status=20, storage_medium__isnull=True, io_queue_entry__isnull=True, locked=False,
+            ).order_by('num_of_mounts').first()
+
+            if drive is None:
+                raise ValueError('No tape drive available')
+
+            drive_id = drive.pk
+
+        mount_tape_medium_into_drive(drive_id, medium_id, timeout)
 
 
 class UnmountTape(DBTask):
     event_type = 40100
+    queue = 'robot'
 
     @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
-    def run(self, drive=None):
-        return unmount_tape_from_drive(drive)
+    def run(self, drive_id):
+        return unmount_tape_from_drive(drive_id)
 
 
 class RewindTape(DBTask):

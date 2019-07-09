@@ -5,12 +5,14 @@ import shutil
 import tarfile
 import tempfile
 
+from celery.result import allow_join_result
 from django.db.models import IntegerField
 from django.db.models.functions import Cast
 from django.utils import timezone
 
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
 from ESSArch_Core.storage.copy import copy
+from ESSArch_Core.storage.exceptions import StorageMediumFull
 from ESSArch_Core.storage.models import TAPE, StorageObject, TapeDrive
 from ESSArch_Core.storage.tape import (
     DEFAULT_TAPE_BLOCK_SIZE,
@@ -18,6 +20,7 @@ from ESSArch_Core.storage.tape import (
     set_tape_file_number,
     write_to_tape,
 )
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 logger = logging.getLogger('essarch.storage.backends.tape')
 
@@ -71,6 +74,18 @@ class TapeStorageBackend(BaseStorageBackend):
                 raise
         return new
 
+    def prepare_for_write(self, storage_medium):
+        """Prepare tape for writing by mounting it"""
+
+        with allow_join_result():
+            logger.debug('Queueing mount of storage medium "{}"'.format(str(storage_medium.pk)))
+            mount_task = ProcessTask.objects.create(
+                name="ESSArch_Core.tasks.MountTape",
+                args=[str(storage_medium.pk)],
+                eager=False,
+            )
+            mount_task.run().get()
+
     def write(self, src, ip, container, storage_medium, block_size=DEFAULT_TAPE_BLOCK_SIZE):
         block_size = storage_medium.block_size * 512
 
@@ -96,14 +111,9 @@ class TapeStorageBackend(BaseStorageBackend):
         except OSError as e:
             if e.errno == errno.ENOSPC:
                 storage_medium.mark_as_full()
-                # TODO:
-                # * unmount this tape, do this in mark_as_full(?)
-                # * mount new tape
-                # * write to new mounted tape
-                # (something like, return self.write(*args, medium=new_medium, **kwrags))
-                # can we limit retries of this using tenacity? not super important right now,
-                # we might do this in old epp already.
+                raise StorageMediumFull('No space left on storage medium "{}"'.format(str(storage_medium.pk)))
             else:
+                logger.exception('Error occurred when writing to tape')
                 raise
 
         drive.last_change = timezone.now()
@@ -118,3 +128,19 @@ class TapeStorageBackend(BaseStorageBackend):
 
     def delete(self, storage_object):
         pass
+
+    @classmethod
+    def post_mark_as_full(cls, storage_medium):
+        """Called after a medium has been successfully marked as full"""
+
+        drive_id = str(storage_medium.drive.pk)
+
+        with allow_join_result():
+            # unmount this tape
+            logger.debug('Queueing unmount of tape in drive {}'.format(drive_id))
+            unmount_task = ProcessTask.objects.create(
+                name="ESSArch_Core.tasks.UnmountTape",
+                args=[str(drive_id)],
+                eager=False,
+            )
+            unmount_task.run().get()
