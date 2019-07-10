@@ -37,7 +37,7 @@ def mount_tape(robot, slot, drive):
     """
 
     cmd = 'mtx -f %s load %d %d' % (robot, slot, drive)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug(
         'Mounting tape from {slot} to {drive} using {robot}: {cmd}'.format(
             slot=slot, drive=drive, robot=robot, cmd=cmd
@@ -77,7 +77,7 @@ def unmount_tape(robot, slot, drive):
     """
 
     cmd = 'mtx -f %s unload %d %d' % (robot, slot, drive)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug(
         'Unmounting tape from {drive} to {slot} using {robot}: {cmd}'.format(
             drive=drive, slot=slot, robot=robot, cmd=cmd
@@ -111,7 +111,7 @@ def rewind_tape(drive):
     """
 
     cmd = 'mt -f %s rewind' % (drive)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Rewinding tape in {drive}: {cmd}'.format(drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -143,7 +143,7 @@ def is_tape_drive_online(drive):
     """
 
     cmd = 'mt -f %s status' % drive
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Checking if {drive} is online: {cmd}'.format(drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -291,7 +291,7 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
 
 def get_tape_file_number(drive):
     cmd = 'mt -f %s status | grep -i "file number"' % drive
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Getting tape file number of {drive}: {cmd}'.format(drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -317,7 +317,7 @@ def set_tape_file_number(drive, num=0):
     new_num, op = get_tape_op_and_count(current_num, num)
 
     cmd = 'mt -f %s %s %d' % (drive, op, new_num)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Setting file number of {drive} to {num}: {cmd}'.format(num=num, drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -368,7 +368,7 @@ def robot_inventory(robot):
     )
 
     cmd = 'mtx -f %s status' % robot
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Inventoring {robot}: {cmd}'.format(robot=robot, cmd=cmd))
     out, err = p.communicate()
 
