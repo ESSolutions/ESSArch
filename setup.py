@@ -92,7 +92,7 @@ if __name__ == '__main__':
             "drf-extensions==0.4.0",
             "drf-proxy-pagination==0.2.0",
             "elasticsearch-dsl==6.3.1",
-            "glob2==0.6",
+            "glob2==0.7",
             "jsonfield==2.0.2",
             "lxml==4.3.4",
             "natsort==6.0.0",
