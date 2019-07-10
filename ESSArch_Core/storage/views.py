@@ -379,14 +379,15 @@ class RobotViewSet(viewsets.ModelViewSet):
     def inventory(self, request, pk=None):
         robot = self.get_object()
 
-        ProcessTask.objects.create(
+        t = ProcessTask.objects.create(
             name='ESSArch_Core.tasks.RobotInventory',
             args=[robot.device],
             eager=False,
             responsible=self.request.user,
         ).run()
+        t_id = str(t.pk)
 
-        return Response()
+        return Response({'detail': 'Running robot inventory: {}'.format(t_id)}, status=status.HTTP_202_ACCEPTED)
 
 
 class AccessQueueViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
