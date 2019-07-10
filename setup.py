@@ -68,7 +68,7 @@ if __name__ == '__main__':
         ],
         install_requires=[
             "celery[tblib]==4.3.0",
-            "cffi==1.11.5",
+            "cffi==1.12.3",
             "channels==2.1.7",
             "channels_redis==2.3.3",
             "chardet==3.0.4",
