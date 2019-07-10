@@ -75,7 +75,7 @@ if __name__ == '__main__':
             "click==7.0",
             "crontab==0.22.5",
             "cryptography==2.7",
-            "daphne==2.2.5",
+            "daphne==2.3.0",
             "dj-database-url==0.5.0",
             "django==2.2.3",
             "django-cors-headers==2.5.2",
