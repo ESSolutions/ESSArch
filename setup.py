@@ -89,7 +89,7 @@ if __name__ == '__main__':
             "django-rest-auth[with_social]==0.9.5",
             "djangorestframework==3.9.4",
             "drf-dynamic-fields==0.3.1",
-            "drf-extensions==0.4.0",
+            "drf-extensions==0.5.0",
             "drf-proxy-pagination==0.2.0",
             "elasticsearch-dsl==6.3.1",
             "glob2==0.7",
