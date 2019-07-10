@@ -6,6 +6,12 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db.models import F
 from django.utils import timezone
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_fixed,
+)
 
 from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
@@ -32,6 +38,8 @@ from ESSArch_Core.util import get_event_element_spec
 User = get_user_model()
 
 
+@retry(retry=retry_if_exception_type(TapeDriveLockedError), reraise=True, stop=stop_after_attempt(5),
+       wait=wait_fixed(60))
 def unmount_tape_from_drive(drive):
     """
     Unmounts tape from drive into slot
@@ -73,6 +81,8 @@ def unmount_tape_from_drive(drive):
     return res
 
 
+@retry(retry=retry_if_exception_type(TapeDriveLockedError), reraise=True, stop=stop_after_attempt(5),
+       wait=wait_fixed(60))
 def mount_tape_medium_into_drive(drive_id, medium_id, timeout):
     """
     Mounts tape into drive

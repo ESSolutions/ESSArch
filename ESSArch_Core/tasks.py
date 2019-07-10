@@ -43,7 +43,6 @@ from django_redis import get_redis_connection
 from elasticsearch import helpers as es_helpers
 from elasticsearch_dsl.connections import get_connection
 from lxml import etree
-from tenacity import retry, stop_after_attempt, wait_fixed
 
 from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.crypto import decrypt_remote_credentials
@@ -620,7 +619,6 @@ class MountTape(DBTask):
     event_type = 40200
     queue = 'robot'
 
-    @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
     def run(self, medium_id, drive_id=None, timeout=120):
         if drive_id is None:
             drive = TapeDrive.objects.filter(
@@ -639,7 +637,6 @@ class UnmountTape(DBTask):
     event_type = 40100
     queue = 'robot'
 
-    @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
     def run(self, drive_id):
         return unmount_tape_from_drive(drive_id)
 
