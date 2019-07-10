@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('RequestModalInstanceCtrl', function(ProfileMakerTemplate, $uibModalInstance, djangoAuth, data, $scope) {
+export default class RequestModalInstanceCtrl {
+  constructor($uibModalInstance, data, $scope) {
     var $ctrl = this;
     $ctrl.angular = angular;
     $ctrl.object = data.object;
@@ -13,4 +12,5 @@ angular
     $ctrl.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}

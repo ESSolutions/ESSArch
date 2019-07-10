@@ -26,6 +26,7 @@ import PrepareIpCtrl from '../controllers/PrepareIpCtrl';
 import PrepareSipCtrl from '../controllers/PrepareSipCtrl';
 import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
+import RequestModalInstanceCtrl from '../controllers/RequestModalInstanceCtrl';
 import RobotInformationCtrl from '../controllers/RobotInformationCtrl';
 import SearchCtrl from '../controllers/SearchCtrl';
 import StepInfoModalInstanceCtrl from '../controllers/StepInfoModalInstanceCtrl';
@@ -367,6 +368,7 @@ export default angular
     '$transitions',
     AppraisalCtrl,
   ])
+  .controller('RequestModalInstanceCtrl', ['$uibModalInstance', 'data', '$scope', RequestModalInstanceCtrl])
   .controller('RobotInformationCtrl', [
     'StorageMedium',
     '$scope',
