@@ -441,6 +441,12 @@ class StorageMedium(models.Model):
         data.pop('location_status_display', None)
         data.pop('status_display', None)
         data['storage_target_id'] = data.pop('storage_target')
+        data['tape_drive'] = TapeDrive.create_from_remote_copy(
+            host, session, data['tape_drive'], create_storage_medium=False
+        )
+        data['tape_slot'] = TapeSlot.create_from_remote_copy(
+            host, session, data['tape_slot'], create_storage_medium=False
+        )
         storage_medium, _ = StorageMedium.objects.update_or_create(
             pk=data.pop('id'),
             medium_id=data.pop('medium_id'),
@@ -480,7 +486,7 @@ class StorageMedium(models.Model):
 
     class Meta:
         permissions = (
-            ("list_storageMedium", "Can list storageMedium"),
+            ("list_storageMedium", "Can list storageMedium"),  # TODO: replace with view_storagemedium
         )
 
     def __str__(self):
@@ -702,6 +708,30 @@ class TapeDrive(models.Model):
     locked = models.BooleanField(default=False)
     status = models.IntegerField(choices=STATUS_CHOICES, default=20)
 
+    @classmethod
+    @transaction.atomic
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60))
+    def create_from_remote_copy(cls, host, session, object_id, create_storage_medium=True):
+        remote_obj_url = urljoin(host, reverse('tapedrive-detail', args=(object_id,)))
+        r = session.get(remote_obj_url, timeout=60)
+        r.raise_for_status()
+
+        data = r.json()
+        data.pop('status_display', None)
+
+        data['robot'] = Robot.create_from_remote_copy(
+            host, session, data['robot']
+        )
+        if not create_storage_medium:
+            data.pop('storage_medium', None)
+
+        tape_drive, _ = TapeDrive.objects.update_or_create(
+            pk=data.pop('id'),
+            defaults=data,
+        )
+        return tape_drive
+
     def __str__(self):
         return self.device
 
@@ -725,6 +755,32 @@ class TapeSlot(models.Model):
     robot = models.ForeignKey('Robot', models.PROTECT, related_name='tape_slots')
     status = models.IntegerField(choices=STATUS_CHOICES, default=20)
 
+    @classmethod
+    @transaction.atomic
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60))
+    def create_from_remote_copy(cls, host, session, object_id, create_storage_medium=True):
+        remote_obj_url = urljoin(host, reverse('tapeslot-detail', args=(object_id,)))
+        r = session.get(remote_obj_url, timeout=60)
+        r.raise_for_status()
+
+        data = r.json()
+        data.pop('locked', None)
+        data.pop('mounted', None)
+        data.pop('status_display', None)
+
+        data['robot'] = Robot.create_from_remote_copy(
+            host, session, data['robot']
+        )
+        if not create_storage_medium:
+            data.pop('storage_medium', None)
+
+        tape_slot, _ = TapeSlot.objects.update_or_create(
+            pk=data.pop('id'),
+            defaults=data,
+        )
+        return tape_slot
+
     class Meta:
         ordering = ('slot_id',)
         unique_together = ('slot_id', 'robot')
@@ -738,6 +794,22 @@ class Robot(models.Model):
     label = models.CharField("Describing label for the robot", max_length=255, blank=True)
     device = models.CharField(max_length=255, unique=True)
     online = models.BooleanField(default=False)
+
+    @classmethod
+    @transaction.atomic
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60))
+    def create_from_remote_copy(cls, host, session, object_id):
+        remote_obj_url = urljoin(host, reverse('robot-detail', args=(object_id,)))
+        r = session.get(remote_obj_url, timeout=60)
+        r.raise_for_status()
+
+        data = r.json()
+        robot, _ = Robot.objects.update_or_create(
+            pk=data.pop('id'),
+            defaults=data,
+        )
+        return robot
 
     def __str__(self):
         return self.label
