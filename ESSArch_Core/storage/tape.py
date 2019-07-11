@@ -176,6 +176,7 @@ def wait_to_come_online(drive, timeout=120):
     raise RobotMountTimeoutException()
 
 
+@retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
 def tape_empty(drive):
     logger.debug('Checking if tape in {drive} is empty'.format(drive=drive))
     try:
