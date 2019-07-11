@@ -121,7 +121,7 @@ if __name__ == '__main__':
             "ms_office_file_conversion": ["comtypes==1.1.7;platform_system=='Windows'"],
             "iis": ["wfastcgi==3.0.0"],
             "mssql": ["django-mssql-backend==2.2.0"],
-            "mysql": ["mysqlclient==1.3.13"],
+            "mysql": ["mysqlclient==1.4.2.post1"],
             "postgres": ["psycopg2==2.7.5"],
             "logstash": ["python-logstash-async==1.5.0"],
         },
