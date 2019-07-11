@@ -13,10 +13,11 @@ services:
       ELASTICSEARCH_URL: http://elasticsearch:9200
     volumes:
       - ..:/code
+      - /code/ESSArch.egg-info
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
-      - /code/ESSArch_Core/frontend/static/frontend/node_modules
+      - /code/ESSArch_Core/frontend/static/frontend/build
     command:
       - /bin/bash
       - -c
@@ -55,11 +56,10 @@ services:
       ELASTICSEARCH_URL: http://elasticsearch:9200
     volumes:
       - ..:/code
+      - /code/ESSArch.egg-info
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
-      - /code/ESSArch_Core/frontend/static/frontend/node_modules
-      - /code/ESSArch_Core/frontend/static/frontend/build
     tty: true
     depends_on:
       - essarch
@@ -87,11 +87,10 @@ services:
       ELASTICSEARCH_URL: http://elasticsearch:9200
     volumes:
       - ..:/code
+      - /code/ESSArch.egg-info
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
-      - /code/ESSArch_Core/frontend/static/frontend/node_modules
-      - /code/ESSArch_Core/frontend/static/frontend/build
     tty: true
     depends_on:
       - essarch

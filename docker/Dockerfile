@@ -38,7 +38,7 @@ ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE ESSArch_Core.config.settings
-ENV PYTHONPATH=$PYTHONPATH:/ESSArch/config
+ENV PYTHONPATH={$PYTHONPATH}:/ESSArch/config
 
 ADD setup.py /code/setup.py
 ADD versioneer.py /code/versioneer.py
