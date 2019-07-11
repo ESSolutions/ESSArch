@@ -111,7 +111,7 @@ if __name__ == '__main__':
         extras_require={
             "docs": ["sphinx==1.8.5", "sphinx-intl==0.9.11",
                      "sphinx-rtd-theme==0.4.3", "sphinxcontrib-httpdomain==1.7.0",
-                     "sphinxcontrib-httpexample==0.10.1",
+                     "sphinxcontrib-httpexample==0.10.3",
                      "sphinxcontrib-inlinesyntaxhighlight==0.2"],
             "tests": ["coverage==4.5.3", "fakeredis[lua]==1.0.3", "django-test-without-migrations==0.6"],
             "s3": ["boto3==1.9.186"],
