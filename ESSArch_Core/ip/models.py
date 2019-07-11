@@ -1141,65 +1141,65 @@ class InformationPackage(models.Model):
             aic_xml_size = os.path.getsize(aic_xml)
             write_size += aip_xml_size + aic_xml_size
 
-        with transaction.atomic():
-            if container or storage_target.remote_server:
-                src = [self.get_temp_container_path(), aip_xml, aic_xml]
+        if container or storage_target.remote_server:
+            src = [self.get_temp_container_path(), aip_xml, aic_xml]
+        else:
+            src = [self.object_path]
+
+        if storage_target.remote_server:
+            host, user, passw = storage_target.remote_server.split(',')
+            session = requests.Session()
+            session.verify = False  # TODO: we probably want to enable this
+            session.auth = (user, passw)
+
+            self.update_remote_ip(host, session)
+
+            # if the remote server already has completed
+            # then we only want to get the result from it,
+            # not run it again. If it has failed then
+            # we want to retry it
+
+            r = task.get_remote_copy(session, host)
+            if r.status_code == 404:
+                # the task does not exist
+                task.create_remote_copy(session, host)
+                task.run_remote_copy(session, host)
             else:
-                src = [self.object_path]
+                if r.json()['status'] != celery_states.SUCCESS:
+                    task.retry_remote_copy(session, host)
 
-            if storage_target.remote_server:
-                host, user, passw = storage_target.remote_server.split(',')
-                session = requests.Session()
-                session.verify = False  # TODO: we probably want to enable this
-                session.auth = (user, passw)
-
-                self.update_remote_ip(host, session)
-
-                # if the remote server already has completed
-                # then we only want to get the result from it,
-                # not run it again. If it has failed then
-                # we want to retry it
-
+            while task.status not in celery_states.READY_STATES:
                 r = task.get_remote_copy(session, host)
-                if r.status_code == 404:
-                    # the task does not exist
-                    task.create_remote_copy(session, host)
-                    task.run_remote_copy(session, host)
-                else:
-                    if r.json()['status'] != celery_states.SUCCESS:
-                        task.retry_remote_copy(session, host)
 
-                while task.status not in celery_states.READY_STATES:
-                    r = task.get_remote_copy(session, host)
+                remote_data = r.json()
+                task.status = remote_data['status']
+                task.progress = remote_data['progress']
+                task.result = remote_data['result']
+                task.traceback = remote_data['traceback']
+                task.exception = remote_data['exception']
+                task.save()
 
-                    remote_data = r.json()
-                    task.status = remote_data['status']
-                    task.progress = remote_data['progress']
-                    task.result = remote_data['result']
-                    task.traceback = remote_data['traceback']
-                    task.exception = remote_data['exception']
-                    task.save()
+                sleep(5)
 
-                    sleep(5)
+            if task.status in celery_states.EXCEPTION_STATES:
+                task.reraise()
 
-                if task.status in celery_states.EXCEPTION_STATES:
-                    task.reraise()
+            storage_object = StorageObject.create_from_remote_copy(host, session, task.result)
+        else:
+            storage_medium, created = storage_target.get_or_create_storage_medium(qs=qs)
 
-                storage_object = StorageObject.create_from_remote_copy(host, session, task.result)
-            else:
-                storage_medium, created = storage_target.get_or_create_storage_medium(qs=qs)
-                new_size = storage_medium.used_capacity + write_size
-                if new_size > storage_target.max_capacity > 0:
-                    storage_medium.mark_as_full()
-                    raise StorageMediumFull('No space left on storage medium "{}"'.format(str(storage_medium.pk)))
+            new_size = storage_medium.used_capacity + write_size
+            if new_size > storage_target.max_capacity > 0:
+                storage_medium.mark_as_full()
+                raise StorageMediumFull('No space left on storage medium "{}"'.format(str(storage_medium.pk)))
 
-                storage_backend = storage_target.get_storage_backend()
-                storage_medium.prepare_for_write()
+            storage_backend = storage_target.get_storage_backend()
+            storage_medium.prepare_for_write()
 
-                storage_object = storage_backend.write(src, self, container, storage_medium)
-                StorageMedium.objects.filter(pk=storage_medium.pk).update(
-                    used_capacity=F('used_capacity') + write_size
-                )
+            storage_object = storage_backend.write(src, self, container, storage_medium)
+            StorageMedium.objects.filter(pk=storage_medium.pk).update(
+                used_capacity=F('used_capacity') + write_size
+            )
 
         return str(storage_object.pk)
 
