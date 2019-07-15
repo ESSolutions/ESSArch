@@ -65,7 +65,7 @@ RUN apt-get update \
         python3-cffi \
         shared-mime-info \
     && pip install --no-cache-dir --upgrade pip setuptools pywatchman \
-    && pip install --no-cache-dir -e .[postgres,tests] \
+    && pip install --no-cache-dir -e .[postgres,s3,tests] \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get purge -y --auto-remove gcc
 
