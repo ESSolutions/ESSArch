@@ -15,7 +15,7 @@ RUN cd /tmp \
 # Build watchman from source
 RUN cd /tmp/watchman-${WATCHMAN_VERSION} \
  && ./autogen.sh \
- && ./configure \
+ && ./configure --enable-lenient \
  && make \
  && make install \
  && cd $HOME \
