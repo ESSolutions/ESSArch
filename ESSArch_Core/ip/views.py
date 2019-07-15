@@ -1239,30 +1239,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not data.get('new') and ip_already_in_workarea:
             raise Conflict('IP already in workarea')
 
-        step = ProcessStep.objects.create(
-            name='Access AIP', eager=False,
-            information_package_id=pk,
-        )
-        ProcessTask.objects.create(
-            name='workflow.tasks.AccessAIP',
-            params={
-                'aip': pk,
-                'tar': data.get('tar', False),
-                'extracted': data.get('extracted', False),
-                'new': data.get('new', False),
-                'package_xml': data.get('package_xml', False),
-                'aic_xml': data.get('aic_xml', False),
-                'object_identifier_value': data.get('object_identifier_value'),
-            },
-            responsible=self.request.user,
-            eager=False,
-            information_package_id=pk,
-            processstep=step,
-        )
-
-        step.run()
-
-        return Response({'detail': 'Accessing AIP %s...' % pk})
+        workflow = aip.create_access_workflow(self.request.user)
+        workflow.run()
+        return Response({'detail': 'Accessing %s...' % aip.object_identifier_value, 'step': workflow.pk})
 
     @transaction.atomic
     @action(detail=True, methods=['post'], url_path='create-dip')

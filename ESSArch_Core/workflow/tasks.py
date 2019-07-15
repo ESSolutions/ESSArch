@@ -475,15 +475,8 @@ class AccessAIP(DBTask):
 
             return str(workarea_obj.pk)
 
-        if object_identifier_value is None:
-            object_identifier_value = ''
-
-        AccessQueue.objects.get_or_create(
-            ip=aip, status__in=[0, 2, 5], package=tar,
-            extracted=extracted, new=new,
-            defaults={'user_id': self.responsible, 'object_identifier_value': object_identifier_value,
-                      'package_xml': package_xml, 'aic_xml': aic_xml}
-        )
+        storage_object = aip.get_fastest_readable_storage_object()
+        aip.access(storage_object, self.get_processtask())
         return
 
     def event_outcome_success(self, result, aip):

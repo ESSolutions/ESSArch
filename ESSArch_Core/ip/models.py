@@ -77,8 +77,14 @@ from ESSArch_Core.profiles.models import (
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_backend as get_importer
 from ESSArch_Core.search.ingest import index_path
+from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.exceptions import StorageMediumFull
-from ESSArch_Core.storage.models import StorageMedium, StorageObject
+from ESSArch_Core.storage.models import (
+    STORAGE_TARGET_STATUS_ENABLED,
+    STORAGE_TARGET_STATUS_READ_ONLY,
+    StorageMedium,
+    StorageObject,
+)
 from ESSArch_Core.util import (
     find_destination,
     generate_file_response,
@@ -1061,6 +1067,167 @@ class InformationPackage(models.Model):
 
         return create_workflow(workflow, self, name='Preserve Information Package')
 
+    def create_access_workflow(self, user):
+        storage_object = self.get_fastest_readable_storage_object()
+        is_cached_storage_object = storage_object.is_cache_for_ip(self)
+
+        temp_container_path = self.get_temp_container_path()
+        temp_mets_path = self.get_temp_container_xml_path()
+        temp_aic_mets_path = self.get_temp_container_aic_xml_path() if self.aic else None
+
+        storage_medium = storage_object.storage_medium
+        storage_target = storage_medium.storage_target
+
+        if storage_target.remote_server:
+            # AccessAIP instructs and waits for ip.access to transfer files from remote
+            # to master. Then we use CopyFile to copy files from local temp to workspace
+
+            access_workarea = Path.objects.get(entity='access_workarea').value
+            access_workarea_user = os.path.join(access_workarea, user.username)
+            os.makedirs(access_workarea_user, exist_ok=True)
+
+            workflow = {
+                "step": True,
+                "name": "Access AIP",
+                "children": [
+                    {
+                        "name": "ESSArch_Core.workflow.tasks.AccessAIP",
+                        "label": "Access AIP",
+                        "args": [str(self.pk)],
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.CopyFile",
+                        "label": "Copy temporary container to workspace",
+                        "args": [
+                            temp_container_path,
+                            access_workarea_user,
+                        ],
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.CopyFile",
+                        "label": "Copy temporary AIP xml to workspace",
+                        "args": [
+                            temp_mets_path,
+                            access_workarea_user,
+                        ],
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.CopyFile",
+                        "label": "Copy temporary AIC xml to workspace",
+                        "args": [
+                            temp_aic_mets_path,
+                            access_workarea_user,
+                        ],
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                        "label": "Delete temporary container",
+                        "args": [temp_container_path]
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                        "label": "Delete temporary AIP xml",
+                        "args": [temp_mets_path]
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                        "label": "Delete temporary AIC xml",
+                        "args": [temp_aic_mets_path]
+                    },
+                ]
+            }
+
+        else:
+            access_workarea = Path.objects.get(entity='access_workarea').value
+            access_workarea_user = os.path.join(access_workarea, user.username)
+            os.makedirs(access_workarea_user, exist_ok=True)
+
+            if is_cached_storage_object:
+                # TODO:
+                # if reading from cache:
+                #  [x] copy dir to temp directory
+                #  [x] copy dir to access directory
+
+                pass
+
+            elif storage_object.container:
+                # TODO:
+                # if reading from long-term storage
+                #  [x] copy files to temp directory
+                #  [ ] extract tar to cache, if it is available
+                #  [x] copy xml files to access directory
+                #  [x] extract tar to access directory
+                workflow = {
+                    "step": True,
+                    "name": "Access AIP",
+                    "children": [
+                        {
+                            "name": "ESSArch_Core.workflow.tasks.AccessAIP",
+                            "label": "Access AIP",
+                            "args": [str(self.pk)],
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.ExtractTAR",
+                            "label": "Extract temporary container to workspace",
+                            "args": [
+                                temp_container_path,
+                                access_workarea_user,
+                            ],
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.CopyFile",
+                            "label": "Copy temporary AIP xml to workspace",
+                            "args": [
+                                temp_mets_path,
+                                access_workarea_user,
+                            ],
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.CopyFile",
+                            "label": "Copy temporary AIC xml to workspace",
+                            "args": [
+                                temp_aic_mets_path,
+                                access_workarea_user,
+                            ],
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.DeleteFiles",
+                            "label": "Delete temporary container",
+                            "args": [temp_container_path]
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.DeleteFiles",
+                            "label": "Delete temporary AIP xml",
+                            "args": [temp_mets_path]
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.DeleteFiles",
+                            "label": "Delete temporary AIC xml",
+                            "args": [temp_aic_mets_path]
+                        },
+                    ]
+                }
+            else:
+
+                # TODO:
+                # if reading from non long-term storage
+                #  [ ] copy dir to cache, if it is available
+                #  [x] copy dir to access directory
+
+                workflow = {
+                    "step": True,
+                    "name": "Access AIP",
+                    "children": [
+                        {
+                            "name": "ESSArch_Core.workflow.tasks.AccessAIP",
+                            "label": "Access AIP",
+                            "args": [str(self.pk)],
+                        },
+                    ]
+                }
+
+        return create_workflow([workflow], self, name='Access Information Package')
+
     def write_to_search_index(self):
         data = fill_specification_data(self.get_profile_data('aip'), ip=self, sa=self.submission_agreement)
         srcdir = self.object_path
@@ -1097,6 +1264,43 @@ class InformationPackage(models.Model):
                 except ValueError:
                     # file has not been indexed, index it
                     index_path(self, src)
+
+    def get_cached_storage_object(self):
+        cache_method = self.policy.cache_storage
+        return self.storage.get(
+            storage_medium__storage_target__storage_method_target_relations__status__in=[
+                STORAGE_TARGET_STATUS_ENABLED,
+                STORAGE_TARGET_STATUS_READ_ONLY,
+            ],
+            storage_medium__storage_target__methods=cache_method
+        )
+
+    def get_fastest_readable_storage_object(self):
+        NO_READABLE_CACHED_STORAGE_ERROR_MSG = (
+            'No readable cached storage object for {} found, getting fastest storage object'.format(
+                self.object_identifier_value
+            )
+        )
+        cached_storage = None
+
+        try:
+            logger.debug('Getting readable storage object from cache for {}'.format(self.object_identifier_value))
+            cached_storage = self.get_cached_storage_object()
+        except StorageObject.DoesNotExist:
+            logger.debug(NO_READABLE_CACHED_STORAGE_ERROR_MSG)
+
+        if cached_storage is None or not cached_storage.readable():
+            logger.debug(NO_READABLE_CACHED_STORAGE_ERROR_MSG)
+            try:
+                return self.storage.readable().fastest()[0]
+            except IndexError:
+                raise StorageObject.DoesNotExist('No readable storage object available')
+
+        return cached_storage
+
+    def get_temp_object_path(self):
+        temp_dir = Path.objects.get(entity='temp').value
+        return os.path.join(temp_dir, self.object_identifier_value)
 
     def get_temp_container_path(self):
         temp_dir = Path.objects.get(entity='temp').value
@@ -1165,7 +1369,15 @@ class InformationPackage(models.Model):
                 task.create_remote_copy(session, host)
                 task.run_remote_copy(session, host)
             else:
-                if r.json()['status'] != celery_states.SUCCESS:
+                remote_data = r.json()
+                task.status = remote_data['status']
+                task.progress = remote_data['progress']
+                task.result = remote_data['result']
+                task.traceback = remote_data['traceback']
+                task.exception = remote_data['exception']
+                task.save()
+
+                if task.status != celery_states.SUCCESS:
                     task.retry_remote_copy(session, host)
 
             while task.status not in celery_states.READY_STATES:
@@ -1202,6 +1414,125 @@ class InformationPackage(models.Model):
             )
 
         return str(storage_object.pk)
+
+    def access(self, storage_object, task):
+        logger.debug('Accessing information package {}'.format(self.object_identifier_value))
+        logger.debug('Accessing storage object'.format(str(storage_object.pk)))
+
+        is_cached_storage_object = storage_object.is_cache_for_ip(self)
+
+        storage_medium = storage_object.storage_medium
+        storage_target = storage_medium.storage_target
+
+        if storage_target.remote_server:
+            host, user, passw = storage_target.remote_server.split(',')
+            session = requests.Session()
+            session.verify = False  # TODO: we probably want to enable this
+            session.auth = (user, passw)
+
+            # TODO:
+            # [x] request remote host to read storage object to its configured temp directory
+            #   and transfer to temp on master
+
+            # if the remote server already has completed
+            # then we only want to get the result from it,
+            # not run it again. If it has failed then
+            # we want to retry it
+
+            r = task.get_remote_copy(session, host)
+            if r.status_code == 404:
+                # the task does not exist
+                task.create_remote_copy(session, host)
+                task.run_remote_copy(session, host)
+            else:
+                remote_data = r.json()
+                task.status = remote_data['status']
+                task.progress = remote_data['progress']
+                task.result = remote_data['result']
+                task.traceback = remote_data['traceback']
+                task.exception = remote_data['exception']
+                task.save()
+
+                if task.status in celery_states.EXCEPTION_STATES:
+                    task.retry_remote_copy(session, host)
+
+            while task.status not in celery_states.READY_STATES:
+                r = task.get_remote_copy(session, host)
+
+                remote_data = r.json()
+                task.status = remote_data['status']
+                task.progress = remote_data['progress']
+                task.result = remote_data['result']
+                task.traceback = remote_data['traceback']
+                task.exception = remote_data['exception']
+                task.save()
+
+                sleep(5)
+
+            if task.status in celery_states.EXCEPTION_STATES:
+                task.reraise()
+        else:
+            storage_backend = storage_object.get_storage_backend()
+            storage_medium.prepare_for_read()
+            temp_dir = Path.objects.get(entity='temp').value
+
+            if storage_target.master_server:
+                # we are on a remote host that has been requested
+                # by master to write to its temp directory
+                user, passw, host = storage_target.master_server.split(',')
+                session = requests.Session()
+                session.verify = False  # TODO: we probably want to enable this
+                session.auth = (user, passw)
+
+                temp_object_path = self.get_temp_object_path()
+                temp_container_path = self.get_temp_container_path()
+                temp_mets_path = self.get_temp_container_xml_path()
+                temp_aic_mets_path = self.get_temp_container_aic_xml_path()
+                dst = urljoin(host, reverse('informationpackage-add-file-from-master'))
+
+                storage_backend.read(storage_object, temp_dir)
+
+                if is_cached_storage_object:
+                    # TODO:
+                    # if reading from cache:
+                    #  [x] copy files to temp directory
+                    #  [x] tar files and copy to temp directory on master
+
+                    with tarfile.open(temp_container_path, 'w') as new_tar:
+                        new_tar.add(temp_object_path)
+                    copy_file(temp_container_path, dst, requests_session=session)
+
+                elif storage_object.container:
+                    # TODO:
+                    # if reading from long-term storage
+                    #  [ ] extract the files to cache, if it is available
+                    #  [x] copy files to temp directory
+                    #  [x] copy files to temp directory on master
+
+                    copy_file(temp_container_path, dst, requests_session=session)
+                    copy_file(temp_mets_path, dst, requests_session=session)
+                    copy_file(temp_aic_mets_path, dst, requests_session=session)
+                else:
+                    # TODO:
+                    # if reading from non long-term storage
+                    #  [ ] copy files to cache, if it is available
+                    #  [x] copy files to temp directory
+                    #  [x] tar files and copy to temp directory on master
+
+                    with tarfile.open(temp_container_path, 'w') as new_tar:
+                        new_tar.add(temp_object_path)
+                    copy_file(temp_container_path, dst, requests_session=session)
+
+            else:
+                if storage_object.container:
+                    temp_dir = Path.objects.get(entity='temp').value
+                    storage_backend.read(storage_object, temp_dir)
+                else:
+                    access_workarea = Path.objects.get(entity='access_workarea').value
+                    access_workarea_user = os.path.join(access_workarea, task.responsible.username)
+                    dst = os.path.join(access_workarea_user, self.object_identifier_value)
+                    os.makedirs(dst, exist_ok=True)
+                    storage_backend.read(storage_object, dst)
 
     def open_file(self, path='', *args, **kwargs):
         if self.archived:

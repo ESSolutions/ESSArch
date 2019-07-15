@@ -6,6 +6,10 @@ class BaseStorageBackend:
     def open(self, storage_object, file, *args, **kwargs):
         raise NotImplementedError('subclasses of BaseStorageBackend must provide an open() method')
 
+    def prepare_for_read(self, storage_medium):
+        """Called before reading from a storage medium"""
+        pass
+
     def read(self, storage_object, dst, extract=False, include_xml=True, block_size=None):
         raise NotImplementedError('subclasses of BaseStorageBackend must provide an read() method')
 

@@ -384,7 +384,8 @@ class RobotViewSet(viewsets.ModelViewSet):
             args=[robot.device],
             eager=False,
             responsible=self.request.user,
-        ).run()
+        )
+        t.run()
         t_id = str(t.pk)
 
         return Response({'detail': 'Running robot inventory: {}'.format(t_id)}, status=status.HTTP_202_ACCEPTED)

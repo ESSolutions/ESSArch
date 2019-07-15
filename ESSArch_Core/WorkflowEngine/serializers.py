@@ -113,7 +113,8 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
             'url', 'id', 'name', 'label', 'status', 'progress',
             'processstep', 'processstep_pos', 'time_created', 'time_started',
             'time_done', 'undone', 'undo_type', 'retried',
-            'responsible', 'hidden', 'args', 'information_package',
+            'responsible', 'hidden', 'args', 'params', 'information_package',
+            'eager',
         )
         read_only_fields = (
             'status', 'progress', 'time_created', 'time_started', 'time_done', 'undone',

@@ -362,6 +362,9 @@ class StorageMediumQueryset(models.QuerySet):
     def secure_storage(self):
         return self.filter(storage_target__methods__containers=True)
 
+    def active(self):
+        return self.filter(storage_target__status=True)
+
     def readable(self):
         return self.filter(status__in=[20, 30], location_status=50)
 
@@ -457,6 +460,10 @@ class StorageMedium(models.Model):
     def get_type(self):
         return get_storage_type_from_medium_type(self.storage_target.type)
 
+    def prepare_for_read(self):
+        storage_backend = self.storage_target.get_storage_backend()
+        storage_backend.prepare_for_read(self)
+
     def prepare_for_write(self):
         storage_backend = self.storage_target.get_storage_backend()
         storage_backend.prepare_for_write(self)
@@ -510,7 +517,14 @@ class StorageObjectQueryset(models.QuerySet):
         return self.filter(container=True)
 
     def readable(self):
-        return self.filter(storage_medium__status__in=[20, 30], storage_medium__location_status=50)
+        return self.filter(
+            storage_medium__storage_target__status=True,
+            storage_medium__storage_target__storage_method_target_relations__status__in=[
+                STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY
+            ],
+            storage_medium__storage_target__storage_method_target_relations__storage_method__enabled=True,
+            storage_medium__status__in=[20, 30], storage_medium__location_status=50
+        )
 
     def fastest(self):
         container = Case(
@@ -591,6 +605,23 @@ class StorageObject(models.Model):
 
     def get_storage_backend(self):
         return self.storage_medium.storage_target.get_storage_backend()
+
+    def readable(self):
+        return all(
+            self.storage_medium.storage_target.status,
+            self.storage_medium.storage_target.storage_method_target_relations.filter(
+                status__in=[STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY],
+                storage_method__enabled=True,
+            ),
+            self.storage_medium.status in [20, 30],
+            self.storage_medium.location_status == 50,
+        )
+
+    def is_cache_for_ip(self, ip):
+        return self.storage_medium.storage_target.storage_method_target_relations.filter(
+            storage_method=ip.policy.cache_storage,
+            status__in=[STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY],
+        ).exists()
 
     def extract(self):
         if not self.container:

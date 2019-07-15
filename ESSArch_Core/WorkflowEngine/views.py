@@ -131,7 +131,7 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return self.filter_queryset_by_parents_lookups(queryset)
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action in ['create', 'list']:
             return ProcessTaskSerializer
 
         return ProcessTaskDetailSerializer

@@ -66,8 +66,9 @@ class TapeMountOrUnmountTests(TestCase):
         self.assertTrue(before <= tape_drive.last_change <= after)
         self.assertEqual(res, "dummy_output")
 
+    @mock.patch('ESSArch_Core.tasks_util.unmount_tape_from_drive.retry.sleep')
     @mock.patch('ESSArch_Core.tasks_util.unmount_tape')
-    def test_unmount_when_unmount_tape_raise_exception(self, mock_unmount_tape):
+    def test_unmount_when_unmount_tape_raise_exception(self, mock_unmount_tape, mock_sleep):
         mock_unmount_tape.side_effect = BaseException
 
         tape_drive = self.create_tape_drive()
@@ -88,7 +89,8 @@ class TapeMountOrUnmountTests(TestCase):
         self.assertEqual(tape_drive.status, 100)
         self.assertEqual(storage_medium.tape_slot.status, 100)
 
-    def test_unmount_when_drive_locked_raise_exception(self):
+    @mock.patch('ESSArch_Core.tasks_util.unmount_tape_from_drive.retry.sleep')
+    def test_unmount_when_drive_locked_raise_exception(self, mock_sleep):
         tape_drive = self.create_tape_drive()
         tape_drive.locked = True
         tape_drive.save(update_fields=['locked'])
@@ -103,7 +105,8 @@ class TapeMountOrUnmountTests(TestCase):
         with self.assertRaisesRegexp(ValueError, "No tape in tape drive to unmount"):
             unmount_tape_from_drive(tape_drive.pk)
 
-    def test_mount_when_drive_locked_raise_exception(self):
+    @mock.patch('ESSArch_Core.tasks_util.mount_tape_medium_into_drive.retry.sleep')
+    def test_mount_when_drive_locked_raise_exception(self, mock_sleep):
         tape_drive = self.create_tape_drive()
         tape_drive.locked = True
         tape_drive.save(update_fields=['locked'])

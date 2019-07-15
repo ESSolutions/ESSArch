@@ -26,7 +26,6 @@ import errno
 import logging
 import os
 import pickle
-import shutil
 import tarfile
 import time
 import zipfile
@@ -61,7 +60,7 @@ from ESSArch_Core.fixity.validation.backends.xml import (
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
-from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy_file
+from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy_dir, copy_file
 from ESSArch_Core.storage.models import TapeDrive
 from ESSArch_Core.storage.tape import (
     DEFAULT_TAPE_BLOCK_SIZE,
@@ -266,6 +265,16 @@ class CreateTAR(DBTask):
 
     def event_outcome_success(self, result, dirname=None, tarname=None, compress=False):
         return "Created %s from %s" % (tarname, dirname)
+
+
+class ExtractTAR(DBTask):
+    def run(self, path, dst, compression=False):
+        compression = ':gz' if compression else ''
+        with tarfile.open(path, 'r%s' % compression) as tar:
+            tar.extractall(dst)
+
+        self.set_progress(100, total=100)
+        return dst
 
 
 class CreateZIP(DBTask):
@@ -551,10 +560,16 @@ class DeleteFiles(DBTask):
 
 
 class CopyDir(DBTask):
-    def run(self, src, dst):
-        shutil.copytree(src, dst)
+    def run(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
+        requests_session = None
+        if remote_credentials:
+            user, passw = decrypt_remote_credentials(remote_credentials)
+            requests_session = requests.Session()
+            requests_session.auth = (user, passw)
 
-    def event_outcome_success(self, result, src, dst):
+        copy_dir(src, dst, requests_session=requests_session, block_size=block_size)
+
+    def event_outcome_success(self, result, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
         return "Copied %s to %s" % (src, dst)
 
 
@@ -580,7 +595,7 @@ class CopyFile(DBTask):
 
         copy_file(src, dst, requests_session=requests_session, block_size=block_size)
 
-    def event_outcome_success(self, result, src, dst, requests_session=None, block_size=65536):
+    def event_outcome_success(self, result, src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
         return "Copied %s to %s" % (src, dst)
 
 

@@ -653,8 +653,26 @@ class ProcessTask(Process):
         r = session.post(create_remote_task_url, json=data, timeout=60)
 
         if r.status_code == 409:
-            update_remote_task_url = urljoin(host, reverse('processtask-detail', args=(str(self.pk),)))
-            r = session.patch(update_remote_task_url, json=data)
+            r = self.update_remote_copy(session, host)
+
+        r.raise_for_status()
+        return r
+
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+    def update_remote_copy(self, session, host):
+        update_remote_task_url = urljoin(host, reverse('processtask-detail', args=(str(self.pk),)))
+        params = copy.deepcopy(self.params)
+        params.pop('_options', None)
+        ip_id = str(self.information_package.pk) if self.information_package.pk is not None else None
+        data = {
+            'name': self.name,
+            'args': self.args,
+            'params': self.params,
+            'eager': self.eager,
+            'information_package': ip_id,
+        }
+        r = session.patch(update_remote_task_url, json=data, timeout=60)
 
         r.raise_for_status()
         return r
@@ -670,6 +688,7 @@ class ProcessTask(Process):
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
            wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
     def retry_remote_copy(self, session, host):
+        self.update_remote_copy(session, host)
         retry_remote_task_url = urljoin(host, reverse('processtask-retry', args=(str(self.pk),)))
         r = session.post(retry_remote_task_url, timeout=60)
         r.raise_for_status()
