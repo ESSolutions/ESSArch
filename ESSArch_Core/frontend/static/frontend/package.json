@@ -70,7 +70,7 @@
     "later": "^1.2.0",
     "lodash": "4.17.11",
     "messenger-hubspot": "^1.5.0-b2",
-    "mini-css-extract-plugin": "^0.6.0",
+    "mini-css-extract-plugin": "^0.8.0",
     "moment": "^2.22.2",
     "ng-annotate-webpack-plugin": "^0.3.0",
     "ng-js-tree": "^0.0.10",
