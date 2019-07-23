@@ -1,14 +1,24 @@
-# ESSArch Core [![Build Status](https://travis-ci.org/ESSolutions/ESSArch_Core.svg?branch=master)](https://travis-ci.org/ESSolutions/ESSArch_Core)  [![codecov](https://codecov.io/gh/ESSolutions/ESSArch_Core/branch/master/graph/badge.svg)](https://codecov.io/gh/ESSolutions/ESSArch_Core)
+# ESSArch [![Build Status](https://travis-ci.org/ESSolutions/ESSArch.svg?branch=master)](https://travis-ci.org/ESSolutions/ESSArch)  [![codecov](https://codecov.io/gh/ESSolutions/ESSArch/branch/master/graph/badge.svg)](https://codecov.io/gh/ESSolutions/ESSArch)
 
-The core component of [ESSArch Tools Producer](https://github.com/ESSolutions/ESSArch_Tools_Producer), [ESSArch Tools Archive](https://github.com/ESSolutions/ESSArch_Tools_Archive) and [ESSArch Preservation Platform](https://github.com/ESSolutions/ESSArch_EPP)
+# Getting started
 
-# Installation Guide
+### Using docker
 
-Instructions for preparing for, installing and setting up ESSArch Core can be found at http://doc.essarch.org/
+1. Enter the `docker` directory and start the services
 
-# Documentation 
+```
+$ cd docker
+$ docker-compose up -d
+```
 
-Source for the documentation can be found in the `docs` folder
+2. Wait for the `essarch` service to start by examining the logs
+
+```
+$ docker-compose logs -f essarch
+```
+
+
+3. Finally visit `http://localhost:8000` in your browser
 
 # Contributing
 
