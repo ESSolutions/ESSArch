@@ -7,6 +7,7 @@ from ESSArch_Core.agents.filters import AgentFilter, AgentOrderingFilter
 from ESSArch_Core.agents.models import (
     Agent,
     AgentIdentifier,
+    AgentIdentifierType,
     AgentName,
     AgentNameType,
     AgentNote,
@@ -22,6 +23,7 @@ from ESSArch_Core.agents.models import (
 )
 from ESSArch_Core.agents.serializers import (
     AgentSerializer,
+    AgentIdentifierTypeSerializer,
     AgentNameTypeSerializer,
     AgentNoteTypeSerializer,
     AgentRelationTypeSerializer,
@@ -63,6 +65,10 @@ class AgentNoteTypeViewSet(viewsets.ModelViewSet):
     serializer_class = AgentNoteTypeSerializer
     permission_classes = (ActionPermissions,)
 
+class AgentIdentifierTypeViewSet(viewsets.ModelViewSet):
+    queryset = AgentIdentifierType.objects.all()
+    serializer_class = AgentIdentifierTypeSerializer
+    permission_classes = (ActionPermissions,)
 
 class AgentViewSet(viewsets.ModelViewSet):
     queryset = Agent.objects.none()
