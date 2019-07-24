@@ -151,6 +151,7 @@ class AgentPlaceSerializer(serializers.ModelSerializer):
 
 class AgentPlaceWriteSerializer(AgentPlaceSerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=AgentPlaceType.objects.all())
+    topography = TopographySerializer(validators=[])
 
 
 class AgentTagLinkRelationTypeSerializer(serializers.ModelSerializer):
