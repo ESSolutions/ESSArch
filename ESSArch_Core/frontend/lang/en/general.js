@@ -49,6 +49,7 @@ angular.module('essarch.language').config(function($translateProvider) {
     ENABLED: 'Enabled',
     END: 'End',
     ENTERPROFILENAME: 'Enter new profile name',
+    ENTER_VALID_COORDINATE_VALUE: 'Enter valid coordinate value. Example: 40.785091',
     ENTITY: 'Entity',
     ENTITYDESC: 'Profile type',
     EXPORT_ACTION: 'Export',
