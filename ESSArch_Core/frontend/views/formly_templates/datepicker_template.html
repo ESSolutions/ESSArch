@@ -16,6 +16,7 @@
   <a class="dropdown-toggle" id="dropdown-{{options.key}}" role="button" uib-dropdown-toggle>
     <div class="input-group">
       <input
+        ng-change="to.onChange"
         set-touched="options.formControl"
         id="{{::id}}"
         name="{{::id}}"
