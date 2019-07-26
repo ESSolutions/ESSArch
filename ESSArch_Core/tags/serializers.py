@@ -650,7 +650,7 @@ class DeliverySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Delivery
-        fields = ('id', 'name', 'type', 'description', 'submission_agreement', 'producer_organization')
+        fields = ('id', 'name', 'type', 'description', 'submission_agreement', 'producer_organization', 'reference_code')
 
 
 class DeliveryWriteSerializer(DeliverySerializer):
