@@ -4,6 +4,7 @@ import elasticsearch
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
@@ -30,7 +31,9 @@ from ESSArch_Core.tags.models import (
     MetricProfile,
     MetricType,
     NodeIdentifier,
+    NodeIdentifierType,
     NodeNote,
+    NodeNoteType,
     NodeRelationType,
     RuleConventionType,
     Structure,
@@ -50,20 +53,50 @@ from ESSArch_Core.tags.models import (
 PUBLISHED_STRUCTURE_CHANGE_ERROR = _('Published structures cannot be changed')
 
 
+class NodeIdentifierTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NodeIdentifierType
+        fields = ('id', 'name',)
+
+
 class NodeIdentifierSerializer(serializers.ModelSerializer):
-    type = serializers.CharField(source='type.name')
+    type = NodeIdentifierTypeSerializer()
 
     class Meta:
         model = NodeIdentifier
         fields = ('id', 'type', 'identifier',)
 
 
+class NodeIdentifierWriteSerializer(NodeIdentifierSerializer):
+    type = serializers.PrimaryKeyRelatedField(queryset=NodeIdentifierType.objects.all())
+
+    class Meta:
+        model = NodeIdentifier
+        fields = ('type', 'identifier',)
+
+class NodeNoteTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NodeNoteType
+        fields = ('id', 'name',)
+
+
 class NodeNoteSerializer(serializers.ModelSerializer):
-    type = serializers.CharField(source='type.name')
+    type = NodeNoteTypeSerializer()
 
     class Meta:
         model = NodeNote
         fields = ('id', 'type', 'text', 'href', 'create_date', 'revise_date',)
+
+
+class NodeNoteWriteSerializer(NodeNoteSerializer):
+    type = serializers.PrimaryKeyRelatedField(queryset=NodeNoteType.objects.all())
+
+    class Meta(NodeNoteSerializer.Meta):
+        extra_kwargs = {
+            'create_date': {
+                'default': timezone.now,
+            },
+        }
 
 
 class NodeRelationTypeSerializer(serializers.ModelSerializer):

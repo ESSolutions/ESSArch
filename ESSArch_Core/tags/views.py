@@ -35,6 +35,8 @@ from ESSArch_Core.tags.models import (
     MetricProfile,
     LocationLevelType,
     LocationFunctionType,
+    NodeIdentifierType,
+    NodeNoteType,
 )
 from ESSArch_Core.tags.permissions import (
     AddStructureUnit,
@@ -64,6 +66,8 @@ from ESSArch_Core.tags.serializers import (
     LocationWriteSerializer,
     TransferEditNodesSerializer,
     TransferSerializer,
+    NodeIdentifierTypeSerializer,
+    NodeNoteTypeSerializer,
 )
 from ESSArch_Core.util import mptt_to_dict
 
@@ -156,6 +160,25 @@ class LocationViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError(_('Location must be empty before deletion'))
         else:
             return resp
+
+
+class NodeNoteTypeViewSet(viewsets.ModelViewSet):
+    queryset = NodeNoteType.objects.all()
+    serializer_class = NodeNoteTypeSerializer
+    permission_classes = (ActionPermissions,)
+    filter_backends = (OrderingFilter, SearchFilter,)
+    ordering_fields = ('name',)
+    search_fields = ('name',)
+
+
+class NodeIdentifierTypeViewSet(viewsets.ModelViewSet):
+    queryset = NodeIdentifierType.objects.all()
+    serializer_class = NodeIdentifierTypeSerializer
+    permission_classes = (ActionPermissions,)
+    filter_backends = (OrderingFilter, SearchFilter,)
+    ordering_fields = ('name',)
+    search_fields = ('name',)
+
 
 class TagVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = TagVersion.objects.all()

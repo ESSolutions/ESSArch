@@ -10,6 +10,8 @@ from ESSArch_Core.tags.models import (
     StructureType,
     StructureUnitType,
     TagVersionType,
+    NodeIdentifierType,
+    NodeNoteType,
 )
 
 
@@ -31,6 +33,8 @@ admin.site.register(LocationLevelType)
 admin.site.register(MetricProfile)
 admin.site.register(MetricType)
 admin.site.register(NodeRelationType, NodeRelationTypeAdmin)
+admin.site.register(NodeIdentifierType)
+admin.site.register(NodeNoteType)
 admin.site.register(StructureType)
 admin.site.register(StructureUnitType, StructureUnitTypeAdmin)
 admin.site.register(TagVersionType, TagVersionTypeAdmin)

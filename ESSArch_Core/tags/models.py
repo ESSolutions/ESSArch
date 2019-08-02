@@ -45,6 +45,9 @@ class NodeIdentifierType(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = _('node identifier type')
+        verbose_name_plural = _('node identifier types')
 
 class NodeNote(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -74,6 +77,10 @@ class NodeNoteType(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = _('node note type')
+        verbose_name_plural = _('node note types')
 
 
 class NodeRelationType(models.Model):
