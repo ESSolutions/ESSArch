@@ -24,7 +24,7 @@
       />
       <div class="refresh-icon">
         <span
-          ng-click="loadRobots()"
+          ng-click="loadRobots(vm.robotTableState)"
           class="clickable angular-animate fas fa-sync-alt fa-lg"
           ng-class="{'fa-sync-alt-animate': ipLoading }"
           uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
