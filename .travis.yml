@@ -3,9 +3,8 @@ language: python
 dist: xenial
 
 cache:
+  pip: true
   yarn: true
-  directories:
-    - "${HOME}/virtualenv/python$(python -c 'import platform; print(platform.python_version())')"
 
 branches:
   only:
