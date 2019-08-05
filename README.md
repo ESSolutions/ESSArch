@@ -17,8 +17,11 @@ $ docker-compose up -d
 $ docker-compose logs -f essarch
 ```
 
-
 3. Finally visit `http://localhost:8000` in your browser
+
+#### Important
+Elasticsearch requires `vm.max_map_count` to be at least 262144, see
+[Install Elasticsearch with Docker](https://www.elastic.co/guide/en/elasticsearch/reference/6.5/docker.html#docker-cli-run-prod-mode) for more information
 
 # Contributing
 
