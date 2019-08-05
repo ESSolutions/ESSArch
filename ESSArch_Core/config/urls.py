@@ -80,47 +80,47 @@ router.register(r'agents', AgentViewSet)
 router.register(r'permissions', PermissionViewSet)
 router.register(r'profilemaker-extensions', ProfileMakerExtensionViewSet)
 router.register(r'profilemaker-templates', ProfileMakerTemplateViewSet)
-router.register(r'information-packages', InformationPackageViewSet, base_name='informationpackage')
+router.register(r'information-packages', InformationPackageViewSet, basename='informationpackage')
 router.register(r'information-packages', InformationPackageViewSet).register(
     r'appraisal-rules',
     AppraisalRuleViewSet,
-    base_name='ip-appraisal-rules',
+    basename='ip-appraisal-rules',
     parents_query_lookups=['information_packages']
 )
 router.register(r'information-packages', InformationPackageViewSet).register(
     r'conversion-rules',
     ConversionRuleViewSet,
-    base_name='ip-conversion-rules',
+    basename='ip-conversion-rules',
     parents_query_lookups=['information_packages']
 )
 router.register(r'information-packages', InformationPackageViewSet).register(
     r'events',
     EventIPViewSet,
-    base_name='ip-events',
+    basename='ip-events',
     parents_query_lookups=['linkingObjectIdentifierValue']
 )
 router.register(r'information-packages', InformationPackageViewSet).register(
     r'profiles',
     InformationPackageProfileIPViewSet,
-    base_name='ip-profiles',
+    basename='ip-profiles',
     parents_query_lookups=['ip']
 )
 router.register(r'information-packages', InformationPackageViewSet).register(
     r'storage-objects',
     StorageObjectViewSet,
-    base_name='ip-storage-objects',
+    basename='ip-storage-objects',
     parents_query_lookups=['ip']
 )
 router.register(r'information-packages', InformationPackageViewSet).register(
     r'validations',
     ValidationViewSet,
-    base_name='ip-validations',
+    basename='ip-validations',
     parents_query_lookups=['information_package']
 )
 router.register(r'information-packages', InformationPackageViewSet).register(
     r'validation-files',
     ValidationFilesViewSet,
-    base_name='ip-validation-files',
+    basename='ip-validation-files',
     parents_query_lookups=['information_package']
 )
 
@@ -128,30 +128,30 @@ router.register(r'io-queue', IOQueueViewSet)
 
 router.register(r'notifications', NotificationViewSet)
 router.register(r'steps', ProcessStepViewSet)
-router.register(r'steps', ProcessStepViewSet, base_name='steps').register(
+router.register(r'steps', ProcessStepViewSet, basename='steps').register(
     r'tasks',
     ProcessTaskViewSet,
-    base_name='steps-tasks',
+    basename='steps-tasks',
     parents_query_lookups=['processstep']
 )
-router.register(r'steps', ProcessStepViewSet, base_name='steps').register(
+router.register(r'steps', ProcessStepViewSet, basename='steps').register(
     r'children',
     ProcessViewSet,
-    base_name='steps-children',
+    basename='steps-children',
     parents_query_lookups=['processstep']
 )
 
 router.register(r'tags', TagViewSet)
-router.register(r'tags', TagViewSet, base_name='tags').register(
+router.register(r'tags', TagViewSet, basename='tags').register(
     r'information-packages',
     TagInformationPackagesViewSet,
-    base_name='tags-informationpackages',
+    basename='tags-informationpackages',
     parents_query_lookups=['tag']
 )
-router.register(r'tags', TagViewSet, base_name='tags').register(
+router.register(r'tags', TagViewSet, basename='tags').register(
     r'descendants',
     TagViewSet,
-    base_name='tags-descendants',
+    basename='tags-descendants',
     parents_query_lookups=['tag']
 )
 
@@ -159,12 +159,12 @@ router.register(r'tasks', ProcessTaskViewSet)
 router.register(r'tasks', ProcessTaskViewSet).register(
     r'validations',
     ValidationViewSet,
-    base_name='task-validations',
+    basename='task-validations',
     parents_query_lookups=['task']
 )
 
 
-router.register(r'organizations', OrganizationViewSet, base_name='organizations')
+router.register(r'organizations', OrganizationViewSet, basename='organizations')
 router.register(r'appraisal-jobs', AppraisalJobViewSet)
 router.register(r'appraisal-rules', AppraisalRuleViewSet)
 router.register(r'conversion-jobs', ConversionJobViewSet)
@@ -190,51 +190,51 @@ router.register(r'tape-drives', TapeDriveViewSet)
 router.register(r'tape-slots', TapeSlotViewSet)
 
 
-router.register(r'storage-mediums', StorageMediumViewSet, base_name='storagemedium').register(
+router.register(r'storage-mediums', StorageMediumViewSet, basename='storagemedium').register(
     r'storage-objects',
     StorageObjectViewSet,
-    base_name='storagemedium-storageobject',
+    basename='storagemedium-storageobject',
     parents_query_lookups=['storage_medium']
 )
 
 router.register(r'orders', OrderViewSet)
 
-router.register(r'workarea-entries', WorkareaEntryViewSet, base_name='workarea-entries')
-router.register(r'workareas', WorkareaViewSet, base_name='workarea')
-router.register(r'workareas', WorkareaViewSet, base_name='workarea').register(
+router.register(r'workarea-entries', WorkareaEntryViewSet, basename='workarea-entries')
+router.register(r'workareas', WorkareaViewSet, basename='workarea')
+router.register(r'workareas', WorkareaViewSet, basename='workarea').register(
     r'events',
     EventIPViewSet,
-    base_name='workarea-events',
+    basename='workarea-events',
     parents_query_lookups=['linkingObjectIdentifierValue']
 )
-router.register(r'workarea-files', WorkareaFilesViewSet, base_name='workarea-files')
+router.register(r'workarea-files', WorkareaFilesViewSet, basename='workarea-files')
 
 
 router.register(r'robots', RobotViewSet)
-router.register(r'robots', ProcessStepViewSet, base_name='robots').register(
+router.register(r'robots', ProcessStepViewSet, basename='robots').register(
     r'queue',
     RobotQueueViewSet,
-    base_name='robots-queue',
+    basename='robots-queue',
     parents_query_lookups=['robot']
 )
 router.register(r'robot-queue', RobotQueueViewSet)
 
-router.register(r'robots', RobotViewSet, base_name='robots').register(
+router.register(r'robots', RobotViewSet, basename='robots').register(
     r'tape-slots',
     TapeSlotViewSet,
-    base_name='robots-tapeslots',
+    basename='robots-tapeslots',
     parents_query_lookups=['tape_slots']
 )
-router.register(r'robots', RobotViewSet, base_name='robots').register(
+router.register(r'robots', RobotViewSet, basename='robots').register(
     r'tape-drives',
     TapeDriveViewSet,
-    base_name='robots-tapedrives',
+    basename='robots-tapedrives',
     parents_query_lookups=['tape_drives']
 )
 
-router.register(r'ip-reception', InformationPackageReceptionViewSet, base_name="ip-reception")
+router.register(r'ip-reception', InformationPackageReceptionViewSet, basename="ip-reception")
 
-router.register(r'search', ComponentSearchViewSet, base_name='search')
+router.register(r'search', ComponentSearchViewSet, basename='search')
 
 urlpatterns = [
     url(r'^', include('ESSArch_Core.frontend.urls'), name='home'),
