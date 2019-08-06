@@ -370,7 +370,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 'agents', 'steps',
                 Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
             )
-            dips = inner.filter(package_type=InformationPackage.DIP).distinct()
+            dips_and_sips = inner.filter(package_type__in=[InformationPackage.DIP, InformationPackage.SIP]).distinct()
 
             lower_higher = InformationPackage.objects.filter(
                 Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
@@ -387,13 +387,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     )
                 )
             ).filter(
-                Q(package_type=InformationPackage.AIC, has_ip=True) |
-                Q(~Q(package_type=InformationPackage.AIC), Q(aic__isnull=True))
+                package_type=InformationPackage.AIC, has_ip=True
             )
             aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner)).distinct()
 
-            self.queryset = self.apply_ordering_filters(aics) | self.apply_filters(dips)
-            self.outer_queryset = simple_outer.distinct() | dips.distinct()
+            self.queryset = self.apply_ordering_filters(aics) | self.apply_filters(dips_and_sips)
+            self.outer_queryset = simple_outer.distinct() | dips_and_sips.distinct()
             self.inner_queryset = simple_inner
             return self.queryset
         elif not self.detail and view_type == 'ip':
