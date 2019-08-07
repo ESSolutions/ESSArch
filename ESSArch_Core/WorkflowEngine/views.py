@@ -41,7 +41,7 @@ from ESSArch_Core.WorkflowEngine.filters import (
     ProcessTaskFilter,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
-from ESSArch_Core.WorkflowEngine.permissions import CanRetry, CanRun, CanUndo
+from ESSArch_Core.WorkflowEngine.permissions import CanRetry, CanRevoke, CanRun, CanUndo
 from ESSArch_Core.WorkflowEngine.serializers import (
     ProcessStepChildrenSerializer,
     ProcessStepDetailSerializer,
@@ -141,6 +141,15 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def run(self, request, pk=None):
         self.get_object().run()
         return Response({'status': 'running task'})
+
+    @action(detail=True, methods=['post'], permission_classes=[CanRevoke])
+    def revoke(self, request, pk=None):
+        obj = self.get_object()
+        if obj.status != celery_states.STARTED:
+            raise exceptions.ParseError('Only running tasks can be revoked')
+
+        obj.revoke()
+        return Response({'status': 'revoked task'})
 
     @transaction.atomic
     @action(detail=True, methods=['post'], permission_classes=[CanRetry])

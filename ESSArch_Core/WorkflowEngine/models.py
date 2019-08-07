@@ -33,6 +33,7 @@ import jsonfield
 import tblib
 from celery import chain, group, states as celery_states
 from celery.result import EagerResult
+from celery.task.control import revoke
 from django.core.cache import cache
 from django.db import models
 from django.db.models import Case, Count, Sum, When
@@ -779,6 +780,11 @@ class ProcessTask(Process):
 
         return res
 
+    def revoke(self):
+        logger.debug('Revoking task ({})'.format(self.pk))
+        revoke(self.celery_id, terminate=True)
+        logger.info('Revoked task ({})'.format(self.pk))
+
     def retry(self):
         """
         Retries the task
@@ -826,6 +832,9 @@ class ProcessTask(Process):
 
         return retry_obj
 
+    def __str__(self):
+        return '%s - %s' % (self.name, self.id)
+
     class Meta:
         db_table = 'ProcessTask'
         ordering = ('processstep_pos', 'time_created')
@@ -834,8 +843,7 @@ class ProcessTask(Process):
         permissions = (
             ('can_run', 'Can run tasks'),
             ('can_undo', 'Can undo tasks'),
+            ('can_revoke', 'Can revoke tasks'),
             ('can_retry', 'Can retry tasks'),
         )
 
-        def __str__(self):
-            return '%s - %s' % (self.name, self.id)

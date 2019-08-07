@@ -260,8 +260,7 @@ class DBTask(Task):
         if not self.track:
             return
 
-        self.update_state(state=celery_states.PENDING,
-                          meta={'current': progress, 'total': total})
+        self.update_state(meta={'current': progress, 'total': total})
 
     def parse_params(self, *params):
         return tuple([parseContent(param, self.extra_data) for param in params])
