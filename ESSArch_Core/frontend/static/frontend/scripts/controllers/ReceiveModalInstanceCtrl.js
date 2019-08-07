@@ -1,18 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('ReceiveModalInstanceCtrl', function(
-    Notifications,
-    $uibModalInstance,
-    $scope,
-    $rootScope,
-    djangoAuth,
-    data,
-    Requests,
-    $translate,
-    IPReception,
-    $uibModal,
-    $log
-  ) {
+export default class ReceiveModalInstanceCtrl {
+  constructor($uibModalInstance, $scope, data, $translate, $uibModal, $log) {
     var vm = data.vm;
     $scope.saAlert = null;
     $scope.alerts = {
@@ -99,4 +86,5 @@ angular
     vm.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}

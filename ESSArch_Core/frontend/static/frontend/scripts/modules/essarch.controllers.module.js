@@ -25,6 +25,7 @@ import QueuesCtrl from '../controllers/QueuesCtrl';
 import PrepareIpCtrl from '../controllers/PrepareIpCtrl';
 import PrepareSipCtrl from '../controllers/PrepareSipCtrl';
 import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
+import ReceiveModalInstanceCtrl from '../controllers/ReceiveModalInstanceCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
 import RequestModalInstanceCtrl from '../controllers/RequestModalInstanceCtrl';
 import RobotInformationCtrl from '../controllers/RobotInformationCtrl';
@@ -274,6 +275,15 @@ export default angular
     '$anchorScroll',
     '$controller',
     PrepareSipCtrl,
+  ])
+  .controller('ReceiveModalInstanceCtrl', [
+    '$uibModalInstance',
+    '$scope',
+    'data',
+    '$translate',
+    '$uibModal',
+    '$log',
+    ReceiveModalInstanceCtrl,
   ])
   .controller('ReceptionCtrl', [
     'IPReception',
