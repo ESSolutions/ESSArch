@@ -31,7 +31,7 @@ class DirectoryWorkflowPoller(BaseWorkflowPoller):
 
             objid = os.path.basename(subpath)
             if InformationPackage.objects.filter(object_identifier_value=objid).exists():
-                logger.debug(u'Information package with object identifier value "{}" already exists'.format(objid))
+                logger.debug('Information package with object identifier value "{}" already exists'.format(objid))
                 continue
 
             if not stable_path(subpath):
@@ -39,7 +39,7 @@ class DirectoryWorkflowPoller(BaseWorkflowPoller):
 
             sa = SubmissionAgreement.objects.get(name=sa)
             if sa.profile_workflow is None:
-                logger.debug(u'No workflow profile in SA, skipping')
+                logger.debug('No workflow profile in SA, skipping')
                 continue
             if proj not in sa.profile_workflow.specification:
                 logger.debug(

@@ -19,7 +19,7 @@ logger = logging.getLogger('essarch.core.fixity.receipt.xml')
 
 class XMLReceiptBackend(BaseReceiptBackend):
     def create(self, template, destination, outcome, short_message, message, date=None, ip=None, task=None):
-        logger.debug(u'Creating XML receipt: {}'.format(destination))
+        logger.debug('Creating XML receipt: {}'.format(destination))
         spec = json.loads(get_template(template).template.source)
 
         data = {}
@@ -32,7 +32,7 @@ class XMLReceiptBackend(BaseReceiptBackend):
             validations = Validation.objects.filter(task=task).order_by('time_started')
             data['validations'] = ValidationSerializer(validations, many=True).data
 
-        data[u'ärenden'] = []
+        data['ärenden'] = []
         if ip is not None:
             cts = ip.get_content_type_file()
             if cts is not None:
@@ -44,15 +44,15 @@ class XMLReceiptBackend(BaseReceiptBackend):
                     try:
                         a_data['id'] = Search(index=['component']).filter(
                             'bool', must=[
-                                Q('term', type=u"Ärende"),
+                                Q('term', type="Ärende"),
                                 Q('term', **{'reference_code.keyword': arende_id}),
                                 Q('term', ip=str(ip.pk))
                             ]
                         ).execute().hits[0].meta.id
                     except IndexError:
                         pass
-                    data[u'ärenden'].append(a_data)
+                    data['ärenden'].append(a_data)
 
         files_to_create = {destination: {'spec': spec, 'data': data}}
         XMLGenerator().generate(files_to_create)
-        logger.info(u'XML receipt created: {}'.format(destination))
+        logger.info('XML receipt created: {}'.format(destination))

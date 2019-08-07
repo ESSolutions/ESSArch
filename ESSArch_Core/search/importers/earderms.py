@@ -49,7 +49,7 @@ class EardErmsImporter(BaseImporter):
                     Q(Q(name=archive_id) | Q(reference_code=archive_id)), elastic_index='archive'
                 )
             except TagVersion.DoesNotExist:
-                logger.exception(u'"{}" not found'.format(archive_id))
+                logger.exception('"{}" not found'.format(archive_id))
                 raise
         except OSError as e:
             if e.errno != errno.ENOENT:
@@ -66,7 +66,7 @@ class EardErmsImporter(BaseImporter):
                 Q(Q(name=reference) | Q(reference_code=reference)), tag__structures__tree_id=archive_tree_id
             )
         except TagVersion.DoesNotExist:
-            logger.exception(u'"{}" not found'.format(reference))
+            logger.exception('"{}" not found'.format(reference))
             raise
 
     def get_errands_root(self, el):
@@ -251,7 +251,7 @@ class EardErmsImporter(BaseImporter):
         data = self.parse_mappings(data_mappings, el)
         data['namn'] = el.get('Namn')
         if data['namn'] is not None:
-            data['namn'] = remove_prefix(remove_prefix(data['namn'], "Dokument/"), u"Ärende/")
+            data['namn'] = remove_prefix(remove_prefix(data['namn'], "Dokument/"), "Ärende/")
         data['datatyp'] = el.get('DataTyp')
         data['format'] = el.get('Format')
         data['element'] = [self.parse_eget_element(e) for e in el.xpath('*[local-name()="EgetElement"]')]
@@ -460,7 +460,7 @@ class EardErmsImporter(BaseImporter):
             current_version=True,
             unit_ids=unit_ids,
             structure_unit=str(structure_unit.pk),
-            type=u'Ärende',
+            type='Ärende',
             reference_code=reference_code,
             archive=str(archive.pk),
             ip=ip_id,

@@ -142,7 +142,7 @@ class DiffCheckValidator(BaseValidator):
         if oldhash != newhash:
             self.deleted.pop(oldhash, None)
             self.changed += 1
-            msg = u'{f} checksum has been changed: {old} != {new}'.format(f=relpath, old=oldhash, new=newhash)
+            msg = '{f} checksum has been changed: {old} != {new}'.format(f=relpath, old=oldhash, new=newhash)
             logger.error(msg)
             self._pop_checksum_dict(self.present, oldhash, relpath)
             self._pop_checksum_dict(self.present, newhash, relpath)
@@ -152,12 +152,12 @@ class DiffCheckValidator(BaseValidator):
         if oldsize is not None and newsize is not None and oldsize != newsize:
             self.deleted.pop(oldhash, None)
             self.changed += 1
-            msg = u'{f} size has been changed: {old} != {new}'.format(f=relpath, old=oldsize, new=newsize)
+            msg = '{f} size has been changed: {old} != {new}'.format(f=relpath, old=oldsize, new=newsize)
             logger.error(msg)
             return self._create_obj(relpath, False, msg)
 
         self.confirmed += 1
-        msg = u'{f} confirmed in xml'.format(f=relpath)
+        msg = '{f} confirmed in xml'.format(f=relpath)
         logger.debug(msg)
         return self._create_obj(relpath, True, msg)
 
@@ -171,7 +171,7 @@ class DiffCheckValidator(BaseValidator):
                     try:
                         old = deleted_hash_files.pop()
                         self.renamed += 1
-                        msg = u'{old} has been renamed to {new}'.format(old=old, new=f)
+                        msg = '{old} has been renamed to {new}'.format(old=old, new=f)
                         logger.error(msg)
                         objs.append(self._create_obj(old, False, msg))
                         present_hash_files.remove(old)
@@ -180,7 +180,7 @@ class DiffCheckValidator(BaseValidator):
                         pass
 
             for f in deleted_hash_files:
-                msg = u'{file} has been deleted'.format(file=f)
+                msg = '{file} has been deleted'.format(file=f)
                 logger.error(msg)
                 objs.append(self._create_obj(f, False, msg))
                 delete_count += 1
@@ -195,7 +195,7 @@ class DiffCheckValidator(BaseValidator):
         for present_hash, present_hash_files in self.present.items():
             for f in present_hash_files:
                 self.added += 1
-                msg = u'{f} is missing from {xml}'.format(f=f, xml=self.context)
+                msg = '{f} is missing from {xml}'.format(f=f, xml=self.context)
                 logger.error(msg)
                 objs.append(self._create_obj(f, False, msg))
 
@@ -204,7 +204,7 @@ class DiffCheckValidator(BaseValidator):
         objs = []
         self._reset_dicts()
         self._reset_counters()
-        logger.debug(u'Validating {path} against {xml}'.format(path=path, xml=xmlfile))
+        logger.debug('Validating {path} against {xml}'.format(path=path, xml=xmlfile))
 
         if os.path.isdir(path):
             for root, dirs, files in walk(path):
@@ -230,7 +230,7 @@ class DiffCheckValidator(BaseValidator):
             logger.warning(msg)
             raise ValidationError(msg)
 
-        logger.info(u"Successful diff-check validation of {path} against {xml}".format(path=path, xml=self.context))
+        logger.info("Successful diff-check validation of {path} against {xml}".format(path=path, xml=self.context))
 
 
 class XMLComparisonValidator(DiffCheckValidator):
@@ -252,7 +252,7 @@ class XMLComparisonValidator(DiffCheckValidator):
         objs = []
         self._reset_dicts()
         self._reset_counters()
-        logger.debug(u'Validating {path} against {xml}'.format(path=path, xml=xmlfile))
+        logger.debug('Validating {path} against {xml}'.format(path=path, xml=xmlfile))
         checksum_in_context_file = self.checksums.get(path)
 
         if checksum_in_context_file:
@@ -295,15 +295,15 @@ class XMLComparisonValidator(DiffCheckValidator):
             logger.warning(msg)
             raise ValidationError(msg)
 
-        logger.info(u"Successful comparison of {path} against {xml}".format(path=path, xml=self.context))
+        logger.info("Successful comparison of {path} against {xml}".format(path=path, xml=self.context))
 
 
 class XMLSchemaValidator(BaseValidator):
     def validate(self, filepath, expected=None):
         if self.context:
-            logger.debug(u'Validating schema of {xml} against {schema}'.format(xml=filepath, schema=self.context))
+            logger.debug('Validating schema of {xml} against {schema}'.format(xml=filepath, schema=self.context))
         else:
-            logger.debug(u'Validating schema of {xml}'.format(xml=filepath))
+            logger.debug('Validating schema of {xml}'.format(xml=filepath))
 
         rootdir = self.options.get('rootdir')
         etree.clear_error_log()
@@ -312,11 +312,11 @@ class XMLSchemaValidator(BaseValidator):
         try:
             validate_against_schema(filepath, self.context, rootdir)
         except etree.DocumentInvalid as e:
-            logger.exception(u'Schema validation of {xml} failed'.format(xml=filepath))
+            logger.exception('Schema validation of {xml} failed'.format(xml=filepath))
             done = timezone.now()
             validation_objs = []
             for error in e.error_log:
-                message = u'{line}: {msg}'.format(line=error.line, msg=error.message)
+                message = '{line}: {msg}'.format(line=error.line, msg=error.message)
                 validation_objs.append(Validation(
                     passed=False,
                     validator=self.__class__.__name__,
@@ -331,7 +331,7 @@ class XMLSchemaValidator(BaseValidator):
             Validation.objects.bulk_create(validation_objs, 100)
             raise
         except Exception as e:
-            logger.exception(u'Unknown error during schema validation of {xml}'.format(xml=filepath))
+            logger.exception('Unknown error during schema validation of {xml}'.format(xml=filepath))
             done = timezone.now()
             Validation.objects.create(
                 passed=False,
@@ -354,7 +354,7 @@ class XMLSchemaValidator(BaseValidator):
             information_package_id=self.ip,
             task=self.task,
         )
-        logger.info(u"Successful schema validation of {xml}".format(xml=filepath))
+        logger.info("Successful schema validation of {xml}".format(xml=filepath))
 
 
 class XMLSyntaxValidator(BaseValidator):
@@ -432,7 +432,7 @@ class XMLSyntaxValidator(BaseValidator):
 
 class XMLSchematronValidator(BaseValidator):
     def validate(self, filepath, expected=None):
-        logger.debug(u'Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
+        logger.debug('Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
 
         rootdir = self.options.get('rootdir')
         etree.clear_error_log()
@@ -449,7 +449,7 @@ class XMLSchematronValidator(BaseValidator):
             done = timezone.now()
             validation_objs = []
             for error in e.error_log:
-                message = u'{line}: {msg}'.format(line=error.line, msg=error.message)
+                message = '{line}: {msg}'.format(line=error.line, msg=error.message)
                 validation_objs.append(Validation(
                     passed=False,
                     validator=self.__class__.__name__,
@@ -505,7 +505,7 @@ class XMLSchematronValidator(BaseValidator):
 
 class XMLISOSchematronValidator(BaseValidator):
     def validate(self, filepath, expected=None):
-        logger.debug(u'Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
+        logger.debug('Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
         rootdir = self.options.get('rootdir')
         etree.clear_error_log()
         started = timezone.now()
@@ -521,7 +521,7 @@ class XMLISOSchematronValidator(BaseValidator):
             done = timezone.now()
             validation_objs = []
             for error in e.error_log:
-                message = u'{line}: {msg}'.format(line=error.line, msg=error.message)
+                message = '{line}: {msg}'.format(line=error.line, msg=error.message)
                 validation_objs.append(Validation(
                     passed=False,
                     validator=self.__class__.__name__,

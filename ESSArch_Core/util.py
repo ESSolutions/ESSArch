@@ -86,8 +86,8 @@ def remove_prefix(text, prefix):
 
 def stable_path(path):
     current_size, current_count = get_tree_size_and_count(path)
-    cache_size_key = u'path_size_{}'.format(path)
-    cache_count_key = u'path_count_{}'.format(path)
+    cache_size_key = 'path_size_{}'.format(path)
+    cache_count_key = 'path_count_{}'.format(path)
     cached_size = cache.get(cache_size_key)
     cached_count = cache.get(cache_count_key)
 
@@ -96,7 +96,7 @@ def stable_path(path):
     updated_count = cached_count != current_count
     if new or updated_size or updated_count:
         if new:
-            logger.info(u'New path: {}, size: {}, count: {}'.format(path, current_size, current_count))
+            logger.info('New path: {}, size: {}, count: {}'.format(path, current_size, current_count))
         elif updated_size or updated_count:
             logger.info(
                 'Updated path: {}, size: {} => {}, count: {} => {}'.format(
@@ -107,7 +107,7 @@ def stable_path(path):
         cache.set(cache_count_key, current_count, 60 * 60)
         return False
 
-    logger.info(u'Stable path: {}, size: {}, count: {}'.format(path, current_size, current_count))
+    logger.info('Stable path: {}, size: {}, count: {}'.format(path, current_size, current_count))
     return True
 
 
@@ -542,13 +542,13 @@ def validate_remote_url(url):
 def get_charset(byte_str):
     charsets = [settings.DEFAULT_CHARSET, 'utf-8', 'windows-1252']
     for c in sorted(set(charsets), key=charsets.index):
-        logger.debug(u'Trying to decode response in {}'.format(c))
+        logger.debug('Trying to decode response in {}'.format(c))
         try:
             byte_str.decode(c)
         except UnicodeDecodeError:
-            logger.exception(u'Failed to decode response in {}'.format(c))
+            logger.exception('Failed to decode response in {}'.format(c))
         else:
-            logger.info(u'Decoded response in {}'.format(c))
+            logger.info('Decoded response in {}'.format(c))
             return c
 
     return chardet.detect(byte_str)['encoding']

@@ -29,7 +29,7 @@ class EmailReceiptBackend(BaseReceiptBackend):
             logger.error(msg)
             raise NoEmailRecipientError(msg)
 
-        logger.debug(u'Sending receipt email to {}'.format(destination))
+        logger.debug('Sending receipt email to {}'.format(destination))
         subject = short_message
 
         data = {}
@@ -46,8 +46,8 @@ class EmailReceiptBackend(BaseReceiptBackend):
         body = render_to_string(template, data)
         msg_count = send_mail(subject, body, None, [destination], fail_silently=False)
 
-        logger.debug(u'{} emails sent (including cc and bcc entries)'.format(msg_count))
+        logger.debug('{} emails sent (including cc and bcc entries)'.format(msg_count))
         if not msg_count:
             raise NoEmailSentError('No emails sent')
 
-        logger.info(u'Email receipt sent to {}'.format(destination))
+        logger.info('Email receipt sent to {}'.format(destination))

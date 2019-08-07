@@ -78,5 +78,5 @@ class ListFilter(django_filters.Filter):
         if value in EMPTY_VALUES:
             return qs
 
-        value_list = value.split(u',')
+        value_list = value.split(',')
         return super().filter(qs, value_list)

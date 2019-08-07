@@ -215,7 +215,7 @@ def download_schemas(ip, logger, verify):
     if premis_profile_rel is not None:
         specifications.append(premis_profile_rel.profile.specification)
 
-    logger.debug(u'Downloading schemas')
+    logger.debug('Downloading schemas')
     for spec in specifications:
         schema_preserve_loc = spec.get('-schemaPreservationLocation', 'xsd_files')
         if schema_preserve_loc and structure:
@@ -227,12 +227,12 @@ def download_schemas(ip, logger, verify):
         for schema in spec.get('-schemasToPreserve', []):
             download_schema(dirname, logger, schema, verify)
     else:
-        logger.info(u'No schemas to download')
+        logger.info('No schemas to download')
 
 
 def download_schema(dirname, logger, schema, verify):
     dst = os.path.join(dirname, os.path.basename(schema))
-    logger.info(u'Downloading schema from {} to {}'.format(schema, dst))
+    logger.info('Downloading schema from {} to {}'.format(schema, dst))
     try:
         r = requests.get(schema, stream=True, verify=verify)
         r.raise_for_status()
@@ -240,16 +240,16 @@ def download_schema(dirname, logger, schema, verify):
             for chunk in r:
                 f.write(chunk)
     except Exception:
-        logger.exception(u'Download of schema failed: {}'.format(schema))
+        logger.exception('Download of schema failed: {}'.format(schema))
         try:
-            logger.debug(u'Deleting downloaded file if it exists: {}'.format(dst))
+            logger.debug('Deleting downloaded file if it exists: {}'.format(dst))
             os.remove(dst)
         except OSError as e:
             if e.errno != errno.ENOENT:
-                logger.exception(u'Failed to delete downloaded file: {}'.format(dst))
+                logger.exception('Failed to delete downloaded file: {}'.format(dst))
                 raise
         else:
-            logger.info(u'Deleted downloaded file: {}'.format(dst))
+            logger.info('Deleted downloaded file: {}'.format(dst))
         raise
     else:
-        logger.info(u'Downloaded schema to {}'.format(dst))
+        logger.info('Downloaded schema to {}'.format(dst))
