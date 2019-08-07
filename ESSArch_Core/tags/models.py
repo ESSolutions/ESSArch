@@ -125,7 +125,7 @@ class Structure(models.Model):
     name = models.CharField(max_length=255, blank=False)
     type = models.ForeignKey(StructureType, on_delete=models.PROTECT)
     template = models.ForeignKey(
-        'self', on_delete=models.SET_NULL, null=True,
+        'self', on_delete=models.PROTECT, null=True,
         limit_choices_to={'is_template': True}, related_name='instances', verbose_name=_('template'),
     )
     is_template = models.BooleanField(_('is template'))
@@ -922,8 +922,14 @@ class TagVersion(models.Model):
 class TagStructure(MPTTModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tag = models.ForeignKey('tags.Tag', on_delete=models.CASCADE, related_name='structures')
-    structure = models.ForeignKey('tags.Structure', on_delete=models.CASCADE, null=False)
-    structure_unit = models.ForeignKey('tags.StructureUnit', on_delete=models.CASCADE, null=True)
+    structure = models.ForeignKey(
+        'tags.Structure', on_delete=models.PROTECT, null=False,
+        limit_choices_to={'is_template': False}
+    )
+    structure_unit = models.ForeignKey(
+        'tags.StructureUnit', on_delete=models.PROTECT, null=True,
+        limit_choices_to={'structure__is_template': False}
+    )
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
