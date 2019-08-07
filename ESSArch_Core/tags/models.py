@@ -9,6 +9,7 @@ from django.db.models import F, OuterRef, Subquery
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
+from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
 
 from ESSArch_Core.agents.models import Agent
@@ -684,6 +685,10 @@ class LocationFunctionType(models.Model):
         verbose_name_plural = _('location function types')
 
 
+class LocationManager(TreeManager, OrganizationManager):
+    pass
+
+
 class Location(MPTTModel):
     name = models.CharField(_('name'), max_length=255, blank=False)
     parent = TreeForeignKey(
@@ -693,7 +698,7 @@ class Location(MPTTModel):
     level_type = models.ForeignKey(LocationLevelType, on_delete=models.PROTECT, verbose_name=_('level type'))
     function = models.ForeignKey(LocationFunctionType, on_delete=models.PROTECT, verbose_name=_('function'))
 
-    objects = OrganizationManager()
+    objects = LocationManager()
 
     def __str__(self):
         return self.name
