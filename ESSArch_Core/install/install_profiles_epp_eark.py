@@ -66,39 +66,7 @@ def installSubmissionAgreement():
         'type': 'Standard',
         'status': 'Agreed',
         'label': 'Submission Agreement National Archive x and Government x',
-        'cm_version': '1.0',
-        'cm_release_date': '2012-04-26T12:45:00+01:00',
-        'cm_change_authority': 'Ozzy Osbourne, NAxx',
-        'cm_change_description': 'Original',
-        'cm_sections_affected': 'None',
-        'producer_organization': 'Government x',
-        'producer_main_name': 'Elton John',
-        'producer_main_address': 'Bourbon Street 123, City x, Country y',
-        'producer_main_phone': '46 (0)8-123450',
-        'producer_main_email': 'Elton.John@company.se',
-        'producer_main_additional': 'Responsible for contract',
-        'producer_individual_name': 'Mike Oldfield',
-        'producer_individual_role': 'Archivist',
-        'producer_individual_phone': '46 (0)8-123451',
-        'producer_individual_email': 'Mike.Oldfield@company.se',
-        'producer_individual_additional': 'Principal archivist',
         'archivist_organization': 'National Archive xx',
-        'archivist_main_name': 'Ozzy Osbourne',
-        'archivist_main_address': 'Main street 123, City x, Country y',
-        'archivist_main_phone': '46 (0)8-1001001',
-        'archivist_main_email': 'Ozzy.Osbourne@archive.org',
-        'archivist_main_additional': 'Responsible for contract',
-        'archivist_individual_name': 'Lita Ford',
-        'archivist_individual_role': 'Archivist',
-        'archivist_individual_phone': '46 (0)8-1001002',
-        'archivist_individual_email': 'Lita.Ford@archive.org',
-        'archivist_individual_additional': 'Principal archivist',
-        'designated_community_description': 'Designated community description',
-        'designated_community_individual_name': 'Elvis Presley',
-        'designated_community_individual_role': 'Artist',
-        'designated_community_individual_phone': '46 (0)8-2002001',
-        'designated_community_individual_email': 'Elvis.Presley@xxx.org',
-        'designated_community_individual_additional': 'Celebrity',
         'template': [
             {
                 "key": "archivist_organization",
@@ -129,47 +97,6 @@ def installProfileTransferProject(sa):
         'label': 'Transfer Project Profile 1',
         'template': [
             {
-                "templateOptions": {
-                    "type": "text",
-                    "label": "Archival institution",
-                    "desc": "xxx",
-                },
-                "type": "input",
-                "key": "archival_institution"
-            }, {
-                "templateOptions": {
-                    "type": "text",
-                    "disabled": True,
-                    "label": "Archivist Organization"
-                },
-                "type": "input",
-                "key": "_IP_ARCHIVIST_ORGANIZATION"
-            }, {
-                "templateOptions": {
-                    "type": "text",
-                    "label": "Archival type",
-                    "desc": "xxx",
-                },
-                "type": "input",
-                "key": "archival_type"
-            }, {
-                "templateOptions": {
-                    "type": "text",
-                    "label": "Archival location",
-                    "desc": "xxx",
-                },
-                "type": "input",
-                "key": "archival_location"
-            }, {
-                "templateOptions": {
-                    "disabled": True,
-                    "type": "text",
-                    "label": "Archive Policy",
-                    "desc": "xxx",
-                },
-                "type": "input",
-                "key": "storage_policy"
-            }, {
                 'key': 'container_format',
                 'type': 'select',
                 'templateOptions': {
