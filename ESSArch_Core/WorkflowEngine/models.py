@@ -513,6 +513,10 @@ class ProcessStep(MPTTModel, Process):
                 cache.set(self.cache_status_key, celery_states.FAILURE)
                 return celery_states.FAILURE
 
+            if tasks.filter(status=celery_states.REVOKED).exists():
+                cache.set(self.cache_status_key, celery_states.REVOKED)
+                return celery_states.REVOKED
+
             if tasks.filter(status=celery_states.PENDING).exists():
                 status = celery_states.PENDING
 

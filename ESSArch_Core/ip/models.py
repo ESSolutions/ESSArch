@@ -623,10 +623,10 @@ class InformationPackage(models.Model):
             for ip in ips:
                 ip_step_state = ip.step_state
 
-                if ip_step_state == celery_states.STARTED:
+                if ip_step_state == celery_states.STARTED or ip_step_state == celery_states.REVOKED:
                     state = ip_step_state
                 if (ip_step_state == celery_states.PENDING and
-                        state != celery_states.STARTED):
+                        state not in [celery_states.STARTED, celery_states.REVOKED]):
                     state = ip_step_state
                 if ip_step_state == celery_states.FAILURE:
                     return ip_step_state
@@ -638,10 +638,10 @@ class InformationPackage(models.Model):
         for task in tasks:
             task_status = task.status
 
-            if task_status == celery_states.STARTED:
+            if task_status == celery_states.STARTED or task_status == celery_states.REVOKED:
                 state = task_status
             if (task_status == celery_states.PENDING and
-                    state != celery_states.STARTED):
+                    state not in [celery_states.STARTED, celery_states.REVOKED]):
                 state = task_status
             if task_status == celery_states.FAILURE:
                 return task_status
@@ -1416,8 +1416,9 @@ class InformationPackage(models.Model):
         return str(storage_object.pk)
 
     def access(self, storage_object, task):
-        logger.debug('Accessing information package {}'.format(self.object_identifier_value))
-        logger.debug('Accessing storage object'.format(str(storage_object.pk)))
+        logger.debug('Accessing information package {} from storage object {}'.format(
+            self.object_identifier_value, str(storage_object.pk),
+        ))
 
         is_cached_storage_object = storage_object.is_cache_for_ip(self)
 

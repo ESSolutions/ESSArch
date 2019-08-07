@@ -60,7 +60,7 @@ class test_status(TestCase):
         for i in range(depth):
             parent = ProcessStep.objects.create(parent_step=parent)
 
-        with self.assertNumQueries((5 * depth) + 2):
+        with self.assertNumQueries((6 * depth) + 2):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status(self):
@@ -90,7 +90,7 @@ class test_status(TestCase):
             processstep=self.step
         )
 
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(7):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_add_task(self):
@@ -102,7 +102,7 @@ class test_status(TestCase):
         self.step.status
         self.step.add_tasks(t)
 
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(7):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_create_child_step(self):
@@ -110,7 +110,7 @@ class test_status(TestCase):
 
         ProcessStep.objects.create(parent_step=self.step)
 
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(8):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_add_child_step(self):
@@ -119,7 +119,7 @@ class test_status(TestCase):
         self.step.status
         self.step.add_child_steps(s)
 
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(8):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_run_task(self):
@@ -132,7 +132,7 @@ class test_status(TestCase):
 
         t.run()
 
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(7):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_run_task_in_nested_step(self):
@@ -146,7 +146,7 @@ class test_status(TestCase):
 
         t.run()
 
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(13):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_undo_task(self):
@@ -172,7 +172,7 @@ class test_status(TestCase):
         self.step.status
         s.run()
 
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(13):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_undo_step(self):
@@ -186,7 +186,7 @@ class test_status(TestCase):
         self.step.status
         s.undo()
 
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(8):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_retry_step(self):
@@ -201,7 +201,7 @@ class test_status(TestCase):
         self.step.status
         s.retry()
 
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(13):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_resume_step(self):
@@ -226,7 +226,7 @@ class test_status(TestCase):
         self.step.status
         s.resume()
 
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(13):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_pending_task(self):
