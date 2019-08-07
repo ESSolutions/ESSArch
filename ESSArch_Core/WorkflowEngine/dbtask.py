@@ -60,6 +60,7 @@ class DBTask(Task):
     step = None
     step_pos = None
     track = True
+    allow_failure = False
 
     def __call__(self, *args, **kwargs):
         options = kwargs.pop('_options', {})
@@ -76,6 +77,7 @@ class DBTask(Task):
         self.result_params = options.get('result_params', {}) or {}
         self.task_id = options.get('task_id') or self.request.id
         self.eager = options.get('eager') or self.request.is_eager
+        self.allow_failure = options.get('allow_failure') or self.allow_failure
 
         for k, v in self.result_params.items():
             kwargs[k] = get_result(v, self.eager)
@@ -104,8 +106,9 @@ class DBTask(Task):
             logger.debug('{} acquiring lock for IP {}'.format(self.task_id, str(ip.pk)))
             with cache.lock(ip.get_lock_key(), blocking_timeout=300):
                 logger.info('{} acquired lock for IP {}'.format(self.task_id, str(ip.pk)))
-                return self._run_task(*args, **kwargs)
+                r = self._run_task(*args, **kwargs)
             logger.info('{} released lock for IP {}'.format(self.task_id, str(ip.pk)))
+            return r
 
         return self._run_task(*args, **kwargs)
 
@@ -127,6 +130,15 @@ class DBTask(Task):
             self.failure(e, self.task_id, args, kwargs, einfo)
             if self.eager:
                 self.after_return(celery_states.FAILURE, e, self.task_id, args, kwargs, einfo)
+
+            if self.allow_failure:
+                ProcessTask.objects.filter(celery_id=self.task_id).update(
+                    status=celery_states.FAILURE,
+                    exception=einfo.exception,
+                    traceback=einfo.traceback,
+                )
+                return None
+
             raise
         else:
             self.success(res, self.task_id, args, kwargs)
