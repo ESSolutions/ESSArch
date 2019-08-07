@@ -2,7 +2,13 @@ import sys
 
 import celery.exceptions
 from celery.backends.base import BaseDictBackend
-from celery.states import EXCEPTION_STATES, READY_STATES, STARTED, SUCCESS
+from celery.states import (
+    EXCEPTION_STATES,
+    FAILURE,
+    READY_STATES,
+    STARTED,
+    SUCCESS,
+)
 from celery.utils.serialization import create_exception_cls
 from django.db.models import F
 from django.utils import timezone
@@ -32,12 +38,16 @@ class DatabaseBackend(BaseDictBackend):
         if status in READY_STATES:
             updated['time_done'] = timezone.now()
 
-        if status == SUCCESS:
-            updated['result'] = result
-            updated['progress'] = 100
+        if not ProcessTask.objects.filter(celery_id=task_id, status=FAILURE, allow_failure=True).exists():
+            if status == SUCCESS:
+                updated['result'] = result
+                updated['progress'] = 100
 
-        if status in EXCEPTION_STATES:
-            updated['exception'] = result
+            if status in EXCEPTION_STATES:
+                updated['exception'] = result
+        else:
+            updated.pop('traceback')
+            updated.pop('status')
 
         ProcessTask.objects.filter(celery_id=task_id).update(**updated)
         return result

@@ -72,6 +72,7 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
                 args=args,
                 params=params,
                 eager=False,
+                allow_failure=flow_entry.get('allow_failure', False),
                 information_package=ip,
                 responsible=responsible,
                 processstep=parent_step,

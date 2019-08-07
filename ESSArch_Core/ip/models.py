@@ -1071,6 +1071,16 @@ class InformationPackage(models.Model):
         storage_object = self.get_fastest_readable_storage_object()
         is_cached_storage_object = storage_object.is_cache_for_ip(self)
 
+        cache_storage = self.policy.cache_storage
+        try:
+            cache_target = cache_storage.enabled_target
+            if not cache_target.storagemedium_set.writeable().exists():
+                cache_target = None
+            else:
+                cache_target = cache_target.target
+        except StorageTarget.DoesNotExist:
+            cache_target = None
+
         temp_container_path = self.get_temp_container_path()
         temp_mets_path = self.get_temp_container_xml_path()
         temp_aic_mets_path = self.get_temp_container_aic_xml_path() if self.aic else None
@@ -1094,6 +1104,16 @@ class InformationPackage(models.Model):
                         "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                         "label": "Access AIP",
                         "args": [str(self.pk)],
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.ExtractTAR",
+                        "label": "Extract temporary container to cache",
+                        "if": cache_target is not None,
+                        "allow_failure": True,
+                        "args": [
+                            temp_container_path,
+                            cache_target,
+                        ],
                     },
                     {
                         "name": "ESSArch_Core.tasks.CopyFile",
@@ -1143,20 +1163,21 @@ class InformationPackage(models.Model):
             os.makedirs(access_workarea_user, exist_ok=True)
 
             if is_cached_storage_object:
-                # TODO:
-                # if reading from cache:
-                #  [x] copy dir to temp directory
-                #  [x] copy dir to access directory
-
-                pass
+                workflow = {
+                    "step": True,
+                    "name": "Access AIP",
+                    "children": [
+                        {
+                            "name": "ESSArch_Core.workflow.tasks.AccessAIP",
+                            "label": "Access AIP",
+                            "args": [str(self.pk)],
+                        },
+                    ]
+                }
 
             elif storage_object.container:
-                # TODO:
-                # if reading from long-term storage
-                #  [x] copy files to temp directory
-                #  [ ] extract tar to cache, if it is available
-                #  [x] copy xml files to access directory
-                #  [x] extract tar to access directory
+                # reading from long-term storage
+
                 workflow = {
                     "step": True,
                     "name": "Access AIP",
@@ -1168,7 +1189,17 @@ class InformationPackage(models.Model):
                         },
                         {
                             "name": "ESSArch_Core.tasks.ExtractTAR",
-                            "label": "Extract temporary container to workspace",
+                            "label": "Extract temporary container to cache",
+                            "if": cache_target is not None,
+                            "allow_failure": True,
+                            "args": [
+                                temp_container_path,
+                                cache_target,
+                            ],
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.CopyFile",
+                            "label": "Copy temporary container to workspace",
                             "args": [
                                 temp_container_path,
                                 access_workarea_user,
@@ -1208,16 +1239,20 @@ class InformationPackage(models.Model):
                     ]
                 }
             else:
-
-                # TODO:
-                # if reading from non long-term storage
-                #  [ ] copy dir to cache, if it is available
-                #  [x] copy dir to access directory
+                # reading from non long-term storage
 
                 workflow = {
                     "step": True,
                     "name": "Access AIP",
                     "children": [
+                        {
+                            "name": "ESSArch_Core.workflow.tasks.AccessAIP",
+                            "label": "Copy AIP to cache",
+                            "if": cache_target is not None,
+                            "allow_failure": True,
+                            "args": [str(self.pk)],
+                            "params": {"dst": os.path.join(cache_target, self.object_identifier_value)},
+                        },
                         {
                             "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                             "label": "Access AIP",
@@ -1415,7 +1450,7 @@ class InformationPackage(models.Model):
 
         return str(storage_object.pk)
 
-    def access(self, storage_object, task):
+    def access(self, storage_object, task, dst=None):
         logger.debug('Accessing information package {} from storage object {}'.format(
             self.object_identifier_value, str(storage_object.pk),
         ))
@@ -1430,10 +1465,6 @@ class InformationPackage(models.Model):
             session = requests.Session()
             session.verify = False  # TODO: we probably want to enable this
             session.auth = (user, passw)
-
-            # TODO:
-            # [x] request remote host to read storage object to its configured temp directory
-            #   and transfer to temp on master
 
             # if the remote server already has completed
             # then we only want to get the result from it,
@@ -1494,32 +1525,15 @@ class InformationPackage(models.Model):
                 storage_backend.read(storage_object, temp_dir)
 
                 if is_cached_storage_object:
-                    # TODO:
-                    # if reading from cache:
-                    #  [x] copy files to temp directory
-                    #  [x] tar files and copy to temp directory on master
-
                     with tarfile.open(temp_container_path, 'w') as new_tar:
                         new_tar.add(temp_object_path)
                     copy_file(temp_container_path, dst, requests_session=session)
 
                 elif storage_object.container:
-                    # TODO:
-                    # if reading from long-term storage
-                    #  [ ] extract the files to cache, if it is available
-                    #  [x] copy files to temp directory
-                    #  [x] copy files to temp directory on master
-
                     copy_file(temp_container_path, dst, requests_session=session)
                     copy_file(temp_mets_path, dst, requests_session=session)
                     copy_file(temp_aic_mets_path, dst, requests_session=session)
                 else:
-                    # TODO:
-                    # if reading from non long-term storage
-                    #  [ ] copy files to cache, if it is available
-                    #  [x] copy files to temp directory
-                    #  [x] tar files and copy to temp directory on master
-
                     with tarfile.open(temp_container_path, 'w') as new_tar:
                         new_tar.add(temp_object_path)
                     copy_file(temp_container_path, dst, requests_session=session)
@@ -1531,7 +1545,7 @@ class InformationPackage(models.Model):
                 else:
                     access_workarea = Path.objects.get(entity='access_workarea').value
                     access_workarea_user = os.path.join(access_workarea, task.responsible.username)
-                    dst = os.path.join(access_workarea_user, self.object_identifier_value)
+                    dst = dst or os.path.join(access_workarea_user, self.object_identifier_value)
                     os.makedirs(dst, exist_ok=True)
                     storage_backend.read(storage_object, dst)
 

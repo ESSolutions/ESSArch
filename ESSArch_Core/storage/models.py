@@ -607,7 +607,7 @@ class StorageObject(models.Model):
         return self.storage_medium.storage_target.get_storage_backend()
 
     def readable(self):
-        return all(
+        return all((
             self.storage_medium.storage_target.status,
             self.storage_medium.storage_target.storage_method_target_relations.filter(
                 status__in=[STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY],
@@ -615,7 +615,7 @@ class StorageObject(models.Model):
             ),
             self.storage_medium.status in [20, 30],
             self.storage_medium.location_status == 50,
-        )
+        ))
 
     def is_cache_for_ip(self, ip):
         return self.storage_medium.storage_target.storage_method_target_relations.filter(

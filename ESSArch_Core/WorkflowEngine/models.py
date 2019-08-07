@@ -74,6 +74,7 @@ def create_sub_task(t, step=None, immutable=True, link_error=None):
         'responsible': t.responsible_id, 'ip': ip_id,
         'step': step_id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
         'undo': t.undo_type, 'result_params': t.result_params,
+        'allow_failure': t.allow_failure,
     }
 
     created = create_task(t.name)
@@ -612,6 +613,7 @@ class ProcessTask(Process):
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
     log = PickledObjectField(null=True, default=None)
     on_error = models.ManyToManyField('self')
+    allow_failure = models.BooleanField(default=False)
 
     objects = models.Manager()
     by_step_pos = OrderedProcessTaskManager()
@@ -732,6 +734,7 @@ class ProcessTask(Process):
             'responsible': self.responsible_id, 'ip':
             ip_id, 'step': step_id,
             'step_pos': self.processstep_pos, 'hidden': self.hidden,
+            'allow_failure': self.allow_failure,
         }
 
         on_error_tasks = self.on_error(manager='by_step_pos').all()
@@ -768,9 +771,9 @@ class ProcessTask(Process):
         step_id = str(self.processstep_id) if self.processstep_id is not None else None
         self.params['_options'] = {
             'responsible': self.responsible_id, 'ip':
-            ip_id, 'step': step_id,
-            'step_pos': self.processstep_pos, 'hidden': self.hidden, 'undo':
-            True,
+            ip_id, 'step': step_id, 'step_pos': self.processstep_pos,
+            'hidden': self.hidden, 'undo': True,
+            'allow_failure': self.allow_failure,
         }
 
         if undoobj.eager:
