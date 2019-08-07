@@ -41,7 +41,12 @@ from ESSArch_Core.WorkflowEngine.filters import (
     ProcessTaskFilter,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
-from ESSArch_Core.WorkflowEngine.permissions import CanRetry, CanRevoke, CanRun, CanUndo
+from ESSArch_Core.WorkflowEngine.permissions import (
+    CanRetry,
+    CanRevoke,
+    CanRun,
+    CanUndo,
+)
 from ESSArch_Core.WorkflowEngine.serializers import (
     ProcessStepChildrenSerializer,
     ProcessStepDetailSerializer,

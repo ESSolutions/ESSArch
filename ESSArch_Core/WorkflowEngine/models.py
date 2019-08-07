@@ -846,4 +846,3 @@ class ProcessTask(Process):
             ('can_revoke', 'Can revoke tasks'),
             ('can_retry', 'Can retry tasks'),
         )
-
