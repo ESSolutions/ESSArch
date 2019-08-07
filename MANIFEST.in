@@ -1,4 +1,4 @@
-recursive-include * *.js *.html *.txt *.gif *.png *.css *.wsdl *.xml *.xsd *.sh *.map *.ico *.psd *.scss *.json *.swf *.po *.mo
+recursive-include * *.js *.html *.txt *.gif *.png *.css *.xml *.ico *.json *.po *.mo local_settings.default
 include versioneer.py
 include README.md
 include LICENSE

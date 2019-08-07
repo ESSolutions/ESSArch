@@ -23,6 +23,7 @@
 """
 
 from setuptools import find_packages, setup
+import os
 import versioneer
 
 
@@ -31,6 +32,13 @@ versioneer.versionfile_source = 'ESSArch_Core/_version.py'
 versioneer.versionfile_build = None
 versioneer.tag_prefix = ''  # tags are like 1.2.0
 versioneer.parentdir_prefix = 'ESSArch_Core-'
+
+
+def get_requirements(env):
+    path = os.path.join('requirements/{}.txt').format(env)
+    with open(path) as fp:
+        return [x.strip() for x in fp.read().split('\n') if not x.startswith('#')]
+
 
 if __name__ == '__main__':
     cmdclass = versioneer.get_cmdclass()
@@ -66,54 +74,10 @@ if __name__ == '__main__':
             "Framework :: Django",
             "Topic :: System :: Archiving",
         ],
-        install_requires=[
-            "celery[tblib]==4.3.0",
-            "cffi==1.12.3",
-            "channels==2.2.0",
-            "channels_redis==2.4.0",
-            "chardet==3.0.4",
-            "click==7.0",
-            "crontab==0.22.5",
-            "cryptography==2.7",
-            "daphne==2.3.0",
-            "dj-database-url==0.5.0",
-            "django==2.2.4",
-            "django-cors-headers==3.0.2",
-            "django-filter==2.2.0",
-            "django-groups-manager==0.6.2",
-            "django-guardian==2.0.0",
-            "django-mptt==0.10.0",
-            "django-nested-inline==0.3.7",
-            "django-picklefield==2.0",
-            "django-redis==4.10.0",
-            "django-rest-auth[with_social]==0.9.5",
-            "djangorestframework==3.10.2",
-            "drf-dynamic-fields==0.3.1",
-            "drf-extensions==0.5.0",
-            "drf-proxy-pagination==0.2.0",
-            "elasticsearch-dsl==6.3.1",
-            "glob2==0.7",
-            "jsonfield==2.0.2",
-            "lxml==4.3.4",
-            "natsort==6.0.0",
-            "opf-fido==1.3.12",
-            "pyfakefs==3.5.8",
-            "python-dateutil==2.8.0",
-            "pywin32==224;platform_system=='Windows'",
-            "redis==3.2.1",
-            "regex==2018.08.29",
-            "requests==2.22.0",
-            "requests_toolbelt==0.9.1",
-            "tenacity==5.0.4",
-            "wand==0.5.5",
-            "weasyprint==46",
-        ],
+        install_requires=get_requirements('base'),
         extras_require={
-            "docs": ["sphinx==1.8.5", "sphinx-intl==0.9.11",
-                     "sphinx-rtd-theme==0.4.3", "sphinxcontrib-httpdomain==1.7.0",
-                     "sphinxcontrib-httpexample==0.10.1",
-                     "sphinxcontrib-inlinesyntaxhighlight==0.2"],
-            "tests": ["coverage==4.5.3", "fakeredis[lua]==1.0.3", "django-test-without-migrations==0.6"],
+            "docs": get_requirements('docs'),
+            "tests": get_requirements('tests'),
             "s3": ["boto3==1.9.186"],
             "ldap": ["django-auth-ldap==2.0.0"],
             "saml2": ["djangosaml2==0.17.2"],
