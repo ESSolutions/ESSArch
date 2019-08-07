@@ -4,6 +4,7 @@ import celery.exceptions
 from celery.backends.base import BaseDictBackend
 from celery.states import EXCEPTION_STATES, READY_STATES, STARTED, SUCCESS
 from celery.utils.serialization import create_exception_cls
+from django.db.models import F
 from django.utils import timezone
 
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
@@ -45,7 +46,7 @@ class DatabaseBackend(BaseDictBackend):
         progress = (meta['current'] / meta['total']) * 100
 
         ProcessTask.objects.filter(celery_id=task_id).update(
-            status=status,
+            status=status if status is not None else F('status'),
             meta=meta,
             progress=progress,
         )
