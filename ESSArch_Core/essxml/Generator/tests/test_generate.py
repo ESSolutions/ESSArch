@@ -2689,15 +2689,15 @@ class ParseContentTestCase(unittest.TestCase):
 
         # django template system
         contentobj = parseContent("{{foo}}", {"foo": "åäö"})
-        self.assertEqual(contentobj, u"åäö")
+        self.assertEqual(contentobj, "åäö")
 
     def test_iso_8859(self):
         from ESSArch_Core.essxml.Generator.xmlGenerator import parse_content_django
         content = [{"var": "foo"}]
-        foo = u"åäö".encode("iso-8859-1")
+        foo = "åäö".encode("iso-8859-1")
         info = {"foo": foo}
         contentobj = parseContent(content, info)
-        self.assertEqual(contentobj, u"åäö")
+        self.assertEqual(contentobj, "åäö")
 
         # django template system
         foo = "åäö".encode("iso-8859-1")

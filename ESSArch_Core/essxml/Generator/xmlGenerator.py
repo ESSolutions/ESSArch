@@ -287,9 +287,9 @@ class XMLElement:
         full_nsmap.update(self.nsmap)
 
         if self.namespace:
-            self.el = etree.Element(u"{{{}}}{}".format(full_nsmap[self.namespace], self.name), nsmap=full_nsmap)
+            self.el = etree.Element("{{{}}}{}".format(full_nsmap[self.namespace], self.name), nsmap=full_nsmap)
         else:
-            self.el = etree.Element(u"{}".format(self.name), nsmap=full_nsmap)
+            self.el = etree.Element("{}".format(self.name), nsmap=full_nsmap)
 
         self.el.text = self.parse(info)
 
@@ -335,7 +335,7 @@ class XMLElement:
                             include = False
 
                     if include:
-                        logger.debug(u'Creating child element with additional file data: {data}'.format(data=fileinfo))
+                        logger.debug('Creating child element with additional file data: {data}'.format(data=fileinfo))
                         full_info = info.copy()
                         full_info.update(fileinfo)
                         child_el = child.createLXMLElement(
@@ -366,7 +366,7 @@ class XMLElement:
                 for idx, v in iterator:
                     child_info = copy.deepcopy(info)
                     child_info.update(v)
-                    child_info[u'{foreach}__key'.format(foreach=child.foreach)] = idx
+                    child_info['{foreach}__key'.format(foreach=child.foreach)] = idx
 
                     child_el = child.createLXMLElement(
                         child_info,
@@ -591,7 +591,7 @@ class XMLGenerator:
 
             data['_XML_FILENAME'] = os.path.basename(fname)
 
-            logger.debug(u'Creating {f} with {d}'.format(f=fname, d=data))
+            logger.debug('Creating {f} with {d}'.format(f=fname, d=data))
 
             self.tree = etree.ElementTree(
                 rootEl.createLXMLElement(data, files=files, folderToParse=folderToParse)

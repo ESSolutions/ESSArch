@@ -115,8 +115,8 @@ class CopyChunkTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.storage.copy.open', fake_open)
     def test_local_non_ascii_file_name(self):
-        src = u'åäö.txt'
-        dst = u'öäå.txt'
+        src = 'åäö.txt'
+        dst = 'öäå.txt'
 
         self.fs.create_file(src)
         self.fs.create_file(dst)

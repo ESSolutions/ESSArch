@@ -148,7 +148,7 @@ class ReceiveSIP(DBTask):
 
         if aip.policy.receive_extract_sip:
             tmpdir = Path.objects.cached('entity', 'temp', 'value')
-            self.logger.debug(u'Extracting {} to {}'.format(container, tmpdir))
+            self.logger.debug('Extracting {} to {}'.format(container, tmpdir))
             if container_type == '.tar':
                 with tarfile.open(container) as tar:
                     root_member_name = tar.getnames()[0]
@@ -158,7 +158,7 @@ class ReceiveSIP(DBTask):
                     root_member_name = zipf.namelist()[0]
                     zipf.extractall(tmpdir)
             else:
-                raise ValueError(u'Invalid container type: {}'.format(container))
+                raise ValueError('Invalid container type: {}'.format(container))
 
             tmp_root = os.path.join(tmpdir, root_member_name)
             dst = os.path.join(dst, '')
@@ -167,17 +167,17 @@ class ReceiveSIP(DBTask):
             except OSError as e:
                 if e.errno != errno.EEXIST:
                     raise
-            self.logger.debug(u'Moving content of {} to {}'.format(tmp_root, dst))
+            self.logger.debug('Moving content of {} to {}'.format(tmp_root, dst))
             for f in os.listdir(tmp_root):
                 shutil.move(os.path.join(tmp_root, f), dst)
-            self.logger.debug(u'Deleting {}'.format(tmp_root))
+            self.logger.debug('Deleting {}'.format(tmp_root))
             aip.sip_path = os.path.relpath(dst, aip.object_path)
         else:
-            self.logger.debug(u'Copying {} to {}'.format(container, dst))
+            self.logger.debug('Copying {} to {}'.format(container, dst))
             shutil.copy2(container, dst)
             aip.sip_path = os.path.relpath(os.path.join(dst, os.path.basename(container)), aip.object_path)
 
-        self.logger.debug(u'sip_path set to {}'.format(aip.sip_path))
+        self.logger.debug('sip_path set to {}'.format(aip.sip_path))
         aip.save()
 
     def event_outcome_success(self, result, purpose=None, allow_unknown_files=False):

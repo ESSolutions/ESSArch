@@ -78,7 +78,7 @@ class S3StorageBackend(BaseStorageBackend):
                 key = os.path.basename(f)
                 bucket.upload_file(f, key)
                 if content_location_value is None:
-                    content_location_value = u'{}/{}'.format(bucket_name, key)
+                    content_location_value = '{}/{}'.format(bucket_name, key)
             except IOError as e:
                 if e.errno != errno.EISDIR:
                     raise
@@ -91,7 +91,7 @@ class S3StorageBackend(BaseStorageBackend):
                         bucket.upload_file(srcf, dstf)
 
                 if content_location_value is None:
-                    content_location_value = u'{}/{}'.format(bucket_name, os.path.basename(f))
+                    content_location_value = '{}/{}'.format(bucket_name, os.path.basename(f))
 
         return StorageObject.objects.create(
             content_location_value=content_location_value,

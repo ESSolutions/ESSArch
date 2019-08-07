@@ -143,7 +143,7 @@ class StructureValidator(BaseValidator):
             val_obj.message = traceback.format_exc()
             raise
         else:
-            message = u"Successful structure validation of %s" % filepath
+            message = "Successful structure validation of %s" % filepath
             val_obj.message = message
             logger.info(message)
         finally:

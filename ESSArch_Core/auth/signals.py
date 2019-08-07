@@ -72,12 +72,12 @@ def user_post_save(sender, instance, created, *args, **kwargs):
 
 @receiver(user_logged_in)
 def user_logged_in(sender, user, request, **kwargs):
-    logger.info(u"User {} successfully logged in from host: {}".format(user, request.META['REMOTE_ADDR']))
+    logger.info("User {} successfully logged in from host: {}".format(user, request.META['REMOTE_ADDR']))
 
 
 @receiver(user_logged_out)
 def user_logged_out(sender, user, request, **kwargs):
-    logger.info(u"User {} successfully logged out from host: {}".format(user, request.META['REMOTE_ADDR']))
+    logger.info("User {} successfully logged out from host: {}".format(user, request.META['REMOTE_ADDR']))
 
 
 @receiver(user_login_failed)

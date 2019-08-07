@@ -224,7 +224,7 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
             raise exceptions.ParseError("Missing transformer parameter")
 
         if transformer not in AVAILABLE_TRANSFORMERS:
-            raise exceptions.ParseError(u"Transformer {} not in config".format(transformer))
+            raise exceptions.ParseError("Transformer {} not in config".format(transformer))
 
         if ip.get_profile('validation') is not None:
             for validator, successful in workarea.successfully_validated.items():
@@ -2231,7 +2231,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         try:
             ip = parse_submit_description(xmlfile, srcdir)
         except (etree.LxmlError, ValueError):
-            self.logger.exception(u'Failed to parse {}'.format(xmlfile))
+            self.logger.exception('Failed to parse {}'.format(xmlfile))
             raise
 
         ip['state'] = 'At reception'
@@ -2307,7 +2307,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             creation_date(container_file)
         ).isoformat()
 
-        infoxml = u'%s.xml' % objid
+        infoxml = '%s.xml' % objid
         infoxml = os.path.join(uip, infoxml)
 
         ProcessTask.objects.create(

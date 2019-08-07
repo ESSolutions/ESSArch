@@ -497,7 +497,7 @@ class UpdateIPStatus(DBTask):
             t.save()
         ip.state = status
         ip.save()
-        Notification.objects.create(message=u'{} {}'.format(status.capitalize(), ip.object_identifier_value),
+        Notification.objects.create(message='{} {}'.format(status.capitalize(), ip.object_identifier_value),
                                     level=logging.INFO, user_id=self.responsible, refresh=True)
 
     def undo(self, status, prev=None):
@@ -505,7 +505,7 @@ class UpdateIPStatus(DBTask):
 
     def event_outcome_success(self, result, status, prev=None):
         status, = self.parse_params(status)
-        return u"Updated status of {} to {}".format(get_cached_objid(str(self.ip)), status)
+        return "Updated status of {} to {}".format(get_cached_objid(str(self.ip)), status)
 
 
 class UpdateIPPath(DBTask):
@@ -923,11 +923,11 @@ class RunWorkflowProfiles(DBTask):
                 try:
                     spec = profile.specification[proj]
                 except KeyError:
-                    self.logger.debug(u'No workflow specified in {} for current project {}'.format(profile, proj))
+                    self.logger.debug('No workflow specified in {} for current project {}'.format(profile, proj))
                     continue
                 except AttributeError:
                     if profile is None:
-                        self.logger.debug(u'No workflow profile in SA')
+                        self.logger.debug('No workflow profile in SA')
                         continue
                     raise
 

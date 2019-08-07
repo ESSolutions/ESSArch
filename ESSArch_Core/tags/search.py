@@ -242,7 +242,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         super().__init__(*args, **kwargs)
 
     def get_view_name(self):
-        return u'Search {}'.format(getattr(self, 'suffix', None))
+        return 'Search {}'.format(getattr(self, 'suffix', None))
 
     def get_object(self, index=None):
         """
@@ -522,7 +522,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
             tags.append(tag)
             metadata = tag.from_search()['_source']
 
-            body.append(u'\n'.join([u'{}: {}'.format(
+            body.append('\n'.join(['{}: {}'.format(
                 k, json.dumps(v, ensure_ascii=False)
             ) for k, v in metadata.items()]))
 
@@ -531,13 +531,13 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
                 path = os.path.join(metadata['href'], metadata['filename'])
                 attachments.append((os.path.basename(path), ip.open_file(path, 'rb').read()))
 
-        subject = u'Export: {}'.format(u', '.join([t.name for t in tags]))
+        subject = 'Export: {}'.format(', '.join([t.name for t in tags]))
         body = '\n\n'.join(body)
         email = EmailMessage(subject=subject, body=body, to=[user.email])
         for attachment in attachments:
             email.attach(*attachment)
         email.send()
-        return Response(u'Email sent to {}'.format(user.email))
+        return Response('Email sent to {}'.format(user.email))
 
     @action(detail=True, methods=['post'], url_path='send-as-email')
     def send_as_email(self, request, pk=None):
@@ -552,9 +552,9 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
             return self.send_mass_email(ids, user)
 
         metadata = tag.from_search()['_source']
-        subject = u'Export: {}'.format(tag.name)
+        subject = 'Export: {}'.format(tag.name)
 
-        body = u'\n'.join([u'{}: {}'.format(k, json.dumps(v, ensure_ascii=False)) for k, v in metadata.items()])
+        body = '\n'.join(['{}: {}'.format(k, json.dumps(v, ensure_ascii=False)) for k, v in metadata.items()])
         email = EmailMessage(subject=subject, body=body, to=[user.email])
 
         if tag.elastic_index == 'document':
@@ -563,7 +563,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
             email.attach(os.path.basename(path), ip.open_file(path, 'rb').read())
 
         email.send()
-        return Response(u'Email sent to {}'.format(user.email))
+        return Response('Email sent to {}'.format(user.email))
 
     @action(detail=False, methods=['post'], url_path='mass-email')
     def mass_email(self, request):

@@ -84,6 +84,7 @@ from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_READ_ONLY,
     StorageMedium,
     StorageObject,
+    StorageTarget,
 )
 from ESSArch_Core.util import (
     find_destination,
@@ -779,7 +780,7 @@ class InformationPackage(models.Model):
     def validate_path(self, path):
         fullpath = os.path.join(self.object_path, path)
         if not in_directory(fullpath, self.object_path) and fullpath != os.path.splitext(self.object_path)[0] + '.xml':
-            raise exceptions.ValidationError(u'Illegal path: {s}'.format(path))
+            raise exceptions.ValidationError('Illegal path: {s}'.format(path))
 
     def get_path_response(self, path, request, force_download=False, paginator=None):
         self.validate_path(path)
@@ -1563,7 +1564,7 @@ class InformationPackage(models.Model):
             if not xmlfile:
                 xmlfile = os.path.join(
                     os.path.dirname(self.object_path),
-                    u'{}.xml'.format(self.object_identifier_value)
+                    '{}.xml'.format(self.object_identifier_value)
                 )
             if os.path.join(os.path.dirname(self.object_path), path) == xmlfile:
                 return open(xmlfile, *args)

@@ -559,7 +559,7 @@ class ProcessStep(MPTTModel, Process):
         return False
 
     class Meta:
-        db_table = u'ProcessStep'
+        db_table = 'ProcessStep'
         ordering = ('parent_step_pos', 'time_created')
         get_latest_by = "time_created"
 

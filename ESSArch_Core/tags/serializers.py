@@ -112,7 +112,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
         return obj.is_leaf_node(structure=self.context.get('structure'))
 
     def get_masked_fields(self, obj):
-        cache_key = u'{}_masked_fields'.format(obj.pk)
+        cache_key = '{}_masked_fields'.format(obj.pk)
         cached = cache.get(cache_key)
         if cached is not None:
             return cached

@@ -36,7 +36,7 @@ class SubmissionAgreementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for pt in [pt.lower().replace(' ', '_') for pt in profile_types]:
-            self.fields[u'profile_{}'.format(pt)].required = False
+            self.fields['profile_{}'.format(pt)].required = False
 
     class Meta:
         model = SubmissionAgreement
@@ -47,7 +47,7 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
     def render_change_form(self, request, context, *args, **kwargs):
         for pt in [pt.lower().replace(' ', '_') for pt in profile_types]:
             qs = Profile.objects.filter(profile_type=pt)
-            context['adminform'].form.fields[u'profile_{}'.format(pt)].queryset = qs
+            context['adminform'].form.fields['profile_{}'.format(pt)].queryset = qs
         return super().render_change_form(request, context, args, kwargs)
 
     form = SubmissionAgreementForm
@@ -68,7 +68,7 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
         }),
         ('Profiles', {
             'classes': ('collapse', 'wide'),
-            'fields': tuple([u'profile_{}'.format(pt.lower().replace(' ', '_')) for pt in profile_types])
+            'fields': tuple(['profile_{}'.format(pt.lower().replace(' ', '_')) for pt in profile_types])
         }),
     )
 
