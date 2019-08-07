@@ -33,7 +33,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('WorkflowEngine', '0040_auto_20160825_1751'),
+        ('WorkflowEngine', '0039_processstep_parent_step_pos'),
     ]
 
     operations = [

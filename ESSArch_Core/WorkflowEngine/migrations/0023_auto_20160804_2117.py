@@ -32,18 +32,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('WorkflowEngine', '0021_auto_20160803_1628'),
+        ('WorkflowEngine', '0020_processstep_waitforparams'),
     ]
 
     operations = [
         migrations.RemoveField(
             model_name='processstep',
             name='task_set',
-        ),
-        migrations.AlterField(
-            model_name='processtask',
-            name='name',
-            field=models.CharField(choices=[('WorkflowEngine.tasks.ValidateMetadata', 'ValidateMetadata'), ('WorkflowEngine.tasks.AddPremisToMetsAmdSec', 'AddPremisToMetsAmdSec'), ('WorkflowEngine.tasks.CreateIPEventsFile', 'CreateIPEventsFile'), ('WorkflowEngine.tasks.Third', 'Third'), ('WorkflowEngine.tasks.UploadFile', 'UploadFile'), ('WorkflowEngine.tasks.CreateTAR', 'CreateTAR'), ('WorkflowEngine.tasks.Sleepy', 'Sleepy'), ('WorkflowEngine.tasks.GenerateXML', 'GenerateXML'), ('WorkflowEngine.tasks.CreatePhysicalModel', 'CreatePhysicalModel'), ('WorkflowEngine.tasks.Second', 'Second'), ('WorkflowEngine.tasks.ValidateLogicalPhysical', 'ValidateLogicalPhysical'), ('WorkflowEngine.tasks.First', 'First')], max_length=255),
         ),
         migrations.AlterField(
             model_name='processtask',

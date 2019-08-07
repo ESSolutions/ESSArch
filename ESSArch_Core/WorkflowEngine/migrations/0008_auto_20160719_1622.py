@@ -38,15 +38,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='StepTask',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('order', models.IntegerField()),
-                ('step', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='WorkflowEngine.Step')),
-                ('task', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='WorkflowEngine.Task')),
-            ],
-        ),
         migrations.AddField(
             model_name='processtask',
             name='params',
@@ -66,10 +57,5 @@ class Migration(migrations.Migration):
             model_name='processstep',
             name='result',
             field=picklefield.fields.PickledObjectField(default=None, editable=False, null=True),
-        ),
-        migrations.AddField(
-            model_name='step',
-            name='tasks',
-            field=models.ManyToManyField(through='WorkflowEngine.StepTask', to='WorkflowEngine.Task'),
         ),
     ]

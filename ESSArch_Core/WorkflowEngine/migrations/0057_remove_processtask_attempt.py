@@ -8,7 +8,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('WorkflowEngine', '0056_auto_20170210_1106'),
+        ('WorkflowEngine', '0055_remove_processtask_celery_id'),
     ]
 
     operations = [

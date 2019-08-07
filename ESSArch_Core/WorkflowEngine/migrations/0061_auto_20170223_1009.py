@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('WorkflowEngine', '0060_auto_20170217_1820'),
+        ('WorkflowEngine', '0059_processtask_time_created'),
     ]
 
     operations = [

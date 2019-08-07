@@ -32,7 +32,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('WorkflowEngine', '0036_auto_20160819_1354'),
+        ('WorkflowEngine', '0032_processstep_parallel'),
     ]
 
     operations = [
