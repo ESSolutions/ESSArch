@@ -84,6 +84,7 @@ from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_READ_ONLY,
     StorageMedium,
     StorageObject,
+    StorageTarget,
 )
 from ESSArch_Core.util import (
     find_destination,
