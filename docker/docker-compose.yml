@@ -106,6 +106,8 @@ services:
       POSTGRES_DB: essarch
       POSTGRES_USER: arkiv
       POSTGRES_PASSWORD: password
+    volumes:
+      - essarch_postgres_data:/var/lib/postgresql/data/
     ports:
       - 5432:5432
     networks:
@@ -132,6 +134,7 @@ services:
         ELK_VERSION: 6.5.4
     volumes:
       - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - essarch_elasticsearch_data:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -139,6 +142,10 @@ services:
       ES_JAVA_OPTS: "-Xmx256m -Xms256m"
     networks:
       - essarch
+
+volumes:
+  essarch_elasticsearch_data:
+  essarch_postgres_data:
 
 networks:
   essarch:
