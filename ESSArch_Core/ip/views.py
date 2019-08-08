@@ -1157,7 +1157,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         )
 
         ProcessTask.objects.create(
-            name='workflow.tasks.ReceiveAIP',
+            name='ESSArch_Core.workflow.tasks.ReceiveAIP',
             args=[str(workarea.pk)],
             processstep=step,
             processstep_pos=10,
@@ -1314,7 +1314,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         main_step = ProcessStep.objects.create(name='Prepare DIP',)
         task = ProcessTask.objects.create(
-            name='workflow.tasks.PrepareDIP',
+            name='ESSArch_Core.workflow.tasks.PrepareDIP',
             params={
                 'label': label,
                 'object_identifier_value': object_identifier_value,

@@ -422,7 +422,7 @@ def preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path
     ).run().get()
 
     t = ProcessTask.objects.create(
-        name='workflow.tasks.StoreAIP',
+        name='ESSArch_Core.workflow.tasks.StoreAIP',
         information_package=new_ip,
         responsible=new_ip.responsible,
     )
@@ -434,7 +434,7 @@ def run_cached_ip(ip):
     while not ip.cached:
         with allow_join_result():
             t, created = ProcessTask.objects.get_or_create(
-                name='workflow.tasks.CacheAIP',
+                name='ESSArch_Core.workflow.tasks.CacheAIP',
                 information_package=ip,
                 defaults={'responsible': ip.responsible, 'eager': True}
             )
