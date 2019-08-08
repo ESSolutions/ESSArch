@@ -64,8 +64,9 @@ RUN apt-get update \
         postgresql-client \
         python3-cffi \
         shared-mime-info \
+        default-libmysqlclient-dev \
     && pip install --no-cache-dir --upgrade pip setuptools pywatchman \
-    && pip install --no-cache-dir -e .[postgres,s3,tests] \
+    && pip install --no-cache-dir -e .[mysql,postgres,s3,tests] \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get purge -y --auto-remove gcc
 
