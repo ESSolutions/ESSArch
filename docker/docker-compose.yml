@@ -7,7 +7,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     environment:
-      DATABASE_URL_ESSARCH: postgres://arkiv:password@db:5432/essarch
+      DATABASE_URL_ESSARCH: postgres://arkiv:password@postgres:5432/essarch
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL: http://elasticsearch:9200
@@ -22,7 +22,7 @@ services:
       - /bin/bash
       - -c
       - |
-        /code/docker/wait_for.sh db 5432
+        /code/docker/wait_for.sh postgres 5432
         /code/docker/wait_for.sh redis 6379
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh elasticsearch 9200
@@ -31,7 +31,7 @@ services:
       - 8000:8000
     tty: true
     depends_on:
-      - db
+      - postgres
       - rabbitmq
       - redis
       - elasticsearch
@@ -50,7 +50,7 @@ services:
         /code/docker/wait_for.sh elasticsearch 9200
         essarch worker -l info -q celery,file_operation,validation
     environment:
-      DATABASE_URL_ESSARCH: postgres://arkiv:password@db:5432/essarch
+      DATABASE_URL_ESSARCH: postgres://arkiv:password@postgres:5432/essarch
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL: http://elasticsearch:9200
@@ -81,7 +81,7 @@ services:
         /code/docker/wait_for.sh elasticsearch 9200
         essarch beat -l info
     environment:
-      DATABASE_URL_ESSARCH: postgres://arkiv:password@db:5432/essarch
+      DATABASE_URL_ESSARCH: postgres://arkiv:password@postgres:5432/essarch
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL: http://elasticsearch:9200
@@ -100,7 +100,7 @@ services:
     networks:
       - essarch
 
-  db:
+  postgres:
     image: "postgres"
     environment:
       POSTGRES_DB: essarch
@@ -110,6 +110,20 @@ services:
       - essarch_postgres_data:/var/lib/postgresql/data/
     ports:
       - 5432:5432
+    networks:
+      - essarch
+
+  mariadb:
+    image: "mariadb:10.4.6"
+    environment:
+      MYSQL_DATABASE: essarch
+      MYSQL_USER: arkiv
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - essarch_mariadb_data:/var/lib/mysql
+    ports:
+      - 3306:3306
     networks:
       - essarch
 
@@ -145,6 +159,7 @@ services:
 
 volumes:
   essarch_elasticsearch_data:
+  essarch_mariadb_data:
   essarch_postgres_data:
 
 networks:
