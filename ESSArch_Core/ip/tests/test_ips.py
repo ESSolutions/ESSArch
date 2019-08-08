@@ -51,7 +51,15 @@ from ESSArch_Core.profiles.models import (
     ProfileSA,
     SubmissionAgreement,
 )
-from ESSArch_Core.storage.models import StorageMethod
+from ESSArch_Core.storage.models import (
+    DISK,
+    STORAGE_TARGET_STATUS_ENABLED,
+    StorageMedium,
+    StorageMethod,
+    StorageMethodTargetRelation,
+    StorageObject,
+    StorageTarget,
+)
 from ESSArch_Core.tags.models import Structure, Tag, TagStructure
 from ESSArch_Core.testing.runner import TaskRunner
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
@@ -61,8 +69,32 @@ class AccessTestCase(TestCase):
     def setUp(self):
         Path.objects.create(entity="access_workarea", value="")
         Path.objects.create(entity="ingest_workarea", value="")
+        Path.objects.create(entity='temp', value="")
+
+        cache = StorageMethod.objects.create()
+        cache_target = StorageTarget.objects.create(name='cache target')
+
+        StorageMethodTargetRelation.objects.create(
+            storage_method=cache,
+            storage_target=cache_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+        storage_medium = StorageMedium.objects.create(
+            storage_target=cache_target,
+            status=20, location_status=50,
+            block_size=1024, format=103
+        )
 
         self.ip = InformationPackage.objects.create()
+        self.ip.policy = StoragePolicy.objects.create(
+            cache_storage=cache,
+            ingest_path=Path.objects.create(entity='ingest', value='ingest'),
+        )
+
+        StorageObject.objects.create(
+            storage_medium=storage_medium, ip=self.ip,
+            content_location_type=DISK,
+        )
 
         self.user = User.objects.create(username="admin")
         self.member = self.user.essauth_member
