@@ -40,6 +40,10 @@ def create_data_directories(base_dir):
         'eta/reception/eft',
         'eta/uip',
         'eta/work',
+        'receipts/xml'
+        'store/cache'
+        'store/disk1'
+        'store/longterm_disk1'
     ]
 
     click.secho('Creating data directories:', fg='green')
