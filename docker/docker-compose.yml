@@ -22,7 +22,7 @@ services:
       - /bin/bash
       - -c
       - |
-        /code/docker/wait_for.sh db 5432
+        /code/docker/wait_for.sh postgres 5432
         /code/docker/wait_for.sh redis 6379
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh elasticsearch 9200
