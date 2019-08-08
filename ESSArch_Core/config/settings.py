@@ -4,8 +4,7 @@ from urllib.parse import urlparse
 
 import dj_database_url
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from ESSArch_Core import BASE_DIR
 
 PROJECT_SHORTNAME = 'ESSArch'
 PROJECT_NAME = 'ESSArch'

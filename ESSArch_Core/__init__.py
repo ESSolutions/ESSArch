@@ -21,3 +21,7 @@
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
+
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))

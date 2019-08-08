@@ -1,12 +1,12 @@
 import os
 
 import click
-from django.conf import settings
 
+from ESSArch_Core import BASE_DIR
 from ESSArch_Core.cli import deactivate_prompts
 from ESSArch_Core.config import generate_local_settings
 
-DEFAULT_TEMPLATE = os.path.join(settings.BASE_DIR, 'config/local_settings.default')
+DEFAULT_TEMPLATE = os.path.join(BASE_DIR, 'config/local_settings.default')
 
 
 def create_local_settings_file(path, template, overwrite=None):
