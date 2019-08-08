@@ -28,9 +28,8 @@ logger = logging.getLogger('essarch.storage.backends.tape')
 class TapeStorageBackend(BaseStorageBackend):
     type = TAPE
 
-    def prepare_for_read(self, storage_medium):
-        """Prepare tape for reading by mounting it"""
-
+    @staticmethod
+    def prepare_for_io(storage_medium):
         if storage_medium.tape_drive is not None:
             # already mounted
             return
@@ -43,6 +42,11 @@ class TapeStorageBackend(BaseStorageBackend):
                 eager=False,
             )
             mount_task.run().get()
+
+    def prepare_for_read(self, storage_medium):
+        """Prepare tape for reading by mounting it"""
+
+        return self.prepare_for_io(storage_medium)
 
     def read(self, storage_object, dst, extract=False, include_xml=True, block_size=DEFAULT_TAPE_BLOCK_SIZE):
         tape_pos = int(storage_object.content_location_value)
@@ -93,18 +97,7 @@ class TapeStorageBackend(BaseStorageBackend):
     def prepare_for_write(self, storage_medium):
         """Prepare tape for writing by mounting it"""
 
-        if storage_medium.tape_drive is not None:
-            # already mounted
-            return
-
-        with allow_join_result():
-            logger.debug('Queueing mount of storage medium "{}"'.format(str(storage_medium.pk)))
-            mount_task = ProcessTask.objects.create(
-                name="ESSArch_Core.tasks.MountTape",
-                args=[str(storage_medium.pk)],
-                eager=False,
-            )
-            mount_task.run().get()
+        return self.prepare_for_io(storage_medium)
 
     def write(self, src, ip, container, storage_medium, block_size=DEFAULT_TAPE_BLOCK_SIZE):
         block_size = storage_medium.block_size * 512
