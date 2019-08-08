@@ -60,6 +60,8 @@ def cli(ctx):
     compliant to the OAIS ISO-standard
     """
 
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ESSArch_Core.config.settings')
+
 
 @cli.command()
 @click.option('-q/--quiet', default=False, is_eager=True, expose_value=False, callback=deactivate_prompts)
