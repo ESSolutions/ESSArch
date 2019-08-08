@@ -9,6 +9,7 @@ from ESSArch_Core.cli import deactivate_prompts
 from ESSArch_Core.config.decorators import initialize
 
 LOG_LEVELS = ('DEBUG', 'INFO', 'WARNING', 'WARN', 'ERROR', 'CRITICAL', 'FATAL')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ESSArch_Core.config.settings')
 
 
 @initialize
