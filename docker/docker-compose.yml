@@ -7,7 +7,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     environment:
-      DATABASE_URL_ESSARCH: postgres://arkiv:password@postgres:5432/essarch
+      DATABASE_URL_ESSARCH:
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL: http://elasticsearch:9200
@@ -22,7 +22,7 @@ services:
       - /bin/bash
       - -c
       - |
-        /code/docker/wait_for.sh postgres 5432
+        /code/docker/wait_for.sh ${DATABASE_HOST_ESSARCH} ${DATABASE_PORT_ESSARCH}
         /code/docker/wait_for.sh redis 6379
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh elasticsearch 9200
@@ -31,7 +31,7 @@ services:
       - 8000:8000
     tty: true
     depends_on:
-      - postgres
+      - ${DATABASE_SERVICE_ESSARCH}
       - rabbitmq
       - redis
       - elasticsearch
@@ -50,7 +50,7 @@ services:
         /code/docker/wait_for.sh elasticsearch 9200
         essarch worker -l info -q celery,file_operation,validation
     environment:
-      DATABASE_URL_ESSARCH: postgres://arkiv:password@postgres:5432/essarch
+      DATABASE_URL_ESSARCH:
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL: http://elasticsearch:9200
@@ -81,7 +81,7 @@ services:
         /code/docker/wait_for.sh elasticsearch 9200
         essarch beat -l info
     environment:
-      DATABASE_URL_ESSARCH: postgres://arkiv:password@postgres:5432/essarch
+      DATABASE_URL_ESSARCH:
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL: http://elasticsearch:9200
