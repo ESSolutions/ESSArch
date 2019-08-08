@@ -24,6 +24,14 @@ class Migration(migrations.Migration):
             old_name='ArchivePolicy',
             new_name='StoragePolicy',
         ),
+        migrations.AlterModelOptions(
+            name='storagepolicy',
+            options={
+                'ordering': ['policy_name'],
+                'verbose_name': 'storage policy',
+                'verbose_name_plural': 'storage policies',
+            },
+        ),
         migrations.AddField(
             model_name='storagepolicy',
             name='storage_methods',
