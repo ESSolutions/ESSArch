@@ -1,13 +1,16 @@
 import os
 
 import click
+from django.conf import settings
 
 from ESSArch_Core.cli import deactivate_prompts
 from ESSArch_Core.config import generate_local_settings
 
+DEFAULT_TEMPLATE = os.path.join(settings.BASE_DIR, 'config/local_settings.default')
 
-def create_local_settings_file(path, overwrite=None):
-    content = generate_local_settings()
+
+def create_local_settings_file(path, template, overwrite=None):
+    content = generate_local_settings(template)
 
     if os.path.isfile(path) and overwrite is None:
         overwrite = click.confirm("File at '%s' already exists, should we overwrite it?" % click.format_filename(path))
@@ -19,11 +22,12 @@ def create_local_settings_file(path, overwrite=None):
 
 @click.command()
 @click.option('-q/--quiet', default=False, is_eager=True, expose_value=False, callback=deactivate_prompts)
+@click.option('-t', '--template', default=DEFAULT_TEMPLATE)
 @click.option('--overwrite/--no-overwrite', default=None)
 @click.option('-p', '--path', type=str, prompt=True, default='/ESSArch/config/local_essarch_settings.py',
               show_default='/ESSArch/config/local_essarch_settings.py')
-def generate(path, overwrite):
+def generate(path, overwrite, template):
     """Generate settings file
     """
 
-    create_local_settings_file(path, overwrite=overwrite)
+    create_local_settings_file(path, template=template, overwrite=overwrite)

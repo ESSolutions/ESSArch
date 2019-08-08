@@ -38,16 +38,16 @@ def initialize():
     django.setup()
 
 
-def load_config_template(path, version='default'):
-    from pkg_resources import resource_string
-    return resource_string('ESSArch_Core', 'config/{}.{}'.format(path, version)).decode('utf8')
+def load_config_template(path):
+    with open(path) as f:
+        return f.read()
 
 
-def generate_local_settings():
+def generate_local_settings(template):
     context = {
         'secret_key': get_random_secret_key(),
         'encryption_key': generate_key(),
     }
 
-    content = load_config_template('local_settings').format(**context)
+    content = load_config_template(template).format(**context)
     return content
