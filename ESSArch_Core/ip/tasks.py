@@ -382,6 +382,14 @@ class CreateReceipt(DBTask):
         backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task)
 
 
+class MarkArchived(DBTask):
+    def run(self):
+        ip = self.get_information_package()
+        ip.archived = True
+        ip.state = 'Preserved'
+        ip.save()
+
+
 class DeleteInformationPackage(DBTask):
     def run(self, from_db=False, delete_files=True):
         ip = self.get_information_package()

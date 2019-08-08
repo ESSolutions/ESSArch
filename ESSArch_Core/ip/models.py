@@ -1052,6 +1052,10 @@ class InformationPackage(models.Model):
                 "args": [ip_ingest_path]
             },
             {
+                "name": "ESSArch_Core.ip.tasks.MarkArchived",
+                "label": "Mark as archived",
+            },
+            {
                 "name": "ESSArch_Core.ip.tasks.CreateReceipt",
                 "label": "Create receipt",
                 "args": [
