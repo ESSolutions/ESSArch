@@ -310,6 +310,7 @@ const general = $translateProvider => {
     STATUS: 'Status',
     STEP: 'Step',
     STORAGE_MEDIUMS: 'Storage mediums',
+    STORAGE_POLICY: 'Storage policy',
     STORAGE_STATUS_DESC: 'Storage status, Archival storage or Long-term archival storage',
     STORAGE_STATUS: 'Storage status',
     STORAGE_UNIT: 'Storage unit',

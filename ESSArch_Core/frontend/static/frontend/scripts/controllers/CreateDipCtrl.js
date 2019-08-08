@@ -1,7 +1,7 @@
 export default class {
   constructor(
     IP,
-    ArchivePolicy,
+    StoragePolicy,
     $scope,
     $rootScope,
     $state,
@@ -52,7 +52,7 @@ export default class {
       vm.request = {
         type: 'preserve',
         purpose: '',
-        archivePolicy: {
+        storagePolicy: {
           value: null,
           options: [],
         },
@@ -60,13 +60,13 @@ export default class {
     };
     $scope.initRequestData();
 
-    $scope.getArchivePolicies = function() {
-      return ArchivePolicy.query().$promise.then(function(data) {
+    $scope.getStoragePolicies = function() {
+      return StoragePolicy.query().$promise.then(function(data) {
         return data;
       });
     };
-    $scope.archivePolicyChange = function() {
-      vm.request.informationClass = vm.request.archivePolicy.value.information_class;
+    $scope.storagePolicyChange = function() {
+      vm.request.informationClass = vm.request.storagePolicy.value.information_class;
     };
     //context menu data
     $scope.menuOptions = function(rowType, row) {
@@ -81,8 +81,8 @@ export default class {
 
     $scope.requestForm = false;
     $scope.openRequestForm = function(row) {
-      $scope.getArchivePolicies().then(function(data) {
-        vm.request.archivePolicy.options = data;
+      $scope.getStoragePolicies().then(function(data) {
+        vm.request.storagePolicy.options = data;
       });
     };
 

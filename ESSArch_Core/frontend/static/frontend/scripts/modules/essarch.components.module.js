@@ -1,4 +1,5 @@
 import essarchFooter from '../components/FooterComponent';
+import eventTable from '../components/EventTableComponent';
 import filebrowserComponent from '../components/FilebrowserComponent';
 import importComponent from '../components/ImportComponent';
 import sysInfoComponent from '../components/SysInfoComponent';
@@ -10,6 +11,7 @@ import StateTreeView from '../components/StateTreeViewComponent';
 export default angular
   .module('essarch.components', ['essarch.controllers'])
   .component('essarchFooter', essarchFooter)
+  .component('eventTable', eventTable)
   .component('filebrowser', filebrowserComponent)
   .component('import', importComponent)
   .component('profileEditor', ProfileEditorComponent)

@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('EventCtrl', function(
+export default class EventCtrl {
+  constructor(
     Resource,
     $scope,
     $rootScope,
@@ -91,11 +90,11 @@ angular
       1: 'failure',
     };
     $scope.getEventOutcome = function(outcome) {
-      level = $scope.eventLevels[outcome];
+      let level = $scope.eventLevels[outcome];
       return level;
     };
     $scope.eventOutcomes = (function() {
-      levels = $scope.eventLevels;
+      let levels = $scope.eventLevels;
       return Object.keys(levels).map(function(k) {
         return {value: k, name: levels[k]};
       });
@@ -309,4 +308,5 @@ angular
         $scope.submitRequest($scope.ip, vm.request);
       }
     };
-  });
+  }
+}

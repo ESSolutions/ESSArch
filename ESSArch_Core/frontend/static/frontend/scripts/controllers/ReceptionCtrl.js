@@ -26,7 +26,7 @@ export default class ReceptionCtrl {
   constructor(
     IPReception,
     IP,
-    ArchivePolicy,
+    StoragePolicy,
     $log,
     $uibModal,
     $scope,
@@ -53,7 +53,7 @@ export default class ReceptionCtrl {
       vm.request = {
         type: 'receive',
         purpose: '',
-        archivePolicy: {
+        storagePolicy: {
           value: null,
           options: [],
         },
@@ -96,8 +96,8 @@ export default class ReceptionCtrl {
       });
     };
 
-    $scope.archivePolicyChange = function() {
-      vm.request.informationClass = vm.request.archivePolicy.value.information_class;
+    $scope.storagePolicyChange = function() {
+      vm.request.informationClass = vm.request.storagePolicy.value.information_class;
     };
 
     //Get data for status view
@@ -336,8 +336,8 @@ export default class ReceptionCtrl {
     $scope.yes = $translate.instant('YES');
     $scope.no = $translate.instant('NO');
 
-    $scope.getArchivePolicies = function() {
-      return ArchivePolicy.query().$promise.then(function(data) {
+    $scope.getStoragePolicies = function() {
+      return StoragePolicy.query().$promise.then(function(data) {
         return data;
       });
     };
@@ -405,8 +405,8 @@ export default class ReceptionCtrl {
                     $scope.getListViewData();
                     if ($scope.ips.length > 0) {
                       $scope.ips.shift();
-                      $scope.getArchivePolicies().then(function(result) {
-                        vm.request.archivePolicy.options = result;
+                      $scope.getStoragePolicies().then(function(result) {
+                        vm.request.storagePolicy.options = result;
                         $scope.getArchives().then(function(result) {
                           vm.tags.archive.options = result;
                           $scope.requestForm = true;
@@ -460,8 +460,8 @@ export default class ReceptionCtrl {
                 $scope.getListViewData();
                 if ($scope.ips.length > 0) {
                   $scope.ips.shift();
-                  $scope.getArchivePolicies().then(function(result) {
-                    vm.request.archivePolicy.options = result;
+                  $scope.getStoragePolicies().then(function(result) {
+                    vm.request.storagePolicy.options = result;
                     $scope.getArchives().then(function(result) {
                       vm.tags.archive.options = result;
                       $scope.requestForm = true;
@@ -514,8 +514,8 @@ export default class ReceptionCtrl {
               $scope.getListViewData();
               if ($scope.ips.length > 0) {
                 $scope.ips.shift();
-                $scope.getArchivePolicies().then(function(result) {
-                  vm.request.archivePolicy.options = result;
+                $scope.getStoragePolicies().then(function(result) {
+                  vm.request.storagePolicy.options = result;
                   $scope.getArchives().then(function(result) {
                     vm.tags.archive.options = result;
                     $scope.requestForm = true;

@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('PreserveModalInstanceCtrl', function($uibModalInstance, data, $scope, Requests, $q) {
+export default class PreserveModalInstanceCtrl {
+  constructor($uibModalInstance, data, Requests, $q) {
     var $ctrl = this;
     $ctrl.angular = angular;
     $ctrl.data = data;
@@ -48,4 +47,5 @@ angular
         $ctrl.preserving = false;
       });
     };
-  });
+  }
+}

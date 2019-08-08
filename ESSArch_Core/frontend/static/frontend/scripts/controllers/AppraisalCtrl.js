@@ -1,6 +1,5 @@
 export default class AppraisalCtrl {
   constructor(
-    ArchivePolicy,
     $scope,
     $controller,
     $rootScope,

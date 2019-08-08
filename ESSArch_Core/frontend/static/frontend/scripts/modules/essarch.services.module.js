@@ -1,6 +1,6 @@
 import myService from '../services/myService';
 import appraisal from '../services/appraisal';
-import archivePolicy from '../services/archivePolicy';
+import storagePolicy from '../services/storagePolicy';
 import contextMenuBase from '../services/ContextMenuBase';
 import conversion from '../services/conversion';
 import validate from '../services/validate';
@@ -38,7 +38,7 @@ export default angular
   .module('essarch.services', [])
   .factory('myService', ['PermPermissionStore', 'djangoAuth', myService])
   .factory('Appraisal', ['$http', 'appConfig', appraisal])
-  .factory('ArchivePolicy', ['$resource', 'appConfig', archivePolicy])
+  .factory('StoragePolicy', ['$resource', 'appConfig', storagePolicy])
   .factory('ContentTabs', contentTabs)
   .factory('ContextMenuBase', ['$translate', contextMenuBase])
   .factory('Conversion', ['$http', 'appConfig', conversion])

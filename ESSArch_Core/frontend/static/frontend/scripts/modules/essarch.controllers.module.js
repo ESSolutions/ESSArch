@@ -9,6 +9,7 @@ import BaseCtrl from '../controllers/BaseCtrl';
 import CollectContentCtrl from '../controllers/CollectContentCtrl';
 import CombinedWorkareaCtrl from '../controllers/CombinedWorkareaCtrl';
 import ConversionCtrl from '../controllers/ConversionCtrl';
+import ConfirmReceiveCtrl from '../controllers/ConfirmReceiveCtrl';
 import CreateDipCtrl from '../controllers/CreateDipCtrl';
 import CreateSipCtrl from '../controllers/CreateSipCtrl';
 import DataModalInstanceCtrl from '../controllers/DataModalInstanceCtrl';
@@ -24,6 +25,7 @@ import {organization, OrganizationCtrl} from '../controllers/OrganizationCtrl';
 import QueuesCtrl from '../controllers/QueuesCtrl';
 import PrepareIpCtrl from '../controllers/PrepareIpCtrl';
 import PrepareSipCtrl from '../controllers/PrepareSipCtrl';
+import PreserveModalInstanceCtrl from '../controllers/PreserveModalInstanceCtrl';
 import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
 import ReceiveModalInstanceCtrl from '../controllers/ReceiveModalInstanceCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
@@ -153,9 +155,10 @@ export default angular
     '$transitions',
     ConversionCtrl,
   ])
+  .controller('ConfirmReceiveCtrl', ['IPReception', 'Notifications', '$uibModalInstance', 'data', ConfirmReceiveCtrl])
   .controller('CreateDipCtrl', [
     'IP',
-    'ArchivePolicy',
+    'StoragePolicy',
     '$scope',
     '$rootScope',
     '$state',
@@ -288,7 +291,7 @@ export default angular
   .controller('ReceptionCtrl', [
     'IPReception',
     'IP',
-    'ArchivePolicy',
+    'StoragePolicy',
     '$log',
     '$uibModal',
     '$scope',
@@ -357,7 +360,6 @@ export default angular
     UtilCtrl,
   ])
   .controller('AppraisalCtrl', [
-    'ArchivePolicy',
     '$scope',
     '$controller',
     '$rootScope',
@@ -435,5 +437,6 @@ export default angular
     'SelectedIPUpdater',
     WorkareaCtrl,
   ])
+  .controller('PreserveModalInstanceCtrl', ['$uibModalInstance', 'data', 'Requests', '$q', PreserveModalInstanceCtrl])
   .controller('VersionCtrl', ['$scope', '$window', '$anchorScroll', '$location', '$translate', 'Sysinfo', VersionCtrl])
   .factory('Organization', ['$rootScope', '$http', '$state', 'appConfig', 'myService', organization]).name;

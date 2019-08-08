@@ -11,14 +11,14 @@
           <input class="form-control" ng-model="vm.request.purpose" />
         </div>
         <div ng-if="vm.request.type == 'receive' && checkPermission('ip.receive')">
-          <label>{{'ARCHIVE_POLICY' | translate}}</label>
+          <label>{{'STORAGE_POLICY' | translate}}</label>
           <select
             type="select"
             required="true"
             class="form-control"
-            ng-change="archivePolicyChange()"
-            ng-model="vm.request.archivePolicy.value"
-            ng-options="x.policy_name for x in vm.request.archivePolicy.options track by x.policy_id"
+            ng-change="storagePolicyChange()"
+            ng-model="vm.request.storagePolicy.value"
+            ng-options="x.policy_name for x in vm.request.storagePolicy.options track by x.policy_id"
             required
           ></select>
         </div>

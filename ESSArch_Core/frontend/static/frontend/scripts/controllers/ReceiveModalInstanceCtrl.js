@@ -18,9 +18,9 @@ export default class ReceiveModalInstanceCtrl {
       $scope.ip = data.ip;
       vm.updateCheckedIp({id: temp.id}, $scope.ip);
     });
-    $scope.getArchivePolicies().then(function(result) {
-      vm.request.archivePolicy.options = result;
-      vm.request.archivePolicy.value = $scope.ip.policy;
+    $scope.getStoragePolicies().then(function(result) {
+      vm.request.storagePolicy.options = result;
+      vm.request.storagePolicy.value = $scope.ip.policy;
       vm.request.informationClass = $scope.ip.policy ? $scope.ip.policy.information_class : null;
       $scope.getArchives().then(function(result) {
         vm.tags.archive.options = result;

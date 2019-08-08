@@ -1,13 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('ConfirmReceiveCtrl', function(
-    IPReception,
-    Notifications,
-    $uibModalInstance,
-    data,
-    $scope,
-    $controller
-  ) {
+export default class ConfirmReceiveCtrl {
+  constructor(IPReception, Notifications, $uibModalInstance, data) {
     var $ctrl = this;
 
     $ctrl.receiving = false;
@@ -18,7 +10,7 @@ angular
       $ctrl.receiving = true;
       return IPReception.receive({
         id: ip.id,
-        archive_policy: data.request.archivePolicy.value.id,
+        storage_policy: data.request.storagePolicy.value.id,
         purpose: data.request.purpose,
         tag: data.tag,
         allow_unknown_files: data.request.allowUnknownFiles,
@@ -39,4 +31,5 @@ angular
     $ctrl.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}

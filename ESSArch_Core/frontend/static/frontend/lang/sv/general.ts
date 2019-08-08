@@ -312,6 +312,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     STATUS: 'Status',
     STEP: 'Steg',
     STORAGE_MEDIUMS: 'Lagringsmedier',
+    STORAGE_POLICY: 'Lagringspolicy',
     STORAGE_STATUS_DESC: 'Lagringsstatus, Archival storage eller Long-term archival storage',
     STORAGE_STATUS: 'Lagringsstatus',
     STORAGE_UNIT: 'Förvaringsenhet',
