@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 import time
 from os import walk
 
@@ -19,34 +20,6 @@ MB = 1024 * 1024
 DEFAULT_BLOCK_SIZE = 10 * MB
 
 logger = logging.getLogger('essarch.storage.copy')
-
-
-def copy_chunk_locally(src, dst, offset, file_size, block_size=DEFAULT_BLOCK_SIZE):
-    with open(src, 'rb') as srcf, open(dst, 'ab') as dstf:
-        srcf.seek(offset)
-        dstf.seek(offset)
-
-        time_start = time.time()
-        dstf.write(srcf.read(block_size))
-        time_end = time.time()
-
-        time_elapsed = time_end - time_start
-
-        start = offset
-        end = offset + block_size - 1
-        if end > file_size:
-            end = file_size - 1
-        chunk_size = block_size / MB
-        try:
-            mb_per_sec = chunk_size / time_elapsed
-        except ZeroDivisionError:
-            mb_per_sec = chunk_size
-
-        logger.info(
-            'Copied chunk bytes %s - %s / %s from %s to %s at %s MB/Sec (%s sec)' % (
-                start, end, file_size, src, dst, mb_per_sec, time_elapsed
-            )
-        )
 
 
 @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
@@ -93,56 +66,44 @@ def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id
     return response.json()['upload_id']
 
 
-def copy_chunk(src, dst, offset, file_size, requests_session=None, upload_id=None, block_size=DEFAULT_BLOCK_SIZE):
-    """
-    Copies the given chunk to the given destination
-
-    Args:
-        src: The file to copy
-        dst: Where the file should be copied to
-        requests_session: The session to be used
-        offset: The offset in the file
-        block_size: Size of each block to copy
-    Returns:
-        None
-    """
-
-    if requests_session is not None:
-        if file_size is None:
-            raise ValueError('file_size required on remote transfers')
-
-        return copy_chunk_remotely(src, dst, offset, file_size,
-                                   requests_session=requests_session, upload_id=upload_id,
-                                   block_size=block_size)
-    else:
-        return copy_chunk_locally(src, dst, offset, file_size, block_size=block_size)
-
-
-def copy_file_locally(src, dst, block_size=DEFAULT_BLOCK_SIZE):
+def copy_file_locally(src, dst):
     fsize = os.stat(src).st_size
-    idx = 0
 
     directory = os.path.dirname(dst)
     os.makedirs(directory, exist_ok=True)
 
-    open(dst, 'wb').close()  # remove content of destination if it exists
+    time_start = time.time()
+    shutil.copyfile(src, dst)
+    time_end = time.time()
 
-    while idx * block_size <= fsize:
-        copy_chunk(src, dst, idx * block_size, fsize, block_size=block_size)
-        idx += 1
+    time_elapsed = time_end - time_start
+
+    fsize_mb = fsize / MB
+
+    try:
+        mb_per_sec = fsize_mb / time_elapsed
+    except ZeroDivisionError:
+        mb_per_sec = fsize_mb
+
+    logger.info(
+        'Copied {} ({} MB) to {} at {} MB/Sec ({} sec)'.format(
+            src, fsize_mb, dst, mb_per_sec, time_elapsed
+        )
+    )
 
 
 def copy_file_remotely(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
-    file_size = os.stat(src).st_size
+    fsize = os.stat(src).st_size
     idx = 0
 
-    upload_id = copy_chunk(src, dst, idx * block_size, file_size,
-                           requests_session=requests_session, block_size=block_size)
+    time_start = time.time()
+    upload_id = copy_chunk_remotely(src, dst, idx * block_size, requests_session=requests_session,
+                                    file_size=fsize, block_size=block_size)
     idx += 1
 
-    while idx * block_size <= file_size:
-        copy_chunk(src, dst, idx * block_size, requests_session=requests_session,
-                   file_size=file_size, block_size=block_size, upload_id=upload_id)
+    while idx * block_size <= fsize:
+        copy_chunk_remotely(src, dst, idx * block_size, requests_session=requests_session,
+                            file_size=fsize, block_size=block_size, upload_id=upload_id)
         idx += 1
 
     md5 = calculate_checksum(src, algorithm='MD5', block_size=block_size)
@@ -166,6 +127,22 @@ def copy_file_remotely(src, dst, requests_session=None, block_size=DEFAULT_BLOCK
 
     send_completion_request()
 
+    time_end = time.time()
+    time_elapsed = time_end - time_start
+
+    fsize_mb = fsize / MB
+
+    try:
+        mb_per_sec = fsize_mb / time_elapsed
+    except ZeroDivisionError:
+        mb_per_sec = fsize_mb
+
+    logger.info(
+        'Copied {} ({} MB) to {} at {} MB/Sec ({} sec)'.format(
+            src, fsize_mb, dst, mb_per_sec, time_elapsed
+        )
+    )
+
 
 def copy_file(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
     """
@@ -188,9 +165,8 @@ def copy_file(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
     if requests_session is not None:
         copy_file_remotely(src, dst, requests_session, block_size=block_size)
     else:
-        copy_file_locally(src, dst, block_size=block_size)
+        copy_file_locally(src, dst)
 
-    logger.info('Copied %s to %s' % (src, dst))
     return dst
 
 
