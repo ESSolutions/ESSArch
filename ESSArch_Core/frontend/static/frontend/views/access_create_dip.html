@@ -45,15 +45,15 @@
                   <input class="form-control" ng-model="vm.request.purpose" />
                   <div class="form-group">
                     <label>
-                      {{'ARCHIVE_POLICY' | translate}}
+                      {{'STORAGE_POLICY' | translate}}
                     </label>
                     <select
                       type="select"
                       required="true"
                       class="form-control"
-                      ng-change="archivePolicyChange()"
-                      ng-model="vm.request.archivePolicy.value"
-                      ng-options="x as x.policy_name for x in vm.request.archivePolicy.options"
+                      ng-change="storagePolicyChange()"
+                      ng-model="vm.request.storagePolicy.value"
+                      ng-options="x as x.policy_name for x in vm.request.storagePolicy.options"
                       required
                     ></select>
                   </div>

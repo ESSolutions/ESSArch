@@ -24,8 +24,8 @@ export default class PreserveModalInstanceCtrl {
       $ctrl.preserving = true;
       var params = {purpose: $ctrl.request.purpose};
       params.policy =
-        $ctrl.request.archivePolicy && $ctrl.request.archivePolicy.value != ''
-          ? $ctrl.request.archivePolicy.value.id
+        $ctrl.request.storagePolicy && $ctrl.request.storagePolicy.value != ''
+          ? $ctrl.request.storagePolicy.value.id
           : null;
       if ($ctrl.request.appraisal_date != null) {
         params.appraisal_date = $ctrl.request.appraisal_date;
