@@ -23,11 +23,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='appraisaljob',
             name='status',
-            field=models.CharField(choices=[('REVOKED', 'REVOKED'), ('RETRY', 'RETRY'), ('STARTED', 'STARTED'), ('PENDING', 'PENDING'), ('FAILURE', 'FAILURE'), ('SUCCESS', 'SUCCESS'), ('RECEIVED', 'RECEIVED')], default='PENDING', max_length=50),
+            field=models.CharField(choices=[('FAILURE', 'FAILURE'), ('PENDING', 'PENDING'), ('RECEIVED', 'RECEIVED'), ('RETRY', 'RETRY'), ('REVOKED', 'REVOKED'), ('STARTED', 'STARTED'), ('SUCCESS', 'SUCCESS')], default='PENDING', max_length=50),
         ),
         migrations.AlterField(
             model_name='conversionjob',
             name='status',
-            field=models.CharField(choices=[('REVOKED', 'REVOKED'), ('RETRY', 'RETRY'), ('STARTED', 'STARTED'), ('PENDING', 'PENDING'), ('FAILURE', 'FAILURE'), ('SUCCESS', 'SUCCESS'), ('RECEIVED', 'RECEIVED')], default='PENDING', max_length=50),
+            field=models.CharField(choices=[('FAILURE', 'FAILURE'), ('PENDING', 'PENDING'), ('RECEIVED', 'RECEIVED'), ('RETRY', 'RETRY'), ('REVOKED', 'REVOKED'), ('STARTED', 'STARTED'), ('SUCCESS', 'SUCCESS')], default='PENDING', max_length=50),
         ),
     ]

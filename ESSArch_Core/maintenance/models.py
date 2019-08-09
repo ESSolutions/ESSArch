@@ -6,6 +6,7 @@ import tarfile
 import time
 import uuid
 from collections import OrderedDict
+from operator import itemgetter
 from os import walk
 
 import jsonfield
@@ -79,7 +80,7 @@ class MaintenanceRule(models.Model):
 
 
 class MaintenanceJob(models.Model):
-    STATUS_CHOICES = zip(celery_states.ALL_STATES, celery_states.ALL_STATES)
+    STATUS_CHOICES = sorted(zip(celery_states.ALL_STATES, celery_states.ALL_STATES), key=itemgetter(0))
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     rule = models.ForeignKey('maintenance.MaintenanceRule', on_delete=models.SET_NULL, null=True, related_name='jobs')
