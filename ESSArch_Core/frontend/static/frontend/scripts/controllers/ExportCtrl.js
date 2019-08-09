@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('ExportCtrl', function($scope, appConfig, $http, Notifications, $translate, $window, SA, Profile) {
+export default class ExportCtrl {
+  constructor($scope, appConfig, $http, $window, SA, Profile) {
     var vm = this;
     vm.$onInit = function() {
       $http
@@ -59,4 +58,5 @@ angular
         a.dispatchEvent(e);
       }
     };
-  });
+  }
+}
