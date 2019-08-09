@@ -32,6 +32,7 @@ import ReceiveModalInstanceCtrl from '../controllers/ReceiveModalInstanceCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
 import RequestModalInstanceCtrl from '../controllers/RequestModalInstanceCtrl';
 import RobotInformationCtrl from '../controllers/RobotInformationCtrl';
+import StatsReportModalInstanceCtrl from '../controllers/StatsReportModalInstanceCtrl';
 import SearchCtrl from '../controllers/SearchCtrl';
 import StepInfoModalInstanceCtrl from '../controllers/StepInfoModalInstanceCtrl';
 import StorageMaintenanceCtrl from '../controllers/StorageMaintenanceCtrl';
@@ -417,6 +418,14 @@ export default angular
     '$interval',
     '$transitions',
     QueuesCtrl,
+  ])
+  .controller('StatsReportModalInstanceCtrl', [
+    '$uibModalInstance',
+    'appConfig',
+    'data',
+    '$sce',
+    '$window',
+    StatsReportModalInstanceCtrl,
   ])
   .controller('StorageMigrationCtrl', ['$scope', StorageMigrationCtrl])
   .controller('StorageMaintenanceCtrl', ['$scope', '$rootScope', StorageMaintenanceCtrl])

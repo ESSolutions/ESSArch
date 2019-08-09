@@ -1,3 +1,4 @@
+import dashboardStats from '../components/dashboardStatsComponent';
 import essarchFooter from '../components/FooterComponent';
 import eventTable from '../components/EventTableComponent';
 import exportComponent from '../components/ExportComponent';
@@ -11,6 +12,7 @@ import StateTreeView from '../components/StateTreeViewComponent';
 
 export default angular
   .module('essarch.components', ['essarch.controllers'])
+  .component('dashboardStats', dashboardStats)
   .component('essarchFooter', essarchFooter)
   .component('eventTable', eventTable)
   .component('export', exportComponent)

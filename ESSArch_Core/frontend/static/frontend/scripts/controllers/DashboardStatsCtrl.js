@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('DashboardStatsCtrl', function($scope, appConfig, $http, $uibModal, $log) {
+export default class DashboardStatsCtrl {
+  constructor(appConfig, $http, $uibModal, $log) {
     var vm = this;
     vm.$onInit = function() {
       vm.getStats().then(function(stats) {
@@ -38,4 +37,5 @@ angular
         }
       );
     };
-  });
+  }
+}

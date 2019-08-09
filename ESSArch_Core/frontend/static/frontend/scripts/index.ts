@@ -751,7 +751,7 @@ angular
         })
         .state('home.dashboard', {
           url: 'dashboard',
-          template: '<dashboard-stats></dashboard-stats>',
+          template: '<dashboard-stats class="w-100"></dashboard-stats>',
           resolve: {
             authenticated: resolveAuthenticated,
           },

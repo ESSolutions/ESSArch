@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('StatsReportModalInstanceCtrl', function($uibModalInstance, appConfig, data, $sce, $window) {
+export default class StatsReportModalInstanceCtrl {
+  constructor($uibModalInstance, appConfig, data, $sce, $window) {
     var $ctrl = this;
     $ctrl.selected = {};
     $ctrl.$onInit = function() {
@@ -21,4 +20,5 @@ angular
     $ctrl.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}
