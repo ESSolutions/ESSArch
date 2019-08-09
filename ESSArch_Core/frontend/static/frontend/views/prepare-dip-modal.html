@@ -1,7 +1,7 @@
 <div class="modal-heading">
   <h3 class="modal-title" id="modal-title">{{'PREPAREDIP' | translate}}</h3>
 </div>
-<form ng-submit="$ctrl.prepare($ctrl.label, $ctrl.objectIdentifierValue, $ctrl.orders)">
+<form ng-submit="$ctrl.prepareDip($ctrl.label, $ctrl.objectIdentifierValue, $ctrl.orders)">
   <div class="modal-body" id="modal-body">
     <label for="label">{{'LABEL' | translate}}</label>
     <input required focused="true" id="label" class="form-control" ng-model="$ctrl.label" />
