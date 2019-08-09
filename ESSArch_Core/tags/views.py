@@ -201,7 +201,7 @@ class StructureTypeViewSet(viewsets.ModelViewSet):
 class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Structure.objects.select_related('type').prefetch_related('units')
     serializer_class = StructureSerializer
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
     filter_backends = (DjangoFilterBackend, OrderingFilterWithNulls, SearchFilter,)
     filter_class = StructureFilter
     ordering_fields = ('name', 'create_date', 'version', 'type', 'published_date',)
@@ -226,6 +226,18 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             raise exceptions.ParseError(_('{} is already published').format(obj))
 
         obj.publish()
+        return Response()
+
+    @transaction.atomic
+    @permission_required_or_403('tags.unpublish_structure')
+    @action(detail=True, methods=['post'])
+    def unpublish(self, request, pk=None):
+        obj = self.get_object()
+
+        if not obj.published:
+            raise exceptions.ParseError(_('{} is not published').format(obj))
+
+        obj.unpublish()
         return Response()
 
     @transaction.atomic

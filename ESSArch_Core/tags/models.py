@@ -258,6 +258,10 @@ class Structure(models.Model):
         self.published_date = timezone.now()
         self.save()
 
+    def unpublish(self):
+        self.published = False
+        self.save()
+
     def __str__(self):
         return '{} {}'.format(self.name, self.version)
 
@@ -265,6 +269,7 @@ class Structure(models.Model):
         get_latest_by = 'create_date'
         permissions = (
             ('publish_structure', 'Can publish structures'),
+            ('unpublish_structure', 'Can unpublish structures'),
             ('create_new_structure_version', 'Can create new structure versions'),
         )
 

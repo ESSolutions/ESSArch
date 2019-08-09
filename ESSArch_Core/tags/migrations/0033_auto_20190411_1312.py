@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='structure',
-            options={'get_latest_by': 'create_date', 'permissions': (('publish_structure', 'Can publish structures'), ('create_new_structure_version', 'Can create new structure versions'))},
+            options={'get_latest_by': 'create_date', 'permissions': (('publish_structure', 'Can publish structures'), ('unpublish_structure', 'Can unpublish structures'), ('create_new_structure_version', 'Can create new structure versions'))},
         ),
         migrations.AddField(
             model_name='structure',

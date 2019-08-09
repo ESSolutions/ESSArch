@@ -183,6 +183,90 @@ class UpdateStructureTests(TestCase):
         self.assertEqual(response.data, {'non_field_errors': [PUBLISHED_STRUCTURE_CHANGE_ERROR]})
 
 
+class PublishStructureTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+        self.user = User.objects.create(username='user')
+        self.member = self.user.essauth_member
+
+        self.client.force_authenticate(user=self.user)
+
+        self.structure_type = StructureType.objects.create(name='test')
+
+    def test_without_permission(self):
+        structure = create_structure(self.structure_type)
+        url = reverse('structure-publish', args=[structure.pk])
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        structure.refresh_from_db()
+        self.assertFalse(structure.published)
+        self.assertIsNone(structure.published_date)
+
+    def test_publish_template(self):
+        structure = create_structure(self.structure_type)
+        url = reverse('structure-publish', args=[structure.pk])
+
+        perm = Permission.objects.get(codename='publish_structure')
+        self.user.user_permissions.add(perm)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        structure.refresh_from_db()
+        self.assertTrue(structure.published)
+        self.assertIsNotNone(structure.published_date)
+
+    def test_publish_instance(self):
+        structure = create_structure(self.structure_type, False)
+        url = reverse('structure-publish', args=[structure.pk])
+
+        perm = Permission.objects.get(codename='publish_structure')
+        self.user.user_permissions.add(perm)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        structure.refresh_from_db()
+        self.assertFalse(structure.published)
+        self.assertIsNone(structure.published_date)
+
+
+class UnpublishStructureTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+        self.user = User.objects.create(username='user')
+        self.member = self.user.essauth_member
+
+        self.client.force_authenticate(user=self.user)
+
+        self.structure_type = StructureType.objects.create(name='test')
+        self.structure = create_structure(self.structure_type, False)
+        self.structure.published = True
+        self.structure.save()
+
+        self.url = reverse('structure-unpublish', args=[self.structure.pk])
+
+    def test_without_permission(self):
+        response = self.client.post(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.structure.refresh_from_db()
+        self.assertTrue(self.structure.published)
+
+    def test_unpublish_template(self):
+        perm = Permission.objects.get(codename='unpublish_structure')
+        self.user.user_permissions.add(perm)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.structure.refresh_from_db()
+        self.assertFalse(self.structure.published)
+
+
 class CreateStructureUnitTests(TestCase):
     def setUp(self):
         self.client = APIClient()
