@@ -33,6 +33,7 @@ from django.conf import settings
 from django.db import connection
 from django.utils import timezone
 from django_redis import get_redis_connection
+from elasticsearch.exceptions import ElasticsearchException
 from elasticsearch_dsl.connections import get_connection as get_es_connection
 from redis.exceptions import RedisError
 from rest_framework import viewsets
@@ -157,6 +158,8 @@ class SysInfoView(APIView):
             context['elasticsearch'] = get_elasticsearch_info()
         except KeyError:
             pass
+        except ElasticsearchException as exc:
+            context['elasticsearch'] = {'error': str(exc)}
 
         context['redis'] = get_redis_info(full)
         context['rabbitmq'] = get_rabbitmq_info(full)
