@@ -565,6 +565,7 @@ class CopyDir(DBTask):
         if remote_credentials:
             user, passw = decrypt_remote_credentials(remote_credentials)
             requests_session = requests.Session()
+            requests_session.verify = settings.REQUESTS_VERIFY
             requests_session.auth = (user, passw)
 
         copy_dir(src, dst, requests_session=requests_session, block_size=block_size)
@@ -591,6 +592,7 @@ class CopyFile(DBTask):
         if remote_credentials:
             user, passw = decrypt_remote_credentials(remote_credentials)
             requests_session = requests.Session()
+            requests_session.verify = settings.REQUESTS_VERIFY
             requests_session.auth = (user, passw)
 
         copy_file(src, dst, requests_session=requests_session, block_size=block_size)

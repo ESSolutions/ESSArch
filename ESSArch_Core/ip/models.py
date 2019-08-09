@@ -1393,7 +1393,7 @@ class InformationPackage(models.Model):
         if storage_target.remote_server:
             host, user, passw = storage_target.remote_server.split(',')
             session = requests.Session()
-            session.verify = False  # TODO: we probably want to enable this
+            session.verify = settings.REQUESTS_VERIFY
             session.auth = (user, passw)
 
             self.update_remote_ip(host, session)
@@ -1468,7 +1468,7 @@ class InformationPackage(models.Model):
         if storage_target.remote_server:
             host, user, passw = storage_target.remote_server.split(',')
             session = requests.Session()
-            session.verify = False  # TODO: we probably want to enable this
+            session.verify = settings.REQUESTS_VERIFY
             session.auth = (user, passw)
 
             # if the remote server already has completed
@@ -1518,7 +1518,7 @@ class InformationPackage(models.Model):
                 # by master to write to its temp directory
                 user, passw, host = storage_target.master_server.split(',')
                 session = requests.Session()
-                session.verify = False  # TODO: we probably want to enable this
+                session.verify = settings.REQUESTS_VERIFY
                 session.auth = (user, passw)
 
                 temp_object_path = self.get_temp_object_path()

@@ -39,6 +39,15 @@ TEST_RUNNER = "ESSArch_Core.testing.runner.QuietTestRunner"
 
 ALLOWED_HOSTS = ['*']
 
+
+# Verify TLS certificate on remote servers
+#
+# From requests docs:
+# Either a boolean, in which case it controls whether we verify
+# the server’s TLS certificate, or a string, in which case it
+# must be a path to a CA bundle to use.
+REQUESTS_VERIFY = True
+
 REST_FRAMEWORK = {
     'DEFAULT_METADATA_CLASS': 'ESSArch_Core.api.metadata.CustomMetadata',
     'DEFAULT_PAGINATION_CLASS': 'proxy_pagination.ProxyPagination',

@@ -26,6 +26,7 @@ import os
 import shutil
 
 import requests
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
@@ -106,7 +107,7 @@ class TransferSIP(DBTask):
                 dst, remote_user, remote_pass = remote.split(',')
 
                 session = requests.Session()
-                session.verify = False
+                session.verify = settings.REQUESTS_VERIFY
                 session.auth = (remote_user, remote_pass)
             except ValueError:
                 remote = None

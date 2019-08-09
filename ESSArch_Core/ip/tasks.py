@@ -6,6 +6,7 @@ import tarfile
 from urllib.parse import urljoin
 
 import requests
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
@@ -101,7 +102,7 @@ class SubmitSIP(DBTask):
                 dst = urljoin(dst, 'api/ip-reception/upload/')
 
                 session = requests.Session()
-                session.verify = False
+                session.verify = settings.REQUESTS_VERIFY
                 session.auth = (remote_user, remote_pass)
             except ValueError:
                 remote = None

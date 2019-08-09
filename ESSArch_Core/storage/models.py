@@ -6,6 +6,7 @@ from datetime import timedelta
 from urllib.parse import urljoin
 
 import requests
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from django.db.models import Case, IntegerField, Value, When
@@ -899,7 +900,7 @@ class IOQueue(models.Model):
         dst = urljoin(host, 'api/io-queue/%s/' % self.pk)
 
         session = requests.Session()
-        session.verify = False
+        session.verify = settings.REQUESTS_VERIFY
         session.auth = (user, passw)
 
         try:

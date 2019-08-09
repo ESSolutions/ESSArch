@@ -864,7 +864,7 @@ class PollIOQueue(DBTask):
         dst = urljoin(host, 'api/io-queue/%s/add-file/' % entry.pk)
 
         session = requests.Session()
-        session.verify = False
+        session.verify = settings.REQUESTS_VERIFY
         session.auth = (user, passw)
 
         cache_dir = entry.ip.policy.cache_storage.value
@@ -924,7 +924,7 @@ class PollIOQueue(DBTask):
                 host, user, passw = storage_target.remote_server.split(',')
                 dst = urljoin(host, 'api/io-queue/')
                 session = requests.Session()
-                session.verify = False
+                session.verify = settings.REQUESTS_VERIFY
                 session.auth = (user, passw)
 
                 data = IOQueueSerializer(entry, context={'request': None}).data
@@ -1130,7 +1130,6 @@ class IO(DBTask):
                     dst = urljoin(host, 'api/io-queue/%s/add-file/' % entry.pk)
 
                     session = requests.Session()
-                    session.verify = False
                     session.auth = (user, passw)
 
                     copy_file(cache_obj, dst, requests_session=session)
