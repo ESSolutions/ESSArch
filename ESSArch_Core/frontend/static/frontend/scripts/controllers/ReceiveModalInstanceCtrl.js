@@ -20,8 +20,14 @@ export default class ReceiveModalInstanceCtrl {
     });
     $scope.getStoragePolicies().then(function(result) {
       vm.request.storagePolicy.options = result;
-      vm.request.storagePolicy.value = $scope.ip.policy;
-      vm.request.informationClass = $scope.ip.policy ? $scope.ip.policy.information_class : null;
+      if ($scope.ip.policy) {
+        vm.request.storagePolicy.value = angular.copy($scope.ip.policy);
+      } else if (vm.request.storagePolicy.options.length > 0) {
+        vm.request.storagePolicy.value = angular.copy(vm.request.storagePolicy).options[0];
+      }
+      vm.request.informationClass = vm.request.storagePolicy.value
+        ? vm.request.storagePolicy.value.information_class
+        : null;
       $scope.getArchives().then(function(result) {
         vm.tags.archive.options = result;
         $scope.requestForm = true;
