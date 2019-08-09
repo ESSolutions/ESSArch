@@ -1,6 +1,6 @@
 import essarchFooter from '../components/FooterComponent';
 import eventTable from '../components/EventTableComponent';
-import Export from '../components/ExportComponent';
+import exportComponent from '../components/ExportComponent';
 import filebrowserComponent from '../components/FilebrowserComponent';
 import importComponent from '../components/ImportComponent';
 import sysInfoComponent from '../components/SysInfoComponent';
@@ -13,7 +13,7 @@ export default angular
   .module('essarch.components', ['essarch.controllers'])
   .component('essarchFooter', essarchFooter)
   .component('eventTable', eventTable)
-  .component('export', Export)
+  .component('export', exportComponent)
   .component('filebrowser', filebrowserComponent)
   .component('import', importComponent)
   .component('profileEditor', ProfileEditorComponent)
