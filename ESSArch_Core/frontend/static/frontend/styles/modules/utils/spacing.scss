@@ -85,3 +85,13 @@
 .mb-base {
   margin-bottom: $padding-base-vertical;
 }
+
+.mt-0,
+.my-0 {
+  margin-top: 0 !important;
+}
+
+.mb-0,
+.my-0 {
+  margin-bottom: 0 !important;
+}

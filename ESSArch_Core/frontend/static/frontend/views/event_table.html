@@ -138,7 +138,7 @@
       class="events-form"
       ng-submit="addEvent(ip, newEventForm.eventType, newEventForm.comment, newEventForm.eventOutcome)"
     >
-      <div class="form-group" style="margin-right: 5px;">
+      <div class="form-group my-0" style="margin-right: 5px;">
         <label>{{ "EVENT.EVENTTYPE" | translate }}</label>
         <select
           class="status-note form-control"
@@ -149,7 +149,7 @@
           <option value="" selected="selected" disabled>{{ "SELECTONE" | translate }}</option>
         </select>
       </div>
-      <div class="form-group">
+      <div class="form-group my-0">
         <label>{{ "OUTCOME" | translate }}</label>
         <select
           class="status-note form-control"
@@ -160,7 +160,7 @@
           <option value="" selected="selected" disabled>{{ "SELECTONE" | translate }}</option>
         </select>
       </div>
-      <div class="form-group">
+      <div class="form-group my-0">
         <label>{{ "COMMENT" | translate }}</label>
         <textarea
           ng-enter="addEvent(ip, newEventForm.eventType, newEventForm.comment, newEventForm.eventOutcome)"
@@ -171,7 +171,9 @@
           id="signature"
         ></textarea>
       </div>
-      <button type="submit" class="btn btn-primary submit-button">{{ "EVENT.ADDEVENT" | translate }}</button>
+      <div class="flex-column justify-content-end">
+        <button type="submit" class="btn btn-primary submit-button">{{ "EVENT.ADDEVENT" | translate }}</button>
+      </div>
     </form>
   </div>
   <div

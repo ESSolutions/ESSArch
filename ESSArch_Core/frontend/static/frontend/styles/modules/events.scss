@@ -14,7 +14,9 @@
     }
   }
   .submit-button {
-    margin-bottom: 5px;
+    @include small-screen {
+      margin-top: 5px;
+    }
   }
   .list-view-table {
     position: relative;
@@ -42,6 +44,7 @@
   .status-note {
     max-width: 125px;
   }
+
   @include small-screen {
     flex-direction: column;
     margin-left: 0;
@@ -55,8 +58,6 @@
   }
 }
 .events-form .submit-button {
-  height: 35px;
-  margin-top: 25px;
   @include small-screen {
     margin: 0;
   }
@@ -66,8 +67,7 @@
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
-  margin: 5px;
-  padding: 5px;
+  padding-top: $padding-base-vertical;
   .signature {
     width: 250px;
     height: 35px;
