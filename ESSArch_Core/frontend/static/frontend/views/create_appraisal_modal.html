@@ -68,7 +68,7 @@
       ng-disabled="!$ctrl.validCron($ctrl.frequency) || $ctrl.addingRule"
       focused="true"
     >
-      {{'CREATE' | translate}} <i ng-if="$ctrl.addingRule" class="fas fa-spinner fa-spin" />
+      {{'CREATE' | translate}} <i ng-if="$ctrl.addingRule" class="fas fa-spinner fa-spin"></i>
     </button>
     <button class="btn btn-default" ng-disabled="$ctrl.addingRule" type="button" ng-click="$ctrl.cancel()">
       {{'CANCEL' | translate}}

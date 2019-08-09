@@ -7,7 +7,7 @@
   </div>
   <div class="modal-footer">
     <button class="btn btn-primary" ng-disabled="!$ctrl.changed() || $ctrl.saving" type="submit">
-      {{'SAVE' | translate}} <i ng-if="$ctrl.saving" class="fas fa-spinner fa-spin" />
+      {{'SAVE' | translate}} <i ng-if="$ctrl.saving" class="fas fa-spinner fa-spin"></i>
     </button>
     <button class="btn btn-default" type="button" ng-disabled="$ctrl.saving" ng-click="$ctrl.cancel()">
       {{'CANCEL' | translate}}

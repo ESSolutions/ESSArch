@@ -33,7 +33,7 @@
       ng-click="$ctrl.setUploaded()"
       ng-disabled="$ctrl.settingUploaded"
     >
-      {{'DONE' | translate}} <i ng-if="$ctrl.settingUploaded" class="fas fa-spinner fa-spin" />
+      {{'DONE' | translate}} <i ng-if="$ctrl.settingUploaded" class="fas fa-spinner fa-spin"></i>
     </button>
     <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()" ng-disabled="$ctrl.settingUploaded">
       {{'CANCEL' | translate}}

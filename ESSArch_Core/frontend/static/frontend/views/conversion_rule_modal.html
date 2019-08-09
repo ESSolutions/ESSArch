@@ -54,11 +54,11 @@
   </table>
   <button class="btn btn-success" ng-disabled="$ctrl.creatingJob" ng-click="$ctrl.createJob($ctrl.data.rule)">
     {{'ARCHIVE_MAINTENANCE.CREATE_CONVERSION_JOB' | translate}}
-    <i ng-if="$ctrl.creatingJob" class="fas fa-spinner fa-spin" />
+    <i ng-if="$ctrl.creatingJob" class="fas fa-spinner fa-spin"></i>
   </button>
   <button class="btn btn-success" ng-disabled="$ctrl.runningJob" ng-click="$ctrl.createJobAndStart($ctrl.data.rule)">
     {{'ARCHIVE_MAINTENANCE.CREATE_CONVERSION_JOB_AND_RUN' | translate}}
-    <i ng-if="$ctrl.runningJob" class="fas fa-spinner fa-spin" />
+    <i ng-if="$ctrl.runningJob" class="fas fa-spinner fa-spin"></i>
   </button>
 </div>
 <div class="modal-footer">

@@ -14,7 +14,7 @@
     ng-click="$ctrl.removeAppraisal()"
     focused="true"
   >
-    {{'OK' | translate}} <i ng-if="$ctrl.removingRule" class="fas fa-spinner fa-spin" />
+    {{'OK' | translate}} <i ng-if="$ctrl.removingRule" class="fas fa-spinner fa-spin"></i>
   </button>
   <button class="btn btn-default" type="button" ng-disabled="$ctrl.removingRule" ng-click="$ctrl.cancel()">
     {{'CANCEL' | translate}}

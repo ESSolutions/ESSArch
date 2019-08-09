@@ -210,7 +210,7 @@
             class="btn btn-primary"
             ng-disabled="vm.editForm.$invalid || angular.equals(vm.profileOldModel, vm.profileModel) || vm.savingProfileModel"
           >
-            {{'SAVE' | translate}} <i ng-if="vm.savingProfileModel" class="fas fa-spinner fa-spin" />
+            {{'SAVE' | translate}} <i ng-if="vm.savingProfileModel" class="fas fa-spinner fa-spin"></i>
           </button>
           <button
             ng-if="vm.profileFields.length && !vm.disabled"

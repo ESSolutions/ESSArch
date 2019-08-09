@@ -135,7 +135,7 @@
             ng-disabled="vm.savingRules || (angular.equals(vm.rules, {}) && angular.equals(vm.rules, vm.structure.specification.rules)) || angular.equals(vm.rules, vm.structure.specification.rules)"
             ng-click="vm.saveRules(vm.rules, vm.structure)"
           >
-            {{'SAVE' | translate}}&nbsp; <i ng-if="vm.savingRules" class="fas fa-spinner fa-spin" />
+            {{'SAVE' | translate}}&nbsp; <i ng-if="vm.savingRules" class="fas fa-spinner fa-spin"></i>
           </button>
         </div>
         <br />
@@ -241,7 +241,7 @@
         ng-disabled="angular.equals(vm.oldStructure, vm.structure) || vm.savingSettings"
         ng-click="vm.saveSettings(vm.structure)"
       >
-        {{'SAVE' | translate}}&nbsp;<i ng-if="vm.savingSettings" class="fas fa-spinner fa-spin" />
+        {{'SAVE' | translate}}&nbsp;<i ng-if="vm.savingSettings" class="fas fa-spinner fa-spin"></i>
       </button>
     </div>
   </div>
