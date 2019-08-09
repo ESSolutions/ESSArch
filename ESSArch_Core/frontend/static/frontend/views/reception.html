@@ -16,7 +16,7 @@
             class="select-sub-edit-eventlog-wrapper mb-base"
             ng-if="(ips.length === 0 && ip !== null && ip.state === 'At reception')"
           >
-            <div class="edit-view">
+            <div class="edit-view border-none">
               <h4 style="margin-left: 10px;">Submit Description</h4>
               <form>
                 <formly-form model="vm.sdModel" fields="vm.sdFields" options="vm.sdOptions"> </formly-form>
@@ -44,7 +44,7 @@
           <div ng-if="ips.length > 0 || ip !== null" class="receive-button-wrapper">
             <div id="request-form" class="request-form receive-modal-button">
               <button class="btn btn-primary" ng-click="receiveModal(ips[0])" ng-disabled="vm.receiveModalLoading">
-                {{'RECEIVE' | translate}} <i ng-if="vm.receiveModalLoading" class="fas fa-spinner fa-spin" />
+                {{'RECEIVE' | translate}} <i ng-if="vm.receiveModalLoading" class="fas fa-spinner fa-spin"></i>
               </button>
               <p style="margin-left: 5px; margin-bottom: 0;">
                 {{ips.length > 0?ips.length:1}} {{'SELECTED' | translate}}
