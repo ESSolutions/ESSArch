@@ -1,13 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('OrderModalInstanceCtrl', function(
-    $uibModalInstance,
-    data,
-    $http,
-    Notifications,
-    appConfig,
-    listViewService
-  ) {
+export default class OrderModalInstanceCtrl {
+  constructor($uibModalInstance, data, $http, appConfig, listViewService) {
     var $ctrl = this;
     if (data) {
       $ctrl.data = data;
@@ -26,7 +18,6 @@ angular
     };
     $ctrl.remove = function(order) {
       $ctrl.removing = true;
-      console.log(order);
       $http({
         method: 'DELETE',
         url: appConfig.djangoUrl + 'orders/' + order.id + '/',
@@ -45,4 +36,5 @@ angular
     $ctrl.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}

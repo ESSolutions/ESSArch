@@ -20,6 +20,7 @@ import LanguageCtrl from '../controllers/LanguageCtrl';
 import MediaInformationCtrl from '../controllers/MediaInformationCtrl';
 import ModalInstanceCtrl from '../controllers/ModalInstanceCtrl';
 import MyPageCtrl from '../controllers/MyPageCtrl';
+import OrderModalInstanceCtrl from '../controllers/OrderModalInstanceCtrl';
 import OrdersCtrl from '../controllers/OrdersCtrl';
 import {organization, OrganizationCtrl} from '../controllers/OrganizationCtrl';
 import QueuesCtrl from '../controllers/QueuesCtrl';
@@ -236,6 +237,14 @@ export default angular
     ModalInstanceCtrl,
   ])
   .controller('MyPageCtrl', ['$scope', '$controller', MyPageCtrl])
+  .controller('OrderModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    '$http',
+    'appConfig',
+    'listViewService',
+    OrderModalInstanceCtrl,
+  ])
   .controller('OrdersCtrl', [
     '$scope',
     '$controller',
