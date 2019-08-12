@@ -91,8 +91,18 @@ def get_database_info():
     return {'vendor': vendor, 'version': version}
 
 
-def get_elasticsearch_info():
-    return get_es_connection().info()
+def get_elasticsearch_info(full):
+    try:
+        props = get_es_connection().info()
+        if full:
+            return props
+        return {'version': props['version']}
+    except ElasticsearchException:
+        logger.exception("Could not connect to Elasticsearch.")
+        return {
+            'version': 'unknown',
+            'error': 'Error connecting to Elasticsearch. Check the logs for more detail.'
+        }
 
 
 def get_redis_info(full=False):
@@ -116,7 +126,7 @@ def get_rabbitmq_info(full=False):
         if full:
             return props
         return {'version': props['version']}
-    except ConnectionError:
+    except (ConnectionError, OSError):
         logger.exception("Could not connect to RabbitMQ.")
         return {
             'version': 'unknown',
@@ -154,13 +164,7 @@ class SysInfoView(APIView):
         context['time_checked'] = timezone.now()
         context['database'] = get_database_info()
 
-        try:
-            context['elasticsearch'] = get_elasticsearch_info()
-        except KeyError:
-            pass
-        except ElasticsearchException as exc:
-            context['elasticsearch'] = {'error': str(exc)}
-
+        context['elasticsearch'] = get_elasticsearch_info(full)
         context['redis'] = get_redis_info(full)
         context['rabbitmq'] = get_rabbitmq_info(full)
         context['workers'] = get_workers(context['rabbitmq'])

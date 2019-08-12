@@ -34,17 +34,19 @@
           class="sys-info-component"
           name="RabbitMQ"
           version="{{sysInfo.rabbitmq.version}}"
+          error="{{sysInfo.rabbitmq.error}}"
         ></sys-info-component>
         <sys-info-component
           class="sys-info-component"
           name="Redis"
           version="{{sysInfo.redis.version}}"
+          error="{{sysInfo.redis.error}}"
         ></sys-info-component>
         <sys-info-component
           ng-if="sysInfo.elasticsearch"
           class="sys-info-component"
           name="Elasticsearch"
-          version="{{sysInfo.elasticsearch.version.number}}"
+          version="{{sysInfo.elasticsearch.version.number || sysInfo.elasticsearch.version}}"
           error="{{sysInfo.elasticsearch.error}}"
         ></sys-info-component>
       </div>
