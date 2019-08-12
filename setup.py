@@ -97,7 +97,7 @@ if __name__ == '__main__':
             "lxml==4.3.4",
             "natsort==6.0.0",
             "opf-fido==1.3.12",
-            "pyfakefs==3.5.8",
+            "pyfakefs==3.6",
             "python-dateutil==2.8.0",
             "pywin32==224;platform_system=='Windows'",
             "redis==3.2.1",
