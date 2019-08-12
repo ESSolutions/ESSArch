@@ -9,9 +9,14 @@ ESSArch Core
 .. toctree::
     :maxdepth: 10
 
+    introduction
     configuration/index
     development
     directory_structure
     external_logging
+    format-identifier
     installation/index
+    profiles/index
     restapi/index
+    user_guide/index
+    xml-generator

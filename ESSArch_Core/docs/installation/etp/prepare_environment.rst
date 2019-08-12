@@ -14,7 +14,7 @@ Add the following rows to ``/home/arch/.bash_profile`` after “ESSArch Core” 
 
    ### ETP start
    ##
-   export ETP=/ESSArch/pd/python/lib/python3.6/site-packages/ESSArch_TP
+   export ETP=/ESSArch/pd/python/lib/python3.7/site-packages/ESSArch_TP
    export PYTHONPATH=$ETP:$EC_PYTHONPATH
    alias env_etp='export PYTHONPATH=$ETP:$EC_PYTHONPATH;cd $ETP'
    ##

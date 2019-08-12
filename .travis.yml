@@ -43,6 +43,42 @@ matrix:
       script: isort --recursive --check-only --diff ESSArch_Core
       after_success: skip
 
+    - name: "prettier"
+      stage: lint
+      language: node_js
+      node_js: "lts/*"
+      before_install: cd ESSArch_Core/frontend/static/frontend
+      install: yarn install --frozen-lockfile
+      script: yarn prettier --check "**/*.{ts,js,scss,html}"
+      after_success: skip
+
+    - name: "Build frontend"
+      stage: test
+      language: node_js
+      node_js: "lts/*"
+      before_install: cd ESSArch_Core/frontend/static/frontend
+      install: yarn install --frozen-lockfile
+      script: yarn build:prod
+      after_success: skip
+
+    - name: "Build documentation"
+      stage: test
+      python: "3.7"
+      before_install: skip
+      install:
+        # Pin six to avoid dependency errors,
+        # see https://github.com/pypa/pip/issues/4887
+
+        - python -m pip install --upgrade pip wheel setuptools
+        - pip install --upgrade six>=1.12.0
+        - pip install .["docs"]
+        - essarch settings generate -p local_essarch_settings.py
+
+      script:
+        - cd ESSArch_Core/docs
+        - make html SPHINXOPTS="-W"
+      after_success: skip
+
     - name: "Linux with SQLite"
       stage: test
       python: "3.7"
@@ -123,24 +159,6 @@ matrix:
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
         - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
-    - name: "prettier"
-      stage: lint
-      language: node_js
-      node_js: "lts/*"
-      before_install: cd ESSArch_Core/frontend/static/frontend
-      install: yarn install --frozen-lockfile
-      script: yarn prettier --check "**/*.{ts,js,scss,html}"
-      after_success: skip
-
-    - name: "Build frontend"
-      stage: test
-      language: node_js
-      node_js: "lts/*"
-      before_install: cd ESSArch_Core/frontend/static/frontend
-      install: yarn install --frozen-lockfile
-      script: yarn build:prod
-      after_success: skip
-
 before_install:
   - sudo mkdir -p /ESSArch/log/
   - sudo chmod 777 /ESSArch/log/
@@ -151,7 +169,7 @@ install:
 
   - python -m pip install --upgrade pip wheel codecov setuptools
   - pip install --upgrade six>=1.12.0
-  - pip install -e .["tests,s3$DB_PACKAGES"]
+  - pip install .["tests,s3$DB_PACKAGES"]
   - essarch settings generate -p local_essarch_settings.py
 
 script:

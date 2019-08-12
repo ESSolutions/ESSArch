@@ -8,7 +8,7 @@ This the default structure of the data directories. Administrators can change
 these paths using the administration interface.
 
 
-.. code-block:: txt
+.. code-block:: text
 
     /ESSArch/data/
     ├── epp

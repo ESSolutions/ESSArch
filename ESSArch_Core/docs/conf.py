@@ -41,7 +41,6 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath('.'))
 
-import inspect
 import os
 import sys
 
@@ -52,85 +51,7 @@ sys.path.append(proj_folder)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ESSArch_Core.config.settings')
 import django  # noqa isort:skip
-
-# Stop Django from executing DB queries
-from django.db.models.query import QuerySet  # noqa isort:skip
-QuerySet.__repr__ = lambda self: self.__class__.__name__
-
-try:
-    import enchant  # NoQA
-except ImportError:
-    enchant = None
-
-
-def skip_queryset(app, what, name, obj, skip, options):
-    """Skip queryset subclasses to avoid database queries."""
-    from django.db import models
-    if isinstance(obj, (models.QuerySet, models.manager.BaseManager)) or name.endswith('objects'):
-        return True
-    return skip
-
-
-def process_django_models(app, what, name, obj, options, lines):
-    """Append params from fields to model documentation."""
-    from django.utils.encoding import force_text
-    from django.utils.html import strip_tags
-    from django.db import models
-
-    spelling_white_list = ['', '.. spelling::']
-
-    if inspect.isclass(obj) and issubclass(obj, models.Model):
-        for field in obj._meta.fields:
-            help_text = strip_tags(force_text(field.help_text))
-            verbose_name = force_text(field.verbose_name).capitalize()
-
-            if help_text:
-                lines.append(':param %s: %s - %s' % (field.attname, verbose_name, help_text))
-            else:
-                lines.append(':param %s: %s' % (field.attname, verbose_name))
-
-            if enchant is not None:
-                from enchant.tokenize import basic_tokenize
-
-                words = verbose_name.replace('-', '.').replace('_', '.').split('.')
-                words = [s for s in words if s != '']
-                for word in words:
-                    spelling_white_list += ["    %s" % ''.join(i for i in word if not i.isdigit())]
-                    spelling_white_list += ["    %s" % w[0] for w in basic_tokenize(word)]
-
-            field_type = type(field)
-            module = field_type.__module__
-            if 'django.db.models' in module:
-                # scope with django.db.models * imports
-                module = 'django.db.models'
-            lines.append(':type %s: %s.%s' % (field.attname, module, field_type.__name__))
-        if enchant is not None:
-            lines += spelling_white_list
-    return lines
-
-
-def process_modules(app, what, name, obj, options, lines):
-    """Add module names to spelling white list."""
-    if what != 'module':
-        return lines
-    from enchant.tokenize import basic_tokenize
-
-    spelling_white_list = ['', '.. spelling::']
-    words = name.replace('-', '.').replace('_', '.').split('.')
-    words = [s for s in words if s != '']
-    for word in words:
-        spelling_white_list += ["    %s" % ''.join(i for i in word if not i.isdigit())]
-        spelling_white_list += ["    %s" % w[0] for w in basic_tokenize(word)]
-    lines += spelling_white_list
-    return lines
-
-
-def setup(app):
-    # Register the docstring processor with sphinx
-    app.connect('autodoc-process-docstring', process_django_models)
-    app.connect('autodoc-skip-member', skip_queryset)
-    if enchant is not None:
-        app.connect('autodoc-process-docstring', process_modules)
+django.setup()
 
 # -- General configuration ------------------------------------------------
 
@@ -142,9 +63,9 @@ def setup(app):
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosectionlabel', 'sphinx.ext.inheritance_diagram',
+extensions = ['sphinx.ext.autosectionlabel', 'sphinx.ext.inheritance_diagram',
               'sphinx.ext.intersphinx', 'sphinx.ext.napoleon', 'sphinx.ext.viewcode', 'sphinxcontrib.httpdomain',
-              'sphinxcontrib.inlinesyntaxhighlight']
+              'sphinxcontrib.httpexample', 'sphinxcontrib.inlinesyntaxhighlight']
 
 # True to prefix each section label with the name of the document it is in,
 # followed by a colon. For example, index:Introduction for a section called
@@ -153,10 +74,10 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosectionlabel', 'sphinx.ext.i
 autosectionlabel_prefix_document = True
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.6', None),
-    'sphinx': ('http://sphinx.pocoo.org/', None),
+    'python': ('https://docs.python.org/3.7', None),
+    'sphinx': ('http://www.sphinx-doc.org/en/master/', None),
     'django': ('https://docs.djangoproject.com/en/dev/', 'https://docs.djangoproject.com/en/dev/_objects/'),
-    'celery': ('https://celery.readthedocs.org/en/latest/', None),
+    'celery': ('https://celery.readthedocs.io/en/latest/', None),
 }
 
 # Github link
@@ -189,9 +110,9 @@ author = 'ES Solutions'
 # built documents.
 #
 # The short X.Y version.
-version = '1.0.0'
+version = '3.0.0'
 # The full version, including alpha/beta/rc tags.
-release = '1.0.0'
+release = '3.0.0'
 
 # The language for content autogenerated by Sphinx. Refer to documentation
 # for a list of supported languages.
@@ -233,7 +154,7 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = []
 
 
 # -- Options for HTMLHelp output ------------------------------------------

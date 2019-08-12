@@ -14,7 +14,7 @@ Add the following rows to ``/home/arch/.bash_profile`` after “ESSArch Core” 
 
    ### ETA start
    ##
-   export ETA=/ESSArch/pd/python/lib/python3.6/site-packages/ESSArch_TA
+   export ETA=/ESSArch/pd/python/lib/python3.7/site-packages/ESSArch_TA
    export PYTHONPATH=$ETA:$EC_PYTHONPATH
    alias env_eta='export PYTHONPATH=$ETA:$EC_PYTHONPATH;cd $ETA'
    ##

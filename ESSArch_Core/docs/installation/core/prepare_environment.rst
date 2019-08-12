@@ -40,7 +40,7 @@ Add the following rows to ``/home/arch/.bash_profile`` :
    export PATH=/ESSArch/pd/python/bin:/ESSArch/pd/libxml/bin:/ESSArch/pd/libxslt/bin:$PATH:/usr/sbin
    export LANG=en_US.UTF-8
    export LD_LIBRARY_PATH=/ESSArch/pd/python/lib:/ESSArch/pd/libxslt/lib:/ESSArch/pd/libxml/lib:$LD_LIBRARY_PATH
-   export EC=/ESSArch/pd/python/lib/python3.6/site-packages
+   export EC=/ESSArch/pd/python/lib/python3.7/site-packages
    export EC_PYTHONPATH=$EC:/ESSArch/config
    export PYTHONPATH=$EC_PYTHONPATH
    export DJANGO_SETTINGS_MODULE=ESSArch_Core.config.settings

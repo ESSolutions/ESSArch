@@ -26,4 +26,5 @@ To configure the applications you need to create a local settings file that is a
     redis
     rabbitmq
     elasticsearch
+    paths
     transformers

@@ -1,11 +1,8 @@
-.. _profiles:
+.. _validation_profile:
 
-**************
- Profiles
-**************
-
-Validation
-==========
+*******************
+ Validation Profile
+*******************
 
 Specification
 -------------
@@ -48,24 +45,14 @@ StructureValidator
    :members:
 
 MediaconchValidator
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: ESSArch_Core.fixity.validation.backends.mediaconch.MediaconchValidator
    :members:
 
 
 VeraPDFValidator
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 
 .. autoclass:: ESSArch_Core.fixity.validation.backends.verapdf.VeraPDFValidator
    :members:
-
-
-Transformation
-==============
-
-Specification
--------------
-
-``name`` specifies which transformer in :ref:`essarch_transformers` that should
-be used

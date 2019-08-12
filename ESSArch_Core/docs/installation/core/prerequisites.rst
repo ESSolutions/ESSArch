@@ -134,14 +134,14 @@ are installed on your platform
 
 
 .. note::
-   ** CentOS 6 require extra package: `epel-release <https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm>`_
+   ** CentOS 6 require extra package: `epel-release <https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm>`__
 
    Install this epel repository before you try to install erlang package::
 
       yum install epel-release-latest-6.noarch.rpm
 
 .. note::
-   ** CentOS 7 require extra package: `epel-release <https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm>`_
+   ** CentOS 7 require extra package: `epel-release <https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm>`__
 
    Install this epel repository before you try to install erlang package::
 

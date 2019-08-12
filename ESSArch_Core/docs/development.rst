@@ -20,7 +20,7 @@ To get started, clone the repositories:
 Setting up virtual Python environments
 ======================================
 
-You will need Python 3.6 along with ``pip``, which is what the backend of
+You will need Python 3.7 along with ``pip``, which is what the backend of
 ESSArch is built on. It is recommended to have ESSArch in its own virtual
 python environment. Taking it even further, one might also have one virtual
 environment for each ESSArch application.
@@ -188,16 +188,6 @@ Run the following in the root of each application:
 .. code-block:: bash
 
     $ celery -A config beat --loglevel=info
-
-.. toctree::
-    :maxdepth: 2
-
-    prerequisites
-    prepare_environment
-    install
-    upgrade
-    safety_backup_procedures
-    logfiles
 
 .. _virtualenv: https://virtualenv.pypa.io/
 .. _pyenv: https://github.com/pyenv/pyenv/

@@ -14,7 +14,7 @@ Add the following rows to ``/home/arch/.bash_profile`` after “ESSArch Core” 
 
    ### EPP start
    ##
-   export EPP=/ESSArch/pd/python/lib/python3.6/site-packages/ESSArch_PP
+   export EPP=/ESSArch/pd/python/lib/python3.7/site-packages/ESSArch_PP
    export PYTHONPATH=$EPP:$EC_PYTHONPATH
    alias env_epp='export PYTHONPATH=$EPP:$EC_PYTHONPATH;cd $EPP'
    ##
