@@ -38,7 +38,7 @@
               </thead>
               <tbody>
                 <tr
-                  ng-class="srow.class"
+                  ng-class="row.class"
                   ng-repeat="row in vm.ioQueue"
                   ng-attr-context-menu="menuOptions"
                   class="table-item"
@@ -47,6 +47,12 @@
                   <td>{{row.posted | date:"yyyy-MM-dd HH:mm:ss"}}</td>
                   <td>{{row.req_type_display}}</td>
                   <td>{{row.status_display}}</td>
+                </tr>
+                <tr ng-if="!vm.ioQueue.length && !vm.ioLoading" class="empty-table-indicator">
+                  <td colspan="4">{{'NO_RESULTS_FOUND' | translate}}</td>
+                </tr>
+                <tr ng-if="!vm.ioQueue.length && vm.ioLoading" class="empty-table-indicator">
+                  <td class="loading-column" colspan="4">{{'LOADING' | translate}}</td>
                 </tr>
               </tbody>
             </table>
@@ -107,6 +113,12 @@
                   <td>{{row.posted | date:"yyyy-MM-dd HH:mm:ss"}}</td>
                   <td>{{row.req_type}}</td>
                   <td>{{row.status}}</td>
+                </tr>
+                <tr ng-if="!vm.robotQueue.length && !vm.robotLoading" class="empty-table-indicator">
+                  <td colspan="4">{{'NO_RESULTS_FOUND' | translate}}</td>
+                </tr>
+                <tr ng-if="!vm.robotQueue.length && vm.robotLoading" class="empty-table-indicator">
+                  <td class="loading-column" colspan="4">{{'LOADING' | translate}}</td>
                 </tr>
               </tbody>
             </table>

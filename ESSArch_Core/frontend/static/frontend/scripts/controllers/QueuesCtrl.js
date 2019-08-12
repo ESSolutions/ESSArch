@@ -25,6 +25,7 @@ export default class QueuesCtrl {
 
     vm.getIoQueue = function(tableState) {
       if (!angular.isUndefined(tableState)) {
+        vm.ioLoading = true;
         vm.ioTableState = tableState;
         var search = '';
         if (tableState.search.predicateObject) {
@@ -43,6 +44,7 @@ export default class QueuesCtrl {
           .then(function(result) {
             vm.ioQueue = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
+            vm.ioLoading = false;
           })
           .catch(function(response) {
             if (response.status == 404) {
@@ -56,6 +58,7 @@ export default class QueuesCtrl {
                 $scope.getIoQueue(tableState);
               });
             }
+            vm.ioLoading = false;
           });
       }
     };
@@ -63,6 +66,7 @@ export default class QueuesCtrl {
     vm.getRobotQueue = function(tableState) {
       if (!angular.isUndefined(tableState)) {
         vm.robotTableState = tableState;
+        vm.robotLoading = true;
         var search = '';
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
@@ -80,6 +84,7 @@ export default class QueuesCtrl {
           .then(function(result) {
             vm.robotQueue = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
+            vm.robotLoading = false;
           })
           .catch(function(response) {
             if (response.status == 404) {
@@ -93,6 +98,7 @@ export default class QueuesCtrl {
                 $scope.getIoQueue(tableState);
               });
             }
+            vm.robotLoading = false;
           });
       }
     };
