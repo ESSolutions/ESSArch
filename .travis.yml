@@ -128,8 +128,17 @@ matrix:
       language: node_js
       node_js: "lts/*"
       before_install: cd ESSArch_Core/frontend/static/frontend
-      install: yarn
+      install: yarn install --frozen-lockfile
       script: yarn prettier --check "**/*.{ts,js,scss,html}"
+      after_success: skip
+
+    - name: "Build frontend"
+      stage: test
+      language: node_js
+      node_js: "lts/*"
+      before_install: cd ESSArch_Core/frontend/static/frontend
+      install: yarn install --frozen-lockfile
+      script: yarn build:prod
       after_success: skip
 
 before_install:
