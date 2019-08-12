@@ -31,28 +31,28 @@ matrix:
   include:
     - name: "flake8"
       stage: lint
-      python: "3.6"
+      python: "3.7"
       install: pip install flake8==3.7.1
       script: flake8
       after_success: skip
 
     - name: "isort"
       stage: lint
-      python: "3.6"
+      python: "3.7"
       install: pip install isort==4.3.20
       script: isort --recursive --check-only --diff ESSArch_Core
       after_success: skip
 
     - name: "Linux with SQLite"
       stage: test
-      python: "3.6"
+      python: "3.7"
       env:
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
         - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
     - name: "Linux with MSSQL"
       stage: test
-      python: "3.6"
+      python: "3.7"
       services: docker
       before_install:
         - sudo mkdir -p /ESSArch/log/
@@ -70,7 +70,7 @@ matrix:
 
     - name: "Linux with MariaDB"
       stage: test
-      python: "3.6"
+      python: "3.7"
       addons:
         mariadb: "10.3"
       env:
@@ -80,7 +80,7 @@ matrix:
 
     - name: "Linux with MySQL"
       stage: test
-      python: "3.6"
+      python: "3.7"
       services:
         - mysql
       env:
@@ -90,7 +90,7 @@ matrix:
 
     - name: "Linux with PostgreSQL"
       stage: test
-      python: "3.6"
+      python: "3.7"
       services:
         - postgresql
       env:
@@ -102,7 +102,7 @@ matrix:
       stage: test
       os: windows
       language: sh
-      python: "3.6"
+      python: "3.7"
       services: docker
       cache:
         directories:
@@ -115,7 +115,7 @@ matrix:
         - powershell 'Start-Process -FilePath "gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
         - wget https://download.microsoft.com/download/E/6/B/E6BFDC7A-5BCD-4C51-9912-635646DA801E/en-US/msodbcsql_17.3.1.1_x64.msi
         - powershell "Start-Process msiexec.exe -Wait -ArgumentList '/I msodbcsql_17.3.1.1_x64.msi /qn /norestart IACCEPTMSODBCSQLLICENSETERMS=YES'"
-        - choco install python3 --version 3.6.6
+        - choco install python --version 3.7.4
         - choco install imagemagick
         - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python36:/c/Python36/Scripts:$PATH"
       env:

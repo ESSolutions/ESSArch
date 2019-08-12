@@ -1,4 +1,4 @@
-FROM python:3.6 AS watchman_builder
+FROM python:3.7 AS watchman_builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y apt-transport-https wget
@@ -29,7 +29,7 @@ RUN yarn
 COPY ESSArch_Core/frontend/static/frontend ./
 RUN yarn build:prod
 
-FROM python:3.6-slim
+FROM python:3.7-slim
 
 WORKDIR /code
 EXPOSE 8000
