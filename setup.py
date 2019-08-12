@@ -123,7 +123,7 @@ if __name__ == '__main__':
             "mssql": ["django-mssql-backend==2.2.0"],
             "mysql": ["mysqlclient==1.4.2.post1"],
             "postgres": ["psycopg2==2.7.5"],
-            "logstash": ["python-logstash-async==1.5.0"],
+            "logstash": ["python-logstash-async==1.5.1"],
         },
         packages=find_packages(),
         include_package_data=True,
