@@ -690,7 +690,7 @@ class InformationPackage(models.Model):
         if tasks.exists():
             task_progress = tasks.aggregate(Sum('progress'))['progress__sum']
 
-        if task_progress or step_progress:
+        if tasks.exists() or steps.exists():
             progress = task_progress or 0
             progress += step_progress or 0
 
