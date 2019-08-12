@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('ChangePasswordModalCtrl', function($uibModalInstance, djangoAuth, data) {
+export default class ChangePasswordModalCtrl {
+  constructor($uibModalInstance, djangoAuth, data) {
     var $ctrl = this;
     if (data) {
       $ctrl.data = data;
@@ -27,4 +26,5 @@ angular
     $ctrl.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}

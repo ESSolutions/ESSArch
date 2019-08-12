@@ -6,6 +6,7 @@ import AdministrationCtrl from '../controllers/AdministrationCtrl';
 import AppCtrl from '../controllers/AppCtrl';
 import AppraisalCtrl from '../controllers/AppraisalCtrl';
 import BaseCtrl from '../controllers/BaseCtrl';
+import ChangePasswordModalCtrl from '../controllers/ChangePasswordModalCtrl';
 import CollectContentCtrl from '../controllers/CollectContentCtrl';
 import CombinedWorkareaCtrl from '../controllers/CombinedWorkareaCtrl';
 import ConversionCtrl from '../controllers/ConversionCtrl';
@@ -16,6 +17,7 @@ import DataModalInstanceCtrl from '../controllers/DataModalInstanceCtrl';
 import HeadCtrl from '../controllers/HeadCtrl';
 import IngestCtrl from '../controllers/IngestCtrl';
 import IpApprovalCtrl from '../controllers/IpApprovalCtrl';
+import IpInformationModalInstanceCtrl from '../controllers/IpInformationModalInstanceCtrl';
 import LanguageCtrl from '../controllers/LanguageCtrl';
 import MediaInformationCtrl from '../controllers/MediaInformationCtrl';
 import ModalInstanceCtrl from '../controllers/ModalInstanceCtrl';
@@ -23,6 +25,7 @@ import MyPageCtrl from '../controllers/MyPageCtrl';
 import OrderModalInstanceCtrl from '../controllers/OrderModalInstanceCtrl';
 import OrdersCtrl from '../controllers/OrdersCtrl';
 import {organization, OrganizationCtrl} from '../controllers/OrganizationCtrl';
+import OrganizationModalInstanceCtrl from '../controllers/OrganizationModalInstanceCtrl';
 import QueuesCtrl from '../controllers/QueuesCtrl';
 import PrepareIpCtrl from '../controllers/PrepareIpCtrl';
 import PrepareSipCtrl from '../controllers/PrepareSipCtrl';
@@ -124,6 +127,7 @@ export default angular
     '$transitions',
     BaseCtrl,
   ])
+  .controller('ChangePasswordModalCtrl', ['$uibModalInstance', 'djangoAuth', 'data', ChangePasswordModalCtrl])
   .controller('CollectContentCtrl', [
     'IP',
     '$log',
@@ -212,6 +216,14 @@ export default angular
     'ContextMenuBase',
     IpApprovalCtrl,
   ])
+  .controller('IpInformationModalInstanceCtrl', [
+    'IP',
+    '$uibModalInstance',
+    'data',
+    '$scope',
+    'Notifications',
+    IpInformationModalInstanceCtrl,
+  ])
   .controller('LanguageCtrl', ['appConfig', '$scope', '$http', '$translate', LanguageCtrl])
   .controller('MediaInformationCtrl', [
     '$scope',
@@ -261,6 +273,16 @@ export default angular
     OrdersCtrl,
   ])
   .controller('OrganizationCtrl', ['$scope', 'Organization', OrganizationCtrl])
+  .controller('OrganizationModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    'data',
+    'Notifications',
+    'Organization',
+    OrganizationModalInstanceCtrl,
+  ])
   .controller('ProfileManagerCtrl', ['$state', '$scope', ProfileManagerCtrl])
   .controller('PrepareIpCtrl', [
     'IP',

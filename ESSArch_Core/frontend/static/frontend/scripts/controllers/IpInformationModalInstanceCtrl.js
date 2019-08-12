@@ -1,16 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('IpInformationModalInstanceCtrl', function(
-    IP,
-    $translate,
-    $uibModalInstance,
-    djangoAuth,
-    appConfig,
-    $http,
-    data,
-    $scope,
-    Notifications
-  ) {
+export default class IpInformationModalInstanceCtrl {
+  constructor(IP, $uibModalInstance, data, $scope, Notifications) {
     var $ctrl = this;
     $scope.angular = angular;
     $ctrl.editMode = {};
@@ -54,4 +43,5 @@ angular
     $ctrl.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}

@@ -1,17 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('OrganizationModalInstanceCtrl', function(
-    $translate,
-    $uibModalInstance,
-    djangoAuth,
-    appConfig,
-    $http,
-    data,
-    $scope,
-    Notifications,
-    $timeout,
-    Organization
-  ) {
+export default class OrganizationModalInstanceCtrl {
+  constructor($translate, $uibModalInstance, appConfig, $http, data, Notifications, Organization) {
     var $ctrl = this;
     $ctrl.ip = data.ip;
     $ctrl.saving = false;
@@ -42,4 +30,5 @@ angular
     $ctrl.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}
