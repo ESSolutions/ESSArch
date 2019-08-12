@@ -64,7 +64,6 @@ matrix:
     - name: "Build documentation"
       stage: test
       python: "3.7"
-      before_install: skip
       install:
         # Pin six to avoid dependency errors,
         # see https://github.com/pypa/pip/issues/4887
