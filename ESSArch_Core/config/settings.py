@@ -114,8 +114,14 @@ INSTALLED_APPS = [
     'ESSArch_Core.tags',
     'ESSArch_Core.WorkflowEngine',
     'ESSArch_Core.workflow',
-    'test_without_migrations',
 ]
+
+try:
+    import test_without_migrations
+except ImportError:
+    pass
+else:
+    INSTALLED_APPS.append('test_without_migrations')
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
