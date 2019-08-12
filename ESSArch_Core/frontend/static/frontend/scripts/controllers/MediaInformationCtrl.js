@@ -115,11 +115,15 @@ export default class MediaInformationCtrl {
           var search = tableState.search.predicateObject['$'];
         }
         var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.itemsPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
-        Resource.getStorageMediums(start, number, pageNumber, tableState, sorting, search)
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
+        Resource.getStorageMediums(
+          paginationParams.start,
+          paginationParams.number,
+          paginationParams.pageNumber,
+          tableState,
+          sorting,
+          search
+        )
           .then(function(result) {
             vm.displayedMediums = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
@@ -133,9 +137,9 @@ export default class MediaInformationCtrl {
                 search: search,
               };
 
-              listViewService.checkPages('storage_medium', number, filters).then(function(result) {
+              listViewService.checkPages('storage_medium', paginationParams.number, filters).then(function(result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
-                tableState.pagination.start = result.numberOfPages * number - number;
+                tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 vm.callServer(tableState);
               });
             } else {
@@ -156,15 +160,12 @@ export default class MediaInformationCtrl {
           var search = tableState.search.predicateObject['$'];
         }
         var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.objectsPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.objectsPerPage);
         Resource.getStorageObjectsForMedium(
           $scope.storageMedium.id,
-          start,
-          number,
-          pageNumber,
+          paginationParams.start,
+          paginationParams.number,
+          paginationParams.pageNumber,
           tableState,
           $scope.storageMedium,
           sorting,
@@ -182,9 +183,9 @@ export default class MediaInformationCtrl {
                 search: search,
               };
 
-              listViewService.checkPages('storage_object', number, filters).then(function(result) {
+              listViewService.checkPages('storage_object', paginationParams.number, filters).then(function(result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
-                tableState.pagination.start = result.numberOfPages * number - number;
+                tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 vm.objectPipe(tableState);
               });
             }

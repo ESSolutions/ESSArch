@@ -235,18 +235,14 @@ export default class BaseCtrl {
           var search = tableState.search.predicateObject['$'];
         }
         var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.itemsPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
-
         if (ipSortString.indexOf('Deleting') === -1) {
           ipSortString.push('Deleting'); // Add deleting if not already exists
         }
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         Resource.getIpPage(
-          start,
-          number,
-          pageNumber,
+          paginationParams.start,
+          paginationParams.number,
+          paginationParams.pageNumber,
           tableState,
           sorting,
           search,
@@ -277,9 +273,9 @@ export default class BaseCtrl {
                 filters.workarea = vm.workarea;
               }
 
-              listViewService.checkPages('ip', number, filters).then(function(result) {
+              listViewService.checkPages('ip', paginationParams.number, filters).then(function(result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
-                tableState.pagination.start = result.numberOfPages * number - number;
+                tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 vm.callServer(tableState);
               });
             }

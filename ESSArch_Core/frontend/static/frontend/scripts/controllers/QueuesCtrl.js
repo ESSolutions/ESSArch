@@ -1,5 +1,5 @@
 export default class QueuesCtrl {
-  constructor(appConfig, $scope, $rootScope, Storage, Resource, $interval, $transitions) {
+  constructor(appConfig, $scope, $rootScope, Storage, Resource, $interval, $transitions, listViewService) {
     var vm = this;
     $scope.select = true;
     vm.ioQueue = [];
@@ -31,11 +31,15 @@ export default class QueuesCtrl {
           var search = tableState.search.predicateObject['$'];
         }
         var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.ioPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
-        Resource.getIoQueue(start, number, pageNumber, tableState, sorting, search)
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.ioPerPage);
+        Resource.getIoQueue(
+          paginationParams.start,
+          paginationParams.number,
+          paginationParams.pageNumber,
+          tableState,
+          sorting,
+          search
+        )
           .then(function(result) {
             vm.ioQueue = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
@@ -46,9 +50,9 @@ export default class QueuesCtrl {
                 search: search,
               };
 
-              listViewService.checkPages('io_queue', number, filters).then(function(result) {
+              listViewService.checkPages('io_queue', paginationParams.number, filters).then(function(result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
-                tableState.pagination.start = result.numberOfPages * number - number;
+                tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 $scope.getIoQueue(tableState);
               });
             }
@@ -64,11 +68,15 @@ export default class QueuesCtrl {
           var search = tableState.search.predicateObject['$'];
         }
         var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.robotsPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
-        Resource.getRobotQueue(start, number, pageNumber, tableState, sorting, search)
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.robotsPerPage);
+        Resource.getRobotQueue(
+          paginationParams.start,
+          paginationParams.number,
+          paginationParams.pageNumber,
+          tableState,
+          sorting,
+          search
+        )
           .then(function(result) {
             vm.robotQueue = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
@@ -79,9 +87,9 @@ export default class QueuesCtrl {
                 search: search,
               };
 
-              listViewService.checkPages('robot_queue', number, filters).then(function(result) {
+              listViewService.checkPages('robot_queue', paginationParams.number, filters).then(function(result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
-                tableState.pagination.start = result.numberOfPages * number - number;
+                tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 $scope.getIoQueue(tableState);
               });
             }

@@ -159,6 +159,7 @@ export default angular
     'Conversion',
     '$translate',
     '$transitions',
+    'listViewService',
     ConversionCtrl,
   ])
   .controller('ConfirmReceiveCtrl', ['IPReception', 'Notifications', '$uibModalInstance', 'data', ConfirmReceiveCtrl])
@@ -270,6 +271,7 @@ export default angular
     '$q',
     '$log',
     'SelectedIPUpdater',
+    'listViewService',
     OrdersCtrl,
   ])
   .controller('OrganizationCtrl', ['$scope', 'Organization', OrganizationCtrl])
@@ -393,23 +395,18 @@ export default angular
   ])
   .controller('AppraisalCtrl', [
     '$scope',
-    '$controller',
-    '$rootScope',
-    '$cookies',
-    '$stateParams',
     'appConfig',
     '$http',
-    '$timeout',
     '$uibModal',
     '$log',
     '$sce',
     '$window',
     'Notifications',
-    '$filter',
     '$interval',
     'Appraisal',
     '$translate',
     '$transitions',
+    'listViewService',
     AppraisalCtrl,
   ])
   .controller('RequestModalInstanceCtrl', ['$uibModalInstance', 'data', '$scope', RequestModalInstanceCtrl])
@@ -439,6 +436,7 @@ export default angular
     'Resource',
     '$interval',
     '$transitions',
+    'listViewService',
     QueuesCtrl,
   ])
   .controller('StatsReportModalInstanceCtrl', [

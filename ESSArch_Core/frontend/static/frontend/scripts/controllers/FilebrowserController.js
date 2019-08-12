@@ -72,17 +72,14 @@ export default class FilebrowserController {
       }
       if (!angular.isUndefined(tableState)) {
         $scope.tableState = tableState;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, $scope.filesPerPage);
         if ($state.includes('**.workarea.**')) {
           listViewService
             .getWorkareaDir(
               vm.workarea,
               $scope.previousGridArraysString(),
-              pageNumber,
-              number,
+              paginationParams.pageNumber,
+              paginationParams.number,
               vm.user ? vm.user.id : null
             )
             .then(function(dir) {
@@ -93,13 +90,15 @@ export default class FilebrowserController {
               $scope.openingNewPage = false;
             });
         } else {
-          listViewService.getDir($scope.ip, $scope.previousGridArraysString(), pageNumber, number).then(function(dir) {
-            $scope.deckGridData = dir.data;
-            tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
-            $scope.gridArrayLoading = false;
-            $scope.initLoad = false;
-            $scope.openingNewPage = false;
-          });
+          listViewService
+            .getDir($scope.ip, $scope.previousGridArraysString(), paginationParams.pageNumber, paginationParams.number)
+            .then(function(dir) {
+              $scope.deckGridData = dir.data;
+              tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
+              $scope.gridArrayLoading = false;
+              $scope.initLoad = false;
+              $scope.openingNewPage = false;
+            });
         }
       }
     };

@@ -15,7 +15,8 @@ export default class StateTreeCtrl {
     $log,
     StateTree,
     $rootScope,
-    $transitions
+    $transitions,
+    listViewService
   ) {
     var vm = this;
     var stateInterval;
@@ -363,20 +364,17 @@ export default class StateTreeCtrl {
           var search = tableState.search.predicateObject['$'];
         }
         var sorting = (tableState.sort.reverse ? '-' : '') + tableState.sort.predicate;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.itemsPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         return Task.validations({
           id: $scope.currentStepTask.id,
-          page: pageNumber,
-          page_size: number,
+          page: paginationParams.pageNumber,
+          page_size: paginationParams.number,
           ordering: sorting,
           search: search,
         })
           .$promise.then(function(resource) {
             vm.validations = resource;
-            tableState.pagination.numberOfPages = Math.ceil(resource.$httpHeaders('Count') / number); //set the number of pages so the pagination can update
+            tableState.pagination.numberOfPages = Math.ceil(resource.$httpHeaders('Count') / paginationParams.number); //set the number of pages so the pagination can update
             $scope.validationsLoading = false;
             return resource;
           })

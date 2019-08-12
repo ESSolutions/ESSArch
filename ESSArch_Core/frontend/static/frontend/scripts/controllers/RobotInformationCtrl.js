@@ -98,11 +98,16 @@ export default class RobotInformationCtrl {
           var search = tableState.search.predicateObject['$'];
         }
         var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.drivesPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
-        Resource.getTapeDrives(start, number, pageNumber, tableState, sorting, search, vm.selectedRobot)
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.drivesPerPage);
+        Resource.getTapeDrives(
+          paginationParams.start,
+          paginationParams.number,
+          paginationParams.pageNumber,
+          tableState,
+          sorting,
+          search,
+          vm.selectedRobot
+        )
           .then(function(result) {
             vm.tapeDrives = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
@@ -115,9 +120,9 @@ export default class RobotInformationCtrl {
                 search: search,
               };
 
-              listViewService.checkPages('tapedrive', number, filters).then(function(result) {
+              listViewService.checkPages('tapedrive', paginationParams.number, filters).then(function(result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
-                tableState.pagination.start = result.numberOfPages * number - number;
+                tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 $scope.getDrives(tableState);
               });
             }
@@ -134,11 +139,16 @@ export default class RobotInformationCtrl {
           var search = tableState.search.predicateObject['$'];
         }
         var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.slotsPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
-        Resource.getTapeSlots(start, number, pageNumber, tableState, sorting, search, vm.selectedRobot)
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.slotsPerPage);
+        Resource.getTapeSlots(
+          paginationParams.start,
+          paginationParams.number,
+          paginationParams.pageNumber,
+          tableState,
+          sorting,
+          search,
+          vm.selectedRobot
+        )
           .then(function(result) {
             vm.tapeSlots = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
@@ -151,9 +161,9 @@ export default class RobotInformationCtrl {
                 search: search,
               };
 
-              listViewService.checkPages('tapeslot', number, filters).then(function(result) {
+              listViewService.checkPages('tapeslot', paginationParams.number, filters).then(function(result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
-                tableState.pagination.start = result.numberOfPages * number - number;
+                tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 $scope.getSlots(tableState);
               });
             }
@@ -170,11 +180,16 @@ export default class RobotInformationCtrl {
           var search = tableState.search.predicateObject['$'];
         }
         var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.robotQueueItemsPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
-        Resource.getRobotQueueForRobot(start, number, pageNumber, tableState, sorting, search, vm.selectedRobot)
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.robotQueueItemsPerPage);
+        Resource.getRobotQueueForRobot(
+          paginationParams.start,
+          paginationParams.number,
+          paginationParams.pageNumber,
+          tableState,
+          sorting,
+          search,
+          vm.selectedRobot
+        )
           .then(function(result) {
             vm.robotQueue = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
@@ -188,10 +203,11 @@ export default class RobotInformationCtrl {
               };
 
               listViewService
-                .checkPages('robot_queue_for_robot', number, filters, vm.selectedRobot.id)
+                .checkPages('robot_queue_for_robot', paginationParams.number, filters, vm.selectedRobot.id)
                 .then(function(result) {
                   tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
-                  tableState.pagination.start = result.numberOfPages * number - number;
+                  tableState.pagination.start =
+                    result.numberOfPages * paginationParams.number - paginationParams.number;
                   $scope.getRobotQueue(tableState);
                 });
             }
@@ -208,11 +224,15 @@ export default class RobotInformationCtrl {
           var search = tableState.search.predicateObject['$'];
         }
         var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.robotsPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
-        Resource.getRobots(start, number, pageNumber, tableState, sorting, search)
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.robotsPerPage);
+        Resource.getRobots(
+          paginationParams.start,
+          paginationParams.number,
+          paginationParams.pageNumber,
+          tableState,
+          sorting,
+          search
+        )
           .then(function(result) {
             vm.robots = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
@@ -224,9 +244,9 @@ export default class RobotInformationCtrl {
                 search: search,
               };
 
-              listViewService.checkPages('robot', number, filters).then(function(result) {
+              listViewService.checkPages('robot', paginationParams.number, filters).then(function(result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
-                tableState.pagination.start = result.numberOfPages * number - number;
+                tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 $scope.loadRobots(tableState);
               });
             } else {

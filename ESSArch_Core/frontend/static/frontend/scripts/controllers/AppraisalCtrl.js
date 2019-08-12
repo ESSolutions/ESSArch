@@ -1,23 +1,18 @@
 export default class AppraisalCtrl {
   constructor(
     $scope,
-    $controller,
-    $rootScope,
-    $cookies,
-    $stateParams,
     appConfig,
     $http,
-    $timeout,
     $uibModal,
     $log,
     $sce,
     $window,
     Notifications,
-    $filter,
     $interval,
     Appraisal,
     $translate,
-    $transitions
+    $transitions,
+    listViewService
   ) {
     var vm = this;
     vm.rulesPerPage = 10;
@@ -65,12 +60,11 @@ export default class AppraisalCtrl {
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.rulesPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
-        Appraisal.getRules(pageNumber, number, sortString, search).then(function(response) {
-          tableState.pagination.numberOfPages = Math.ceil(response.count / number); //set the number of pages so the pagination can update
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.rulesPerPage);
+        Appraisal.getRules(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
+          response
+        ) {
+          tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           vm.ruleTableState = tableState;
           vm.ruleFilters.forEach(function(x) {
             response.data.forEach(function(rule) {
@@ -101,12 +95,11 @@ export default class AppraisalCtrl {
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.ongoingPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
-        Appraisal.getOngoing(pageNumber, number, sortString, search).then(function(response) {
-          tableState.pagination.numberOfPages = Math.ceil(response.count / number); //set the number of pages so the pagination can update
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.ongoingPerPage);
+        Appraisal.getOngoing(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
+          response
+        ) {
+          tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           vm.ongoingTableState = tableState;
           vm.ongoing = response.data;
           $scope.ongoingLoading = false;
@@ -130,12 +123,11 @@ export default class AppraisalCtrl {
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.nextPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
-        Appraisal.getNext(pageNumber, number, sortString, search).then(function(response) {
-          tableState.pagination.numberOfPages = Math.ceil(response.count / number); //set the number of pages so the pagination can update
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.nextPerPage);
+        Appraisal.getNext(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
+          response
+        ) {
+          tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           vm.nextTableState = tableState;
           vm.next = response.data;
           $scope.nextLoading = false;
@@ -159,12 +151,11 @@ export default class AppraisalCtrl {
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.finishedPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
-        Appraisal.getFinished(pageNumber, number, sortString, search).then(function(response) {
-          tableState.pagination.numberOfPages = Math.ceil(response.count / number); //set the number of pages so the pagination can update
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.finishedPerPage);
+        Appraisal.getFinished(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
+          response
+        ) {
+          tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           vm.finishedTableState = tableState;
           vm.finished = response.data;
           $scope.finishedLoading = false;

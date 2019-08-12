@@ -131,11 +131,16 @@ export default class {
           var search = tableState.search.predicateObject['$'];
         }
         var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.itemsPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
-        Resource.getDips(start, number, pageNumber, tableState, sorting, search, $scope.columnFilters)
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
+        Resource.getDips(
+          paginationParams.start,
+          paginationParams.number,
+          paginationParams.pageNumber,
+          tableState,
+          sorting,
+          search,
+          $scope.columnFilters
+        )
           .then(function(result) {
             vm.displayedIps = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
@@ -153,9 +158,9 @@ export default class {
                 $scope.columnFilters
               );
 
-              listViewService.checkPages('ip', number, filters).then(function(result) {
+              listViewService.checkPages('ip', paginationParams.number, filters).then(function(result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
-                tableState.pagination.start = result.numberOfPages * number - number;
+                tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 vm.callServer(tableState);
               });
             }
@@ -403,16 +408,13 @@ export default class {
       }
       if (!angular.isUndefined(tableState)) {
         $scope.workarea_tableState = tableState;
-        var pagination = $scope.workarea_tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, 50);
         listViewService
           .getWorkareaDir(
             'access',
             $scope.previousGridArraysString(1),
-            pageNumber,
-            number,
+            paginationParams.pageNumber,
+            paginationParams.number,
             vm.organizationMember.current.id
           )
           .then(function(dir) {
@@ -439,12 +441,14 @@ export default class {
       }
       if (!angular.isUndefined(tableState)) {
         $scope.dip_tableState = tableState;
-        var pagination = $scope.dip_tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, 50);
         listViewService
-          .getDipDir($scope.ip, $scope.previousGridArraysString(2), pageNumber, number)
+          .getDipDir(
+            $scope.ip,
+            $scope.previousGridArraysString(2),
+            paginationParams.pageNumber,
+            paginationParams.number
+          )
           .then(function(dir) {
             $scope.chosenFiles = dir.data;
             $scope.dip_tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update

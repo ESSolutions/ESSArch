@@ -592,6 +592,17 @@ const listViewService = (
     });
   }
 
+  function getPaginationParams(pagination, defaultNumber) {
+    let start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
+    let number = pagination.number || defaultNumber; // Number of entries showed per page.
+    let pageNumber = isNaN(start / number) ? 1 : start / number + 1;
+    return {
+      start: start,
+      pageNumber: pageNumber,
+      number: number,
+    };
+  }
+
   return {
     getListViewData: getListViewData,
     getReceptionIps: getReceptionIps,
@@ -619,6 +630,7 @@ const listViewService = (
     createDip: createDip,
     getDir: getDir,
     getfile: getFile,
+    getPaginationParams: getPaginationParams,
     getWorkareaFile: getWorkareaFile,
     checkPages: checkPages,
   };
