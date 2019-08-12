@@ -117,7 +117,7 @@ INSTALLED_APPS = [
 ]
 
 try:
-    import test_without_migrations
+    import test_without_migrations  # noqa
 except ImportError:
     pass
 else:
