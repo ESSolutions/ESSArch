@@ -394,9 +394,20 @@ class MarkArchived(DBTask):
 class DeleteInformationPackage(DBTask):
     def run(self, from_db=False, delete_files=True):
         ip = self.get_information_package()
-        ip.delete_workareas()
-        if delete_files:
-            ip.delete_files()
+
+        old_state = ip.state
+        ip.state = 'Deleting'
+        ip.save()
+        try:
+            ip.delete_workareas()
+            if delete_files:
+                ip.delete_files()
+        except BaseException:
+            ip.state = old_state
+            ip.save()
+            raise
+
+        self.set_progress(99, 100)
 
         if from_db:
             ip.delete()

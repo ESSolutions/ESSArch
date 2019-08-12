@@ -150,7 +150,6 @@ export default class ModalInstanceCtrl {
         })
           .$promise.then(function() {
             $ctrl.removing = false;
-            Notifications.add($translate.instant('IP_REMOVED', {label: ipObject.label}), 'success');
             $uibModalInstance.close();
           })
           .catch(function(response) {
