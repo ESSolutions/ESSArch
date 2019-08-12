@@ -1,4 +1,4 @@
-import dashboardStats from '../components/dashboardStatsComponent';
+import dashboardStats from '../components/DashboardStatsComponent';
 import essarchFooter from '../components/FooterComponent';
 import eventTable from '../components/EventTableComponent';
 import exportComponent from '../components/ExportComponent';
