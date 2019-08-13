@@ -1,4 +1,5 @@
 - repo: https://github.com/prettier/prettier
-  rev: "1.16.4"
+  rev: '1.18.2'
   hooks:
     - id: prettier
+      args: [--config, ./ESSArch_Core/frontend/static/frontend/.prettierrc]
