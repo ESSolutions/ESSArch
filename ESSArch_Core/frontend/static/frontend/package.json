@@ -68,7 +68,7 @@
     "karma-phantomjs-launcher": "^1.0.2",
     "karma-spec-reporter": "^0.0.32",
     "later": "^1.2.0",
-    "lodash": "4.17.11",
+    "lodash": "4.17.13",
     "messenger-hubspot": "^1.5.0-b2",
     "mini-css-extract-plugin": "^0.6.0",
     "moment": "^2.22.2",
