@@ -3,10 +3,7 @@ from collections import OrderedDict
 from django.utils.encoding import force_text
 from django_filters.utils import label_for_filter
 from rest_framework.metadata import SimpleMetadata
-<<<<<<< HEAD
 from rest_framework.relations import ManyRelatedField, RelatedField
-=======
->>>>>>> origin/tag-agents
 
 from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
 from ESSArch_Core.WorkflowEngine.polling import AVAILABLE_POLLERS
