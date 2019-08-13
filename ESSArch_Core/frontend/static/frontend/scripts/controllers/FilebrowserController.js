@@ -123,9 +123,12 @@ export default class FilebrowserController {
           return $rootScope.ip;
         },
         function(newValue, oldValue) {
+          let old = angular.copy($scope.ip);
           $scope.ip = $rootScope.ip;
-          $scope.deckGridInit($rootScope.ip);
-          $scope.previousGridArrays = [];
+          if (old.id !== $rootScope.ip.id) {
+            $scope.deckGridInit($rootScope.ip);
+            $scope.previousGridArrays = [];
+          }
         },
         true
       )
