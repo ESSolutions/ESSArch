@@ -114,7 +114,7 @@ if __name__ == '__main__':
                      "sphinxcontrib-httpexample==0.10.3",
                      "sphinxcontrib-inlinesyntaxhighlight==0.2"],
             "tests": ["coverage==4.5.3", "fakeredis[lua]==1.0.3", "django-test-without-migrations==0.6"],
-            "s3": ["boto3==1.9.205"],
+            "s3": ["boto3==1.9.206"],
             "ldap": ["django-auth-ldap==2.0.0"],
             "saml2": ["djangosaml2==0.17.2"],
             "libreoffice_file_conversion": ["unoconv==0.8.2"],
