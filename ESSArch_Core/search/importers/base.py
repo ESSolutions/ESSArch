@@ -13,13 +13,8 @@ from ESSArch_Core.tags.models import Tag, TagVersion
 logger = logging.getLogger('essarch.search.importers.BaseImporter')
 
 
-<<<<<<< HEAD
-class BaseImporter:
-    def __init__(self):
-=======
-class BaseImporter(object):
+class BaseImporter():
     def __init__(self, task):
->>>>>>> origin/tag-agents
         self.xmlparser = etree.XMLParser(remove_blank_text=True)
         self.task = task
 
