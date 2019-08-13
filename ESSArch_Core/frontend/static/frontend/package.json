@@ -92,7 +92,7 @@
     "ua-parser-js": "^0.7.18",
     "ui-select": "~0.19.6",
     "uri-util": "^1.1.0",
-    "url-loader": "^1.1.2",
+    "url-loader": "^2.1.0",
     "utf-8-validate": "^5.0.2",
     "webpack": "^4.39.1",
     "webpack-cli": "^3.3.2",
