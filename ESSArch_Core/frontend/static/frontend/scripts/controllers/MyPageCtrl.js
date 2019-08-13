@@ -7,7 +7,7 @@ export default class MyPageCtrl {
       receive: false,
     };
     $scope.tableControlCollapsed = true;
-    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: 'Preserving,Receiving'});
+    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: 'Preserving,Receiving', params: {}});
     vm.displayedIps = [
       {
         label: 'request',

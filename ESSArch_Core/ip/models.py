@@ -172,7 +172,7 @@ class InformationPackageManager(OrganizationManager):
 
 class InformationPackage(models.Model):
     """
-    Informaion Package
+    Information Package
     """
 
     SIP = 0

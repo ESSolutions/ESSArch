@@ -106,6 +106,7 @@ export default angular
   .controller('BaseCtrl', [
     'vm',
     'ipSortString',
+    'params',
     '$log',
     '$uibModal',
     '$timeout',

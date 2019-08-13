@@ -1,7 +1,7 @@
 export default class UserSettingsCtrl {
   constructor(Me, $scope, $rootScope, $controller, myService, $window) {
     var vm = this;
-    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ''});
+    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: '', params: {}});
     vm.activeColumns = {chosen: []};
     vm.availableColumns = {options: [], chosen: []};
 

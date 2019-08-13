@@ -26,6 +26,7 @@ export default class BaseCtrl {
   constructor(
     vm,
     ipSortString,
+    params,
     $log,
     $uibModal,
     $timeout,
@@ -243,7 +244,7 @@ export default class BaseCtrl {
           paginationParams.start,
           paginationParams.number,
           paginationParams.pageNumber,
-          tableState,
+          params,
           sorting,
           search,
           ipSortString,

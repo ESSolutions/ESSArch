@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 
 from django.template.loader import get_template
 from django.utils import timezone
@@ -35,7 +36,7 @@ class XMLReceiptBackend(BaseReceiptBackend):
         data['ärenden'] = []
         if ip is not None:
             cts = ip.get_content_type_file()
-            if cts is not None:
+            if cts is not None and os.path.isfile(cts):
                 tree = etree.parse(ip.open_file(cts))
                 for arende in tree.xpath("//*[local-name()='ArkivobjektArende']"):
                     arende_id = arende.xpath("*[local-name()='ArkivobjektID']")[0].text
@@ -52,6 +53,8 @@ class XMLReceiptBackend(BaseReceiptBackend):
                     except IndexError:
                         pass
                     data['ärenden'].append(a_data)
+            else:
+                logger.debug('No file found at {}'.format(cts))
 
         files_to_create = {destination: {'spec': spec, 'data': data}}
         XMLGenerator().generate(files_to_create)

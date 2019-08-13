@@ -24,7 +24,7 @@ export default class WorkareaCtrl {
     ContextMenuBase,
     SelectedIPUpdater
   ) {
-    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString});
+    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
 
     vm.browserstate = {
       path: '',

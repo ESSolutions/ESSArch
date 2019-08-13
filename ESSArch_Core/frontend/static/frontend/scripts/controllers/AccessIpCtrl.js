@@ -1,8 +1,8 @@
 export default class AccessIpCtrl {
   constructor($scope, $controller, $rootScope, $translate, $uibModal, $log, ContextMenuBase, $transitions) {
     var vm = this;
-    var ipSortString = [];
-    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString});
+    var ipSortString = ['Preserved'];
+    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
     vm.archived = true;
 
     $scope.ips = [];

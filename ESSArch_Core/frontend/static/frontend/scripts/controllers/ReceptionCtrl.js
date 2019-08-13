@@ -44,7 +44,7 @@ export default class ReceptionCtrl {
     var vm = this;
     var ipSortString = [];
     var watchers = [];
-    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString});
+    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
     $controller('TagsCtrl', {$scope: $scope, vm: vm});
     $scope.includedIps = [];
     $scope.profileEditor = false;

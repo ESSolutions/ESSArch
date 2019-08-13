@@ -14,7 +14,7 @@ export default class {
     listViewService
   ) {
     var vm = this;
-    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ''});
+    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: '', params: {}});
 
     /*******************************************/
     /*Piping and Pagination for List-view table*/
