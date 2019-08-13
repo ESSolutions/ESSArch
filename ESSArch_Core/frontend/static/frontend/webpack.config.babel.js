@@ -1,6 +1,6 @@
 const webpack = require('webpack');
 const path = require('path');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ManifestPlugin = require('webpack-manifest-plugin');
 const OptimizeCssnanoPlugin = require('@intervolga/optimize-cssnano-plugin');
@@ -36,7 +36,7 @@ module.exports = (env, argv) => {
                   '@babel/preset-env',
                   {
                     useBuiltIns: 'usage',
-                    corejs: 2,
+                    corejs: 3,
                     modules: false,
                   },
                 ],
