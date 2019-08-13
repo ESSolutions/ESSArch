@@ -23,12 +23,8 @@
 """
 
 from drf_dynamic_fields import DynamicFieldsMixin
-<<<<<<< HEAD
-from rest_framework import serializers
-=======
 from languages_plus.models import Language
 from rest_framework import serializers, validators
->>>>>>> origin/tag-agents
 
 
 class DynamicModelSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
