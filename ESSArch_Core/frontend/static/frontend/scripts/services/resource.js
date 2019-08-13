@@ -98,7 +98,8 @@ const resource = (listViewService, Storage, $rootScope) => {
         viewType,
         columnFilters,
         archived,
-        workarea
+        workarea,
+        params
       )
       .then(function(value) {
         var ipCollection = value.data;

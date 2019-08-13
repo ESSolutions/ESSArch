@@ -43,7 +43,10 @@ export default class CollectContentCtrl {
   ) {
     var vm = this;
     var ipSortString = ['Prepared', 'Uploading'];
-    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString});
+    let params = {
+      package_type: 0,
+    };
+    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params});
     vm.flowDestination = null;
     $scope.showFileUpload = true;
     $scope.currentFlowObject = null;

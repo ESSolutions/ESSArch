@@ -36,7 +36,7 @@ export default class MediaInformationCtrl {
   ) {
     var vm = this;
     var watchers = [];
-    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ''});
+    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: '', params: {}});
     $scope.colspan = 6;
     $scope.storageMedium = null;
     $rootScope.storageMedium = null;

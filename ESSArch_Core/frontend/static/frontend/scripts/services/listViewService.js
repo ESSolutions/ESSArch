@@ -110,7 +110,8 @@ const listViewService = (
     viewType,
     columnFilters,
     archived,
-    workarea
+    workarea,
+    params
   ) {
     var data = angular.extend(
       {
@@ -122,7 +123,8 @@ const listViewService = (
         view_type: viewType,
         archived: archived,
       },
-      columnFilters
+      columnFilters,
+      params
     );
 
     if (workarea) {

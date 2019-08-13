@@ -1760,7 +1760,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
             ip_id = os.path.splitext(os.path.basename(xmlfile))[0]
 
-            if InformationPackage.objects.filter(object_identifier_value=ip_id).exists():
+            existing_ips = InformationPackage.objects.filter(
+                object_identifier_value=ip_id, package_type=InformationPackage.AIP
+            )
+            if existing_ips.exists():
                 continue
 
             ip = parse_submit_description(xmlfile, srcdir=os.path.split(container)[0])
@@ -1847,16 +1850,18 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
     def prepare(self, request, pk=None):
         logger = logging.getLogger('essarch.epp.ingest')
         perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
-
-        existing = InformationPackage.objects.filter(object_identifier_value=pk).first()
         organization = request.user.user_profile.current_organization
 
-        if organization is None:
-            raise exceptions.ParseError('You must be part of an organization to prepare an IP')
+        existing_aip = InformationPackage.objects.filter(
+            object_identifier_value=pk, package_type=InformationPackage.AIP
+        ).first()
+        existing_sip = InformationPackage.objects.filter(
+            object_identifier_value=pk, package_type=InformationPackage.SIP
+        ).first()
 
-        if existing is not None:
+        if existing_aip is not None:
             logger.warn('Tried to prepare IP with id %s which already exists' % pk, extra={'user': request.user.pk})
-            raise Conflict('IP with id %s already exists: %s' % (pk, str(existing.pk)))
+            raise Conflict('IP with id {} already exists'.format(pk))
 
         reception = Path.objects.values_list('value', flat=True).get(entity="reception")
         xmlfile = normalize_path(os.path.join(reception, '%s.xml' % pk))
@@ -1864,7 +1869,6 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if not os.path.isfile(xmlfile):
             logger.warn('Tried to prepare IP with missing XML file %s' % xmlfile, extra={'user': request.user.pk})
             raise exceptions.ParseError('%s does not exist' % xmlfile)
-
         try:
             container = normalize_path(os.path.join(reception, self.get_container_for_xml(xmlfile)))
         except etree.LxmlError:
@@ -1878,26 +1882,64 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             )
             raise exceptions.ParseError('%s does not exist' % container)
 
-        parsed = parse_submit_description(xmlfile, srcdir=os.path.dirname(container))
-        provided_sa = request.data.get('submission_agreement')
-        parsed_sa = parsed.get('altrecordids', {}).get('SUBMISSIONAGREEMENT', [None])[0]
+        if existing_sip is None:
+            if organization is None:
+                raise exceptions.ParseError('You must be part of an organization to prepare an IP')
 
-        if parsed_sa is not None and provided_sa is not None:
-            if provided_sa == parsed_sa:
+            parsed = parse_submit_description(xmlfile, srcdir=os.path.dirname(container))
+            provided_sa = request.data.get('submission_agreement')
+            parsed_sa = parsed.get('altrecordids', {}).get('SUBMISSIONAGREEMENT', [None])[0]
+
+            if parsed_sa is not None and provided_sa is not None:
+                if provided_sa == parsed_sa:
+                    sa = provided_sa
+                else:
+                    raise exceptions.ParseError(detail='Must use SA specified in XML')
+            elif parsed_sa and not provided_sa:
+                sa = parsed_sa
+            elif provided_sa and not parsed_sa:
                 sa = provided_sa
             else:
-                raise exceptions.ParseError(detail='Must use SA specified in XML')
-        elif parsed_sa and not provided_sa:
-            sa = parsed_sa
-        elif provided_sa and not parsed_sa:
-            sa = provided_sa
-        else:
-            raise exceptions.ParseError(detail='Missing parameter submission_agreement')
+                raise exceptions.ParseError(detail='Missing parameter submission_agreement')
 
-        try:
-            sa = SubmissionAgreement.objects.get(pk=sa)
-        except (ValueError, SubmissionAgreement.DoesNotExist) as e:
-            raise exceptions.ParseError(e)
+            try:
+                sa = SubmissionAgreement.objects.get(pk=sa)
+            except (ValueError, SubmissionAgreement.DoesNotExist) as e:
+                raise exceptions.ParseError(e)
+
+            ip = InformationPackage.objects.create(
+                object_identifier_value=pk,
+                sip_objid=pk,
+                sip_path=pk,
+                package_type=InformationPackage.AIP,
+                state='Prepared',
+                responsible=request.user,
+                submission_agreement=sa,
+                submission_agreement_locked=True,
+                object_path=container,
+                package_mets_path=xmlfile,
+            )
+
+            member = Member.objects.get(django_user=request.user)
+            user_perms = perms.pop('owner', [])
+
+            organization.assign_object(ip, custom_permissions=perms)
+            organization.add_object(ip)
+
+            for perm in user_perms:
+                perm_name = get_permission_name(perm, ip)
+                assign_perm(perm_name, member.django_user, ip)
+        else:
+            ip = existing_sip
+            ip.sip_objid = pk
+            ip.sip_path = pk
+            ip.package_type = InformationPackage.AIP
+            ip.state = 'Prepared'
+            ip.object_path = container
+            ip.package_mets_path = xmlfile
+            ip.save()
+
+            sa = ip.submission_agreement
 
         if sa.profile_aic_description is None:
             raise exceptions.ParseError('Submission agreement missing AIC Description profile')
@@ -1911,33 +1953,9 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if sa.profile_dip is None:
             raise exceptions.ParseError('Submission agreement missing DIP profile')
 
-        ip = InformationPackage.objects.create(
-            object_identifier_value=pk,
-            sip_objid=pk,
-            sip_path=pk,
-            package_type=InformationPackage.AIP,
-            state='Prepared',
-            responsible=request.user,
-            submission_agreement=sa,
-            submission_agreement_locked=True,
-            object_path=container,
-            package_mets_path=xmlfile,
-        )
-        ip.save()
-
         # refresh date fields to convert them to datetime instances instead of
         # strings to allow further datetime manipulation
         ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
-
-        member = Member.objects.get(django_user=request.user)
-        user_perms = perms.pop('owner', [])
-
-        organization.assign_object(ip, custom_permissions=perms)
-        organization.add_object(ip)
-
-        for perm in user_perms:
-            perm_name = get_permission_name(perm, ip)
-            assign_perm(perm_name, member.django_user, ip)
 
         p_types = ['aic_description', 'aip', 'aip_description', 'content_type', 'dip', 'preservation_metadata']
         ip.create_profile_rels(p_types, request.user)
@@ -2008,12 +2026,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
             try:
                 ip.tag = TagStructure.objects.get(pk=tag_id)
+                ip.save()
             except TagStructure.DoesNotExist:
                 raise exceptions.ParseError('Tag "{id}" does not exist'.format(id=tag_id))
-        elif tag_id is None and ip.get_archive_tag() is None:
-            raise exceptions.ParseError('No archive selected for IP')
 
-        ip.tag = ip.get_archive_tag()
         ip.policy = policy
         ip.save()
 

@@ -27,7 +27,7 @@ export default class CreateSipCtrl {
     var vm = this;
     var ipSortString = ['Uploaded', 'Creating'];
 
-    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString});
+    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
     $scope.ipSelected = false;
 
     //funcitons for select view

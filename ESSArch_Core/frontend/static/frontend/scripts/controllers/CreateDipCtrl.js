@@ -25,7 +25,7 @@ export default class {
     var vm = this;
     var ipSortString = [];
     var watchers = [];
-    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString});
+    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
     vm.organizationMember = {
       current: null,
       options: [],

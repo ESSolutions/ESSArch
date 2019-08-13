@@ -39,7 +39,7 @@ export default class PrepareIpCtrl {
     var vm = this;
     var ipSortString = ['Preparing'];
     $scope.angular = angular;
-    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString});
+    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
 
     $scope.selectedProfileRow = {profile_type: '', class: ''};
     $scope.prepareAlert = null;

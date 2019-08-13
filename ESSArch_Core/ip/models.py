@@ -184,7 +184,7 @@ class InformationPackageManager(models.Manager):
 
 class InformationPackage(models.Model):
     """
-    Informaion Package
+    Information Package
     """
 
     SIP = 0

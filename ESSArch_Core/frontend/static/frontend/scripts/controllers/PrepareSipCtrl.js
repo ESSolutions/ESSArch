@@ -37,7 +37,7 @@ export default class PrepareSipCtrl {
   ) {
     var vm = this;
     var ipSortString = ['Created', 'Submitting', 'Submitted'];
-    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString});
+    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
 
     //Click function for ip table
     vm.selectSingleRow = function(row) {
