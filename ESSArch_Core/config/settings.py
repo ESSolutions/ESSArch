@@ -426,5 +426,7 @@ OLD_PASSWORD_FIELD_ENABLED = True
 
 try:
     from local_essarch_settings import *  # noqa isort:skip
-except ImportError:
-    raise ImportError('No settings file found, create one by running `essarch settings generate`')
+except ImportError as e:
+    if e.name == 'local_essarch_settings':
+        raise ImportError('No settings file found, create one by running `essarch settings generate`')
+    raise
