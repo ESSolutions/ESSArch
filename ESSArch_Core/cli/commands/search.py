@@ -1,17 +1,9 @@
 from pydoc import locate
 
-<<<<<<< HEAD
-import click
-from django.conf import settings
-=======
 from django.conf import settings
 import click
 
 from ESSArch_Core.search import alias_migration
-
-all_indexes = getattr(settings, 'ELASTICSEARCH_INDEXES', {'default': {}})['default']
->>>>>>> origin/tag-agents
-
 
 def get_indexes(indexes):
     all_indexes = getattr(settings, 'ELASTICSEARCH_INDEXES', {'default': {}})['default']
