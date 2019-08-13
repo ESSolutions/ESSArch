@@ -1,0 +1,22 @@
+.btn-edit-field {
+  border: none;
+  background: none;
+  padding: 0 3px;
+  margin: 0;
+  color: $border-color;
+}
+.btn-edit-field-delete {
+  border: none;
+  background: none;
+  padding: 0 3px;
+  margin: 0;
+  color: $remove-discrete;
+  &:hover {
+    color: $remove-discrete-hover;
+  }
+}
+.edit-btn-wrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+}

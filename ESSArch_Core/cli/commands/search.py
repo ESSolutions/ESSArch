@@ -1,7 +1,16 @@
 from pydoc import locate
 
+<<<<<<< HEAD
 import click
 from django.conf import settings
+=======
+from django.conf import settings
+import click
+
+from ESSArch_Core.search import alias_migration
+
+all_indexes = getattr(settings, 'ELASTICSEARCH_INDEXES', {'default': {}})['default']
+>>>>>>> origin/tag-agents
 
 
 def get_indexes(indexes):
@@ -30,7 +39,7 @@ def clear(indexes):
 @click.command()
 @click.option('-i', '--index', 'indexes', type=str, multiple=True, help='Specify which index to update.')
 @click.option('-b', '--batch-size', 'batch_size', type=int, help='Number of items to index at once.')
-@click.option('-r', '--remove-stale', 'remove_stale', default=False, help='Remove objects from the index \
+@click.option('-r', '--remove-stale', 'remove_stale', is_flag=True, default=False, help='Remove objects from the index \
                                                                            that are no longer in the database.')
 def rebuild(indexes, batch_size, remove_stale):
     """Rebuild indices
@@ -41,6 +50,21 @@ def rebuild(indexes, batch_size, remove_stale):
     for index in indexes:
         clear_index(index)
         index_documents(index, batch_size, remove_stale)
+
+
+@click.command()
+@click.option('-i', '--index', 'indexes', type=str, multiple=True, help='Specify which index to update.')
+@click.option('-m', '--move-data', 'move_data', is_flag=True, default=True)
+@click.option('-u', '--update-alias', 'update_alias', is_flag=True, default=True)
+@click.option('-d', '--delete-old-index', 'delete_old', is_flag=True, default=False)
+def migrate(indexes, move_data, update_alias, delete_old):
+    """Migrate indices
+    """
+
+    indexes = get_indexes(indexes)
+
+    for index in indexes:
+        alias_migration.migrate(index, move_data=move_data, update_alias=update_alias, delete_old_index=delete_old)
 
 
 def clear_index(index):

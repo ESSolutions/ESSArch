@@ -1,23 +1,153 @@
+import logging
 import uuid
 
 import jsonfield
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import F, OuterRef, Subquery
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
+from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
 
-from ESSArch_Core.tags.documents import VersionedDocType
+from ESSArch_Core.agents.models import Agent
+from ESSArch_Core.profiles.models import SubmissionAgreement
+from ESSArch_Core.managers import OrganizationManager
+
+User = get_user_model()
+logger = logging.getLogger('essarch.tags')
+
+
+class NodeIdentifier(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    identifier = models.TextField(_('identifier'), blank=False)
+    tag_version = models.ForeignKey(
+        'tags.TagVersion',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='identifiers',
+        verbose_name=_('tag version')
+    )
+    structure_unit = models.ForeignKey(
+        'tags.StructureUnit',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='identifiers',
+        verbose_name=_('structure unit')
+    )
+    type = models.ForeignKey('tags.NodeIdentifierType', on_delete=models.PROTECT, null=False, verbose_name=_('type'))
+
+
+class NodeIdentifierType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('node identifier type')
+        verbose_name_plural = _('node identifier types')
+
+class NodeNote(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    tag_version = models.ForeignKey(
+        'tags.TagVersion',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='notes',
+        verbose_name=_('tag version')
+    )
+    structure_unit = models.ForeignKey(
+        'tags.StructureUnit',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='notes',
+        verbose_name=_('structure unit')
+    )
+    type = models.ForeignKey('tags.NodeNoteType', on_delete=models.PROTECT, null=False, verbose_name=_('type'))
+    text = models.TextField(_('text'), blank=False)
+    href = models.TextField(_('href'), blank=True)
+    create_date = models.DateTimeField(_('create date'), null=False)
+    revise_date = models.DateTimeField(_('revise date'), null=True)
+
+
+class NodeNoteType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('node note type')
+        verbose_name_plural = _('node note types')
+
+
+class NodeRelationType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+    mirrored_type = models.ForeignKey(
+        'self', on_delete=models.PROTECT, blank=True,
+        null=True, verbose_name=_('mirrored type'),
+    )
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('node relation type')
+        verbose_name_plural = _('node relation types')
+
+
+class StructureType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+    instance_name = models.CharField(_('instance name'), max_length=255, blank=True)
+    editable_instances = models.BooleanField(_('editable instances'), default=False)
+    editable_instance_relations = models.BooleanField(_('editable instance relations'), default=False)
+    movable_instance_units = models.BooleanField(_('movable instance units'), default=False)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('structure type')
+        verbose_name_plural = _('structure types')
+
+
+class RuleConventionType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Structure(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, blank=False)
+    type = models.ForeignKey(StructureType, on_delete=models.PROTECT)
+    template = models.ForeignKey(
+        'self', on_delete=models.PROTECT, null=True,
+        limit_choices_to={'is_template': True}, related_name='instances', verbose_name=_('template'),
+    )
+    is_template = models.BooleanField(_('is template'))
+    published = models.BooleanField(_('published'), default=False)
+    published_date = models.DateTimeField(null=True)
     version = models.CharField(max_length=255, blank=False, default='1.0')
     version_link = models.UUIDField(default=uuid.uuid4, null=False)
-    create_date = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='created_structures')
+    revised_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='revised_structures')
+    create_date = models.DateTimeField(default=timezone.now, null=True)
+    revise_date = models.DateTimeField(auto_now=True)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     specification = jsonfield.JSONField(default={})
+    rule_convention_type = models.ForeignKey('tags.RuleConventionType', on_delete=models.PROTECT, null=True)
+    task = models.ForeignKey(
+        'WorkflowEngine.ProcessTask',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='structures',
+    )
 
     def is_move_allowed(self, tag_structure, dst_tag_structure):
         current_version = tag_structure.tag.current_version
@@ -28,29 +158,382 @@ class Structure(models.Model):
 
         return True
 
+    def _create_template_instance(self):
+        return Structure.objects.create(
+            name=self.name,
+            type=self.type,
+            template=self,
+            is_template=False,
+            published=False,
+            published_date=None,
+            version=self.version,
+            version_link=self.version_link,
+            start_date=self.start_date,
+            end_date=self.end_date,
+            specification=self.specification,
+            rule_convention_type=self.rule_convention_type,
+        )
+
+    def create_template_instance(self, archive_tag):
+        from ESSArch_Core.tags.documents import StructureUnitDocument
+
+        new_structure = self._create_template_instance()
+
+        archive_tagstructure = TagStructure.objects.create(tag=archive_tag, structure=new_structure)
+        new_structure.tagstructure_set.add(archive_tagstructure)
+
+        # create descendants from structure
+        for unit in StructureUnit.objects.filter(structure=self):
+            new_unit = unit.create_template_instance(new_structure)
+            StructureUnitDocument.from_obj(new_unit).save()
+
+        return new_structure, archive_tagstructure
+
+    def _create_new_version(self, version_name):
+        return Structure.objects.create(
+            name=self.name,
+            type=self.type,
+            template=self.template,
+            is_template=self.is_template,
+            published=False,
+            published_date=None,
+            version=version_name,
+            version_link=self.version_link,
+            start_date=self.start_date,
+            end_date=self.end_date,
+            specification=self.specification,
+            rule_convention_type=self.rule_convention_type,
+        )
+
+    def create_new_version(self, version_name):
+        new_structure = self._create_new_version(version_name)
+
+        # create descendants from structure
+        for unit in StructureUnit.objects.filter(structure=self):
+            unit.create_new_version(new_structure)
+
+        return new_structure
+
+    def is_new_version(self):
+        return Structure.objects.filter(
+            is_template=True, published=True,
+            version_link=self.version_link
+        ).exclude(
+            pk=self.pk
+        ).exists()
+
+    def get_last_version(self):
+        return Structure.objects.filter(
+            is_template=True, published=True,
+            version_link=self.version_link,
+        ).latest('published_date')
+
+    def is_compatible_with_other_structure(self, other):
+        for old_unit in other.units.iterator():
+            assert old_unit.related_structure_units.filter(structure=self).exists()
+
+        return True
+
+    def is_compatible_with_last_version(self):
+        last_version = self.get_last_version()
+        return self.is_compatible_with_other_structure(last_version)
+
+    def publish(self):
+        if self.is_new_version():
+            # TODO: What if multiple users wants to create a new version in parallel?
+            # Use permissions to stop it?
+
+            self.is_compatible_with_last_version()
+            last_version = self.get_last_version()
+
+            for old_instance in last_version.instances.all():
+                archive_tag_structure = old_instance.tagstructure_set.get(
+                    structure_unit__isnull=True, parent__isnull=True
+                )
+                new_instance, new_archive_tag_structure = self.create_template_instance(archive_tag_structure.tag)
+
+                archive_tag_structure.copy_descendants_to_new_structure(new_instance)
+
+        self.published = True
+        self.published_date = timezone.now()
+        self.save()
+
+    def unpublish(self):
+        self.published = False
+        self.save()
+
     def __str__(self):
         return '{} {}'.format(self.name, self.version)
 
     class Meta:
         get_latest_by = 'create_date'
+        permissions = (
+            ('publish_structure', 'Can publish structures'),
+            ('unpublish_structure', 'Can unpublish structures'),
+            ('create_new_structure_version', 'Can create new structure versions'),
+        )
+
+
+class StructureUnitType(models.Model):
+    structure_type = models.ForeignKey('StructureType', on_delete=models.CASCADE, verbose_name=_('structure type'))
+    name = models.CharField(_('name'), max_length=255, blank=False)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('structure unit type')
+        verbose_name_plural = _('structure unit types')
+
+
+class StructureUnitRelation(models.Model):
+    structure_unit_a = models.ForeignKey(
+        'tags.StructureUnit',
+        on_delete=models.CASCADE,
+        related_name='structure_unit_relations_a',
+    )
+    structure_unit_b = models.ForeignKey(
+        'tags.StructureUnit',
+        on_delete=models.CASCADE,
+        related_name='structure_unit_relations_b',
+    )
+    type = models.ForeignKey('tags.NodeRelationType', on_delete=models.PROTECT, null=False)
+    description = models.TextField(_('description'), blank=True)
+    start_date = models.DateField(_('start date'), null=True)
+    end_date = models.DateField(_('end date'), null=True)
+    create_date = models.DateTimeField(_('create date'), default=timezone.now)
+    revise_date = models.DateTimeField(_('revise date'), auto_now=True)
+
+    class Meta:
+        unique_together = ('structure_unit_a', 'structure_unit_b', 'type')  # Avoid duplicates within same type
 
 
 class StructureUnit(MPTTModel):
     structure = models.ForeignKey('tags.Structure', on_delete=models.CASCADE, null=False, related_name='units')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
     name = models.CharField(max_length=255)
-    type = models.CharField(max_length=255)
+    type = models.ForeignKey('tags.StructureUnitType', on_delete=models.PROTECT)
+    template = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True,
+        limit_choices_to={'structure__is_template': True}, related_name='instances', verbose_name=_('template'),
+    )
     description = models.TextField(blank=True)
     comment = models.TextField(blank=True)
     reference_code = models.CharField(max_length=255)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
+    transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='structure_units')
+    task = models.ForeignKey(
+        'WorkflowEngine.ProcessTask',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='structure_units',
+    )
+    related_structure_units = models.ManyToManyField(
+        'self',
+        through='tags.StructureUnitRelation',
+        through_fields=('structure_unit_a', 'structure_unit_b'),
+        symmetrical=False,
+    )
+
+    @transaction.atomic
+    def copy_to_structure(self, structure):
+        new_unit = StructureUnit.objects.create(
+            structure=structure,
+            parent=None,
+            name=self.name,
+            type=self.type,
+            description=self.description,
+            comment=self.comment,
+            reference_code=self.reference_code,
+            start_date=self.start_date,
+            end_date=self.end_date,
+        )
+
+        old_parent_ref_code = getattr(self.parent, 'reference_code', None)
+
+        if old_parent_ref_code is not None:
+            parent = structure.units.get(reference_code=old_parent_ref_code)
+            new_unit.parent = parent
+
+        new_unit.save()
+
+        for identifier in self.identifiers.all():
+            NodeIdentifier.objects.create(
+                structure_unit=new_unit,
+                identifier=identifier.identifier,
+                type=identifier.type,
+            )
+
+        for note in self.notes.all():
+            NodeNote.objects.create(
+                structure_unit=new_unit,
+                text=note.text,
+                type=note.type,
+                href=note.href,
+                create_date=note.create_date,
+                revise_date=note.revise_date,
+            )
+
+        return new_unit
+
+    def create_template_instance(self, structure_instance):
+        new_unit = self.copy_to_structure(structure_instance)
+        new_unit.template = self
+        new_unit.save()
+
+        new_archive_structure = new_unit.structure.tagstructure_set.first().get_root()
+
+        for relation in StructureUnitRelation.objects.filter(structure_unit_a=self):
+            if relation.structure_unit_b.structure.is_template:
+                continue
+
+            related_archive_structure = relation.structure_unit_b.structure.tagstructure_set.first().get_root()
+
+            if new_archive_structure.tag != related_archive_structure.tag:
+                continue
+
+            StructureUnitRelation.objects.create(
+                structure_unit_a=new_unit,
+                structure_unit_b=relation.structure_unit_b,
+                type=relation.type,
+                description=relation.description,
+                start_date=relation.start_date,
+                end_date=relation.end_date,
+                create_date=relation.create_date,
+                revise_date=relation.revise_date,
+            )
+
+        for relation in StructureUnitRelation.objects.filter(structure_unit_b=self):
+            if relation.structure_unit_a.structure.is_template:
+                continue
+
+            related_archive_structure = relation.structure_unit_a.structure.tagstructure_set.first().get_root()
+
+            if new_archive_structure.tag != related_archive_structure.tag:
+                continue
+
+            StructureUnitRelation.objects.create(
+                structure_unit_a=relation.structure_unit_a,
+                structure_unit_b=new_unit,
+                type=relation.type,
+                description=relation.description,
+                start_date=relation.start_date,
+                end_date=relation.end_date,
+                create_date=relation.create_date,
+                revise_date=relation.revise_date,
+            )
+
+            # copy existing tag structures to new unit
+            old_tag_structures = TagStructure.objects.filter(
+                structure_unit=relation.structure_unit_a,
+                tree_id=related_archive_structure.tree_id,
+            )
+            for old_tag_structure in old_tag_structures.get_descendants(include_self=True):
+                if old_tag_structure.structure_unit is None:
+                    old_tag_structure.copy_to_new_structure(new_unit.structure)
+                    continue
+
+                old_tag_structure.copy_to_new_structure(new_unit.structure, new_unit)
+
+        return new_unit
+
+    def create_new_version(self, new_structure):
+        unit = self.copy_to_structure(new_structure)
+
+        cache_key = 'version_node_relation_type'
+        relation_type = cache.get(cache_key)
+
+        if relation_type is None:
+            relation_type, _ = NodeRelationType.objects.get_or_create(name='new version')
+            cache.set(relation_type, relation_type, timeout=3600)
+
+        StructureUnitRelation.objects.create(
+            structure_unit_a=self,
+            structure_unit_b=unit,
+            type=relation_type,
+        )
+
+        return unit
+
+    @transaction.atomic
+    def relate_to(self, other_unit, relation_type, **kwargs):
+        StructureUnitRelation.objects.create(
+            structure_unit_a=self,
+            structure_unit_b=other_unit,
+            type=relation_type,
+            **kwargs,
+        )
+
+        if self.structure != other_unit.structure:
+            if not self.structure.is_template and not other_unit.structure.is_template:
+                src_archive_structure = self.structure.tagstructure_set.first().get_root()
+                dst_archive_structure = other_unit.structure.tagstructure_set.first().get_root()
+
+                if src_archive_structure == dst_archive_structure:
+                    # copy existing tag structures to other unit
+                    old_tag_structures = TagStructure.objects.filter(structure_unit=self)
+                    for old_tag_structure in old_tag_structures.get_descendants(include_self=True):
+                        if old_tag_structure.structure_unit is None:
+                            old_tag_structure.copy_to_new_structure(other_unit.structure)
+                            continue
+
+                        old_tag_structure.copy_to_new_structure(other_unit.structure, other_unit)
+
+            if not self.structure.is_template and other_unit.structure.is_template:
+                # copy tagstructures to instance in same archive of related template
+
+                archive_structure = self.structure.tagstructure_set.first().get_root()
+                try:
+                    related_unit_instance = StructureUnit.objects.get(
+                        structure__template=other_unit.structure,
+                        structure__tagstructure__tag=archive_structure.tag,
+                    )
+                except StructureUnit.DoesNotExist:
+                    pass
+                else:
+                    related_structure_instance = related_unit_instance.structure
+
+                    # copy existing tag structures to other unit
+                    old_tag_structures = TagStructure.objects.filter(structure_unit=self)
+                    for old_tag_structure in old_tag_structures.get_descendants(include_self=True):
+                        if old_tag_structure.structure_unit is None:
+                            old_tag_structure.copy_to_new_structure(related_structure_instance)
+                            continue
+
+                        old_tag_structure.copy_to_new_structure(related_structure_instance, related_unit_instance)
+
+        # create mirrored relation
+        StructureUnitRelation.objects.create(
+            structure_unit_a=other_unit,
+            structure_unit_b=self,
+            type=relation_type.mirrored_type or relation_type,
+            **kwargs,
+        )
+
+    def get_related_in_other_structure(self, other_structure):
+        structure = self.structure
+        other_structure_template = other_structure if other_structure.is_template else other_structure.template
+
+        template_unit = self if structure.is_template else self.template
+        template_units = template_unit.related_structure_units.filter(structure=other_structure_template)
+
+        if other_structure.is_template:
+            return template_units
+
+        return StructureUnit.objects.filter(template__in=template_units)
 
     def __str__(self):
         return '{} {}'.format(self.reference_code, self.name)
 
     class Meta:
         unique_together = (('structure', 'reference_code'),)
+        permissions = (
+            ('add_structureunit_instance', _('Can add structure unit instances')),
+            ('change_structureunit_instance', _('Can edit instances of structure units')),
+            ('delete_structureunit_instance', _('Can delete instances of structure units')),
+            ('move_structureunit_instance', _('Can move instances of structure units')),
+        )
 
 
 class Tag(models.Model):
@@ -68,6 +551,8 @@ class Tag(models.Model):
         related_name='tags'
     )
     task = models.ForeignKey('WorkflowEngine.ProcessTask', on_delete=models.SET_NULL, null=True, related_name='tags')
+
+    objects = OrganizationManager()
 
     def get_structures(self, structure=None):
         query_filter = {}
@@ -123,20 +608,146 @@ class Tag(models.Model):
         permissions = (
             ('search', 'Can search'),
             ('create_archive', 'Can create new archives'),
+            ('change_archive', 'Can change archives'),
             ('delete_archive', 'Can delete archives'),
         )
+
+
+class TagVersionRelation(models.Model):
+    tag_version_a = models.ForeignKey(
+        'tags.TagVersion',
+        on_delete=models.CASCADE,
+        related_name='tag_version_relations_a',
+    )
+    tag_version_b = models.ForeignKey(
+        'tags.TagVersion',
+        on_delete=models.CASCADE,
+        related_name='tag_version_relations_b',
+    )
+    type = models.ForeignKey('tags.NodeRelationType', on_delete=models.PROTECT, null=False)
+    description = models.TextField(_('description'), blank=True)
+    start_date = models.DateField(_('start date'), null=True)
+    end_date = models.DateField(_('end date'), null=True)
+    create_date = models.DateTimeField(_('create date'), default=timezone.now)
+    revise_date = models.DateTimeField(_('revise date'), auto_now=True)
+
+    class Meta:
+        unique_together = ('tag_version_a', 'tag_version_b', 'type')  # Avoid duplicates within same type
+
+
+class MediumType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False)
+    size = models.CharField(_('size'), max_length=255, blank=False)
+    unit = models.CharField(_('unit'), max_length=255, blank=False)
+
+    class Meta:
+        unique_together = ('name', 'size', 'unit')  # Avoid duplicates
+
+
+class MetricType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('metric type')
+        verbose_name_plural = _('metric types')
+
+
+class MetricProfile(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+    capacity = models.IntegerField(_('capacity'))  # FloatField or DecimalField instead?
+    metric = models.ForeignKey(MetricType, on_delete=models.PROTECT, verbose_name=_('metric'))
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('location profile')
+        verbose_name_plural = _('location profiles')
+
+
+class LocationLevelType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('location level type')
+        verbose_name_plural = _('location level types')
+
+
+class LocationFunctionType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('location function type')
+        verbose_name_plural = _('location function types')
+
+
+class LocationManager(TreeManager, OrganizationManager):
+    pass
+
+
+class Location(MPTTModel):
+    name = models.CharField(_('name'), max_length=255, blank=False)
+    parent = TreeForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, related_name='children', verbose_name=_('parent')
+    )
+    metric = models.ForeignKey(MetricProfile, on_delete=models.PROTECT, null=True, verbose_name=_('metric'))
+    level_type = models.ForeignKey(LocationLevelType, on_delete=models.PROTECT, verbose_name=_('level type'))
+    function = models.ForeignKey(LocationFunctionType, on_delete=models.PROTECT, verbose_name=_('function'))
+
+    objects = LocationManager()
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('location')
+        verbose_name_plural = _('locations')
+
+
+class TagVersionType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+    archive_type = models.BooleanField(_('archive type'))
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('node type')
+        verbose_name_plural = _('node types')
 
 
 class TagVersion(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tag = models.ForeignKey('tags.Tag', on_delete=models.CASCADE, related_name='versions')
     reference_code = models.CharField(max_length=255, blank=True)
-    type = models.CharField(max_length=255)
+    type = models.ForeignKey('tags.TagVersionType', on_delete=models.PROTECT)
     name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, blank=True)
     elastic_index = models.CharField(max_length=255, blank=False, default=None)
-    create_date = models.DateTimeField(auto_now_add=True)
+    create_date = models.DateTimeField(default=timezone.now, null=True)
+    revise_date = models.DateTimeField(auto_now=True)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
+    import_date = models.DateTimeField(null=True)
+    medium_type = models.ForeignKey(
+        'tags.MediumType',
+        on_delete=models.PROTECT,
+        related_name='tag_versions',
+        null=True
+    )
+    metric = models.ForeignKey(MetricProfile, on_delete=models.PROTECT, null=True, verbose_name=_('metric'))
+    location = models.ForeignKey(Location, on_delete=models.PROTECT, null=True, verbose_name=_('location'))
+    transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='tag_versions')
+    custom_fields = jsonfield.JSONField(default={})
 
     def to_search_doc(self):
         try:
@@ -175,7 +786,9 @@ class TagVersion(models.Model):
             'type': self.type,
         }
 
-    def to_search(self):
+    def to_search(self):  # TODO: replace with from_obj
+        from ESSArch_Core.tags.documents import VersionedDocType
+
         d = self.to_search_data()
         return VersionedDocType(**d)
 
@@ -188,7 +801,9 @@ class TagVersion(models.Model):
             params={'_source_exclude': 'attachment.content'}
         )
 
-    def get_doc(self):
+    def get_doc(self):  # TODO: do we need this?
+        from ESSArch_Core.tags.documents import VersionedDocType
+
         kwargs = {'params': {}}
         if self.elastic_index == 'document':
             kwargs['params']['_source_exclude'] = 'attachment.content'
@@ -317,9 +932,45 @@ class TagVersion(models.Model):
 class TagStructure(MPTTModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tag = models.ForeignKey('tags.Tag', on_delete=models.CASCADE, related_name='structures')
-    structure = models.ForeignKey('tags.Structure', on_delete=models.CASCADE, null=False)
-    structure_unit = models.ForeignKey('tags.StructureUnit', on_delete=models.CASCADE, null=True)
+    structure = models.ForeignKey(
+        'tags.Structure', on_delete=models.PROTECT, null=False,
+        limit_choices_to={'is_template': False}
+    )
+    structure_unit = models.ForeignKey(
+        'tags.StructureUnit', on_delete=models.PROTECT, null=True,
+        limit_choices_to={'structure__is_template': False}
+    )
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
+    start_date = models.DateField(_('start date'), null=True)
+    end_date = models.DateField(_('end date'), null=True)
+
+    def copy_to_new_structure(self, new_structure, new_unit=None):
+        new_parent_tag = None
+
+        if self.parent is not None:
+            try:
+                old_parent_tag = self.parent.tag
+                new_parent_tag = old_parent_tag.structures.get(structure=new_structure)
+            except TagStructure.DoesNotExist:
+                logger.exception('Parent tag of {self} does not exist in new structure {new_structure}')
+                raise
+
+        if new_unit is None and self.structure_unit is not None:
+            try:
+                new_unit = self.structure_unit.get_related_in_other_structure(new_structure).get()
+            except StructureUnit.DoesNotExist:
+                logger.exception('Structure unit instance of {self} does not exist in new structure {new_structure}')
+                raise
+
+        return TagStructure.objects.create(
+            tag_id=self.tag_id, structure=new_structure,
+            structure_unit=new_unit, parent=new_parent_tag,
+        )
+
+    @transaction.atomic
+    def copy_descendants_to_new_structure(self, new_structure):
+        for old_descendant in self.get_descendants(include_self=False):
+            old_descendant.copy_to_new_structure(new_structure)
 
     def create_new(self, representation):
         tree_id = self.__class__.objects._get_next_tree_id()
@@ -366,3 +1017,68 @@ class TagStructure(MPTTModel):
     class Meta:
         get_latest_by = 'structure__create_date'
         ordering = ('structure__create_date',)
+
+
+class Search(models.Model):
+    query = jsonfield.JSONField(null=False)
+    name = models.CharField(max_length=255, blank=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='searches')
+
+
+class DeliveryType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('delivery type')
+        verbose_name_plural = _('delivery types')
+
+
+class Delivery(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    reference_code = models.CharField(_('name'), max_length=255, blank=True)
+    name = models.CharField(_('name'), max_length=255, blank=False)
+    type = models.ForeignKey('tags.DeliveryType', on_delete=models.PROTECT, null=False, verbose_name=_('type'))
+    description = models.TextField(_('description'), blank=True)
+
+    producer_organization = models.ForeignKey(
+        Agent,
+        on_delete=models.PROTECT,
+        related_name='deliveries',
+        default=None,
+        null=True,
+    )
+
+    submission_agreement = models.ForeignKey(
+        SubmissionAgreement,
+        on_delete=models.PROTECT,
+        related_name='deliveries',
+        default=None,
+        null=True,
+    )
+
+    objects = OrganizationManager()
+
+    class Meta:
+        verbose_name = _('delivery')
+        verbose_name_plural = _('deliveries')
+
+
+class Transfer(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(_('name'), max_length=255, blank=False)
+    delivery = models.ForeignKey('tags.Delivery', on_delete=models.CASCADE, null=False, verbose_name=_('delivery'))
+    submitter_organization =  models.CharField(blank=True, max_length=255)
+    submitter_organization_main_address =  models.CharField(blank=True, max_length=255)
+    submitter_individual_name =  models.CharField(blank=True, max_length=255)
+    submitter_individual_phone =  models.CharField(blank=True, max_length=255)
+    submitter_individual_email =  models.CharField(blank=True, max_length=255)
+    description =  models.CharField(blank=True, max_length=255)
+
+    objects = OrganizationManager()
+
+    class Meta:
+        verbose_name = _('transfer')
+        verbose_name_plural = _('transfers')

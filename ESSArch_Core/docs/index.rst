@@ -9,7 +9,11 @@ ESSArch Core
 .. toctree::
     :maxdepth: 10
 
+<<<<<<< HEAD
     introduction
+=======
+    authentication_authorization/index
+>>>>>>> origin/tag-agents
     configuration/index
     development
     directory_structure

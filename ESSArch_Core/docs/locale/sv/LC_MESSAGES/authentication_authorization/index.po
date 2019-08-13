@@ -1,0 +1,51 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-04-30 11:21+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../authentication_authorization/index.rst:3
+msgid "Authentication and authorization"
+msgstr "Autentisiering och auktorisering"
+
+#: ../../authentication_authorization/index.rst:5
+msgid ""
+"Access to information and actions are dictated by permissions assigned to"
+" the user either directly or through groups and roles. ESSArch is "
+"designed such that each user has a single account which are reused across"
+" multiple organizations (groups) with different roles."
+msgstr ""
+
+#: ../../authentication_authorization/index.rst:10
+msgid ""
+"This means that a single user can have the role admin in one "
+"organization, an archivist in another and both in a third."
+msgstr ""
+
+#: ../../authentication_authorization/index.rst:13
+msgid ""
+"ESSArch has no requirement that any specific groups or roles are setup or"
+" used in an installation, this is all setup and configured according to "
+"the needs that the installation is supposed to meet."
+msgstr ""
+
+#: ../../authentication_authorization/index.rst:17
+msgid ""
+"The permissions available are therefore made in as small building blocks "
+"as possible to allow either very small and specific roles to be created "
+"but at the same time create roles that can do everything."
+msgstr ""

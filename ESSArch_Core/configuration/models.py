@@ -110,10 +110,20 @@ class EventType(models.Model):
     """
     EventType
     """
+
+    CATEGORY_INFORMATION_PACKAGE = 0
+    CATEGORY_DELIVERY = 1
+
+    CATEGORY_CHOICES = (
+        (CATEGORY_INFORMATION_PACKAGE, _('Information package')),
+        (CATEGORY_DELIVERY, _('Delivery')),
+    )
+
     eventType = models.IntegerField(primary_key=True, default=0)
     eventDetail = models.CharField(max_length=255)
     enabled = models.BooleanField(default=True)
     code = models.CharField(max_length=255, blank=True, default='')
+    category = models.IntegerField(choices=CATEGORY_CHOICES)
 
     class Meta:
         ordering = ["eventType"]

@@ -2,16 +2,28 @@ import os
 import shutil
 import tempfile
 import uuid
+<<<<<<< HEAD
 from unittest import TestCase, mock
+=======
+import os
+from unittest import mock
+>>>>>>> origin/tag-agents
 
+from django.test import TestCase
 from lxml import etree
 
+<<<<<<< HEAD
 from ESSArch_Core.search.importers.earderms import (
     EardErmsImporter,
     get_encoded_content_from_file,
 )
 from ESSArch_Core.tags.models import Structure, StructureUnit
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
+=======
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.search.importers.earderms import EardErmsImporter, get_encoded_content_from_file
+from ESSArch_Core.tags.models import Structure, StructureType, StructureUnit, StructureUnitType
+>>>>>>> origin/tag-agents
 
 
 def get_xml_example_full():
@@ -207,7 +219,7 @@ def get_full_expected_data_parse_errand(task_id, ip_id, archive_id, structure_un
 class GetErrandsRootTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
 
     def test_get_errands_root_full_xml(self):
         root = get_xml_root_from_string(get_xml_example_full())
@@ -252,7 +264,7 @@ class GetErrandsRootTests(TestCase):
 class GetActsRootTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
 
     def get_arkivobjekt_arende(self):
         return get_xml_root_from_string(get_xml_example_full()) \
@@ -301,7 +313,7 @@ class GetActsRootTests(TestCase):
 class GetArkivObjektArendenTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
 
     def get_arkiv_objekt_lista_arenden(self):
         return get_xml_root_from_string(get_xml_example_full()) \
@@ -349,7 +361,7 @@ class GetArkivObjektArendenTests(TestCase):
 class ParsePersonTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
 
     def test_parse_person_simple_success(self):
         xml_string = '''
@@ -411,7 +423,7 @@ class ParsePersonTests(TestCase):
 class ParseAgentTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
 
     def test_parse_agent_simple_success(self):
         xml_string = '''
@@ -457,7 +469,7 @@ class ParseAgentTests(TestCase):
 class ParseRelationTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
 
     def test_parse_relation_should_get_type(self):
         xml_string = '''<root Typ='some pre-defined type' AnnanTyp='other type'>some reference text</root>'''
@@ -489,7 +501,7 @@ class ParseRelationTests(TestCase):
 class ParseExtraIdTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
 
     def test_parse_extra_id_with_no_text_should_return_None(self):
         xml_string = '''<root ExtraIDTyp='some id type'></root>'''
@@ -516,7 +528,7 @@ class ParseExtraIdTests(TestCase):
 class ParseInitiatorTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
 
     def test_parse_initiator_all_attributes_success(self):
         xml_string = '''
@@ -576,7 +588,7 @@ class ParseInitiatorTests(TestCase):
 class ParseRestrictionTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
 
     def test_parse_restriction_without_AnnanTyp_attr_should_get_Typ_and_all_texts(self):
         xml_string = '''
@@ -643,7 +655,7 @@ class ParseRestrictionTests(TestCase):
 class ParseGallringTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
 
     def test_parse_gallring_when_gallras_is_true(self):
         xml_string = '''
@@ -710,7 +722,7 @@ class ParseGallringTests(TestCase):
 class ParseEgenskaperTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
 
     def test_parse_egenskaper_with_one_level_of_egenskaper(self):
         xml_string = '''
@@ -779,7 +791,7 @@ class ParseEgenskaperTests(TestCase):
 class ParseEgetElementTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
 
     def test_parse_eget_element_with_one_level_of_element(self):
         xml_string = '''
@@ -918,7 +930,7 @@ class ParseEgetElementTests(TestCase):
 class ParseEgnaElementTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
 
     def test_parse_egna_element_with_one_level_of_element(self):
         xml_string = '''
@@ -960,7 +972,7 @@ class ParseEgnaElementTests(TestCase):
 class ParseMappingsTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
 
     def test_parse_mappings_single_elements(self):
         xml_string = '''
@@ -1052,15 +1064,17 @@ class ParseMappingsTests(TestCase):
 class ParseErrandTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
         self.archive = mock.Mock()
         self.archive.pk = uuid.uuid4()
         self.ip = mock.Mock()
         self.ip.pk = uuid.uuid4()
         self.importer.task = mock.Mock()
         self.importer.task.pk = uuid.uuid4()
-        self.structure = Structure.objects.create()
-        self.structure_unit = StructureUnit.objects.create(structure=self.structure, reference_code='some_klass_ref_2')
+        self.structure_type = StructureType.objects.create(name="test")
+        self.structure = Structure.objects.create(type=self.structure_type, is_template=False)
+        self.structure_unit_type = StructureUnitType.objects.create(name="test", structure_type=self.structure_type)
+        self.structure_unit = StructureUnit.objects.create(type=self.structure_unit_type, structure=self.structure, reference_code='some_klass_ref_2')
 
     @mock.patch('ESSArch_Core.search.importers.earderms.logger')
     def test_parse_errand_when_no_structure_unit_exists_then_raise_exception(self, mock_logger):
@@ -1174,7 +1188,7 @@ class ParseErrandTests(TestCase):
 class ParseActTests(TestCase):
 
     def setUp(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
         self.archive = mock.Mock()
         self.archive.pk = uuid.uuid4()
         self.ip = mock.Mock()
@@ -1240,7 +1254,7 @@ class ParseActTests(TestCase):
 class UpdateProgressTests(TestCase):
 
     def test_update_progress_is_updating_the_task_progress_in_database(self):
-        self.importer = EardErmsImporter()
+        self.importer = EardErmsImporter(None)
         task = ProcessTask.objects.create(name="example.Foo", args=[1], params={'bar': 'baz'}, progress=0)
         self.importer.task = task
 

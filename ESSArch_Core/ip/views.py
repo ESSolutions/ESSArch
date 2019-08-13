@@ -9,6 +9,7 @@ import os
 import shutil
 import uuid
 
+<<<<<<< HEAD
 from celery import states as celery_states
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -29,6 +30,10 @@ from django.db.models import (
 )
 from django.urls import reverse
 from django_filters.constants import EMPTY_VALUES
+=======
+from django.db.models import Prefetch, Q
+from django.http import Http404
+>>>>>>> origin/tag-agents
 from django_filters.rest_framework import DjangoFilterBackend
 from elasticsearch.exceptions import TransportError
 from elasticsearch_dsl import Index, Q as ElasticQ, Search
@@ -49,6 +54,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
+from rest_framework_extensions.settings import extensions_api_settings
 
 from ESSArch_Core.api.filters import string_to_bool
 from ESSArch_Core.auth.decorators import permission_required_or_403
@@ -91,8 +97,12 @@ from ESSArch_Core.ip.permissions import (
 from ESSArch_Core.ip.serializers import (
     AgentSerializer,
     EventIPSerializer,
+<<<<<<< HEAD
     InformationPackageDetailSerializer,
     InformationPackageFromMasterSerializer,
+=======
+    EventIPWriteSerializer,
+>>>>>>> origin/tag-agents
     InformationPackageSerializer,
     NestedInformationPackageSerializer,
     OrderSerializer,
@@ -150,6 +160,34 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     )
     search_fields = ('eventOutcomeDetailNote',)
 
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update', 'metadata']:
+            return EventIPWriteSerializer
+
+        return self.serializer_class
+
+    def filter_queryset_by_parents_lookups(self, queryset):
+        '''
+        We want to filter events directly connected to deliveries and through transfers, i.e.
+        api/deliveries/{id}/events/ should list events both connected to the delivery and its transfers.
+
+        We do this by extracting the delivery parent query key from the dict made by drf-extensions
+        and then manually creating the query. The rest of the keys in the dict is handled as usual.
+        '''
+
+        parents_query_dict = self.get_parents_query_dict()
+        delivery = parents_query_dict.pop('delivery', None)
+
+        if delivery is not None:
+            queryset = queryset.filter(Q(delivery=delivery) | Q(transfer__delivery=delivery))
+
+        if parents_query_dict:
+            try:
+                return queryset.filter(**parents_query_dict)
+            except ValueError:
+                raise Http404
+        else:
+            return queryset
 
 class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewSet):
 

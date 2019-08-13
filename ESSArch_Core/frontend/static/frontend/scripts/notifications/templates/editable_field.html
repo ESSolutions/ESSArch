@@ -1,0 +1,126 @@
+<div>
+  <div ng-if="!vm.edit && !angular.isUndefined(vm.text)" ng-class="vm.textClass">
+    {{vm.text}}
+  </div>
+  <div ng-if="!vm.edit && angular.isUndefined(vm.text) && !angular.isUndefined(vm.value)" ng-class="vm.textClass">
+    {{vm.value}}
+  </div>
+  <div ng-if="vm.edit && vm.type === 'input'" class="d-flex">
+    <input
+      ng-if="!angular.isUndefined(vm.value)"
+      placeholder="{{vm.placeholder}}"
+      ng-class="vm.inputClass"
+      ng-model="vm.value"
+      uib-tooltip="{{vm.tooltip}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    />
+    <input
+      ng-if="!angular.isUndefined(vm.value2)"
+      placeholder="{{vm.placeholder2}}"
+      ng-class="vm.inputClass"
+      ng-model="vm.value2"
+      uib-tooltip="{{vm.tooltip2}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    />
+  </div>
+  <div ng-if="vm.edit && vm.type === 'select'" class="d-flex">
+    <select
+      ng-if="!angular.isUndefined(vm.value)"
+      ng-class="vm.inputClass"
+      ng-model="vm.value"
+      ng-options="{{vm.labelProp && vm.valueProp ? 'x.' + vm.valueProp + ' as x.' + vm.labelProp + ' for x in vm.options' : 'x for x in vm.options'}}"
+      uib-tooltip="{{vm.tooltip}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+      >{{x}}</select
+    >
+    <select
+      ng-if="!angular.isUndefined(vm.value2)"
+      ng-class="vm.inputClass"
+      ng-model="vm.value2"
+      ng-options="x for x in vm.options2"
+      uib-tooltip="{{vm.tooltip2}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+      >{{x}}</select
+    >
+  </div>
+  <div ng-if="vm.edit && vm.type === 'date'" class="d-flex">
+    <div
+      ng-if="vm.value"
+      class="dropdown"
+      uib-dropdown
+      dropdown-append-to-body
+      is-open="dropdown_status[vm.value]"
+      uib-tooltip="{{vm.tooltip}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    >
+      <a class="dropdown-toggle" id="dropdown-{{vm.value}}" role="button" uib-dropdown-toggle>
+        <div class="input-group">
+          <input type="text" data-date-time-input="YYYY-MM-DD" class="form-control" data-ng-model="vm.value" /><span
+            class="input-group-addon"
+            ><i class="fas fa-calendar-alt"></i
+          ></span>
+        </div>
+      </a>
+      <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
+        <datetimepicker
+          data-ng-model="vm.value"
+          ng-change="dropdown_status[vm.value] = false"
+          data-datetimepicker-config="{ dropdownSelector: '#dropdown-' + vm.value, minView: 'day', startView: 'year', modelType: 'YYYY-MM-DD'}"
+        />
+      </ul>
+    </div>
+    <div
+      ng-if="vm.value2"
+      class="dropdown"
+      uib-dropdown
+      dropdown-append-to-body
+      is-open="dropdown_status[vm.value2]"
+      uib-tooltip="{{vm.tooltip2}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    >
+      <a class="dropdown-toggle" id="dropdown-{{vm.value2}}" role="button" uib-dropdown-toggle>
+        <div class="input-group">
+          <input type="text" data-date-time-input="YYYY-MM-DD" class="form-control" data-ng-model="vm.value2" /><span
+            class="input-group-addon"
+            ><i class="fas fa-calendar-alt"></i
+          ></span>
+        </div>
+      </a>
+      <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
+        <datetimepicker
+          data-ng-model="vm.value2"
+          ng-change="dropdown_status[vm.value2] = false"
+          data-datetimepicker-config="{ dropdownSelector: '#dropdown-' + vm.value2, minView: 'day', startView: 'year', modelType: 'YYYY-MM-DD'}"
+        />
+      </ul>
+    </div>
+  </div>
+  <div ng-if="vm.edit && vm.type === 'number'">
+    <input
+      ng-if="!angular.isUndefined(vm.value)"
+      placeholder="{{vm.placeholder}}"
+      ng-class="vm.inputClass"
+      ng-model="vm.value"
+      type="number"
+      uib-tooltip="{{vm.tooltip}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    />
+    <input
+      ng-if="!angular.isUndefined(vm.value2)"
+      placeholder="{{vm.placeholder2}}"
+      ng-class="vm.inputClass"
+      ng-model="vm.value2"
+      type="number"
+      uib-tooltip="{{vm.tooltip2}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    />
+  </div>
+</div>

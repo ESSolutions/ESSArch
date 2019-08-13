@@ -63,6 +63,7 @@ from tenacity import (
 )
 
 from ESSArch_Core.auth.models import GroupGenericObjects, Member
+<<<<<<< HEAD
 from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.crypto import encrypt_remote_credentials
@@ -74,6 +75,14 @@ from ESSArch_Core.profiles.models import (
     ProfileSA,
     SubmissionAgreement as SA,
 )
+=======
+from ESSArch_Core.configuration.models import ArchivePolicy, Path
+from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
+from ESSArch_Core.fixity.format import FormatIdentifier
+from ESSArch_Core.managers import OrganizationManager
+from ESSArch_Core.profiles.models import ProfileIP, ProfileIPData, ProfileSA
+from ESSArch_Core.profiles.models import SubmissionAgreement as SA
+>>>>>>> origin/tag-agents
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_backend as get_importer
 from ESSArch_Core.search.ingest import index_path
@@ -164,6 +173,7 @@ class AgentNote(models.Model):
     note = models.CharField(max_length=255)
 
 
+<<<<<<< HEAD
 class InformationPackageManager(models.Manager):
     def for_user(self, user, perms, include_no_auth_objs=True):
         """
@@ -178,6 +188,9 @@ class InformationPackageManager(models.Manager):
 
         return get_objects_for_user(user, self.model, perms, include_no_auth_objs)
 
+=======
+class InformationPackageManager(OrganizationManager):
+>>>>>>> origin/tag-agents
     def visible_to_user(self, user):
         return self.for_user(user, 'view_informationpackage')
 
@@ -1780,10 +1793,12 @@ class EventIP(models.Model):
     application = models.CharField(max_length=255)
     eventVersion = models.CharField(max_length=255)  # The version number of the application (from versioneer)
     eventOutcome = models.IntegerField(choices=OUTCOME_CHOICES, null=True, default=None)  # Success (0) or Fail (1)
-    eventOutcomeDetailNote = models.CharField(max_length=1024)  # Result or traceback from IP
+    eventOutcomeDetailNote = models.CharField(max_length=1024, blank=True)  # Result or traceback from IP
     linkingAgentIdentifierValue = models.CharField(max_length=255, blank=True)
     linkingAgentRole = models.CharField(max_length=255, blank=True)
     linkingObjectIdentifierValue = models.CharField(max_length=255, blank=True)
+    transfer = models.ForeignKey('tags.Transfer', null=True, on_delete=models.SET_NULL, related_name='events', verbose_name=_('transfer'))
+    delivery = models.ForeignKey('tags.Delivery', null=True, on_delete=models.SET_NULL, related_name='events', verbose_name=_('delivery'))
 
     objects = EventIPManager()
 

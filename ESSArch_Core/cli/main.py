@@ -130,6 +130,7 @@ list(
     map(
         lambda cmd: search.add_command(locate(cmd)), (
             'ESSArch_Core.cli.commands.search.clear',
+            'ESSArch_Core.cli.commands.search.migrate',
             'ESSArch_Core.cli.commands.search.rebuild',
         )
     )

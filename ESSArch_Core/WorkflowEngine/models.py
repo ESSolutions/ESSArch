@@ -618,6 +618,10 @@ class ProcessTask(Process):
     objects = models.Manager()
     by_step_pos = OrderedProcessTaskManager()
 
+    def update_progress(self, progress):
+        self.progress = (progress / 100) * 100
+        self.save()
+
     def get_pos(self):
         return self.processstep_pos
 
