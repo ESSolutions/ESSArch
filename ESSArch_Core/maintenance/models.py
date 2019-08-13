@@ -31,11 +31,8 @@ from ESSArch_Core.util import (
     convert_file,
     creation_date,
     find_destination,
-<<<<<<< HEAD
     has_write_access,
-=======
     get_tree_size_and_count,
->>>>>>> origin/tag-agents
     timestamp_to_datetime,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
