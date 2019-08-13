@@ -100,7 +100,7 @@ if __name__ == '__main__':
             "pyfakefs==3.6",
             "python-dateutil==2.8.0",
             "pywin32==224;platform_system=='Windows'",
-            "redis==3.2.1",
+            "redis==3.3.6",
             "regex==2018.08.29",
             "requests==2.22.0",
             "requests_toolbelt==0.9.1",
