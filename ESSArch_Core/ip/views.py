@@ -492,7 +492,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             steps = steps.filter(hidden=string_to_bool(hidden))
             tasks = tasks.filter(hidden=string_to_bool(hidden))
 
-        flow = sorted(itertools.chain(steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
+        flow = sorted(itertools.chain(steps, tasks), key=lambda x: (x.time_created, x.get_pos()))
 
         serializer = ProcessStepChildrenSerializer(data=flow, many=True, context={'request': request})
         serializer.is_valid()
