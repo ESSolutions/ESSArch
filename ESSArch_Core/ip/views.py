@@ -9,7 +9,6 @@ import os
 import shutil
 import uuid
 
-<<<<<<< HEAD
 from celery import states as celery_states
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -28,12 +27,9 @@ from django.db.models import (
     Value,
     When,
 )
+from django.http import Http404
 from django.urls import reverse
 from django_filters.constants import EMPTY_VALUES
-=======
-from django.db.models import Prefetch, Q
-from django.http import Http404
->>>>>>> origin/tag-agents
 from django_filters.rest_framework import DjangoFilterBackend
 from elasticsearch.exceptions import TransportError
 from elasticsearch_dsl import Index, Q as ElasticQ, Search
@@ -54,7 +50,6 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
-from rest_framework_extensions.settings import extensions_api_settings
 
 from ESSArch_Core.api.filters import string_to_bool
 from ESSArch_Core.auth.decorators import permission_required_or_403
@@ -97,12 +92,9 @@ from ESSArch_Core.ip.permissions import (
 from ESSArch_Core.ip.serializers import (
     AgentSerializer,
     EventIPSerializer,
-<<<<<<< HEAD
+    EventIPWriteSerializer,
     InformationPackageDetailSerializer,
     InformationPackageFromMasterSerializer,
-=======
-    EventIPWriteSerializer,
->>>>>>> origin/tag-agents
     InformationPackageSerializer,
     NestedInformationPackageSerializer,
     OrderSerializer,
@@ -188,6 +180,7 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 raise Http404
         else:
             return queryset
+
 
 class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewSet):
 
