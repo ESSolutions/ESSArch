@@ -8,37 +8,31 @@ export default class AccessIpCtrl {
     $scope.ips = [];
 
     $scope.menuOptions = function(rowType, row) {
-      var methods = [];
-      if (true) {
-        // CHANGE TO REAL PERMISSION NAME
-        methods.push({
-          text: $translate.instant('APPRAISAL'),
-          click: function($itemScope, $event, modelValue, text, $li) {
-            if ($scope.ips.length == 0) {
-              $scope.ip = row;
-              $rootScope.ip = row;
-              vm.openAppraisalModal($scope.ips);
-            } else {
-              vm.openAppraisalModal($scope.ips);
-            }
-          },
-        });
-      }
-      if (true) {
-        // CHANGE TO REAL PERMISSION NAME
-        methods.push({
-          text: $translate.instant('CONVERSION'),
-          click: function($itemScope, $event, modelValue, text, $li) {
-            if ($scope.ips.length == 0) {
-              $scope.ip = row;
-              $rootScope.ip = row;
-              vm.openConversionModal($scope.ips);
-            } else {
-              vm.openConversionModal($scope.ips);
-            }
-          },
-        });
-      }
+      let methods = [];
+      methods.push({
+        text: $translate.instant('APPRAISAL'),
+        click: function($itemScope, $event, modelValue, text, $li) {
+          if ($scope.ips.length === 0) {
+            $scope.ip = row;
+            $rootScope.ip = row;
+            vm.openAppraisalModal($scope.ips);
+          } else {
+            vm.openAppraisalModal($scope.ips);
+          }
+        },
+      });
+      methods.push({
+        text: $translate.instant('CONVERSION'),
+        click: function($itemScope, $event, modelValue, text, $li) {
+          if ($scope.ips.length === 0) {
+            $scope.ip = row;
+            $rootScope.ip = row;
+            vm.openConversionModal($scope.ips);
+          } else {
+            vm.openConversionModal($scope.ips);
+          }
+        },
+      });
       methods.push(
         ContextMenuBase.changeOrganization(function() {
           $scope.ip = row;
