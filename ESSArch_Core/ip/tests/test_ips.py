@@ -1462,15 +1462,19 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
     @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
                 return_value='foo.tar')
     @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    def test_receive_ip_with_missing_tag(self, mock_isfile, mock_get_container):
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
+    def test_receive_ip_with_missing_tag(self, mock_receive, mock_isfile, mock_get_container):
+        # providing a tag/archive is not required and the IP should still be received
+
         ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
         url = reverse('ip-reception-receive', args=[ip.pk])
         perms = {'group': ['view_informationpackage', 'ip.receive']}
         self.member.assign_object(self.group, ip, custom_permissions=perms)
 
-        # return 400 when no tag is provided
         res = self.client.post(url, data={'storage_policy': self.policy.pk})
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        mock_receive.assert_called_once()
 
     @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
                 return_value='foo.tar')
@@ -1491,10 +1495,15 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         mock_receive.assert_called_once()
 
     def test_prepare_conflict(self):
-        ip = InformationPackage.objects.create(object_identifier_value='foo')
+        ip = InformationPackage.objects.create(object_identifier_value='foo', package_type=InformationPackage.AIP)
         url = reverse('ip-reception-prepare', args=[ip.object_identifier_value])
         res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_409_CONFLICT)
+
+        ip.package_type = InformationPackage.SIP
+        ip.save()
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_prepare_missing_package(self):
         url = reverse('ip-reception-prepare', args=[123])

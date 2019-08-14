@@ -1,6 +1,7 @@
 import * as angular from 'angular';
 
 import AccessCtrl from '../controllers/AccessCtrl';
+import AccessModalInstanceCtrl from '../controllers/AccessModalInstanceCtrl';
 import AccessIpCtrl from '../controllers/AccessIpCtrl';
 import AdministrationCtrl from '../controllers/AdministrationCtrl';
 import AppCtrl from '../controllers/AppCtrl';
@@ -90,6 +91,7 @@ export default angular
     'ui.select',
   ])
   .controller('AccessCtrl', AccessCtrl)
+  .controller('AccessModalInstanceCtrl', ['$uibModalInstance', 'data', 'Requests', '$q', AccessModalInstanceCtrl])
   .controller('AccessIpCtrl', [
     '$scope',
     '$controller',
