@@ -9,3 +9,4 @@ recursive-include ESSArch_Core/frontend/static/frontend/views *
 recursive-include ESSArch_Core/frontend/static/frontend/build *
 recursive-exclude ESSArch_Core/docs *
 recursive-include ESSArch_Core/docs/_build *
+recursive-include ESSArch_Core/docs *.py
