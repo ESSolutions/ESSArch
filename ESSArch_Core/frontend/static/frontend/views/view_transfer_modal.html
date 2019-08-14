@@ -1,0 +1,16 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{$ctrl.transfer.name}}</h3>
+</div>
+<div class="modal-body" id="modal-body">
+  <result-field
+    ng-repeat="x in $ctrl.fields"
+    label="{{x.templateOptions.label}}"
+    data="$ctrl.transfer[x.key]"
+    type="{{x.type.datepicker ? 'date' : null}}"
+  ></result-field>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">
+    {{'CLOSE' | translate}}
+  </button>
+</div>
