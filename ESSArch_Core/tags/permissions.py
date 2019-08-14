@@ -1,14 +1,12 @@
-<<<<<<< HEAD
+from rest_framework import permissions
 from rest_framework.permissions import BasePermission
+
+from ESSArch_Core.tags.models import Structure
 
 
 class SearchPermissions(BasePermission):
     def has_permission(self, request, view):
         return request.user.has_perm('tags.search')
-=======
-from rest_framework import permissions
-
-from ESSArch_Core.tags.models import Structure
 
 
 class AddStructureUnit(permissions.BasePermission):
@@ -16,7 +14,7 @@ class AddStructureUnit(permissions.BasePermission):
         if request.method not in ('POST') or request._request.method == "OPTIONS":
             return True
 
-        if not 'parent_lookup_structure' in request.parser_context['kwargs']:
+        if 'parent_lookup_structure' not in request.parser_context['kwargs']:
             return False
 
         structure = request.parser_context['kwargs']['parent_lookup_structure']
@@ -59,4 +57,3 @@ class DeleteStructureUnit(permissions.BasePermission):
             return True
 
         return request.user.has_perm('tags.delete_structureunit_instance')
->>>>>>> origin/tag-agents
