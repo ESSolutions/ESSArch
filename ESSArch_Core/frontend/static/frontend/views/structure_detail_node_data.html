@@ -1,0 +1,84 @@
+<div class="title-action-button-row mb-base">
+  <div class="title">
+    <h4>
+      {{'ACCESS.RELATED_STRUCTURE_UNITS' | translate}}
+    </h4>
+  </div>
+  <div class="action-button">
+    <button
+      class="btn btn-primary"
+      permission
+      permission-only="'tags.add_structureunitrelation'"
+      ng-click="vm.addNodeRelationModal(vm.node)"
+    >
+      {{'ACCESS.ADD_RELATION' | translate}}
+    </button>
+  </div>
+</div>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>
+        {{'NAME' | translate}}
+      </th>
+      <th>
+        {{'TYPE' | translate}}
+      </th>
+      <th>
+        {{'DESCRIPTION' | translate}}
+      </th>
+      <th>
+        {{'ACCESS.VALID_DATE_START' | translate}}
+      </th>
+      <th>
+        {{'ACCESS.VALID_DATE_END' | translate}}
+      </th>
+      <th class="shrink" permission permission-only="'tags.change_structureunitrelation'">
+        {{'EDIT' | translate}}
+      </th>
+      <th class="white-space-nowrap shrink" permission permission-only="'tags.delete_structureunitrelation'">
+        {{'REMOVE' | translate}}
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="x in vm.node.related_structure_units" class="selectable">
+      <td>
+        {{x.structure_unit.name}}
+      </td>
+      <td>
+        {{x.type.name}}
+      </td>
+      <td>
+        {{x.description}}
+      </td>
+      <td>
+        {{x.start_date | date:"yyyy-MM-dd"}}
+      </td>
+      <td>
+        {{x.end_date | date:"yyyy-MM-dd"}}
+      </td>
+      <td class="text-center shrink" permission permission-only="'tags.change_structureunitrelation'">
+        <button
+          class="btn btn-default btn-sm fas fa-edit"
+          ng-click="vm.editNodeRelationModal(x, vm.node); $event.stopPropagation();"
+          uib-tooltip="{{'EDIT' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        ></button>
+      </td>
+      <td class="text-center shrink" permission permission-only="'tags.delete_structureunitrelation'">
+        <button
+          class="btn btn-default btn-sm fas fa-trash-alt"
+          ng-click="vm.removeNodeRelationModal(x, vm.node); $event.stopPropagation();"
+          uib-tooltip="{{'REMOVE' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        ></button>
+      </td>
+    </tr>
+    <tr ng-if="!vm.node.related_structure_units.length && !vm.relatedUnitsLoading" class="empty-table-indicator">
+      <td colspan="{{vm.getStructureUnitRelationColspan()}}">{{'NO_RESULTS_FOUND' | translate}}</td>
+    </tr>
+  </tbody>
+</table>

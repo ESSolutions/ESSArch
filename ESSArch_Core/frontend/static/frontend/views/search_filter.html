@@ -1,0 +1,48 @@
+<div class="search-filter">
+  <label class="control-label" ng-if="vm.label">
+    {{vm.label + (vm.required ? ' *' : '')}}
+  </label>
+  <div class="filter-input-wrapper">
+    <div>
+      <ul class="list-unstyled filter-selected-options" ng-if="vm.selected.length > 0">
+        <li
+          ng-repeat="x in vm.selected"
+          ng-click="vm.deselect(x)"
+          class="selectable"
+          ng-mouseover="showDelete = true"
+          ng-mouseout="showDelete = false"
+          uib-tooltip="{{'ACCESS.DESELECT_FILTER' | translate}}"
+          tooltip-placement="top-left auto"
+        >
+          {{x[vm.labelProp]}}
+        </li>
+        <li ng-if="vm.selected.length === 0">
+          {{'EMPTY' | translate}}
+        </li>
+      </ul>
+    </div>
+    <input
+      placeholder="{{'SEARCH' | translate}} ..."
+      class="form-control filter-input filter-{{$id}}"
+      ng-model="vm.q"
+      ng-change="vm.search()"
+      ng-model-options="{debounce: 300}"
+      ng-focus="vm.openOptions($event)"
+    />
+    <div class="position-relative">
+      <ul ng-if="vm.resultListVisible" class="list-unstyled filter-options">
+        <li
+          ng-repeat="x in vm.options track by $index"
+          ng-click="vm.select(x)"
+          class="selectable filter-options-item"
+          ng-if="vm.notSelected(x)"
+        >
+          {{x[vm.labelProp]}}
+        </li>
+        <li ng-if="vm.optionsEmpty()">
+          {{'NO_RESULTS_FOUND' | translate}}
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+<div class="location-page">
+  <h4 class="pl-base">
+    {{'LOCATION' | translate}}
+    <a
+      target="_blank"
+      class="help-button"
+      uib-tooltip="{{'SEE_MORE_INFO_ABOUT_PAGE' | translate}}"
+      tooltip-position="top auto"
+      href="/docs/{{$translate.use()}}/user_guide/index.html"
+    >
+      <i class="far fa-question-circle"></i>
+    </a>
+  </h4>
+  <location-tree ng-if="vm.showTree" selected="vm.location" on-select="vm.onSelect(node)"></location-tree>
+</div>

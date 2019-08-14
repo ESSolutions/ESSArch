@@ -1,0 +1,16 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ACCESS.CREATE_NEW_VERSION' | translate}}</h3>
+</div>
+<form name="$ctrl.form" ng-submit="$ctrl.createNewVersion()" novalidate>
+  <div class="modal-body" id="modal-body">
+    <formly-form model="$ctrl.data" fields="$ctrl.fields" options="$ctrl.options"></formly-form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" ng-disabled="$ctrl.creating" type="submit">
+      {{'CREATE' | translate}} <i ng-if="$ctrl.creating" class="fas fa-spinner fa-spin" />
+    </button>
+    <button class="btn btn-default" type="button" ng-disabled="$ctrl.creating" ng-click="$ctrl.cancel()">
+      {{'CANCEL' | translate}}
+    </button>
+  </div>
+</form>

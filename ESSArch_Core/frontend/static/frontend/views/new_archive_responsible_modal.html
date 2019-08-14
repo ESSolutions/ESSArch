@@ -1,0 +1,136 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'Skapa arkivansvarig'}}</h3>
+</div>
+<form ng-submit="$ctrl.create()">
+  <div class="modal-body" id="modal-body">
+    <label for="name">
+      {{'NAME' | translate}}
+    </label>
+
+    <ui-select
+      allow-clear
+      ng-model="$ctrl.responsible"
+      ng-change="$ctrl.refreshArchives()"
+      theme="bootstrap"
+      sortable="true"
+      close-on-select="true"
+      append-to-body="false"
+    >
+      <ui-select-match ng-attr-placeholder="{{'Ekonomisk enhet' | translate}}"
+        >{{$ctrl.responsible.name}}</ui-select-match
+      >
+      <ui-select-choices
+        ng-hide="!$select.open"
+        refresh-delay="0"
+        refresh="$ctrl.getUnits($select.search, 'name')"
+        repeat="x in $ctrl.options.units | propsFilter: {name: $select.search}"
+      >
+        <div ng-bind-html="x.name | highlight: $select.search"></div>
+      </ui-select-choices>
+      <ui-select-no-choice>
+        <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
+      </ui-select-no-choice>
+    </ui-select>
+
+    <label for="type">
+      {{'ID' | translate}}
+    </label>
+    <ui-select
+      allow-clear
+      ng-model="$ctrl.responsible"
+      ng-change="$ctrl.refreshArchives()"
+      theme="bootstrap"
+      sortable="true"
+      close-on-select="true"
+      append-to-body="false"
+    >
+      <ui-select-match ng-attr-placeholder="{{'Ekonomisk enhet' | translate}}"
+        >{{$ctrl.responsible.id}}</ui-select-match
+      >
+      <ui-select-choices
+        ng-hide="!$select.open"
+        refresh-delay="0"
+        refresh="$ctrl.getUnits($select.search, 'id')"
+        repeat="x in $ctrl.options.units | propsFilter: {id: $select.search}"
+      >
+        <div ng-bind-html="x.id | highlight: $select.search"></div>
+      </ui-select-choices>
+      <ui-select-no-choice>
+        <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
+      </ui-select-no-choice>
+    </ui-select>
+    <div ng-if="$ctrl.responsible.id !== null">
+      <div class="title-action-button-row py-base">
+        <div class="title">
+          <h4>
+            {{'ACCESS.ARCHIVES' | translate}}
+          </h4>
+        </div>
+        <div class="action-button">
+          <button
+            type="button"
+            ng-click="$ctrl.addArchive($ctrl.responsible)"
+            class="btn btn-primary"
+            uib-tooltip="{{'ACCESS.ADD_ARCHIVE_DESC' | translate}}"
+            tooltip-placement="auto left"
+            tooltip-append-to-body="true"
+          >
+            {{'Lägg till arkiv' | translate}}
+          </button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-4">
+          <ul class="list-style-none pl-base">
+            <li ng-repeat="archive in $ctrl.archives">
+              <a>
+                {{archive.name}}
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="table-container col-xs-8">
+          <div class="table-x-overflow">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>
+                    {{'NAME' | translate}}
+                  </th>
+                  <th>
+                    {{'ACCESS.REFERENCE_CODE' | translate}}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr ng-repeat="archive in $ctrl.archives">
+                  <td>
+                    {{archive.name}}
+                  </td>
+                  <td>
+                    {{archive.reference_code}}
+                  </td>
+                </tr>
+                <tr ng-if="!$ctrl.archives.length && !$ctrl.archivesLoading" class="empty-table-indicator">
+                  <td colspan="2">{{'NO_RESULTS_FOUND' | translate}}</td>
+                </tr>
+                <tr ng-if="!$ctrl.archives.length && $ctrl.archivesLoading" class="empty-table-indicator">
+                  <td class="loading-column" colspan="2">{{'LOADING' | translate}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit" ng-disabled="$ctrl.creating">
+      {{'CREATE' | translate}} <i ng-if="$ctrl.preparing" class="fas fa-spinner fa-spin" />
+    </button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()" ng-disabled="$ctrl.preparing">
+      {{'CANCEL' | translate}}
+    </button>
+  </div>
+</form>
