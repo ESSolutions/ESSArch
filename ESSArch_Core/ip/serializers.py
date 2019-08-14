@@ -8,7 +8,6 @@ from ESSArch_Core._version import get_versions
 from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import UserSerializer
-<<<<<<< HEAD
 from ESSArch_Core.configuration.models import EventType, Path, StoragePolicy
 from ESSArch_Core.configuration.serializers import StoragePolicySerializer
 from ESSArch_Core.ip.models import (
@@ -27,12 +26,8 @@ from ESSArch_Core.storage.models import (
     StorageMethodTargetRelation,
     StorageTarget,
 )
-=======
-from ESSArch_Core.configuration.models import EventType
-from ESSArch_Core.ip.models import Agent, AgentNote, EventIP, InformationPackage, Workarea
-from ESSArch_Core.tags.models import StructureUnit, TagVersion, Delivery, Transfer
+from ESSArch_Core.tags.models import Delivery, Transfer
 from ESSArch_Core.tags.serializers import TransferSerializer
->>>>>>> origin/tag-agents
 
 User = get_user_model()
 VERSION = get_versions()['version']
