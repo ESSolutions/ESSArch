@@ -39,7 +39,7 @@ class CachedManagerMixin:
 
         if val is None:
             val = self.model.objects.values_list(value_column, flat=True).get(**{search_key: search_value})
-            cache.set(cache_name, val, 3600 * 24)
+            cache.set(cache_name, val, 30)
 
         return val
 
