@@ -2,28 +2,22 @@ import os
 import shutil
 import tempfile
 import uuid
-<<<<<<< HEAD
-from unittest import TestCase, mock
-=======
-import os
 from unittest import mock
->>>>>>> origin/tag-agents
 
 from django.test import TestCase
 from lxml import etree
 
-<<<<<<< HEAD
 from ESSArch_Core.search.importers.earderms import (
     EardErmsImporter,
     get_encoded_content_from_file,
 )
-from ESSArch_Core.tags.models import Structure, StructureUnit
+from ESSArch_Core.tags.models import (
+    Structure,
+    StructureType,
+    StructureUnit,
+    StructureUnitType,
+)
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
-=======
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
-from ESSArch_Core.search.importers.earderms import EardErmsImporter, get_encoded_content_from_file
-from ESSArch_Core.tags.models import Structure, StructureType, StructureUnit, StructureUnitType
->>>>>>> origin/tag-agents
 
 
 def get_xml_example_full():
@@ -1074,7 +1068,11 @@ class ParseErrandTests(TestCase):
         self.structure_type = StructureType.objects.create(name="test")
         self.structure = Structure.objects.create(type=self.structure_type, is_template=False)
         self.structure_unit_type = StructureUnitType.objects.create(name="test", structure_type=self.structure_type)
-        self.structure_unit = StructureUnit.objects.create(type=self.structure_unit_type, structure=self.structure, reference_code='some_klass_ref_2')
+        self.structure_unit = StructureUnit.objects.create(
+            type=self.structure_unit_type,
+            structure=self.structure,
+            reference_code='some_klass_ref_2'
+        )
 
     @mock.patch('ESSArch_Core.search.importers.earderms.logger')
     def test_parse_errand_when_no_structure_unit_exists_then_raise_exception(self, mock_logger):
