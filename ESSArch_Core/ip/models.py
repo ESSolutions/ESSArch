@@ -62,7 +62,7 @@ from tenacity import (
     wait_fixed,
 )
 
-from ESSArch_Core.auth.models import GroupGenericObjects, Member
+from ESSArch_Core.auth.models import GroupGenericObjects, Member, Notification
 from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.crypto import encrypt_remote_credentials
@@ -1553,6 +1553,14 @@ class InformationPackage(models.Model):
                     dst = dst or os.path.join(access_workarea_user, self.object_identifier_value)
                     os.makedirs(dst, exist_ok=True)
                     storage_backend.read(storage_object, dst)
+
+        user = task.responsible
+        # TODO: set read_only correctly
+        Workarea.objects.create(ip=self, user=user, type=Workarea.ACCESS, read_only=True)
+        Notification.objects.create(
+            message="%s is now in workarea" % self.object_identifier_value,
+            level=logging.INFO, user=user, refresh=True
+        )
 
     def open_file(self, path='', *args, **kwargs):
         if self.archived:
