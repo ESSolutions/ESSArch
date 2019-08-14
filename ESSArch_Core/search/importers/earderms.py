@@ -7,15 +7,11 @@ import os
 import uuid
 
 from django.db import transaction
-<<<<<<< HEAD
-from django.db.models import F, OuterRef, Q, Subquery
-from elasticsearch import helpers as es_helpers
-from elasticsearch_dsl import Search
-from elasticsearch_dsl.connections import get_connection
+from django.db.models import Q
 from lxml import etree
 
 from ESSArch_Core.search.importers.base import BaseImporter
-from ESSArch_Core.tags.documents import Archive, Component, File, Node
+from ESSArch_Core.tags.documents import Component, File, Node
 from ESSArch_Core.tags.models import (
     StructureUnit,
     Tag,
@@ -27,15 +23,6 @@ from ESSArch_Core.util import (
     remove_prefix,
     timestamp_to_datetime,
 )
-=======
-from django.db.models import Q
-from lxml import etree
-
-from ESSArch_Core.search.importers.base import BaseImporter
-from ESSArch_Core.tags.documents import Component, File, Node
-from ESSArch_Core.tags.models import StructureUnit, Tag, TagStructure, TagVersion
-from ESSArch_Core.util import get_tree_size_and_count, remove_prefix, timestamp_to_datetime
->>>>>>> origin/tag-agents
 
 logger = logging.getLogger('essarch.search.importers.EardErmsImporter')
 
