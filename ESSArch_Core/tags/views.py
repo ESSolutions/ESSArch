@@ -1,59 +1,44 @@
-<<<<<<< HEAD
-from django.db.models import Q
-from django_filters.rest_framework import DjangoFilterBackend
-from mptt.templatetags.mptt_tags import cache_tree_children
-from rest_framework import exceptions, viewsets
-=======
 from django.db import transaction
-from django.db.models import Q, ProtectedError
+from django.db.models import ProtectedError, Q
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from mptt.templatetags.mptt_tags import cache_tree_children
 from rest_framework import exceptions, filters, viewsets
->>>>>>> origin/tag-agents
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-<<<<<<< HEAD
-from ESSArch_Core.ip.views import InformationPackageViewSet
-from ESSArch_Core.tags.filters import StructureUnitFilter, TagFilter
-from ESSArch_Core.tags.models import Structure, StructureUnit, Tag, TagVersion
-from ESSArch_Core.tags.serializers import (
-    StructureSerializer,
-    StructureUnitSerializer,
-    TagSerializer,
-    TagVersionNestedSerializer,
-=======
 from ESSArch_Core.agents.models import AgentTagLink
+from ESSArch_Core.api.filters import OrderingFilterWithNulls
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.permissions import ActionPermissions
-from ESSArch_Core.auth.util import get_objects_for_user
-from ESSArch_Core.api.filters import OrderingFilterWithNulls
-from ESSArch_Core.ip.models import EventIP
-from ESSArch_Core.ip.serializers import EventIPSerializer
-from ESSArch_Core.ip.views import EventIPViewSet
-from ESSArch_Core.tags.filters import StructureFilter, StructureUnitFilter, TagFilter
+from ESSArch_Core.ip.views import InformationPackageViewSet
+from ESSArch_Core.tags.filters import (
+    StructureFilter,
+    StructureUnitFilter,
+    TagFilter,
+)
 from ESSArch_Core.tags.models import (
     Delivery,
     DeliveryType,
+    Location,
+    LocationFunctionType,
+    LocationLevelType,
+    MetricProfile,
+    NodeIdentifierType,
+    NodeNoteType,
+    NodeRelationType,
+    Search,
     Structure,
     StructureType,
     StructureUnit,
     StructureUnitType,
-    NodeRelationType,
     Tag,
     TagVersion,
     TagVersionType,
     Transfer,
-    Location,
-    MetricProfile,
-    LocationLevelType,
-    LocationFunctionType,
-    NodeIdentifierType,
-    NodeNoteType,
 )
 from ESSArch_Core.tags.permissions import (
     AddStructureUnit,
@@ -66,40 +51,30 @@ from ESSArch_Core.tags.serializers import (
     DeliverySerializer,
     DeliveryTypeSerializer,
     DeliveryWriteSerializer,
+    LocationFunctionTypeSerializer,
+    LocationLevelTypeSerializer,
+    LocationSerializer,
+    LocationWriteSerializer,
+    MetricProfileSerializer,
+    NodeIdentifierTypeSerializer,
+    NodeNoteTypeSerializer,
+    NodeRelationTypeSerializer,
+    StoredSearchSerializer,
+    StructureSerializer,
+    StructureTypeSerializer,
+    StructureUnitSerializer,
+    StructureUnitTypeSerializer,
+    StructureUnitWriteSerializer,
+    StructureWriteSerializer,
     TagSerializer,
     TagVersionNestedSerializer,
     TagVersionTypeSerializer,
-    StructureSerializer,
-    StructureTypeSerializer,
-    StructureWriteSerializer,
-    StructureUnitSerializer,
-    StructureUnitTypeSerializer,
-    NodeRelationTypeSerializer,
-    StructureUnitWriteSerializer,
-    LocationSerializer,
-    MetricProfileSerializer,
-    LocationLevelTypeSerializer,
-    LocationFunctionTypeSerializer,
-    LocationWriteSerializer,
     TransferEditNodesSerializer,
     TransferSerializer,
-    NodeIdentifierTypeSerializer,
-    NodeNoteTypeSerializer,
->>>>>>> origin/tag-agents
 )
 from ESSArch_Core.util import mptt_to_dict
 
 
-<<<<<<< HEAD
-class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = Structure.objects.prefetch_related('units')
-    serializer_class = StructureSerializer
-    permission_classes = (DjangoModelPermissions,)
-    filter_backends = (OrderingFilter, SearchFilter,)
-    ordering_fields = ('name', 'create_date', 'version',)
-    search_fields = ('name',)
-
-=======
 class ArchiveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = AgentTagLink.objects.filter(
         tag__elastic_index='archive'
@@ -292,7 +267,6 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         serializer = self.serializer_class(instance=new_version)
         return Response(serializer.data)
 
->>>>>>> origin/tag-agents
     @action(detail=True, methods=['get'])
     def tree(self, request, pk=None):
         obj = self.get_object()
@@ -306,40 +280,6 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(dicts)
 
 
-<<<<<<< HEAD
-class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = StructureUnit.objects.select_related('structure')
-    serializer_class = StructureUnitSerializer
-    permission_classes = (DjangoModelPermissions,)
-    filter_backends = (DjangoFilterBackend,)
-    filter_class = StructureUnitFilter
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['archive'] = self.request.query_params.get('archive')
-        return context
-
-    def perform_create(self, serializer):
-        try:
-            structure = self.get_parents_query_dict()['structure']
-        except KeyError:
-            structure = self.get_parents_query_dict()['parent__structure']
-        parent = serializer.validated_data.get('parent')
-        if parent is not None and str(parent.structure.pk) != structure:
-            raise exceptions.ValidationError('Parent must be from the same classification structure')
-        serializer.save(structure_id=structure)
-
-    @action(detail=True, methods=['get'])
-    def nodes(self, request, pk=None, parent_lookup_structure=None):
-        archive_id = request.query_params.get('archive')
-        unit = self.get_object()
-
-        structure = unit.structure
-        try:
-            nodes = TagVersion.objects.get(pk=archive_id).get_descendants(structure)
-        except TagVersion.DoesNotExist:
-            raise exceptions.ParseError('Invalid archive {}'.format(archive_id))
-=======
 class StructureUnitTypeViewSet(viewsets.ModelViewSet):
     queryset = StructureUnitType.objects.all()
     serializer_class = StructureUnitTypeSerializer
@@ -402,7 +342,6 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         structure = unit.structure
         nodes = structure.tagstructure_set.first().get_root().tag.current_version.get_descendants(structure)
->>>>>>> origin/tag-agents
         children = nodes.filter(tag__structures__structure_unit=unit)
 
         context = {'structure': structure, 'user': request.user}
@@ -424,10 +363,6 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         serializer = self.get_serializer_class()
         context = {
             'user': request.user,
-<<<<<<< HEAD
-            'archive': request.query_params.get('archive'),
-=======
->>>>>>> origin/tag-agents
             'structure': request.query_params.get('structure')
         }
         if self.paginator is not None:
@@ -438,10 +373,6 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(serializer(children, many=True, context=context).data)
 
 
-<<<<<<< HEAD
-class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = Tag.objects.all()
-=======
 class TagVersionTypeViewSet(viewsets.ModelViewSet):
     queryset = TagVersionType.objects.all()
     serializer_class = TagVersionTypeSerializer
@@ -451,7 +382,6 @@ class TagVersionTypeViewSet(viewsets.ModelViewSet):
 
 class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Tag.objects.none()
->>>>>>> origin/tag-agents
     serializer_class = TagSerializer
 
     filter_backends = (DjangoFilterBackend, SearchFilter)
@@ -461,12 +391,8 @@ class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     http_method_names = ('get', 'head', 'options')
 
     def get_queryset(self):
-<<<<<<< HEAD
-        qs = self.queryset
-=======
         user = self.request.user
         qs = Tag.objects.for_user(user, [])
->>>>>>> origin/tag-agents
         ancestor = self.kwargs.get('parent_lookup_tag')
 
         if ancestor is not None:
@@ -477,18 +403,6 @@ class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return qs
 
 
-<<<<<<< HEAD
-class TagInformationPackagesViewSet(NestedViewSetMixin, InformationPackageViewSet):
-    def filter_queryset_by_parents_lookups(self, queryset):
-        parents_query_dict = self.get_parents_query_dict()
-        tag = parents_query_dict['tag']
-        leaves = Tag.objects.get(pk=tag).get_leafnodes(include_self=True)
-
-        return queryset.filter(
-            Q(tags__in=leaves) | Q(information_packages__tags__in=leaves) |
-            Q(aic__information_packages__tags__in=leaves)
-        ).distinct()
-=======
 class DeliveryViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Delivery.objects.none()
     serializer_class = DeliverySerializer
@@ -569,4 +483,26 @@ class TransferViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         transfer.tag_versions.remove(*data['tags'])
 
         return Response()
->>>>>>> origin/tag-agents
+
+
+class TagInformationPackagesViewSet(NestedViewSetMixin, InformationPackageViewSet):
+    def filter_queryset_by_parents_lookups(self, queryset):
+        parents_query_dict = self.get_parents_query_dict()
+        tag = parents_query_dict['tag']
+        leaves = Tag.objects.get(pk=tag).get_leafnodes(include_self=True)
+
+        return queryset.filter(
+            Q(tags__in=leaves) | Q(information_packages__tags__in=leaves) |
+            Q(aic__information_packages__tags__in=leaves)
+        ).distinct()
+
+
+class StoredSearchViewSet(viewsets.ModelViewSet):
+    queryset = Search.objects.all()
+    serializer_class = StoredSearchSerializer
+
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+    search_fields = ('name',)
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
