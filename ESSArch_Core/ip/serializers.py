@@ -55,7 +55,6 @@ class EventIPSerializer(serializers.ModelSerializer):
     delivery = serializers.PrimaryKeyRelatedField(required=False, queryset=Delivery.objects.all())
     transfer = TransferSerializer()
 
-
     class Meta:
         model = EventIP
         fields = (
@@ -88,7 +87,6 @@ class EventIPWriteSerializer(EventIPSerializer):
         if 'linkingAgentIdentifierValue' not in validated_data:
             validated_data['linkingAgentIdentifierValue'] = self.context['request'].user
         return super().create(validated_data)
-
 
 
 class InformationPackageSerializer(serializers.ModelSerializer):

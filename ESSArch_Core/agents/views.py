@@ -19,16 +19,16 @@ from ESSArch_Core.agents.models import (
     AgentTagLinkRelationType,
     AgentType,
     AuthorityType,
-    SourcesOfAuthority,
     RefCode,
+    SourcesOfAuthority,
 )
 from ESSArch_Core.agents.serializers import (
-    AgentSerializer,
     AgentIdentifierTypeSerializer,
     AgentNameTypeSerializer,
     AgentNoteTypeSerializer,
     AgentPlaceTypeSerializer,
     AgentRelationTypeSerializer,
+    AgentSerializer,
     AgentTagLinkRelationTypeSerializer,
     AgentTypeSerializer,
     AgentWriteSerializer,
@@ -67,15 +67,18 @@ class AgentNoteTypeViewSet(viewsets.ModelViewSet):
     serializer_class = AgentNoteTypeSerializer
     permission_classes = (ActionPermissions,)
 
+
 class AgentIdentifierTypeViewSet(viewsets.ModelViewSet):
     queryset = AgentIdentifierType.objects.all()
     serializer_class = AgentIdentifierTypeSerializer
     permission_classes = (ActionPermissions,)
 
+
 class AgentPlaceTypeViewSet(viewsets.ModelViewSet):
     queryset = AgentPlaceType.objects.all()
     serializer_class = AgentPlaceTypeSerializer
     permission_classes = (ActionPermissions,)
+
 
 class AgentViewSet(viewsets.ModelViewSet):
     queryset = Agent.objects.none()

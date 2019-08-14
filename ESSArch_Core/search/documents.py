@@ -1,14 +1,12 @@
 import logging
 import time
 
-from django.conf import settings
-
 import elasticsearch_dsl as es
+from django.conf import settings
 from elasticsearch import helpers as es_helpers
 from elasticsearch_dsl.connections import get_connection as get_es_connection
 
 from ESSArch_Core.search.alias_migration import migrate
-
 
 logger = logging.getLogger('essarch.search.documents.DocumentBase')
 

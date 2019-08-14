@@ -1,4 +1,4 @@
-from elasticsearch_dsl import (Date, InnerDoc, Keyword, Nested, Text)
+from elasticsearch_dsl import Date, InnerDoc, Keyword, Nested, Text
 
 from ESSArch_Core.agents.models import Agent
 from ESSArch_Core.search.documents import DocumentBase

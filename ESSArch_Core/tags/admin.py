@@ -6,12 +6,12 @@ from ESSArch_Core.tags.models import (
     LocationLevelType,
     MetricProfile,
     MetricType,
+    NodeIdentifierType,
+    NodeNoteType,
     NodeRelationType,
     StructureType,
     StructureUnitType,
     TagVersionType,
-    NodeIdentifierType,
-    NodeNoteType,
 )
 
 

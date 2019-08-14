@@ -13,8 +13,8 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
 
 from ESSArch_Core.agents.models import Agent
-from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.managers import OrganizationManager
+from ESSArch_Core.profiles.models import SubmissionAgreement
 
 User = get_user_model()
 logger = logging.getLogger('essarch.tags')
@@ -49,6 +49,7 @@ class NodeIdentifierType(models.Model):
     class Meta:
         verbose_name = _('node identifier type')
         verbose_name_plural = _('node identifier types')
+
 
 class NodeNote(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -1070,12 +1071,12 @@ class Transfer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_('name'), max_length=255, blank=False)
     delivery = models.ForeignKey('tags.Delivery', on_delete=models.CASCADE, null=False, verbose_name=_('delivery'))
-    submitter_organization =  models.CharField(blank=True, max_length=255)
-    submitter_organization_main_address =  models.CharField(blank=True, max_length=255)
-    submitter_individual_name =  models.CharField(blank=True, max_length=255)
-    submitter_individual_phone =  models.CharField(blank=True, max_length=255)
-    submitter_individual_email =  models.CharField(blank=True, max_length=255)
-    description =  models.CharField(blank=True, max_length=255)
+    submitter_organization = models.CharField(blank=True, max_length=255)
+    submitter_organization_main_address = models.CharField(blank=True, max_length=255)
+    submitter_individual_name = models.CharField(blank=True, max_length=255)
+    submitter_individual_phone = models.CharField(blank=True, max_length=255)
+    submitter_individual_email = models.CharField(blank=True, max_length=255)
+    description = models.CharField(blank=True, max_length=255)
 
     objects = OrganizationManager()
 

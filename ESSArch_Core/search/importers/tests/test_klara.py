@@ -1,12 +1,16 @@
-import pytz
-
 from datetime import datetime
-from lxml import objectify
 
+import pytz
 from django.test import TestCase
 from django.utils import timezone
+from lxml import objectify
 
-from ESSArch_Core.agents.models import Agent, AgentName, AgentType, MainAgentType
+from ESSArch_Core.agents.models import (
+    Agent,
+    AgentName,
+    AgentType,
+    MainAgentType,
+)
 from ESSArch_Core.search.importers.klara import KlaraImporter
 
 

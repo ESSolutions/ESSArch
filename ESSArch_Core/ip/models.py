@@ -63,18 +63,17 @@ from tenacity import (
 )
 
 from ESSArch_Core.auth.models import GroupGenericObjects, Member
-from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.fixity.format import FormatIdentifier
+from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import (
     ProfileIP,
     ProfileIPData,
     ProfileSA,
     SubmissionAgreement as SA,
 )
-from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_backend as get_importer
 from ESSArch_Core.search.ingest import index_path

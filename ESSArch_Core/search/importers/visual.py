@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
 import logging
 import uuid
+from datetime import datetime
 
 import pytz
 from countries_plus.models import Country
@@ -12,6 +12,7 @@ from django.utils import dateparse, timezone
 from languages_plus.models import Language
 from lxml import etree
 
+from ESSArch_Core.agents.documents import AgentDocument
 from ESSArch_Core.agents.models import (
     Agent,
     AgentIdentifier,
@@ -30,8 +31,11 @@ from ESSArch_Core.agents.models import (
     Topography,
 )
 from ESSArch_Core.search.importers.base import BaseImporter
-from ESSArch_Core.agents.documents import AgentDocument
-from ESSArch_Core.tags.documents import Archive, Component, StructureUnitDocument
+from ESSArch_Core.tags.documents import (
+    Archive,
+    Component,
+    StructureUnitDocument,
+)
 from ESSArch_Core.tags.models import (
     Structure,
     StructureType,

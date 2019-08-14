@@ -1,9 +1,10 @@
 from pydoc import locate
 
-from django.conf import settings
 import click
+from django.conf import settings
 
 from ESSArch_Core.search import alias_migration
+
 
 def get_indexes(indexes):
     all_indexes = getattr(settings, 'ELASTICSEARCH_INDEXES', {'default': {}})['default']

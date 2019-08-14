@@ -2,7 +2,6 @@ from django.utils import timezone
 from elasticsearch_dsl import (
     Boolean,
     Date,
-    Document,
     InnerDoc,
     Integer,
     Keyword,

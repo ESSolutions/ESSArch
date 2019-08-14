@@ -1,10 +1,9 @@
 import logging
 
-from django.db.models import OuterRef, Subquery, F
+from django.db.models import F, OuterRef, Subquery
 from elasticsearch import helpers as es_helpers
-from elasticsearch_dsl import Search
+from elasticsearch_dsl import Q as ElasticQ, Search
 from elasticsearch_dsl.connections import get_connection as get_es_connection
-from elasticsearch_dsl import Q as ElasticQ
 from lxml import etree
 
 from ESSArch_Core.tags.documents import Component

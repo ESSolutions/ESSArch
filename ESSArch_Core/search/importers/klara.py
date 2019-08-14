@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
-from itertools import chain
 import hashlib
 import html
 import logging
 import re
 import uuid
+from datetime import datetime
+from itertools import chain
 
 import pytz
 from countries_plus.models import Country
@@ -35,7 +35,11 @@ from ESSArch_Core.agents.models import (
     Topography,
 )
 from ESSArch_Core.search.importers.base import BaseImporter
-from ESSArch_Core.tags.documents import Archive, Component, StructureUnitDocument
+from ESSArch_Core.tags.documents import (
+    Archive,
+    Component,
+    StructureUnitDocument,
+)
 from ESSArch_Core.tags.models import (
     MediumType,
     NodeIdentifier,
