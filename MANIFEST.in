@@ -1,9 +1,11 @@
-recursive-include * *.js *.html *.txt *.gif *.png *.css *.xml *.xsd *.sh *.map *.ico *.scss *.json *.po *.mo
-exclude ESSArch_Core/frontend/static/frontend/node_modules
+recursive-include *.html *.txt *.xml *.xsd *.ico *.json *.po *.mo
 include versioneer.py
 include README.md
 include LICENSE
-recursive-include ESSArch_Core/config *.conf *.crt *.key *.default
-include ESSArch_Core/config/celeryd
-recursive-include ESSArch_Core/env *.xsd *.types
+recursive-include ESSArch_Core/config *.default
 recursive-include ESSArch_Core/static *
+recursive-exclude ESSArch_Core/frontend/static/frontend *
+recursive-include ESSArch_Core/frontend/static/frontend/views *
+recursive-include ESSArch_Core/frontend/static/frontend/build *
+recursive-exclude ESSArch_Core/docs *
+recursive-include ESSArch_Core/docs/_build *
