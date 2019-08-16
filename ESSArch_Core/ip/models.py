@@ -586,7 +586,7 @@ class InformationPackage(models.Model):
             if not cached:
                 return InformationPackage.objects.filter(aic=self.aic).exclude(pk=self.pk)
 
-            if 'information_packages' in self.aic._prefetched_objects_cache:
+            if 'information_packages' in getattr(self.aic, '_prefetched_objects_cache', {}):
                 # prefetched, don't need to filter
                 return self.aic.information_packages
             else:
