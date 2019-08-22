@@ -4,6 +4,6 @@ angular.module('essarch.controllers').controller('SearchAdminCtrl', function($sc
     if ($state.current.name === 'home.administration.searchAdmin') {
       $state.go('home.administration.searchAdmin.archiveManager');
     }
+    vm.activeTab = $state.current.name.split('.').pop();
   };
-  vm.activeTab = 0;
 });

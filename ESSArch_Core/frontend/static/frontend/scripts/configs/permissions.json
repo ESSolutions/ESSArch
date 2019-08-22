@@ -35,6 +35,15 @@
           "search": {
             "_permissions": ["tags.search"]
           },
+          "archiveCreators": {
+            "_permissions": ["tags.search"]
+          },
+          "archiveManager": {
+            "_permissions": ["tags.search", "tags.create_archive"]
+          },
+          "classificationStructures": {
+            "_permissions": ["tags.search"]
+          },
           "accessIp": {
             "_permissions": ["ip.get_from_storage", "ip.get_tar_from_storage", "ip.get_from_storage_as_new"]
           },
@@ -43,6 +52,15 @@
           },
           "createDip": {
             "_permissions": ["ip.preserve_dip"]
+          },
+          "location": {
+            "_permissions": ["tags.search"]
+          },
+          "deliveries": {
+            "_permissions": ["tags.search"],
+            "transfers": {
+              "_permissions": ["tags.search"]
+            }
           }
         },
         "workarea": {
@@ -71,14 +89,6 @@
           }
         },
         "administration": {
-          "searchAdmin": {
-            "archiveManager": {
-              "_permissions": ["tags.search"]
-            },
-            "classificationStructures": {
-              "_permissions": ["tags.search"]
-            }
-          },
           "mediaInformation": {
             "_permissions": ["storage.storage_management"]
           },

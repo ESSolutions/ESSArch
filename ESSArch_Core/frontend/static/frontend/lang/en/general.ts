@@ -121,6 +121,8 @@ const general = $translateProvider => {
     GET_AS_NEW_GENERATION: 'Get as new generation',
     GET: 'Get',
     GLOBALSEARCH: 'search ...',
+    GLOBALSEARCHDESC_ARCHIVE_CREATORS: 'List all archive creators associated to the search term',
+    GLOBALSEARCHDESC_ARCHIVES: 'List all archives associated to the search term',
     GLOBALSEARCHDESC_IP: "List all IP's associated to the search term",
     GLOBALSEARCHDESC_MEDIUM_CONTENT: 'List all medium content associated to the search term',
     GLOBALSEARCHDESC_MEDIUM: 'List all storage mediums associated to the search term',

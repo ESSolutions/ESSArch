@@ -1,3 +1,5 @@
+import archiveManager from '../components/ArchiveManagerComponent';
+import classificationStructureEditor from '../components/ClassificationStructureEditorComponent';
 import dashboardStats from '../components/DashboardStatsComponent';
 import essarchFooter from '../components/FooterComponent';
 import eventTable from '../components/EventTableComponent';
@@ -12,6 +14,8 @@ import StateTreeView from '../components/StateTreeViewComponent';
 
 export default angular
   .module('essarch.components', ['essarch.controllers'])
+  .component('archiveManager', archiveManager)
+  .component('classificationStructureEditor', classificationStructureEditor)
   .component('dashboardStats', dashboardStats)
   .component('essarchFooter', essarchFooter)
   .component('eventTable', eventTable)

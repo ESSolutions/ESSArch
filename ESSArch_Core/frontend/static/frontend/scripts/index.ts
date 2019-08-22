@@ -385,6 +385,108 @@ angular
             },
           },
         })
+        .state('home.access.location', {
+          url: '/location/:id',
+          template: '<location></location>',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.location', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.access.deliveries', {
+          url: '/deliveries/:delivery',
+          template: '<delivery-page></delivery-page>',
+          params: {
+            transfer: null,
+            delivery: null,
+          },
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.deliveries', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.access.deliveries.transfers', {
+          url: '/transfers/:transfer',
+          templateUrl: 'static/frontend/views/transfers.html',
+          controller: 'TransferCtrl',
+          controllerAs: 'vm',
+          params: {
+            transfer: null,
+            delivery: null,
+          },
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.deliveries.transfers', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.access.archiveManager', {
+          url: '/archive-manager',
+          template: '<archive-manager></archive-manager>',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.archiveManager', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.access.archiveManager.detail', {
+          url: '/:id',
+          templateUrl: '/static/frontend/views/search_archive_detail.html',
+          controller: 'SearchDetailCtrl as vm',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.archiveManager', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.access.classificationStructures', {
+          url: '/structures/:id',
+          template: '<classification-structure-editor></classification-structure-editor>',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.classificationStructures', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.access.archiveCreators', {
+          url: '/archive-creators/:id',
+          template: '<agents></agents>',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.archiveCreators', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
         .state('home.system', {
           url: 'system',
           templateUrl: '/static/frontend/views/sysinfo.html',
@@ -583,32 +685,6 @@ angular
           data: {
             permissions: {
               only: nestedPermissions(resolve('home.administration.searchAdmin', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
-        .state('home.administration.searchAdmin.classificationStructures', {
-          url: '/classification-structures',
-          template: '<classification-structure-editor></classification-structure-editor>',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
-        .state('home.administration.searchAdmin.archiveManager', {
-          url: '/archive-manager',
-          template: '<archive-manager></archive-manager>',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
               redirectTo: 'home.restricted',
             },
           },

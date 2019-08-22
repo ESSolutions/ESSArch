@@ -6,6 +6,7 @@ export default class SearchCtrl {
     $rootScope,
     appConfig,
     $log,
+    $timeout,
     Notifications,
     $translate,
     $uibModal,
@@ -14,7 +15,8 @@ export default class SearchCtrl {
     $state,
     $httpParamSerializer,
     $stateParams,
-    $transitions
+    $transitions,
+    AgentName
   ) {
     var vm = this;
     $scope.angular = angular;
@@ -26,6 +28,32 @@ export default class SearchCtrl {
     vm.numberOfResults = 0;
     vm.resultsPerPage = 25;
     vm.resultViewType = 'list';
+    vm.options = {
+      archives: [],
+      agents: [],
+      types: [],
+    };
+    vm.archiveFilter = [];
+    vm.agentFilter = [];
+
+    vm.filterObject = {
+      q: '',
+      type: null,
+      page: 1,
+      page_size: vm.resultsPerPage || 25,
+      ordering: '',
+    };
+
+    vm.extensionFilter = {};
+
+    vm.includedTypes = {
+      archive: true,
+      ip: true,
+      component: true,
+      file: true,
+    };
+    vm.savedSearchVisible = true;
+    vm.searchList = [];
 
     // Change tab from outside this scope, used in search detail
     $scope.$on('CHANGE_TAB', function(event, data) {
@@ -61,15 +89,13 @@ export default class SearchCtrl {
       ) {
         vm.activeTab = 1;
         vm.showTree = true;
-      } else if ($state.is('home.access.search.classificationStructures')) {
-        vm.activeTab = 3;
       } else {
         vm.activeTab = 0;
         vm.showResults = true;
       }
-      angular.forEach($stateParams.query, function(value, key) {
-        vm.filterObject[key] = value;
-      });
+      if ($stateParams.query !== null && !angular.isUndefined($stateParams.query)) {
+        vm.filterObject = $stateParams.query;
+      }
       $http.get(appConfig.djangoUrl + 'search/', {params: vm.filterObject}).then(function(response) {
         vm.loadTags(response.data.aggregations);
         vm.fileExtensions = response.data.aggregations._filter_extension.extension.buckets;
@@ -88,22 +114,19 @@ export default class SearchCtrl {
       }
     };
 
-    vm.filterObject = {
-      q: '',
-      type: null,
-      page: 1,
-      page_size: vm.resultsPerPage || 25,
-      ordering: '',
+    vm.getSavedSearches = function() {
+      vm.loadingSearches = true;
+      $http
+        .get(appConfig.djangoUrl + 'me/searches/', {pager: 'none'})
+        .then(function(response) {
+          vm.searchList = response.data;
+          vm.loadingSearches = false;
+        })
+        .catch(function() {
+          vm.loadingSearches = false;
+        });
     };
-
-    vm.extensionFilter = {};
-
-    vm.includedTypes = {
-      archive: true,
-      ip: true,
-      component: true,
-      file: true,
-    };
+    vm.getSavedSearches();
 
     vm.createArchive = function(archiveName, structureName, type, referenceCode) {
       Search.addNode({
@@ -155,7 +178,9 @@ export default class SearchCtrl {
     vm.clearSearch = function() {
       vm.filterObject = {
         q: '',
-        type: null,
+        type: [],
+        archives: [],
+        agents: [],
         page: 1,
         page_size: vm.resultsPerPage || 25,
         ordering: '',
@@ -175,25 +200,89 @@ export default class SearchCtrl {
       if (vm.tableState) {
         vm.tableState.pagination.start = 0;
       }
-      vm.search(vm.tableState);
-      vm.activeTab = 0;
+      $timeout(function() {
+        vm.search(vm.tableState);
+        vm.activeTab = 0;
+      });
+    };
+
+    vm.getArchives = function(search) {
+      return $http({
+        url: appConfig.djangoUrl + 'tags/',
+        mathod: 'GET',
+        params: {page: 1, page_size: 10, index: 'archive', search: search},
+      }).then(function(response) {
+        vm.options.archives = response.data.map(function(x) {
+          return x.current_version;
+        });
+        return vm.options.archives;
+      });
+    };
+
+    vm.getAgents = function(search) {
+      return $http({
+        url: appConfig.djangoUrl + 'agents/',
+        mathod: 'GET',
+        params: {page: 1, page_size: 10, search: search},
+      }).then(function(response) {
+        response.data.forEach(function(agent) {
+          AgentName.parseAgentNames(agent);
+          agent.auth_name = AgentName.getAuthorizedName(agent);
+        });
+        vm.options.agents = response.data;
+        return vm.options.agents;
+      });
+    };
+
+    vm.filterNodeTypes = function(search) {
+      var types = vm.options.originalTypes.filter(function(x) {
+        return x.key.toLowerCase().indexOf(search.toLowerCase()) !== -1;
+      });
+      vm.options.types = types;
     };
 
     vm.formatFilters = function() {
+      var filters = angular.copy(vm.filterObject);
       var includedTypes = [];
       for (var key in vm.includedTypes) {
         if (vm.includedTypes[key]) {
           includedTypes.push(key);
         }
       }
-      vm.filterObject.indices = includedTypes.join(',');
+      filters.indices = includedTypes.join(',');
       var includedExtension = [];
       for (var key in vm.extensionFilter) {
         if (vm.extensionFilter[key]) {
           includedExtension.push(key);
         }
       }
-      vm.filterObject.extension = includedExtension.join(',');
+      if (filters.extension == '' || filters.extension == null || filters.extension == {}) {
+        delete filters.extension;
+      } else {
+        filters.extension = includedExtension.join(',');
+      }
+      if (angular.isArray(filters.archives) && filters.archives !== null) {
+        filters.archives = filters.archives
+          .map(function(x) {
+            return x.id;
+          })
+          .join(',');
+      }
+      if (angular.isArray(filters.agents) && filters.agents !== null) {
+        filters.agents = filters.agents
+          .map(function(x) {
+            return x.id;
+          })
+          .join(',');
+      }
+      if (angular.isArray(filters.type) && filters.type !== null) {
+        filters.type = filters.type
+          .map(function(x) {
+            return x.key;
+          })
+          .join(',');
+      }
+      return filters;
     };
 
     /**
@@ -207,10 +296,6 @@ export default class SearchCtrl {
         var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
         var number = pagination.number; // Number of entries showed per page.
         var pageNumber = isNaN(start / number) ? 1 : start / number + 1; // Prevents initial 404 response where pagenumber os NaN in request
-        vm.formatFilters();
-        if (vm.filterObject.extension == '' || vm.filterObject.extension == null || vm.filterObject.extension == {}) {
-          delete vm.filterObject.extension;
-        }
         var ordering = tableState.sort.predicate;
         if (tableState.sort.reverse) {
           ordering = '-' + ordering;
@@ -218,7 +303,8 @@ export default class SearchCtrl {
         vm.filterObject.page = pageNumber;
         vm.filterObject.page_size = number;
         vm.filterObject.ordering = ordering;
-        Search.query(vm.filterObject).then(function(response) {
+        var filters = vm.formatFilters();
+        Search.query(filters).then(function(response) {
           angular.copy(response.data, vm.searchResult);
           vm.numberOfResults = response.count;
           tableState.pagination.numberOfPages = response.numberOfPages; //set the number of pages so the pagination can update
@@ -237,7 +323,7 @@ export default class SearchCtrl {
     vm.getAggregationChildren = function(aggregations, aggrType) {
       var aggregation = aggregations['_filter_' + aggrType][aggrType];
       var missing = true;
-      let children = aggregation.buckets.map(function(item) {
+      children = aggregation.buckets.map(function(item) {
         if (item.name) {
           item.text = item.name + ' (' + item.doc_count + ')';
           item.a_attr = {
@@ -276,12 +362,8 @@ export default class SearchCtrl {
 
     vm.loadTags = function(aggregations) {
       var typeChildren = vm.getAggregationChildren(aggregations, 'type');
-      var archiveChildren = vm.getAggregationChildren(aggregations, 'archive');
-      var institutionChildren = vm.getAggregationChildren(aggregations, 'institution');
-      var organizationChildren = vm.getAggregationChildren(aggregations, 'organization');
-      var informationPackageChildren = vm.getAggregationChildren(aggregations, 'information_package');
-      var archiveCreatorChildren = vm.getAggregationChildren(aggregations, 'archive_creator');
-      var archiveResponsibleChildren = vm.getAggregationChildren(aggregations, 'archive_responsible');
+      vm.options.originalTypes = aggregations._filter_type.type.buckets;
+      vm.options.types = angular.copy(vm.options.originalTypes);
       var filters = [
         {
           text: $translate.instant('TYPE'),
@@ -292,60 +374,6 @@ export default class SearchCtrl {
           type: 'series',
           children: typeChildren,
           branch: 'type',
-        },
-        {
-          text: $translate.instant('ACCESS.ARCHIVE'),
-          a_attr: {
-            title: $translate.instant('ACCESS.ARCHIVE'),
-          },
-          state: {opened: true, disabled: true},
-          children: archiveChildren,
-          branch: 'archive',
-        },
-        {
-          text: $translate.instant('ACCESS.ARCHIVE_CREATOR'),
-          a_attr: {
-            title: $translate.instant('ACCESS.ARCHIVE_CREATOR'),
-          },
-          state: {opened: true, disabled: true},
-          children: archiveCreatorChildren,
-          branch: 'archive_creator',
-        },
-        {
-          text: $translate.instant('ACCESS.ARCHIVE_RESPONSIBLE'),
-          a_attr: {
-            title: $translate.instant('ACCESS.ARCHIVE_RESPONSIBLE'),
-          },
-          state: {opened: true, disabled: true},
-          children: archiveResponsibleChildren,
-          branch: 'archive_responsible',
-        },
-        {
-          text: $translate.instant('ARCHIVALINSTITUTION'),
-          a_attr: {
-            title: $translate.instant('ARCHIVALINSTITUTION'),
-          },
-          state: {opened: true, disabled: true},
-          children: institutionChildren,
-          branch: 'institution',
-        },
-        {
-          text: $translate.instant('ARCHIVISTORGANIZATION'),
-          a_attr: {
-            title: $translate.instant('ARCHIVISTORGANIZATION'),
-          },
-          state: {opened: true, disabled: true},
-          children: organizationChildren,
-          branch: 'organization',
-        },
-        {
-          text: $translate.instant('STORAGE_UNIT'),
-          a_attr: {
-            title: $translate.instant('STORAGE_UNIT'),
-          },
-          state: {opened: true, disabled: true},
-          children: informationPackageChildren,
-          branch: 'information_package',
         },
       ];
       vm.recreateFilterTree(filters);
@@ -438,9 +466,9 @@ export default class SearchCtrl {
 
     vm.getExportResultUrl = function(tableState, format) {
       if (tableState) {
-        vm.formatFilters();
-        if (vm.filterObject.extension == '' || vm.filterObject.extension == null || vm.filterObject.extension == {}) {
-          delete vm.filterObject.extension;
+        var filters = vm.formatFilters();
+        if (filters.extension == '' || filters.extension == null || filters.extension == {}) {
+          delete filters.extension;
         }
         var ordering = tableState.sort.predicate;
         if (tableState.sort.reverse) {
@@ -451,7 +479,7 @@ export default class SearchCtrl {
             {
               export: format,
             },
-            vm.filterObject
+            filters
           )
         );
         return appConfig.djangoUrl + 'search/?' + params;
@@ -465,7 +493,7 @@ export default class SearchCtrl {
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/modals/export_result_modal.html',
+        templateUrl: 'modals/export_result_modal.html',
         controller: 'ExportResultModalInstanceCtrl',
         controllerAs: '$ctrl',
         scope: $scope,
@@ -480,6 +508,58 @@ export default class SearchCtrl {
       });
       modalInstance.result
         .then(function(data) {})
+        .catch(function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        });
+    };
+
+    vm.saveSearchModal = function() {
+      var modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/save_search_modal.html',
+        controller: 'SavedSearchModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'md',
+        resolve: {
+          data: function() {
+            return {
+              filters: vm.filterObject,
+            };
+          },
+        },
+      });
+      modalInstance.result
+        .then(function(data) {
+          vm.getSavedSearches();
+        })
+        .catch(function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        });
+    };
+
+    vm.removeSearchModal = function(search) {
+      var modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/remove_search_modal.html',
+        controller: 'SavedSearchModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'smd',
+        resolve: {
+          data: function() {
+            return {
+              search: search,
+            };
+          },
+        },
+      });
+      modalInstance.result
+        .then(function(data) {
+          vm.getSavedSearches();
+        })
         .catch(function() {
           $log.info('modal-component dismissed at: ' + new Date());
         });

@@ -7,15 +7,21 @@
     <div>
       <uib-tabset active="vm.activeTab" class="tabs tabs-style-bar">
         <uib-tab
-          index="0"
+          index="'archiveManager'"
           ui-sref="home.administration.searchAdmin.archiveManager"
           heading="{{'ACCESS.NEW_ARCHIVE' | translate}}"
         >
         </uib-tab>
         <uib-tab
-          index="1"
+          index="'classificationStructures'"
           ui-sref="home.administration.searchAdmin.classificationStructures"
           heading="{{'ACCESS.CLASSIFICATION_STRUCTURES' | translate}}"
+        >
+        </uib-tab>
+        <uib-tab
+          index="'archiveCreators'"
+          ui-sref="home.administration.searchAdmin.archiveCreators"
+          heading="{{'ARCHIVECREATORS' | translate}}"
         >
         </uib-tab>
       </uib-tabset>

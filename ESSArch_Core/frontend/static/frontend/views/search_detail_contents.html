@@ -34,11 +34,10 @@
       </tbody>
     </table>
     <div
-      class="search-pagination"
-      style="float: right;"
+      ng-if="vm.record._index !== 'archive'"
+      class="float-right"
       st-template="static/frontend/views/file_pagination.html"
       st-pagination=""
-      st-items-by-page="10"
       st-displayed-pages="7"
     ></div>
   </div>

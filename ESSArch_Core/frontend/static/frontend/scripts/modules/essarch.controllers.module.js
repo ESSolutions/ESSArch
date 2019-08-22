@@ -2,11 +2,13 @@ import * as angular from 'angular';
 
 import AccessCtrl from '../controllers/AccessCtrl';
 import AccessIpCtrl from '../controllers/AccessIpCtrl';
+import AddNodeModalInstanceCtrl from '../controllers/AddNodeModalInstanceCtrl';
 import AdministrationCtrl from '../controllers/AdministrationCtrl';
 import AppCtrl from '../controllers/AppCtrl';
 import AppraisalCtrl from '../controllers/AppraisalCtrl';
 import BaseCtrl from '../controllers/BaseCtrl';
 import ChangePasswordModalCtrl from '../controllers/ChangePasswordModalCtrl';
+import ClassificationModalInstanceCtrl from '../controllers/ClassificationModalInstanceCtrl';
 import CollectContentCtrl from '../controllers/CollectContentCtrl';
 import CombinedWorkareaCtrl from '../controllers/CombinedWorkareaCtrl';
 import ConversionCtrl from '../controllers/ConversionCtrl';
@@ -14,6 +16,8 @@ import ConfirmReceiveCtrl from '../controllers/ConfirmReceiveCtrl';
 import CreateDipCtrl from '../controllers/CreateDipCtrl';
 import CreateSipCtrl from '../controllers/CreateSipCtrl';
 import DataModalInstanceCtrl from '../controllers/DataModalInstanceCtrl';
+import EditNodeModalInstanceCtrl from '../controllers/EditNodeModalInstanceCtrl';
+import EditStructureUnitModalInstanceCtrl from '../controllers/EditStructureUnitModalInstanceCtrl';
 import HeadCtrl from '../controllers/HeadCtrl';
 import IngestCtrl from '../controllers/IngestCtrl';
 import IpApprovalCtrl from '../controllers/IpApprovalCtrl';
@@ -33,10 +37,12 @@ import PreserveModalInstanceCtrl from '../controllers/PreserveModalInstanceCtrl'
 import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
 import ReceiveModalInstanceCtrl from '../controllers/ReceiveModalInstanceCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
+import RemoveNodeModalInstanceCtrl from '../controllers/RemoveNodeModalInstanceCtrl';
 import RequestModalInstanceCtrl from '../controllers/RequestModalInstanceCtrl';
 import RobotInformationCtrl from '../controllers/RobotInformationCtrl';
 import StatsReportModalInstanceCtrl from '../controllers/StatsReportModalInstanceCtrl';
 import SearchCtrl from '../controllers/SearchCtrl';
+import SearchDetailCtrl from '../controllers/SearchDetailCtrl';
 import StepInfoModalInstanceCtrl from '../controllers/StepInfoModalInstanceCtrl';
 import StorageMaintenanceCtrl from '../controllers/StorageMaintenanceCtrl';
 import StorageMigrationCtrl from '../controllers/StorageMigrationCtrl';
@@ -101,6 +107,19 @@ export default angular
     '$transitions',
     AccessIpCtrl,
   ])
+  .controller('AddNodeModalInstanceCtrl', [
+    'Search',
+    '$translate',
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    'data',
+    '$scope',
+    'Notifications',
+    '$rootScope',
+    'EditMode',
+    AddNodeModalInstanceCtrl,
+  ])
   .controller('AdministrationCtrl', AdministrationCtrl)
   .controller('AppCtrl', ['$rootScope', '$scope', '$uibModal', '$log', 'PermPermissionStore', AppCtrl])
   .controller('BaseCtrl', [
@@ -129,6 +148,19 @@ export default angular
     BaseCtrl,
   ])
   .controller('ChangePasswordModalCtrl', ['$uibModalInstance', 'djangoAuth', 'data', ChangePasswordModalCtrl])
+  .controller('ClassificationModalInstanceCtrl', [
+    'data',
+    '$http',
+    'appConfig',
+    'Notifications',
+    '$uibModalInstance',
+    '$translate',
+    'Structure',
+    'EditMode',
+    '$scope',
+    '$rootScope',
+    ClassificationModalInstanceCtrl,
+  ])
   .controller('CollectContentCtrl', [
     'IP',
     '$log',
@@ -207,6 +239,31 @@ export default angular
     'data',
     '$q',
     DataModalInstanceCtrl,
+  ])
+  .controller('EditNodeModalInstanceCtrl', [
+    'Search',
+    ' $translate',
+    ' $uibModalInstance',
+    '$scope',
+    'appConfig',
+    '$http',
+    'data',
+    'Notifications',
+    'EditMode',
+    '$rootScope',
+    EditNodeModalInstanceCtrl,
+  ])
+  .controller('EditStructureUnitModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    'data',
+    '$scope',
+    'Notifications',
+    'EditMode',
+    '$rootScope',
+    EditStructureUnitModalInstanceCtrl,
   ])
   .controller('HeadCtrl', ['$scope', '$rootScope', '$translate', '$state', '$transitions', HeadCtrl])
   .controller('IngestCtrl', IngestCtrl)
@@ -342,6 +399,15 @@ export default angular
     '$transitions',
     ReceptionCtrl,
   ])
+  .controller('RemoveNodeModalInstanceCtrl', [
+    'Search',
+    '$translate',
+    '$uibModalInstance',
+    'data',
+    'Notifications',
+    '$rootScope',
+    RemoveNodeModalInstanceCtrl,
+  ])
   .controller('SearchCtrl', [
     'Search',
     '$scope',
@@ -349,6 +415,7 @@ export default angular
     '$rootScope',
     'appConfig',
     '$log',
+    '$timeput',
     'Notifications',
     '$translate',
     '$uibModal',
@@ -358,7 +425,31 @@ export default angular
     '$httpParamSerializer',
     '$stateParams',
     '$transitions',
+    'AgentName',
     SearchCtrl,
+  ])
+  .controller('SearchDetailCtrl', [
+    '$scope',
+    '$controller',
+    '$stateParams',
+    'Search',
+    '$q',
+    '$http',
+    '$rootScope',
+    'appConfig',
+    '$log',
+    'Notifications',
+    '$sce',
+    '$translate',
+    '$uibModal',
+    'PermPermissionStore',
+    '$window',
+    '$state',
+    '$interval',
+    'StructureName',
+    'AgentName',
+    '$transitions',
+    SearchDetailCtrl,
   ])
   .controller('StepInfoModalInstanceCtrl', ['$uibModalInstance', 'data', '$rootScope', StepInfoModalInstanceCtrl])
   .controller('TagsCtrl', ['$scope', 'vm', '$http', 'appConfig', TagsCtrl])

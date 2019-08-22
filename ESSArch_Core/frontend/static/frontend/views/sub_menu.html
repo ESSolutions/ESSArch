@@ -34,6 +34,33 @@
     >
     <a
       tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.access.archiveCreators')"
+      class="nav-item sliding-middle-out"
+      ng-class="{'chosen': $state.includes('home.access.archiveCreators')}"
+      ui-sref="home.access.archiveCreators"
+      ng-if="checkPermissions('home.access.archiveCreators')"
+      >{{('ARCHIVECREATORS' | translate)}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.access.archiveManager')"
+      class="nav-item sliding-middle-out"
+      ng-class="{'chosen': $state.includes('home.access.archiveManager')}"
+      ui-sref="home.access.archiveManager"
+      ng-if="checkPermissions('home.access.archiveManager')"
+      >{{('ACCESS.ARCHIVES' | translate)}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.access.classificationStructures')"
+      class="nav-item sliding-middle-out"
+      ng-class="{'chosen': $state.includes('home.access.classificationStructures')}"
+      ui-sref="home.access.classificationStructures"
+      ng-if="checkPermissions('home.access.classificationStructures')"
+      >{{('ACCESS.CLASSIFICATION_STRUCTURES' | translate)}}</a
+    >
+    <a
+      tabindex="0"
       ng-keydown="navKeydownListener($event, 'home.access.accessIp')"
       ui-sref="home.access.accessIp"
       ng-class="{chosen: $state.current.name == 'home.access.accessIp'}"
@@ -62,17 +89,28 @@
       ng-if="checkPermissions('home.access.createDip')"
       >{{'DISSEMINATION' | translate}}</a
     >
-  </div>
-  <div tabindex="-1" ng-if="'home.administration' | includedByState" class="sub-menu">
     <a
       tabindex="0"
-      ng-keydown="navKeydownListener($event, 'home.administration.searchAdmin')"
-      ui-sref="home.administration.searchAdmin"
-      ng-class="{chosen: $state.includes('home.administration.searchAdmin')}"
+      ng-keydown="navKeydownListener($event, 'home.access.location')"
+      ui-sref="home.access.location"
+      ng-class="{chosen: $state.current.name == 'home.access.location'}"
       class="nav-item sliding-middle-out"
-      ng-if="checkPermissions('home.administration.searchAdmin')"
-      >{{'SEARCH_ADMIN' | translate}}</a
+      style="margin-left: 5px;"
+      ng-if="checkPermissions('home.access.location')"
+      >{{'LOCATION' | translate}}</a
     >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.access.deliveries')"
+      ui-sref="home.access.deliveries"
+      ng-class="{chosen: $state.includes('home.access.deliveries')}"
+      class="nav-item sliding-middle-out"
+      style="margin-left: 5px;"
+      ng-if="checkPermissions('home.access.deliveries')"
+      >{{'DELIVERIES' | translate}}</a
+    >
+  </div>
+  <div tabindex="-1" ng-if="'home.administration' | includedByState" class="sub-menu">
     <a
       tabindex="0"
       ng-keydown="navKeydownListener($event, 'home.administration.mediaInformation')"
