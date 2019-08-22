@@ -1,6 +1,21 @@
-angular.module('essarch.components').component('agents', {
+import AgentCtrl from '../controllers/AgentCtrl';
+
+export default {
   templateUrl: 'static/frontend/views/agents.html',
-  controller: 'AgentCtrl',
+  controller: [
+    '$uibModal',
+    '$log',
+    '$scope',
+    '$http',
+    'appConfig',
+    '$state',
+    '$stateParams',
+    ' AgentName',
+    'myService',
+    '$rootScope',
+    '$translate',
+    AgentCtrl,
+  ],
   controllerAs: 'vm',
   bindings: {},
-});
+};

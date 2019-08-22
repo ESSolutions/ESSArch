@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('AgentCtrl', function(
+export default class AgentCtrl {
+  constructor(
     $uibModal,
     $log,
     $scope,
@@ -8,7 +7,6 @@ angular
     appConfig,
     $state,
     $stateParams,
-    EditMode,
     AgentName,
     myService,
     $rootScope,
@@ -979,4 +977,5 @@ angular
         }
       );
     };
-  });
+  }
+}
