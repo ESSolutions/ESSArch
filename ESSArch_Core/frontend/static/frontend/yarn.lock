@@ -7644,10 +7644,10 @@ select-hose@^2.0.0:
   resolved "https://registry.yarnpkg.com/select-hose/-/select-hose-2.0.0.tgz#625d8658f865af43ec962bfc376a37359a4994ca"
   integrity sha1-Yl2GWPhlr0Psliv8N2o3NZpJlMo=
 
-select2@~4.0.8:
-  version "4.0.8"
-  resolved "https://registry.yarnpkg.com/select2/-/select2-4.0.8.tgz#3773bec1e5b96620ed98ca5ded53c0da47e7753f"
-  integrity sha512-H/I2mq71oiEe51S74hdUv4QubH1EJNLEMnjfQucftLa8GiuT5+RKIHwlV/7I/YUqZg0wsYQM946eFG/ntRPF/Q==
+select2@~4.0.9:
+  version "4.0.9"
+  resolved "https://registry.yarnpkg.com/select2/-/select2-4.0.9.tgz#e993716504d193575840c33b28af44831774da5e"
+  integrity sha512-cpGBg3l6xItLRz/Ux6S+Tnt0pc4IQjrnhj525k9bhWIKHMwOIDXoMI6ejXZ/rt8NPNTNV27EEBPY5wqFvMdlkw==
 
 selenium-webdriver@3.6.0, selenium-webdriver@^3.0.1:
   version "3.6.0"
