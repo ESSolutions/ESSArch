@@ -96,10 +96,10 @@
       <tbody>
       {% for volume in serie.volumes %}
         <tr>
-          <td>{{volume.current_version.reference_code}}</td>
-          <td>{{volume.current_version.start_date | date:"Y"}} - {{volume.current_version.end_date | date:"Y"}}</td>
+          <td>{{volume.tag.current_version.reference_code}}</td>
+          <td>{{volume.tag.current_version.start_date | date:"Y"}} - {{volume.tag.current_version.end_date | date:"Y"}}</td>
           <td>
-            {% for note in volume.current_version.notes.all %}
+            {% for note in volume.tag.current_version.notes.all %}
               <div>{{ note.create_date | date:"Y-m-d" }}: {{note.text}}</div>
             {% endfor %}
           </td>
@@ -114,5 +114,3 @@
 </div>
 </body>
 </html>
-
-
