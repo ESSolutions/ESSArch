@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('LocationTreeCtrl', function($scope, $http, appConfig, $translate, $uibModal, $log) {
+export default class LocationTreeCtrl {
+  constructor($scope, $http, appConfig, $translate, $uibModal, $log) {
     var vm = this;
     $scope.$translate = $translate;
     vm.treeData = [];
@@ -483,4 +482,5 @@ angular
         }
       );
     };
-  });
+  }
+}

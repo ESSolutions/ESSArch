@@ -1,14 +1,5 @@
-angular.module('essarch.controllers').controller('EventModalInstanceCtrl', [
-  'appConfig',
-  '$http',
-  '$translate',
-  'data',
-  '$uibModalInstance',
-  '$scope',
-  'EditMode',
-  'Utils',
-  '$rootScope',
-  function(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, Utils, $rootScope) {
+export default class EventModalInstanceCtrl {
+  constructor(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, Utils, $rootScope) {
     var $ctrl = this;
     $ctrl.event = {};
     $ctrl.$onInit = function() {
@@ -183,5 +174,5 @@ angular.module('essarch.controllers').controller('EventModalInstanceCtrl', [
         }
       }
     });
-  },
-]);
+  }
+}

@@ -1,15 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('AgentMandateModalInstanceCtrl', function(
-    $uibModalInstance,
-    $scope,
-    $translate,
-    $http,
-    appConfig,
-    data,
-    EditMode,
-    $rootScope
-  ) {
+export default class AgentMandateModalInstanceCtrl {
+  constructor($uibModalInstance, $scope, $translate, $http, appConfig, data, EditMode, $rootScope) {
     var $ctrl = this;
     $ctrl.mandate;
     $ctrl.fields = [];
@@ -241,4 +231,5 @@ angular
         }
       }
     });
-  });
+  }
+}

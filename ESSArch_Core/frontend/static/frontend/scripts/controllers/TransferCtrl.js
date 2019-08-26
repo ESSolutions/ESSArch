@@ -1,30 +1,5 @@
-angular.module('essarch.controllers').controller('TransferCtrl', [
-  '$scope',
-  'appConfig',
-  '$http',
-  '$q',
-  '$timeout',
-  '$uibModal',
-  '$log',
-  'listViewService',
-  '$translate',
-  'myService',
-  '$state',
-  '$stateParams',
-  function(
-    $scope,
-    appConfig,
-    $http,
-    $q,
-    $timeout,
-    $uibModal,
-    $log,
-    listViewService,
-    $translate,
-    myService,
-    $state,
-    $stateParams
-  ) {
+export default class TransferCtrl {
+  constructor($scope, appConfig, $http, $uibModal, $log, $translate, myService, $state, $stateParams) {
     var vm = this;
     $scope.$translate = $translate;
     vm.selectedTransfer = null;
@@ -550,5 +525,5 @@ angular.module('essarch.controllers').controller('TransferCtrl', [
         }
       );
     };
-  },
-]);
+  }
+}

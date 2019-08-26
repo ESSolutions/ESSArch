@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('SavedSearchModalInstanceCtrl', function($uibModalInstance, appConfig, $http, data) {
+export default class SavedSearchModalInstanceCtrl {
+  constructor($uibModalInstance, appConfig, $http, data) {
     var $ctrl = this;
     $ctrl.$onInit = function() {
       $ctrl.data = data;
@@ -26,4 +25,5 @@ angular
     $ctrl.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}

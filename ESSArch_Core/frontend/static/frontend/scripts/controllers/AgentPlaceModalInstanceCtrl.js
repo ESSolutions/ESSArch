@@ -1,15 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('AgentPlaceModalInstanceCtrl', function(
-    $uibModalInstance,
-    $scope,
-    $translate,
-    $http,
-    appConfig,
-    data,
-    EditMode,
-    $rootScope
-  ) {
+export default class AgentPlaceModalInstanceCtrl {
+  constructor($uibModalInstance, $scope, $translate, $http, appConfig, data, EditMode, $rootScope) {
     var $ctrl = this;
     $ctrl.place;
     $ctrl.topography = {};
@@ -337,4 +327,5 @@ angular
         }
       }
     });
-  });
+  }
+}

@@ -1,17 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('StructureRuleModalCtrl', function(
-    $scope,
-    $uibModalInstance,
-    $http,
-    appConfig,
-    data,
-    EditMode,
-    $q,
-    $translate,
-    Structure,
-    Notifications
-  ) {
+export default class StructureRuleModalCtrl {
+  constructor($uibModalInstance, $http, appConfig, data, EditMode, $q, $translate, Structure, Notifications) {
     var $ctrl = this;
     $ctrl.rule = {};
     $ctrl.$onInit = function() {
@@ -125,4 +113,5 @@ angular
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}

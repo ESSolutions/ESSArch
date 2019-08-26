@@ -1,4 +1,4 @@
-angular.module('essarch.services').factory('StructureName', function($filter, $translate) {
+const StructureName = ($filter, $translate) => {
   function getNameWithVersion(structure) {
     var versionTestructuret = $translate.instant('VERSION');
     return (
@@ -22,4 +22,6 @@ angular.module('essarch.services').factory('StructureName', function($filter, $t
       });
     },
   };
-});
+};
+
+export default StructureName;

@@ -1,22 +1,8 @@
-angular.module('essarch.controllers').controller('DeliveryCtrl', [
-  '$scope',
-  'appConfig',
-  '$http',
-  '$q',
-  '$timeout',
-  '$uibModal',
-  '$log',
-  'listViewService',
-  '$translate',
-  'myService',
-  '$state',
-  '$stateParams',
-  'AgentName',
-  function(
+export default class DeliveryCtrl {
+  constructor(
     $scope,
     appConfig,
     $http,
-    $q,
     $timeout,
     $uibModal,
     $log,
@@ -420,5 +406,5 @@ angular.module('essarch.controllers').controller('DeliveryCtrl', [
         }
       );
     };
-  },
-]);
+  }
+}

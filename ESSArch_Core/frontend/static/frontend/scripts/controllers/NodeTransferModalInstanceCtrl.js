@@ -1,14 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('NodeTransferModalInstanceCtrl', function(
-    $scope,
-    data,
-    $uibModalInstance,
-    appConfig,
-    $http,
-    EditMode,
-    $translate
-  ) {
+export default class NodeTransferModalInstanceCtrl {
+  constructor($scope, data, $uibModalInstance, appConfig, $http, EditMode, $translate) {
     var $ctrl = this;
     $ctrl.transfer = null;
 
@@ -102,4 +93,5 @@ angular
         }
       }
     });
-  });
+  }
+}

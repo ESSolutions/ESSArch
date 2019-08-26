@@ -1,16 +1,5 @@
-+angular
-  .module('essarch.controllers')
-  .controller('AgentArchiveRelationModalInstanceCtrl', function(
-    $uibModalInstance,
-    appConfig,
-    data,
-    $http,
-    EditMode,
-    $scope,
-    $translate,
-    $filter,
-    $rootScope
-  ) {
+export default class AgentArchiveRelationModalInstanceCtrl {
+  constructor($uibModalInstance, appConfig, data, $http, EditMode, $scope, $translate, $filter, $rootScope) {
     var $ctrl = this;
     $ctrl.relationTemplate = {
       description: '',
@@ -223,4 +212,5 @@
         }
       }
     });
-  });
+  }
+}

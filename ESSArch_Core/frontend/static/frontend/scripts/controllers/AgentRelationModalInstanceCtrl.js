@@ -1,16 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('AgentRelationModalInstanceCtrl', function(
-    $uibModalInstance,
-    appConfig,
-    data,
-    $http,
-    EditMode,
-    $scope,
-    $translate,
-    AgentName,
-    $rootScope
-  ) {
+export default class AgentRelationModalInstanceCtrl {
+  constructor($uibModalInstance, appConfig, data, $http, EditMode, $scope, $translate, AgentName, $rootScope) {
     var $ctrl = this;
     $scope.AgentName = AgentName;
     $ctrl.relationTemplate = {
@@ -282,4 +271,5 @@ angular
         }
       }
     });
-  });
+  }
+}

@@ -1,4 +1,4 @@
-angular.module('essarch.services').factory('AgentName', function($filter) {
+const AgentName = $filter => {
   /**
    * Returns part and main name combined
    * @param {Object} agent
@@ -74,4 +74,6 @@ angular.module('essarch.services').factory('AgentName', function($filter) {
       });
     },
   };
-});
+};
+
+export default AgentName;

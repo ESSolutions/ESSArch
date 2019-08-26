@@ -1,6 +1,8 @@
-angular.module('essarch.components').component('locationTree', {
+import LocationTreeCtrl from '../controllers/LocationTreeCtrl';
+
+export default {
   templateUrl: 'static/frontend/views/location_tree.html',
-  controller: 'LocationTreeCtrl',
+  controller: ['$scope', '$http', 'appConfig', '$translate', '$uibModal', '$log', LocationTreeCtrl],
   controllerAs: 'vm',
   bindings: {
     selected: '=',
@@ -8,4 +10,4 @@ angular.module('essarch.components').component('locationTree', {
     readOnly: '<', // Disables context menu and hides related nodes
     hideTags: '<', // Hides tag list
   },
-});
+};

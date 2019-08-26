@@ -1,28 +1,5 @@
-angular.module('essarch.controllers').controller('NodeDeliveryModalInstanceCtrl', [
-  'appConfig',
-  '$http',
-  '$translate',
-  'data',
-  '$uibModalInstance',
-  '$scope',
-  'EditMode',
-  'Utils',
-  '$rootScope',
-  '$q',
-  'Notifications',
-  function(
-    appConfig,
-    $http,
-    $translate,
-    data,
-    $uibModalInstance,
-    $scope,
-    EditMode,
-    Utils,
-    $rootScope,
-    $q,
-    Notifications
-  ) {
+export default class NodeDeliveryModalInstanceCtrl {
+  constructor(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, $rootScope, $q, Notifications) {
     var $ctrl = this;
     $ctrl.model = {};
     $ctrl.$onInit = function() {
@@ -186,5 +163,5 @@ angular.module('essarch.controllers').controller('NodeDeliveryModalInstanceCtrl'
         }
       }
     });
-  },
-]);
+  }
+}

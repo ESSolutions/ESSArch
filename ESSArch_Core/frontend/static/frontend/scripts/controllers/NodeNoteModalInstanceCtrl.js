@@ -1,15 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('NodeNoteModalInstanceCtrl', function(
-    $uibModalInstance,
-    $scope,
-    $translate,
-    $http,
-    appConfig,
-    data,
-    EditMode,
-    $rootScope
-  ) {
+export default class NodeNoteModalInstanceCtrl {
+  constructor($uibModalInstance, $scope, $translate, $http, appConfig, data, EditMode, $rootScope) {
     var $ctrl = this;
     $ctrl.note;
     $ctrl.noteTemplate = {
@@ -226,4 +216,5 @@ angular
         }
       }
     });
-  });
+  }
+}

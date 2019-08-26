@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('LocationCtrl', function($scope, $translate, $stateParams, $http, appConfig, $state) {
+export default class LocationCtrl {
+  constructor($scope, $translate, $stateParams, $http, appConfig, $state) {
     var vm = this;
     $scope.$translate = $translate;
     vm.showTree = false;
@@ -22,4 +21,5 @@ angular
         $state.go($state.current.name, {id: node.id}, {notify: false});
       }
     };
-  });
+  }
+}

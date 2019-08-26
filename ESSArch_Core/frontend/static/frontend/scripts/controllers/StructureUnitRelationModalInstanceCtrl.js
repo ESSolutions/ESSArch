@@ -1,17 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('StructureUnitRelationModalInstanceCtrl', function(
-    $uibModalInstance,
-    appConfig,
-    data,
-    $http,
-    EditMode,
-    $translate,
-    $scope,
-    $rootScope,
-    $filter,
-    StructureName
-  ) {
+export default class StructureUnitRelationModalInstanceCtrl {
+  constructor($uibModalInstance, appConfig, data, $http, EditMode, $translate, $scope, $rootScope, StructureName) {
     var $ctrl = this;
     $ctrl.data = data;
     $ctrl.isTemplate = true;
@@ -327,4 +315,5 @@ angular
         }
       }
     });
-  });
+  }
+}

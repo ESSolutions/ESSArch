@@ -1,17 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('LocationModalInstanceCtrl', function(
-    $scope,
-    $http,
-    appConfig,
-    $translate,
-    data,
-    $uibModalInstance,
-    $q,
-    EditMode,
-    Utils,
-    $rootScope
-  ) {
+export default class LocationModalInstanceCtrl {
+  constructor($scope, $http, appConfig, $translate, data, $uibModalInstance, $q, EditMode, Utils, $rootScope) {
     var $ctrl = this;
     $ctrl.location = {};
     $ctrl.fields = [];
@@ -211,4 +199,5 @@ angular
         }
       }
     });
-  });
+  }
+}

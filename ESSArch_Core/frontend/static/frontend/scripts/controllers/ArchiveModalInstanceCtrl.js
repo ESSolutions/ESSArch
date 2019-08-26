@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('ArchiveModalInstanceCtrl', function(
+export default class ArchiveModalInstanceCtrl {
+  constructor(
     Search,
     $translate,
     $uibModalInstance,
@@ -325,4 +324,5 @@ angular
         }
       }
     });
-  });
+  }
+}

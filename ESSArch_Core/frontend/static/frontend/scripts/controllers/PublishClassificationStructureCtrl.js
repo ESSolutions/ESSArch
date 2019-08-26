@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('PublishClassificationStructureCtrl', function($http, appConfig, $uibModalInstance, data, $rootScope) {
+export default class PublishClassificationStructureCtrl {
+  constructor($http, appConfig, $uibModalInstance, data, $rootScope) {
     var $ctrl = this;
     $ctrl.$onInit = function() {
       $ctrl.data = data;
@@ -24,4 +23,5 @@ angular
     $ctrl.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}

@@ -1,6 +1,6 @@
-angular.module('essarch.components').component('location', {
+export default {
   templateUrl: 'static/frontend/views/location.html',
-  controller: 'LocationCtrl',
+  controller: ['$scope', '$translate', '$stateParams', ' $http', 'appConfig', '$state', LocationCtrl],
   controllerAs: 'vm',
   bindings: {},
-});
+};

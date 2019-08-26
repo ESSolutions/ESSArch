@@ -1,13 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('StructureVersionModalInstanceCtrl', function(
-    $translate,
-    $uibModalInstance,
-    appConfig,
-    $http,
-    data,
-    Notifications
-  ) {
+export default class StructureVersionModalInstanceCtrl {
+  constructor($translate, $uibModalInstance, appConfig, $http, data, Notifications) {
     var $ctrl = this;
     $ctrl.data = {};
     $ctrl.fields = [];
@@ -47,4 +39,5 @@ angular
     $ctrl.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}

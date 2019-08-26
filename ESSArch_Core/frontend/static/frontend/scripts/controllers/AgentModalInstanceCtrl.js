@@ -1,16 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('AgentModalInstanceCtrl', function(
-    $uibModalInstance,
-    data,
-    appConfig,
-    $http,
-    $scope,
-    EditMode,
-    $translate,
-    $rootScope,
-    $q
-  ) {
+export default class AgentModalInstanceCtrl {
+  constructor($uibModalInstance, appConfig, data, $http, EditMode, $scope, $translate, $rootScope, $q) {
     var $ctrl = this;
     $ctrl.options = {};
     $ctrl.authName = {
@@ -495,4 +484,5 @@ angular
         }
       }
     });
-  });
+  }
+}

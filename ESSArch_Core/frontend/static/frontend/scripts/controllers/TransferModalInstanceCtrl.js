@@ -1,14 +1,5 @@
-angular.module('essarch.controllers').controller('TransferModalInstanceCtrl', [
-  'appConfig',
-  '$http',
-  '$translate',
-  'data',
-  '$uibModalInstance',
-  '$scope',
-  'EditMode',
-  'Utils',
-  '$rootScope',
-  function(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, Utils, $rootScope) {
+export default class TransferModalInstanceCtrl {
+  constructor(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, Utils, $rootScope) {
     var $ctrl = this;
     $ctrl.transfer = {};
     $ctrl.$onInit = function() {
@@ -159,5 +150,5 @@ angular.module('essarch.controllers').controller('TransferModalInstanceCtrl', [
         }
       }
     });
-  },
-]);
+  }
+}

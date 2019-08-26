@@ -1,6 +1,8 @@
-angular.module('essarch.components').component('searchFilter', {
+import SearchFilterCtrl from '../controllers/SearchFilterCtrl';
+
+export default {
   templateUrl: 'static/frontend/views/search_filter.html',
-  controller: 'SearchFilterCtrl',
+  controller: ['$scope', '$window', '$rootScope', SearchFilterCtrl],
   controllerAs: 'vm',
   bindings: {
     label: '@',
@@ -12,4 +14,4 @@ angular.module('essarch.components').component('searchFilter', {
     ngChange: '&',
     required: '<',
   },
-});
+};

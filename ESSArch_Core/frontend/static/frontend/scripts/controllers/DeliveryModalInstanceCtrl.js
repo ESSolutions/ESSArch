@@ -1,15 +1,5 @@
-angular.module('essarch.controllers').controller('DeliveryModalInstanceCtrl', [
-  'appConfig',
-  '$http',
-  '$translate',
-  'data',
-  '$uibModalInstance',
-  '$scope',
-  'EditMode',
-  'Utils',
-  '$rootScope',
-  'AgentName',
-  function(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, Utils, $rootScope, AgentName) {
+export default class DeliveryModalInstanceCtrl {
+  constructor(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, Utils, $rootScope, AgentName) {
     var $ctrl = this;
     $ctrl.delivery = {};
     $ctrl.options = {};
@@ -236,5 +226,5 @@ angular.module('essarch.controllers').controller('DeliveryModalInstanceCtrl', [
         }
       }
     });
-  },
-]);
+  }
+}
