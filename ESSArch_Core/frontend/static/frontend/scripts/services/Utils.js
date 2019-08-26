@@ -1,4 +1,4 @@
-angular.module('essarch.services').factory('Utils', function() {
+const Utils = () => {
   var service = {
     getDiff: function(obja, objb, options) {
       var diff = {};
@@ -7,8 +7,8 @@ angular.module('essarch.services').factory('Utils', function() {
           typeof objb[key] !== 'object' &&
           objb[key] !== obja[key] &&
           (angular.isUndefined(options.map[key]) || objb[key] !== obja[key][options.map[key]])
-          ) {
-            diff[key] = objb[key];
+        ) {
+          diff[key] = objb[key];
         }
       }
       for (var key in obja) {
@@ -17,7 +17,7 @@ angular.module('essarch.services').factory('Utils', function() {
           obja[key] !== objb[key] &&
           !diff[key] &&
           (angular.isUndefined(options.map[key]) || obja[key][options.map[key]] !== objb[key])
-          ) {
+        ) {
           if (diff[key]) {
             delete diff[key];
           } else {
@@ -29,4 +29,6 @@ angular.module('essarch.services').factory('Utils', function() {
     },
   };
   return service;
-});
+};
+
+export default Utils;

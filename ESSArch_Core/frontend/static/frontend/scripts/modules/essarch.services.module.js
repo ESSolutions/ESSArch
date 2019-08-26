@@ -4,7 +4,6 @@ import appraisal from '../services/appraisal';
 import storagePolicy from '../services/storagePolicy';
 import contextMenuBase from '../services/ContextMenuBase';
 import conversion from '../services/conversion';
-import djangoAuth from '../services/djangoAuth';
 import validate from '../services/validate';
 import messenger from '../services/messenger';
 import event from '../services/event';
@@ -34,6 +33,7 @@ import tag from '../services/tag';
 import tapeDrive from '../services/tapeDrive';
 import tapeSlot from '../services/tapeSlot';
 import task from '../services/task';
+import utils from '../services/Utils';
 import {me, user} from '../services/user';
 import {workarea, workareaFiles} from '../services/workarea';
 
@@ -46,7 +46,6 @@ export default angular
   .factory('ContentTabs', contentTabs)
   .factory('ContextMenuBase', ['$translate', contextMenuBase])
   .factory('Conversion', ['$http', 'appConfig', conversion])
-  .factory('djangoAuth', ['$q', '$http', '$rootScope', '$window', djangoAuth])
   .factory('Event', ['$resource', 'appConfig', event])
   .factory('EventType', ['$resource', 'appConfig', eventType])
   .factory('IOQueue', ['$resource', 'appConfig', ioQueue])
@@ -103,6 +102,7 @@ export default angular
   .factory('TapeDrive', ['$resource', 'appConfig', tapeDrive])
   .factory('TapeSlot', ['$resource', 'appConfig', tapeSlot])
   .factory('Task', ['$resource', 'appConfig', task])
+  .factory('Utils', [utils])
   .factory('User', ['$resource', 'appConfig', user])
   .factory('Workarea', ['$resource', 'appConfig', workarea])
   .factory('WorkareaFiles', ['$resource', 'appConfig', workareaFiles])
