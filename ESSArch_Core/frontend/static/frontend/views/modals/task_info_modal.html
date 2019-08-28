@@ -106,6 +106,9 @@
               <table class="table">
                 <tbody>
                   {{ $ctrl.getArgsString(currentStepTask.args) }}
+                  <span ng-if="currentStepTask.args.length === 0">
+                    {{'NO_ARGUMENTS' | translate}}
+                  </span>
                 </tbody>
               </table>
             </div>
@@ -118,6 +121,9 @@
                     <td class="param-value">
                       <pre>{{ value | json }}</pre>
                     </td>
+                  </tr>
+                  <tr colspan="2" ng-if="currentStepTask.params.length === 0">
+                    {{'NO_PARAMETERS' | translate}}
                   </tr>
                 </tbody>
               </table>

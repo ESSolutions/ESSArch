@@ -205,6 +205,8 @@ const general = $translateProvider => {
     NEWORDER: 'New order',
     NEWPASSWORD: 'New Password',
     NO_ACTIONS_FOR_SELECTED_IPS: 'No actions available for selected object(s)',
+    NO_ARGUMENTS: 'No arguments',
+    NO_PARAMETERS: 'No parameters',
     NO_RESULTS_FOUND: 'No results found',
     NO_SUBMISSION_AGREEMENT_AVAILABLE: 'No Submission Agreement available',
     NO: 'No',
