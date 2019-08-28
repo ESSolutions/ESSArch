@@ -35,7 +35,7 @@
                 <button
                   class="btn btn-primary submit-button"
                   ng-dblClick=""
-                  ng-disabled="((ip !== null && ip.responsible.id != auth.id) || (ips.length > 0 && !vm.multipleIpResponsible())) && !checkPermission('ip.set_uploaded')"
+                  ng-disabled="vm.uploading === true || (((ip !== null && ip.responsible.id != auth.id) || (ips.length > 0 && !vm.multipleIpResponsible())) && !checkPermission('ip.set_uploaded'))"
                   type="submit"
                   style="float: right;"
                 >
