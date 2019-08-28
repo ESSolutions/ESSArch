@@ -19,16 +19,6 @@
             ng-keydown="vm.contentViewsKeydownListener($event)"
           >
             <div ng-if="ip !== null && ips.length == 0" id="select-view" class="select-view">
-              <button
-                tabindex="-1"
-                class="btn btn-default"
-                ng-click="openEadEditor(ip)"
-                style="float:right; margin-bottom: 5px;"
-              >
-                {{'EDIT' | translate}} EAD
-              </button>
-              <b>IP: </b>{{ip.label}}
-              <!--<div style="margin-top: 20px;" ng-include src="'static/frontend/views/filebrowser.html'"></div>-->
               <filebrowser ip="ip" browserstate="vm.browserstate"></filebrowser>
               <div
                 id="file-upload"
