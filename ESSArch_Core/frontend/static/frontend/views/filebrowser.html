@@ -156,13 +156,13 @@
     ></div>
   </div>
   <button
-    ng-if="ip.workarea && !ip.workarea[0].read_only && selectedCards.length && ip.state !== 'Created' && ip.state !== 'Creating' && ip.state !== 'Submitted' && ip.state !=='Uploaded' && ip.state !== 'At reception' && ip.state !== 'Preserved'"
+    ng-if="selectedCards.length && ((ip.workarea && ip.workarea[0] && !ip.workarea[0].read_only) || (ip.state == 'Uploading' || ip.state == 'Prepared'))"
     class="btn btn-default"
     ng-click="removeFiles()"
     translate="REMOVE"
   ></button>
   <button
-    ng-if="ip.workarea && !ip.workarea[0].read_only && ip.state !== 'Created' && ip.state !== 'Creating' && ip.state !== 'Submitted' && ip.state !=='Uploaded' && ip.state !== 'At reception' && ip.state !== 'Preserved'"
+    ng-if="(ip.workarea && ip.workarea[0] && !ip.workarea[0].read_only) || (ip.state == 'Uploading' || ip.state == 'Prepared')"
     ng-click="newDirModal()"
     class="btn btn-default"
     translate="FILEBROWSER.NEWFOLDER"
