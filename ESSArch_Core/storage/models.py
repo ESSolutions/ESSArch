@@ -1,11 +1,14 @@
 import errno
 import logging
 import os
+import tarfile
 import uuid
 from datetime import timedelta
+from time import sleep
 from urllib.parse import urljoin
 
 import requests
+from celery import states as celery_states
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
@@ -16,6 +19,7 @@ from django.utils import timezone
 from picklefield.fields import PickledObjectField
 from requests import RequestException
 from tenacity import (
+    before_sleep_log,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
@@ -25,6 +29,7 @@ from tenacity import (
 from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.storage.backends import get_backend
+from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.tape import read_tape, set_tape_file_number
 
 logger = logging.getLogger('essarch.storage.models')
@@ -435,7 +440,7 @@ class StorageMedium(models.Model):
     @classmethod
     @transaction.atomic
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
     def create_from_remote_copy(cls, host, session, object_id):
         remote_obj_url = urljoin(host, reverse('storagemedium-detail', args=(object_id,)))
         r = session.get(remote_obj_url, timeout=60)
@@ -445,12 +450,14 @@ class StorageMedium(models.Model):
         data.pop('location_status_display', None)
         data.pop('status_display', None)
         data['storage_target_id'] = data.pop('storage_target')
-        data['tape_drive'] = TapeDrive.create_from_remote_copy(
-            host, session, data['tape_drive'], create_storage_medium=False
-        )
-        data['tape_slot'] = TapeSlot.create_from_remote_copy(
-            host, session, data['tape_slot'], create_storage_medium=False
-        )
+        if data.get('tape_drive') is not None:
+            data['tape_drive'] = TapeDrive.create_from_remote_copy(
+                host, session, data['tape_drive'], create_storage_medium=False
+            )
+        if data.get('tape_slot') is not None:
+            data['tape_slot'] = TapeSlot.create_from_remote_copy(
+                host, session, data['tape_slot'], create_storage_medium=False
+            )
         storage_medium, _ = StorageMedium.objects.update_or_create(
             pk=data.pop('id'),
             medium_id=data.pop('medium_id'),
@@ -571,7 +578,7 @@ class StorageObject(models.Model):
     @classmethod
     @transaction.atomic
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
     def create_from_remote_copy(cls, host, session, object_id):
         remote_obj_url = urljoin(host, reverse('storageobject-detail', args=(object_id,)))
         r = session.get(remote_obj_url, timeout=60)
@@ -652,14 +659,90 @@ class StorageObject(models.Model):
         extracted = self.extract()
         return extracted.open(path, *args, **kwargs)
 
-    def read(self, path):
-        if not self.container:
-            backend = self.get_storage_backend()
-            with backend.open(self, path) as fp:
-                return fp.read()
+    def read(self, dst, task):
+        ip = self.ip
+        is_cached_storage_object = self.is_cache_for_ip(ip)
 
-        extracted = self.extract()
-        return extracted.read(path)
+        storage_medium = self.storage_medium
+        storage_target = storage_medium.storage_target
+
+        if storage_target.remote_server:
+            host, user, passw = storage_target.remote_server.split(',')
+            session = requests.Session()
+            session.verify = settings.REQUESTS_VERIFY
+            session.auth = (user, passw)
+
+            # if the remote server already has completed
+            # then we only want to get the result from it,
+            # not run it again. If it has failed then
+            # we want to retry it
+
+            r = task.get_remote_copy(session, host)
+            if r.status_code == 404:
+                # the task does not exist
+                task.create_remote_copy(session, host)
+                task.run_remote_copy(session, host)
+            else:
+                remote_data = r.json()
+                task.status = remote_data['status']
+                task.progress = remote_data['progress']
+                task.result = remote_data['result']
+                task.traceback = remote_data['traceback']
+                task.exception = remote_data['exception']
+                task.save()
+
+                if task.status in celery_states.EXCEPTION_STATES:
+                    task.retry_remote_copy(session, host)
+
+            while task.status not in celery_states.READY_STATES:
+                r = task.get_remote_copy(session, host)
+
+                remote_data = r.json()
+                task.status = remote_data['status']
+                task.progress = remote_data['progress']
+                task.result = remote_data['result']
+                task.traceback = remote_data['traceback']
+                task.exception = remote_data['exception']
+                task.save()
+
+                sleep(5)
+
+            if task.status in celery_states.EXCEPTION_STATES:
+                task.reraise()
+        else:
+            storage_backend = self.get_storage_backend()
+            storage_medium.prepare_for_read()
+            temp_dir = Path.objects.get(entity='temp').value
+
+            if storage_target.master_server:
+                # we are on a remote host that has been requested
+                # by master to write to its temp directory
+                user, passw, host = storage_target.master_server.split(',')
+                session = requests.Session()
+                session.verify = settings.REQUESTS_VERIFY
+                session.auth = (user, passw)
+                session.params = {'dst': dst}
+
+                temp_object_path = ip.get_temp_object_path()
+                temp_container_path = ip.get_temp_container_path()
+                temp_mets_path = ip.get_temp_container_xml_path()
+                temp_aic_mets_path = ip.get_temp_container_aic_xml_path()
+                dst = urljoin(host, reverse('informationpackage-add-file-from-master'))
+
+                storage_backend.read(self, temp_dir)
+
+                if is_cached_storage_object or not self.container:
+                    with tarfile.open(temp_container_path, 'w') as new_tar:
+                        new_tar.add(temp_object_path)
+                    copy_file(temp_container_path, dst, requests_session=session)
+
+                else:
+                    copy_file(temp_container_path, dst, requests_session=session)
+                    copy_file(temp_mets_path, dst, requests_session=session)
+                    copy_file(temp_aic_mets_path, dst, requests_session=session)
+
+            else:
+                storage_backend.read(self, dst)
 
     def delete_files(self):
         backend = self.get_storage_backend()
@@ -743,7 +826,7 @@ class TapeDrive(models.Model):
     @classmethod
     @transaction.atomic
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
     def create_from_remote_copy(cls, host, session, object_id, create_storage_medium=True):
         remote_obj_url = urljoin(host, reverse('tapedrive-detail', args=(object_id,)))
         r = session.get(remote_obj_url, timeout=60)
@@ -790,7 +873,7 @@ class TapeSlot(models.Model):
     @classmethod
     @transaction.atomic
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
     def create_from_remote_copy(cls, host, session, object_id, create_storage_medium=True):
         remote_obj_url = urljoin(host, reverse('tapeslot-detail', args=(object_id,)))
         r = session.get(remote_obj_url, timeout=60)
@@ -830,7 +913,7 @@ class Robot(models.Model):
     @classmethod
     @transaction.atomic
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
     def create_from_remote_copy(cls, host, session, object_id):
         remote_obj_url = urljoin(host, reverse('robot-detail', args=(object_id,)))
         r = session.get(remote_obj_url, timeout=60)

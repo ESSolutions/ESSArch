@@ -58,6 +58,7 @@ from ESSArch_Core.storage.views import (
     StorageMediumViewSet,
     StorageMethodTargetRelationViewSet,
     StorageMethodViewSet,
+    StorageMigrationViewSet,
     StorageObjectViewSet,
     StorageTargetViewSet,
     TapeDriveViewSet,
@@ -186,6 +187,7 @@ router.register(r'storage-objects', StorageObjectViewSet)
 router.register(r'storage-mediums', StorageMediumViewSet)
 router.register(r'storage-methods', StorageMethodViewSet)
 router.register(r'storage-method-target-relations', StorageMethodTargetRelationViewSet)
+router.register(r'storage-migrations', StorageMigrationViewSet, basename='storage-migrations')
 router.register(r'storage-policies', StoragePolicyViewSet)
 router.register(r'storage-targets', StorageTargetViewSet)
 router.register(r'tape-drives', TapeDriveViewSet)

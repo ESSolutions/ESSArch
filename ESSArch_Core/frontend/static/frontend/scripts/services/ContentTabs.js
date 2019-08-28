@@ -50,6 +50,9 @@ const contentTabs = () => {
     'home.ingest.reception': {
       receive: ['At reception', 'Prepared'],
     },
+    'home.administration.storageMigration': {
+      migrate: ['Preserved'],
+    },
   };
   var service = {
     /**

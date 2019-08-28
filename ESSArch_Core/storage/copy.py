@@ -41,7 +41,7 @@ def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id
     HTTP_CONTENT_RANGE = 'bytes %s-%s/%s' % (start, end, file_size)
     headers = {'Content-Range': HTTP_CONTENT_RANGE}
 
-    data = {'upload_id': upload_id}
+    data = {'upload_id': upload_id, 'dst': requests_session.params.get('dst')}
     files = {'file': (filename, chunk)}
 
     response = requests_session.post(dst, data=data, files=files, headers=headers, timeout=60)
@@ -93,7 +93,7 @@ def copy_file_locally(src, dst):
     )
 
 
-def copy_file_remotely(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
+def copy_file_remotely(src, dst, requests_session, block_size=DEFAULT_BLOCK_SIZE):
     fsize = os.stat(src).st_size
     idx = 0
 
@@ -116,6 +116,7 @@ def copy_file_remotely(src, dst, requests_session=None, block_size=DEFAULT_BLOCK
             'path': os.path.basename(src),
             'upload_id': upload_id,
             'md5': md5,
+            'dst': requests_session.params.get('dst')
         }
     )
     headers = {'Content-Type': m.content_type}

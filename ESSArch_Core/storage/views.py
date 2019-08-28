@@ -62,12 +62,17 @@ from ESSArch_Core.storage.serializers import (
     RobotQueueSerializer,
     RobotSerializer,
     StorageMediumSerializer,
+    StorageMigrationCreateSerializer,
     StorageObjectSerializer,
     TapeDriveSerializer,
     TapeSlotSerializer,
 )
 from ESSArch_Core.util import parse_content_range_header
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.WorkflowEngine.serializers import (
+    ProcessTaskDetailSerializer,
+    ProcessTaskSerializer,
+)
 
 
 class IOQueueViewSet(viewsets.ModelViewSet):
@@ -495,5 +500,32 @@ class TapeSlotViewSet(viewsets.ModelViewSet):
     )
     search_fields = (
         'id', 'slot_id', 'medium_id', 'status'
-
     )
+
+
+class StorageMigrationViewSet(viewsets.ModelViewSet):
+    queryset = ProcessTask.objects.filter(name='ESSArch_Core.storage.tasks.StorageMigration')
+    filter_backends = (filters.SearchFilter,)
+    search_fields = (
+        'label', 'information_package__id', 'information_package__object_identifier_value',
+        'information_package__label',
+    )
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return StorageMigrationCreateSerializer
+
+        if self.action == 'list':
+            return ProcessTaskSerializer
+
+        return ProcessTaskDetailSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            {'detail': 'Migration jobs created and queued'},
+            status=status.HTTP_201_CREATED, headers=headers,
+        )

@@ -37,6 +37,7 @@ class CopyChunkTestCase(TestCase):
     def test_copy_chunk_remotely(self, mock_post):
         dst = "http://remote.destination/upload"
         session = requests.Session()
+        session.params = {'dst': 'foo'}
 
         attrs = {'json.return_value': {'upload_id': uuid.uuid4().hex},
                  'elapsed': mock.PropertyMock(**{'total_seconds.return_value': 1})}
@@ -51,7 +52,7 @@ class CopyChunkTestCase(TestCase):
 
         mock_post.assert_called_once_with(
             dst, files={'file': ('src.txt', b'o')},
-            data={'upload_id': upload_id},
+            data={'upload_id': upload_id, 'dst': 'foo'},
             headers={'Content-Range': 'bytes 1-1/3'},
             timeout=60,
         )
@@ -76,7 +77,7 @@ class CopyChunkTestCase(TestCase):
 
         calls = [mock.call(
             dst, files={'file': ('src.txt', b'o')},
-            data={'upload_id': upload_id},
+            data={'upload_id': upload_id, 'dst': None},
             headers={'Content-Range': 'bytes 1-1/3'},
             timeout=60,
         ) if x % 2 == 0 else mock.call().raise_for_status() for x in range(10)]

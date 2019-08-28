@@ -23,7 +23,7 @@ export default class StorageMaintenanceCtrl {
 
     vm.selectionList = [];
 
-    vm.migrationForm = {
+    vm.migration = {
       purpose: '',
       filters: {
         policyID: {

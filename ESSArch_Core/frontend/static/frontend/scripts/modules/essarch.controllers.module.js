@@ -41,6 +41,7 @@ import SearchCtrl from '../controllers/SearchCtrl';
 import StepInfoModalInstanceCtrl from '../controllers/StepInfoModalInstanceCtrl';
 import StorageMaintenanceCtrl from '../controllers/StorageMaintenanceCtrl';
 import StorageMigrationCtrl from '../controllers/StorageMigrationCtrl';
+import StorageMigrationModalInstanceCtrl from '../controllers/StorageMigrationModalInstanceCtrl';
 import TagsCtrl from '../controllers/TagsCtrl';
 import TaskInfoModalInstanceCtrl from '../controllers/TaskInfoModalInstanceCtrl';
 import UserDropdownCtrl from '../controllers/UserDropdownCtrl';
@@ -48,6 +49,7 @@ import UserSettingsCtrl from '../controllers/UserSettingsCtrl';
 import UtilCtrl from '../controllers/UtilCtrl';
 import VersionCtrl from '../controllers/VersionCtrl';
 import WorkareaCtrl from '../controllers/WorkareaCtrl';
+import StateTreeCtrl from '../controllers/StateTreeCtrl';
 
 import {permission, uiPermission} from 'angular-permission';
 import uiRouter from '@uirouter/angularjs';
@@ -362,9 +364,29 @@ export default angular
     '$transitions',
     SearchCtrl,
   ])
-  .controller('StepInfoModalInstanceCtrl', ['$uibModalInstance', 'data', '$rootScope', StepInfoModalInstanceCtrl])
+  .controller('StepInfoModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    '$rootScope',
+    '$scope',
+    'PermPermissionStore',
+    'Step',
+    'listViewService',
+    StepInfoModalInstanceCtrl,
+  ])
   .controller('TagsCtrl', ['$scope', 'vm', '$http', 'appConfig', TagsCtrl])
-  .controller('TaskInfoModalInstanceCtrl', ['$uibModalInstance', 'data', '$rootScope', TaskInfoModalInstanceCtrl])
+  .controller('TaskInfoModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    '$rootScope',
+    '$scope',
+    'PermPermissionStore',
+    'Task',
+    'listViewService',
+    '$uibModal',
+    '$timeout',
+    TaskInfoModalInstanceCtrl,
+  ])
   .controller('UserDropdownCtrl', [
     '$scope',
     '$log',
@@ -450,7 +472,45 @@ export default angular
     '$window',
     StatsReportModalInstanceCtrl,
   ])
-  .controller('StorageMigrationCtrl', ['$scope', StorageMigrationCtrl])
+  .controller('StateTreeCtrl', [
+    '$scope',
+    '$translate',
+    'Step',
+    'Task',
+    'appConfig',
+    '$timeout',
+    '$interval',
+    'PermPermissionStore',
+    '$q',
+    '$uibModal',
+    '$log',
+    'StateTree',
+    '$rootScope',
+    '$transitions',
+    'listViewService',
+    StateTreeCtrl,
+  ])
+  .controller('StorageMigrationCtrl', [
+    '$rootScope',
+    '$scope',
+    'appConfig',
+    '$http',
+    'listViewService',
+    'SelectedIPUpdater',
+    '$controller',
+    '$translate',
+    '$uibModal',
+    StorageMigrationCtrl,
+  ])
+  .controller('StorageMigrationModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    '$http',
+    'appConfig',
+    '$translate',
+    '$log',
+    StorageMigrationModalInstanceCtrl,
+  ])
   .controller('StorageMaintenanceCtrl', ['$scope', '$rootScope', StorageMaintenanceCtrl])
   .controller('WorkareaCtrl', [
     'vm',

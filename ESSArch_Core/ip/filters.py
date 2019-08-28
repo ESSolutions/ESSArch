@@ -52,6 +52,7 @@ class InformationPackageFilter(filters.FilterSet):
         label=_("Excluded Package Type"),
         method='exclude_package_type_name'
     )
+    migratable = filters.BooleanFilter(label='migratable', method='filter_migratable')
     workarea = filters.ChoiceFilter(label=_("Workarea"), field_name='workareas__type', choices=Workarea.TYPE_CHOICES)
 
     def exclude_package_type_name(self, queryset, name, value):
@@ -59,6 +60,9 @@ class InformationPackageFilter(filters.FilterSet):
             if package_type_name.lower() == value.lower():
                 return queryset.exclude(package_type=package_type_id)
         return queryset.none()
+
+    def filter_migratable(self, queryset, name, value):
+        return queryset.migratable()
 
     class Meta:
         model = InformationPackage

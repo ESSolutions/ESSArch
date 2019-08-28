@@ -89,9 +89,20 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
 
 class ProcessTaskSerializer(serializers.ModelSerializer):
     args = serializers.JSONField(required=False)
+    params = serializers.SerializerMethodField()
     responsible = serializers.SlugRelatedField(
         slug_field='username', read_only=True
     )
+
+    def get_params(self, obj):
+        params = obj.params
+        for param, task in obj.result_params.items():
+            try:
+                params[param] = get_result(task)
+            except ProcessTask.DoesNotExist:
+                params[param] = 'waiting on result from %s ...' % task
+
+        return params
 
     def update(self, instance, validated_data):
         if 'id' in validated_data:
@@ -129,20 +140,8 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
 
 
 class ProcessTaskDetailSerializer(ProcessTaskSerializer):
-    args = serializers.JSONField(required=False)
-    params = serializers.SerializerMethodField()
     result = serializers.SerializerMethodField()
     exception = serializers.JSONField(read_only=True)
-
-    def get_params(self, obj):
-        params = obj.params
-        for param, task in obj.result_params.items():
-            try:
-                params[param] = get_result(task)
-            except ProcessTask.DoesNotExist:
-                params[param] = 'waiting on result from %s ...' % task
-
-        return params
 
     def get_result(self, obj):
         return str(obj.result)

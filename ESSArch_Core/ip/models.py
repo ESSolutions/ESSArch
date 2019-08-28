@@ -44,7 +44,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import models, transaction
-from django.db.models import Count, F, Max, Min, Q, Sum
+from django.db.models import Count, Exists, F, Max, Min, OuterRef, Q, Sum
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -77,7 +77,6 @@ from ESSArch_Core.profiles.models import (
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_backend as get_importer
 from ESSArch_Core.search.ingest import index_path
-from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.exceptions import StorageMediumFull
 from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_ENABLED,
@@ -164,7 +163,31 @@ class AgentNote(models.Model):
     note = models.CharField(max_length=255)
 
 
+class InformationPackageQuerySet(models.QuerySet):
+    def migratable(self):
+        # TODO: Write some tests, including a HTTP request which uses the api filter
+        # This is really ugly but seems to be needed to work with all database backends
+        # Can hopefully be improved when some Django tickets are fixed
+        #
+        # See:
+        #  * https://github.com/django/django/pull/11677
+
+        # TODO: Exclude those that already has a task that has not succeeded (?)
+
+        return self.annotate(
+            i_exists=Exists(
+                InformationPackage.objects.annotate(
+                    obj_num=Count('storage', distinct=True),
+                    method_num=Count('policy__storage_methods', distinct=True),
+                ).filter(obj_num__lt=F('method_num'), pk=OuterRef('pk'))
+            )
+        ).filter(archived=True, i_exists=True)
+
+
 class InformationPackageManager(models.Manager):
+    def get_queryset(self):
+        return InformationPackageQuerySet(self.model, using=self._db)
+
     def for_user(self, user, perms, include_no_auth_objs=True):
         """
         Returns information packages for which a given ``users`` groups in the
@@ -180,6 +203,9 @@ class InformationPackageManager(models.Manager):
 
     def visible_to_user(self, user):
         return self.for_user(user, 'view_informationpackage')
+
+    def migratable(self):
+        return self.get_queryset().migratable()
 
 
 class InformationPackage(models.Model):
@@ -1086,6 +1112,7 @@ class InformationPackage(models.Model):
         except StorageTarget.DoesNotExist:
             cache_target = None
 
+        temp_dir = Path.objects.get(entity='temp').value
         temp_container_path = self.get_temp_container_path()
         temp_mets_path = self.get_temp_container_xml_path()
         temp_aic_mets_path = self.get_temp_container_aic_xml_path() if self.aic else None
@@ -1093,13 +1120,13 @@ class InformationPackage(models.Model):
         storage_medium = storage_object.storage_medium
         storage_target = storage_medium.storage_target
 
+        access_workarea = Path.objects.get(entity='access_workarea').value
+        access_workarea_user = os.path.join(access_workarea, user.username, self.object_identifier_value)
+        os.makedirs(access_workarea_user, exist_ok=True)
+
         if storage_target.remote_server:
             # AccessAIP instructs and waits for ip.access to transfer files from remote
             # to master. Then we use CopyFile to copy files from local temp to workspace
-
-            access_workarea = Path.objects.get(entity='access_workarea').value
-            access_workarea_user = os.path.join(access_workarea, user.username)
-            os.makedirs(access_workarea_user, exist_ok=True)
 
             workflow = {
                 "step": True,
@@ -1109,6 +1136,9 @@ class InformationPackage(models.Model):
                         "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                         "label": "Access AIP",
                         "args": [str(self.pk)],
+                        "params": {
+                            'dst': temp_dir
+                        },
                     },
                     {
                         "name": "ESSArch_Core.tasks.ExtractTAR",
@@ -1163,10 +1193,6 @@ class InformationPackage(models.Model):
             }
 
         else:
-            access_workarea = Path.objects.get(entity='access_workarea').value
-            access_workarea_user = os.path.join(access_workarea, user.username)
-            os.makedirs(access_workarea_user, exist_ok=True)
-
             if is_cached_storage_object:
                 workflow = {
                     "step": True,
@@ -1176,6 +1202,9 @@ class InformationPackage(models.Model):
                             "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                             "label": "Access AIP",
                             "args": [str(self.pk)],
+                            "params": {
+                                'dst': access_workarea_user
+                            },
                         },
                     ]
                 }
@@ -1191,6 +1220,9 @@ class InformationPackage(models.Model):
                             "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                             "label": "Access AIP",
                             "args": [str(self.pk)],
+                            "params": {
+                                'dst': temp_dir
+                            },
                         },
                         {
                             "name": "ESSArch_Core.tasks.ExtractTAR",
@@ -1262,6 +1294,9 @@ class InformationPackage(models.Model):
                             "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                             "label": "Access AIP",
                             "args": [str(self.pk)],
+                            "params": {
+                                'dst': access_workarea_user
+                            },
                         },
                     ]
                 }
@@ -1367,28 +1402,14 @@ class InformationPackage(models.Model):
 
     @retry(retry=retry_if_exception_type(StorageMediumFull), reraise=True, stop=stop_after_attempt(2),
            wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
-    def preserve(self, storage_target, container: bool, task):
-        expected_task_name = "ESSArch_Core.ip.tasks.PreserveInformationPackage"
-        if task.name != expected_task_name:
-            raise ValueError("Task must be an instance of {}".format(expected_task_name))
-
+    def preserve(self, src: list, storage_target, container: bool, task):
         qs = StorageMedium.objects.filter(
             storage_target__methods__containers=container,
         ).writeable().order_by('last_changed_local')
 
-        write_size = self.object_size
-
-        if container:
-            aip_xml = self.get_temp_container_xml_path()
-            aic_xml = self.get_temp_container_aic_xml_path()
-            aip_xml_size = os.path.getsize(aip_xml)
-            aic_xml_size = os.path.getsize(aic_xml)
-            write_size += aip_xml_size + aic_xml_size
-
-        if container or storage_target.remote_server:
-            src = [self.get_temp_container_path(), aip_xml, aic_xml]
-        else:
-            src = [self.object_path]
+        write_size = 0
+        for s in src:
+            write_size += get_tree_size_and_count(s)[0]
 
         if storage_target.remote_server:
             host, user, passw = storage_target.remote_server.split(',')
@@ -1460,99 +1481,7 @@ class InformationPackage(models.Model):
             self.object_identifier_value, str(storage_object.pk),
         ))
 
-        is_cached_storage_object = storage_object.is_cache_for_ip(self)
-
-        storage_medium = storage_object.storage_medium
-        storage_target = storage_medium.storage_target
-
-        if storage_target.remote_server:
-            host, user, passw = storage_target.remote_server.split(',')
-            session = requests.Session()
-            session.verify = settings.REQUESTS_VERIFY
-            session.auth = (user, passw)
-
-            # if the remote server already has completed
-            # then we only want to get the result from it,
-            # not run it again. If it has failed then
-            # we want to retry it
-
-            r = task.get_remote_copy(session, host)
-            if r.status_code == 404:
-                # the task does not exist
-                task.create_remote_copy(session, host)
-                task.run_remote_copy(session, host)
-            else:
-                remote_data = r.json()
-                task.status = remote_data['status']
-                task.progress = remote_data['progress']
-                task.result = remote_data['result']
-                task.traceback = remote_data['traceback']
-                task.exception = remote_data['exception']
-                task.save()
-
-                if task.status in celery_states.EXCEPTION_STATES:
-                    task.retry_remote_copy(session, host)
-
-            while task.status not in celery_states.READY_STATES:
-                r = task.get_remote_copy(session, host)
-
-                remote_data = r.json()
-                task.status = remote_data['status']
-                task.progress = remote_data['progress']
-                task.result = remote_data['result']
-                task.traceback = remote_data['traceback']
-                task.exception = remote_data['exception']
-                task.save()
-
-                sleep(5)
-
-            if task.status in celery_states.EXCEPTION_STATES:
-                task.reraise()
-        else:
-            storage_backend = storage_object.get_storage_backend()
-            storage_medium.prepare_for_read()
-            temp_dir = Path.objects.get(entity='temp').value
-
-            if storage_target.master_server:
-                # we are on a remote host that has been requested
-                # by master to write to its temp directory
-                user, passw, host = storage_target.master_server.split(',')
-                session = requests.Session()
-                session.verify = settings.REQUESTS_VERIFY
-                session.auth = (user, passw)
-
-                temp_object_path = self.get_temp_object_path()
-                temp_container_path = self.get_temp_container_path()
-                temp_mets_path = self.get_temp_container_xml_path()
-                temp_aic_mets_path = self.get_temp_container_aic_xml_path()
-                dst = urljoin(host, reverse('informationpackage-add-file-from-master'))
-
-                storage_backend.read(storage_object, temp_dir)
-
-                if is_cached_storage_object:
-                    with tarfile.open(temp_container_path, 'w') as new_tar:
-                        new_tar.add(temp_object_path)
-                    copy_file(temp_container_path, dst, requests_session=session)
-
-                elif storage_object.container:
-                    copy_file(temp_container_path, dst, requests_session=session)
-                    copy_file(temp_mets_path, dst, requests_session=session)
-                    copy_file(temp_aic_mets_path, dst, requests_session=session)
-                else:
-                    with tarfile.open(temp_container_path, 'w') as new_tar:
-                        new_tar.add(temp_object_path)
-                    copy_file(temp_container_path, dst, requests_session=session)
-
-            else:
-                if storage_object.container:
-                    temp_dir = Path.objects.get(entity='temp').value
-                    storage_backend.read(storage_object, temp_dir)
-                else:
-                    access_workarea = Path.objects.get(entity='access_workarea').value
-                    access_workarea_user = os.path.join(access_workarea, task.responsible.username)
-                    dst = dst or os.path.join(access_workarea_user, self.object_identifier_value)
-                    os.makedirs(dst, exist_ok=True)
-                    storage_backend.read(storage_object, dst)
+        storage_object.read(dst, task)
 
         user = task.responsible
         # TODO: set read_only correctly

@@ -2,10 +2,10 @@
   <div class="migration">
     <div class="select-sub-edit-eventlog-wrapper">
       <div ng-if="select" class="select-view">
-        <form ng-submit="vm.submit(vm.migrationForm)" class="migration-form">
+        <form ng-submit="vm.submit(vm.migration)" class="migration-form">
           <div class="form-group">
             <label for="purpose" translate="PURPOSE"></label>
-            <input class="form-control" name="purpose" ng-model="vm.migrationForm.purpose" />
+            <input class="form-control" name="purpose" ng-model="vm.migration.purpose" />
           </div>
           <br />
           <button
@@ -20,28 +20,28 @@
             <select
               class="form-control"
               name="policy-id"
-              ng-model="vm.migrationForm.filters.policyID.value"
-              ng-options="x for x in vm.migrationForm.filters.policyID.options"
+              ng-model="vm.migration.filters.policyID.value"
+              ng-options="x for x in vm.migration.filters.policyID.options"
               >x</select
             >
             <label for="current-medium-prefix" translate="CURRENTMEDIUMPREFIX"></label>
             <input
               class="form-control"
               name="current-medium-prefix"
-              ng-model="vm.migrationForm.filters.currentMediumPrefix"
+              ng-model="vm.migration.filters.currentMediumPrefix"
             />
             <label for="previous-medium-prefix" translate="PREVIOUSMEDIUMPREFIX"></label>
             <input
               class="form-control"
               name="previous-medium-prefix"
-              ng-model="vm.migrationForm.filters.previousMediumPrefix"
+              ng-model="vm.migration.filters.previousMediumPrefix"
             />
             <label for="status" translate="STATUS"></label>
             <select
               class="form-control"
               name="status"
-              ng-model="vm.migrationForm.filters.status.value"
-              ng-options="x for x in vm.migrationForm.filters.status.options"
+              ng-model="vm.migration.filters.status.value"
+              ng-options="x for x in vm.migration.filters.status.options"
               >x</select
             >
             <br />

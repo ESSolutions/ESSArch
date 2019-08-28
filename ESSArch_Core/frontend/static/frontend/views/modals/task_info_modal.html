@@ -1,4 +1,4 @@
-<div class="modal-heading task-info-modal-head">
+<div ng-if="currentStepTask" class="modal-heading task-info-modal-head">
   <h3 class="modal-title" id="modal-title">{{ currentStepTask.label }}</h3>
   <div class="refresh-icon">
     <span
@@ -11,7 +11,7 @@
     ></span>
   </div>
 </div>
-<div class="modal-body" id="modal-body">
+<div ng-if="currentStepTask" class="modal-body" id="modal-body">
   <div class="step-task-info">
     <div class="row">
       <div class="col-12 col-md-6" ng-if="currentStepTask.name">
@@ -55,7 +55,7 @@
       ng-class="{'active progress-striped': currentStepTask.status == 'STARTED'}"
       animate="true"
       value="currentStepTask.progress"
-      type="{{ $ctrl.mapStepStateProgress(currentStepTask) }}"
+      type="{{ mapStepStateProgress(currentStepTask) }}"
       uib-tooltip="{{ currentStepTask.status | translate }}"
       tooltip-placement="auto top"
       tooltip-append-to-body="true"
@@ -105,7 +105,7 @@
               <b>{{ "STATE_TREE.ARGUMENTS" | translate }}:</b>
               <table class="table">
                 <tbody>
-                  {{ vm.getArgsString(currentStepTask.args) }}
+                  {{ $ctrl.getArgsString(currentStepTask.args) }}
                 </tbody>
               </table>
             </div>
@@ -149,7 +149,7 @@
     >
       {{ "SEETRACEBACK" | translate }}
     </button>
-    <div st-table="vm.validations" st-pipe="vm.getValidations">
+    <div st-table="$ctrl.validations" st-pipe="$ctrl.getValidations">
       <hr />
       <h4>{{ "STATE_TREE.VALIDATIONS" | translate }}</h4>
       <div class="search-prepare-wrapper">
@@ -158,7 +158,7 @@
           id="items-per-page"
           style="margin-right: 10px;"
           class="form-control items-per-page"
-          ng-model="vm.itemsPerPage"
+          ng-model="$ctrl.itemsPerPage"
           ng-options="x for x in [5,10,20,25,50]"
           uib-tooltip="{{ 'ITEMSPERPAGE' | translate }}"
           tooltip-placement="auto top"
@@ -175,7 +175,7 @@
         />
         <div class="refresh-icon">
           <span
-            ng-click="vm.getValidations(vm.validationTableState)"
+            ng-click="$ctrl.getValidations($ctrl.validationTableState)"
             class="clickable angular-animate fas fa-sync-alt fa-lg"
             ng-class="{'fa-sync-alt-animate': validationsLoading }"
             uib-tooltip="{{ 'REFRESHTABLEDESC' | translate }}"
@@ -209,7 +209,7 @@
             </thead>
             <tbody>
               <tr
-                ng-repeat="x in vm.validations"
+                ng-repeat="x in $ctrl.validations"
                 ng-class="{'failed': !x.passed && x.time_done, 'success': x.passed && x.time_done, 'running': !x.passed && x.time_done === null && x.time_started}"
               >
                 <td class="text-center pr-0">
@@ -254,10 +254,10 @@
                   {{ x.time_done | date: "yyyy-MM-dd HH:mm:ss.sss" }}
                 </td>
               </tr>
-              <tr ng-if="!vm.validations.length && !validationsLoading" class="empty-table-indicator">
+              <tr ng-if="!$ctrl.validations.length && !validationsLoading" class="empty-table-indicator">
                 <td colspan="6">{{ "NO_RESULTS_FOUND" | translate }}</td>
               </tr>
-              <tr ng-if="!vm.validations.length && validationsLoading" class="empty-table-indicator">
+              <tr ng-if="!$ctrl.validations.length && validationsLoading" class="empty-table-indicator">
                 <td class="loading-column" colspan="6">{{ "LOADING" | translate }}</td>
               </tr>
             </tbody>
@@ -268,7 +268,7 @@
             class="text-center"
             st-template="static/frontend/views/pagination.html"
             st-pagination=""
-            st-items-by-page="vm.itemsPerPage"
+            st-items-by-page="$ctrl.itemsPerPage"
             st-displayed-pages="7"
           ></div>
         </td>
@@ -276,20 +276,12 @@
     </div>
   </div>
 </div>
-<div class="modal-footer">
+<div ng-if="currentStepTask" class="modal-footer">
   <div class="float-left">
     <button
-      class="btn btn-danger"
-      ng-click="myTreeControl.scope.taskStepUndo(angular.copy(currentStepTask))"
-      ng-if="checkPermission('WorkflowEngine.can_undo') && (currentStepTask.status == 'SUCCESS' || currentStepTask.status == 'FAILURE') && !currentStepTask.undone && !currentStepTask.undo_type"
-    >
-      {{ "UNDO" | translate }}
-    </button>
-
-    <button
       class="btn btn-success"
-      ng-click="myTreeControl.scope.taskStepRedo(angular.copy(currentStepTask))"
-      ng-if="checkPermission('WorkflowEngine.can_retry') && currentStepTask.flow_type == 'task' && currentStepTask.status == 'FAILURE'"
+      ng-click="myTreeControl.scope.taskStepRedo(currentStepTask)"
+      ng-if="checkPermission('WorkflowEngine.can_retry') && currentStepTask.status == 'FAILURE'"
     >
       {{ "REDO" | translate }}
     </button>
@@ -298,3 +290,4 @@
     {{ "CLOSE" | translate }}
   </button>
 </div>
+<div ng-if="!currentStepTask" class="loading-column text-center py-2">{{'LOADING' | translate}}</div>
