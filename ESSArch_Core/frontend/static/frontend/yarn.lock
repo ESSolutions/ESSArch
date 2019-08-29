@@ -1237,10 +1237,10 @@ angular-translate@^2.11.0, angular-translate@~2.18.1:
   dependencies:
     angular ">=1.2.26 <=1.7"
 
-angular-tree-control@0.2.28:
-  version "0.2.28"
-  resolved "https://registry.yarnpkg.com/angular-tree-control/-/angular-tree-control-0.2.28.tgz#6cf58d590ee8e0503bba899ae529ae4b8741083b"
-  integrity sha1-bPWNWQ7o4FA7uoma5SmuS4dBCDs=
+angular-tree-control@0.2.30:
+  version "0.2.30"
+  resolved "https://registry.yarnpkg.com/angular-tree-control/-/angular-tree-control-0.2.30.tgz#5d4b62fb1ef6ac7421d811c4cf315464e09913e4"
+  integrity sha1-XUti+x72rHQh2BHEzzFUZOCZE+Q=
 
 angular-ui-bootstrap@~2.5.6:
   version "2.5.6"
