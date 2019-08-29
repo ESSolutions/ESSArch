@@ -73,7 +73,7 @@ if __name__ == '__main__':
             "channels_redis==2.4.0",
             "chardet==3.0.4",
             "click==7.0",
-            "crontab==0.22.5",
+            "crontab==0.22.6",
             "cryptography==2.7",
             "daphne==2.3.0",
             "dj-database-url==0.5.0",
