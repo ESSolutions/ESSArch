@@ -62,6 +62,7 @@ class StorageTargetInline(NestedStackedInline):
         form.base_fields['storage_target'].widget.can_change_related = False
         return formset
 
+
 class StorageMethodTargetRelationInlineFormSet(forms.models.BaseInlineFormSet):
     def clean(self):
         enabled = False
