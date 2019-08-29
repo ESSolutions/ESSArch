@@ -78,7 +78,7 @@ if __name__ == '__main__':
             "daphne==2.3.0",
             "dj-database-url==0.5.0",
             "django==2.2.4",
-            "django-cors-headers==3.0.2",
+            "django-cors-headers==3.1.0",
             "django-filter==2.2.0",
             "django-groups-manager==0.6.2",
             "django-guardian==2.0.0",
