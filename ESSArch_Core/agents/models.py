@@ -243,7 +243,10 @@ class AgentIdentifier(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     identifier = models.TextField(_('identifier'), blank=False)
     agent = models.ForeignKey('agents.Agent', on_delete=models.CASCADE, null=False, related_name='identifiers')
-    type = models.ForeignKey('agents.AgentIdentifierType', on_delete=models.PROTECT, null=False, verbose_name=_('type'))
+    type = models.ForeignKey(
+        'agents.AgentIdentifierType', on_delete=models.PROTECT,
+        null=False, verbose_name=_('type')
+    )
 
 
 class AgentIdentifierType(models.Model):

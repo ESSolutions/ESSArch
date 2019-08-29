@@ -1,6 +1,7 @@
 import copy
 import csv
 import datetime
+import io
 import json
 import logging
 import math
@@ -9,7 +10,7 @@ import tempfile
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.db import transaction
 from django.db.models import Prefetch
@@ -22,7 +23,7 @@ from elasticsearch_dsl.connections import get_connection
 from rest_framework import exceptions, serializers, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 from weasyprint import HTML
@@ -30,21 +31,14 @@ from weasyprint import HTML
 from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.auth.util import get_objects_for_user
-from ESSArch_Core.ip.models import Agent
-from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
 from ESSArch_Core.tags.documents import Archive, VersionedDocType
-from ESSArch_Core.tags.models import (
-    Structure,
-    StructureUnit,
-    Tag,
-    TagStructure,
-    TagVersion,
-)
+from ESSArch_Core.tags.models import Structure, TagStructure, TagVersion
 from ESSArch_Core.tags.permissions import SearchPermissions
 from ESSArch_Core.tags.serializers import (
-    SearchSerializer,
+    ArchiveWriteSerializer,
+    ComponentWriteSerializer,
     TagVersionNestedSerializer,
     TagVersionSerializerWithVersions,
     TagVersionWriteSerializer,
@@ -60,7 +54,7 @@ SORTABLE_FIELDS = (
 
 
 class ComponentSearch(FacetedSearch):
-    index = ['component', 'archive', 'document', 'information_package']
+    index = ['component', 'archive', 'document', 'information_package', 'structure_unit']
     fields = [
         'reference_code.keyword^5', 'reference_code^3', 'name^2', 'desc', 'attachment.content',
         'attachment.keywords',
@@ -68,23 +62,23 @@ class ComponentSearch(FacetedSearch):
 
     facets = {
         # use bucket aggregations to define facets
-        'index': TermsFacet(field='_index', min_doc_count=0),
-        'parents': TermsFacet(field='parents', min_doc_count=0),
-        'type': TermsFacet(field='type', min_doc_count=0),
-        'archive': TermsFacet(field='archive', min_doc_count=0),
-        'information_package': TermsFacet(field='ip', min_doc_count=0),
-        'archive_creator': TermsFacet(field='archive_creator', min_doc_count=0),
-        'archive_responsible': TermsFacet(field='archive_responsible', min_doc_count=0),
-        'institution': TermsFacet(field='institution', min_doc_count=0),
-        'organization': TermsFacet(field='organization', min_doc_count=0),
-        'extension': TermsFacet(field='extension', min_doc_count=0),
+        'extension': TermsFacet(field='extension', min_doc_count=0, size=100),
+        'type': TermsFacet(field='type', min_doc_count=0, size=100),
+    }
+
+    filters = {
+        'agents': {'many': True},
+        'extensions': {'many': True},
+        'start_date': {},
+        'end_date': {},
+        'type': {'many': True},
     }
 
     def __init__(self, *args, **kwargs):
         self.query_params_filter = kwargs.pop('filter_values', {})
         self.start_date = self.query_params_filter.pop('start_date', None)
         self.end_date = self.query_params_filter.pop('end_date', None)
-        self.archive = self.query_params_filter.pop('archive', None)
+        self.archives = self.query_params_filter.pop('archives', None)
         self.personal_identification_number = self.query_params_filter.pop('personal_identification_number', None)
         self.user = kwargs.pop('user')
         self.filter_values = {
@@ -127,21 +121,43 @@ class ComponentSearch(FacetedSearch):
         """
 
         organization_archives = get_objects_for_user(self.user, TagVersion.objects.filter(elastic_index='archive'), [])
-        organization_archives = list(organization_archives.values_list('pk', flat=True))
+        organization_archives = [str(x) for x in list(organization_archives.values_list('pk', flat=True))]
 
         s = super().search()
-        s = s.source(exclude=["attachment.content"])
-        s = s.filter('term', current_version=True)
+        s = s.source(excludes=["attachment.content"])
 
-        s = s.query(Q('bool', should=[
-            # no archive
-            Q('bool', must=[Q('bool', **{'must_not': {'exists': {'field': 'archive'}}}),
-                            Q('bool', **{'must_not': {'term': {'_index': 'archive-*'}}})]),
-            # in archive connected to organization
-            Q('terms', archive=organization_archives),
-            # is archive connected to organization
-            Q('terms', _id=organization_archives)
+        # only get current version of "TagVersion" documents
+        s = s.query('bool', minimum_should_match=1, should=[
+            Q('term', current_version=True),
+            Q('bool', must_not=Q('terms', index=[
+                'archive-*',
+                'component-*'
+            ])),
+        ])
+
+        s = s.filter(Q('bool', minimum_should_match=1, should=[
+            Q('nested', path='archive', ignore_unmapped=True, query=Q('terms', archive__id=organization_archives)),
+            Q('bool', minimum_should_match=1, should=[
+                Q('bool', must=[
+                    Q('bool', must_not=Q('term', _index='archive-*')),
+                    Q('nested', path='archive', ignore_unmapped=True, query=Q(
+                        'bool', **{'must_not': {'exists': {'field': 'archive'}}}
+                    )),
+                ]),
+                Q('bool', must=[
+                    Q('term', _index='archive-*'),
+                    Q('terms', _id=organization_archives)
+                ])
+            ]),
         ]))
+
+        s = s.query('bool', minimum_should_match=1, should=[
+            Q('term', current_version=True),
+            Q('bool', must_not=Q('terms', index=[
+                'archive-*',
+                'component-*'
+            ])),
+        ])
 
         if self.personal_identification_number not in EMPTY_VALUES:
             s = s.filter('term', personal_identification_numbers=self.personal_identification_number)
@@ -152,47 +168,27 @@ class ComponentSearch(FacetedSearch):
         if self.end_date not in EMPTY_VALUES:
             s = s.filter('range', start_date={'lte': self.end_date})
 
-        if self.archive is not None:
-            s = s.query(Q('bool', must=Q('script', script={
-                'source': (
-                    "(doc.containsKey('archive') && doc['archive'].value==params.archive)"
-                    "|| doc['_id'].value==params.archive"
-                ),
-                'params': {'archive': self.archive},
-            })))
+        if self.archives is not None:
+            s = s.filter(Q('bool', minimum_should_match=1, should=[
+                Q('nested', path='archive', ignore_unmapped=True, query=Q(
+                    'terms', archive__id=self.archives.split(',')
+                )),
+                Q('bool', must=[
+                    Q('bool', must_not=Q('exists', field='archive')),
+                    Q('terms', _id=self.archives.split(',')),
+                ])
+            ]))
 
         for filter_k, filter_v in self.query_params_filter.items():
-            if filter_v not in EMPTY_VALUES:
-                s = s.query('match', **{filter_k: filter_v})
+            if filter_k in self.filters and filter_v not in EMPTY_VALUES:
+                if self.filters[filter_k].get('many', False):
+                    filter_v = filter_v.split(',')
+                    s = s.query('terms', **{filter_k: filter_v})
+
+                else:
+                    s = s.query('match', **{filter_k: filter_v})
 
         return s
-
-    def aggregate(self, search):
-        """
-        Add aggregations representing the facets selected, including potential
-        filters.
-
-        We override this to also aggregate on fields in `facets`
-        """
-        for f, facet in self.facets.items():
-            agg = facet.get_aggregation()
-            agg_filter = Q('match_all')
-            for field, filter in self._filters.items():
-                agg_filter &= filter
-            search.aggs.bucket(
-                '_filter_' + f,
-                'filter',
-                filter=agg_filter
-            ).bucket(f, agg)
-
-        search.aggs.bucket('_filter_archive', 'filter', filter=agg_filter).bucket(
-            'archive', 'terms',
-            script=(
-                "doc['_index'].value != 'information_package'"
-                " ? (doc.containsKey('archive')"
-                " ? doc['archive'].value : doc['_id'].value) : null"
-            )
-        )
 
     def highlight(self, search):
         """
@@ -220,19 +216,7 @@ def get_archive(id):
     return archive_data
 
 
-def get_information_package(id):
-    return {'object_identifier_value': get_cached_objid(id)}
-
-
-def get_organization(id):
-    org = Agent.objects.get(pk=id)
-    return {
-        'name': org.name,
-    }
-
-
 class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
-    permission_classes = (IsAuthenticated, SearchPermissions,)
     index = ComponentSearch.index
     lookup_field = 'pk'
     lookup_url_kwarg = None
@@ -240,6 +224,13 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
     def __init__(self, *args, **kwargs):
         self.client = get_connection()
         super().__init__(*args, **kwargs)
+
+    def get_permissions(self):
+        permissions = [IsAuthenticated]
+        if self.request.method in SAFE_METHODS:
+            permissions.append(SearchPermissions)
+
+        return [permission() for permission in permissions]
 
     def get_view_name(self):
         return 'Search {}'.format(getattr(self, 'suffix', None))
@@ -360,11 +351,6 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         filters = {
             'extension': params.pop('extension', None),
             'type': params.pop('type', None),
-            'information_package': params.pop('information_package', None),
-            'archive_creator': params.pop('archive_creator', None),
-            'archive_responsible': params.pop('archive_responsible', None),
-            'institution': params.pop('institution', None),
-            'organization': params.pop('organization', None),
         }
 
         for k, v in filters.items():
@@ -412,27 +398,6 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
 
         results_dict = results.to_dict()
 
-        for archive in results_dict['aggregations']['_filter_archive']['archive']['buckets']:
-            try:
-                archive_data = get_archive(archive['key'])
-                archive['name'] = archive_data['name']
-            except NotFoundError:
-                logger.warn('Archive "%s" not found in search index, it might be queued for indexing' % archive['key'])
-
-        for ip in results_dict['aggregations']['_filter_information_package']['information_package']['buckets']:
-            try:
-                ip_data = get_information_package(ip['key'])
-                ip['name'] = ip_data['object_identifier_value']
-            except ObjectDoesNotExist:
-                logger.warn('Information package "%s" not found' % ip['key'])
-
-        for organization in results_dict['aggregations']['_filter_organization']['organization']['buckets']:
-            try:
-                organization_data = get_organization(organization['key'])
-                organization['name'] = organization_data['name']
-            except ObjectDoesNotExist:
-                logger.error('Archivist organization "%s" not found' % organization['key'])
-
         if len(results_dict['_shards'].get('failures', [])):
             return Response(results_dict['_shards']['failures'], status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -454,34 +419,55 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         logger.info(f"User '{user}' generating a {format} report, with tag versions: '{tag_versions}'")
         template = 'tags/search_results.html'.format()
 
-        f = tempfile.TemporaryFile()
-        formatted_hits = []
-
-        for hit in hits:
-            hit = hit['_source']
-            try:
-                hit['archive'] = get_archive(hit['archive'])
-            except KeyError:
-                pass
-            formatted_hits.append(hit)
+        hits = [hit['_source'] for hit in hits]
+        f = tempfile.TemporaryFile(mode='w+b')
 
         if format == 'pdf':
             ctype = 'application/pdf'
-            render = render_to_string(template, {'hits': formatted_hits, 'user': user, 'timestamp': timezone.now()})
+            render = render_to_string(template, {'hits': hits, 'user': user, 'timestamp': timezone.now()})
             HTML(string=render).write_pdf(f)
         elif format == 'csv':
             ctype = 'text/csv'
-            writer = csv.writer(f)
-            for hit in formatted_hits:
+
+            text_file = io.TextIOWrapper(f, encoding='utf-8', newline='')
+            writer = csv.writer(text_file)
+
+            for hit in hits:
                 writer.writerow(
                     [hit.get('archive', {}).get('name'), hit.get('name'), hit.get('reference_code'), hit.get('name'),
                      hit.get('unit_dates', {}).get('date'), hit.get('desc')])
+
+            text_file.detach()
         else:
             raise ValueError('Unsupported format {}'.format(format))
 
         f.seek(0)
         name = 'search_results_{time}_{user}.{format}'.format(time=timezone.localtime(), user=user.username,
                                                               format=format)
+        return generate_file_response(f, content_type=ctype, name=name)
+
+    @action(detail=True, url_path='export')
+    def archive_report(self, request, pk=None):
+        archive = TagVersion.objects.get(pk=pk)
+        series = archive.get_active_structure().structure.units.prefetch_related(
+            Prefetch(
+                'tagstructure_set',
+                queryset=TagStructure.objects.select_related(
+                    'tag__current_version'
+                ),
+                to_attr='volumes',
+            ),
+        ).all()
+
+        template = 'tags/archive.html'.format()
+        f = tempfile.TemporaryFile()
+
+        ctype = 'application/pdf'
+        render = render_to_string(template, {'archive_name': archive.name, 'series': series})
+        HTML(string=render).write_pdf(f)
+
+        f.seek(0)
+        name = 'archive_{}.pdf'.format(pk)
         return generate_file_response(f, content_type=ctype, name=name)
 
     def serialize(self, obj):
@@ -664,90 +650,26 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         return Response()
 
     def create(self, request):
-        serializer = SearchSerializer(data=request.data)
+        index = request.data.get('index')
         organization = request.user.user_profile.current_organization
 
-        if serializer.is_valid(raise_exception=True):
-            data = serializer.validated_data
+        if index == 'archive':
+            if not request.user.has_perm('tags.create_archive'):
+                raise exceptions.PermissionDenied('You do not have permission to create new archives')
+            if organization is None:
+                raise exceptions.ParseError('You must be part of an organization to create a new archive')
 
-            if data.get('index') == 'archive':
-                if not request.user.has_perm('tags.create_archive'):
-                    raise exceptions.PermissionDenied('You do not have permission to create new archives')
-                if organization is None:
-                    raise exceptions.ParseError('You must be part of an organization to create a new archive')
-            else:
-                if not request.user.has_perm('tags.add_tag'):
-                    raise exceptions.PermissionDenied('You do not have permission to create nodes')
+            serializer = ArchiveWriteSerializer(data=request.data, context={'request': request})
+        elif index == 'component':
+            if not request.user.has_perm('tags.add_tag'):
+                raise exceptions.PermissionDenied('You do not have permission to create nodes')
+            serializer = ComponentWriteSerializer(data=request.data)
+        else:
+            raise exceptions.ParseError('Invalid index')
 
-            with transaction.atomic():
-                tag = Tag.objects.create()
-                tag_structure = TagStructure(tag=tag)
-                structure = data.pop('structure')
-
-                if data.get('index') != 'archive':
-                    if 'structure_unit' in data:
-                        structure_unit = StructureUnit.objects.get(pk=data.pop('structure_unit'))
-                        tag_structure.structure_unit = structure_unit
-                        tag_structure.structure = structure_unit.structure
-
-                        archive_structure = TagStructure.objects.get(tag__versions=data.pop('archive'))
-                        tag_structure.parent = archive_structure
-
-                        tag_structure.save()
-
-                    elif 'parent' in data:
-                        parent_version = TagVersion.objects.select_for_update().get(pk=data.pop('parent'))
-                        if structure is None:
-                            parent_structure = parent_version.get_active_structure()
-                        else:
-                            parent_structure = parent_version.get_structures(structure).get()
-
-                        tag_structure.parent = parent_structure
-                        tag_structure.structure = parent_structure.structure
-                elif structure is not None:
-                    tag_structure.structure = structure
-                tag_structure.save()
-
-                tag_version = TagVersion.objects.create(
-                    tag=tag, elastic_index=data['index'], name=data['name'],
-                    type=data['type'], reference_code=data['reference_code'])
-                tag.current_version = tag_version
-                tag.save()
-
-                self._update_tag_metadata(tag_version, data)
-
-                if tag_version.elastic_index == 'archive':
-                    org = request.user.user_profile.current_organization
-                    org.add_object(tag_version)
-
-                    search_data = {}
-                    if data.get('archive_creator'):
-                        search_data['archive_creator'] = data.get('archive_creator')
-                    if data.get('archive_responsible'):
-                        search_data['archive_responsible'] = data.get('archive_responsible')
-
-                    if search_data:
-                        self._update_tag_metadata(tag_version, search_data)
-
-                    # create descendants from structure
-                    for unit in tag_structure.structure.units.all():
-                        tag = Tag.objects.create()
-                        tv = TagVersion.objects.create(tag=tag, elastic_index='component', name=unit.name,
-                                                       reference_code=unit.reference_code, type=unit.type)
-                        tv.update_search({'archive': str(tag_version.pk), 'desc': unit.description})
-                        tag.save()
-                        ts = TagStructure(tag=tag, structure=structure)
-                        if unit.parent is not None:
-                            parent = unit.parent.reference_code
-                            ts.parent = TagStructure.objects.filter(tree_id=tag_structure.tree_id,
-                                                                    tag__versions__elastic_index='component')\
-                                                            .filter(tag__versions__reference_code=parent)\
-                                                            .distinct().get()
-                        else:
-                            ts.parent = tag_structure
-                        ts.save()
-
-                return Response(self.serialize(tag_version.to_search()), status=status.HTTP_201_CREATED)
+        serializer.is_valid(raise_exception=True)
+        tag = serializer.save()
+        return Response(TagVersionNestedSerializer(instance=tag.current_version).data, status=status.HTTP_201_CREATED)
 
     def _update_tag_metadata(self, tag_version, data):
         if 'structure_unit' in data:
@@ -793,7 +715,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
 
         for f in db_fields:
             if f in data:
-                db_fields_request_data[f] = data.pop(f)
+                db_fields_request_data[f] = data.get(f)
 
         serializer = TagVersionWriteSerializer(tag_version, data=db_fields_request_data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -804,7 +726,33 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
 
     def partial_update(self, request, pk=None):
         tag = self.get_tag_object()
-        return Response(self._update_tag_metadata(tag, request.data))
+        index = tag.elastic_index
+
+        if index == 'archive':
+            if not request.user.has_perm('tags.change_archive'):
+                raise exceptions.PermissionDenied('You do not have permission to change archives')
+
+            serializer = ArchiveWriteSerializer(tag, data=request.data, context={'request': request}, partial=True)
+        elif index == 'component':
+            data = request.data.copy()
+            if 'location' in request.data:
+                if not request.user.has_perm('tags.change_tag_location'):
+                    raise exceptions.PermissionDenied('You do not have permission to place nodes')
+
+                data.pop('location')
+
+            if len(data):
+                if not request.user.has_perm('tags.change_tag'):
+                    raise exceptions.PermissionDenied('You do not have permission to change nodes')
+
+            serializer = ComponentWriteSerializer(tag, data=request.data, partial=True)
+        else:
+            raise exceptions.ParseError('Invalid index')
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response()
 
     def _get_delete_field_script(self, field):
         field_path = '.'.join(field.split('.')[:-1])
@@ -823,12 +771,17 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         tag = self.get_tag_object()
         include_self = request.query_params.get('include_self', False)
         for descendant in tag.get_descendants(include_self=include_self):
-            self._update_tag_metadata(descendant, request.data)
-            try:
-                for field in request.query_params['deleted_fields'].split(','):
-                    self._delete_field(descendant, field)
-            except KeyError:
-                pass
+            if descendant.elastic_index == 'archive':
+                serializer = ArchiveWriteSerializer(
+                    descendant, data=request.data, context={'request': request}, partial=True
+                )
+            elif descendant.elastic_index == 'component':
+                serializer = ComponentWriteSerializer(descendant, data=request.data, partial=True)
+            else:
+                raise exceptions.ParseError('Invalid index')
+
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
         return Response()
 

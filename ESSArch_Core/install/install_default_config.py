@@ -28,6 +28,9 @@ import django
 
 django.setup()
 
+from pydoc import locate  # noqa isort:skip
+
+from django.conf import settings  # noqa isort:skip
 from django.contrib.auth import get_user_model  # noqa isort:skip
 from django.contrib.auth.models import Permission  # noqa isort:skip
 from groups_manager.models import GroupType  # noqa isort:skip
@@ -38,7 +41,6 @@ from ESSArch_Core.search import alias_migration  # noqa isort:skip
 from ESSArch_Core.auth.models import Group, GroupMemberRole  # noqa isort:skip
 from ESSArch_Core.configuration.models import EventType, Parameter, Path, Site, StoragePolicy  # noqa isort:skip
 from ESSArch_Core.storage.models import StorageMethod, DISK, StorageTarget, StorageMethodTargetRelation  # noqa isort:skip
-from ESSArch_Core.tags.documents import Archive, Component, Directory, File, InformationPackage  # noqa isort:skip
 
 User = get_user_model()
 
@@ -591,7 +593,8 @@ def installPipelines():
 
 
 def installSearchIndices():
-    for doctype in [Archive, Component, Directory, File, InformationPackage]:
+    for index_name, index_class in settings.ELASTICSEARCH_INDEXES['default'].items():
+        doctype = locate(index_class)
         alias_migration.setup_index(doctype)
 
     print('done')

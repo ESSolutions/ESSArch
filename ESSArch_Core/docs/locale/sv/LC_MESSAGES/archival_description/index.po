@@ -1,0 +1,48 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../archival_description/index.rst:3
+msgid "Archival description"
+msgstr "Arkivredovisning"
+
+#: ../../archival_description/index.rst:5
+#: ../../archival_description/index.rst:10
+#: ../../archival_description/index.rst:15
+#: ../../archival_description/index.rst:23
+#: ../../archival_description/index.rst:30
+msgid "TODO"
+msgstr ""
+
+#: ../../archival_description/index.rst:8
+msgid "Structures"
+msgstr "Strukturer"
+
+#: ../../archival_description/index.rst:13
+msgid "Templates and instances"
+msgstr "Mallar och instanser"
+
+#: ../../archival_description/index.rst:21
+msgid "Structure units"
+msgstr "Strukturenheter"
+
+#: ../../archival_description/index.rst:28
+msgid "Node Relation Types"
+msgstr "Nodrelationstyper"
+

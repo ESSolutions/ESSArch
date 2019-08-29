@@ -1,0 +1,436 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../xml-generator.rst:5
+msgid "XML Generator"
+msgstr ""
+
+#: ../../xml-generator.rst:9
+msgid ":ref:`profiles`"
+msgstr ""
+
+#: ../../xml-generator.rst:12
+msgid "XML Specification"
+msgstr ""
+
+#: ../../xml-generator.rst:15
+msgid "Creating an empty element"
+msgstr ""
+
+#: ../../xml-generator.rst:17
+msgid ""
+"Each XML-element is specified as a nested json object. All elements "
+"require the ``name`` parameter so the most simple specification we can "
+"have is"
+msgstr ""
+
+#: ../../xml-generator.rst:26
+msgid ""
+"This will however generate an error since no empty elements are created "
+"by default and XML files without elements are invalid. We can fix this by"
+" setting the ``-allowEmpty`` parameter:"
+msgstr ""
+
+#: ../../xml-generator.rst:37
+msgid "Which will generate"
+msgstr ""
+
+#: ../../xml-generator.rst:46
+msgid "XML Variables"
+msgstr ""
+
+#: ../../xml-generator.rst:48
+msgid ""
+"XML variables are what allows us to reuse the same profile for multiple "
+"IPs with different values."
+msgstr ""
+
+#: ../../xml-generator.rst:51
+msgid ""
+"In the specification for a XML file we can write the following to define "
+"an element with its text set to a variable"
+msgstr ""
+
+#: ../../xml-generator.rst:61
+msgid ""
+"If we create this with ``myvar = \"hello world\"`` we get the following "
+"XML"
+msgstr ""
+
+#: ../../xml-generator.rst:67
+msgid "We could also add a static prefix and/or suffix"
+msgstr ""
+
+#: ../../xml-generator.rst:76
+msgid "Used with ``myvar = \"world\"`` we get"
+msgstr ""
+
+#: ../../xml-generator.rst:85
+msgid "Reserved XML Variables"
+msgstr ""
+
+#: ../../xml-generator.rst:87
+msgid ""
+"This is a list of reserved variables that can be used in profiles to get "
+"more dynamic, automatically populated data."
+msgstr ""
+
+#: ../../xml-generator.rst:91
+msgid "``_UUID``"
+msgstr ""
+
+#: ../../xml-generator.rst:91
+msgid "Generates a new UUID"
+msgstr ""
+
+#: ../../xml-generator.rst:92
+msgid "``_OBJID``"
+msgstr ""
+
+#: ../../xml-generator.rst:92
+msgid "ID of the IP"
+msgstr ""
+
+#: ../../xml-generator.rst:93
+msgid "``_OBJUUID``"
+msgstr ""
+
+#: ../../xml-generator.rst:93
+msgid "UUID of the IP"
+msgstr ""
+
+#: ../../xml-generator.rst:94
+msgid "``_OBJLABEL``"
+msgstr ""
+
+#: ../../xml-generator.rst:94
+msgid "Label of the IP"
+msgstr ""
+
+#: ../../xml-generator.rst:95
+msgid "``_OBJPATH``"
+msgstr ""
+
+#: ../../xml-generator.rst:95
+msgid "Path of the IP"
+msgstr ""
+
+#: ../../xml-generator.rst:96
+msgid "``_STARTDATE``"
+msgstr ""
+
+#: ../../xml-generator.rst:96
+msgid "Start date of the IP"
+msgstr ""
+
+#: ../../xml-generator.rst:97
+msgid "``_ENDDATE``"
+msgstr ""
+
+#: ../../xml-generator.rst:97
+msgid "End date of the IP"
+msgstr ""
+
+#: ../../xml-generator.rst:98
+msgid "``_NOW``"
+msgstr ""
+
+#: ../../xml-generator.rst:98
+msgid "Time at generation of element"
+msgstr ""
+
+#: ../../xml-generator.rst:99
+msgid "``_USER``"
+msgstr ""
+
+#: ../../xml-generator.rst:99
+msgid "Logged in user"
+msgstr ""
+
+#: ../../xml-generator.rst:100
+msgid "``_XML_FILENAME``"
+msgstr ""
+
+#: ../../xml-generator.rst:100
+msgid "Name of XML file being generated"
+msgstr ""
+
+#: ../../xml-generator.rst:101
+msgid "``_EXT``"
+msgstr ""
+
+#: ../../xml-generator.rst:101
+msgid "The directory name for the current external XML file"
+msgstr ""
+
+#: ../../xml-generator.rst:102
+msgid "``_EXT_HREF``"
+msgstr ""
+
+#: ../../xml-generator.rst:102
+msgid "The directory path and name for the current external XML file"
+msgstr ""
+
+#: ../../xml-generator.rst:103
+msgid "``_IP_CREATEDATE``"
+msgstr ""
+
+#: ../../xml-generator.rst:103
+msgid "Timestamp of when the tar/zip-file was generated"
+msgstr ""
+
+#: ../../xml-generator.rst:104
+msgid "``_IP_CONTAINER_FORMAT``"
+msgstr ""
+
+#: ../../xml-generator.rst:104
+msgid "The container format of the IP, e.g. tar or zip"
+msgstr ""
+
+#: ../../xml-generator.rst:105
+msgid "``_SA_ID``"
+msgstr ""
+
+#: ../../xml-generator.rst:105
+msgid "The id of the Submission Agreement"
+msgstr ""
+
+#: ../../xml-generator.rst:106
+msgid "``_SA_NAME``"
+msgstr ""
+
+#: ../../xml-generator.rst:106
+msgid "The name of the Submission Agreement"
+msgstr ""
+
+#: ../../xml-generator.rst:107
+msgid "``_IP_ARCHIVIST_ORGANIZATION``"
+msgstr ""
+
+#: ../../xml-generator.rst:107
+msgid "The archivist organization of the Information Package"
+msgstr ""
+
+#: ../../xml-generator.rst:108
+msgid "``_INFORMATIONCLASS``"
+msgstr ""
+
+#: ../../xml-generator.rst:108
+msgid "The information class of the Information Package"
+msgstr ""
+
+#: ../../xml-generator.rst:109
+msgid "``_POLICYUUID``"
+msgstr ""
+
+#: ../../xml-generator.rst:109
+msgid "The policy uuid of the Information Package"
+msgstr ""
+
+#: ../../xml-generator.rst:110
+msgid "``_POLICYID``"
+msgstr ""
+
+#: ../../xml-generator.rst:110
+msgid "The policy id of the Information Package"
+msgstr ""
+
+#: ../../xml-generator.rst:111
+msgid "``_POLICYNAME``"
+msgstr ""
+
+#: ../../xml-generator.rst:111
+msgid "The policy name of the Information Package"
+msgstr ""
+
+#: ../../xml-generator.rst:112
+msgid "``_PROFILE_TRANSFER_PROJECT_ID``"
+msgstr ""
+
+#: ../../xml-generator.rst:112
+msgid "transfer project profile id"
+msgstr ""
+
+#: ../../xml-generator.rst:113
+msgid "``_PROFILE_SUBMIT_DESCRIPTION_ID``"
+msgstr ""
+
+#: ../../xml-generator.rst:113
+msgid "submit description profile id"
+msgstr ""
+
+#: ../../xml-generator.rst:114
+msgid "``_PROFILE_SIP_ID``"
+msgstr ""
+
+#: ../../xml-generator.rst:114
+msgid "sip profile id"
+msgstr ""
+
+#: ../../xml-generator.rst:115
+msgid "``_PROFILE_AIP_ID``"
+msgstr ""
+
+#: ../../xml-generator.rst:115
+msgid "aip profile id"
+msgstr ""
+
+#: ../../xml-generator.rst:116
+msgid "``_PROFILE_DIP_ID``"
+msgstr ""
+
+#: ../../xml-generator.rst:116
+msgid "dip profile id"
+msgstr ""
+
+#: ../../xml-generator.rst:117
+msgid "``_PROFILE_CONTENT_TYPE_ID``"
+msgstr ""
+
+#: ../../xml-generator.rst:117
+msgid "content type profile id"
+msgstr ""
+
+#: ../../xml-generator.rst:118
+msgid "``_PROFILE_AUTHORITY_INFORMATION_ID``"
+msgstr ""
+
+#: ../../xml-generator.rst:118
+msgid "authority information profile id"
+msgstr ""
+
+#: ../../xml-generator.rst:119
+msgid "``_PROFILE_ARCHIVAL_DESCRIPTION_ID``"
+msgstr ""
+
+#: ../../xml-generator.rst:119
+msgid "archival description profile id"
+msgstr ""
+
+#: ../../xml-generator.rst:120
+msgid "``_PROFILE_PRESERVATION_METADATA_ID``"
+msgstr ""
+
+#: ../../xml-generator.rst:120
+msgid "preservation metadata profile id"
+msgstr ""
+
+#: ../../xml-generator.rst:121
+msgid "``_PROFILE_DATA_SELECTION_ID``"
+msgstr ""
+
+#: ../../xml-generator.rst:121
+msgid "data selection profile id"
+msgstr ""
+
+#: ../../xml-generator.rst:122
+msgid "``_PROFILE_IMPORT_ID``"
+msgstr ""
+
+#: ../../xml-generator.rst:122
+msgid "import profile id"
+msgstr ""
+
+#: ../../xml-generator.rst:123
+msgid "``_PROFILE_WORKFLOW_ID``"
+msgstr ""
+
+#: ../../xml-generator.rst:123
+msgid "workflow profile id"
+msgstr ""
+
+#: ../../xml-generator.rst:126
+msgid ""
+"In addition to the list above, all parameters can also be accessed with "
+"the ``_PARAMETER_{ENTITY}`` syntax where ``{ENTITY}`` is the name of the "
+"parameter."
+msgstr ""
+
+#: ../../xml-generator.rst:130
+msgid "XML Formatters"
+msgstr ""
+
+#: ../../xml-generator.rst:132
+msgid ""
+"XML formatters are suffixes that can be used to transform variables. They"
+" can be used by appending a ``__{FORMAT}`` suffix to a variable:"
+msgstr ""
+
+#: ../../xml-generator.rst:141
+msgid ""
+"If we create this with ``created = \"2018-02-05 12:30:25\"`` we get the "
+"following XML"
+msgstr ""
+
+#: ../../xml-generator.rst:149
+msgid "``DATE``"
+msgstr ""
+
+#: ../../xml-generator.rst:149
+msgid "Keep only the date part of the variable"
+msgstr ""
+
+#: ../../xml-generator.rst:150
+msgid "``LOCALTIME``"
+msgstr ""
+
+#: ../../xml-generator.rst:150
+msgid "Convert the variable to local timezone with a UTC offset"
+msgstr ""
+
+#: ../../xml-generator.rst:154
+msgid "Django Templates"
+msgstr ""
+
+#: ../../xml-generator.rst:156
+msgid ""
+"In addition to the variables and formatters above we can also use the "
+"`Django Template Engine "
+"<https://docs.djangoproject.com/en/1.11/ref/templates/>`_ by using a "
+"string instead of a dictionary:"
+msgstr ""
+
+#: ../../xml-generator.rst:167
+msgid "used with ``myvar = \"world\"`` results in"
+msgstr ""
+
+#: ../../xml-generator.rst:173
+msgid "All Django tags and filters works too:"
+msgstr ""
+
+#: ../../xml-generator.rst:187
+msgid "Template Tags"
+msgstr ""
+
+#: ../../xml-generator.rst:189
+#, python-format
+msgid ""
+"In addition to Django's built-in tags there are the ``essxml`` template "
+"tags available by using ``{% load essxml %}``"
+msgstr ""
+
+#: ../../xml-generator.rst:193
+msgid "``uuid4``"
+msgstr ""
+
+#: ../../xml-generator.rst:193
+msgid "Generates a version 4 UUID"
+msgstr ""
+

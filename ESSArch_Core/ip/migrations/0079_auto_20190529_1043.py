@@ -10,26 +10,18 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('tags', '0048_auto_20190529_1043'),
-        ('ip', '0078_auto_20190523_1115'),
+        ('ip', '0078_auto_20190406_1559'),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='eventip',
-            name='structure_units',
-        ),
-        migrations.RemoveField(
-            model_name='eventip',
-            name='tag_versions',
-        ),
         migrations.AddField(
             model_name='eventip',
             name='delivery',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='events', to='tags.Delivery', verbose_name='delivery'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='events', to='tags.Delivery', verbose_name='delivery'),
         ),
         migrations.AddField(
             model_name='eventip',
             name='transfer',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='events', to='tags.Transfer', verbose_name='transfer'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='events', to='tags.Transfer', verbose_name='transfer'),
         ),
     ]

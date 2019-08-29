@@ -16,7 +16,6 @@ from elasticsearch_dsl import (
     tokenizer,
 )
 
-from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.search.documents import DocumentBase
 from ESSArch_Core.tags.models import StructureUnit, TagVersion
 
@@ -290,11 +289,12 @@ class InformationPackageDocument(VersionedDocType):
 
     @classmethod
     def get_model(cls):
+        from ESSArch_Core.ip.models import InformationPackage
         return InformationPackage
 
     @classmethod
     def from_obj(cls, obj):
-        doc = InformationPackage(
+        doc = InformationPackageDocument(
             _id=str(obj.pk),
             id=str(obj.pk),
             object_identifier_value=obj.object_identifier_value,

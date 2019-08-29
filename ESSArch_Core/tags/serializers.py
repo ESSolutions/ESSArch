@@ -180,6 +180,8 @@ class StructureWriteSerializer(StructureSerializer):
             ),
         ]
         extra_kwargs = {
+            'is_template': {'read_only': True},
+            'template': {'read_only': True},
             'version': {
                 'default': '1.0',
             }
@@ -551,7 +553,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
         return obj.is_leaf_node(structure=self.context.get('structure'))
 
     def get_masked_fields(self, obj):
-        cache_key = u'{}_masked_fields'.format(obj.pk)
+        cache_key = '{}_masked_fields'.format(obj.pk)
         cached = cache.get(cache_key)
         if cached is not None:
             return cached
@@ -698,8 +700,10 @@ class DeliverySerializer(serializers.ModelSerializer):
 class DeliveryWriteSerializer(DeliverySerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=DeliveryType.objects.all())
     submission_agreement = serializers.PrimaryKeyRelatedField(
-        queryset=SubmissionAgreement.objects.filter(published=True), allow_null=True)
-    producer_organization = serializers.PrimaryKeyRelatedField(queryset=Agent.objects.all(), allow_null=True)
+        queryset=SubmissionAgreement.objects.filter(published=True), default=None, allow_null=True)
+    producer_organization = serializers.PrimaryKeyRelatedField(
+        queryset=Agent.objects.all(), default=None, allow_null=True,
+    )
 
     def create(self, validated_data):
         obj = super().create(validated_data)

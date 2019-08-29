@@ -3,6 +3,7 @@ from pydoc import locate
 import click
 from django.conf import settings
 
+from ESSArch_Core.config.decorators import initialize
 from ESSArch_Core.search import alias_migration
 
 
@@ -19,6 +20,7 @@ def get_indexes(indexes):
 
 @click.command()
 @click.option('-i', '--index', 'indexes', type=str, multiple=True, help='Specify which index to update.')
+@initialize
 def clear(indexes):
     """Clear indices
     """
@@ -34,6 +36,7 @@ def clear(indexes):
 @click.option('-b', '--batch-size', 'batch_size', type=int, help='Number of items to index at once.')
 @click.option('-r', '--remove-stale', 'remove_stale', is_flag=True, default=False, help='Remove objects from the index \
                                                                            that are no longer in the database.')
+@initialize
 def rebuild(indexes, batch_size, remove_stale):
     """Rebuild indices
     """
@@ -41,8 +44,10 @@ def rebuild(indexes, batch_size, remove_stale):
     indexes = get_indexes(indexes)
 
     for index in indexes:
+        click.secho('Rebuilding {}... '.format(index._index._name), nl=False)
         clear_index(index)
         index_documents(index, batch_size, remove_stale)
+        click.secho('done', fg='green')
 
 
 @click.command()
@@ -50,6 +55,7 @@ def rebuild(indexes, batch_size, remove_stale):
 @click.option('-m', '--move-data', 'move_data', is_flag=True, default=True)
 @click.option('-u', '--update-alias', 'update_alias', is_flag=True, default=True)
 @click.option('-d', '--delete-old-index', 'delete_old', is_flag=True, default=False)
+@initialize
 def migrate(indexes, move_data, update_alias, delete_old):
     """Migrate indices
     """

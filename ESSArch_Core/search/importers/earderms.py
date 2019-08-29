@@ -11,7 +11,12 @@ from django.db.models import Q
 from lxml import etree
 
 from ESSArch_Core.search.importers.base import BaseImporter
-from ESSArch_Core.tags.documents import Component, File, Node
+from ESSArch_Core.tags.documents import (
+    Component,
+    File,
+    InnerArchiveDocument,
+    Node,
+)
 from ESSArch_Core.tags.models import (
     StructureUnit,
     Tag,
@@ -459,7 +464,7 @@ class EardErmsImporter(BaseImporter):
             structure_unit=str(structure_unit.pk),
             type='Ärende',
             reference_code=reference_code,
-            archive=str(archive.pk),
+            archive=InnerArchiveDocument.from_obj(archive),
             ip=ip_id,
             task_id=str(self.task.pk),
             **data

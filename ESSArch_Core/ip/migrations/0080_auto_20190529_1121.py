@@ -13,12 +13,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterField(
             model_name='eventip',
-            name='delivery',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='events', to='tags.Delivery', verbose_name='delivery'),
-        ),
-        migrations.AlterField(
-            model_name='eventip',
-            name='transfer',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='events', to='tags.Transfer', verbose_name='transfer'),
+            name='eventOutcomeDetailNote',
+            field=models.CharField(blank=True, max_length=1024),
         ),
     ]

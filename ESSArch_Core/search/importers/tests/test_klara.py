@@ -119,8 +119,8 @@ class ParseAgentAlternativeNamesTests(TestCase):
 
         self.assertEqual(len(list(names)), 2)
         self.assertEqual(
-            AgentName.objects.filter(main="first", start_date="1947-01-01", end_date="1974-01-01").count(), 1
+            AgentName.objects.filter(main="first", start_date="1947-01-01", end_date="1974-12-31").count(), 1
         )
         self.assertEqual(
-            AgentName.objects.filter(main="second", start_date="1974-01-01", end_date="1995-01-01").count(), 1
+            AgentName.objects.filter(main="second", start_date="1974-01-01", end_date="1995-12-31").count(), 1
         )

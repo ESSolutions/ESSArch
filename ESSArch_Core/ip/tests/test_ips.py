@@ -60,7 +60,12 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     StorageTarget,
 )
-from ESSArch_Core.tags.models import Structure, Tag, TagStructure
+from ESSArch_Core.tags.models import (
+    Structure,
+    StructureType,
+    Tag,
+    TagStructure,
+)
 from ESSArch_Core.testing.runner import TaskRunner
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
@@ -1462,15 +1467,15 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
     @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
                 return_value='foo.tar')
     @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    def test_receive_ip_with_missing_tag(self, mock_isfile, mock_get_container):
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
+    def test_receive_ip_with_missing_tag(self, mock_step, mock_isfile, mock_get_container):
         ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
         url = reverse('ip-reception-receive', args=[ip.pk])
         perms = {'group': ['view_informationpackage', 'ip.receive']}
         self.member.assign_object(self.group, ip, custom_permissions=perms)
 
-        # return 400 when no tag is provided
         res = self.client.post(url, data={'storage_policy': self.policy.pk})
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
                 return_value='foo.tar')
@@ -1483,7 +1488,8 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         self.member.assign_object(self.group, ip, custom_permissions=perms)
 
         tag = Tag.objects.create()
-        structure = Structure.objects.create()
+        structure_type = StructureType.objects.create()
+        structure = Structure.objects.create(is_template=True, type=structure_type)
         tag_structure = TagStructure.objects.create(tag=tag, structure=structure)
         res = self.client.post(url, data={'storage_policy': self.policy.pk, 'tag': tag_structure.pk})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -1491,7 +1497,7 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         mock_receive.assert_called_once()
 
     def test_prepare_conflict(self):
-        ip = InformationPackage.objects.create(object_identifier_value='foo')
+        ip = InformationPackage.objects.create(object_identifier_value='foo', package_type=InformationPackage.AIP)
         url = reverse('ip-reception-prepare', args=[ip.object_identifier_value])
         res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_409_CONFLICT)
@@ -1779,8 +1785,8 @@ class CreateIPTestCase(TestCase):
         self.datadir = os.path.join(self.root, 'datadir')
         Path.objects.create(entity='path_preingest_prepare', value=self.datadir)
 
-        EventType.objects.create(eventType=10100)
-        EventType.objects.create(eventType=10200)
+        EventType.objects.create(eventType=10100, category=EventType.CATEGORY_INFORMATION_PACKAGE)
+        EventType.objects.create(eventType=10200, category=EventType.CATEGORY_INFORMATION_PACKAGE)
 
         self.addCleanup(shutil.rmtree, self.datadir)
 
@@ -2066,7 +2072,7 @@ class UploadTestCase(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-        EventType.objects.create(eventType=50700)
+        EventType.objects.create(eventType=50700, category=EventType.CATEGORY_INFORMATION_PACKAGE)
 
         self.root = os.path.dirname(os.path.realpath(__file__))
         self.datadir = os.path.join(self.root, 'datadir')

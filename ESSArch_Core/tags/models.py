@@ -611,6 +611,7 @@ class Tag(models.Model):
             ('create_archive', 'Can create new archives'),
             ('change_archive', 'Can change archives'),
             ('delete_archive', 'Can delete archives'),
+            ('change_tag_location', 'Can change tag location'),
         )
 
 

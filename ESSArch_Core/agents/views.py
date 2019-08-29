@@ -96,11 +96,25 @@ class AgentViewSet(viewsets.ModelViewSet):
             'type__main_type', 'ref_code', 'language',
         ).prefetch_related(
             Prefetch('names', AgentName.objects.prefetch_related('type')),
-            Prefetch('identifiers', AgentIdentifier.objects.prefetch_related('type').order_by('type__name', 'identifier')),
-            Prefetch('agentplace_set', AgentPlace.objects.prefetch_related('topography', 'type',).order_by(F('start_date').desc(nulls_first=True))),
+            Prefetch(
+                'identifiers',
+                AgentIdentifier.objects.prefetch_related('type').order_by('type__name', 'identifier')
+            ),
+            Prefetch(
+                'agentplace_set',
+                AgentPlace.objects.prefetch_related(
+                    'topography', 'type',
+                ).order_by(F('start_date').desc(nulls_first=True))
+            ),
             Prefetch('notes', AgentNote.objects.prefetch_related('type').order_by('-create_date')),
-            Prefetch('mandates', SourcesOfAuthority.objects.prefetch_related('type').order_by(F('start_date').desc(nulls_first=True))),
-            Prefetch('agent_relations_a', AgentRelation.objects.prefetch_related('agent_b').order_by(F('start_date').desc(nulls_first=True))),
+            Prefetch(
+                'mandates',
+                SourcesOfAuthority.objects.prefetch_related('type').order_by(F('start_date').desc(nulls_first=True))
+            ),
+            Prefetch(
+                'agent_relations_a',
+                AgentRelation.objects.prefetch_related('agent_b').order_by(F('start_date').desc(nulls_first=True))
+            ),
         )
 
     def get_serializer_class(self):

@@ -1,0 +1,80 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../installation/etp/running.rst:5
+msgid "Running ESSArch Tools Producer"
+msgstr ""
+
+#: ../../installation/etp/running.rst:9
+msgid "Start ETP server"
+msgstr ""
+
+#: ../../installation/etp/running.rst:12
+msgid "A startup or shutdown of ETP should always be controlled"
+msgstr ""
+
+#: ../../installation/etp/running.rst:23
+msgid "Stop ETP server"
+msgstr ""
+
+#: ../../installation/etp/running.rst:34
+msgid "Access ETP web user interface"
+msgstr ""
+
+#: ../../installation/etp/running.rst:36
+msgid ""
+"Start your preferable web browser and connect to ETP Server name or IP "
+"address."
+msgstr ""
+
+#: ../../installation/etp/running.rst:38
+msgid ""
+"By default, for test purpose, the installation has configured the "
+"following users:"
+msgstr ""
+
+#: ../../installation/etp/running.rst:42
+msgid "**Username**"
+msgstr ""
+
+#: ../../installation/etp/running.rst:42
+msgid "**Password**"
+msgstr ""
+
+#: ../../installation/etp/running.rst:42
+msgid "**Role/Permissions**"
+msgstr ""
+
+#: ../../installation/etp/running.rst:44
+msgid "user"
+msgstr ""
+
+#: ../../installation/etp/running.rst:44
+msgid "prepare, create, submit"
+msgstr ""
+
+#: ../../installation/etp/running.rst:46
+msgid "admin"
+msgstr ""
+
+#: ../../installation/etp/running.rst:48
+msgid "sysadmin"
+msgstr ""
+
