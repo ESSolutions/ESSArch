@@ -1,1 +1,2 @@
-angular.module('essarch.controllers').controller('FormErrorsCtrl', function() {});
+const FormErrorsCtrl = () => {};
+export default FormErrorsCtrl;

@@ -22,19 +22,8 @@
     Email - essarch@essolutions.se
 */
 
-angular
-  .module('essarch.controllers')
-  .controller('AngularTreeCtrl', function AngularTreeCtrl(
-    Tag,
-    $scope,
-    $http,
-    $rootScope,
-    appConfig,
-    $translate,
-    $uibModal,
-    $log,
-    $state
-  ) {
+export default class AngularTreeCtrl {
+  constructor(Tag, $scope, $rootScope, $translate, $uibModal, $log, $state) {
     $scope.treeOptions = {
       nodeChildren: 'children',
       dirSelectable: true,
@@ -233,4 +222,5 @@ angular
         $rootScope.loadTags();
       });
     };
-  });
+  }
+}

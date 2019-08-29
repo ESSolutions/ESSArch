@@ -1,6 +1,8 @@
-angular.module('essarch.components').component('profileManager', {
+import Controller from '../controllers/ProfileManagerCtrl';
+
+export default {
   templateUrl: 'static/frontend/views/profile_manager.html',
-  controller: 'ProfileManagerCtrl',
+  controller: ['$state', '$scope', Controller],
   controllerAs: 'vm',
   bindings: {},
-});
+};

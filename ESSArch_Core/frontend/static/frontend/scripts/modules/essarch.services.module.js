@@ -16,6 +16,8 @@ import ipReception from '../services/ipReception';
 import listViewService from '../services/listViewService';
 import order from '../services/order';
 import {profile, profileIp, profileIpData} from '../services/profile';
+import profileMakerTemplate from '../services/profileMaker';
+import profileMakerExtension from '../services/profileMakerExtension';
 import requests from '../services/requests';
 import resource from '../services/resource';
 import robot from '../services/robot';
@@ -78,6 +80,8 @@ export default angular
   .factory('Profile', ['$resource', 'appConfig', profile])
   .factory('ProfileIp', ['$resource', 'appConfig', profileIp])
   .factory('ProfileIpData', ['$resource', 'appConfig', profileIpData])
+  .factory('ProfileMakerTemplate', ['$resource', 'appConfig', profileMakerTemplate])
+  .factory('ProfileMakerExtension', ['$resource', 'appConfig', profileMakerExtension])
   .factory('Requests', ['Notifications', 'IP', requests])
   .factory('Resource', ['listViewService', 'Storage', '$rootScope', resource])
   .factory('Robot', ['$resource', 'appConfig', robot])

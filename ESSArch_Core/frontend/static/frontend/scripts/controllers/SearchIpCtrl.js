@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('SearchIpCtrl', function(appConfig, $scope, $rootScope, $http, IP, $stateParams, Notifications, $state) {
+export default class SearchIpCtrl {
+  constructor(appConfig, $rootScope, $http, IP, $stateParams, Notifications, $state) {
     var vm = this;
     vm.$onInit = function() {
       vm.getIpObject($stateParams.id)
@@ -27,4 +26,5 @@ angular
         });
       });
     };
-  });
+  }
+}

@@ -1,17 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('StructureModalInstanceCtrl', function(
-    Search,
-    $translate,
-    $uibModalInstance,
-    djangoAuth,
-    appConfig,
-    $http,
-    data,
-    $scope,
-    Notifications,
-    $timeout
-  ) {
+export default class StructureModalInstanceCtrl {
+  constructor(Search, $translate, $uibModalInstance, data, Notifications) {
     var $ctrl = this;
     $ctrl.node = data.node;
     $ctrl.creating = false;
@@ -32,4 +20,5 @@ angular
     $ctrl.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}

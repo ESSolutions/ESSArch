@@ -1,4 +1,4 @@
-angular.module('essarch.controllers').controller('SearchResultFieldCtrl', function($scope) {
+export default () => {
   var vm = this;
   vm.$onInit = function() {};
-});
+};

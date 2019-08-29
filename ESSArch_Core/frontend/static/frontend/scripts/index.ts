@@ -684,20 +684,6 @@ angular
             authenticated: resolveAuthenticated,
           },
         })
-        .state('home.administration.searchAdmin', {
-          url: '/search-admin',
-          template: '<search-admin></search-admin>',
-          redirectTo: 'home.administration.searchAdmin.archiveManager',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.administration.searchAdmin', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
         .state('home.administration.mediaInformation', {
           url: '/media-information',
           templateUrl: '/static/frontend/views/administration_media_information.html',

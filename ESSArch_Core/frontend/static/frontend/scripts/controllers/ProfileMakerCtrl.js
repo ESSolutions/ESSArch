@@ -1,16 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('ProfileMakerCtrl', function(
-    $translate,
-    ProfileMakerTemplate,
-    ProfileMakerExtension,
-    $scope,
-    $state,
-    $rootScope,
-    $http,
-    $uibModal,
-    $log
-  ) {
+export default class ProfileMakerCtrl {
+  constructor(ProfileMakerTemplate, ProfileMakerExtension, $scope, $state, $http, $uibModal, $log) {
     var vm = this;
     vm.templates = [];
     vm.template = null;
@@ -1083,4 +1072,5 @@ angular
         },
       },
     ];
-  });
+  }
+}
