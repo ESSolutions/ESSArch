@@ -62,23 +62,18 @@ class StorageTargetInline(NestedStackedInline):
         form.base_fields['storage_target'].widget.can_change_related = False
         return formset
 
+class StorageMethodTargetRelationInlineFormSet(forms.models.BaseInlineFormSet):
+    def clean(self):
+        enabled = False
+        for form in self.forms:
+            if form.cleaned_data.get('status') == STORAGE_TARGET_STATUS_ENABLED:
+                if enabled:
+                    raise forms.ValidationError(
+                        _('Only 1 target can be enabled for a storage method at a time'),
+                        code='invalid',
+                    )
 
-class StorageMethodTargetRelationInlineForm(forms.ModelForm):
-    def clean_status(self):
-        data = self.cleaned_data['status']
-        if data == STORAGE_TARGET_STATUS_ENABLED:
-            storage_method = self.instance.storage_method
-            enabled_target = StorageMethodTargetRelation.objects.filter(
-                storage_method=storage_method,
-                status=STORAGE_TARGET_STATUS_ENABLED,
-            ).first()
-
-            if enabled_target != self.instance and enabled_target is not None:
-                raise forms.ValidationError(
-                    _('Only 1 target can be enabled for a storage method at a time'),
-                    code='invalid',
-                )
-        return data
+                enabled = True
 
 
 class StorageMethodTargetRelationInline(admin.TabularInline):
@@ -86,7 +81,7 @@ class StorageMethodTargetRelationInline(admin.TabularInline):
     StorageMethodTargetRelation configuration
     """
     model = StorageMethod.targets.through
-    form = StorageMethodTargetRelationInlineForm
+    formset = StorageMethodTargetRelationInlineFormSet
     extra = 0
 
 
