@@ -640,11 +640,13 @@ input[type='checkbox'] {
   justify-content: flex-end;
   margin-left: 10px;
 }
-
-.formly-field {
-  width: 24%;
-  margin: 5px;
+.validator-choices {
+  .formly-field {
+    width: 24%;
+    margin: 5px;
+  }
 }
+
 .submit-button {
   margin-left: 5px;
 }

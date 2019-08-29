@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('AccessModalInstanceCtrl', function($uibModalInstance, data, $scope, Requests, $q) {
+export default class AccessModalInstanceCtrl {
+  constructor($uibModalInstance, data, Requests, $q) {
     var $ctrl = this;
     $ctrl.angular = angular;
     $ctrl.data = data;
@@ -55,4 +54,5 @@ angular
         $ctrl.accessing = false;
       });
     };
-  });
+  }
+}

@@ -357,7 +357,16 @@ class PreserveInformationPackage(DBTask):
         except StorageTarget.DoesNotExist:
             raise ValueError('No writeable target available for {}'.format(storage_method))
 
-        return ip.preserve(storage_target, storage_method.containers, self.get_processtask())
+        if storage_method.containers or storage_target.remote_server:
+            src = [
+                ip.get_temp_container_path(),
+                ip.get_temp_container_xml_path(),
+                ip.get_temp_container_aic_xml_path(),
+            ]
+        else:
+            src = [ip.object_path]
+
+        return ip.preserve(src, storage_target, storage_method.containers, self.get_processtask())
 
 
 class WriteInformationPackageToSearchIndex(DBTask):

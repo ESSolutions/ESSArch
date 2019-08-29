@@ -33,9 +33,9 @@ default_app_config = 'ESSArch_Core.config.apps.ConfigConfig'
 
 
 def initialize():
-    from ESSArch_Core.config.celery import app  # noqa
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ESSArch_Core.config.settings')
     django.setup()
+    from ESSArch_Core.config.celery import app  # noqa
 
 
 def load_config_template(path):

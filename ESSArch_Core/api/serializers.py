@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 
+from django.utils.functional import cached_property
 from drf_dynamic_fields import DynamicFieldsMixin
 from languages_plus.models import Language
 from rest_framework import serializers, validators
@@ -33,27 +34,36 @@ class DynamicModelSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     controls which fields should be displayed.
     """
 
+    _dynamic_fields = None
+    _dynamic_omitted = None
+
     def __init__(self, *args, **kwargs):
-        # Don't pass the 'fields' and 'omit' args up to the superclass
-        fields = kwargs.pop('fields', None)
-        omit = kwargs.pop('omit', None)
+        # Don't pass the 'fields' arg up to the superclass
+        self._dynamic_fields = kwargs.pop('fields', None)
+        self._dynamic_fields_omitted = kwargs.pop('omit', None)
 
         # Instantiate the superclass normally
         super().__init__(*args, **kwargs)
 
-        if fields is not None:
-            # Drop any fields that are not specified in the `fields` argument.
-            allowed = set(fields)
-            existing = set(self.fields.keys())
-            for field_name in existing - allowed:
-                self.fields.pop(field_name)
+    @cached_property
+    def fields(self):
+        fields = super().fields
 
-        if omit is not None:
+        if self._dynamic_fields is not None:
+            # Drop any fields that are not specified in the `fields` argument.
+            allowed = set(self._dynamic_fields)
+            existing = set(fields)
+            for field_name in existing - allowed:
+                fields.pop(field_name)
+
+        if self._dynamic_fields_omitted is not None:
             # Drop any fields that are specified in the `omit` argument.
-            disallowed = set(omit)
-            existing = set(self.fields.keys())
+            disallowed = set(self._dynamic_fields_omitted)
+            existing = set(fields)
             for field_name in existing & disallowed:
-                self.fields.pop(field_name)
+                fields.pop(field_name)
+
+        return fields
 
 
 class LanguageSerializer(serializers.ModelSerializer):

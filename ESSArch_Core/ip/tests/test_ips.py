@@ -1477,6 +1477,8 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         res = self.client.post(url, data={'storage_policy': self.policy.pk})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
+        mock_step.assert_called_once()
+
     @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
                 return_value='foo.tar')
     @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
@@ -1501,6 +1503,11 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         url = reverse('ip-reception-prepare', args=[ip.object_identifier_value])
         res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_409_CONFLICT)
+
+        ip.package_type = InformationPackage.SIP
+        ip.save()
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_prepare_missing_package(self):
         url = reverse('ip-reception-prepare', args=[123])

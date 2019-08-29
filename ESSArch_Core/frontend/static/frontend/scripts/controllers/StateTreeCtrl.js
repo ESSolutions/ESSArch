@@ -27,7 +27,6 @@ export default class StateTreeCtrl {
     $scope.angular = angular;
     $scope.statusShow = false;
     $scope.eventShow = false;
-    vm.validations = [];
 
     $scope.$translate = $translate;
 
@@ -61,11 +60,6 @@ export default class StateTreeCtrl {
           cellTemplate: '<div ng-include src="\'static/frontend/views/step_task_progressbar.html\'"></div>',
         },
       ];
-      if ($scope.checkPermission('WorkflowEngine.can_undo')) {
-        $scope.col_defs.push({
-          cellTemplate: '<div ng-include src="\'static/frontend/views/workflow/undo.html\'"></div>',
-        });
-      }
       if ($scope.checkPermission('WorkflowEngine.can_retry')) {
         $scope.col_defs.push({
           cellTemplate: '<div ng-include src="\'static/frontend/views/workflow/redo.html\'"></div>',
@@ -157,11 +151,6 @@ export default class StateTreeCtrl {
       branch
         .$retry()
         .then(function(response) {
-          if ($scope.currentStepTask.flow_type === 'task') {
-            $scope.getTask($scope.currentStepTask);
-          } else {
-            $scope.getStep($scope.currentStepTask);
-          }
           $timeout(function() {
             $scope.statusViewUpdate($scope.ip);
           }, 1000);
@@ -203,7 +192,6 @@ export default class StateTreeCtrl {
         }
         $scope.currentStepTask = data;
         $scope.stepTaskLoading = false;
-        vm.getValidations(vm.validationTableState);
         return data;
       });
     };
@@ -234,23 +222,6 @@ export default class StateTreeCtrl {
         $scope.getStep(branch).then(function(data) {
           $scope.stepInfoModal();
         });
-      }
-    };
-
-    // build comma separated args display string
-    vm.getArgsString = function(args) {
-      if (!angular.isUndefined(args)) {
-        return args
-          .map(function(x) {
-            if (x === null) {
-              return 'null';
-            } else {
-              return x;
-            }
-          })
-          .join(', ');
-      } else {
-        return '';
       }
     };
 
@@ -348,46 +319,8 @@ export default class StateTreeCtrl {
       return ret;
     }
 
-    /**
-     * Validation pipe function for getting validations
-     * @param {Object} tableState table state
-     */
-    vm.getValidations = function(tableState) {
-      $scope.validationsLoading = true;
-      if (vm.validations.length == 0) {
-        $scope.initLoad = true;
-      }
-      if (!angular.isUndefined(tableState)) {
-        vm.validationTableState = tableState;
-        var search = '';
-        if (tableState.search.predicateObject) {
-          var search = tableState.search.predicateObject['$'];
-        }
-        var sorting = (tableState.sort.reverse ? '-' : '') + tableState.sort.predicate;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
-        return Task.validations({
-          id: $scope.currentStepTask.id,
-          page: paginationParams.pageNumber,
-          page_size: paginationParams.number,
-          ordering: sorting,
-          search: search,
-        })
-          .$promise.then(function(resource) {
-            vm.validations = resource;
-            tableState.pagination.numberOfPages = Math.ceil(resource.$httpHeaders('Count') / paginationParams.number); //set the number of pages so the pagination can update
-            $scope.validationsLoading = false;
-            return resource;
-          })
-          .catch(function(response) {
-            $scope.validationsLoading = false;
-            return response;
-          });
-      }
-    };
-
     //Modal functions
-    $scope.tracebackModal = function(profiles) {
-      $scope.profileToSave = profiles;
+    $scope.tracebackModal = function() {
       var modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -416,11 +349,12 @@ export default class StateTreeCtrl {
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
         templateUrl: 'static/frontend/views/modals/task_info_modal.html',
-        scope: $scope,
         controller: 'TaskInfoModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
-          data: {},
+          data: {
+            currentStepTask: $scope.currentStepTask,
+          },
         },
       });
       modalInstance.result.then(
@@ -438,11 +372,12 @@ export default class StateTreeCtrl {
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
         templateUrl: 'static/frontend/views/modals/step_info_modal.html',
-        scope: $scope,
         controller: 'StepInfoModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
-          data: {},
+          data: {
+            currentStepTask: $scope.currentStepTask,
+          },
         },
       });
       modalInstance.result.then(

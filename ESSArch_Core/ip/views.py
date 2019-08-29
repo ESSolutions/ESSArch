@@ -523,7 +523,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             steps = steps.filter(hidden=string_to_bool(hidden))
             tasks = tasks.filter(hidden=string_to_bool(hidden))
 
-        flow = sorted(itertools.chain(steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
+        flow = sorted(itertools.chain(steps, tasks), key=lambda x: (x.time_created, x.get_pos()))
 
         serializer = ProcessStepChildrenSerializer(data=flow, many=True, context={'request': request})
         serializer.is_valid()
@@ -1056,13 +1056,14 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='add-file-from-master')
     def add_file_from_master(self, request, pk=None):
         temp_dir = Path.objects.get(entity='temp').value
+        dst = request.data.get('dst') or temp_dir
 
         if not request.user.has_perm('ip.can_receive_remote_files'):
             raise exceptions.PermissionDenied
 
         f = request.FILES['file']
         content_range = request.META.get('HTTP_CONTENT_RANGE', 'bytes 0-0/0')
-        filename = os.path.join(temp_dir, f.name)
+        filename = os.path.join(dst, f.name)
 
         (start, end, total) = parse_content_range_header(content_range)
 
@@ -1083,13 +1084,14 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='add-file-from-master_complete')
     def add_file_from_master_complete(self, request, pk=None):
         temp_dir = Path.objects.get(entity='temp').value
+        dst = request.data.get('dst') or temp_dir
 
         if not request.user.has_perm('ip.can_receive_remote_files'):
             raise exceptions.PermissionDenied
 
         md5 = request.data['md5']
         filepath = request.data['path']
-        filepath = os.path.join(temp_dir, filepath)
+        filepath = os.path.join(dst, filepath)
 
         options = {'expected': md5, 'algorithm': 'md5'}
         validator = ChecksumValidator(context='checksum_str', options=options)

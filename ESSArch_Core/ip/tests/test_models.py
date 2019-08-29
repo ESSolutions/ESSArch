@@ -824,19 +824,9 @@ class InformationPackagePreserveTests(TestCase):
         Parameter.objects.create(entity='agent_identifier_value', value='')
 
     @mock.patch('os.path.getsize', return_value=1024)
-    @mock.patch.object(InformationPackage, 'get_temp_container_aic_xml_path', return_value='aic.xml')
-    @mock.patch.object(InformationPackage, 'get_temp_container_xml_path', return_value='aip.xml')
     @mock.patch.object(DiskStorageBackend, 'write', return_value=None)
-    def test_preserve_container(self, mock_write, mock_aip_xml, mock_aic_xml, mock_getsize):
-        Path.objects.create(entity='reception', value='reception')
-        Path.objects.create(entity='temp', value='temp')
-        cache_storage = StorageMethod.objects.create()
-        policy = StoragePolicy.objects.create(
-            cache_storage=cache_storage,
-            ingest_path=Path.objects.create(),
-        )
-        aic = InformationPackage.objects.create()
-        ip = InformationPackage.objects.create(aic=aic, policy=policy)
+    def test_preserve_container(self, mock_write, mock_getsize):
+        ip = InformationPackage.objects.create()
 
         storage_method = StorageMethod.objects.create()
         storage_target = StorageTarget.objects.create()
@@ -851,38 +841,5 @@ class InformationPackagePreserveTests(TestCase):
         mock_write.return_value = mock.MagicMock()
         mock_write.return_value.pk = None
 
-        ip.preserve(storage_target, True, task)
-
-        mock_write.assert_called_once_with(
-            [os.path.join('temp', ip.object_identifier_value + '.tar'), 'aip.xml', 'aic.xml'], ip, True, mock.ANY
-        )
-
-    @mock.patch.object(DiskStorageBackend, 'write', return_value=None)
-    def test_preserve_non_container(self, mock_write):
-        cache_storage = StorageMethod.objects.create()
-        policy = StoragePolicy.objects.create(
-            cache_storage=cache_storage,
-            ingest_path=Path.objects.create(),
-        )
-        ip = InformationPackage.objects.create(
-            policy=policy, object_path='path/to/ip/dir'
-        )
-
-        storage_method = StorageMethod.objects.create()
-        storage_target = StorageTarget.objects.create()
-        StorageMethodTargetRelation.objects.create(
-            storage_method=storage_method,
-            storage_target=storage_target,
-            status=STORAGE_TARGET_STATUS_ENABLED
-        )
-
-        task = ProcessTask.objects.create(name="ESSArch_Core.ip.tasks.PreserveInformationPackage")
-
-        mock_write.return_value = mock.MagicMock()
-        mock_write.return_value.pk = None
-
-        ip.preserve(storage_target, False, task)
-
-        mock_write.assert_called_once_with(
-            [ip.object_path], ip, False, mock.ANY
-        )
+        ip.preserve(['foo.tar'], storage_target, True, task)
+        mock_write.assert_called_once_with(['foo.tar'], ip, True, mock.ANY)

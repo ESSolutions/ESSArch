@@ -25,6 +25,7 @@ from ESSArch_Core.storage.models import (
     TapeDrive,
     TapeSlot,
 )
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 class StorageMediumSerializer(serializers.ModelSerializer):
@@ -351,3 +352,36 @@ class RobotQueueSerializer(serializers.ModelSerializer):
             'id', 'user', 'posted', 'robot', 'io_queue_entry',
             'storage_medium', 'req_type', 'status'
         )
+
+
+class StorageMigrationCreateSerializer(serializers.Serializer):
+    information_packages = serializers.PrimaryKeyRelatedField(
+        write_only=True, many=True,
+        queryset=InformationPackage.objects.migratable(),
+    )
+    temp_path = serializers.CharField(write_only=True, allow_blank=False, allow_null=False)
+
+    def create(self, validated_data):
+        tasks = []
+        for ip in validated_data['information_packages']:
+            storage_methods = ip.get_new_storage_methods()
+            if not storage_methods.exists():
+                raise ValueError('No storage methods available for migration')
+
+            for storage_method in storage_methods:
+                t = ProcessTask(
+                    name='ESSArch_Core.storage.tasks.StorageMigration',
+                    label='Migrate to {}'.format(storage_method),
+                    args=[str(storage_method.pk), validated_data['temp_path']],
+                    information_package=ip,
+                    responsible=self.context['request'].user,
+                    eager=False,
+                )
+                tasks.append(t)
+
+        ProcessTask.objects.bulk_create(tasks, 100)
+
+        for t in tasks:
+            t.run()
+
+        return ProcessTask.objects.filter(pk__in=[t.pk for t in tasks])

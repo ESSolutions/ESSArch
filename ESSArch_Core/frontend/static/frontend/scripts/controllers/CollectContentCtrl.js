@@ -47,6 +47,7 @@ export default class CollectContentCtrl {
       package_type: 0,
     };
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params});
+    vm.uploading = false;
     vm.flowDestination = null;
     $scope.showFileUpload = true;
     $scope.currentFlowObject = null;
@@ -300,7 +301,6 @@ export default class CollectContentCtrl {
           $scope.resetUploadedFiles();
         }
       }
-
       $scope.updateGridArray();
     };
     $scope.hideFlowCompleted = function(flow) {
@@ -330,12 +330,14 @@ export default class CollectContentCtrl {
         complete: $scope.flowComplete,
       });
       flowObj.on('complete', function() {
+        vm.uploading = false;
         $scope.flowComplete(flowObj, flowObj.files);
       });
       flowObj.on('fileSuccess', function(file, message) {
         $scope.fileUploadSuccess(ip, file, message, flowObj);
       });
       flowObj.on('uploadStart', function() {
+        vm.uploading = true;
         flowObj.opts.query = {destination: vm.browserstate.path};
       });
       $rootScope.flowObjects[ip.id] = flowObj;

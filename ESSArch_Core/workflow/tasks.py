@@ -435,7 +435,7 @@ class StoreAIP(DBTask):
 
 class AccessAIP(DBTask):
     def run(self, aip, tar=True, extracted=False, new=False, package_xml=False,
-            aic_xml=False, object_identifier_value=""):
+            aic_xml=False, object_identifier_value="", dst=None):
         aip = InformationPackage.objects.get(pk=aip)
 
         # if it is a received IP, i.e. from ingest and not from storage,
@@ -476,7 +476,7 @@ class AccessAIP(DBTask):
             return str(workarea_obj.pk)
 
         storage_object = aip.get_fastest_readable_storage_object()
-        aip.access(storage_object, self.get_processtask())
+        aip.access(storage_object, self.get_processtask(), dst=dst)
         return
 
     def event_outcome_success(self, result, aip):
@@ -1130,6 +1130,7 @@ class IO(DBTask):
                     dst = urljoin(host, 'api/io-queue/%s/add-file/' % entry.pk)
 
                     session = requests.Session()
+                    session.verify = settings.REQUESTS_VERIFY
                     session.auth = (user, passw)
 
                     copy_file(cache_obj, dst, requests_session=session)

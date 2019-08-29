@@ -74,7 +74,7 @@ class IPAdmin(admin.ModelAdmin):
     """
     Informaion Package
     """
-    list_display = ('label', 'create_date', 'id', 'object_path', 'state')
+    list_display = ('label', 'id', 'object_path', 'state')
     readonly_fields = ('id',)
     list_filter = ('label',)
     fieldsets = (
@@ -85,9 +85,7 @@ class IPAdmin(admin.ModelAdmin):
                         'label',
                         'content',
                         'responsible',
-                        'create_date',
                         'state',
-                        'status',
                         'object_path',
                         'start_date',
                         'end_date',

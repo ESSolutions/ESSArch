@@ -26,7 +26,7 @@ class PreserveInformationPackageTests(TestCase):
         )
 
         self.user = User.objects.create()
-        self.ip = InformationPackage.objects.create(policy=self.storage_policy)
+        self.ip = InformationPackage.objects.create(policy=self.storage_policy, object_path='foo/bar')
 
     @TaskRunner()
     @mock.patch.object(InformationPackage, 'preserve', return_value=None)
@@ -63,4 +63,4 @@ class PreserveInformationPackageTests(TestCase):
         )
         task.run().get()
 
-        mock_preserve.assert_called_once_with(storage_target, False, task)
+        mock_preserve.assert_called_once_with([self.ip.object_path], storage_target, False, task)

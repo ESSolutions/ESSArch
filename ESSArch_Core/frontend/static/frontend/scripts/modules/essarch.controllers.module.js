@@ -1,6 +1,7 @@
 import * as angular from 'angular';
 
 import AccessCtrl from '../controllers/AccessCtrl';
+import AccessModalInstanceCtrl from '../controllers/AccessModalInstanceCtrl';
 import AccessIpCtrl from '../controllers/AccessIpCtrl';
 import AddNodeModalInstanceCtrl from '../controllers/AddNodeModalInstanceCtrl';
 import AdministrationCtrl from '../controllers/AdministrationCtrl';
@@ -67,6 +68,7 @@ import SearchDetailCtrl from '../controllers/SearchDetailCtrl';
 import StepInfoModalInstanceCtrl from '../controllers/StepInfoModalInstanceCtrl';
 import StorageMaintenanceCtrl from '../controllers/StorageMaintenanceCtrl';
 import StorageMigrationCtrl from '../controllers/StorageMigrationCtrl';
+import StorageMigrationModalInstanceCtrl from '../controllers/StorageMigrationModalInstanceCtrl';
 import StructureRuleModalCtrl from '../controllers/StructureRuleModalCtrl';
 import StructureUnitRelationModalInstanceCtrl from '../controllers/StructureUnitRelationModalInstanceCtrl';
 import StructureVersionModalInstanceCtrl from '../controllers/StructureVersionModalInstanceCtrl';
@@ -79,6 +81,7 @@ import UserSettingsCtrl from '../controllers/UserSettingsCtrl';
 import UtilCtrl from '../controllers/UtilCtrl';
 import VersionCtrl from '../controllers/VersionCtrl';
 import WorkareaCtrl from '../controllers/WorkareaCtrl';
+import StateTreeCtrl from '../controllers/StateTreeCtrl';
 
 import {permission, uiPermission} from 'angular-permission';
 import uiRouter from '@uirouter/angularjs';
@@ -122,6 +125,7 @@ export default angular
     'ui.select',
   ])
   .controller('AccessCtrl', AccessCtrl)
+  .controller('AccessModalInstanceCtrl', ['$uibModalInstance', 'data', 'Requests', '$q', AccessModalInstanceCtrl])
   .controller('AccessIpCtrl', [
     '$scope',
     '$controller',
@@ -710,7 +714,6 @@ export default angular
     '$transitions',
     SearchDetailCtrl,
   ])
-  .controller('StepInfoModalInstanceCtrl', ['$uibModalInstance', 'data', '$rootScope', StepInfoModalInstanceCtrl])
   .controller('StructureRuleModalCtrl', [
     '$uibModalInstance',
     '$http',
@@ -745,7 +748,6 @@ export default angular
     StructureVersionModalInstanceCtrl,
   ])
   .controller('TagsCtrl', ['$scope', 'vm', '$http', 'appConfig', TagsCtrl])
-  .controller('TaskInfoModalInstanceCtrl', ['$uibModalInstance', 'data', '$rootScope', TaskInfoModalInstanceCtrl])
   .controller('TransferCtrl', [
     '$scope',
     'appConfig',
@@ -769,6 +771,28 @@ export default angular
     'Utils',
     '$rootScope',
     TransferModalInstanceCtrl,
+  ])
+  .controller('StepInfoModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    '$rootScope',
+    '$scope',
+    'PermPermissionStore',
+    'Step',
+    'listViewService',
+    StepInfoModalInstanceCtrl,
+  ])
+  .controller('TaskInfoModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    '$rootScope',
+    '$scope',
+    'PermPermissionStore',
+    'Task',
+    'listViewService',
+    '$uibModal',
+    '$timeout',
+    TaskInfoModalInstanceCtrl,
   ])
   .controller('UserDropdownCtrl', [
     '$scope',
@@ -855,7 +879,45 @@ export default angular
     '$window',
     StatsReportModalInstanceCtrl,
   ])
-  .controller('StorageMigrationCtrl', ['$scope', StorageMigrationCtrl])
+  .controller('StateTreeCtrl', [
+    '$scope',
+    '$translate',
+    'Step',
+    'Task',
+    'appConfig',
+    '$timeout',
+    '$interval',
+    'PermPermissionStore',
+    '$q',
+    '$uibModal',
+    '$log',
+    'StateTree',
+    '$rootScope',
+    '$transitions',
+    'listViewService',
+    StateTreeCtrl,
+  ])
+  .controller('StorageMigrationCtrl', [
+    '$rootScope',
+    '$scope',
+    'appConfig',
+    '$http',
+    'listViewService',
+    'SelectedIPUpdater',
+    '$controller',
+    '$translate',
+    '$uibModal',
+    StorageMigrationCtrl,
+  ])
+  .controller('StorageMigrationModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    '$http',
+    'appConfig',
+    '$translate',
+    '$log',
+    StorageMigrationModalInstanceCtrl,
+  ])
   .controller('StorageMaintenanceCtrl', ['$scope', '$rootScope', StorageMaintenanceCtrl])
   .controller('WorkareaCtrl', [
     'vm',

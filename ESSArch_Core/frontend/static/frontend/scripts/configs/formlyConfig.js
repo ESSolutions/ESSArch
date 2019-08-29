@@ -1,6 +1,12 @@
+import datepickerTemplate from '../../views/formly_templates/datepicker_template.html';
+import errorMessagesTemplate from '../../views/formly_templates/form_error_messages.html';
+import inputTemplate from '../../views/formly_templates/form_template_input.html';
+import selectTemplate from '../../views/formly_templates/form_template_select.html';
+import uiSelectTemplate from '../../views/formly_templates/ui_select_template.html';
+
 const formlyConfig = [
   'formlyConfigProvider',
-  formlyConfigProvider => {
+  function(formlyConfigProvider) {
     function _defineProperty(obj, key, value) {
       if (key in obj) {
         Object.defineProperty(obj, key, {
@@ -16,7 +22,7 @@ const formlyConfig = [
     }
     formlyConfigProvider.setType({
       name: 'input',
-      templateUrl: 'static/frontend/views/formly_templates/form_template_input.html',
+      template: inputTemplate,
       overwriteOk: true,
       wrapper: ['bootstrapHasError'],
       defaultOptions: function(options) {
@@ -32,7 +38,7 @@ const formlyConfig = [
 
     formlyConfigProvider.setType({
       name: 'select',
-      templateUrl: 'static/frontend/views/formly_templates/form_template_select.html',
+      template: selectTemplate,
       overwriteOk: true,
       wrapper: ['bootstrapHasError'],
       defaultOptions: function defaultOptions(options) {
@@ -60,7 +66,7 @@ const formlyConfig = [
      */
     formlyConfigProvider.setType({
       name: 'datepicker',
-      templateUrl: 'static/frontend/views/formly_templates/datepicker_template.html',
+      template: datepickerTemplate,
       overwriteOk: true,
       wrapper: ['bootstrapHasError'],
       defaultOptions: function defaultOptions(options) {
@@ -82,7 +88,7 @@ const formlyConfig = [
      */
     formlyConfigProvider.setType({
       name: 'uiselect',
-      templateUrl: 'static/frontend/views/formly_templates/ui_select_template.html',
+      template: uiSelectTemplate,
       overwriteOk: true,
       wrapper: ['bootstrapHasError'],
       defaultOptions: function defaultOptions(options) {
@@ -130,7 +136,7 @@ const formlyConfig = [
     formlyConfigProvider.setWrapper({
       name: 'validation',
       types: ['input', 'datepicker', 'select', 'uiselect', 'textarea'],
-      templateUrl: 'static/frontend/views/formly_templates/form_error_messages.html',
+      template: errorMessagesTemplate,
     });
   },
 ];
