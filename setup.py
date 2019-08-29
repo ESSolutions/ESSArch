@@ -113,7 +113,7 @@ if __name__ == '__main__':
                      "sphinx-rtd-theme==0.4.3", "sphinxcontrib-httpdomain==1.7.0",
                      "sphinxcontrib-httpexample==0.10.3",
                      "sphinxcontrib-inlinesyntaxhighlight==0.2"],
-            "tests": ["coverage==4.5.3", "fakeredis[lua]==1.0.4", "django-test-without-migrations==0.6"],
+            "tests": ["coverage==4.5.4", "fakeredis[lua]==1.0.4", "django-test-without-migrations==0.6"],
             "s3": ["boto3==1.9.218"],
             "ldap": ["django-auth-ldap==2.0.0"],
             "saml2": ["djangosaml2==0.17.2"],
