@@ -102,7 +102,7 @@
   "scripts": {
     "build:dev": "webpack --mode=development",
     "build:prod": "webpack --mode=production",
-    "build:watch": "webpack --mode=development --watch",
+    "build:watch": "webpack --mode=development --watch --info-verbosity verbose",
     "test": "karma start karma.conf.js --single-run --reporters spec",
     "test-watch": "karma start karma.conf.js --reporters spec",
     "preupdate-webdriver": "yarn",
