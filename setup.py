@@ -109,7 +109,7 @@ if __name__ == '__main__':
             "weasyprint==48",
         ],
         extras_require={
-            "docs": ["sphinx==1.8.5", "sphinx-intl==0.9.11",
+            "docs": ["sphinx==1.8.5", "sphinx-intl==2.0.0",
                      "sphinx-rtd-theme==0.4.3", "sphinxcontrib-httpdomain==1.7.0",
                      "sphinxcontrib-httpexample==0.10.3",
                      "sphinxcontrib-inlinesyntaxhighlight==0.2"],
