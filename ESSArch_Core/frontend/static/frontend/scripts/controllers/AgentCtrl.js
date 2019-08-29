@@ -10,7 +10,8 @@ export default class AgentCtrl {
     AgentName,
     myService,
     $rootScope,
-    $translate
+    $translate,
+    listViewService
   ) {
     var vm = this;
     $scope.AgentName = AgentName;
@@ -170,10 +171,7 @@ export default class AgentCtrl {
           var search = tableState.search.predicateObject['$'];
         }
         var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.agentsPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
+        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
 
         var sortString = sorting.predicate;
         if (sorting.reverse) {
@@ -181,12 +179,12 @@ export default class AgentCtrl {
         }
 
         vm.getAgents({
-          page: pageNumber,
-          page_size: number,
+          page: paginationParams.pageNumber,
+          page_size: paginationParams.number,
           ordering: sortString,
           search: search,
         }).then(function(response) {
-          tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / number); //set the number of pages so the pagination can update
+          tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
           $scope.initLoad = false;
           vm.agentsLoading = false;
           vm.parseAgents(response.data);

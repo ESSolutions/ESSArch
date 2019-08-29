@@ -359,6 +359,7 @@ const general = $translateProvider => {
       'If you unlock this profile, the IP will be moved to the "Prepare IP" view. Proceed by clicking OK.',
     UNMOUNT_FORCE: 'Unmount(force)',
     UNMOUNT: 'Unmount',
+    UNSAVED_DATA_WARNING: 'Any changes will be lost, are you sure?',
     UNSPECIFIED: 'Unspecified',
     UPDATE: 'Update',
     USE_SELECTED_SA_AS_TEMPLATE: 'Use selected submission agreement as template',

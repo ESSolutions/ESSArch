@@ -17,6 +17,7 @@ export default {
     '$stateParams',
     '$rootScope',
     'myService',
+    'listViewService',
     ClassificationStructureEditorCtrl,
   ],
   controllerAs: 'vm',

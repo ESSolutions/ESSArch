@@ -23,7 +23,7 @@ export default angular
   .component('archiveManager', archiveManager)
   .component('classificationStructureEditor', classificationStructureEditor)
   .component('dashboardStats', dashboardStats)
-  .component('deliveryComponent', deliveryComponent)
+  .component('deliveryPage', deliveryComponent)
   .component('essarchFooter', essarchFooter)
   .component('eventTable', eventTable)
   .component('export', exportComponent)

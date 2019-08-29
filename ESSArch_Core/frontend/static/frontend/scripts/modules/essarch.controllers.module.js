@@ -674,7 +674,7 @@ export default angular
     '$rootScope',
     'appConfig',
     '$log',
-    '$timeput',
+    '$timeout',
     'Notifications',
     '$translate',
     '$uibModal',

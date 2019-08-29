@@ -361,6 +361,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       'Om du låser upp denna profil kommer IPt att flyttas till "Förbered IP"-vyn. Fortsätt genom att klicka OK.',
     UNMOUNT_FORCE: 'Avmontera(tvinga)',
     UNMOUNT: 'Avmontera',
+    UNSAVED_DATA_WARNING: 'Ändringar som du har gjort kanske inte sparas, är du säker?',
     UNSPECIFIED: 'Ospecificerad',
     UPDATE: 'Uppdatera',
     USE_SELECTED_SA_AS_TEMPLATE: 'Använd vald leveransöverenskommelse som mall',

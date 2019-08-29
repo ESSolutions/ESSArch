@@ -1,4 +1,4 @@
-angular.module('essarch.services').factory('Structure', function($resource, appConfig) {
+const Structure = ($resource, appConfig) => {
   return $resource(
     appConfig.djangoUrl + 'structures/:id/:action/',
     {},
@@ -30,4 +30,6 @@ angular.module('essarch.services').factory('Structure', function($resource, appC
       },
     }
   );
-});
+};
+
+export default Structure;

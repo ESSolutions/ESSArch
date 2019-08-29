@@ -1,0 +1,947 @@
+<div class="search-admin">
+  <div class="content-wrapper">
+    <div class="archive-creator">
+      <div class="table-container" st-table="vm.agents" st-pipe="vm.agentPipe">
+        <div class="title-action-button-row">
+          <div class="title">
+            <h4>
+              {{'ARCHIVECREATORS' | translate}}
+            </h4>
+          </div>
+          <div class="action-button">
+            <button
+              permission
+              permission-only="'agents.add_agent'"
+              class="btn btn-primary"
+              ng-click="vm.createModal()"
+            >
+              {{'ACCESS.CREATE_ARCHIVE_CREATOR' | translate}}
+            </button>
+          </div>
+        </div>
+        <div class="search-prepare-wrapper">
+          <label for items-per-page></label>
+          <select
+            id="items-per-page"
+            style="margin-right: 10px;"
+            class="form-control items-per-page"
+            ng-model="vm.agentsPerPage"
+            ng-options="x for x in [5,10,20,25,50]"
+            uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          ></select>
+          <div class="global-search">
+            <input
+              st-search=""
+              class="form-control"
+              ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+              type="text"
+              uib-tooltip="{{'GLOBALSEARCHDESC_ARCHIVE_CREATORS' | translate}}"
+              tooltip-placement="auto top"
+              tooltip-append-to-body="true"
+            />
+          </div>
+          <button
+            type="button"
+            ng-click="vm.agentPipe(tableState)"
+            class="btn btn-primary btn-small"
+            style="margin-left: 5px;"
+            uib-tooltip="{{'SEARCH' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          >
+            {{'SEARCH' | translate}}&nbsp;<i class="fas fa-search"></i>
+          </button>
+          <div class="refresh-icon">
+            <span
+              ng-click="vm.agentPipe(tableState)"
+              class="clickable angular-animate fas fa-sync-alt fa-lg"
+              ng-class="{'fa-sync-alt-animate': vm.agentsLoading }"
+              uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+              tooltip-placement="auto left"
+              tooltip-append-to-body="true"
+            ></span>
+          </div>
+        </div>
+        <div class="list-view-table table-x-overflow">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th class="cursor-pointer" st-sort="latest_name">
+                  {{'NAME' | translate}}
+                </th>
+                <th class="cursor-pointer" st-sort="type__main_type__name">
+                  {{'TYPE' | translate}}
+                </th>
+                <th class="cursor-pointer" st-sort="start_date">
+                  {{'START_DATE' | translate}}
+                </th>
+                <th class="cursor-pointer" st-sort="end_date">
+                  {{'END_DATE' | translate}}
+                </th>
+                <th permission permission-only="'agents.change_agent'" class="shrink">
+                  {{'EDIT' | translate}}
+                </th>
+                <th permission permission-only="'agents.delete_agent'" class="white-space-nowrap shrink">
+                  {{'REMOVE' | translate}}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                ng-repeat="x in vm.agents"
+                class="selectable"
+                ng-class="{'selected': vm.agent.id === x.id}"
+                ng-click="vm.agentClick(x)"
+              >
+                <td>
+                  {{x.auth_name.full_name}}
+                </td>
+                <td>
+                  {{x.type.main_type.name}}
+                </td>
+                <td>
+                  {{x.start_date | date:"yyyy-MM-dd"}}
+                </td>
+                <td>
+                  {{x.end_date |date:"yyyy-MM-dd"}}
+                </td>
+                <td permission permission-only="'agents.change_agent'" class="text-center shrink">
+                  <button
+                    class="btn btn-default fas fa-edit btn-sm"
+                    ng-click="vm.editModal(x); $event.stopPropagation();"
+                    uib-tooltip="{{'EDIT' | translate}}"
+                    tooltip-placement="auto top"
+                    tooltip-append-to-body="true"
+                  ></button>
+                </td>
+                <td permission permission-only="'agents.delete_agent'" class="text-center shrink">
+                  <button
+                    class="btn btn-default fas fa-trash-alt btn-sm"
+                    ng-click="vm.removeAgentModal(x); $event.stopPropagation();"
+                    uib-tooltip="{{'REMOVE' | translate}}"
+                    tooltip-placement="auto top"
+                    tooltip-append-to-body="true"
+                  ></button>
+                </td>
+              </tr>
+              <tr ng-if="!vm.agents.length && !vm.agentsLoading" class="empty-table-indicator">
+                <td colspan="{{vm.getAgentListColspan()}}">{{'NO_RESULTS_FOUND' | translate}}</td>
+              </tr>
+              <tr ng-if="!vm.agents.length && vm.agentsLoading" class="empty-table-indicator">
+                <td class="loading-column" colspan="6">{{'LOADING' | translate}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <td ng-show="!initLoad" colspan="{{vm.getAgentListColspan()}}">
+          <div
+            class="text-center"
+            st-template="static/frontend/views/pagination.html"
+            st-pagination=""
+            st-items-by-page="vm.agentsPerPage"
+            st-displayed-pages="7"
+          ></div>
+        </td>
+      </div>
+      <div ng-if="vm.agent !== null">
+        <hr />
+        <h4 class="pb-base">
+          {{AgentName.getAuthorizedName(vm.agent).full_name}}
+        </h4>
+        <uib-tabset active="vm.activePill" ng-init="vm.activePill = 1" type="pills">
+          <uib-tab heading="{{'ACCESS.BASIC_DATA' | translate}}" index="1">
+            <uib-accordion close-others="false" class="p-base">
+              <div
+                uib-accordion-group
+                class="panel-default"
+                is-open="vm.accordion.basic.basic.open"
+                heading="{{'ACCESS.BASIC_DATA' | translate}}"
+              >
+                <uib-accordion-heading>
+                  {{'ACCESS.BASIC_DATA' | translate}}
+                  <i
+                    class="fas rotate-icon float-right"
+                    ng-class="{'fa-angle-down': vm.accordion.basic.basic.open, 'fa-angle-right': !vm.accordion.basic.basic.open}"
+                  ></i>
+                </uib-accordion-heading>
+                <result-field label="{{'TYPE' | translate}}" data="vm.agent.type.main_type.name"></result-field>
+                <result-field label="{{'ACCESS.SUB_TYPE' | translate}}" data="vm.agent.type.sub_type"></result-field>
+                <result-field label="{{'ACCESS.CPF' | translate}}" data="vm.agent.type.cpf"></result-field>
+                <result-field label="{{'START_DATE' | translate}}" data="vm.agent.start_date"></result-field>
+                <result-field label="{{'END_DATE' | translate}}" data="vm.agent.end_date"></result-field>
+                <result-field
+                  label="{{'CREATE_DATE' | translate}}"
+                  data="vm.agent.create_date"
+                  type="date"
+                ></result-field>
+                <result-field
+                  label="{{'ACCESS.REVISE_DATE' | translate}}"
+                  data="vm.agent.revise_date"
+                  type="date"
+                ></result-field>
+                <hr class="small" />
+                <div>
+                  <div class="d-flex justify-content-between align-items-center pb-base">
+                    <label>
+                      {{'ACCESS.IDENTIFIERS' | translate}}
+                    </label>
+                    <button class="btn btn-primary" ng-click="vm.addIdentifierModal()">
+                      {{'ADD' | translate}}
+                    </button>
+                  </div>
+                  <div class="table-x-overflow table-container">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>
+                            {{'TYPE' | translate}}
+                          </th>
+                          <th>
+                            ID
+                          </th>
+                          <th permission permission-only="'agents.change_agent'" class="shrink">
+                            {{'EDIT' | translate}}
+                          </th>
+                          <th permission permission-only="'agents.change_agent'" class="white-space-nowrap shrink">
+                            {{'REMOVE' | translate}}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr ng-repeat="x in vm.agent.identifiers">
+                          <td>
+                            {{x.type.name}}
+                          </td>
+                          <td>
+                            {{x.identifier}}
+                          </td>
+                          <td permission permission-only="'agents.change_agent'" class="text-center shrink">
+                            <button
+                              class="btn btn-default btn-sm fas fa-edit"
+                              ng-click="vm.editIdentifierModal(x)"
+                              uib-tooltip="{{'EDIT' | translate}}"
+                              tooltip-placement="auto top"
+                              tooltip-append-to-body="true"
+                            >
+                              <i class=""></i>
+                            </button>
+                          </td>
+                          <td permission permission-only="'agents.change_agent'" class="text-center shrink">
+                            <button
+                              class="btn btn-default btn-sm fas fa-trash-alt"
+                              ng-click="vm.removeIdentifierModal(x)"
+                              uib-tooltip="{{'REMOVE' | translate}}"
+                              tooltip-placement="auto top"
+                              tooltip-append-to-body="true"
+                            ></button>
+                          </td>
+                        </tr>
+                        <tr ng-if="vm.agent.identifiers.length <= 0" class="empty-table-indicator">
+                          <td permission permission-except="'agents.change_agent'" colspan="2">
+                            {{'NO_RESULTS_FOUND' | translate}}
+                          </td>
+                          <td permission permission-only="'agents.change_agent'" colspan="4">
+                            {{'NO_RESULTS_FOUND' | translate}}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div
+                uib-accordion-group
+                class="panel-default"
+                is-open="vm.accordion.basic.names.open"
+                heading="{{'ACCESS.ALT_NAMES' | translate}}"
+              >
+                <uib-accordion-heading>
+                  {{'ACCESS.ALT_NAMES' | translate}}
+                  <i
+                    class="fas rotate-icon float-right"
+                    ng-class="{'fa-angle-down': vm.accordion.basic.names.open, 'fa-angle-right': !vm.accordion.basic.names.open}"
+                  ></i>
+                </uib-accordion-heading>
+                <div class="d-flex justify-content-end pb-base">
+                  <button
+                    permission
+                    permission-only="'agents.change_agent'"
+                    class="btn btn-primary"
+                    ng-click="vm.addNameModal()"
+                  >
+                    {{'ADD' | translate}}
+                  </button>
+                </div>
+                <div st-table="vm.agent.names" class="table-container table-x-overflow">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th st-sort="name">
+                          {{'NAME' | translate}}
+                        </th>
+                        <th st-sort="type">
+                          {{'TYPE' | translate}}
+                        </th>
+                        <th st-sort="description">
+                          {{'DESCRIPTION' | translate}}
+                        </th>
+                        <th st-sort="start_date">
+                          {{'ACCESS.VALID_DATE_START' | translate}}
+                        </th>
+                        <th st-sort="end_date">
+                          {{'ACCESS.VALID_DATE_END' | translate}}
+                        </th>
+                        <th permission permission-only="'agents.change_agent'" class="shrink">
+                          {{'EDIT' | translate}}
+                        </th>
+                        <th permission permission-only="'agents.change_agent'" class="white-space-nowrap shrink">
+                          {{'REMOVE' | translate}}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr ng-repeat="x in vm.agent.names">
+                        <td class="white-space-nowrap">
+                          {{x.full_name}}
+                        </td>
+                        <td class="white-space-nowrap">
+                          {{x.type.name}}
+                        </td>
+                        <td class="oneline-ellipsis">
+                          {{x.description}}
+                        </td>
+                        <td class="white-space-nowrap">
+                          {{x.start_date | date:"yyyy-MM-dd"}}
+                        </td>
+                        <td class="white-space-nowrap">
+                          {{x.end_date | date:"yyyy-MM-dd"}}
+                        </td>
+                        <td permission permission-only="'agents.change_agent'" class="text-center shrink">
+                          <button
+                            class="btn btn-default btn-sm fas fa-edit"
+                            ng-click="vm.editNameModal(x)"
+                            uib-tooltip="{{'EDIT' | translate}}"
+                            tooltip-placement="auto top"
+                            tooltip-append-to-body="true"
+                          >
+                            <i class=""></i>
+                          </button>
+                        </td>
+                        <td permission permission-only="'agents.change_agent'" class="text-center shrink">
+                          <button
+                            ng-hide="x.type.id === 1"
+                            class="btn btn-default btn-sm fas fa-trash-alt"
+                            ng-click="vm.removeNameModal(x)"
+                            uib-tooltip="{{'REMOVE' | translate}}"
+                            tooltip-placement="auto top"
+                            tooltip-append-to-body="true"
+                          ></button>
+                        </td>
+                      </tr>
+                      <tr ng-if="vm.agent.names.length <= 0" class="empty-table-indicator">
+                        <td permission permission-except="'agents.change_agent'" colspan="5">
+                          {{'NO_RESULTS_FOUND' | translate}}
+                        </td>
+                        <td permission permission-only="'agents.change_agent'" colspan="7">
+                          {{'NO_RESULTS_FOUND' | translate}}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div
+                uib-accordion-group
+                class="panel-default"
+                is-open="vm.accordion.basic.mandates.open"
+                heading="{{'ACCESS.MANDATES' | translate}}"
+              >
+                <uib-accordion-heading class="position-relative">
+                  <span
+                    uib-tooltip="{{'ACCESS.MANDATES_DESC' | translate}}"
+                    tooltip-position="auto top"
+                    tooltip-append-to-body="true"
+                    >{{'ACCESS.MANDATES' | translate}}</span
+                  >
+                  <i
+                    class="fas rotate-icon float-right"
+                    ng-class="{'fa-angle-down': vm.accordion.basic.mandates.open, 'fa-angle-right': !vm.accordion.basic.mandates.open}"
+                  ></i>
+                </uib-accordion-heading>
+                <div class="d-flex justify-content-end pb-base">
+                  <button
+                    permission
+                    permission-only="'agents.change_agent'"
+                    class="btn btn-primary"
+                    ng-click="vm.addMandateModal()"
+                  >
+                    {{'ADD' | translate}}
+                  </button>
+                </div>
+                <div class="table-container table-x-overflow">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>
+                          {{'NAME' | translate}}
+                        </th>
+                        <th>
+                          {{'TYPE' | translate}}
+                        </th>
+                        <th>
+                          {{'DESCRIPTION' | translate}}
+                        </th>
+                        <th>
+                          {{'ACCESS.DECISION_DATE' | translate}}
+                        </th>
+                        <th permission permission-only="'agents.change_agent'" class="shrink">
+                          {{'EDIT' | translate}}
+                        </th>
+                        <th permission permission-only="'agents.change_agent'" class="white-space-nowrap shrink">
+                          {{'REMOVE' | translate}}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr ng-repeat="x in vm.agent.mandates">
+                        <td>
+                          {{x.name}}
+                        </td>
+                        <td>
+                          {{x.type.name}}
+                        </td>
+                        <td class="oneline-ellipsis">
+                          {{x.description}}
+                        </td>
+                        <td>
+                          {{x.start_date | date:"yyyy-MM-dd"}}
+                        </td>
+                        <td permission permission-only="'agents.change_agent'" class="text-center shrink">
+                          <button
+                            class="btn btn-default btn-sm fas fa-edit"
+                            ng-click="vm.editMandateModal(x)"
+                            uib-tooltip="{{'EDIT' | translate}}"
+                            tooltip-placement="auto top"
+                            tooltip-append-to-body="true"
+                          ></button>
+                        </td>
+                        <td permission permission-only="'agents.change_agent'" class="text-center shrink">
+                          <button
+                            class="btn btn-default btn-sm fas fa-trash-alt"
+                            ng-click="vm.removeMandateModal(x)"
+                            uib-tooltip="{{'REMOVE' | translate}}"
+                            tooltip-placement="auto top"
+                            tooltip-append-to-body="true"
+                          ></button>
+                        </td>
+                      </tr>
+                      <tr ng-if="vm.agent.mandates.length <= 0" class="empty-table-indicator">
+                        <td permission permission-except="'agents.change_agent'" colspan="4">
+                          {{'NO_RESULTS_FOUND' | translate}}
+                        </td>
+                        <td permission permission-only="'agents.change_agent'" colspan="6">
+                          {{'NO_RESULTS_FOUND' | translate}}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div uib-accordion-group class="panel-default" is-open="vm.accordion.basic.authority.open">
+                <uib-accordion-heading>
+                  {{'ACCESS.RELATED_ARCHIVE_CREATORS' | translate}}
+                  <i
+                    class="fas rotate-icon float-right"
+                    ng-class="{'fa-angle-down': vm.accordion.basic.authority.open, 'fa-angle-right': !vm.accordion.basic.authority.open}"
+                  ></i>
+                </uib-accordion-heading>
+                <div class="d-flex justify-content-end pb-base">
+                  <button
+                    permission
+                    permission-only="'agents.change_agent'"
+                    class="btn btn-primary"
+                    ng-click="vm.addAgentRelationModal()"
+                  >
+                    {{'ADD' | translate}}
+                  </button>
+                </div>
+                <div class="table-container table-x-overflow">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>
+                          {{'NAME' | translate}}
+                        </th>
+                        <th>
+                          {{'TYPE' | translate}}
+                        </th>
+                        <th>
+                          {{'DESCRIPTION' | translate}}
+                        </th>
+                        <th>
+                          {{'ACCESS.VALID_DATE_START' | translate}}
+                        </th>
+                        <th>
+                          {{'ACCESS.VALID_DATE_END' | translate}}
+                        </th>
+                        <th permission permission-only="'agents.change_agent'" class="shrink">
+                          {{'EDIT' | translate}}
+                        </th>
+                        <th permission permission-only="'agents.change_agent'" class="white-space-nowrap shrink">
+                          {{'REMOVE' | translate}}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        ng-repeat="x in vm.agent.related_agents"
+                        ui-sref="{{$state.current.name}}({id: x.agent.id})"
+                        class="selectable"
+                      >
+                        <td>
+                          {{AgentName.getAuthorizedName(x.agent, {printDates: true}).full_name}}
+                        </td>
+                        <td>
+                          {{x.type.name}}
+                        </td>
+                        <td class="oneline-ellipsis">
+                          {{x.description}}
+                        </td>
+                        <td>
+                          {{x.start_date | date:"yyyy-MM-dd"}}
+                        </td>
+                        <td>
+                          {{x.end_date | date:"yyyy-MM-dd"}}
+                        </td>
+                        <td permission permission-only="'agents.change_agent'" class="text-center shrink">
+                          <button
+                            class="btn btn-default btn-sm fas fa-edit"
+                            ng-click="vm.editAgentRelationModal(x); $event.stopPropagation();"
+                            uib-tooltip="{{'EDIT' | translate}}"
+                            tooltip-placement="auto top"
+                            tooltip-append-to-body="true"
+                          ></button>
+                        </td>
+                        <td permission permission-only="'agents.change_agent'" class="text-center shrink">
+                          <button
+                            class="btn btn-default btn-sm fas fa-trash-alt"
+                            ng-click="vm.removeAgentRelationModal(x); $event.stopPropagation();"
+                            uib-tooltip="{{'REMOVE' | translate}}"
+                            tooltip-placement="auto top"
+                            tooltip-append-to-body="true"
+                          ></button>
+                        </td>
+                      </tr>
+                      <tr ng-if="vm.agent.related_agents.length <= 0" class="empty-table-indicator">
+                        <td permission permission-except="'agents.change_agent'" colspan="5">
+                          {{'NO_RESULTS_FOUND' | translate}}
+                        </td>
+                        <td permission permission-only="'agents.change_agent'" colspan="7">
+                          {{'NO_RESULTS_FOUND' | translate}}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div uib-accordion-group class="panel-default" is-open="vm.accordion.basic.resources.open">
+                <uib-accordion-heading>
+                  {{'ACCESS.RELATED_RESOURCES' | translate}}
+                  <i
+                    class="fas rotate-icon float-right"
+                    ng-class="{'fa-angle-down': vm.accordion.basic.resources.open, 'fa-angle-right': !vm.accordion.basic.resources.open}"
+                  ></i>
+                </uib-accordion-heading>
+
+                <div class="table-container" st-table="vm.agent.archives" st-pipe="vm.agentArchivePipe">
+                  <div class="title-action-button-row">
+                    <div class="title">
+                      <h4>
+                        {{'ACCESS.ARCHIVES' | translate}}
+                      </h4>
+                    </div>
+                    <div class="d-flex justify-content-end pb-base">
+                      <button
+                        permission
+                        permission-only="'agents.change_agent'"
+                        class="btn btn-primary"
+                        ng-click="vm.addArchiveRelationModal()"
+                      >
+                        {{'ADD' | translate}}
+                      </button>
+                    </div>
+                  </div>
+                  <div class="search-prepare-wrapper">
+                    <label for items-per-page></label>
+                    <select
+                      id="items-per-page"
+                      style="margin-right: 10px;"
+                      class="form-control items-per-page"
+                      ng-model="vm.archivesPerPage"
+                      ng-options="x for x in [5,10,20,25,50]"
+                      uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+                      tooltip-placement="auto top"
+                      tooltip-append-to-body="true"
+                    ></select>
+                    <div class="global-search">
+                      <input
+                        st-search=""
+                        class="form-control"
+                        ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+                        type="text"
+                        uib-tooltip="{{'GLOBALSEARCHDESC_ARCHIVES' | translate}}"
+                        tooltip-placement="auto top"
+                        tooltip-append-to-body="true"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      ng-click="vm.agentArchivePipe(archiveTableState)"
+                      class="btn btn-primary btn-small"
+                      style="margin-left: 5px;"
+                      uib-tooltip="{{'SEARCH' | translate}}"
+                      tooltip-placement="auto top"
+                      tooltip-append-to-body="true"
+                    >
+                      {{'SEARCH' | translate}}&nbsp;<i class="fas fa-search"></i>
+                    </button>
+                    <div class="refresh-icon">
+                      <span
+                        ng-click="vm.agentArchivePipe(archiveTableState)"
+                        class="clickable angular-animate fas fa-sync-alt fa-lg"
+                        ng-class="{'fa-sync-alt-animate': vm.archivesLoading }"
+                        uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+                        tooltip-placement="auto left"
+                        tooltip-append-to-body="true"
+                      ></span>
+                    </div>
+                  </div>
+                  <div class="list-view-table table-x-overflow">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th class="cursor-pointer" st-sort="name">
+                            {{'NAME' | translate}}
+                          </th>
+                          <th class="cursor-pointer" st-sort="type">
+                            {{'TYPE' | translate}}
+                          </th>
+                          <th class="cursor-pointer" st-sort="start_date">
+                            {{'ACCESS.TIME_RANGE_START' | translate}}
+                          </th>
+                          <th class="cursor-pointer" st-sort="end_date">
+                            {{'ACCESS.TIME_RANGE_END' | translate}}
+                          </th>
+                          <th permission permission-only="'agents.change_agent'" class="shrink">
+                            {{'EDIT' | translate}}
+                          </th>
+                          <th permission permission-only="'agents.change_agent'" class="white-space-nowrap shrink">
+                            {{'REMOVE' | translate}}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr ng-repeat="x in vm.agent.archives" class="selectable" ng-click="vm.archiveClick(x)">
+                          <td>
+                            {{x.archive.name}}
+                          </td>
+                          <td>
+                            {{x.type.name}}
+                          </td>
+                          <td>
+                            {{x.start_date | date:"yyyy-MM-dd"}}
+                          </td>
+                          <td>
+                            {{x.end_date |date:"yyyy-MM-dd"}}
+                          </td>
+                          <td permission permission-only="'agents.change_agent'" class="text-center shrink">
+                            <button
+                              class="btn btn-default btn-sm fas fa-edit"
+                              ng-click="vm.editArchiveRelationModal(x); $event.stopPropagation();"
+                              uib-tooltip="{{'EDIT' | translate}}"
+                              tooltip-placement="auto top"
+                              tooltip-append-to-body="true"
+                            ></button>
+                          </td>
+                          <td permission permission-only="'agents.change_agent'" class="text-center shrink">
+                            <button
+                              class="btn btn-default btn-sm fas fa-trash-alt"
+                              ng-click="vm.removeArchiveRelationModal(x); $event.stopPropagation();"
+                              uib-tooltip="{{'REMOVE' | translate}}"
+                              tooltip-placement="auto top"
+                              tooltip-append-to-body="true"
+                            ></button>
+                          </td>
+                        </tr>
+                        <tr ng-if="!vm.agent.archives.length && !vm.archivesLoading" class="empty-table-indicator">
+                          <td permission permission-except="'agents.change_agent'" colspan="4">
+                            {{'NO_RESULTS_FOUND' | translate}}
+                          </td>
+                          <td permission permission-only="'agents.change_agent'" colspan="6">
+                            {{'NO_RESULTS_FOUND' | translate}}
+                          </td>
+                        </tr>
+                        <tr ng-if="!vm.agent.archives.length && vm.archivesLoading" class="empty-table-indicator">
+                          <td permission permission-except="'agents.change_agent'" class="loading-column" colspan="4">
+                            {{'LOADING' | translate}}
+                          </td>
+                          <td permission permission-only="'agents.change_agent'" class="loading-column" colspan="6">
+                            {{'LOADING' | translate}}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <td ng-show="!initLoad" colspan="{{vm.getRelatedArchiveColspan()}}">
+                    <div
+                      class="text-center"
+                      st-template="static/frontend/views/pagination.html"
+                      st-pagination=""
+                      st-items-by-page="vm.archivesPerPage"
+                      st-displayed-pages="7"
+                    ></div>
+                  </td>
+                </div>
+              </div>
+            </uib-accordion>
+          </uib-tab>
+          <uib-tab heading="{{'ACCESS.HISTORY' | translate}}" idnex="2">
+            <uib-accordion close-others="false" class="p-base">
+              <div
+                uib-accordion-group
+                class="panel-default"
+                is-open="vm.accordion.history.open"
+                heading="{{'ACCESS.HISTORY' | translate}}"
+              >
+                <uib-accordion-heading>
+                  {{'ACCESS.HISTORY' | translate}}
+                  <i
+                    class="fas rotate-icon float-right"
+                    ng-class="{'fa-angle-down': vm.accordion.history.open, 'fa-angle-right': !vm.accordion.history.open}"
+                  ></i>
+                </uib-accordion-heading>
+                <div class="d-flex justify-content-end">
+                  <button
+                    permission
+                    permission-only="'agents.change_agent'"
+                    class="btn btn-primary"
+                    ng-click="vm.addNoteModal()"
+                  >
+                    {{'ADD' | translate}}
+                  </button>
+                </div>
+                <div class="position-relative" ng-if="vm.agent.history.length > 0" ng-repeat="x in vm.agent.history">
+                  <hr class="small" />
+                  <div class="edit-btn-wrapper flex-row position-realtive float-right pt-base">
+                    <button
+                      permission
+                      permission-only="'agents.change_agent'"
+                      class="btn btn-default btn-sm fas fa-edit"
+                      ng-click="vm.editNoteModal(x)"
+                      uib-tooltip="{{'EDIT' | translate}}"
+                      tooltip-placement="auto top"
+                      tooltip-append-to-body="true"
+                    ></button>
+                    <button
+                      permission
+                      permission-only="'agents.change_agent'"
+                      class="btn btn-default btn-sm fas fa-trash-alt"
+                      ng-click="vm.removeNoteModal(x)"
+                      uib-tooltip="{{'REMOVE' | translate}}"
+                      tooltip-placement="auto top"
+                      tooltip-append-to-body="true"
+                    ></button>
+                  </div>
+                  <div class="flex-row">
+                    <b
+                      ><span
+                        uib-tooltip="{{ 'CREATE_DATE' | translate }}"
+                        tooltip-placement="auto top"
+                        tooltip-append-to-body="true"
+                      >
+                        {{x.create_date | date:"yyyy-MM-dd"}}
+                      </span>
+                      <span
+                        ng-if="x.revise_date"
+                        uib-tooltip="{{ 'ACCESS.REVISE_DATE' | translate }}"
+                        tooltip-placement="auto top"
+                        tooltip-append-to-body="true"
+                        >({{x.revise_date | date:"yyyy-MM-dd"}})</span
+                      >
+                    </b>
+                  </div>
+                  <div class="pt-base" ng-bind-html="x.text"></div>
+                </div>
+                <div ng-if="vm.agent.history.length <= 0" class="empty-table-indicator text-center">
+                  {{'ACCESS.NO_HISTORY' | translate}}
+                </div>
+              </div>
+            </uib-accordion>
+          </uib-tab>
+          <uib-tab heading="{{'ACCESS.REMARKS' | translate}}" index="3">
+            <uib-accordion close-others="false" class="p-base">
+              <div
+                uib-accordion-group
+                class="panel-default position-relative"
+                is-open="vm.accordion.remarks.notes.open"
+                heading="{{'ACCESS.REMARKS' | translate}}"
+              >
+                <uib-accordion-heading>
+                  {{'ACCESS.REMARKS' | translate}}
+                  <i
+                    class="fas rotate-icon float-right"
+                    ng-class="{'fa-angle-down': vm.accordion.remarks.notes.open, 'fa-angle-right': !vm.accordion.remarks.notes.open}"
+                  ></i>
+                </uib-accordion-heading>
+                <div class="d-flex justify-content-end">
+                  <button
+                    permission
+                    permission-only="'agents.change_agent'"
+                    class="btn btn-primary"
+                    ng-click="vm.addNoteModal()"
+                  >
+                    {{'ADD' | translate}}
+                  </button>
+                </div>
+                <div
+                  class="position-relative"
+                  ng-if="vm.agent.remarks.length > 0"
+                  ng-repeat="x in vm.agent.remarks"
+                  ng-mouseover="x.editVisible = true;"
+                  ng-mouseleave="x.editVisible = false;"
+                >
+                  <hr class="small" />
+                  <div class="edit-btn-wrapper flex-row position-realtive float-right pt-base">
+                    <button
+                      permission
+                      permission-only="'agents.change_agent'"
+                      class="btn btn-default btn-sm fas fa-edit"
+                      ng-click="vm.editNoteModal(x)"
+                      uib-tooltip="{{'EDIT' | translate}}"
+                      tooltip-placement="auto top"
+                      tooltip-append-to-body="true"
+                    ></button>
+                    <button
+                      permission
+                      permission-only="'agents.change_agent'"
+                      class="btn btn-default btn-sm fas fa-trash-alt"
+                      ng-click="vm.removeNoteModal(x)"
+                      uib-tooltip="{{'REMOVE' | translate}}"
+                      tooltip-placement="auto top"
+                      tooltip-append-to-body="true"
+                    ></button>
+                  </div>
+                  <div class="flex-row">
+                    <b
+                      ><span
+                        uib-tooltip="{{ 'CREATE_DATE' | translate }}"
+                        tooltip-placement="auto top"
+                        tooltip-append-to-body="true"
+                      >
+                        {{x.create_date | date:"yyyy-MM-dd"}}
+                      </span>
+                      <span
+                        ng-if="x.revise_date"
+                        uib-tooltip="{{ 'ACCESS.REVISE_DATE' | translate }}"
+                        tooltip-placement="auto top"
+                        tooltip-append-to-body="true"
+                        >&nbsp;({{x.revise_date | date:"yyyy-MM-dd"}})</span
+                      >
+                    </b>
+                  </div>
+                  <div class="pt-base" ng-bind-html="x.text"></div>
+                </div>
+                <div ng-if="vm.agent.remarks.length <= 0" class="empty-table-indicator text-center">
+                  {{'ACCESS.NO_REMARKS' | translate}}
+                </div>
+              </div>
+            </uib-accordion>
+          </uib-tab>
+          <uib-tab heading="{{'ACCESS.TOPOGRAPHY' | translate}}" index="4">
+            <uib-accordion close-others="false" class="p-base">
+              <div
+                uib-accordion-group
+                class="panel-default"
+                is-open="vm.accordion.topography.open"
+                heading="{{'ACCESS.TOPOGRAPHY' | translate}}"
+              >
+                <uib-accordion-heading>
+                  {{'ACCESS.PLACES' | translate}}
+                  <i
+                    class="fas rotate-icon float-right"
+                    ng-class="{'fa-angle-down': vm.accordion.topography.open, 'fa-angle-right': !vm.accordion.topography.open}"
+                  ></i>
+                </uib-accordion-heading>
+                <div class="d-flex justify-content-end">
+                  <button
+                    permission
+                    permission-only="'agents.change_agent'"
+                    class="btn btn-primary"
+                    ng-click="vm.addPlaceModal()"
+                  >
+                    {{'ADD' | translate}}
+                  </button>
+                </div>
+                <div class="position-relative" ng-if="vm.agent.places.length > 0" ng-repeat="x in vm.agent.places">
+                  <hr class="small" />
+                  <div class="edit-btn-wrapper flex-row position-realtive float-right pt-base">
+                    <button
+                      permission
+                      permission-only="'agents.change_agent'"
+                      class="btn btn-default btn-sm fas fa-edit"
+                      ng-click="vm.editPlaceModal(x)"
+                      uib-tooltip="{{'EDIT' | translate}}"
+                      tooltip-placement="auto top"
+                      tooltip-append-to-body="true"
+                    ></button>
+                    <button
+                      permission
+                      permission-only="'agents.change_agent'"
+                      class="btn btn-default btn-sm fas fa-trash-alt"
+                      ng-click="vm.removePlaceModal(x)"
+                      uib-tooltip="{{'REMOVE' | translate}}"
+                      tooltip-placement="auto top"
+                      tooltip-append-to-body="true"
+                    ></button>
+                  </div>
+                  <result-field label="{{'NAME' | translate}}" data="x.topography.name"></result-field>
+                  <result-field label="{{'TYPE' | translate}}" data="x.type.name"></result-field>
+                  <result-field label="{{'DESCRIPTION' | translate}}" data="x.description"></result-field>
+                  <result-field label="{{'CREATE_DATE' | translate}}" data="x.create_date" type="date"></result-field>
+                  <result-field
+                    label="{{'ACCESS.REVISE_DATE' | translate}}"
+                    data="x.revise_date"
+                    type="date"
+                  ></result-field>
+                  <result-field label="{{'END_DATE' | translate}}" data="x.end_date" type="date"></result-field>
+                  <result-field label="{{'ACCESS.ALT_NAME' | translate}}" data="x.topography.alt_name"></result-field>
+                  <result-field
+                    label="{{'ACCESS.MAIN_CATEGORY' | translate}}"
+                    data="x.topography.main_category"
+                  ></result-field>
+                  <result-field
+                    label="{{'ACCESS.SUB_CATEGORY' | translate}}"
+                    data="x.topography.sub_category"
+                  ></result-field>
+                  <result-field
+                    label="{{'ACCESS.REFERENCE_CODE' | translate}}"
+                    data="x.topography.reference_code"
+                  ></result-field>
+                  <result-field
+                    label="{{'ACCESS.START_YEAR' | translate}}"
+                    data="x.topography.start_year"
+                  ></result-field>
+                  <result-field label="{{'ACCESS.END_YEAR' | translate}}" data="x.topography.end_year"></result-field>
+                  <result-field label="{{'ACCESS.LONGITUDE' | translate}}" data="x.topography.lng"></result-field>
+                  <result-field label="{{'ACCESS.LATITUDE' | translate}}" data="x.topography.lat"></result-field>
+                </div>
+              </div>
+            </uib-accordion>
+          </uib-tab>
+        </uib-tabset>
+      </div>
+    </div>
+  </div>
+</div>

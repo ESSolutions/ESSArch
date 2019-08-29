@@ -323,7 +323,7 @@ export default class SearchCtrl {
     vm.getAggregationChildren = function(aggregations, aggrType) {
       var aggregation = aggregations['_filter_' + aggrType][aggrType];
       var missing = true;
-      children = aggregation.buckets.map(function(item) {
+      let children = aggregation.buckets.map(function(item) {
         if (item.name) {
           item.text = item.name + ' (' + item.doc_count + ')';
           item.a_attr = {

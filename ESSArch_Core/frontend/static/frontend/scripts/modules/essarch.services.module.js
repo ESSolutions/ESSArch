@@ -9,6 +9,7 @@ import messenger from '../services/messenger';
 import event from '../services/event';
 import contentTabs from '../services/ContentTabs';
 import eventType from '../services/eventType';
+import EditMode from '../services/EditMode';
 import ioQueue from '../services/ioQueue';
 import ip from '../services/ip';
 import ipReception from '../services/ipReception';
@@ -27,6 +28,7 @@ import step from '../services/step';
 import storage from '../services/storage';
 import storageMedium from '../services/storageMedium';
 import storageObject from '../services/storageObject';
+import structure from '../services/structure';
 import structureName from '../services/structureName';
 import sysinfo from '../services/sysinfo';
 import tag from '../services/tag';
@@ -46,6 +48,7 @@ export default angular
   .factory('ContentTabs', contentTabs)
   .factory('ContextMenuBase', ['$translate', contextMenuBase])
   .factory('Conversion', ['$http', 'appConfig', conversion])
+  .factory('EditMode', [EditMode])
   .factory('Event', ['$resource', 'appConfig', event])
   .factory('EventType', ['$resource', 'appConfig', eventType])
   .factory('IOQueue', ['$resource', 'appConfig', ioQueue])
@@ -96,6 +99,7 @@ export default angular
   ])
   .factory('StorageMedium', ['$resource', 'appConfig', storageMedium])
   .factory('StorageObject', ['$resource', 'appConfig', storageObject])
+  .factory('Structure', ['$resource', 'appConfig', structure])
   .factory('StructureName', ['$filter', '$translate', structureName])
   .factory('Sysinfo', ['$resource', 'appConfig', sysinfo])
   .factory('Tag', ['IP', '$resource', 'appConfig', tag])

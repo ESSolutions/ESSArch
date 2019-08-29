@@ -388,6 +388,9 @@ angular
         .state('home.access.location', {
           url: '/location/:id',
           template: '<location></location>',
+          params: {
+            id: null,
+          },
           resolve: {
             authenticated: resolveAuthenticated,
           },
@@ -464,6 +467,9 @@ angular
         .state('home.access.classificationStructures', {
           url: '/structures/:id',
           template: '<classification-structure-editor></classification-structure-editor>',
+          params: {
+            id: null,
+          },
           resolve: {
             authenticated: resolveAuthenticated,
           },
@@ -477,6 +483,9 @@ angular
         .state('home.access.archiveCreators', {
           url: '/archive-creators/:id',
           template: '<agents></agents>',
+          params: {
+            id: null,
+          },
           resolve: {
             authenticated: resolveAuthenticated,
           },

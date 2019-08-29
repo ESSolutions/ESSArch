@@ -106,9 +106,7 @@ export default class DeliveryModalInstanceCtrl {
                 search = angular.copy($ctrl.initAgentSearch);
                 $ctrl.initAgentSearch = null;
               }
-              $ctrl.getAgents(search).then(function() {
-                this.options = $ctrl.options.agents;
-              });
+              $ctrl.getAgents(search);
             },
           },
           defaultValue: null,
@@ -131,9 +129,7 @@ export default class DeliveryModalInstanceCtrl {
                 search = angular.copy($ctrl.initSaSearch);
                 $ctrl.initSaSearch = null;
               }
-              $ctrl.getSas(search).then(function() {
-                this.options = $ctrl.options.sas;
-              });
+              $ctrl.getSas(search);
             },
           },
           defaultValue: null,
