@@ -105,7 +105,7 @@ if __name__ == '__main__':
             "requests==2.22.0",
             "requests_toolbelt==0.9.1",
             "tenacity==5.0.4",
-            "wand==0.5.5",
+            "wand==0.5.6",
             "weasyprint==48",
         ],
         extras_require={
