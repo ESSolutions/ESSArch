@@ -618,7 +618,7 @@ export default angular
     '$translate',
     NodeTransferModalInstanceCtrl,
   ])
-  .controller('MyPageCtrl', ['$scope', '$controller', MyPageCtrl])
+  .controller('MyPageCtrl', ['$scope', MyPageCtrl])
   .controller('OrderModalInstanceCtrl', [
     '$uibModalInstance',
     'data',
