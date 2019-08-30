@@ -182,26 +182,26 @@ class InformationPackageQuerySet(models.QuerySet):
             status_migrate_with_ip=RawSQL("""
                 EXISTS(
                     SELECT U1.id FROM storage_storagemethodtargetrelation U1
-                    INNER JOIN "storage_storagetarget" U3 ON (U1."storage_target_id" = U3."id")
-                    INNER JOIN "storage_storagemedium" U4 ON (U3."id" = U4."storage_target_id")
-                    INNER JOIN "storage_storageobject" U5 ON (U4."id" = U5."storage_medium_id")
+                    INNER JOIN storage_storagetarget U3 ON (U1.storage_target_id = U3.id)
+                    INNER JOIN storage_storagemedium U4 ON (U3.id = U4.storage_target_id)
+                    INNER JOIN storage_storageobject U5 ON (U4.id = U5.storage_medium_id)
                     WHERE (
-                        U1."status"=%s AND
-                        U1."storage_method_id" = (U0."id") AND
-                        U5."ip_id"="ip_informationpackage"."id"
+                        U1.status=%s AND
+                        U1.storage_method_id = (U0.id) AND
+                        U5.ip_id=ip_informationpackage.id
                     )
                 )""", (STORAGE_TARGET_STATUS_MIGRATE,)
             ),
             status_enabled_with_ip=RawSQL("""
                 EXISTS(
                     SELECT U1.id FROM storage_storagemethodtargetrelation U1
-                    INNER JOIN "storage_storagetarget" U3 ON (U1."storage_target_id" = U3."id")
-                    INNER JOIN "storage_storagemedium" U4 ON (U3."id" = U4."storage_target_id")
-                    INNER JOIN "storage_storageobject" U5 ON (U4."id" = U5."storage_medium_id")
+                    INNER JOIN storage_storagetarget U3 ON (U1.storage_target_id = U3.id)
+                    INNER JOIN storage_storagemedium U4 ON (U3.id = U4.storage_target_id)
+                    INNER JOIN storage_storageobject U5 ON (U4.id = U5.storage_medium_id)
                     WHERE (
-                        U1."status"=%s AND
-                        U1."storage_method_id" = (U0."id") AND
-                        U5."ip_id"="ip_informationpackage"."id"
+                        U1.status=%s AND
+                        U1.storage_method_id = (U0.id) AND
+                        U5.ip_id=ip_informationpackage.id
                     )
                 )""", (STORAGE_TARGET_STATUS_ENABLED,)
             ),
@@ -209,8 +209,8 @@ class InformationPackageQuerySet(models.QuerySet):
                 EXISTS(
                     SELECT U1.id FROM storage_storagemethodtargetrelation U1
                     WHERE (
-                        U1."status"=%s AND
-                        U1."storage_method_id" = (U0."id")
+                        U1.status=%s AND
+                        U1.storage_method_id = (U0.id)
                     )
                 )""", (STORAGE_TARGET_STATUS_ENABLED,)
             ),
@@ -226,12 +226,12 @@ class InformationPackageQuerySet(models.QuerySet):
                 EXISTS(
                     SELECT U2.id FROM storage_storagemethodtargetrelation AS U2
                     WHERE (
-                        U2."status"=%s AND U2."storage_method_id" = (U0."id") AND NOT EXISTS(
-                            SELECT U3."id" FROM storage_storageobject U3
-                            INNER JOIN "storage_storagemedium" U4 ON (U4."id" = U3."storage_medium_id")
-                            INNER JOIN "storage_storagetarget" U5 ON (U5."id" = U4."storage_target_id")
-                            WHERE U3."ip_id" = "ip_informationpackage"."id"
-                            AND U5."id" = U2."storage_target_id"
+                        U2.status=%s AND U2.storage_method_id = (U0.id) AND NOT EXISTS(
+                            SELECT U3.id FROM storage_storageobject U3
+                            INNER JOIN storage_storagemedium U4 ON (U4.id = U3.storage_medium_id)
+                            INNER JOIN storage_storagetarget U5 ON (U5.id = U4.storage_target_id)
+                            WHERE U3.ip_id = ip_informationpackage.id
+                            AND U5.id = U2.storage_target_id
                        )
                    )
                 )""", (STORAGE_TARGET_STATUS_ENABLED,)
