@@ -109,6 +109,8 @@ matrix:
       addons:
         mariadb: '10.3'
       before_install:
+        - sudo mkdir -p /ESSArch/log/
+        - sudo chmod 777 /ESSArch/log/
         - mysql --user="root" --execute="CREATE DATABASE essarch DEFAULT CHARACTER SET utf8;"
       env:
         - *mariadb
