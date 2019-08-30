@@ -581,6 +581,8 @@ class InformationPackageViewSetTestCase(TestCase):
 
         self.url = reverse('informationpackage-list')
 
+        Path.objects.create(entity='ingest_workarea', value='')
+        Path.objects.create(entity='access_workarea', value='')
         Path.objects.create(entity='disseminations', value='')
 
     def test_empty(self):
