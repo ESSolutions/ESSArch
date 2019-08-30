@@ -107,7 +107,7 @@ matrix:
       stage: test
       python: '3.7'
       addons:
-        mariadb: '10.4'
+        mariadb: '10.2'
       env:
         - *mariadb
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
