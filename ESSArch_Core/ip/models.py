@@ -352,6 +352,14 @@ class InformationPackage(models.Model):
     def get_permissions(self, user, checker=None):
         return user.get_all_permissions(self)
 
+    def get_new_storage_methods(self):
+        return self.policy.storage_methods.annotate(has_object=Exists(
+            StorageObject.objects.filter(
+                ip=self, storage_medium__storage_target__methods=OuterRef('pk'),
+                storage_medium__storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
+            ))
+        ).exclude(has_object=True)
+
     def is_first_generation(self):
         if self.aic is None:
             return True
