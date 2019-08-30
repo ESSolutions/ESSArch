@@ -109,6 +109,8 @@ matrix:
       addons:
         mariadb: '10.3'
       before_script:
+        - echo -e "[server]\ninnodb_log_file_size=256MB\ninnodb_buffer_pool_size=512MB\nmax_allowed_packet=16MB" | sudo tee -a /etc/mysql/my.cnf
+        - sudo systemctl restart mysql
         - mysql --user="root" --execute="CREATE DATABASE essarch DEFAULT CHARACTER SET utf8;"
       env:
         - *mariadb
