@@ -43,7 +43,7 @@ from celery import states as celery_states
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-from django.db import models, transaction
+from django.db import connection, models, transaction
 from django.db.models import Count, Exists, F, Max, Min, OuterRef, Q, Sum
 from django.db.models.expressions import RawSQL
 from django.urls import reverse
@@ -178,10 +178,15 @@ class InformationPackageQuerySet(models.QuerySet):
 
         # TODO: Exclude those that already has a task that has not succeeded (?)
 
+        def mssql_wrapper(sql):
+            if connection.vendor == 'microsoft':
+                return '(CASE WHEN ({}) THEN 1 ELSE 0 END)'.format(sql)
+            return sql
+
         method_with_old_migrate_and_new_enabled = StorageMethod.objects.annotate(
-            status_migrate_with_ip=RawSQL("""
+            status_migrate_with_ip=RawSQL(mssql_wrapper("""
                 EXISTS(
-                    SELECT U1.id FROM storage_storagemethodtargetrelation U1
+                    SELECT 1 FROM storage_storagemethodtargetrelation U1
                     INNER JOIN storage_storagetarget U3 ON (U1.storage_target_id = U3.id)
                     INNER JOIN storage_storagemedium U4 ON (U3.id = U4.storage_target_id)
                     INNER JOIN storage_storageobject U5 ON (U4.id = U5.storage_medium_id)
@@ -190,11 +195,11 @@ class InformationPackageQuerySet(models.QuerySet):
                         U1.storage_method_id = (U0.id) AND
                         U5.ip_id=ip_informationpackage.id
                     )
-                )""", (STORAGE_TARGET_STATUS_MIGRATE,)
+                )"""), (STORAGE_TARGET_STATUS_MIGRATE,)
             ),
-            status_enabled_with_ip=RawSQL("""
+            status_enabled_with_ip=RawSQL(mssql_wrapper("""
                 EXISTS(
-                    SELECT U1.id FROM storage_storagemethodtargetrelation U1
+                    SELECT 1 FROM storage_storagemethodtargetrelation U1
                     INNER JOIN storage_storagetarget U3 ON (U1.storage_target_id = U3.id)
                     INNER JOIN storage_storagemedium U4 ON (U3.id = U4.storage_target_id)
                     INNER JOIN storage_storageobject U5 ON (U4.id = U5.storage_medium_id)
@@ -203,16 +208,16 @@ class InformationPackageQuerySet(models.QuerySet):
                         U1.storage_method_id = (U0.id) AND
                         U5.ip_id=ip_informationpackage.id
                     )
-                )""", (STORAGE_TARGET_STATUS_ENABLED,)
+                )"""), (STORAGE_TARGET_STATUS_ENABLED,)
             ),
-            status_enabled_without_ip=RawSQL("""
+            status_enabled_without_ip=RawSQL(mssql_wrapper("""
                 EXISTS(
-                    SELECT U1.id FROM storage_storagemethodtargetrelation U1
+                    SELECT 1 FROM storage_storagemethodtargetrelation U1
                     WHERE (
                         U1.status=%s AND
                         U1.storage_method_id = (U0.id)
                     )
-                )""", (STORAGE_TARGET_STATUS_ENABLED,)
+                )"""), (STORAGE_TARGET_STATUS_ENABLED,)
             ),
         ).filter(
             status_migrate_with_ip=True,
@@ -222,19 +227,19 @@ class InformationPackageQuerySet(models.QuerySet):
         )
 
         method_with_enabled_target_without_ip = StorageMethod.objects.annotate(
-            enabled_target_without_ip=RawSQL("""
+            enabled_target_without_ip=RawSQL(mssql_wrapper("""
                 EXISTS(
-                    SELECT U2.id FROM storage_storagemethodtargetrelation AS U2
+                    SELECT 1 FROM storage_storagemethodtargetrelation AS U2
                     WHERE (
-                        U2.status=%s AND U2.storage_method_id = (U0.id) AND NOT EXISTS(
-                            SELECT U3.id FROM storage_storageobject U3
+                        U2.status=%s AND U2.storage_method_id = (U0.id) AND NOT (EXISTS(
+                            SELECT 1 FROM storage_storageobject U3
                             INNER JOIN storage_storagemedium U4 ON (U4.id = U3.storage_medium_id)
                             INNER JOIN storage_storagetarget U5 ON (U5.id = U4.storage_target_id)
                             WHERE U3.ip_id = ip_informationpackage.id
                             AND U5.id = U2.storage_target_id
-                       )
+                       ))
                    )
-                )""", (STORAGE_TARGET_STATUS_ENABLED,)
+                )"""), (STORAGE_TARGET_STATUS_ENABLED,)
             ),
         ).filter(
             enabled_target_without_ip=True,
@@ -244,14 +249,13 @@ class InformationPackageQuerySet(models.QuerySet):
         return self.annotate(
             method_with_old_migrate_and_new_enabled_exists=Exists(method_with_old_migrate_and_new_enabled),
             method_with_enabled_target_without_ip_exists=Exists(method_with_enabled_target_without_ip),
-            storage_count=Count('storage'),
         ).filter(
             Q(
                 Q(method_with_enabled_target_without_ip_exists=True) |
                 Q(method_with_old_migrate_and_new_enabled_exists=True)
             ),
-            storage_count__gt=0, archived=True
-        )
+            archived=True
+        ).exclude(storage=None)
 
 
 class InformationPackageManager(models.Manager):
