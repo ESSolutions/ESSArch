@@ -108,7 +108,7 @@ matrix:
       python: '3.7'
       addons:
         mariadb: '10.3'
-      after_install:
+      before_script:
         - mysql --user="root" --execute="CREATE DATABASE essarch DEFAULT CHARACTER SET utf8;"
       env:
         - *mariadb
