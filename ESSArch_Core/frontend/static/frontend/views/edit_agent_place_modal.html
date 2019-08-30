@@ -1,0 +1,24 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">
+    {{'ACCESS.PLACE' | translate}}
+  </h3>
+</div>
+<form ng-submit="$ctrl.save()" novalidate name="$ctrl.form">
+  <div class="modal-body" id="modal-body">
+    <formly-form model="$ctrl.place" fields="$ctrl.fields" options="{}"></formly-form>
+    <hr class="small" />
+    <h4>
+      {{'ACCESS.TOPOGRAPHY' | translate}}
+    </h4>
+    <formly-form model="$ctrl.topography" fields="$ctrl.topographyFields" options="{}"></formly-form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit" ng-disabled="$ctrl.saving">
+      {{'SAVE' | translate}} <i ng-if="$ctrl.saving" class="fas fa-spinner fa-spin" />
+    </button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()" ng-disabled="$ctrl.saving">
+      {{'CANCEL' | translate}}
+    </button>
+    <form-errors errors="$ctrl.nonFieldErrors"></form-errors>
+  </div>
+</form>
