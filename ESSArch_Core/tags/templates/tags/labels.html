@@ -1,0 +1,125 @@
+{% load essarch_meta %}
+{% load i18n %}
+{% load tz %}
+<html>
+ <head>
+   <style>
+     @page {
+       size: A4;
+       margin: 13.5mm 15mm 13mm 15mm;
+     }
+
+     body {
+       background-color: white;
+       margin: 0;
+
+     }
+     .print-label {
+       position: relative;
+       height: 9cm;
+       width: 4.5cm;
+       text-align: center;
+       page-break-inside:avoid;
+
+
+     }
+     .flex-row {
+       display: flex;
+       flex-direction: row;
+       flex-wrap: wrap;
+       justify-content: left;
+     }
+
+
+     .authority {
+     width: 100%;
+     height:15mm;
+     font-size: 15px;
+     font-weight: bold;
+     line-height: 1.5;
+     padding-bottom: 2mm;
+     padding-top: 2mm;
+   }
+
+    .series_title {
+     width: 100%;
+     height: 20mm;
+     padding-bottom: 4mm;
+     padding-top: 2mm;
+     font-size: 12px;
+     line-height: 1.5;
+     font-weight: bold;
+
+   }
+
+   .vol_desc {
+   width: 100%;
+   height: 17mm;
+   padding-top: 2mm;
+   padding-bottom: 2mm;
+   font-size: 12px;
+   line-height: 1.5;
+ }
+
+ .vol_date{
+ width: 100%;
+ height:10mm;
+ font-size: 20px;
+ font-weight: bold;
+ line-height: 1.5;
+}
+
+.vol_ref{
+  width: 100%;
+  height:10mm;
+  font-size: 20px;
+  font-weight: bold;
+  padding-top: 2mm;
+  padding-bottom: 2mm;
+  line-height: 1.5;
+  white-space: nowrap;
+
+}
+
+.overflow {
+  overflow: hidden;
+
+
+
+}
+.pagebreak {
+  page-break-before: always;
+  clear: both;
+}
+
+   </style>
+ </head>
+ <body>
+   <div class="flex-row pagebreak">
+
+   {% for serie in series %}
+   {% for volume in serie.volumes %}
+
+     <div class="print-label">
+       <div class="authority overflow">{% for agent in agents %}{% if agent.type|stringformat:"s" == "arkivbildare" %}{{agent.agent}}{% endif %} {% endfor %}</div>
+       <div class="series_title overflow">{{ serie.name }}</div>
+       <div class="vol_desc overflow">{{volume.tag.current_version.name}}</div>
+       <div class="vol_date overflow">{{volume.tag.current_version.start_date | date:"Y"}} - {{volume.tag.current_version.end_date | date:"Y"}}</div>
+       <div class="vol_ref overflow">{{ serie.reference_code }}:{{volume.tag.current_version.reference_code}}</div>
+     </div>
+
+   {% if forloop.counter|divisibleby:"12" %}
+   </div>
+   <div class="flex-row pagebreak">
+   {% endif %}
+   {% endfor %}
+   {% if serie.volumes %}
+   </div>
+   <div class="flex-row pagebreak">
+   {% endif %}
+   {% endfor %}
+
+   </div>
+
+ </body>
+</html>
