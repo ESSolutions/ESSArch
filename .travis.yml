@@ -22,48 +22,48 @@ addons:
       - liblua5.2-dev
 
 templates:
-  mariadb: &mariadb DB_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
-  mysql: &mysql DB_PACKAGES=",mysql" DATABASE_URL="mysql://root@localhost/essarch?isolation_level=read committed"
-  postgres: &postgres DB_PACKAGES=",postgres" DATABASE_URL="postgres://postgres@localhost/essarch?isolation_level=read committed"
-  mssql: &mssql DB_PACKAGES=",mssql" DATABASE_URL="mssql://SA:MyPassword42@localhost:1433/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server"
+  mariadb: &mariadb DB_PACKAGES=",mysql" DATABASE_URL_ESSARCH="mysql://root@localhost/essarch?isolation_level=read committed"
+  mysql: &mysql DB_PACKAGES=",mysql" DATABASE_URL_ESSARCH="mysql://root@localhost/essarch?isolation_level=read committed"
+  postgres: &postgres DB_PACKAGES=",postgres" DATABASE_URL_ESSARCH="postgres://postgres@localhost/essarch?isolation_level=read committed"
+  mssql: &mssql DB_PACKAGES=",mssql" DATABASE_URL_ESSARCH="mssql://SA:MyPassword42@localhost:1433/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server"
 
 matrix:
   include:
-    - name: "flake8"
+    - name: 'flake8'
       stage: lint
-      python: "3.7"
+      python: '3.7'
       install: pip install flake8==3.7.1
       script: flake8
       after_success: skip
 
-    - name: "isort"
+    - name: 'isort'
       stage: lint
-      python: "3.7"
+      python: '3.7'
       install: pip install isort==4.3.20
       script: isort --recursive --check-only --diff ESSArch_Core
       after_success: skip
 
-    - name: "prettier"
+    - name: 'prettier'
       stage: lint
       language: node_js
-      node_js: "lts/*"
+      node_js: 'lts/*'
       before_install: cd ESSArch_Core/frontend/static/frontend
       install: yarn install --frozen-lockfile
       script: yarn prettier --check "**/*.{ts,js,scss,html}"
       after_success: skip
 
-    - name: "Build frontend"
+    - name: 'Build frontend'
       stage: test
       language: node_js
-      node_js: "lts/*"
+      node_js: 'lts/*'
       before_install: cd ESSArch_Core/frontend/static/frontend
       install: yarn install --frozen-lockfile
       script: yarn build:prod
       after_success: skip
 
-    - name: "Build documentation"
+    - name: 'Build documentation'
       stage: test
-      python: "3.7"
+      python: '3.7'
       install:
         # Pin six to avoid dependency errors,
         # see https://github.com/pypa/pip/issues/4887
@@ -78,16 +78,16 @@ matrix:
         - make html SPHINXOPTS="-W"
       after_success: skip
 
-    - name: "Linux with SQLite"
+    - name: 'Linux with SQLite'
       stage: test
-      python: "3.7"
+      python: '3.7'
       env:
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
         - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
-    - name: "Linux with MSSQL"
+    - name: 'Linux with MSSQL'
       stage: test
-      python: "3.7"
+      python: '3.7'
       services: docker
       before_install:
         - sudo mkdir -p /ESSArch/log/
@@ -103,19 +103,19 @@ matrix:
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
         - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
-    - name: "Linux with MariaDB"
+    - name: 'Linux with MariaDB'
       stage: test
-      python: "3.7"
+      python: '3.7'
       addons:
-        mariadb: "10.3"
+        mariadb: '10.3'
       env:
         - *mariadb
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
         - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
-    - name: "Linux with MySQL"
+    - name: 'Linux with MySQL'
       stage: test
-      python: "3.7"
+      python: '3.7'
       services:
         - mysql
       env:
@@ -123,9 +123,9 @@ matrix:
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
         - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
-    - name: "Linux with PostgreSQL"
+    - name: 'Linux with PostgreSQL'
       stage: test
-      python: "3.7"
+      python: '3.7'
       services:
         - postgresql
       env:
@@ -133,15 +133,15 @@ matrix:
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
         - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
-    - name: "Windows with MSSQL"
+    - name: 'Windows with MSSQL'
       stage: test
       os: windows
       language: sh
-      python: "3.7"
+      python: '3.7'
       services: docker
       cache:
         directories:
-          - "${HOME}/AppData/Local/pip/Cache/wheels"
+          - '${HOME}/AppData/Local/pip/Cache/wheels'
       before_install:
         - mkdir -p /c/ESSArch/log/
         - docker pull christianacca/mssql-server-windows-express:1803
