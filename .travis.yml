@@ -109,9 +109,7 @@ matrix:
       addons:
         mariadb: '10.3'
       before_script:
-        - echo -e "[server]\ninnodb_log_file_size=256MB\ninnodb_buffer_pool_size=512MB\nmax_allowed_packet=16MB" | sudo tee -a /etc/mysql/my.cnf
-        - sudo systemctl restart mysql
-        - mysql --user="root" --execute="CREATE DATABASE essarch DEFAULT CHARACTER SET utf8;"
+        - mysql --user="root" --execute="SET GLOBAL character_set_server='utf8mb4'"
       env:
         - *mariadb
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
@@ -122,6 +120,8 @@ matrix:
       python: '3.7'
       services:
         - mysql
+      before_script:
+        - mysql --user="root" --execute="SET GLOBAL character_set_server='utf8mb4'"
       env:
         - *mysql
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
