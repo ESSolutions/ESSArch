@@ -1,8 +1,8 @@
 <div class="component-result">
   <div class="d-flex align-items-center justify-content-between">
     <h3 title="Namn">
-      <strong title="Namn" ng-if="vm.record._source.name">
-        {{vm.record._source.name}}
+      <strong title="Namn" ng-if="vm.record._source.name || vm.record.name">
+        {{vm.record._source.name?vm.record._source.name : vm.record.name}}
       </strong>
     </h3>
   </div>
