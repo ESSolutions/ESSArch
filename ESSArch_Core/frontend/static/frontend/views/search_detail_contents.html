@@ -11,16 +11,20 @@
         </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="x in vm.recordChildren">
-          <td ng-click="vm.goToNodePage(x._id, x._is_structure_unit)" class="cursor-pointer">
+        <tr ng-click="vm.goToNodePage(x._id, x._is_structure_unit)" ng-repeat="x in vm.recordChildren">
+          <td class="cursor-pointer">
             <b>{{x.reference_code}}</b>
           </td>
-          <td ng-click="vm.goToNodePage(x._id, x._is_structure_unit)" class="cursor-pointer">{{x.name}}</td>
-          <td ng-click="vm.goToNodePage(x._id, x._is_structure_unit)" class="cursor-pointer">
+          <td class="cursor-pointer">{{x.name}}</td>
+          <td class="cursor-pointer">
             {{x._source.unit_dates.date}}
           </td>
-          <td>
-            <button ng-if="x._index == 'document'" class="btn btn-success btn-small" ng-click="vm.viewFile(x._source)">
+          <td class="cursor-pointer">
+            <button
+              ng-if="x._index == 'document'"
+              class="btn btn-success btn-small"
+              ng-click="$event.stopPropagation();vm.viewFile(x._source)"
+            >
               <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
             </button>
           </td>
