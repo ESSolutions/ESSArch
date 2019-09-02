@@ -341,8 +341,11 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         unit = self.get_object()
 
         structure = unit.structure
-        nodes = structure.tagstructure_set.first().get_root().tag.current_version.get_descendants(structure)
-        children = nodes.filter(tag__structures__structure_unit=unit)
+        if structure.tagstructure_set.exists():
+            nodes = structure.tagstructure_set.first().get_root().tag.current_version.get_descendants(structure)
+            children = nodes.filter(tag__structures__structure_unit=unit)
+        else:
+            children = TagVersion.objects.none()
 
         context = {'structure': structure, 'user': request.user}
 
