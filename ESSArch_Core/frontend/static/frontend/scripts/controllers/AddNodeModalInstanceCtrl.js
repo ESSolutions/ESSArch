@@ -138,7 +138,7 @@ export default class AddNodeModalInstanceCtrl {
             $uibModalInstance.close(response.data);
           })
           .catch(function(response) {
-            $ctrl.nonFieldErrors = response.date.non_field_errors;
+            $ctrl.nonFieldErrors = response.data.non_field_errors;
             $ctrl.submitting = false;
           });
       }
