@@ -19,6 +19,23 @@ module.exports = (env, argv) => {
     },
     module: {
       rules: [
+        {
+          test: require.resolve('angular'),
+          use: 'imports-loader?$=jquery',
+        },
+        {
+          test: require.resolve('jquery'),
+          use: [
+            {
+              loader: 'expose-loader',
+              options: 'jQuery',
+            },
+            {
+              loader: 'expose-loader',
+              options: '$',
+            },
+          ],
+        },
         {test: /\.tsx?$/, use: 'ts-loader'},
         {
           test: /\.js$/,
@@ -98,10 +115,6 @@ module.exports = (env, argv) => {
       ],
     },
     plugins: [
-      new webpack.ProvidePlugin({
-        $: 'jquery',
-        jQuery: 'jquery',
-      }),
       new MiniCssExtractPlugin({
         filename: '[name]-[hash].css',
         chunkFilename: '[id]-[hash].css',

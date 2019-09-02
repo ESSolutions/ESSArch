@@ -54,10 +54,8 @@ import 'angular-translate-storage-cookie';
 import 'angular-tree-control';
 import 'angular-ui-bootstrap';
 import 'angular-websocket';
-import 'jquery';
 import 'messenger-hubspot';
 import 'moment';
-//import ngJsTree from 'ng-js-tree';
 import 'ui-select';
 import {UAParser} from 'ua-parser-js';
 

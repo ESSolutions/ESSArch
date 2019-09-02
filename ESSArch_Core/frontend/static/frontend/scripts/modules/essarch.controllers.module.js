@@ -102,6 +102,9 @@ import StateTreeCtrl from '../controllers/StateTreeCtrl';
 import {permission, uiPermission} from 'angular-permission';
 import uiRouter from '@uirouter/angularjs';
 
+import 'jstree';
+import 'ng-js-tree';
+
 import '../configs/config.json';
 import '../configs/permissions.json';
 
@@ -120,7 +123,7 @@ export default angular
     'ngAnimate',
     'ngCookies',
     'ngFilesizeFilter',
-    //ngJsTree,
+    'ngJsTree',
     'ngMessages',
     'ngResource',
     'ngSanitize',
