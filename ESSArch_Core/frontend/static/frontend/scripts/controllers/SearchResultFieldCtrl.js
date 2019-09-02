@@ -1,4 +1,6 @@
-export default () => {
-  var vm = this;
-  vm.$onInit = function() {};
-};
+export default class SearchResultFieldCtrl {
+  constructor() {
+    let vm = this;
+    vm.$onInit = function() {};
+  }
+}
