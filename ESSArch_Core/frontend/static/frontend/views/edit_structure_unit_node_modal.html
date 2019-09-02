@@ -1,7 +1,7 @@
 <div class="modal-heading">
   <h3 class="modal-title" id="modal-title">{{'EDIT' | translate}}&nbsp;<b>{{$ctrl.node.name}}</b></h3>
 </div>
-<form name="$ctrl.form" ng-submit="$ctrl.update() novalidate">
+<form name="$ctrl.form" ng-submit="$ctrl.update()" novalidate>
   <div class="modal-body" id="modal-body">
     <formly-form model="$ctrl.editNode" fields="$ctrl.nodeFields" options="$ctrl.options"></formly-form>
   </div>
