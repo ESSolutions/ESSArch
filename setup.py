@@ -94,7 +94,7 @@ if __name__ == '__main__':
             "elasticsearch-dsl==6.3.1",
             "glob2==0.7",
             "jsonfield==2.0.2",
-            "lxml==4.3.4",
+            "lxml==4.4.1",
             "natsort==6.0.0",
             "opf-fido==1.3.12",
             "pyfakefs==3.6",
