@@ -44,14 +44,21 @@ export default class ClassificationModalInstanceCtrl {
             params: {structure_type: data.structure.structureType.id, pager: 'none'},
           })
           .then(function(response) {
-            var url = appConfig.djangoUrl + 'structure-units/';
-            $http.head(url + data.node.id + '/children/').then(function(childrenResponse) {
-              var count = parseInt(childrenResponse.headers('Count'));
-              if (!isNaN(count)) {
-                $ctrl.newNode.reference_code = (count + 1).toString();
+            if (data.node.structureType) {
+              if (data.children) {
+                $ctrl.newNode.reference_code = (data.children.length + 1).toString();
               }
               EditMode.enable();
-            });
+            } else {
+              var url = appConfig.djangoUrl + 'structure-units/' + data.node.id + '/children/';
+              $http.head(url).then(function(childrenResponse) {
+                var count = parseInt(childrenResponse.headers('Count'));
+                if (!isNaN(count)) {
+                  $ctrl.newNode.reference_code = (count + 1).toString();
+                }
+                EditMode.enable();
+              });
+            }
             $ctrl.structureUnitTypes = response.data;
             $ctrl.buildNodeForm();
           });
