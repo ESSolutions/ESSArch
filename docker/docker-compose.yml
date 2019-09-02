@@ -1,4 +1,4 @@
-version: "3.3"
+version: '3.3'
 
 services:
   essarch:
@@ -11,9 +11,10 @@ services:
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL: http://elasticsearch:9200
+      DJANGO_WATCHMAN_TIMEOUT: 60
     volumes:
       - ..:/code
-      - /code/ESSArch.egg-info
+      - /code/ESSArch.egg-info/
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
@@ -29,6 +30,7 @@ services:
         /code/docker/docker-entrypoint.sh
     ports:
       - 8000:8000
+    restart: on-failure
     tty: true
     depends_on:
       - ${DATABASE_SERVICE_ESSARCH}
@@ -101,7 +103,7 @@ services:
       - essarch
 
   postgres:
-    image: "postgres"
+    image: 'postgres'
     environment:
       POSTGRES_DB: essarch
       POSTGRES_USER: arkiv
@@ -114,7 +116,7 @@ services:
       - essarch
 
   mariadb:
-    image: "mariadb:10.4.6"
+    image: 'mariadb:10.4.6'
     environment:
       MYSQL_DATABASE: essarch
       MYSQL_USER: arkiv
@@ -128,14 +130,14 @@ services:
       - essarch
 
   redis:
-    image: "redis"
+    image: 'redis'
     networks:
       - essarch
     ports:
       - 6379:6379
 
   rabbitmq:
-    image: "rabbitmq"
+    image: 'rabbitmq'
     ports:
       - 5672:5672
     networks:
@@ -150,10 +152,10 @@ services:
       - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
       - essarch_elasticsearch_data:/usr/share/elasticsearch/data
     ports:
-      - "9200:9200"
-      - "9300:9300"
+      - '9200:9200'
+      - '9300:9300'
     environment:
-      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      ES_JAVA_OPTS: '-Xmx256m -Xms256m'
     networks:
       - essarch
 
