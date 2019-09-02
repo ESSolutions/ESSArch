@@ -586,6 +586,8 @@ class InformationPackageViewSetTestCase(TestCase):
 
         self.url = reverse('informationpackage-list')
 
+        Path.objects.create(entity='ingest_workarea', value='')
+        Path.objects.create(entity='access_workarea', value='')
         Path.objects.create(entity='disseminations', value='')
 
     def test_empty(self):
@@ -753,7 +755,6 @@ class InformationPackageViewSetTestCase(TestCase):
         self.member.assign_object(self.group, aip, custom_permissions=perms)
         self.member.assign_object(self.group, aip2, custom_permissions=perms)
 
-        Path.objects.create(entity='access_workarea', value='access')
         Workarea.objects.create(user=self.user, ip=aip2, type=Workarea.ACCESS, read_only=False)
 
         res = self.client.get(self.url, data={'view_type': 'aic'})
