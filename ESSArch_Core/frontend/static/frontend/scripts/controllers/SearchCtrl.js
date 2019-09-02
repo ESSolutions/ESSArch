@@ -395,6 +395,7 @@ export default class SearchCtrl {
       if (!result.id && result._id) {
         result.id = result._id;
       }
+      let index;
       if (result._index.indexOf('-') !== -1) {
         index = result._index.split('-')[0];
       } else {
