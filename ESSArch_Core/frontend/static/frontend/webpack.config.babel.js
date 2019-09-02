@@ -62,10 +62,6 @@ module.exports = (env, argv) => {
             'resolve-url-loader',
             {
               loader: 'sass-loader',
-              options: {
-                sourceMap: true,
-                sourceMapContents: false,
-              },
             },
           ],
         },
