@@ -364,7 +364,7 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
     def create(self, validated_data):
         tasks = []
         for ip in validated_data['information_packages']:
-            storage_methods = ip.get_new_storage_methods()
+            storage_methods = ip.get_migratable_storage_methods()
             if not storage_methods.exists():
                 raise ValueError('No storage methods available for migration')
 

@@ -426,7 +426,12 @@ class InformationPackage(models.Model):
     def get_permissions(self, user, checker=None):
         return user.get_all_permissions(self)
 
-    def get_new_storage_methods(self):
+    def get_migratable_storage_methods(self):
+        # Gets storage methods that the IP will be migrated to
+
+        if not self.archived or not self.storage.exists():
+            return StorageMethod.objects.none()
+
         return self.policy.storage_methods.annotate(has_object=Exists(
             StorageObject.objects.filter(
                 ip=self, storage_medium__storage_target__methods=OuterRef('pk'),

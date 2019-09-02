@@ -849,6 +849,113 @@ class InformationPackagePreserveTests(TestCase):
         mock_write.assert_called_once_with(['foo.tar'], ip, True, mock.ANY)
 
 
+class InformationPackageGetMigratableStorageMethodsTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.storage_method = StorageMethod.objects.create()
+        cls.storage_target = StorageTarget.objects.create()
+        StorageMethodTargetRelation.objects.create(
+            storage_method=cls.storage_method,
+            storage_target=cls.storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+        cls.storage_medium = StorageMedium.objects.create(
+            storage_target=cls.storage_target,
+            status=20, location_status=50, block_size=1024, format=103,
+        )
+
+        cls.policy = StoragePolicy.objects.create(
+            cache_storage=cls.storage_method,
+            ingest_path=Path.objects.create(entity='test', value='foo')
+        )
+        cls.policy.storage_methods.add(cls.storage_method)
+
+        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
+
+    def test_no_change(self):
+        method_exists = self.ip.get_migratable_storage_methods().exists()
+        self.assertFalse(method_exists)
+
+    def test_new_storage_method(self):
+        new_storage_method = StorageMethod.objects.create()
+        new_storage_target = StorageTarget.objects.create(name='new')
+        StorageMethodTargetRelation.objects.create(
+            storage_method=new_storage_method,
+            storage_target=new_storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+        self.policy.storage_methods.add(new_storage_method)
+
+        # its not relevant for this IP until the old method contains it
+        method_exists = self.ip.get_migratable_storage_methods().exists()
+        self.assertFalse(method_exists)
+
+        # add IP to old method
+
+        StorageObject.objects.create(
+            ip=self.ip, storage_medium=self.storage_medium,
+            content_location_type=DISK,
+        )
+
+        method_exists = self.ip.get_migratable_storage_methods().exists()
+        self.assertTrue(method_exists)
+
+    def test_new_storage_target(self):
+        # set the existing target as migratable
+        StorageMethodTargetRelation.objects.update(
+            status=STORAGE_TARGET_STATUS_MIGRATE
+        )
+
+        # the IP is not migratable until there is a new
+        # enabled target available
+
+        method_exists = self.ip.get_migratable_storage_methods().exists()
+        self.assertFalse(method_exists)
+
+        # add a new enabled target
+
+        new_storage_target = StorageTarget.objects.create(name='new')
+        StorageMethodTargetRelation.objects.create(
+            storage_method=self.storage_method,
+            storage_target=new_storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+        # its not relevant for this IP until the method contains it
+        method_exists = self.ip.get_migratable_storage_methods().exists()
+        self.assertFalse(method_exists)
+
+        # add IP to old method
+
+        StorageObject.objects.create(
+            ip=self.ip, storage_medium=self.storage_medium,
+            content_location_type=DISK,
+        )
+
+        # the IP is now migratable to the new enabled target
+
+        method_exists = self.ip.get_migratable_storage_methods().exists()
+        self.assertTrue(method_exists)
+
+        # add object to new target
+
+        storage_medium = StorageMedium.objects.create(
+            medium_id='foo',
+            storage_target=new_storage_target,
+            status=20, location_status=50, block_size=1024, format=103,
+        )
+        StorageObject.objects.create(
+            ip=self.ip, storage_medium=storage_medium,
+            content_location_type=DISK,
+        )
+
+        # the IP is no longer migratable
+
+        method_exists = self.ip.get_migratable_storage_methods().exists()
+        self.assertFalse(method_exists)
+
+
 class InformationPackageManagerTests(TestCase):
     @classmethod
     def setUpTestData(cls):
