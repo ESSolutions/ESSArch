@@ -149,10 +149,10 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     class Meta:
         model = ProcessTaskSerializer.Meta.model
         fields = ProcessTaskSerializer.Meta.fields + (
-            'args', 'params', 'result', 'traceback', 'exception', 'eager',
+            'celery_id', 'args', 'params', 'result', 'traceback', 'exception', 'eager',
         )
         read_only_fields = ProcessTaskSerializer.Meta.read_only_fields + (
-            'args', 'params', 'result', 'traceback', 'exception',
+            'celery_id', 'args', 'params', 'result', 'traceback', 'exception',
         )
         extra_kwargs = ProcessTaskSerializer.Meta.extra_kwargs
 

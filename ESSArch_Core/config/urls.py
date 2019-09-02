@@ -114,6 +114,12 @@ router.register(r'information-packages', InformationPackageViewSet).register(
     parents_query_lookups=['ip']
 )
 router.register(r'information-packages', InformationPackageViewSet).register(
+    r'storage-migration-targets',
+    StorageTargetViewSet,
+    basename='ip-storage-migration-targets',
+    parents_query_lookups=['ip']
+)
+router.register(r'information-packages', InformationPackageViewSet).register(
     r'validations',
     ValidationViewSet,
     basename='ip-validations',

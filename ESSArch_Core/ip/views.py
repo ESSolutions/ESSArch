@@ -1470,9 +1470,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         if request.method == 'POST':
-            # TODO: This was for EPP but is breaking for ETP so commented it out
-            # if ip.package_type != InformationPackage.DIP:
-            #     raise exceptions.MethodNotAllowed(request.method)
+            if ip.package_type not in [InformationPackage.DIP, InformationPackage.SIP]:
+                raise exceptions.MethodNotAllowed(request.method)
 
             try:
                 path = os.path.join(ip.object_path, request.data['path'])
@@ -1727,13 +1726,9 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
     )
 
     def __init__(self, *args, **kwargs):
-        try:
-            self.logger = logging.getLogger('essarch.reception')
-            self.reception = Path.objects.get(entity="path_ingest_reception").value
-            self.uip = Path.objects.get(entity="path_ingest_unidentified").value
-        except Exception:
-            # TODO: this is moved here from ETA and does not work with other applications yet
-            pass
+        self.logger = logging.getLogger('essarch.reception')
+        self.reception = Path.objects.get(entity="path_ingest_reception").value
+        self.uip = Path.objects.get(entity="path_ingest_unidentified").value
         super().__init__(*args, **kwargs)
 
     def get_queryset(self):
