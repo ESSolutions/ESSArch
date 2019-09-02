@@ -1404,6 +1404,8 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         self.url = reverse('ip-reception-list')
 
         Path.objects.create(entity='reception', value='reception')
+        Path.objects.create(entity='path_ingest_reception', value='ingest_reception')
+        Path.objects.create(entity='path_ingest_unidentified', value='ingest_reception_unidentified')
 
         self.sa = SubmissionAgreement.objects.create()
         aip_profile = Profile.objects.create(profile_type='aip')
@@ -1690,9 +1692,9 @@ class IdentifyIP(TransactionTestCase):
         with open(mimetypes, 'w') as f:
             f.write('application/x-tar tar')
 
-        self.path = Path.objects.create(
-            entity="path_ingest_unidentified", value=self.datadir
-        ).value
+        self.path = Path.objects.create(entity="path_ingest_unidentified", value=self.datadir).value
+        Path.objects.create(entity="path_ingest_reception", value="ingest_reception").value
+
         self.user = User.objects.create(username="admin")
 
         self.client = APIClient()
@@ -2197,7 +2199,10 @@ class FilesActionTests(TestCase):
 
         self.client = APIClient()
         self.user = User.objects.create(username="admin")
-        self.ip = InformationPackage.objects.create(object_path=self.datadir, responsible=self.user)
+        self.ip = InformationPackage.objects.create(
+            package_type=InformationPackage.SIP,
+            object_path=self.datadir, responsible=self.user,
+        )
         self.url = reverse('informationpackage-files', args=(self.ip.pk,))
 
         self.member = self.user.essauth_member
