@@ -104,7 +104,7 @@ if __name__ == '__main__':
             "regex==2018.08.29",
             "requests==2.22.0",
             "requests_toolbelt==0.9.1",
-            "tenacity==5.0.4",
+            "tenacity==5.1.1",
             "wand==0.5.6",
             "weasyprint==48",
         ],
