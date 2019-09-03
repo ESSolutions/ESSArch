@@ -72,10 +72,13 @@ matrix:
       python: '3.7'
       before_install: skip
       install:
+        - sudo mkdir -p /ESSArch/log/
+        - sudo chmod 777 /ESSArch/log/
+        - python -m pip install --upgrade pip wheel setuptools
+
         # Pin six to avoid dependency errors,
         # see https://github.com/pypa/pip/issues/4887
 
-        - python -m pip install --upgrade pip wheel setuptools
         - pip install --upgrade six>=1.12.0
         - pip install .
         - pip install -r requirements/docs.txt
@@ -105,6 +108,12 @@ matrix:
         - curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
         - sudo apt-get update
         - sudo ACCEPT_EULA=Y apt-get install msodbcsql17 unixodbc-dev
+        - python -m pip install --upgrade pip wheel codecov setuptools
+
+        # Pin six to avoid dependency errors,
+        # see https://github.com/pypa/pip/issues/4887
+        - pip install --upgrade six>=1.12.0
+        - pip install -r requirements/tests.txt
       install:
         - pip install .[mssql]
       env:
