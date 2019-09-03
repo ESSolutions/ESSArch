@@ -1,3 +1,5 @@
+import * as Flow from '@flowjs/ng-flow/dist/ng-flow-standalone';
+
 export default class WorkareaCtrl {
   constructor(
     vm,
