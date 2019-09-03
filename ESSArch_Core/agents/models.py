@@ -1,6 +1,7 @@
 import uuid
 
 from countries_plus.models import Country
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import F
 from django.utils import timezone
@@ -197,7 +198,22 @@ class AgentNote(models.Model):
 
 
 class AgentNoteType(models.Model):
+    unique_history_error = _('Only 1 note type can be set as history at a time')
+
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+    history = models.BooleanField(_('history'), default=False)
+
+    def clean(self):
+        if self.history:
+            try:
+                existing = AgentNoteType.objects.get(history=True)
+                if existing != self:
+                    raise ValidationError(
+                        self.unique_history_error,
+                        code='invalid',
+                    )
+            except AgentNoteType.DoesNotExist:
+                pass
 
     def __str__(self):
         return self.name
@@ -352,7 +368,22 @@ class AgentName(models.Model):
 
 
 class AgentNameType(models.Model):
+    unique_authority_error = _('Only 1 name type can be set as authority at a time')
+
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+    authority = models.BooleanField(_('authority'), default=False)
+
+    def clean(self):
+        if self.authority:
+            try:
+                existing = AgentNameType.objects.get(authority=True)
+                if existing != self:
+                    raise ValidationError(
+                        self.unique_authority_error,
+                        code='invalid',
+                    )
+            except AgentNameType.DoesNotExist:
+                pass
 
     def __str__(self):
         return self.name

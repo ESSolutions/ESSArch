@@ -14,13 +14,21 @@ from ESSArch_Core.agents.models import (
 )
 
 
+class AgentNoteTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'history')
+
+
+class AgentNameTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'authority')
+
+
 class AgentRelationTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'mirrored_type')
 
 
 admin.site.register(AgentIdentifierType)
-admin.site.register(AgentNameType)
-admin.site.register(AgentNoteType)
+admin.site.register(AgentNameType, AgentNameTypeAdmin)
+admin.site.register(AgentNoteType, AgentNoteTypeAdmin)
 admin.site.register(AgentPlaceType)
 admin.site.register(AgentRelationType, AgentRelationTypeAdmin)
 admin.site.register(AgentTagLinkRelationType)

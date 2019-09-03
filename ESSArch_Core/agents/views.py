@@ -61,11 +61,19 @@ class AgentNameTypeViewSet(viewsets.ModelViewSet):
     serializer_class = AgentNameTypeSerializer
     permission_classes = (ActionPermissions,)
 
+    filter_backends = (DjangoFilterBackend, SearchFilter,)
+    filterset_fields = ('authority',)
+    search_fields = ('name',)
+
 
 class AgentNoteTypeViewSet(viewsets.ModelViewSet):
     queryset = AgentNoteType.objects.all()
     serializer_class = AgentNoteTypeSerializer
     permission_classes = (ActionPermissions,)
+
+    filter_backends = (DjangoFilterBackend, SearchFilter,)
+    filterset_fields = ('history',)
+    search_fields = ('name',)
 
 
 class AgentIdentifierTypeViewSet(viewsets.ModelViewSet):

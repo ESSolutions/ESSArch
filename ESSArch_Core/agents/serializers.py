@@ -56,9 +56,22 @@ class AgentIdentifierWriteSerializer(serializers.ModelSerializer):
 
 
 class AgentNameTypeSerializer(serializers.ModelSerializer):
+    def validate_authority(self, value):
+        if value:
+            try:
+                existing = AgentNameType.objects.get(authority=True)
+                if existing != self.instance:
+                    raise serializers.ValidationError(
+                        AgentNameType.unique_authority_error,
+                    )
+            except AgentNameType.DoesNotExist:
+                pass
+
+        return value
+
     class Meta:
         model = AgentNameType
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'authority',)
 
 
 class AgentNameSerializer(serializers.ModelSerializer):
@@ -74,9 +87,22 @@ class AgentNameWriteSerializer(AgentNameSerializer):
 
 
 class AgentNoteTypeSerializer(serializers.ModelSerializer):
+    def validate_history(self, value):
+        if value:
+            try:
+                existing = AgentNoteType.objects.get(history=True)
+                if existing != self.instance:
+                    raise serializers.ValidationError(
+                        AgentNoteType.unique_history_error,
+                    )
+            except AgentNoteType.DoesNotExist:
+                pass
+
+        return value
+
     class Meta:
         model = AgentNoteType
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'history',)
 
 
 class AgentNoteSerializer(serializers.ModelSerializer):
