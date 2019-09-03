@@ -20,7 +20,7 @@ msgstr ""
 
 #: ../../user_guide/user-interface/state-view.rst:4
 msgid "State view"
-msgstr ""
+msgstr "Tillståndsvy"
 
 #: ../../user_guide/user-interface/state-view.rst:6
 msgid ""
@@ -28,6 +28,10 @@ msgid ""
 "tasks for an IP. This view has information about the progress and/or "
 "outcome of each step and task."
 msgstr ""
+"För att se alla steg och jobb för ett IP så klickar man på **Jobb**-fliken "
+"efter att ha valt ett IP. I vyn som öppnas så visas information om tillstånd "
+"och resultat från steg och jobb som har utförts, utförs just nu eller som ska"
+" utföras."
 
 #: ../../user_guide/user-interface/state-view.rst:12
 msgid ""
@@ -35,4 +39,6 @@ msgid ""
 " an error occurs because the user can access a detailed description of "
 "the error which will help when finding out where things went wrong."
 msgstr ""
-
+"Klickar man på ett steg eller jobb så visas mer detaljerad information "
+"som framförallt är användbar om något går fel för att kunna undersöka "
+"vart det gick fel, samt hur man går vidare för att lösa det."

@@ -687,33 +687,34 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ip.state = "Uploading"
         ip.save()
 
-        if request.method == 'GET':
-            dst = request.GET.get('destination', '').strip('/ ')
-            path = os.path.join(dst, request.GET.get('flowRelativePath', ''))
-            chunk_nr = request.GET.get('flowChunkNumber')
-            chunk_path = "%s_%s" % (path, chunk_nr)
+        data = request.GET if request.method == 'GET' else request.data
 
-            if os.path.exists(os.path.join(ip.object_path, chunk_path)):
-                return Response()
+        dst = data.get('destination', '').strip('/ ')
+        path = os.path.join(dst, data.get('flowRelativePath', ''))
+        chunk_nr = data.get('flowChunkNumber')
+        chunk_path = "%s_%s" % (path, chunk_nr)
+
+        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
+        full_chunk_path = os.path.join(temp_path, str(ip.pk), chunk_path)
+
+        if request.method == 'GET':
+            if os.path.exists(full_chunk_path):
+                chunk_size = int(data.get('flowChunkSize'))
+                if os.path.getsize(full_chunk_path) != chunk_size:
+                    return Response(status=status.HTTP_400_BAD_REQUEST)
+                return Response(status=status.HTTP_200_OK)
+
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         if request.method == 'POST':
-            dst = request.data.get('destination', '').strip('/ ')
-            path = os.path.join(dst, request.data.get('flowRelativePath', ''))
-            chunk_nr = request.data.get('flowChunkNumber')
-            chunk_path = "%s_%s" % (path, chunk_nr)
-            chunk_path = os.path.join(ip.object_path, chunk_path)
-
             chunk = request.FILES['file']
+            os.makedirs(os.path.dirname(full_chunk_path), exist_ok=True)
 
-            if not os.path.exists(os.path.dirname(chunk_path)):
-                os.makedirs(os.path.dirname(chunk_path), exist_ok=True)
-
-            with open(chunk_path, 'wb+') as dst:
+            with open(full_chunk_path, 'wb+') as chunkf:
                 for c in chunk.chunks():
-                    dst.write(c)
+                    chunkf.write(c)
 
-            return Response("Uploaded chunk")
+            return Response("Uploaded chunk", status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'], url_path='merge-uploaded-chunks', permission_classes=[CanUpload])
     def merge_uploaded_chunks(self, request, pk=None):
@@ -721,16 +722,18 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if ip.state != 'Uploading':
             raise exceptions.ParseError('IP must be in state "Uploading"')
 
-        path = os.path.join(ip.object_path, request.data['path'])
+        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
+        chunks_path = os.path.join(temp_path, str(ip.pk), request.data['path'])
+        filepath = os.path.join(ip.object_path, request.data['path'])
 
         try:
-            merge_file_chunks(path)
+            merge_file_chunks(chunks_path, filepath)
         except NoFileChunksFound:
             raise exceptions.NotFound('No chunks found')
 
         logger = logging.getLogger('essarch')
         extra = {'event_type': 50700, 'object': str(ip.pk), 'agent': request.user.username, 'outcome': EventIP.SUCCESS}
-        logger.info("Uploaded %s" % path, extra=extra)
+        logger.info("Uploaded %s" % filepath, extra=extra)
 
         return Response("Merged chunks")
 
@@ -2644,13 +2647,11 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         self.validate_workarea(workarea)
         root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
 
-        if request.method == 'GET':
-            path = os.path.join(root, request.query_params.get('destination', ''))
-        else:
-            path = os.path.join(root, request.data.get('destination', ''))
+        data = request.GET if request.method == 'GET' else request.data
+        dst = data.get('destination', '').strip('/ ')
 
-        self.validate_path(path, root)
-        relative_root = path[len(root) + 1:].split('/')[0]
+        self.validate_path(os.path.join(root, dst), root)
+        relative_root = os.path.join(root, dst)[len(root) + 1:].split('/')[0]
 
         try:
             workarea_obj = Workarea.objects.get(ip__object_identifier_value=relative_root)
@@ -2661,47 +2662,39 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             detail = 'You are not allowed to modify read-only IPs'
             raise exceptions.MethodNotAllowed(method=request.method, detail=detail)
 
+        relative_path = data.get('flowRelativePath', '')
+        if len(relative_path) == 0:
+            raise exceptions.ParseError('The path cannot be empty')
+
+        try:
+            chunk_nr = data['flowChunkNumber']
+        except KeyError:
+            raise exceptions.ParseError('flowChunkNumber parameter missing')
+
+        path = os.path.join(dst, relative_path)
+        chunk_path = "%s_%s" % (path, chunk_nr)
+
+        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
+        full_chunk_path = os.path.join(temp_path, str(workarea_obj.pk), chunk_path)
+
         if request.method == 'GET':
-            relative_path = request.query_params.get('flowRelativePath', '')
-
-            if len(relative_path) == 0:
-                raise exceptions.ParseError('The path cannot be empty')
-
-            path = os.path.join(path, relative_path)
-
-            try:
-                chunk_nr = request.query_params['flowChunkNumber']
-            except KeyError:
-                raise exceptions.ParseError('flowChunkNumber parameter missing')
-
-            chunk_path = "%s_%s" % (path, chunk_nr)
-
-            if os.path.exists(chunk_path):
+            if os.path.exists(full_chunk_path):
+                chunk_size = int(data.get('flowChunkSize'))
+                if os.path.getsize(full_chunk_path) != chunk_size:
+                    return Response(status=status.HTTP_400_BAD_REQUEST)
                 return Response(status=status.HTTP_200_OK)
+
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         if request.method == 'POST':
-            relative_path = request.data.get('flowRelativePath', '')
-
-            if len(relative_path) == 0:
-                raise exceptions.ParseError('The path cannot be empty')
-
-            try:
-                chunk_nr = request.data['flowChunkNumber']
-            except KeyError:
-                raise exceptions.ParseError('flowChunkNumber parameter missing')
-
-            path = os.path.join(path, relative_path)
-
-            chunk_path = "%s_%s" % (path, chunk_nr)
             chunk = request.FILES['file']
-            os.makedirs(os.path.dirname(chunk_path), exist_ok=True)
+            os.makedirs(os.path.dirname(full_chunk_path), exist_ok=True)
 
-            with open(chunk_path, 'wb+') as dst:
+            with open(full_chunk_path, 'wb+') as chunkf:
                 for c in chunk.chunks():
-                    dst.write(c)
+                    chunkf.write(c)
 
-            return Response(status=status.HTTP_201_CREATED)
+            return Response("Uploaded chunk", status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['post'], url_path='merge-uploaded-chunks')
     def merge_uploaded_chunks(self, request):
@@ -2733,8 +2726,11 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if workarea_obj.read_only:
             raise exceptions.MethodNotAllowed(request.method)
 
+        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
+        chunks_path = os.path.join(temp_path, str(workarea_obj.pk), relative_path)
+
         try:
-            merge_file_chunks(path)
+            merge_file_chunks(chunks_path, path)
         except NoFileChunksFound:
             raise exceptions.NotFound('No chunks found')
 

@@ -22,10 +22,10 @@ addons:
       - liblua5.2-dev
 
 templates:
-  mariadb: &mariadb DB_PACKAGES=",mysql" DATABASE_URL_ESSARCH="mysql://root@localhost/essarch?isolation_level=read committed"
-  mysql: &mysql DB_PACKAGES=",mysql" DATABASE_URL_ESSARCH="mysql://root@localhost/essarch?isolation_level=read committed"
-  postgres: &postgres DB_PACKAGES=",postgres" DATABASE_URL_ESSARCH="postgres://postgres@localhost/essarch?isolation_level=read committed"
-  mssql: &mssql DB_PACKAGES=",mssql" DATABASE_URL_ESSARCH="mssql://SA:MyPassword42@localhost:1433/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server"
+  mariadb: &mariadb DB_PACKAGES="mysql" DATABASE_URL_ESSARCH="mysql://root@localhost/essarch?isolation_level=read committed"
+  mysql: &mysql DB_PACKAGES="mysql" DATABASE_URL_ESSARCH="mysql://root@localhost/essarch?isolation_level=read committed"
+  postgres: &postgres DB_PACKAGES="postgres" DATABASE_URL_ESSARCH="postgres://postgres@localhost/essarch?isolation_level=read committed"
+  mssql: &mssql DB_PACKAGES="mssql" DATABASE_URL_ESSARCH="mssql://SA:MyPassword42@localhost:1433/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server"
 
 matrix:
   include:
@@ -70,7 +70,8 @@ matrix:
 
         - python -m pip install --upgrade pip wheel setuptools
         - pip install --upgrade six>=1.12.0
-        - pip install .["docs"]
+        - pip install .
+        - pip install -r requirements/docs.txt
         - essarch settings generate -p local_essarch_settings.py
 
       script:
@@ -172,7 +173,8 @@ install:
 
   - python -m pip install --upgrade pip wheel codecov setuptools
   - pip install --upgrade six>=1.12.0
-  - pip install .["tests,s3$DB_PACKAGES"]
+  - pip install .["$DB_PACKAGES"]
+  - pip install -r requirements/tests.txt
   - essarch settings generate -p local_essarch_settings.py
 
 script:

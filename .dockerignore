@@ -1,8 +1,5 @@
 **/node_modules
-/docker/config/
-/docker/data/
-/docker/log/
-/docker/docker-compose.yml
+/docker/
 /dist/
 /htmlcov/
 /venv/

@@ -324,6 +324,7 @@ export default class CollectContentCtrl {
       var flowObj = new Flow({
         target: appConfig.djangoUrl + 'information-packages/' + ip.id + '/upload/',
         simultaneousUploads: 15,
+        chunkSize: 10 * 1024 * 1024, // 50MB
         maxChunkRetries: 5,
         chunkRetryInterval: 1000,
         headers: {'X-CSRFToken': $cookies.get('csrftoken')},

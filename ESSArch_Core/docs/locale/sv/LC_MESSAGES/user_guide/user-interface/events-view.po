@@ -20,7 +20,7 @@ msgstr ""
 
 #: ../../user_guide/user-interface/events-view.rst:4
 msgid "Events view"
-msgstr ""
+msgstr "Eventvy"
 
 #: ../../user_guide/user-interface/events-view.rst:6
 msgid ""
@@ -28,4 +28,6 @@ msgid ""
 " events for an IP.  A user can add new events by filling out the fields "
 "and clicking **Add event**."
 msgstr ""
-
+"Klickar man i **Event**-fliken efter man har valt ett IP visas en lista "
+"med alla händelser för ett IP. En användare kan själv manuellt lägga till en "
+"händelse genom att fylla i fälten och klicka på **Lägg till event**."

@@ -684,16 +684,16 @@ def list_files(path, force_download=False, request=None, paginator=None):
     raise NotFound
 
 
-def merge_file_chunks(path):
-    chunks = natsorted(glob.glob('%s_*' % re.sub(r'([\[\]])', '[\\1]', path)))
+def merge_file_chunks(chunks_path, filepath):
+    chunks = natsorted(glob.glob('%s_*' % re.sub(r'([\[\]])', '[\\1]', chunks_path)))
     if len(chunks) == 0:
         raise NoFileChunksFound
 
-    with open(path, 'wb') as f:
-        for chunk_file in chunks:
-            with open(chunk_file, 'rb') as cf:
+    with open(filepath, 'wb') as f:
+        for chunk in chunks:
+            with open(chunk, 'rb') as cf:
                 f.write(cf.read())
-            os.remove(chunk_file)
+            os.remove(chunk)
 
 
 def turn_off_auto_now(ModelClass, field_name):

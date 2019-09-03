@@ -1,3 +1,5 @@
+import * as Flow from '@flowjs/ng-flow/dist/ng-flow-standalone';
+
 export default class WorkareaCtrl {
   constructor(
     vm,
@@ -260,6 +262,7 @@ export default class WorkareaCtrl {
     $scope.createNewFlow = function(ip) {
       var flowObj = new Flow({
         target: appConfig.djangoUrl + 'workarea-files/upload/?type=' + vm.getUploadWorkareaType(),
+        chunkSize: 10 * 1024 * 1024, // 50MB
         simultaneousUploads: 15,
         maxChunkRetries: 5,
         chunkRetryInterval: 1000,

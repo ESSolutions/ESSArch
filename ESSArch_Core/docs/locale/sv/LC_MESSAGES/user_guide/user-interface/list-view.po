@@ -20,7 +20,7 @@ msgstr ""
 
 #: ../../user_guide/user-interface/list-view.rst:4
 msgid "List view"
-msgstr ""
+msgstr "Listvy"
 
 #: ../../user_guide/user-interface/list-view.rst:6
 msgid ""
@@ -29,12 +29,19 @@ msgid ""
 "current view, and filtered depending on state and permissions. Provided "
 "are additional optional filter and sorting options."
 msgstr ""
+"Listvyn är tabellen med objekt som existerar i de flesta vyer i ESSArch. "
+"Innehållet är alltid relevant för den nuvarande vyn och är filtrerat "
+"efter tillståndet på innehållet samt användarens rättigheter. "
+"Tillgängligt är även ytterliggare frivilliga filter och "
+"sorteringsalternativ."
 
 #: ../../user_guide/user-interface/list-view.rst:13
 msgid ""
 "The list view can be filtered by clicking the filter icon, which opens a "
 "menu with all available filters."
 msgstr ""
+"Listvyn kan filtreras genom att klicka på filterikonen, som öppnar en "
+"meny med alla tillgängliga filter."
 
 #: ../../user_guide/user-interface/list-view.rst:18
 msgid ""
@@ -43,6 +50,10 @@ msgid ""
 "in the first level can be administrated in the :ref:`user settings <user-"
 "settings-ip-view-type>`."
 msgstr ""
+"I ESSArch Preservation Platform (EPP) inkluderar många av listvyerna "
+"nästlade IPn som kan bli expanderade för att se underliggande IPn. Vad "
+"som ska visas på den första nivån kan administreras i "
+":ref:`användarinställningarna <user-settings-ip-view-type>`."
 
 #: ../../user_guide/user-interface/list-view.rst:25
 msgid ""
@@ -56,4 +67,12 @@ msgid ""
 " actions that can be done, since any action taken will be done to all "
 "selected objects."
 msgstr ""
-
+"Tillgängliga funktioner i en vy såsom att bläddra i filhanterare, se jobb"
+" eller händelser och huvudfunktionalitet som att förbereda, skapa eller "
+"arkivera SIP kommer man åt genom att klicka på objektets rad och sedan "
+"välja önskad flik. En användare kan i många fall markera flera objekt "
+"genom att hålla ner :kbd:`CTRL` och välja alla paket ett i  taget eller "
+"genom att välja ett, hålla in :kbd:`SHIFT` och välja ett annat, så "
+"markeras alla paket mellan dessa inklusive de två valda. Väljer man flera"
+" objekt minskar det ofta antalet tillgängliga funktioner eftersom "
+"handligen kommer utföras på alla valda objekt."

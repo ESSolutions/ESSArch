@@ -20,5 +20,4 @@ msgstr ""
 
 #: ../../user_guide/user-interface/index.rst:5
 msgid "Interface"
-msgstr ""
-
+msgstr "Gränssnitt"

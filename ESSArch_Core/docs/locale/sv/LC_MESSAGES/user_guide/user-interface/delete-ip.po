@@ -20,11 +20,13 @@ msgstr ""
 
 #: ../../user_guide/user-interface/delete-ip.rst:4
 msgid "Delete IP"
-msgstr ""
+msgstr "Radera IP"
 
 #: ../../user_guide/user-interface/delete-ip.rst:6
 msgid ""
 "A user with enough permissions can delete an IP by clicking the "
 "**delete**-button."
 msgstr ""
-
+"En användare med tillräckliga behörigheter "
+"kan radera ett IP genom att klicka"
+" på knappen i **Radera**-kolumnen"
