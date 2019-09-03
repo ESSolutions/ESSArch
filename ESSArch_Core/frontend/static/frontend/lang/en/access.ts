@@ -40,6 +40,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       CPF: 'Cpf',
       CREATE_ARCHIVE_CREATOR: 'New archive creator',
       CREATE_DELIVERY: 'Create delivery',
+      CREATE_LABELS: 'Create labels',
       CREATE_NEW_FIELD: 'Create new field',
       CREATE_NEW_STRUCTURE: 'Create new structure',
       CREATE_NEW_VERSION: 'Create new version',

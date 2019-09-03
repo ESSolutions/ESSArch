@@ -5,9 +5,14 @@
         {{vm.record._source.name}}
       </strong>
     </h3>
-    <button class="btn btn-primary" ng-click="vm.exportArchive(vm.record)">
-      {{'EXPORT' | translate}}
-    </button>
+    <div>
+      <button class="btn btn-primary" ng-click="vm.exportArchive(vm.record)">
+        {{'EXPORT' | translate}}
+      </button>
+      <button class="btn btn-primary" ng-click="vm.archiveLabels(vm.record)">
+        {{'ACCESS.CREATE_LABELS' |translate}}
+      </button>
+    </div>
   </div>
   <h4 title="Informationsobjekt">{{vm.record._source.type}}</h4>
   <div ng-if="vm.record.description">

@@ -40,6 +40,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       CPF: 'Typ av auktoritetspost',
       CREATE_ARCHIVE_CREATOR: 'Skapa arkivbildare',
       CREATE_DELIVERY: 'Skapa leverans',
+      CREATE_LABELS: 'Skapa etiketter',
       CREATE_NEW_FIELD: 'Skapa nytt fält',
       CREATE_NEW_STRUCTURE: 'Skapa ny struktur',
       CREATE_NEW_VERSION: 'Skapa ny version',

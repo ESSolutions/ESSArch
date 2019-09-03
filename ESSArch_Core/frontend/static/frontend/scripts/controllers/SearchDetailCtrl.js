@@ -994,6 +994,11 @@ export default class SearchDetailCtrl {
       $window.open(showFile, '_blank');
     };
 
+    vm.archiveLabels = function(node) {
+      var showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._source.id + '/label/');
+      $window.open(showFile, '_blank');
+    };
+
     vm.editField = function(key, value) {
       var modalInstance = $uibModal.open({
         animation: true,
