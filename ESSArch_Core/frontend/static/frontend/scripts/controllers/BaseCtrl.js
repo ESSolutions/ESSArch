@@ -520,6 +520,27 @@ export default class BaseCtrl {
       },
     ];
 
+    // File conversion
+
+    vm.fileConversionModel = {};
+    $translate(['YES', 'NO']).then(function(translations) {
+      vm.fileConversionFields = [
+        {
+          templateOptions: {
+            type: 'text',
+            label: $translate.instant('CONVERTFILES'),
+            options: [{name: translations.YES, value: true}, {name: translations.NO, value: false}],
+          },
+          defaultValue: false,
+          type: 'select',
+          ngModelElAttrs: {
+            tabindex: '-1',
+          },
+          key: 'file_conversion',
+        },
+      ];
+    });
+
     // Requests
     $scope.submitRequest = function(ip, request) {
       switch (request.type) {
