@@ -2181,10 +2181,10 @@ class UploadTestCase(TestCase):
                 'flowRelativePath': os.path.basename(srcfile),
                 'file': chunk,
             }
-            res = self.client.post(self.baseurl + 'upload/', data, format='multipart')
+            self.client.post(self.baseurl + 'upload/', data, format='multipart')
 
             data = {'path': os.path.relpath(dstfile, self.dst)}
-            res = self.client.post(self.baseurl + 'merge-uploaded-chunks/', data)
+            self.client.post(self.baseurl + 'merge-uploaded-chunks/', data)
 
             self.assertTrue(filecmp.cmp(srcfile, dstfile, False))
 
