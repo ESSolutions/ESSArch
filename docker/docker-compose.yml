@@ -19,6 +19,7 @@ services:
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
       - /code/ESSArch_Core/frontend/static/frontend/build
+      - /code/ESSArch_Core/docs/_build
     command:
       - /bin/bash
       - -c
