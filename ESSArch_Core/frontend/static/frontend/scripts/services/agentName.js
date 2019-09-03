@@ -32,7 +32,7 @@ const AgentName = $filter => {
       });
       var name = null;
       agent.names.forEach(function(x) {
-        if (x.type.id === 1 && x.start_date !== null && x.end_date === null && name === null) {
+        if (x.type.authority && x.start_date !== null && x.end_date === null && name === null) {
           name = angular.copy(x);
           name.full_name = getFullName(x);
           if (angular.isUndefined(options) || (!angular.isUndefined(options) && options.includeDates !== false)) {
@@ -44,7 +44,7 @@ const AgentName = $filter => {
       });
       if (name === null) {
         agent.names.forEach(function(x) {
-          if (x.type.id === 1 && name === null) {
+          if (x.type.authority && name === null) {
             name = angular.copy(x);
             name.full_name = getFullName(x);
             if (angular.isUndefined(options) || (!angular.isUndefined(options) && options.includeDates !== false)) {
@@ -65,7 +65,7 @@ const AgentName = $filter => {
     parseAgentNames: function(agent, options) {
       agent.names.forEach(function(x) {
         x.full_name = getFullName(x);
-        if (x.type.id === 1) {
+        if (x.type.authority) {
           agent.full_name = getFullName(x);
           if (angular.isUndefined(options) || (!angular.isUndefined(options) && options.includeDates !== false)) {
             agent.full_name += getAgentNameDates(agent);

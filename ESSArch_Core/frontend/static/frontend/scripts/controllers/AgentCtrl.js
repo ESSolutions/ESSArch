@@ -144,7 +144,7 @@ export default class AgentCtrl {
       });
       var authorized = [];
       agent.names.forEach(function(x, index) {
-        if (x.type.id === 1) {
+        if (x.authority) {
           var name = x;
           agent.names.splice(index, 1);
           authorized.unshift(name);
@@ -262,7 +262,7 @@ export default class AgentCtrl {
         remarks: [],
       };
       agent.notes.forEach(function(note) {
-        if (note.type.name.toLowerCase() === 'historik') {
+        if (note.type.history) {
           obj.history.push(note);
         } else {
           obj.remarks.push(note);
