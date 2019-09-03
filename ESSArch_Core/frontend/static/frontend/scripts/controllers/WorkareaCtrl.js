@@ -262,6 +262,7 @@ export default class WorkareaCtrl {
     $scope.createNewFlow = function(ip) {
       var flowObj = new Flow({
         target: appConfig.djangoUrl + 'workarea-files/upload/?type=' + vm.getUploadWorkareaType(),
+        chunkSize: 50 * 1024 * 1024, // 50MB
         simultaneousUploads: 15,
         maxChunkRetries: 5,
         chunkRetryInterval: 1000,
