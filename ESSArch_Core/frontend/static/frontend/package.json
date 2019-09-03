@@ -111,7 +111,7 @@
     "update-webdriver": "webdriver-manager update",
     "pree2e": "yarn run update-webdriver",
     "e2e": "protractor e2e-tests/protractor.conf.js",
-    "prettier": "prettier",
+    "prettier": "prettier --ignore-path ../../../../.prettierignore",
     "lint": "eslint \"*/**/*.{js,ts,tsx}\" --quiet"
   }
 }
