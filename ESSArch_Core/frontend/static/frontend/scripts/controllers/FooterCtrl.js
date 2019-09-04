@@ -1,6 +1,6 @@
 export default class {
   constructor() {
-    var vm = this;
+    const vm = this;
     vm.$onInit = function() {
       vm.currentYear = new Date().getFullYear();
     };

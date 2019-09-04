@@ -1,6 +1,6 @@
 export default class ConfirmReceiveCtrl {
   constructor(IPReception, Notifications, $uibModalInstance, data) {
-    var $ctrl = this;
+    const $ctrl = this;
 
     $ctrl.receiving = false;
     if (data) {

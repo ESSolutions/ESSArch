@@ -24,7 +24,7 @@
 
 export default class ModalInstanceCtrl {
   constructor($uibModalInstance, djangoAuth, data, $http, Notifications, IP, appConfig, listViewService, $translate) {
-    var $ctrl = this;
+    const $ctrl = this;
     if (data) {
       $ctrl.data = data;
     }

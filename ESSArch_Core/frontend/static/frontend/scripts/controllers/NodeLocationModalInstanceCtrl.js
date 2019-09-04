@@ -1,6 +1,6 @@
 export default class NodeLocationModalInstanceCtrl {
   constructor($scope, data, $uibModalInstance, EditMode, Search, $translate, $q, Notifications) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.location = null;
 
     $ctrl.$onInit = function() {
@@ -21,7 +21,7 @@ export default class NodeLocationModalInstanceCtrl {
     };
 
     $ctrl.filterNodes = function(nodes) {
-      var filtered = [];
+      const filtered = [];
       nodes.forEach(function(x) {
         if (
           !angular.isUndefined(x) &&
@@ -55,7 +55,7 @@ export default class NodeLocationModalInstanceCtrl {
             $ctrl.saving = false;
           });
       } else if (data.nodes) {
-        var promises = [];
+        const promises = [];
         $ctrl.nodes.forEach(function(node) {
           promises.push(
             Search.updateNode(node, {location: $ctrl.location !== null ? $ctrl.location.id : null}).then(function(
@@ -92,7 +92,7 @@ export default class NodeLocationModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

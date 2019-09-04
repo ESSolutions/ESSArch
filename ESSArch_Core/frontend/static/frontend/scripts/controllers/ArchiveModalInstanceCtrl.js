@@ -15,7 +15,7 @@ export default class ArchiveModalInstanceCtrl {
     StructureName,
     $q
   ) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.options = {};
     $ctrl.initStructureSearch = null;
     $ctrl.initAgentSearch = null;
@@ -42,9 +42,9 @@ export default class ArchiveModalInstanceCtrl {
             $ctrl.archive.structures = angular.copy($ctrl.archive.structures).map(function(x) {
               return x.template;
             });
-            var toAdd = [];
+            const toAdd = [];
             $ctrl.archive.structures.forEach(function(b) {
-              var exists = false;
+              let exists = false;
               structures.forEach(function(a) {
                 if (a.id === b) {
                   a.disabled = true;
@@ -55,7 +55,7 @@ export default class ArchiveModalInstanceCtrl {
                 toAdd.push(b);
               }
             });
-            var promises = [];
+            const promises = [];
             toAdd.forEach(function(x) {
               x.disabled = true;
               promises.push(
@@ -267,7 +267,7 @@ export default class ArchiveModalInstanceCtrl {
         return;
       }
       $ctrl.saving = true;
-      var extraDiff = {};
+      const extraDiff = {};
       if (
         data.archive &&
         data.archive.structures &&
@@ -316,7 +316,7 @@ export default class ArchiveModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

@@ -1,7 +1,7 @@
 export default class IpApprovalCtrl {
   constructor($scope, $controller, $rootScope, $translate, ContextMenuBase) {
-    var vm = this;
-    var ipSortString = ['Received', 'Preserving'];
+    const vm = this;
+    const ipSortString = ['Received', 'Preserving'];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
 
     //Request form data
@@ -19,7 +19,7 @@ export default class IpApprovalCtrl {
     $scope.initRequestData();
 
     $scope.menuOptions = function(rowType, row) {
-      var methods = [];
+      const methods = [];
       methods.push({
         text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
         click: function($itemScope, $event, modelValue, text, $li) {

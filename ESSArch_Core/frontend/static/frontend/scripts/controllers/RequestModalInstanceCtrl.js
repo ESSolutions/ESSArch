@@ -1,6 +1,6 @@
 export default class RequestModalInstanceCtrl {
   constructor($uibModalInstance, data, $scope) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.angular = angular;
     $ctrl.object = data.object;
     $ctrl.requestTypes = data.types;

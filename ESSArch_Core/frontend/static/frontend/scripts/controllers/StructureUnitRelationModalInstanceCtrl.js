@@ -1,6 +1,6 @@
 export default class StructureUnitRelationModalInstanceCtrl {
   constructor($uibModalInstance, appConfig, data, $http, EditMode, $translate, $scope, $rootScope, StructureName) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.data = data;
     $ctrl.isTemplate = true;
     $ctrl.isTemplateOptions = [
@@ -199,7 +199,7 @@ export default class StructureUnitRelationModalInstanceCtrl {
         $ctrl.form.$setSubmitted();
         return;
       }
-      var units = angular.copy($ctrl.node).related_structure_units.map(function(x) {
+      const units = angular.copy($ctrl.node).related_structure_units.map(function(x) {
         x.structure_unit = angular.copy(x.structure_unit.id);
         x.type = angular.copy(x.type.id);
         return x;
@@ -230,7 +230,7 @@ export default class StructureUnitRelationModalInstanceCtrl {
         $ctrl.form.$setSubmitted();
         return;
       }
-      var units = angular.copy($ctrl.node).related_structure_units;
+      const units = angular.copy($ctrl.node).related_structure_units;
       units.forEach(function(x, idx, array) {
         x.structure_unit = angular.copy(x.structure_unit.id);
         x.type = angular.copy(x.type.id);
@@ -264,8 +264,8 @@ export default class StructureUnitRelationModalInstanceCtrl {
         $ctrl.form.$setSubmitted();
         return;
       }
-      var toRemove = null;
-      var units = angular.copy($ctrl.node).related_structure_units;
+      let toRemove = null;
+      const units = angular.copy($ctrl.node).related_structure_units;
       units.forEach(function(x, idx) {
         x.structure_unit = angular.copy(x.structure_unit.id);
         x.type = angular.copy(x.type.id);
@@ -307,7 +307,7 @@ export default class StructureUnitRelationModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

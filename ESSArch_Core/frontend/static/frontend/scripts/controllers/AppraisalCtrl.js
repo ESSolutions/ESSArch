@@ -14,7 +14,7 @@ export default class AppraisalCtrl {
     $transitions,
     listViewService
   ) {
-    var vm = this;
+    const vm = this;
     vm.rulesPerPage = 10;
     vm.ongoingPerPage = 10;
     vm.nextPerPage = 10;
@@ -55,12 +55,12 @@ export default class AppraisalCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        var sortString = sorting.predicate;
+        const sorting = tableState.sort;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.rulesPerPage);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.rulesPerPage);
         Appraisal.getRules(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
           response
         ) {
@@ -90,12 +90,12 @@ export default class AppraisalCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        var sortString = sorting.predicate;
+        const sorting = tableState.sort;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.ongoingPerPage);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.ongoingPerPage);
         Appraisal.getOngoing(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
           response
         ) {
@@ -118,12 +118,12 @@ export default class AppraisalCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        var sortString = sorting.predicate;
+        const sorting = tableState.sort;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.nextPerPage);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.nextPerPage);
         Appraisal.getNext(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
           response
         ) {
@@ -146,12 +146,12 @@ export default class AppraisalCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        var sortString = sorting.predicate;
+        const sorting = tableState.sort;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.finishedPerPage);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.finishedPerPage);
         Appraisal.getFinished(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
           response
         ) {
@@ -201,7 +201,7 @@ export default class AppraisalCtrl {
      * @param {Object} appraisal
      */
     vm.showReport = function(appraisal) {
-      var file = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'appraisal-jobs/' + appraisal.id + '/report/');
+      const file = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'appraisal-jobs/' + appraisal.id + '/report/');
       $window.open(file, '_blank');
     };
 
@@ -218,7 +218,7 @@ export default class AppraisalCtrl {
      */
 
     vm.previewModal = function(job) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -247,7 +247,7 @@ export default class AppraisalCtrl {
     };
 
     vm.createRuleModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -269,7 +269,7 @@ export default class AppraisalCtrl {
     };
 
     vm.ruleModal = function(rule) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -291,7 +291,7 @@ export default class AppraisalCtrl {
     };
 
     vm.ongoingModal = function(appraisal) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -314,7 +314,7 @@ export default class AppraisalCtrl {
     };
 
     vm.nextModal = function(appraisal) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -337,7 +337,7 @@ export default class AppraisalCtrl {
     };
 
     vm.finishedModal = function(appraisal) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -359,7 +359,7 @@ export default class AppraisalCtrl {
       );
     };
     vm.removeAppraisalRuleModal = function(appraisal) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

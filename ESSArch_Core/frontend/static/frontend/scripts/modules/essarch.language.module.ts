@@ -4,7 +4,7 @@ import en from '../../lang/en';
 import sv from '../../lang/sv';
 
 /* @ngInject */
-let language = angular.module('essarch.language', ['pascalprecht.translate']).config([
+const language = angular.module('essarch.language', ['pascalprecht.translate']).config([
   '$translateProvider',
   function($translateProvider: ng.translate.ITranslateProvider) {
     $translateProvider.storageKey('essarch_language');

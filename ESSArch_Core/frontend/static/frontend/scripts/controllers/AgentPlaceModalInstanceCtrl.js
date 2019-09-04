@@ -1,6 +1,6 @@
 export default class AgentPlaceModalInstanceCtrl {
   constructor($uibModalInstance, $scope, $translate, $http, appConfig, data, EditMode, $rootScope) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.place;
     $ctrl.topography = {};
     $ctrl.placeTemplate = {};
@@ -18,7 +18,7 @@ export default class AgentPlaceModalInstanceCtrl {
         $ctrl.options = {type: response.data};
         EditMode.enable();
         if (data.place) {
-          var place = angular.copy(data.place);
+          const place = angular.copy(data.place);
           place.type = data.place.type.id;
           $ctrl.place = angular.copy(place);
           $ctrl.topography = angular.copy(data.place.topography);
@@ -107,7 +107,7 @@ export default class AgentPlaceModalInstanceCtrl {
           validators: {
             coordinate: {
               expression: function(viewValue, modelValue) {
-                var value = modelValue || viewValue;
+                const value = modelValue || viewValue;
                 return (
                   /^-?[0-9]{1,3}[.][0-9]{1,6}$/.test(value) ||
                   value === '' ||
@@ -129,7 +129,7 @@ export default class AgentPlaceModalInstanceCtrl {
           validators: {
             coordinate: {
               expression: function(viewValue, modelValue) {
-                var value = modelValue || viewValue;
+                const value = modelValue || viewValue;
                 return (
                   /^-?[0-9]{1,3}[.][0-9]{1,6}$/.test(value) ||
                   value === '' ||
@@ -202,7 +202,7 @@ export default class AgentPlaceModalInstanceCtrl {
         return;
       }
       $ctrl.adding = true;
-      var places = angular.copy(data.agent.places);
+      const places = angular.copy(data.agent.places);
       places.forEach(function(x) {
         x.type = x.type.id;
       });
@@ -236,7 +236,7 @@ export default class AgentPlaceModalInstanceCtrl {
         return;
       }
       $ctrl.saving = true;
-      var places = angular.copy(data.agent.places);
+      const places = angular.copy(data.agent.places);
       places.forEach(function(x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
@@ -272,8 +272,8 @@ export default class AgentPlaceModalInstanceCtrl {
 
     $ctrl.remove = function() {
       $ctrl.removing = true;
-      var toRemove = null;
-      var places = angular.copy(data.agent.places);
+      let toRemove = null;
+      const places = angular.copy(data.agent.places);
       places.forEach(function(x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
@@ -319,7 +319,7 @@ export default class AgentPlaceModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

@@ -15,7 +15,7 @@ export default class ProfileCtrl {
     $translate,
     $filter
   ) {
-    var vm = this;
+    const vm = this;
     $scope.angular = angular;
     $scope.select = true;
     $scope.alerts = {
@@ -52,7 +52,7 @@ export default class ProfileCtrl {
         vm.gettingSas = false;
         $scope.saProfile.profiles = result.profiles;
         $scope.saProfile.locked = result.locked;
-        var chosen_sa_id = null;
+        let chosen_sa_id = null;
         if ($scope.ip.submission_agreement) {
           chosen_sa_id = $scope.ip.submission_agreement;
         } else if ($scope.ip.submission_agreement == null && result.profiles.length > 0) {
@@ -62,7 +62,7 @@ export default class ProfileCtrl {
         if (result.profiles.length <= 0) {
           $scope.saAlert = $scope.alerts.noSas;
         } else if (chosen_sa_id) {
-          var found = $filter('filter')(result.profiles, {id: chosen_sa_id}, true);
+          const found = $filter('filter')(result.profiles, {id: chosen_sa_id}, true);
           if (found.length) {
             $scope.saProfile.profile = found[0];
           } else {
@@ -74,7 +74,7 @@ export default class ProfileCtrl {
     }
 
     vm.loadProfiles = function() {
-      var sa = $scope.saProfile.profile;
+      const sa = $scope.saProfile.profile;
       $scope.selectRowCollection = [];
       SA.profiles({id: sa.id}).$promise.then(function(resource) {
         $scope.selectRowCollection = resource;
@@ -153,7 +153,7 @@ export default class ProfileCtrl {
         $scope.eventlog = false;
         $scope.edit = false;
 
-        var chosen = row.profile;
+        const chosen = row.profile;
 
         vm.saFields = [];
         vm.saModel = {};
@@ -203,7 +203,7 @@ export default class ProfileCtrl {
     };
 
     vm.fieldsLoading = function() {
-      var val = false;
+      let val = false;
       angular.forEach(vm.loadingProfileData, function(value, key) {
         if (value === true) {
           val = true;
@@ -218,7 +218,7 @@ export default class ProfileCtrl {
     vm.getAndShowProfile = function(profile, row) {
       vm.loadingProfileData[profile.profile_type] = true;
       vm.selectedProfile = profile;
-      var profileId = profile.id;
+      const profileId = profile.id;
       Profile.get({
         id: profile.id,
       })
@@ -237,7 +237,7 @@ export default class ProfileCtrl {
               vm.profileIp = profileIp[0];
               vm.dataVersion = vm.profileIp.data_versions[vm.profileIp.data_versions.indexOf(vm.profileIp.data.id)];
               getStructure(row.active);
-              var temp = [];
+              const temp = [];
               row.active.template.forEach(function(x) {
                 if (!x.templateOptions.disabled) {
                   if (vm.disabled) {
@@ -347,7 +347,7 @@ export default class ProfileCtrl {
     //Creates modal for lock SA
     $scope.lockSaModal = function(sa) {
       $scope.saProfile = sa;
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -379,7 +379,7 @@ export default class ProfileCtrl {
     };
 
     // Map for profile types
-    var typeMap = {
+    const typeMap = {
       transfer_project: 'Transfer Project',
       content_type: 'Content Type',
       data_selection: 'Data Selection',
@@ -479,9 +479,9 @@ export default class ProfileCtrl {
     //Generates test data for map structure tree
     function createSubTreeExampleData(level, width, prefix) {
       if (level > 0) {
-        var res = [];
+        const res = [];
         // if (!parent) parent = res;
-        for (var i = 1; i <= width; i++) {
+        for (let i = 1; i <= width; i++) {
           res.push({
             name: 'Node ' + prefix + i,
             type: 'folder',
@@ -502,7 +502,7 @@ export default class ProfileCtrl {
     $scope.selectedNode = null;
     //Add node to map structure tree view
     $scope.addNode = function(node) {
-      var dir = {
+      const dir = {
         name: vm.treeEditModel.name,
         type: vm.treeEditModel.type,
       };

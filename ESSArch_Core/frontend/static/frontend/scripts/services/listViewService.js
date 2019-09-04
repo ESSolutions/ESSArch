@@ -45,7 +45,7 @@ const listViewService = (
    * @param {string} [id] - Optional id for url
    */
   function tableMap(table, id) {
-    var map = {
+    const map = {
       ip: 'information-packages/',
       events: 'information-packages/' + id + '/events/',
       reception: 'ip-reception/',
@@ -71,14 +71,14 @@ const listViewService = (
    * @param {String} [id] - ID used in table url, for example IP ID
    */
   function checkPages(table, pageSize, filters, id) {
-    var data = angular.extend(
+    const data = angular.extend(
       {
         page: 1,
         page_size: pageSize,
       },
       filters
     );
-    var url;
+    let url;
     if (id) {
       url = tableMap(table, id);
     } else {
@@ -113,7 +113,7 @@ const listViewService = (
     workarea,
     params
   ) {
-    var data = angular.extend(
+    let data = angular.extend(
       {
         page: pageNumber,
         page_size: pageSize,
@@ -135,7 +135,7 @@ const listViewService = (
       return Tag.information_packages(angular.extend({id: $rootScope.selectedTag.id}, data)).$promise.then(function(
         resource
       ) {
-        var count = resource.$httpHeaders('Count');
+        let count = resource.$httpHeaders('Count');
         if (count == null) {
           count = resource.length;
         }
@@ -146,7 +146,7 @@ const listViewService = (
       });
     } else {
       return IP.query(data).$promise.then(function(resource) {
-        var count = resource.$httpHeaders('Count');
+        let count = resource.$httpHeaders('Count');
 
         if (count == null) {
           count = resource.length;
@@ -319,13 +319,13 @@ const listViewService = (
   //returns all SA-profiles and current as an object
   //returns all SA-profiles and current as an object
   function getSaProfiles(ip) {
-    var sas = [];
-    var saProfile = {
+    let sas = [];
+    const saProfile = {
       entity: 'PROFILE_SUBMISSION_AGREEMENT',
       profile: null,
       profiles: [],
     };
-    var promise = SA.query({
+    const promise = SA.query({
       pager: 'none',
     }).$promise.then(function(resource) {
       sas = resource;
@@ -369,8 +369,8 @@ const listViewService = (
   //Get list of files in Ip
   function getFileList(ip) {
     return getIp(ip.id).then(function(result) {
-      var array = [];
-      var tempElement = {
+      const array = [];
+      const tempElement = {
         filename: result.object_path,
         created: result.create_date,
         size: result.object_size,
@@ -423,7 +423,7 @@ const listViewService = (
     }
 
     return $http.get(appConfig.djangoUrl + 'workarea-files/', {params: sendData}).then(function(response) {
-      var count = response.headers('Count');
+      let count = response.headers('Count');
       if (count == null) {
         count = response.data.length;
       }
@@ -455,7 +455,7 @@ const listViewService = (
       };
     }
     return IP.files(sendData).$promise.then(function(data) {
-      var count = data.$httpHeaders('Count');
+      let count = data.$httpHeaders('Count');
       if (count == null) {
         count = data.length;
       }
@@ -467,8 +467,8 @@ const listViewService = (
   }
 
   function addFileToDip(ip, path, file, destination, type) {
-    var src = path + file.name;
-    var dst = destination + file.name;
+    const src = path + file.name;
+    const dst = destination + file.name;
     return WorkareaFiles.addToDip({
       dip: ip.id,
       src: src,
@@ -546,7 +546,7 @@ const listViewService = (
       sendData.id = ip.object_identifier_value;
       return IPReception.files(sendData)
         .$promise.then(function(data) {
-          var count = data.$httpHeaders('Count');
+          let count = data.$httpHeaders('Count');
           if (count == null) {
             count = data.length;
           }
@@ -561,7 +561,7 @@ const listViewService = (
     } else {
       return IP.files(sendData)
         .$promise.then(function(data) {
-          var count = data.$httpHeaders('Count');
+          let count = data.$httpHeaders('Count');
           if (count == null) {
             count = data.length;
           }
@@ -596,9 +596,9 @@ const listViewService = (
   }
 
   function getPaginationParams(pagination, defaultNumber) {
-    let start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-    let number = pagination.number || defaultNumber; // Number of entries showed per page.
-    let pageNumber = isNaN(start / number) ? 1 : start / number + 1;
+    const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
+    const number = pagination.number || defaultNumber; // Number of entries showed per page.
+    const pageNumber = isNaN(start / number) ? 1 : start / number + 1;
     return {
       start: start,
       pageNumber: pageNumber,

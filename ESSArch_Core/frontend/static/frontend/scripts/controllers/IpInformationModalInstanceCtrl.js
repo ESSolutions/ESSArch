@@ -1,6 +1,6 @@
 export default class IpInformationModalInstanceCtrl {
   constructor(IP, $uibModalInstance, data, $scope, Notifications) {
-    var $ctrl = this;
+    const $ctrl = this;
     $scope.angular = angular;
     $ctrl.editMode = {};
     $ctrl.ipModifications = {};

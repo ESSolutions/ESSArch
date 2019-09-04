@@ -1,6 +1,6 @@
 export default class AgentNoteModalInstanceCtrl {
   constructor($uibModalInstance, $scope, $translate, $http, appConfig, data, EditMode, $rootScope) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.note;
     $ctrl.noteTemplate = {
       create_date: new Date(),
@@ -23,7 +23,7 @@ export default class AgentNoteModalInstanceCtrl {
         $ctrl.typeOptions = response.data;
         EditMode.enable();
         if (data.note) {
-          var note = angular.copy(data.note);
+          const note = angular.copy(data.note);
           note.type = data.note.type.id;
           $ctrl.note = angular.copy(note);
         } else {
@@ -90,7 +90,7 @@ export default class AgentNoteModalInstanceCtrl {
         return;
       }
       $ctrl.adding = true;
-      var notes = angular.copy(data.agent.notes);
+      const notes = angular.copy(data.agent.notes);
       notes.forEach(function(x) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
@@ -126,7 +126,7 @@ export default class AgentNoteModalInstanceCtrl {
         return;
       }
       $ctrl.saving = true;
-      var notes = angular.copy(data.agent.notes);
+      const notes = angular.copy(data.agent.notes);
       notes.forEach(function(x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
@@ -161,8 +161,8 @@ export default class AgentNoteModalInstanceCtrl {
 
     $ctrl.remove = function() {
       $ctrl.removing = true;
-      var toRemove = null;
-      var notes = angular.copy(data.agent.notes);
+      let toRemove = null;
+      const notes = angular.copy(data.agent.notes);
       notes.forEach(function(x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
@@ -208,7 +208,7 @@ export default class AgentNoteModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

@@ -1,6 +1,6 @@
 export default class LocationTreeCtrl {
   constructor($scope, $http, appConfig, $translate, $uibModal, $log) {
-    var vm = this;
+    const vm = this;
     $scope.$translate = $translate;
     vm.treeData = [];
     vm.tags = [];
@@ -38,7 +38,7 @@ export default class LocationTreeCtrl {
     };
 
     vm.shiftClickTag = function(row) {
-      var start = 0;
+      let start = 0;
       vm.tags.forEach(function(x, idx) {
         if (x.id === vm.selectedTags[vm.selectedTags.length - 1]) {
           start = idx;
@@ -78,12 +78,12 @@ export default class LocationTreeCtrl {
     };
 
     vm.deselectRow = function(row) {
-      var index = vm.selectedTags.indexOf(row.id);
+      const index = vm.selectedTags.indexOf(row.id);
       vm.selectedTags.splice(index, 1);
     };
 
     vm.getTagObjectIndex = function(tag) {
-      var index = 0;
+      let index = 0;
       vm.tags.forEach(function(x, idx) {
         if (tag.id === x.id) {
           index = idx;
@@ -104,8 +104,8 @@ export default class LocationTreeCtrl {
     };
 
     function getBreadcrumbs(node) {
-      var tree = vm.treeInstance.jstree(true);
-      var start = tree.get_node(node.id);
+      const tree = vm.treeInstance.jstree(true);
+      const start = tree.get_node(node.id);
 
       if (start === false) {
         return [];
@@ -178,25 +178,25 @@ export default class LocationTreeCtrl {
       },
       contextmenu: {
         items: function(node, callback) {
-          var edit = {
+          const edit = {
             label: $translate.instant('EDIT'),
             action: function edit() {
               vm.editNodeModal(node.original);
             },
           };
-          var add = {
+          const add = {
             label: $translate.instant('ADD'),
             action: function() {
               vm.addNodeModal(node.original);
             },
           };
-          var remove = {
+          const remove = {
             label: $translate.instant('REMOVE'),
             action: function() {
               vm.removeNodeModal(node.original);
             },
           };
-          var actions = {
+          let actions = {
             edit: edit,
             add: add,
             remove: remove,
@@ -213,7 +213,7 @@ export default class LocationTreeCtrl {
     };
 
     vm.selectNode = function(jqobj, event) {
-      var node = event.node;
+      const node = event.node;
       if (vm.selected === null || (vm.selected !== null && vm.selected.id !== node.original.id)) {
         if (!vm.readOnly) {
           vm.setSelected(node.original);
@@ -257,7 +257,7 @@ export default class LocationTreeCtrl {
         .jstree(true)
         .get_json('#', {flat: true})
         .forEach(function(item) {
-          var fullItem = vm.treeInstance.jstree(true).get_node(item.id);
+          const fullItem = vm.treeInstance.jstree(true).get_node(item.id);
           if (fullItem.original.id == node.id) {
             vm.treeInstance.jstree(true).select_node(item);
           }
@@ -281,13 +281,13 @@ export default class LocationTreeCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.itemsPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
+        const sorting = tableState.sort;
+        const pagination = tableState.pagination;
+        const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
+        const number = pagination.number || vm.itemsPerPage; // Number of entries showed per page.
+        const pageNumber = start / number + 1;
 
-        var sortString = sorting.predicate;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
@@ -331,7 +331,7 @@ export default class LocationTreeCtrl {
     );
 
     vm.addNodeModal = function(node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -356,7 +356,7 @@ export default class LocationTreeCtrl {
     };
 
     vm.editNodeModal = function(node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -383,7 +383,7 @@ export default class LocationTreeCtrl {
     };
 
     vm.removeNodeModal = function(node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -414,7 +414,7 @@ export default class LocationTreeCtrl {
     };
 
     vm.removeLinkModal = function(node) {
-      var data;
+      let data;
       if (angular.isArray(node)) {
         data = {
           nodes: vm.getTagListObjects(node),
@@ -425,7 +425,7 @@ export default class LocationTreeCtrl {
         };
       }
       data.remove_link = true;
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -449,7 +449,7 @@ export default class LocationTreeCtrl {
     };
 
     vm.addLinkModal = function(node) {
-      var data = {};
+      let data = {};
       if (angular.isArray(node)) {
         data = {
           nodes: vm.getTagListObjects(node),
@@ -460,7 +460,7 @@ export default class LocationTreeCtrl {
         };
       }
       data.location = vm.selected;
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

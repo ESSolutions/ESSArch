@@ -1,5 +1,5 @@
 export default $translate => {
-  var service = {
+  const service = {
     changeOrganization: function(callback) {
       return {
         text: $translate.instant('ORGANIZATION.CHANGE_ORGANIZATION'),

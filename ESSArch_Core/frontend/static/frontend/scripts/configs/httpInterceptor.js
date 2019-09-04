@@ -3,7 +3,7 @@ const httpInterceptor = [
   '$httpProvider',
   '$windowProvider',
   function($provide, $httpProvider, $windowProvider) {
-    var $window = $windowProvider.$get();
+    const $window = $windowProvider.$get();
     $httpProvider.defaults.xsrfCookieName = 'csrftoken';
     $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
     $provide.factory('httpInterceptor', [
@@ -14,7 +14,7 @@ const httpInterceptor = [
       function($q, $location, $rootScope, $injector) {
         return {
           response: function(response) {
-            var translation = $injector.get('$translate');
+            const translation = $injector.get('$translate');
             if ($rootScope.skipErrorNotification) {
               $rootScope.skipErrorNotification = false;
             }
@@ -25,7 +25,7 @@ const httpInterceptor = [
             return response;
           },
           responseError: function(response) {
-            var translation = $injector.get('$translate');
+            const translation = $injector.get('$translate');
             if ($rootScope.skipErrorNotification) {
               $rootScope.skipErrorNotification = false;
             } else {

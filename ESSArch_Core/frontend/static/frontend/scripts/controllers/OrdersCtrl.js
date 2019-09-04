@@ -13,7 +13,7 @@ export default class {
     SelectedIPUpdater,
     listViewService
   ) {
-    var vm = this;
+    const vm = this;
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: '', params: {}});
 
     /*******************************************/
@@ -34,8 +34,8 @@ export default class {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         Resource.getOrders(
           paginationParams.start,
           paginationParams.number,
@@ -73,7 +73,7 @@ export default class {
     };
     vm.ips = [];
     vm.getIpsForOrder = function(order) {
-      var ips = [];
+      const ips = [];
       order.information_packages.forEach(function(ipUrl) {
         ips.push(
           $http.get(ipUrl).then(function(response) {
@@ -104,7 +104,7 @@ export default class {
         $scope.initLoad = true;
       }
       if (!angular.isUndefined(tableState)) {
-        var ips = [];
+        const ips = [];
         $scope.ipTableState = tableState;
         $scope.ip.information_packages.forEach(function(ipUrl) {
           ips.push(
@@ -146,7 +146,7 @@ export default class {
       });
     };
     $scope.newOrderModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -167,7 +167,7 @@ export default class {
 
     //Create and show modal for remove ip
     $scope.removeOrderModal = function(order) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

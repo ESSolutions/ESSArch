@@ -42,8 +42,8 @@ export default ($scope, vm, $http, appConfig) => {
       url: appConfig.djangoUrl + 'tags/',
       params: {index: 'archive', search: search ? search : null},
     }).then(function(response) {
-      var mapped = response.data.map(function(item) {
-        var obj = item.current_version;
+      const mapped = response.data.map(function(item) {
+        const obj = item.current_version;
         obj.parent_id = item.id;
         obj.structures = item.structures;
         return obj;
@@ -56,8 +56,8 @@ export default ($scope, vm, $http, appConfig) => {
   // Functions for selects when placing unplaced node
   $scope.getStructures = function(archive) {
     $scope.structuresLoading = true;
-    var mapped = archive.structures.map(function(item) {
-      var obj = item.structure;
+    const mapped = archive.structures.map(function(item) {
+      const obj = item.structure;
       obj.parent_id = item.id;
       return obj;
     });
@@ -72,8 +72,8 @@ export default ($scope, vm, $http, appConfig) => {
       url: appConfig.djangoUrl + 'tags/' + id1 + '/descendants/',
       params: {structure: id2, search: search ? search : null, index: 'component'},
     }).then(function(response) {
-      var mapped = response.data.map(function(item) {
-        var obj = item.current_version;
+      const mapped = response.data.map(function(item) {
+        const obj = item.current_version;
         obj.parent_id = item.id;
         obj.structures = item.structures;
         return obj;

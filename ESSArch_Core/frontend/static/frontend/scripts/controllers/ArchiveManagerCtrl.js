@@ -1,6 +1,6 @@
 export default class ArchiveManagerCtrl {
   constructor($scope, $http, appConfig, $uibModal, $log, $state, $stateParams, myService) {
-    var vm = this;
+    const vm = this;
     $scope.$stateParams = $stateParams;
     vm.structure = null;
     vm.record = null;
@@ -18,13 +18,13 @@ export default class ArchiveManagerCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.archivesPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
+        const sorting = tableState.sort;
+        const pagination = tableState.pagination;
+        const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
+        const number = pagination.number || vm.archivesPerPage; // Number of entries showed per page.
+        const pageNumber = start / number + 1;
 
-        var sortString = sorting.predicate;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
@@ -90,7 +90,7 @@ export default class ArchiveManagerCtrl {
     };
 
     vm.newArchiveModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -115,7 +115,7 @@ export default class ArchiveManagerCtrl {
     vm.editArchiveModal = function(archive) {
       vm.getArchive(archive.current_version.id).then(function(result) {
         archive = result;
-        var modalInstance = $uibModal.open({
+        const modalInstance = $uibModal.open({
           animation: true,
           ariaLabelledBy: 'modal-title',
           ariaDescribedBy: 'modal-body',
@@ -141,7 +141,7 @@ export default class ArchiveManagerCtrl {
       });
     };
     vm.removeArchiveModal = function(archive) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

@@ -1,7 +1,7 @@
 export default class UserDropdownCtrl {
   constructor($scope, $log, $state, djangoAuth, $translate, $uibModal) {
-    var options, optionsAuth;
-    var vm = this;
+    let options, optionsAuth;
+    const vm = this;
 
     vm.$onInit = function() {
       options = [
@@ -65,7 +65,7 @@ export default class UserDropdownCtrl {
     };
 
     $scope.changePasswordModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

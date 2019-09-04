@@ -1,6 +1,6 @@
 export default class VersionModalInstanceCtrl {
   constructor(Search, $translate, $uibModalInstance, data, Notifications) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.node = data.node.original;
 
     $ctrl.createNewVersion = function(node) {

@@ -1,11 +1,11 @@
 export default class StructureRuleModalCtrl {
   constructor($uibModalInstance, $http, appConfig, data, EditMode, $q, $translate, Structure, Notifications) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.rule = {};
     $ctrl.$onInit = function() {
       $ctrl.data = data;
       if (!data.remove) {
-        var typePromises = [];
+        const typePromises = [];
         typePromises.push(
           $http
             .get(appConfig.djangoUrl + 'tag-version-types/', {params: {archive_type: false, pager: 'none'}})
@@ -65,7 +65,7 @@ export default class StructureRuleModalCtrl {
         return;
       }
       $ctrl.adding = true;
-      var rules = angular.copy(data.rules);
+      const rules = angular.copy(data.rules);
       rules[$ctrl.rule.type] = {movable: $ctrl.rule.movable};
       Structure.update(
         {
@@ -86,7 +86,7 @@ export default class StructureRuleModalCtrl {
 
     $ctrl.remove = function() {
       $ctrl.removing = true;
-      var rules = angular.copy(data.rules);
+      const rules = angular.copy(data.rules);
       angular.forEach(rules, function(value, key) {
         if (key == data.rule.key) {
           delete rules[key];

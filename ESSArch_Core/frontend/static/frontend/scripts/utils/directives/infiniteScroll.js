@@ -2,7 +2,7 @@ const infiniteScroll = () => {
   return {
     restrict: 'A',
     link: function(scope, element, attrs) {
-      var raw = element[0];
+      const raw = element[0];
       console.log('loading onScroll directive');
 
       element.bind('scroll', function() {

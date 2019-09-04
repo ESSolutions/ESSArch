@@ -14,7 +14,7 @@ export default class {
     $transitions,
     listViewService
   ) {
-    var vm = this;
+    const vm = this;
     vm.rulesPerPage = 10;
     vm.ongoingPerPage = 10;
     vm.nextPerPage = 10;
@@ -58,12 +58,12 @@ export default class {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        var sortString = sorting.predicate;
+        const sorting = tableState.sort;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.rulesPerPage);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.rulesPerPage);
         Conversion.getRules(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
           response
         ) {
@@ -93,12 +93,12 @@ export default class {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        var sortString = sorting.predicate;
+        const sorting = tableState.sort;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.ongoingPerPage);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.ongoingPerPage);
         Conversion.getOngoing(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
           response
         ) {
@@ -121,12 +121,12 @@ export default class {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        var sortString = sorting.predicate;
+        const sorting = tableState.sort;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.nextPerPage);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.nextPerPage);
         Conversion.getNext(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
           response
         ) {
@@ -149,12 +149,12 @@ export default class {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        var sortString = sorting.predicate;
+        const sorting = tableState.sort;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.finishedPerPage);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.finishedPerPage);
         Conversion.getFinished(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
           response
         ) {
@@ -204,7 +204,7 @@ export default class {
      * @param {Object} conversion
      */
     vm.showReport = function(conversion) {
-      var file = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'conversion-jobs/' + conversion.id + '/report/');
+      const file = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'conversion-jobs/' + conversion.id + '/report/');
       $window.open(file, '_blank');
     };
 
@@ -222,7 +222,7 @@ export default class {
      */
 
     vm.previewModal = function(job) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -251,7 +251,7 @@ export default class {
     };
 
     vm.createRuleModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -273,7 +273,7 @@ export default class {
     };
 
     vm.ruleModal = function(rule) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -295,7 +295,7 @@ export default class {
     };
 
     vm.ongoingModal = function(conversion) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -318,7 +318,7 @@ export default class {
     };
 
     vm.nextModal = function(conversion) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -341,7 +341,7 @@ export default class {
     };
 
     vm.finishedModal = function(conversion) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -363,7 +363,7 @@ export default class {
       );
     };
     vm.removeConversionRuleModal = function(conversion) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

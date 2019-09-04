@@ -1,7 +1,7 @@
 export default class SearchFilterCtrl {
   constructor($scope, $window, $rootScope) {
-    var vm = this;
-    var onclickSet = false;
+    const vm = this;
+    let onclickSet = false;
     vm.q = '';
     vm.$onInit = function() {
       if (vm.ngModel === '' || vm.ngModel === null || angular.isUndefined(vm.ngModel)) {
@@ -68,7 +68,7 @@ export default class SearchFilterCtrl {
       vm.updateModel();
     };
     vm.notSelected = function(item) {
-      var notSelected = true;
+      let notSelected = true;
       vm.selected.forEach(function(x) {
         if (x[vm.valueProp] === item[vm.valueProp]) {
           notSelected = false;
@@ -78,14 +78,14 @@ export default class SearchFilterCtrl {
     };
 
     vm.optionsEmpty = function() {
-      var list = angular.copy(vm.options);
-      var toDelete = [];
+      const list = angular.copy(vm.options);
+      const toDelete = [];
       list.forEach(function(x, idx, array) {
         if (!vm.notSelected(x)) {
           toDelete.push(idx);
         }
       });
-      for (var i = toDelete.length; i > 0; i--) {
+      for (let i = toDelete.length; i > 0; i--) {
         list.splice(toDelete[i], 1);
       }
       return list.length <= 0;
@@ -97,10 +97,10 @@ export default class SearchFilterCtrl {
       }
       onclickSet = true;
       $window.onclick = function(event) {
-        var clickedElement = $(event.target);
+        const clickedElement = $(event.target);
         if (!clickedElement) return;
-        var elementClasses = event.target.classList;
-        var clickedOnFilter =
+        const elementClasses = event.target.classList;
+        const clickedOnFilter =
           elementClasses.contains('filter-' + $scope.$id) ||
           elementClasses.contains('filter-options-item') ||
           clickedElement.parents('filter-options').length;

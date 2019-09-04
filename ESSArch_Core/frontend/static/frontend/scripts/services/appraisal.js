@@ -1,7 +1,7 @@
 export default ($http, appConfig) => {
-  var service = {};
+  const service = {};
   service.getFinished = function(pageNumber, pageSize, sortString, searchString) {
-    var data = {
+    const data = {
       end_date__isnull: false,
       page: pageNumber,
       page_size: pageSize,
@@ -14,7 +14,7 @@ export default ($http, appConfig) => {
       url: appConfig.djangoUrl + 'appraisal-jobs/',
       params: data,
     }).then(function(response) {
-      var count = response.headers('Count');
+      let count = response.headers('Count');
       if (count == null) {
         count = response.data.length;
       }
@@ -26,7 +26,7 @@ export default ($http, appConfig) => {
   };
 
   service.getNext = function(pageNumber, pageSize, sortString, searchString) {
-    var data = {
+    const data = {
       status: 'PENDING',
       page: pageNumber,
       page_size: pageSize,
@@ -39,7 +39,7 @@ export default ($http, appConfig) => {
       url: appConfig.djangoUrl + 'appraisal-jobs/',
       params: data,
     }).then(function(response) {
-      var count = response.headers('Count');
+      let count = response.headers('Count');
       if (count == null) {
         count = response.data.length;
       }
@@ -51,7 +51,7 @@ export default ($http, appConfig) => {
   };
 
   service.getOngoing = function(pageNumber, pageSize, sortString, searchString) {
-    var data = {
+    const data = {
       status: 'STARTED',
       page: pageNumber,
       page_size: pageSize,
@@ -64,7 +64,7 @@ export default ($http, appConfig) => {
       url: appConfig.djangoUrl + 'appraisal-jobs/',
       params: data,
     }).then(function(response) {
-      var count = response.headers('Count');
+      let count = response.headers('Count');
       if (count == null) {
         count = response.data.length;
       }
@@ -76,7 +76,7 @@ export default ($http, appConfig) => {
   };
 
   service.getRules = function(pageNumber, pageSize, sortString, searchString) {
-    var data = {
+    const data = {
       page: pageNumber,
       page_size: pageSize,
       ordering: sortString,
@@ -88,7 +88,7 @@ export default ($http, appConfig) => {
       url: appConfig.djangoUrl + 'appraisal-rules/',
       params: data,
     }).then(function(response) {
-      var count = response.headers('Count');
+      let count = response.headers('Count');
       if (count == null) {
         count = response.data.length;
       }

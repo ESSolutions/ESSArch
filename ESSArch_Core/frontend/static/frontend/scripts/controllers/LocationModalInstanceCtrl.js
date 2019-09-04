@@ -1,6 +1,6 @@
 export default class LocationModalInstanceCtrl {
   constructor($scope, $http, appConfig, $translate, data, $uibModalInstance, $q, EditMode, Utils, $rootScope) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.location = {};
     $ctrl.fields = [];
     $ctrl.options = {};
@@ -42,7 +42,7 @@ export default class LocationModalInstanceCtrl {
         });
     };
     $ctrl.buildForm = function() {
-      var promises = [];
+      const promises = [];
       promises.push(
         $ctrl.getMetrics().then(function(profiles) {
           return profiles;
@@ -191,7 +191,7 @@ export default class LocationModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

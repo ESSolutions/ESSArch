@@ -25,7 +25,7 @@
 export default ($timeout, $parse) => {
   return {
     link: function($scope, element, attributes) {
-      var model = $parse(attributes.focused);
+      const model = $parse(attributes.focused);
       $scope.$watch(model, function(value) {
         if (value === true) {
           $timeout(function() {

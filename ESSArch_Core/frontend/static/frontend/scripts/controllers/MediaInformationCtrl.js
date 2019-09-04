@@ -34,16 +34,16 @@ export default class MediaInformationCtrl {
     listViewService,
     $transitions
   ) {
-    var vm = this;
-    var watchers = [];
+    const vm = this;
+    const watchers = [];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: '', params: {}});
     $scope.colspan = 6;
     $scope.storageMedium = null;
     $rootScope.storageMedium = null;
     vm.storageObjects = [];
     vm.objectsPerPage = 10;
-    var mediumInterval;
-    var objectInterval;
+    let mediumInterval;
+    let objectInterval;
     $interval.cancel(mediumInterval);
     mediumInterval = $interval(function() {
       vm.getMediumData();
@@ -114,8 +114,8 @@ export default class MediaInformationCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         Resource.getStorageMediums(
           paginationParams.start,
           paginationParams.number,
@@ -133,7 +133,7 @@ export default class MediaInformationCtrl {
           })
           .catch(function(response) {
             if (response.status == 404) {
-              var filters = {
+              const filters = {
                 search: search,
               };
 
@@ -159,8 +159,8 @@ export default class MediaInformationCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.objectsPerPage);
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.objectsPerPage);
         Resource.getStorageObjectsForMedium(
           $scope.storageMedium.id,
           paginationParams.start,
@@ -179,7 +179,7 @@ export default class MediaInformationCtrl {
           })
           .catch(function(response) {
             if (response.status == 404) {
-              var filters = {
+              const filters = {
                 search: search,
               };
 

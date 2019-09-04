@@ -1,6 +1,6 @@
 export default class OrderModalInstanceCtrl {
   constructor($uibModalInstance, data, $http, appConfig, listViewService) {
-    var $ctrl = this;
+    const $ctrl = this;
     if (data) {
       $ctrl.data = data;
     }

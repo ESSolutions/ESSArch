@@ -35,8 +35,8 @@ export default class PrepareSipCtrl {
     $anchorScroll,
     $controller
   ) {
-    var vm = this;
-    var ipSortString = ['Created', 'Submitting', 'Submitted'];
+    const vm = this;
+    const ipSortString = ['Created', 'Submitting', 'Submitted'];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
 
     //Click function for ip table
@@ -48,13 +48,13 @@ export default class PrepareSipCtrl {
       } else {
         $scope.ip = row;
         $rootScope.ip = row;
-        var ip = row;
+        const ip = row;
         $http
           .get(appConfig.djangoUrl + 'information-packages/' + ip.id + '/profiles/', {
             params: {profile__profile_type: 'submit_description'},
           })
           .then(function(response) {
-            var sd_profile_ip = response.data[0];
+            const sd_profile_ip = response.data[0];
             vm.informationModel = sd_profile_ip.data.data;
             vm.informationFields = sd_profile_ip.profile.template;
             vm.informationFields.forEach(function(field) {
@@ -66,7 +66,7 @@ export default class PrepareSipCtrl {
                 params: {profile__profile_type: 'transfer_project'},
               })
               .then(function(response) {
-                var tp_profile_ip = response.data[0];
+                const tp_profile_ip = response.data[0];
                 vm.dependencyModel = tp_profile_ip.data.data;
                 vm.dependencyFields = tp_profile_ip.profile.template;
                 vm.dependencyFields.forEach(function(field) {
@@ -303,7 +303,7 @@ export default class PrepareSipCtrl {
 
     $scope.emailModal = function(profiles) {
       if (vm.dependencyModel.preservation_organization_receiver_email) {
-        var modalInstance = $uibModal.open({
+        const modalInstance = $uibModal.open({
           animation: true,
           ariaLabelledBy: 'modal-title',
           ariaDescribedBy: 'modal-body',
@@ -335,8 +335,8 @@ export default class PrepareSipCtrl {
       }
     };
     vm.submitSipModal = function(ip) {
-      var ips = $scope.ips.length > 0 ? $scope.ips : null;
-      var modalInstance = $uibModal.open({
+      const ips = $scope.ips.length > 0 ? $scope.ips : null;
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

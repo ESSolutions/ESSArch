@@ -1,6 +1,6 @@
 export default class AccessModalInstanceCtrl {
   constructor($uibModalInstance, data, Requests, $q) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.angular = angular;
     $ctrl.data = data;
     $ctrl.requestTypes = data.types;
@@ -33,7 +33,7 @@ export default class AccessModalInstanceCtrl {
     // Preserve IP
     $ctrl.access = function() {
       $ctrl.accessing = true;
-      var data = {
+      const data = {
         purpose: $ctrl.data.request.purpose,
         tar: $ctrl.data.request.type === 'get_tar',
         extracted: $ctrl.data.request.type === 'get',
@@ -41,7 +41,7 @@ export default class AccessModalInstanceCtrl {
         package_xml: $ctrl.data.request.package_xml,
         aic_xml: $ctrl.data.request.aic_xml,
       };
-      var promises = [];
+      const promises = [];
       $ctrl.data.ips.forEach(function(ip) {
         promises.push(
           Requests.access(ip, data).then(function(response) {

@@ -30,7 +30,7 @@ const AgentName = $filter => {
       agent.names.sort(function(a, b) {
         return new Date(b.start_date) - new Date(a.start_date);
       });
-      var name = null;
+      let name = null;
       agent.names.forEach(function(x) {
         if (x.type.authority && x.start_date !== null && x.end_date === null && name === null) {
           name = angular.copy(x);

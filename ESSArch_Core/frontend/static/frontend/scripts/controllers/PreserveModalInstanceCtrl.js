@@ -1,6 +1,6 @@
 export default class PreserveModalInstanceCtrl {
   constructor($uibModalInstance, data, Requests, $q) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.angular = angular;
     $ctrl.data = data;
     $ctrl.requestTypes = data.types;
@@ -22,7 +22,7 @@ export default class PreserveModalInstanceCtrl {
     // Preserve IP
     $ctrl.preserve = function() {
       $ctrl.preserving = true;
-      var params = {purpose: $ctrl.request.purpose};
+      const params = {purpose: $ctrl.request.purpose};
       params.policy =
         $ctrl.request.storagePolicy && $ctrl.request.storagePolicy.value != ''
           ? $ctrl.request.storagePolicy.value.id
@@ -30,7 +30,7 @@ export default class PreserveModalInstanceCtrl {
       if ($ctrl.request.appraisal_date != null) {
         params.appraisal_date = $ctrl.request.appraisal_date;
       }
-      var promises = [];
+      const promises = [];
       $ctrl.data.ips.forEach(function(ip) {
         promises.push(
           Requests.preserve(ip, params)

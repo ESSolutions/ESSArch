@@ -1,6 +1,6 @@
 export default class StorageMaintenanceCtrl {
   constructor($scope, $rootScope) {
-    var vm = this;
+    const vm = this;
     $scope.select = true;
     vm.formFiltersShow = true;
     vm.needToMigrateShow = true;

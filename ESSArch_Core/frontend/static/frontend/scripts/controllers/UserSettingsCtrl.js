@@ -1,6 +1,6 @@
 export default class UserSettingsCtrl {
   constructor(Me, $scope, $rootScope, $controller, myService, $window) {
-    var vm = this;
+    const vm = this;
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: '', params: {}});
     vm.activeColumns = {chosen: []};
     vm.availableColumns = {options: [], chosen: []};
@@ -16,7 +16,7 @@ export default class UserSettingsCtrl {
 
     function loadColumnPicker() {
       vm.allColumns.forEach(function(column) {
-        var tempBool = false;
+        let tempBool = false;
         vm.activeColumns.options.forEach(function(activeColumn) {
           if (column == activeColumn) {
             tempBool = true;
@@ -48,9 +48,9 @@ export default class UserSettingsCtrl {
       vm.activeColumns.chosen = [];
     };
     $scope.moveUp = function(elements) {
-      var A = vm.activeColumns.options;
+      const A = vm.activeColumns.options;
       for (let i = 0; i < elements.length; i++) {
-        var from = A.indexOf(elements[i]);
+        const from = A.indexOf(elements[i]);
         if (A.indexOf(elements[i]) > i) {
           vm.activeColumns.options.move(from, from - 1);
         }
@@ -58,9 +58,9 @@ export default class UserSettingsCtrl {
     };
 
     $scope.moveDown = function(elements) {
-      var A = vm.activeColumns.options;
+      const A = vm.activeColumns.options;
       for (let i = elements.length - 1; i >= 0; i--) {
-        var from = A.indexOf(elements[i]);
+        const from = A.indexOf(elements[i]);
         if (A.indexOf(elements[i]) < A.length - (elements.length - i)) {
           vm.activeColumns.options.move(from, from + 1);
         }
@@ -73,7 +73,7 @@ export default class UserSettingsCtrl {
       $rootScope.listViewColumns = vm.activeColumns.options;
       vm.activeColumns.chosen = [];
       $scope.saveAlert = null;
-      var updateArray = vm.activeColumns.options.map(function(a) {
+      const updateArray = vm.activeColumns.options.map(function(a) {
         return a.label;
       });
       Me.update({

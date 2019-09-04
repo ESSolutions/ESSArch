@@ -24,8 +24,8 @@
 
 export default class CreateSipCtrl {
   constructor($http, Profile, $log, $scope, $rootScope, $uibModal, $anchorScroll, $controller) {
-    var vm = this;
-    var ipSortString = ['Uploaded', 'Creating'];
+    const vm = this;
+    const ipSortString = ['Uploaded', 'Creating'];
 
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
     $scope.ipSelected = false;
@@ -69,8 +69,8 @@ export default class CreateSipCtrl {
     };
 
     vm.createSipModal = function(ip) {
-      var ips = $scope.ips.length > 0 ? $scope.ips : null;
-      var modalInstance = $uibModal.open({
+      const ips = $scope.ips.length > 0 ? $scope.ips : null;
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

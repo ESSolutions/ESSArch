@@ -25,7 +25,7 @@ Email - essarch@essolutions.se
 const resource = (listViewService, Storage, $rootScope) => {
   //Get data for Events table
   function getEventPage(start, number, pageNumber, params, selected, sort, columnFilters, search) {
-    var sortString = sort.predicate;
+    let sortString = sort.predicate;
     if (sort.predicate == 'eventDateTime') {
       if (sort.reverse) {
         sortString = sortString + ',-id';
@@ -39,7 +39,7 @@ const resource = (listViewService, Storage, $rootScope) => {
     return listViewService
       .getEvents($rootScope.ip, pageNumber, number, sortString, columnFilters, search)
       .then(function(value) {
-        var eventCollection = value.data;
+        const eventCollection = value.data;
         eventCollection.forEach(function(event) {
           selected.forEach(function(item) {
             if (item.id == event.id) {
@@ -83,7 +83,7 @@ const resource = (listViewService, Storage, $rootScope) => {
     } else {
       var viewType = 'aic';
     }
-    var sortString = sort.predicate;
+    let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
@@ -102,7 +102,7 @@ const resource = (listViewService, Storage, $rootScope) => {
         params
       )
       .then(function(value) {
-        var ipCollection = value.data;
+        const ipCollection = value.data;
         ipCollection.forEach(function(ip) {
           ip.collapsed = true;
           expandedAics.forEach(function(aic, index, array) {
@@ -136,7 +136,7 @@ const resource = (listViewService, Storage, $rootScope) => {
     } else {
       var viewType = 'aic';
     }
-    var sortString = sort.predicate;
+    let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
@@ -153,7 +153,7 @@ const resource = (listViewService, Storage, $rootScope) => {
         user
       )
       .then(function(value) {
-        var ipCollection = value.data;
+        const ipCollection = value.data;
         ipCollection.forEach(function(ip) {
           ip.collapsed = true;
           expandedAics.forEach(function(aic, index, array) {
@@ -170,14 +170,14 @@ const resource = (listViewService, Storage, $rootScope) => {
   }
 
   function getDips(start, number, pageNumber, params, sort, search, columnFilters) {
-    var sortString = sort.predicate;
+    let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
     return listViewService
       .getDipPage(pageNumber, number, $rootScope.navigationFilter, sortString, search, columnFilters)
       .then(function(value) {
-        var ipCollection = value.data;
+        const ipCollection = value.data;
         ipCollection.forEach(function(ip) {
           ip.collapsed = false;
         });
@@ -189,14 +189,14 @@ const resource = (listViewService, Storage, $rootScope) => {
   }
 
   function getOrders(start, number, pageNumber, params, sort, search) {
-    var sortString = sort.predicate;
+    let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
     return listViewService
       .getOrderPage(pageNumber, number, $rootScope.navigationFilter, sortString, search)
       .then(function(value) {
-        var ipCollection = value.data;
+        const ipCollection = value.data;
         ipCollection.forEach(function(ip) {
           ip.collapsed = false;
         });
@@ -208,14 +208,14 @@ const resource = (listViewService, Storage, $rootScope) => {
   }
 
   function getReceptionPage(start, number, pageNumber, params, sort, search, state, columnFilters) {
-    var sortString = sort.predicate;
+    let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
     return listViewService
       .getReceptionIps(pageNumber, number, $rootScope.navigationFilter, sortString, search, state, columnFilters)
       .then(function(value) {
-        var ipCollection = value.data;
+        const ipCollection = value.data;
         return {
           data: ipCollection,
           numberOfPages: Math.ceil(value.count / number),
@@ -226,13 +226,13 @@ const resource = (listViewService, Storage, $rootScope) => {
   // Storage
 
   function getStorageMediums(start, number, pageNumber, params, sort, search) {
-    var sortString = sort.predicate;
+    let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
     return Storage.getStorageMediums(pageNumber, number, $rootScope.navigationFilter, sortString, search).then(
       function(value) {
-        var storageMediumCollection = value.data;
+        const storageMediumCollection = value.data;
         return {
           data: storageMediumCollection,
           numberOfPages: Math.ceil(value.count / number),
@@ -241,14 +241,14 @@ const resource = (listViewService, Storage, $rootScope) => {
     );
   }
   function getStorageObjectsForMedium(mediumId, start, number, pageNumber, params, medium, sort, search) {
-    var sortString = sort.predicate;
+    let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
     return Storage.getStorageObjectsForMedium(mediumId, pageNumber, number, medium, sortString, search).then(function(
       value
     ) {
-      var storageObjectCollection = value.data;
+      const storageObjectCollection = value.data;
       return {
         data: storageObjectCollection,
         numberOfPages: Math.ceil(value.count / number),
@@ -256,12 +256,12 @@ const resource = (listViewService, Storage, $rootScope) => {
     });
   }
   function getStorageObjects(start, number, pageNumber, params, medium, sort, search) {
-    var sortString = sort.predicate;
+    let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
     return Storage.getStorageObjects(pageNumber, number, medium, sortString, search).then(function(value) {
-      var storageObjectCollection = value.data;
+      const storageObjectCollection = value.data;
       return {
         data: storageObjectCollection,
         numberOfPages: Math.ceil(value.count / number),
@@ -270,12 +270,12 @@ const resource = (listViewService, Storage, $rootScope) => {
   }
 
   function getRobots(start, number, pageNumber, params, sort, search) {
-    var sortString = sort.predicate;
+    let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
     return Storage.getRobots(pageNumber, number, sortString, search).then(function(value) {
-      var robotCollection = value.data;
+      const robotCollection = value.data;
       return {
         data: robotCollection,
         numberOfPages: Math.ceil(value.count / number),
@@ -284,12 +284,12 @@ const resource = (listViewService, Storage, $rootScope) => {
   }
 
   function getRobotQueue(start, number, pageNumber, params, sort, search) {
-    var sortString = sort.predicate;
+    let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
     return Storage.getRobotQueue(pageNumber, number, sortString, search).then(function(value) {
-      var robotQueueCollection = value.data;
+      const robotQueueCollection = value.data;
       return {
         data: robotQueueCollection,
         numberOfPages: Math.ceil(value.count / number),
@@ -298,12 +298,12 @@ const resource = (listViewService, Storage, $rootScope) => {
   }
 
   function getRobotQueueForRobot(start, number, pageNumber, params, sort, search, robot) {
-    var sortString = sort.predicate;
+    let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
     return Storage.getRobotQueueForRobot(pageNumber, number, sortString, search, robot).then(function(value) {
-      var robotQueueCollection = value.data;
+      const robotQueueCollection = value.data;
       return {
         data: robotQueueCollection,
         numberOfPages: Math.ceil(value.count / number),
@@ -312,12 +312,12 @@ const resource = (listViewService, Storage, $rootScope) => {
   }
 
   function getIoQueue(start, number, pageNumber, params, sort, search) {
-    var sortString = sort.predicate;
+    let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
     return Storage.getIoQueue(pageNumber, number, sortString, search).then(function(value) {
-      var ioQueueCollection = value.data;
+      const ioQueueCollection = value.data;
       return {
         data: ioQueueCollection,
         numberOfPages: Math.ceil(value.count / number),
@@ -326,12 +326,12 @@ const resource = (listViewService, Storage, $rootScope) => {
   }
 
   function getTapeDrives(start, number, pageNumber, params, sort, search, robot) {
-    var sortString = sort.predicate;
+    let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
     return Storage.getTapeDrives(pageNumber, number, sortString, search, robot).then(function(value) {
-      var tapeDrivecollection = value.data;
+      const tapeDrivecollection = value.data;
       return {
         data: tapeDrivecollection,
         numberOfPages: Math.ceil(value.count / number),
@@ -340,12 +340,12 @@ const resource = (listViewService, Storage, $rootScope) => {
   }
 
   function getTapeSlots(start, number, pageNumber, params, sort, search, robot) {
-    var sortString = sort.predicate;
+    let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
     return Storage.getTapeSlots(pageNumber, number, sortString, search, robot).then(function(value) {
-      var tapeSlotCollection = value.data;
+      const tapeSlotCollection = value.data;
       return {
         data: tapeSlotCollection,
         numberOfPages: Math.ceil(value.count / number),

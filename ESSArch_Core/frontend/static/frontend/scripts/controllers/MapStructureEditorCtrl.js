@@ -1,6 +1,6 @@
 export default class MapStructureEditorCtrl {
   constructor($scope, $rootScope, $translate) {
-    var vm = this;
+    const vm = this;
     vm.noStructure = false;
 
     vm.$onInit = function() {
@@ -142,9 +142,9 @@ export default class MapStructureEditorCtrl {
     //Generates test data for map structure tree
     function createSubTreeExampleData(level, width, prefix) {
       if (level > 0) {
-        var res = [];
+        const res = [];
         // if (!parent) parent = res;
-        for (var i = 1; i <= width; i++) {
+        for (let i = 1; i <= width; i++) {
           res.push({
             name: 'Node ' + prefix + i,
             type: 'folder',
@@ -165,7 +165,7 @@ export default class MapStructureEditorCtrl {
     $scope.selectedNode = null;
     //Add node to map structure tree view
     $scope.addNode = function(node) {
-      var dir = {
+      const dir = {
         name: vm.treeEditModel.name,
         type: vm.treeEditModel.type,
       };

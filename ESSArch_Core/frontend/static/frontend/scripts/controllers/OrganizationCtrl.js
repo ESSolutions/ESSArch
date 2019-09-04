@@ -24,7 +24,7 @@
 
 export const OrganizationCtrl = ($scope, Organization) => {
   $scope.changeOrganization = function() {
-    var org = $scope.currentOrganization;
+    const org = $scope.currentOrganization;
     Organization.setOrganization(org);
   };
   $scope.getCurrentOrganization = function() {
@@ -40,7 +40,7 @@ export const OrganizationCtrl = ($scope, Organization) => {
 };
 
 export const organization = ($rootScope, $http, $state, appConfig, myService) => {
-  var service = {
+  const service = {
     availableOrganizations: function() {
       return $rootScope.auth.organizations;
     },

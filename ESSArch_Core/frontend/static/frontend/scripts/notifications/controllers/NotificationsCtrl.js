@@ -14,12 +14,12 @@ export default class NotificationsCtrl {
     $state,
     $translate
   ) {
-    var vm = this;
+    const vm = this;
     vm.visible = false;
     vm.alerts = [];
     vm.frontendAlerts = [];
     vm.backendAlerts = [];
-    var interval;
+    let interval;
     vm.$onInit = function() {
       vm.notificationsEnabled = $rootScope.auth.notifications_enabled;
       Messenger.options = {
@@ -58,7 +58,7 @@ export default class NotificationsCtrl {
         show = true;
       }
       vm.nextPageLoading = true;
-      var pageSize = Math.ceil(($(window).height() * 0.6) / 38) + 2;
+      const pageSize = Math.ceil(($(window).height() * 0.6) / 38) + 2;
       return Notifications.getNotifications(pageSize).then(function(data) {
         vm.nextPageLoading = false;
         vm.backendAlerts = data;
@@ -190,7 +190,7 @@ export default class NotificationsCtrl {
      */
 
     vm.addAlert = function(id, message, level, time, options) {
-      var alert = {message: message, level: level, time_created: new Date()};
+      const alert = {message: message, level: level, time_created: new Date()};
       if (id) {
         alert.id = id;
         vm.backendAlerts.unshift(alert);
@@ -198,9 +198,9 @@ export default class NotificationsCtrl {
         vm.frontendAlerts.unshift(alert);
       }
       if (vm.notificationsEnabled) {
-        var actions =
+        const actions =
           options && !angular.isUndefined(options.actions) && options.actions !== null ? options.actions : null;
-        var post = {
+        const post = {
           message: message,
           type: level,
           hideAfter: time ? time / 1000 : 10,
@@ -219,10 +219,10 @@ export default class NotificationsCtrl {
       } else {
         vm.showAlert();
         $window.onclick = function(event) {
-          var clickedElement = $(event.target);
+          const clickedElement = $(event.target);
           if (!clickedElement) return;
-          var elementClasses = event.target.classList;
-          var clickedOnAlertIcon =
+          const elementClasses = event.target.classList;
+          const clickedOnAlertIcon =
             elementClasses.contains('fa-bell') ||
             elementClasses.contains('top-alert-container') ||
             elementClasses.contains('top-alert-container') ||

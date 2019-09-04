@@ -23,9 +23,9 @@ export default class SearchDetailCtrl {
     AgentName,
     $transitions
   ) {
-    var PAGE_SIZE = 10;
+    const PAGE_SIZE = 10;
 
-    var vm = this;
+    const vm = this;
     $controller('TagsCtrl', {$scope: $scope, vm: vm});
     $scope.StructureName = StructureName;
     $scope.angular = angular;
@@ -35,7 +35,7 @@ export default class SearchDetailCtrl {
     vm.recordTreeData = [];
 
     // Record update interval
-    var recordInterval;
+    let recordInterval;
 
     // Destroy intervals on state change
     $transitions.onSuccess({}, function($transition) {
@@ -47,8 +47,8 @@ export default class SearchDetailCtrl {
     };
 
     vm.loadRecordAndTree = function(structure) {
-      var isStructureUnit = $state.current.name == 'home.archivalDescriptions.search.structure_unit';
-      var nodeId = $stateParams.id;
+      const isStructureUnit = $state.current.name == 'home.archivalDescriptions.search.structure_unit';
+      const nodeId = $stateParams.id;
 
       if (isStructureUnit) {
         console.log('Getting data for initial node, structure unit -', nodeId);
@@ -65,8 +65,8 @@ export default class SearchDetailCtrl {
         if (!vm.record._is_structure_unit) {
           vm.parseAgents(vm.record);
         }
-        var startNode = data;
-        var archiveId = null;
+        const startNode = data;
+        let archiveId = null;
 
         $rootScope.$broadcast('UPDATE_TITLE', {title: vm.record.name});
 
@@ -107,7 +107,7 @@ export default class SearchDetailCtrl {
       vm.buildTree(startNode, archive).then(function(children) {
         archive.children = children.data;
         vm.parseAgents(archive);
-        var creator = vm.getArchiveCreator(archive);
+        let creator = vm.getArchiveCreator(archive);
 
         if (creator !== null) {
           creator._id = creator.id;
@@ -174,15 +174,15 @@ export default class SearchDetailCtrl {
         }
         return vm.getNode(childNode.parent.id);
       } else {
-        var deferred = $q.defer();
+        const deferred = $q.defer();
         deferred.resolve(null);
         return deferred.promise;
       }
     };
 
     vm.getChildren = function(node, archive, page) {
-      var url;
-      var params = {page_size: PAGE_SIZE, page: page};
+      let url;
+      const params = {page_size: PAGE_SIZE, page: page};
       page = page || 1;
 
       if (node._is_structure_unit === true) {
@@ -196,7 +196,7 @@ export default class SearchDetailCtrl {
 
       console.log('Getting children to', node, 'in archive', archive._id);
       return $http.get(url, {params: params}).then(function(response) {
-        var data = response.data.map(function(child) {
+        const data = response.data.map(function(child) {
           child._is_structure_unit = node._is_structure_unit && !node.is_unit_leaf_node;
           if (angular.isUndefined(child._id)) {
             child._id = child.id;
@@ -205,7 +205,7 @@ export default class SearchDetailCtrl {
           return vm.createNode(child);
         });
 
-        var count = response.headers('Count');
+        const count = response.headers('Count');
         console.log('Found', count, 'children to', node, 'in archive', archive._id);
         return {
           data: data,
@@ -216,9 +216,9 @@ export default class SearchDetailCtrl {
 
     vm.getClassificationStructureChildren = function(id) {
       console.log('Getting children of structure with id "' + id + '"');
-      var url = vm.url + 'structures/' + id + '/units/';
+      const url = vm.url + 'structures/' + id + '/units/';
       return $http.get(url, {params: {has_parent: false, pager: 'none'}}).then(function(response) {
-        var data = response.data.map(function(unit) {
+        const data = response.data.map(function(unit) {
           unit._id = unit.id;
           unit._is_structure_unit = true;
           delete unit.parent;
@@ -253,7 +253,7 @@ export default class SearchDetailCtrl {
     vm.buildTree = function(start, archive) {
       console.log('Building tree of', start, 'with archive', archive._id);
       return vm.getChildren(start, archive).then(function(children) {
-        var existingChild =
+        const existingChild =
           start.children && start.children.length > 0 && start.children[0].placeholder !== true
             ? start.children[0]
             : null;
@@ -284,7 +284,7 @@ export default class SearchDetailCtrl {
             return vm.buildTree(parent, archive, vm.structure);
           } else {
             return vm.getClassificationStructureChildren(vm.structure).then(function(children) {
-              var result = [];
+              const result = [];
               children.data.forEach(function(child) {
                 if (start._id === child._id) {
                   result.push(start);
@@ -305,17 +305,17 @@ export default class SearchDetailCtrl {
 
     vm.selectRecord = function(jqueryobj, e) {
       if (e.node && e.node.original.see_more) {
-        var tree = vm.recordTreeData;
-        var parent = vm.recordTreeInstance.jstree(true).get_node(e.node.parent);
-        var childrenNodes = tree.map(function(x) {
+        const tree = vm.recordTreeData;
+        const parent = vm.recordTreeInstance.jstree(true).get_node(e.node.parent);
+        const childrenNodes = tree.map(function(x) {
           return getNodeById(x, parent.original._id);
         })[0].children;
-        var page = Math.ceil(childrenNodes.length / PAGE_SIZE);
+        const page = Math.ceil(childrenNodes.length / PAGE_SIZE);
 
         return vm.getChildren(parent.original, vm.archive, page).then(function(children) {
-          var count = children.count;
-          var selectedElement = null;
-          var seeMore = null;
+          const count = children.count;
+          let selectedElement = null;
+          let seeMore = null;
 
           if (childrenNodes[childrenNodes.length - 1].see_more) {
             seeMore = childrenNodes.pop();
@@ -351,8 +351,8 @@ export default class SearchDetailCtrl {
     };
 
     vm.goToNode = function(id) {
-      var tree = vm.recordTreeInstance.jstree(true);
-      var node = tree.get_node(id);
+      const tree = vm.recordTreeInstance.jstree(true);
+      const node = tree.get_node(id);
 
       if (node.original.type === 'agent') {
         $state.go('home.archivalDescriptions.archiveCreators', {id: node.original.id});
@@ -364,7 +364,7 @@ export default class SearchDetailCtrl {
         return;
       }
 
-      var nodePromise = node.original._is_structure_unit
+      const nodePromise = node.original._is_structure_unit
         ? vm.getStructureUnit(node.original._id)
         : vm.getNode(node.original._id);
       tree.deselect_node(vm.record.id);
@@ -414,10 +414,10 @@ export default class SearchDetailCtrl {
     vm.getChildrenTable = function(tableState) {
       if (!angular.isUndefined(tableState)) {
         vm.recordTableState = tableState;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var pageSize = pagination.number || PAGE_SIZE; // Number of entries showed per page.
-        var pageNumber = start / pageSize + 1;
+        const pagination = tableState.pagination;
+        const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
+        const pageSize = pagination.number || PAGE_SIZE; // Number of entries showed per page.
+        const pageNumber = start / pageSize + 1;
 
         vm.childrenLoading = true;
         vm.getChildren(vm.record, vm.archive, pageNumber).then(function(result) {
@@ -436,7 +436,7 @@ export default class SearchDetailCtrl {
     vm.transfers = [];
     vm.getTransfers = function(tableState) {
       vm.transferTableState = tableState;
-      var url = 'search/';
+      let url = 'search/';
       if (vm.record._is_structure_unit) {
         url = 'structure-units/';
       }
@@ -454,7 +454,7 @@ export default class SearchDetailCtrl {
 
     vm.existsForRecord = function(classification) {
       if (vm.record) {
-        var temp = false;
+        let temp = false;
         vm.record.structures.forEach(function(structure) {
           if (structure.id == classification) {
             temp = true;
@@ -465,8 +465,8 @@ export default class SearchDetailCtrl {
     };
 
     function getBreadcrumbs(node) {
-      var tree = vm.recordTreeInstance.jstree(true);
-      var start = tree.get_node(node.id);
+      const tree = vm.recordTreeInstance.jstree(true);
+      const start = tree.get_node(node.id);
 
       if (start === false) {
         return [];
@@ -516,7 +516,7 @@ export default class SearchDetailCtrl {
       },
       dnd: {
         is_draggable: function(nodes) {
-          var not_draggable = nodes.some(function(node) {
+          const not_draggable = nodes.some(function(node) {
             return (
               (node.original._is_structure_unit &&
                 !(
@@ -530,20 +530,20 @@ export default class SearchDetailCtrl {
             return false;
           }
 
-          var structure = null;
+          let structure = null;
           vm.archiveStructures.forEach(function(struct) {
             if (struct.id === vm.structure) {
               structure = struct;
             }
           });
-          var type = nodes[0].original.type;
+          const type = nodes[0].original.type;
           return _.get(structure, 'specification.rules.' + type + '.movable', true);
         },
       },
       contextmenu: {
         select_node: false,
         items: function(node, callback) {
-          var update = {
+          const update = {
             label: $translate.instant('EDIT'),
             _disabled: function() {
               return (
@@ -557,7 +557,7 @@ export default class SearchDetailCtrl {
             },
             action: function update() {
               if (node.original._is_structure_unit) {
-                var struct = vm.getStructureById(vm.archiveStructures, vm.structure);
+                const struct = vm.getStructureById(vm.archiveStructures, vm.structure);
                 struct.structureType = angular.copy(struct.type);
                 vm.editStructureUnitModal(node.original, struct);
               } else if (node.original._index === 'archive') {
@@ -567,7 +567,7 @@ export default class SearchDetailCtrl {
               }
             },
           };
-          var add = {
+          const add = {
             label: $translate.instant('ACCESS.ADD_NODE'),
             _disabled: function() {
               return node.original._index === 'archive' || !$scope.checkPermission('tags.add_tag');
@@ -576,7 +576,7 @@ export default class SearchDetailCtrl {
               vm.addNodeModal(node, vm.structure);
             },
           };
-          var addStructureUnit = {
+          const addStructureUnit = {
             label: $translate.instant('ACCESS.ADD_STRUCTURE_UNIT'),
             _disabled: function() {
               return !(
@@ -585,12 +585,12 @@ export default class SearchDetailCtrl {
               );
             },
             action: function() {
-              var struct = vm.getStructureById(vm.archiveStructures, vm.structure);
+              const struct = vm.getStructureById(vm.archiveStructures, vm.structure);
               struct.structureType = angular.copy(struct.type);
               vm.addStructureUnitModal(node.original, struct);
             },
           };
-          var remove = {
+          const remove = {
             label: $translate.instant('REMOVE'),
             _disabled: function() {
               return (
@@ -605,7 +605,7 @@ export default class SearchDetailCtrl {
             },
             action: function() {
               if (node.original._is_structure_unit) {
-                var struct = vm.getStructureById(vm.archiveStructures, vm.structure);
+                const struct = vm.getStructureById(vm.archiveStructures, vm.structure);
                 struct.structureType = angular.copy(struct.type);
                 vm.removeStructureUnitModal(node, struct);
               } else {
@@ -613,7 +613,7 @@ export default class SearchDetailCtrl {
               }
             },
           };
-          var addLocation = {
+          const addLocation = {
             label: $translate.instant('ACCESS.LINK_TO_LOCATION'),
             _disabled: function() {
               return !$scope.checkPermission('tags.add_tag');
@@ -622,7 +622,7 @@ export default class SearchDetailCtrl {
               vm.addNodeLocationModal(node.original);
             },
           };
-          var addDelivery = {
+          const addDelivery = {
             label: $translate.instant('ACCESS.LINK_TO_TRANSFER'),
             _disabled: function() {
               return !$scope.checkPermission('tags.change_location');
@@ -631,7 +631,7 @@ export default class SearchDetailCtrl {
               vm.addNodeDeliveryModal(node.original);
             },
           };
-          var removeFromStructure = {
+          const removeFromStructure = {
             label: $translate.instant('ACCESS.REMOVE_FROM_CLASSIFICATION_STRUCTURE'),
             _disabled: function() {
               return (
@@ -641,7 +641,7 @@ export default class SearchDetailCtrl {
               );
             },
             action: function() {
-              var struct;
+              let struct;
               vm.archiveStructures.forEach(function(item) {
                 if (item.id == vm.structure) {
                   struct = item;
@@ -650,7 +650,7 @@ export default class SearchDetailCtrl {
               vm.removeNodeFromStructureModal(node, struct);
             },
           };
-          var newVersion = {
+          const newVersion = {
             label: $translate.instant('ACCESS.NEW_VERSION'),
             _disabled: function() {
               return node.original._is_structure_unit;
@@ -659,7 +659,7 @@ export default class SearchDetailCtrl {
               vm.newVersionNodeModal(node);
             },
           };
-          var changeOrganization = {
+          const changeOrganization = {
             label: $translate.instant('ORGANIZATION.CHANGE_ORGANIZATION'),
             _disabled: function() {
               return node.original._index !== 'archive';
@@ -668,13 +668,13 @@ export default class SearchDetailCtrl {
               vm.changeOrganizationModal(vm.record);
             },
           };
-          var email = {
+          const email = {
             label: $translate.instant('EMAIL.EMAIL'),
             _disabled: function() {
               return node.original._is_structure_unit;
             },
             action: function() {
-              var selected = vm.recordTreeInstance
+              const selected = vm.recordTreeInstance
                 .jstree(true)
                 .get_selected(true)
                 .map(function(x) {
@@ -695,10 +695,10 @@ export default class SearchDetailCtrl {
               }
             },
           };
-          var isUnit = node.original._is_structure_unit;
-          var isUnitLeaf = node.original.is_unit_leaf_node;
-          var isLeaf = node.original.is_leaf_node;
-          var actions = {
+          const isUnit = node.original._is_structure_unit;
+          const isUnitLeaf = node.original.is_unit_leaf_node;
+          const isLeaf = node.original.is_leaf_node;
+          const actions = {
             update: update,
             add: !isUnit || isUnitLeaf ? add : undefined,
             addStructureUnit:
@@ -735,8 +735,8 @@ export default class SearchDetailCtrl {
     };
 
     vm.locationButtonDisabled = function() {
-      var checked = vm.getChecked();
-      var disabled = true;
+      const checked = vm.getChecked();
+      let disabled = true;
       checked.forEach(function(x) {
         if (
           !angular.isUndefined(x) &&
@@ -752,8 +752,8 @@ export default class SearchDetailCtrl {
     };
 
     vm.deliveryButtonDisabled = function() {
-      var checked = vm.getChecked();
-      var disabled = true;
+      const checked = vm.getChecked();
+      let disabled = true;
       checked.forEach(function(x) {
         if (!angular.isUndefined(x) && x.placeholder !== true && x.type !== 'agent') {
           disabled = false;
@@ -767,8 +767,8 @@ export default class SearchDetailCtrl {
     };
 
     vm.dropNode = function(jqueryObj, data) {
-      var node = data.node;
-      var parentNode = vm.recordTreeInstance.jstree(true).get_node(node.parent);
+      const node = data.node;
+      const parentNode = vm.recordTreeInstance.jstree(true).get_node(node.parent);
       var data = {structure: vm.structure};
 
       if (parentNode.original._is_structure_unit) {
@@ -795,7 +795,7 @@ export default class SearchDetailCtrl {
         .jstree(true)
         .get_json('#', {flat: true})
         .forEach(function(item) {
-          var fullItem = vm.recordTreeInstance.jstree(true).get_node(item.id);
+          const fullItem = vm.recordTreeInstance.jstree(true).get_node(item.id);
           if (fullItem.original._index == 'archive') {
             vm.recordTreeInstance.jstree(true).set_type(item, 'archive');
           }
@@ -812,7 +812,7 @@ export default class SearchDetailCtrl {
       vm.currentVersion = vm.record._id;
       vm.record.versions.push(angular.copy(vm.record));
       vm.record.versions.sort(function(a, b) {
-        var a_date = new Date(a.create_date),
+        const a_date = new Date(a.create_date),
           b_date = new Date(b.create_date);
         if (a_date < b_date) return -1;
         if (a_date > b_date) return 1;
@@ -821,20 +821,20 @@ export default class SearchDetailCtrl {
     }
 
     vm.expandChildren = function(jqueryobj, e, reload) {
-      var tree = vm.recordTreeData;
+      const tree = vm.recordTreeData;
       if (e.node.children.length < 2 || reload) {
-        var childrenNodes = tree.map(function(x) {
+        const childrenNodes = tree.map(function(x) {
           return getNodeById(x, e.node.original._id);
         })[0].children;
-        var page = Math.ceil(childrenNodes.length / PAGE_SIZE);
+        const page = Math.ceil(childrenNodes.length / PAGE_SIZE);
 
         if (e.node.original.type === 'agent') {
           return null;
         }
         return vm.getChildren(e.node.original, vm.archive, page).then(function(children) {
-          var count = children.count;
-          var selectedElement = null;
-          var seeMore = null;
+          const count = children.count;
+          let selectedElement = null;
+          let seeMore = null;
 
           if (childrenNodes[childrenNodes.length - 1].see_more) {
             seeMore = childrenNodes.pop();
@@ -867,7 +867,7 @@ export default class SearchDetailCtrl {
     };
 
     function getNodeById(node, id) {
-      var reduce = [].reduce;
+      const reduce = [].reduce;
       function runner(result, node) {
         if (result || !node) return result;
         return (
@@ -880,7 +880,7 @@ export default class SearchDetailCtrl {
     }
 
     vm.getStructureById = function(structures, id) {
-      var structure = null;
+      let structure = null;
       structures.forEach(function(x) {
         if (x.id === id) {
           structure = x;
@@ -890,13 +890,13 @@ export default class SearchDetailCtrl {
     };
 
     vm.viewFile = function(file) {
-      var params = {};
+      const params = {};
       if (file.href != '') {
         params.path = file.href + '/' + file.filename;
       } else {
         params.path = file.filename;
       }
-      var showFile = $sce.trustAsResourceUrl(
+      const showFile = $sce.trustAsResourceUrl(
         appConfig.djangoUrl + 'information-packages/' + file.ip + '/files/?path=' + params.path
       );
       $window.open(showFile, '_blank');
@@ -921,7 +921,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.setCurrentVersion = function(node_id) {
-      var node = null;
+      let node = null;
       vm.record.versions.forEach(function(version) {
         if (version._id == node_id) {
           node = version;
@@ -935,14 +935,14 @@ export default class SearchDetailCtrl {
     };
 
     vm.showVersion = function(node_id) {
-      var node = null;
+      let node = null;
       if (vm.record.versions) {
         vm.record.versions.forEach(function(version) {
           if (version._id == node_id) {
             node = version;
           }
         });
-        var versions = angular.copy(vm.record.versions);
+        const versions = angular.copy(vm.record.versions);
       }
       if (node) {
         vm.selectRecord(null, {node: {original: node}, action: 'select_node'});
@@ -967,7 +967,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.getArchiveCreator = function(node) {
-      var creator = null;
+      let creator = null;
       node.agents.forEach(function(agent) {
         agent.agent.name = AgentName.getAuthorizedName(agent.agent).full_name;
         if (agent.type === 'creator') {
@@ -979,7 +979,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.sortNotes = function(record) {
-      var obj = {
+      const obj = {
         history: [],
         remarks: [],
       };
@@ -994,17 +994,17 @@ export default class SearchDetailCtrl {
     };
 
     vm.exportArchive = function(node) {
-      var showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._source.id + '/export/');
+      const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._source.id + '/export/');
       $window.open(showFile, '_blank');
     };
 
     vm.archiveLabels = function(node) {
-      var showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._source.id + '/label/');
+      const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._source.id + '/label/');
       $window.open(showFile, '_blank');
     };
 
     vm.editField = function(key, value) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1035,7 +1035,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.addField = function(key, value) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1065,7 +1065,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.removeField = function(field) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1091,7 +1091,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.viewResult = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1113,7 +1113,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.editNodeModal = function(node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1142,7 +1142,7 @@ export default class SearchDetailCtrl {
       );
     };
     vm.addNodeModal = function(node, structure) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1168,7 +1168,7 @@ export default class SearchDetailCtrl {
       );
     };
     vm.editArchiveModal = function(archive) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1193,7 +1193,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.newVersionNodeModal = function(node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1217,7 +1217,7 @@ export default class SearchDetailCtrl {
       );
     };
     vm.newStructureModal = function(node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1241,7 +1241,7 @@ export default class SearchDetailCtrl {
       );
     };
     vm.removeNodeModal = function(node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1266,7 +1266,7 @@ export default class SearchDetailCtrl {
       );
     };
     vm.removeNodeFromStructureModal = function(node, structure) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1292,7 +1292,7 @@ export default class SearchDetailCtrl {
       );
     };
     vm.changeOrganizationModal = function(node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1317,7 +1317,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.addStructureUnitModal = function(node, structure) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1344,7 +1344,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.removeStructureUnitModal = function(node, structure) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1371,7 +1371,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.editStructureUnitModal = function(node, structure) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1397,7 +1397,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.addNodeRelationModal = function(node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1424,7 +1424,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.editNodeRelationModal = function(relation, node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1452,7 +1452,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.removeNodeRelationModal = function(relation, node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1479,7 +1479,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.addNodeLocationModal = function(node) {
-      var data = {};
+      let data = {};
       if (angular.isArray(node)) {
         data = {
           nodes: node,
@@ -1492,7 +1492,7 @@ export default class SearchDetailCtrl {
       if (node.location !== null) {
         data.location = node.location;
       }
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1515,7 +1515,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.addNodeDeliveryModal = function(node) {
-      var data = {};
+      let data = {};
       if (angular.isArray(node)) {
         data = {
           nodes: node,
@@ -1526,7 +1526,7 @@ export default class SearchDetailCtrl {
         };
       }
 
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1549,7 +1549,7 @@ export default class SearchDetailCtrl {
       );
     };
     vm.addNoteModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1576,7 +1576,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.editNoteModal = function(note) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1604,7 +1604,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.removeNoteModal = function(note) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1633,7 +1633,7 @@ export default class SearchDetailCtrl {
       );
     };
     vm.addIdentifierModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1660,7 +1660,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.editIdentifierModal = function(identifier) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1688,7 +1688,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.removeIdentifierModal = function(identifier) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

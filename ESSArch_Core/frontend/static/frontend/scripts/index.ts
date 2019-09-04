@@ -83,8 +83,8 @@ export const nestedPermissions = (page: string[] | object): string[] => {
   if (Array.isArray(page)) {
     return page;
   } else if (typeof page == 'object') {
-    var temp = [];
-    for (var entry in page) {
+    let temp = [];
+    for (const entry in page) {
       // Recursively build permission list
       temp = temp.concat(nestedPermissions(page[entry]));
     }
@@ -100,7 +100,7 @@ export const nestedEmptyPermissions = (page: object[] | object): boolean => {
   if (Array.isArray(page)) {
     return page.length == 0;
   } else if (typeof page == 'object') {
-    for (var entry in page) {
+    for (const entry in page) {
       if (nestedEmptyPermissions(page[entry])) {
         return true;
       }
@@ -109,7 +109,7 @@ export const nestedEmptyPermissions = (page: object[] | object): boolean => {
   }
 };
 
-let resolveAuthenticated = [
+const resolveAuthenticated = [
   'djangoAuth',
   function(djangoAuth) {
     return djangoAuth.authenticationStatus();
@@ -834,7 +834,7 @@ angular
           },
         });
       $urlServiceProvider.rules.otherwise(function($injector) {
-        var $state = $injector.get('$state');
+        const $state = $injector.get('$state');
         $state.go('home.info');
       });
 
@@ -852,9 +852,9 @@ angular
     'markedProvider',
     function(markedProvider) {
       function isURL(str) {
-        var urlRegex =
+        const urlRegex =
           '^(?!mailto:)(?:(?:http|https|ftp)://)(?:\\S+(?::\\S*)?@)?(?:(?:(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[0-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)(?:\\.(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)*(?:\\.(?:[a-z\\u00a1-\\uffff]{2,})))|localhost)(?::\\d{2,5})?(?:(/|\\?|#)[^\\s]*)?$';
-        var url = new RegExp(urlRegex, 'i');
+        const url = new RegExp(urlRegex, 'i');
         return str.length < 2083 && url.test(str);
       }
       markedProvider.setOptions({
@@ -877,9 +877,9 @@ angular
   .config([
     '$uibTooltipProvider',
     function($uibTooltipProvider) {
-      var parser = new UAParser();
-      var result = parser.getResult();
-      var touch = result.device && (result.device.type === 'tablet' || result.device.type === 'mobile');
+      const parser = new UAParser();
+      const result = parser.getResult();
+      const touch = result.device && (result.device.type === 'tablet' || result.device.type === 'mobile');
       if (touch) {
         $uibTooltipProvider.options({trigger: 'dontTrigger'});
       } else {
@@ -930,7 +930,7 @@ angular
       link: function(scope, element, attrs, ngModel) {
         if (!ngModel) return; // do nothing if no ng-model
         element.on('blur', function() {
-          var modelControllers = scope.$eval(attrs.setTouched);
+          const modelControllers = scope.$eval(attrs.setTouched);
           if (angular.isArray(modelControllers)) {
             angular.forEach(modelControllers, function(modelCntrl) {
               modelCntrl.$setTouched();
@@ -990,7 +990,7 @@ angular
               $rootScope.site = null;
             });
           $transitions.onStart({}, function($transition) {
-            let to = $transition.$to();
+            const to = $transition.$to();
             if (to.name === 'login') {
               return;
             }
@@ -1007,9 +1007,9 @@ angular
         });
 
       $transitions.onStart({}, function($transition) {
-        let to = $transition.$to();
-        let from = $transition.$from();
-        let params = $transition.params();
+        const to = $transition.$to();
+        const from = $transition.$from();
+        const params = $transition.params();
 
         if (to.redirectTo) {
           $transition.abort();
@@ -1035,8 +1035,8 @@ angular
           to.name == 'home.archiveMaintenance'
         ) {
           $transition.abort();
-          var resolved = resolve(to.name, permissionConfig);
-          for (var key in resolved) {
+          const resolved = resolve(to.name, permissionConfig);
+          for (const key in resolved) {
             if (key != '_permissions' && myService.checkPermissions(nestedPermissions(resolved[key]))) {
               $state.go(to.name + '.' + key);
               return;

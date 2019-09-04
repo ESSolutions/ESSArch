@@ -1,6 +1,6 @@
 export default class SearchResultFieldCtrl {
   constructor() {
-    let vm = this;
+    const vm = this;
     vm.$onInit = function() {};
   }
 }

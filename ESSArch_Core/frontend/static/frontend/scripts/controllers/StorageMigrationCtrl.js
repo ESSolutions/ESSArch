@@ -10,7 +10,7 @@ export default class StorageMigrationCtrl {
     $translate,
     $uibModal
   ) {
-    var vm = this;
+    const vm = this;
     $scope.select = true;
     vm.formFiltersShow = true;
     vm.targetShow = true;
@@ -77,9 +77,9 @@ export default class StorageMigrationCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        let ordering = tableState.sort;
+        const ordering = tableState.sort;
 
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         $http({
           method: 'GET',
           url: appConfig.djangoUrl + 'information-packages/',
@@ -104,7 +104,7 @@ export default class StorageMigrationCtrl {
           })
           .catch(function(response) {
             if (response.status == 404) {
-              var filters = angular.extend(
+              const filters = angular.extend(
                 {
                   state: ipSortString,
                 },
@@ -137,9 +137,9 @@ export default class StorageMigrationCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        let ordering = tableState.sort;
+        const ordering = tableState.sort;
 
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.jobsPerPage);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.jobsPerPage);
         $http({
           method: 'GET',
           url: appConfig.djangoUrl + 'storage-migrations/',
@@ -178,7 +178,7 @@ export default class StorageMigrationCtrl {
           ips = [$scope.ip];
         }
       }
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -204,7 +204,7 @@ export default class StorageMigrationCtrl {
     };
     //Creates and shows modal with task information
     $scope.taskInfoModal = function(task) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         size: 'lg',
         ariaLabelledBy: 'modal-title',

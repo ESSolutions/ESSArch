@@ -1,6 +1,6 @@
 export default class ProfileMakerCtrl {
   constructor(ProfileMakerTemplate, ProfileMakerExtension, $scope, $state, $http, $uibModal, $log) {
-    var vm = this;
+    const vm = this;
     vm.templates = [];
     vm.template = null;
     vm.add = false;
@@ -32,7 +32,7 @@ export default class ProfileMakerCtrl {
       ) {});
     };
     vm.delete = function(template) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -76,14 +76,14 @@ export default class ProfileMakerCtrl {
     vm.choiseCount = 0;
 
     vm.buildTree = function(uuid, data) {
-      var element = data[uuid];
-      var result = {};
+      const element = data[uuid];
+      const result = {};
       result['name'] = element['name'];
       result['key'] = uuid;
-      var children = [];
+      const children = [];
 
-      for (var index in element['children']) {
-        var child = element['children'][index];
+      for (const index in element['children']) {
+        const child = element['children'][index];
         children.push(vm.buildTree(child['uuid'], data));
       }
       result['children'] = children;
@@ -108,7 +108,7 @@ export default class ProfileMakerCtrl {
     $scope.expandedNodes = [];
     $scope.dataForTheTree = [];
     $scope.showSelected = function(sel, selected) {
-      var data = vm.existingElements[sel];
+      const data = vm.existingElements[sel];
       vm.selectedNode = data;
       vm.title = data['name'].charAt(0).toUpperCase() + data['name'].slice(1);
       vm.min = data['min'];
@@ -126,7 +126,7 @@ export default class ProfileMakerCtrl {
         vm.fields.push({template: '<hr/><p><b>User defined attributes</b></p>'}); //divider
         vm.fields = vm.fields.concat(data['userForm']);
       }
-      var count = vm.countChildrenWithName(data['parent'], data['name']);
+      const count = vm.countChildrenWithName(data['parent'], data['name']);
       if (vm.min < count) {
         vm.canDelete = true;
       } else {
@@ -141,11 +141,11 @@ export default class ProfileMakerCtrl {
       vm.anyElement = data['anyElement'];
       vm.possibleChildren = [];
 
-      var groups = [];
+      const groups = [];
 
       vm.fields.forEach(function(field) {
-        var groupClass = 'display-flex';
-        var fieldClass = 'flex-1';
+        const groupClass = 'display-flex';
+        const fieldClass = 'flex-1';
 
         if (angular.equals(Object.keys(field), ['template'])) {
           var group = {
@@ -190,9 +190,9 @@ export default class ProfileMakerCtrl {
       vm.fields = groups;
 
       //count existing children
-      var existing = {};
+      const existing = {};
       for (var i in data['children']) {
-        var element = data['children'][i];
+        const element = data['children'][i];
         if (!(element['name'] in existing)) {
           existing[element['name']] = 1;
         } else {
@@ -200,11 +200,11 @@ export default class ProfileMakerCtrl {
         }
       }
       //calculate possible children
-      var allChildren = [];
+      let allChildren = [];
 
       for (var i in data['availableChildren']) {
-        var child = data['availableChildren'][i];
-        var a = vm.calculatePossibleChildren(child, existing);
+        const child = data['availableChildren'][i];
+        const a = vm.calculatePossibleChildren(child, existing);
         allChildren = allChildren.concat(a);
       }
 
@@ -213,13 +213,13 @@ export default class ProfileMakerCtrl {
     };
 
     vm.calculatePossibleChildren = function(child, existing) {
-      var templateElement;
+      let templateElement;
       if (child['name'] in vm.allElements) {
         templateElement = vm.allElements[child['name']];
       } else {
         templateElement = 0;
       }
-      var allChildren = [];
+      let allChildren = [];
       if (child['type'] == 'element') {
         if (
           !(child['name'] in existing) ||
@@ -229,14 +229,14 @@ export default class ProfileMakerCtrl {
           allChildren.push(child['name']);
         }
       } else if (child['type'] == 'choise') {
-        var c = vm.choiseCount.toString();
+        const c = vm.choiseCount.toString();
         vm.choiseCount += 1;
         allChildren.push('Choise' + c + ' Begin');
-        for (var i in child['elements']) {
-          var el = child['elements'][i];
+        for (const i in child['elements']) {
+          const el = child['elements'][i];
           if (el['type'] == 'element') {
             if (el['name'] in existing) {
-              var maxCount = templateElement['max'];
+              const maxCount = templateElement['max'];
               if (maxCount == -1 || existing[el['name']] < maxCount) {
                 return [el['name']];
               } else {
@@ -258,10 +258,10 @@ export default class ProfileMakerCtrl {
       if (!parentName) {
         return 0;
       } else {
-        var data = vm.existingElements[parentName];
-        var count = 0;
-        for (var index in data['children']) {
-          var cName = data['children'][index]['name'].split('#')[0];
+        const data = vm.existingElements[parentName];
+        let count = 0;
+        for (const index in data['children']) {
+          const cName = data['children'][index]['name'].split('#')[0];
           var childName = childName.split('#')[0];
 
           if (cName == childName) {
@@ -273,7 +273,7 @@ export default class ProfileMakerCtrl {
     };
 
     vm.submitForm = function() {
-      var data = vm.model;
+      const data = vm.model;
       ProfileMakerTemplate.edit(
         {
           templateName: vm.template.name,
@@ -320,15 +320,15 @@ export default class ProfileMakerCtrl {
     vm.addAttribute = function() {
       //vm.floatingVisable = !vm.floatingVisable;
       vm.floatingmodel = [];
-      var allAttributes = [];
+      const allAttributes = [];
       vm.template.extensions.forEach(function(extension) {
         ProfileMakerExtension.get({id: extension}).$promise.then(function(resource) {
-          var r = {
+          const r = {
             name: resource.prefix,
           };
-          var children = [];
-          for (var key in resource.allAttributes) {
-            var c = {};
+          const children = [];
+          for (const key in resource.allAttributes) {
+            const c = {};
             c['name'] = key;
             c['data'] = resource.allAttributes[key];
             children.push(c);
@@ -364,10 +364,10 @@ export default class ProfileMakerCtrl {
     };
 
     vm.saveAttribute = function() {
-      var attribute = {};
+      const attribute = {};
       attribute['key'] = vm.floatingmodel['attribname'];
       attribute['type'] = 'input';
-      var to = {};
+      const to = {};
       to['required'] = vm.floatingmodel['attribrequired'];
       to['label'] = vm.floatingmodel['attribname'];
       to['type'] = 'text';
@@ -417,7 +417,7 @@ export default class ProfileMakerCtrl {
     };
 
     vm.saveElement = function() {
-      var element = {};
+      const element = {};
       element['parent'] = vm.uuid;
       // element['templateOnly'] = false;
       // element['path'] = vm.selectedNode['path']; // + number ? //set in python ?
@@ -480,7 +480,7 @@ export default class ProfileMakerCtrl {
     };
 
     vm.containsFiles = function() {
-      var cf = true;
+      let cf = true;
       vm.containsFilesText = true;
       if (vm.existingElements[vm.uuid]['containsFiles'] == true) {
         cf = false;
@@ -499,7 +499,7 @@ export default class ProfileMakerCtrl {
 
     //Creates and shows modal with task information
     vm.generateModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -527,7 +527,7 @@ export default class ProfileMakerCtrl {
 
     //Creates and shows modal with task information
     vm.addTemplateModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -563,7 +563,7 @@ export default class ProfileMakerCtrl {
       );
     };
     vm.addExtensionModal = function(template) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -592,7 +592,7 @@ export default class ProfileMakerCtrl {
     };
 
     vm.addAttributeModal = function(template) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -632,7 +632,7 @@ export default class ProfileMakerCtrl {
 
     vm.mapStructureModal = function(template) {
       ProfileMakerTemplate.get({templateName: template.name}).$promise.then(function(resource) {
-        var modalInstance = $uibModal.open({
+        const modalInstance = $uibModal.open({
           animation: true,
           ariaLabelledBy: 'modal-title',
           ariaDescribedBy: 'modal-body',

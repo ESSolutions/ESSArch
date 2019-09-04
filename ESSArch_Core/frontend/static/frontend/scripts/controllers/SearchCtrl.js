@@ -18,7 +18,7 @@ export default class SearchCtrl {
     $transitions,
     AgentName
   ) {
-    var vm = this;
+    const vm = this;
     $scope.angular = angular;
     vm.url = appConfig.djangoUrl;
 
@@ -157,12 +157,12 @@ export default class SearchCtrl {
             $translate.instant('ACCESS.SHOWING_RESULT') + ' ' + '0' + ' ' + $translate.instant('ACCESS.OF') + ' ' + '0'
           );
         }
-        var pageNumber = vm.tableState.pagination.start / vm.tableState.pagination.number;
-        var firstResult = pageNumber * vm.tableState.pagination.number + 1;
-        var lastResult =
+        const pageNumber = vm.tableState.pagination.start / vm.tableState.pagination.number;
+        const firstResult = pageNumber * vm.tableState.pagination.number + 1;
+        const lastResult =
           vm.searchResult.length +
           (vm.tableState.pagination.start / vm.tableState.pagination.number) * vm.tableState.pagination.number;
-        var total = vm.numberOfResults;
+        const total = vm.numberOfResults;
         return (
           $translate.instant('ACCESS.SHOWING_RESULT') +
           ' ' +
@@ -235,22 +235,22 @@ export default class SearchCtrl {
     };
 
     vm.filterNodeTypes = function(search) {
-      var types = vm.options.originalTypes.filter(function(x) {
+      const types = vm.options.originalTypes.filter(function(x) {
         return x.key.toLowerCase().indexOf(search.toLowerCase()) !== -1;
       });
       vm.options.types = types;
     };
 
     vm.formatFilters = function() {
-      var filters = angular.copy(vm.filterObject);
-      var includedTypes = [];
+      const filters = angular.copy(vm.filterObject);
+      const includedTypes = [];
       for (var key in vm.includedTypes) {
         if (vm.includedTypes[key]) {
           includedTypes.push(key);
         }
       }
       filters.indices = includedTypes.join(',');
-      var includedExtension = [];
+      const includedExtension = [];
       for (var key in vm.extensionFilter) {
         if (vm.extensionFilter[key]) {
           includedExtension.push(key);
@@ -292,18 +292,18 @@ export default class SearchCtrl {
       if (tableState) {
         vm.searching = true;
         vm.tableState = tableState;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number; // Number of entries showed per page.
-        var pageNumber = isNaN(start / number) ? 1 : start / number + 1; // Prevents initial 404 response where pagenumber os NaN in request
-        var ordering = tableState.sort.predicate;
+        const pagination = tableState.pagination;
+        const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
+        const number = pagination.number; // Number of entries showed per page.
+        const pageNumber = isNaN(start / number) ? 1 : start / number + 1; // Prevents initial 404 response where pagenumber os NaN in request
+        let ordering = tableState.sort.predicate;
         if (tableState.sort.reverse) {
           ordering = '-' + ordering;
         }
         vm.filterObject.page = pageNumber;
         vm.filterObject.page_size = number;
         vm.filterObject.ordering = ordering;
-        var filters = vm.formatFilters();
+        const filters = vm.formatFilters();
         Search.query(filters).then(function(response) {
           angular.copy(response.data, vm.searchResult);
           vm.numberOfResults = response.count;
@@ -321,9 +321,9 @@ export default class SearchCtrl {
     vm.tags = [];
 
     vm.getAggregationChildren = function(aggregations, aggrType) {
-      var aggregation = aggregations['_filter_' + aggrType][aggrType];
-      var missing = true;
-      let children = aggregation.buckets.map(function(item) {
+      const aggregation = aggregations['_filter_' + aggrType][aggrType];
+      let missing = true;
+      const children = aggregation.buckets.map(function(item) {
         if (item.name) {
           item.text = item.name + ' (' + item.doc_count + ')';
           item.a_attr = {
@@ -361,10 +361,10 @@ export default class SearchCtrl {
     };
 
     vm.loadTags = function(aggregations) {
-      var typeChildren = vm.getAggregationChildren(aggregations, 'type');
+      const typeChildren = vm.getAggregationChildren(aggregations, 'type');
       vm.options.originalTypes = aggregations._filter_type.type.buckets;
       vm.options.types = angular.copy(vm.options.originalTypes);
-      var filters = [
+      const filters = [
         {
           text: $translate.instant('TYPE'),
           a_attr: {
@@ -402,7 +402,7 @@ export default class SearchCtrl {
         index = result._index;
       }
       if (e.ctrlKey || e.metaKey) {
-        var url = $state.href('home.archivalDescriptions.search.' + index, {id: result.id});
+        const url = $state.href('home.archivalDescriptions.search.' + index, {id: result.id});
         $window.open(url, '_blank');
       } else {
         $state.go('home.archivalDescriptions.search.' + index, {id: result.id});
@@ -410,7 +410,7 @@ export default class SearchCtrl {
       }
     };
 
-    var newId = 1;
+    const newId = 1;
     vm.ignoreChanges = false;
     vm.ignoreRecordChanges = false;
     vm.newNode = {};
@@ -446,8 +446,8 @@ export default class SearchCtrl {
 
     vm.selectFilter = function(jqueryobj, e) {
       if (e.action == 'select_node') {
-        var parent = vm.treeInstance.jstree(true).get_node(e.node.parent);
-        var branch = parent.original.branch;
+        const parent = vm.treeInstance.jstree(true).get_node(e.node.parent);
+        const branch = parent.original.branch;
         if (vm.filterObject[branch] == e.node.original.key) {
           vm.treeInstance.jstree(true).deselect_node(e.node);
           vm.filterObject[branch] = null;
@@ -467,15 +467,15 @@ export default class SearchCtrl {
 
     vm.getExportResultUrl = function(tableState, format) {
       if (tableState) {
-        var filters = vm.formatFilters();
+        const filters = vm.formatFilters();
         if (filters.extension == '' || filters.extension == null || filters.extension == {}) {
           delete filters.extension;
         }
-        var ordering = tableState.sort.predicate;
+        let ordering = tableState.sort.predicate;
         if (tableState.sort.reverse) {
           ordering = '-' + ordering;
         }
-        var params = $httpParamSerializer(
+        const params = $httpParamSerializer(
           angular.extend(
             {
               export: format,
@@ -490,7 +490,7 @@ export default class SearchCtrl {
     };
 
     vm.exportResultModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -515,7 +515,7 @@ export default class SearchCtrl {
     };
 
     vm.saveSearchModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -541,7 +541,7 @@ export default class SearchCtrl {
     };
 
     vm.removeSearchModal = function(search) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

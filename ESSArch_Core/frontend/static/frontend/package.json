@@ -13,8 +13,8 @@
     "@types/jquery": "^3.3.31",
     "@types/lodash": "^4.14.138",
     "@types/ua-parser-js": "^0.7.33",
-    "@typescript-eslint/eslint-plugin": "^1.13.0",
-    "@typescript-eslint/parser": "^1.13.0",
+    "@typescript-eslint/eslint-plugin": "^2.1.0",
+    "@typescript-eslint/parser": "^2.1.0",
     "@uirouter/angularjs": "~1.0.22",
     "angular": "~1.7",
     "angular-animate": "~1.7",
@@ -112,6 +112,6 @@
     "pree2e": "yarn run update-webdriver",
     "e2e": "protractor e2e-tests/protractor.conf.js",
     "prettier": "prettier --ignore-path ../../../../.prettierignore",
-    "lint": "eslint \"*/**/*.{js,ts,tsx}\" --quiet"
+    "lint": "eslint \"*/**/*.{js,ts,tsx}\""
   }
 }

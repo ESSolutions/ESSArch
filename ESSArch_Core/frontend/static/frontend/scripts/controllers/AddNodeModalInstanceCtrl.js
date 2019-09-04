@@ -11,7 +11,7 @@ export default class AddNodeModalInstanceCtrl {
     $rootScope,
     EditMode
   ) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.node = data.node.original;
     $ctrl.nodeFields = [];
     $ctrl.newNode = {
@@ -27,14 +27,14 @@ export default class AddNodeModalInstanceCtrl {
       $http
         .get(appConfig.djangoUrl + 'tag-version-types/', {params: {archive_type: false, pager: 'none'}})
         .then(function(response) {
-          var url = appConfig.djangoUrl;
+          let url = appConfig.djangoUrl;
           if (data.node.original._is_structure_unit) {
             url = angular.copy(url) + 'structure-units/';
           } else {
             url = angular.copy(url) + 'search/';
           }
           $http.head(url + data.node.original.id + '/children/').then(function(childrenResponse) {
-            var count = parseInt(childrenResponse.headers('Count'));
+            const count = parseInt(childrenResponse.headers('Count'));
             if (!isNaN(count)) {
               $ctrl.newNode.reference_code = (count + 1).toString();
             }
@@ -123,7 +123,11 @@ export default class AddNodeModalInstanceCtrl {
       }
       if ($ctrl.changed()) {
         $ctrl.submitting = true;
-        var params = angular.extend($ctrl.newNode, {archive: data.archive, structure: data.structure, location: null});
+        const params = angular.extend($ctrl.newNode, {
+          archive: data.archive,
+          structure: data.structure,
+          location: null,
+        });
         if ($ctrl.node._is_structure_unit) params.structure_unit = $ctrl.node._id;
         else {
           params.parent = $ctrl.node._id;
@@ -151,7 +155,7 @@ export default class AddNodeModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

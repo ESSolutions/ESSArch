@@ -1,6 +1,6 @@
 export default class StructureModalInstanceCtrl {
   constructor(Search, $translate, $uibModalInstance, data, Notifications) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.node = data.node;
     $ctrl.creating = false;
 

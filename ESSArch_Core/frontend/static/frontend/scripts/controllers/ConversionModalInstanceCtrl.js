@@ -1,6 +1,6 @@
 export default class ConversionModalInstanceCtrl {
   constructor(cronService, $filter, $translate, IP, $uibModalInstance, appConfig, $http, data, Notifications) {
-    var $ctrl = this;
+    const $ctrl = this;
     // Set later to use local time for next job
     later.date.localTime();
     $ctrl.angular = angular;
@@ -36,7 +36,7 @@ export default class ConversionModalInstanceCtrl {
     $ctrl.myFrequency = null;
 
     $ctrl.validCron = function(frequency) {
-      var months = [
+      const months = [
         {name: 'jan', days: 31},
         {name: 'feb', days: 29},
         {name: 'mar', days: 31},
@@ -50,7 +50,7 @@ export default class ConversionModalInstanceCtrl {
         {name: 'nov', days: 30},
         {name: 'dec', days: 31},
       ];
-      var cron = cronService.fromCron(frequency, true);
+      const cron = cronService.fromCron(frequency, true);
       if (cron.monthValues && cron.dayOfMonthValues) {
         return !cron.monthValues
           .map(function(month) {
@@ -237,7 +237,7 @@ export default class ConversionModalInstanceCtrl {
 
     $ctrl.removeConversion = function() {
       $ctrl.removingRule = true;
-      var conversion = data.conversion;
+      const conversion = data.conversion;
       $http({
         url: appConfig.djangoUrl + 'conversion-rules/' + conversion.id,
         method: 'DELETE',

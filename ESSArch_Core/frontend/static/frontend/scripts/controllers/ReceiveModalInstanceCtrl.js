@@ -1,6 +1,6 @@
 export default class ReceiveModalInstanceCtrl {
   constructor($uibModalInstance, $scope, data, $translate, $uibModal, $log) {
-    var vm = data.vm;
+    const vm = data.vm;
     $scope.saAlert = null;
     $scope.alerts = {
       receiveError: {type: 'danger', msg: $translate.instant('CANNOT_RECEIVE_ERROR')},
@@ -14,7 +14,7 @@ export default class ReceiveModalInstanceCtrl {
       $scope.receiveDisabled = true;
     });
     $scope.$on('update_ip', function(event, data) {
-      var temp = angular.copy($scope.ip);
+      const temp = angular.copy($scope.ip);
       $scope.ip = data.ip;
       vm.updateCheckedIp({id: temp.id}, $scope.ip);
     });
@@ -57,7 +57,7 @@ export default class ReceiveModalInstanceCtrl {
     };
 
     vm.confirmReceiveModal = function(ip) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

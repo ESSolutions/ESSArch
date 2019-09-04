@@ -1,6 +1,6 @@
 export default class AgentRelationModalInstanceCtrl {
   constructor($uibModalInstance, appConfig, data, $http, EditMode, $scope, $translate, AgentName, $rootScope) {
-    var $ctrl = this;
+    const $ctrl = this;
     $scope.AgentName = AgentName;
     $ctrl.relationTemplate = {
       description: '',
@@ -127,7 +127,7 @@ export default class AgentRelationModalInstanceCtrl {
         return;
       }
       $ctrl.adding = true;
-      var related_agents = angular.copy($ctrl.agent.related_agents);
+      const related_agents = angular.copy($ctrl.agent.related_agents);
       related_agents.forEach(function(x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
@@ -169,7 +169,7 @@ export default class AgentRelationModalInstanceCtrl {
         return;
       }
       $ctrl.saving = true;
-      var related_agents = angular.copy($ctrl.agent.related_agents);
+      const related_agents = angular.copy($ctrl.agent.related_agents);
       related_agents.forEach(function(x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
@@ -210,8 +210,8 @@ export default class AgentRelationModalInstanceCtrl {
 
     $ctrl.remove = function() {
       $ctrl.removing = true;
-      var toRemove = null;
-      var related_agents = angular.copy($ctrl.agent.related_agents);
+      let toRemove = null;
+      const related_agents = angular.copy($ctrl.agent.related_agents);
       related_agents.forEach(function(x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
@@ -263,7 +263,7 @@ export default class AgentRelationModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

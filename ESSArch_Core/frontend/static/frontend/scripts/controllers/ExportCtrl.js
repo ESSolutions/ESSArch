@@ -1,6 +1,6 @@
 export default class ExportCtrl {
   constructor($scope, appConfig, $http, $window, SA, Profile) {
-    var vm = this;
+    const vm = this;
     vm.$onInit = function() {
       $http
         .get(appConfig.djangoUrl + 'submission-agreements/', {params: {pager: 'none', published: true}})
@@ -21,14 +21,14 @@ export default class ExportCtrl {
 
     vm.profileFileName = function(item) {
       if (item) {
-        var name = item.name + '.json';
+        const name = item.name + '.json';
         return name;
       }
     };
 
     vm.saFileName = function(item) {
       if (item) {
-        var name = item.name + '.json';
+        const name = item.name + '.json';
         return name;
       }
     };
@@ -45,11 +45,11 @@ export default class ExportCtrl {
     };
 
     vm.exportToFile = function(object, filename) {
-      var blob = new Blob([object], {type: 'text/plain'});
+      const blob = new Blob([object], {type: 'text/plain'});
       if ($window.navigator && $window.navigator.msSaveOrOpenBlob) {
         $window.navigator.msSaveOrOpenBlob(blob, filename);
       } else {
-        var e = document.createEvent('MouseEvents'),
+        const e = document.createEvent('MouseEvents'),
           a = document.createElement('a');
         a.download = filename;
         a.href = $window.URL.createObjectURL(blob);

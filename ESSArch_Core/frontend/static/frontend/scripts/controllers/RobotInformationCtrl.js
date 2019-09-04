@@ -40,7 +40,7 @@ export default class RobotInformationCtrl {
     listViewService,
     $transitions
   ) {
-    var vm = this;
+    const vm = this;
     $scope.translate = $translate;
     vm.slotsPerPage = 10;
     $scope.colspan = 4;
@@ -58,7 +58,7 @@ export default class RobotInformationCtrl {
 
     // Table states
 
-    var robotInterval;
+    let robotInterval;
     $transitions.onSuccess({}, function($transition) {
       $interval.cancel(robotInterval);
     });
@@ -97,8 +97,8 @@ export default class RobotInformationCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.drivesPerPage);
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.drivesPerPage);
         Resource.getTapeDrives(
           paginationParams.start,
           paginationParams.number,
@@ -116,7 +116,7 @@ export default class RobotInformationCtrl {
           .catch(function(response) {
             $scope.tapeDrivesLoading = false;
             if (response.status == 404) {
-              var filters = {
+              const filters = {
                 search: search,
               };
 
@@ -138,8 +138,8 @@ export default class RobotInformationCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.slotsPerPage);
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.slotsPerPage);
         Resource.getTapeSlots(
           paginationParams.start,
           paginationParams.number,
@@ -157,7 +157,7 @@ export default class RobotInformationCtrl {
           .catch(function(response) {
             $scope.tapeSlotsLoading = false;
             if (response.status == 404) {
-              var filters = {
+              const filters = {
                 search: search,
               };
 
@@ -179,8 +179,8 @@ export default class RobotInformationCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.robotQueueItemsPerPage);
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.robotQueueItemsPerPage);
         Resource.getRobotQueueForRobot(
           paginationParams.start,
           paginationParams.number,
@@ -198,7 +198,7 @@ export default class RobotInformationCtrl {
           .catch(function(response) {
             $scope.robotQueueLoading = false;
             if (response.status == 404) {
-              var filters = {
+              const filters = {
                 search: search,
               };
 
@@ -223,8 +223,8 @@ export default class RobotInformationCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.robotsPerPage);
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.robotsPerPage);
         Resource.getRobots(
           paginationParams.start,
           paginationParams.number,
@@ -240,7 +240,7 @@ export default class RobotInformationCtrl {
           })
           .catch(function(response) {
             if (response.status == 404) {
-              var filters = {
+              const filters = {
                 search: search,
               };
 
@@ -283,7 +283,7 @@ export default class RobotInformationCtrl {
       } else {
         vm.tapeSlot = null;
         vm.tapeDrive = tapeDrive;
-        var types = [];
+        const types = [];
         if (!tapeDrive.locked) {
           if (tapeDrive.storage_medium != null) {
             types.push('unmount');
@@ -314,7 +314,7 @@ export default class RobotInformationCtrl {
       } else {
         vm.tapeDrive = null;
         vm.tapeSlot = tapeSlot;
-        var types = [];
+        const types = [];
         if (!tapeSlot.locked) {
           if (tapeSlot.mounted) {
             types.push('unmount');
@@ -403,7 +403,7 @@ export default class RobotInformationCtrl {
     };
 
     function requestModal(request, object) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

@@ -1,6 +1,6 @@
 export default class MoveToApprovalModalInstanceCtrl {
   constructor($uibModalInstance, data, Requests, $q) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.angular = angular;
     $ctrl.data = data;
     $ctrl.requestTypes = data.types;
@@ -22,8 +22,8 @@ export default class MoveToApprovalModalInstanceCtrl {
     // Preserve IP
     $ctrl.moveToApproval = function() {
       $ctrl.moving = true;
-      var data = {purpose: $ctrl.data.request.purpose};
-      var promises = [];
+      const data = {purpose: $ctrl.data.request.purpose};
+      const promises = [];
       $ctrl.data.ips.forEach(function(ip) {
         promises.push(Requests.moveToApproval(ip, data).then(function(response) {}));
       });

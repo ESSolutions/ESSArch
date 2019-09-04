@@ -18,8 +18,8 @@ export default class StateTreeCtrl {
     $transitions,
     listViewService
   ) {
-    var vm = this;
-    var stateInterval;
+    const vm = this;
+    let stateInterval;
     $scope.angular = angular;
     $scope.myTreeControl = {};
     $scope.myTreeControl.scope = this;
@@ -83,11 +83,11 @@ export default class StateTreeCtrl {
     });
 
     // Key codes
-    var arrowUp = 38;
-    var arrowDown = 40;
-    var escape = 27;
-    var enter = 13;
-    var space = 32;
+    const arrowUp = 38;
+    const arrowDown = 40;
+    const escape = 27;
+    const enter = 13;
+    const space = 32;
 
     /**
      * Handle keydown events for state view table
@@ -184,8 +184,8 @@ export default class StateTreeCtrl {
       $scope.stepTaskLoading = true;
       return Task.get({id: branch.id}).$promise.then(function(data) {
         if (data.time_started !== null && data.time_done !== null) {
-          var started = moment(data.time_started);
-          var done = moment(data.time_done);
+          const started = moment(data.time_started);
+          const done = moment(data.time_done);
           data.duration = moment.utc(done.diff(started)).format('HH:mm:ss.SSS');
         } else {
           data.duration = null;
@@ -200,8 +200,8 @@ export default class StateTreeCtrl {
       $scope.stepTaskLoading = true;
       return Step.get({id: branch.id}).$promise.then(function(data) {
         if (data.time_started !== null && data.time_done !== null) {
-          var started = moment(data.time_started);
-          var done = moment(data.time_done);
+          const started = moment(data.time_started);
+          const done = moment(data.time_done);
           data.duration = moment.utc(done.diff(started)).format('HH:mm:ss.SSS');
         } else {
           data.duration = null;
@@ -229,8 +229,8 @@ export default class StateTreeCtrl {
       return !angular.isUndefined(PermPermissionStore.getPermissionDefinition(permissionName));
     };
     $scope.extendedEqual = function(specification_data, model) {
-      var returnValue = true;
-      for (var prop in model) {
+      let returnValue = true;
+      for (const prop in model) {
         if (model[prop] == '' && angular.isUndefined(specification_data[prop])) {
           returnValue = false;
         }
@@ -245,7 +245,7 @@ export default class StateTreeCtrl {
     //Update status view data
     $scope.statusViewUpdate = function(row) {
       $scope.myTreeControl.scope.stateLoading = true;
-      var expandedNodes = [];
+      let expandedNodes = [];
       if ($scope.tree_data != []) {
         expandedNodes = checkExpanded($scope.tree_data);
       }
@@ -270,7 +270,7 @@ export default class StateTreeCtrl {
       }
       for (let i = 0; i < B.length; i++) {
         if (A[i]) {
-          for (var prop in B[i]) {
+          for (const prop in B[i]) {
             if (B[i].hasOwnProperty(prop) && prop != 'children') {
               A[i][prop] = compareAndReplace(A[i], B[i], prop);
             }
@@ -307,7 +307,7 @@ export default class StateTreeCtrl {
     }
     //checks expanded rows in tree structure
     function checkExpanded(nodes) {
-      var ret = [];
+      let ret = [];
       nodes.forEach(function(node) {
         if (node.expanded == true) {
           ret.push(node);
@@ -321,7 +321,7 @@ export default class StateTreeCtrl {
 
     //Modal functions
     $scope.tracebackModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -343,7 +343,7 @@ export default class StateTreeCtrl {
     };
     //Creates and shows modal with task information
     $scope.taskInfoModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         size: 'lg',
         ariaLabelledBy: 'modal-title',
@@ -366,7 +366,7 @@ export default class StateTreeCtrl {
     };
     //Creates and shows modal with step information
     $scope.stepInfoModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         size: 'lg',
         ariaLabelledBy: 'modal-title',

@@ -3,7 +3,7 @@
 /* @ngInject */
 const djangoAuth = ($q, $http, $rootScope, $window) => {
   // AngularJS will instantiate a singleton by calling "new" on this function
-  var service = {
+  const service = {
     /* START CUSTOMIZATION HERE */
     // Change this to point to your Django REST Auth API
     // e.g. /api/rest-auth  (DO NOT INCLUDE ENDING SLASH)
@@ -17,7 +17,7 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
     request: function(args) {
       // Continue
       args = args || {};
-      var deferred = $q.defer(),
+      const deferred = $q.defer(),
         url = this.API_URL + args.url,
         method = args.method || 'GET',
         params = args.params || {},
@@ -63,7 +63,7 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
       return deferred.promise;
     },
     register: function(username, password1, password2, email, more) {
-      var data = {
+      let data = {
         username: username,
         password1: password1,
         password2: password2,
@@ -77,7 +77,7 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
       });
     },
     login: function(username, password) {
-      var djangoAuth = this;
+      const djangoAuth = this;
       return this.request({
         method: 'POST',
         url: '/login/',
@@ -86,7 +86,7 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
           password: password,
         },
       }).then(function(response) {
-        var data = response.data;
+        const data = response.data;
         djangoAuth.authenticated = true;
         $rootScope.$broadcast('djangoAuth.logged_in', data);
         return data;
@@ -159,8 +159,8 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
           url: '/user/',
         });
       }
-      var da = this;
-      var getAuthStatus = $q.defer();
+      const da = this;
+      const getAuthStatus = $q.defer();
       if (this.authenticated != null && !force) {
         // We have a stored value which means we can pass it back right away.
         if (this.authenticated == false && restrict) {

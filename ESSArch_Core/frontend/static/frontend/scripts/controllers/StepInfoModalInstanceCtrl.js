@@ -2,7 +2,7 @@ import moment from 'moment';
 
 export default class StepInfoModalInstanceCtrl {
   constructor($uibModalInstance, data, $rootScope, $scope, PermPermissionStore, Step) {
-    var $ctrl = this;
+    const $ctrl = this;
     $scope.myTreeControl = {scope: {}};
     if (data) {
       $ctrl.data = data;
@@ -11,8 +11,8 @@ export default class StepInfoModalInstanceCtrl {
     $ctrl.validations = [];
     $ctrl.$onInit = () => {
       if (data.currentStepTask.time_started !== null && data.currentStepTask.time_done !== null) {
-        var started = moment(data.currentStepTask.time_started);
-        var done = moment(data.currentStepTask.time_done);
+        const started = moment(data.currentStepTask.time_started);
+        const done = moment(data.currentStepTask.time_done);
         data.currentStepTask.duration = moment.utc(done.diff(started)).format('HH:mm:ss.SSS');
       } else {
         data.currentStepTask.duration = null;
@@ -70,8 +70,8 @@ export default class StepInfoModalInstanceCtrl {
     };
     $ctrl.mapStepStateProgress = $rootScope.mapStepStateProgress;
     $scope.extendedEqual = function(specification_data, model) {
-      var returnValue = true;
-      for (var prop in model) {
+      let returnValue = true;
+      for (const prop in model) {
         if (model[prop] == '' && angular.isUndefined(specification_data[prop])) {
           returnValue = false;
         }
@@ -108,8 +108,8 @@ export default class StepInfoModalInstanceCtrl {
       $scope.stepTaskLoading = true;
       return Step.get({id: branch.id}).$promise.then(function(data) {
         if (data.time_started !== null && data.time_done !== null) {
-          var started = moment(data.time_started);
-          var done = moment(data.time_done);
+          const started = moment(data.time_started);
+          const done = moment(data.time_done);
           data.duration = moment.utc(done.diff(started)).format('HH:mm:ss.SSS');
         } else {
           data.duration = null;

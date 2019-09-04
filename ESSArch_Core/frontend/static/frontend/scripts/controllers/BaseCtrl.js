@@ -77,10 +77,10 @@ export default class BaseCtrl {
     // Can be overwritten in controllers to change title
     vm.listViewTitle = $translate.instant('INFORMATION_PACKAGES');
 
-    var watchers = [];
+    const watchers = [];
     // Init request form
 
-    var docStateMap = {
+    const docStateMap = {
       reception: 'reception.html',
       approval: 'approval.html',
       accessIp: 'access-search.html',
@@ -89,7 +89,7 @@ export default class BaseCtrl {
       orders: 'index.html',
     };
     vm.getStateDocPage = function() {
-      var page = $state.current.name.split('.').pop();
+      const page = $state.current.name.split('.').pop();
       return docStateMap[page];
     };
 
@@ -182,11 +182,11 @@ export default class BaseCtrl {
 
     //Update ip list view with an interval
     //Update only if status < 100 and no step has failed in any IP
-    var listViewInterval;
+    let listViewInterval;
     vm.updateListViewConditional = function() {
       $interval.cancel(listViewInterval);
       listViewInterval = $interval(function() {
-        var updateVar = false;
+        let updateVar = false;
         vm.displayedIps.forEach(function(ip, idx) {
           if (ip.status < 100) {
             if (ip.step_state != 'FAILURE') {
@@ -199,7 +199,7 @@ export default class BaseCtrl {
         } else {
           $interval.cancel(listViewInterval);
           listViewInterval = $interval(function() {
-            var updateVar = false;
+            let updateVar = false;
             vm.displayedIps.forEach(function(ip, idx) {
               if (ip.status < 100) {
                 if (ip.step_state != 'FAILURE') {
@@ -235,11 +235,11 @@ export default class BaseCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
+        const sorting = tableState.sort;
         if (ipSortString.indexOf('Deleting') === -1) {
           ipSortString.push('Deleting'); // Add deleting if not already exists
         }
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         Resource.getIpPage(
           paginationParams.start,
           paginationParams.number,
@@ -263,7 +263,7 @@ export default class BaseCtrl {
           })
           .catch(function(response) {
             if (response.status == 404) {
-              var filters = angular.extend(
+              const filters = angular.extend(
                 {
                   state: ipSortString,
                 },
@@ -286,7 +286,7 @@ export default class BaseCtrl {
 
     function ipExists() {
       if ($scope.ip != null) {
-        var temp = false;
+        let temp = false;
         vm.displayedIps.forEach(function(aic) {
           if ($scope.ip.id == aic.id) {
             temp = true;
@@ -317,9 +317,9 @@ export default class BaseCtrl {
 
     // Keyboard shortcuts
     function selectNextIp() {
-      var index = 0;
-      var inChildren = false;
-      var parent = null;
+      let index = 0;
+      let inChildren = false;
+      let parent = null;
       if ($scope.ip) {
         vm.displayedIps.forEach(function(ip, idx, array) {
           if ($scope.ip.id === ip.id) {
@@ -353,8 +353,8 @@ export default class BaseCtrl {
     }
 
     function previousIp() {
-      var index = vm.displayedIps.length - 1;
-      var parent = null;
+      let index = vm.displayedIps.length - 1;
+      let parent = null;
       if ($scope.ip) {
         vm.displayedIps.forEach(function(ip, idx, array) {
           if ($scope.ip.id === ip.id) {
@@ -400,13 +400,13 @@ export default class BaseCtrl {
       $scope.ip = null;
       $rootScope.ip = null;
     }
-    var arrowLeft = 37;
-    var arrowUp = 38;
-    var arrowRight = 39;
-    var arrowDown = 40;
-    var escape = 27;
-    var enter = 13;
-    var space = 32;
+    const arrowLeft = 37;
+    const arrowUp = 38;
+    const arrowRight = 39;
+    const arrowDown = 40;
+    const escape = 27;
+    const enter = 13;
+    const space = 32;
 
     /**
      * Handle keydown events in list view
@@ -589,11 +589,11 @@ export default class BaseCtrl {
     };
 
     vm.preserveModal = function(ip, request) {
-      var ips = null;
+      let ips = null;
       if (Array.isArray(ip)) {
         ips = ip;
       }
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -625,11 +625,11 @@ export default class BaseCtrl {
     };
 
     vm.accessModal = function(ip, request) {
-      var ips = null;
+      let ips = null;
       if (Array.isArray(ip)) {
         ips = ip;
       }
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -663,11 +663,11 @@ export default class BaseCtrl {
     };
 
     vm.moveToApprovalModal = function(ip, request) {
-      var ips = null;
+      let ips = null;
       if (Array.isArray(ip)) {
         ips = ip;
       }
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -704,7 +704,7 @@ export default class BaseCtrl {
     // Preserve IP
     $scope.preserveIp = function(ip, request) {
       vm.submittingRequest = true;
-      var params = {purpose: request.purpose};
+      const params = {purpose: request.purpose};
       params.policy =
         request.archivePolicy && request.archivePolicy.value != '' ? request.archivePolicy.value.id : null;
       if (request.appraisal_date != null) {
@@ -725,7 +725,7 @@ export default class BaseCtrl {
 
     $scope.accessIp = function(ip, request) {
       vm.submittingRequest = true;
-      var data = {
+      const data = {
         purpose: request.purpose,
         tar: request.type === 'get_tar',
         extracted: request.type === 'get',
@@ -754,7 +754,7 @@ export default class BaseCtrl {
 
     $scope.moveToApproval = function(ip, request) {
       vm.submittingRequest = true;
-      var data = {purpose: request.purpose};
+      const data = {purpose: request.purpose};
       Requests.moveToApproval(ip, data).then(function(response) {
         $scope.requestForm = false;
         $scope.eventlog = false;
@@ -789,12 +789,12 @@ export default class BaseCtrl {
     };
 
     vm.shiftClickrow = function(row) {
-      var index = vm.displayedIps
+      const index = vm.displayedIps
         .map(function(ip) {
           return ip.id;
         })
         .indexOf(row.id);
-      var last;
+      let last;
       if ($scope.ips.length > 0) {
         last = $scope.ips[$scope.ips.length - 1].id;
       } else if ($scope.ips.length <= 0 && $scope.ip != null) {
@@ -802,7 +802,7 @@ export default class BaseCtrl {
       } else {
         last = null;
       }
-      var lastIndex =
+      const lastIndex =
         last != null
           ? vm.displayedIps
               .map(function(ip) {
@@ -838,7 +838,7 @@ export default class BaseCtrl {
         $scope.eventShow = false;
         $scope.statusShow = false;
         $scope.filebrowser = false;
-        var deleted = false;
+        let deleted = false;
         $scope.ips.forEach(function(ip, idx, array) {
           if (!deleted && ip.object_identifier_value == row.object_identifier_value) {
             array.splice(idx, 1);
@@ -906,7 +906,7 @@ export default class BaseCtrl {
     };
 
     $scope.selectedAmongOthers = function(id) {
-      var exists = false;
+      let exists = false;
       $scope.ips.forEach(function(ip) {
         if (ip.id == id) {
           exists = true;
@@ -996,8 +996,8 @@ export default class BaseCtrl {
     };
 
     vm.expandAllVisible = function() {
-      var visible = false;
-      var expand = true;
+      let visible = false;
+      let expand = true;
       vm.displayedIps.forEach(function(ip) {
         if (ip.information_packages && ip.information_packages.length) {
           visible = true;
@@ -1041,8 +1041,8 @@ export default class BaseCtrl {
       return !angular.isUndefined(PermPermissionStore.getPermissionDefinition(permissionName));
     };
     $scope.extendedEqual = function(specification_data, model) {
-      var returnValue = true;
-      for (var prop in model) {
+      let returnValue = true;
+      for (const prop in model) {
         if (model[prop] == '' && angular.isUndefined(specification_data[prop])) {
           returnValue = false;
         }
@@ -1057,7 +1057,7 @@ export default class BaseCtrl {
     //Modal functions
     $scope.tracebackModal = function(profiles) {
       $scope.profileToSave = profiles;
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1079,7 +1079,7 @@ export default class BaseCtrl {
     };
     //Creates and shows modal with task information
     $scope.taskInfoModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1100,7 +1100,7 @@ export default class BaseCtrl {
     };
     //Creates and shows modal with step information
     $scope.stepInfoModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1121,7 +1121,7 @@ export default class BaseCtrl {
     };
     //Create and show modal for remove ip
     $scope.removeIpModal = function(ipObject) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1150,7 +1150,7 @@ export default class BaseCtrl {
       );
     };
     vm.ipInformationModal = function(ip) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1175,7 +1175,7 @@ export default class BaseCtrl {
     };
 
     vm.changeOrganizationModal = function(ip) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -1208,8 +1208,8 @@ export default class BaseCtrl {
     vm.setupForm = function() {
       $scope.fields = [];
       $scope.filterModel = {};
-      for (var key in $scope.usedColumns) {
-        var column = $scope.usedColumns[key];
+      for (const key in $scope.usedColumns) {
+        const column = $scope.usedColumns[key];
         if (key == 'package_type_name_exclude') {
           delete $scope.usedColumns[key];
         } else {
@@ -1303,10 +1303,10 @@ export default class BaseCtrl {
       }
       if ($scope.showAdvancedFilters) {
         $window.onclick = function(event) {
-          var clickedElement = $(event.target);
+          const clickedElement = $(event.target);
           if (!clickedElement) return;
-          var elementClasses = event.target.classList;
-          var clickedOnAdvancedFilters =
+          const elementClasses = event.target.classList;
+          const clickedOnAdvancedFilters =
             elementClasses.contains('filter-icon') ||
             elementClasses.contains('advanced-filters') ||
             clickedElement.parents('.advanced-filters').length ||
@@ -1330,8 +1330,8 @@ export default class BaseCtrl {
     };
 
     $scope.filterActive = function() {
-      var temp = false;
-      for (var key in $scope.columnFilters) {
+      let temp = false;
+      for (const key in $scope.columnFilters) {
         if ($scope.columnFilters[key] !== '' && $scope.columnFilters[key] !== null) {
           temp = true;
         }

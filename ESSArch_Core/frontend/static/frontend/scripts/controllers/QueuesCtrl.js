@@ -1,18 +1,18 @@
 export default class QueuesCtrl {
   constructor(appConfig, $scope, $rootScope, Storage, Resource, $interval, $transitions, listViewService) {
-    var vm = this;
+    const vm = this;
     $scope.select = true;
     vm.ioQueue = [];
     vm.robotQueue = [];
     vm.robotsPerPage = 10;
     vm.ioPerPage = 10;
-    var ioInterval;
+    let ioInterval;
     $interval.cancel(ioInterval);
     ioInterval = $interval(function() {
       vm.getIoQueue(vm.ioTableState);
     }, appConfig.queueInterval);
 
-    var robotInterval;
+    let robotInterval;
     $interval.cancel(robotInterval);
     robotInterval = $interval(function() {
       vm.getRobotQueue(vm.robotTableState);
@@ -31,8 +31,8 @@ export default class QueuesCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.ioPerPage);
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.ioPerPage);
         Resource.getIoQueue(
           paginationParams.start,
           paginationParams.number,
@@ -48,7 +48,7 @@ export default class QueuesCtrl {
           })
           .catch(function(response) {
             if (response.status == 404) {
-              var filters = {
+              const filters = {
                 search: search,
               };
 
@@ -71,8 +71,8 @@ export default class QueuesCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.robotsPerPage);
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.robotsPerPage);
         Resource.getRobotQueue(
           paginationParams.start,
           paginationParams.number,
@@ -88,7 +88,7 @@ export default class QueuesCtrl {
           })
           .catch(function(response) {
             if (response.status == 404) {
-              var filters = {
+              const filters = {
                 search: search,
               };
 

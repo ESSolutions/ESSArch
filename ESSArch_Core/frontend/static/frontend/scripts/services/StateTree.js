@@ -17,12 +17,12 @@ export default (IP, Step, $filter, linkHeaderParser) => {
   // Takes an array of steps, expands the ones that should be expanded and
   // populates children recursively.
   function expandAndGetChildren(steps, expandedNodes) {
-    var expandedObject = expand(steps, expandedNodes);
-    var expanded = expandedObject.expandedSteps;
+    const expandedObject = expand(steps, expandedNodes);
+    const expanded = expandedObject.expandedSteps;
     steps = expandedObject.steps;
     expanded.forEach(function(item) {
       steps[item.stepIndex] = getChildrenForStep(steps[item.stepIndex], item.number).then(function(stepChildren) {
-        var temp = stepChildren;
+        const temp = stepChildren;
         temp.children = expandAndGetChildren(temp.children, expandedNodes);
         return temp;
       });
@@ -33,7 +33,7 @@ export default (IP, Step, $filter, linkHeaderParser) => {
   // Gets children for a step and processes each child step/task.
   // Returns the updated step
   function getChildrenForStep(step, page_number) {
-    let page_size = 10;
+    const page_size = 10;
     if (angular.isUndefined(page_number) || !page_number) {
       step.page_number = 1;
     } else {
@@ -45,14 +45,14 @@ export default (IP, Step, $filter, linkHeaderParser) => {
       page_size: page_size,
       hidden: false,
     }).$promise.then(function(resource) {
-      var count = resource.$httpHeaders('Count');
+      let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
       }
       step.pages = Math.ceil(count / page_size);
-      var linkHeader = resource.$httpHeaders('Link');
+      const linkHeader = resource.$httpHeaders('Link');
       if (linkHeader !== null) {
-        var link = linkHeaderParser.parse(linkHeader);
+        const link = linkHeaderParser.parse(linkHeader);
         link.next ? (step.next = link.next) : (step.next = null);
         link.prev ? (step.prev = link.prev) : (step.prev = null);
       } else {
@@ -65,7 +65,7 @@ export default (IP, Step, $filter, linkHeaderParser) => {
         // Delete placeholder
         step.children.pop();
       }
-      var tempChildArray = [];
+      const tempChildArray = [];
       resource.forEach(function(child) {
         if (child.flow_type == 'step') {
           child.isCollapsed = false;
@@ -90,7 +90,7 @@ export default (IP, Step, $filter, linkHeaderParser) => {
   // Set expanded to true for each item in steps that exists in expandedNodes
   // Returns updated steps and an array containing the expanded nodes
   function expand(steps, expandedNodes) {
-    var expanded = [];
+    const expanded = [];
     expandedNodes.forEach(function(node) {
       steps.forEach(function(step, idx) {
         if (step.id == node.id) {

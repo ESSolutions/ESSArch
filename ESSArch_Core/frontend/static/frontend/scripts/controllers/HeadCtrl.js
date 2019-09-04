@@ -1,8 +1,8 @@
 export default class HeadCtrl {
   /*@ngInject*/
   constructor($scope, $rootScope, $translate, $state, $transitions) {
-    var vm = this;
-    var appName = ' | ESSArch';
+    const vm = this;
+    const appName = ' | ESSArch';
     vm.pageTitle = 'ESSArch';
     $transitions.onSuccess({}, function($transition) {
       vm.pageTitle =

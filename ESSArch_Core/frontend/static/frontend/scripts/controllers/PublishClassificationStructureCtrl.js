@@ -1,6 +1,6 @@
 export default class PublishClassificationStructureCtrl {
   constructor($http, appConfig, $uibModalInstance, data, $rootScope) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.$onInit = function() {
       $ctrl.data = data;
     };

@@ -1,6 +1,6 @@
 export default class RemoveStructureModalInstanceCtrl {
   constructor(data, Notifications, $uibModalInstance, $translate, Structure) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.data = data;
 
     $ctrl.$onInit = function() {

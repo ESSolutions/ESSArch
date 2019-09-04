@@ -12,7 +12,7 @@ export default class TaskInfoModalInstanceCtrl {
     $uibModal,
     $timeout
   ) {
-    var $ctrl = this;
+    const $ctrl = this;
     $scope.myTreeControl = {scope: {}};
     if (data) {
       $ctrl.data = data;
@@ -25,7 +25,7 @@ export default class TaskInfoModalInstanceCtrl {
 
     //Redo step/task
     $scope.myTreeControl.scope.taskStepRedo = function(branch) {
-      let branchId = angular.copy(branch.id);
+      const branchId = angular.copy(branch.id);
       branch
         .$retry()
         .then(function(response) {
@@ -53,8 +53,8 @@ export default class TaskInfoModalInstanceCtrl {
     $ctrl.mapStepStateProgress = $rootScope.mapStepStateProgress;
 
     $scope.extendedEqual = function(specification_data, model) {
-      var returnValue = true;
-      for (var prop in model) {
+      let returnValue = true;
+      for (const prop in model) {
         if (model[prop] == '' && angular.isUndefined(specification_data[prop])) {
           returnValue = false;
         }
@@ -102,8 +102,8 @@ export default class TaskInfoModalInstanceCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = (tableState.sort.reverse ? '-' : '') + tableState.sort.predicate;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, $ctrl.itemsPerPage);
+        const sorting = (tableState.sort.reverse ? '-' : '') + tableState.sort.predicate;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, $ctrl.itemsPerPage);
         return Task.validations({
           id: $scope.currentStepTask.id,
           page: paginationParams.pageNumber,
@@ -128,8 +128,8 @@ export default class TaskInfoModalInstanceCtrl {
       $scope.stepTaskLoading = true;
       return Task.get({id: branch.id}).$promise.then(function(data) {
         if (data.time_started !== null && data.time_done !== null) {
-          var started = moment(data.time_started);
-          var done = moment(data.time_done);
+          const started = moment(data.time_started);
+          const done = moment(data.time_done);
           data.duration = moment.utc(done.diff(started)).format('HH:mm:ss.SSS');
         } else {
           data.duration = null;
@@ -142,7 +142,7 @@ export default class TaskInfoModalInstanceCtrl {
     };
     //Modal functions
     $scope.tracebackModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

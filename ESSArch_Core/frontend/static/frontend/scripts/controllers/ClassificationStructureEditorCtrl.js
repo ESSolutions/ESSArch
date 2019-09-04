@@ -16,7 +16,7 @@ export default class ClassificationStructureEditorCtrl {
     myService,
     listViewService
   ) {
-    var vm = this;
+    const vm = this;
     vm.structure = null;
     vm.structures = [];
     vm.rules = {};
@@ -54,7 +54,7 @@ export default class ClassificationStructureEditorCtrl {
           $rootScope.$broadcast('UPDATE_TITLE', {title: vm.structure.name});
           vm.oldStructure = angular.copy(resource);
           vm.rules = vm.structure.specification.rules ? angular.copy(vm.structure.specification.rules) : {};
-          var typePromises = [];
+          const typePromises = [];
           typePromises.push(
             $http
               .get(appConfig.djangoUrl + 'tag-version-types/', {params: {archive_type: false, pager: 'none'}})
@@ -133,10 +133,10 @@ export default class ClassificationStructureEditorCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
 
-        var sortString = sorting.predicate;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
@@ -160,7 +160,7 @@ export default class ClassificationStructureEditorCtrl {
     // Tree
 
     vm.structureTreeData = [];
-    var newId = 1;
+    const newId = 1;
     vm.ignoreStructureChanges = false;
     vm.newNode = {};
 
@@ -168,7 +168,7 @@ export default class ClassificationStructureEditorCtrl {
       if (!structure.structureType) {
         structure.structureType = angular.copy(structure.type);
       }
-      var rootNode = angular.extend(structure, {
+      const rootNode = angular.extend(structure, {
         text: structure.name,
         a_attr: {
           title: structure.name,
@@ -179,7 +179,7 @@ export default class ClassificationStructureEditorCtrl {
       return $http
         .get(appConfig.djangoUrl + 'structures/' + structure.id + '/tree/')
         .then(function(response) {
-          var tree = response.data;
+          const tree = response.data;
           if (tree.length <= 0) {
             return [rootNode];
           }
@@ -188,7 +188,7 @@ export default class ClassificationStructureEditorCtrl {
           });
           rootNode.children = tree;
           rootNode.state = {opened: true};
-          var finalTree = [rootNode];
+          const finalTree = [rootNode];
           return finalTree;
         })
         .catch(function(response) {
@@ -199,13 +199,13 @@ export default class ClassificationStructureEditorCtrl {
     function prepareTree(current, depth) {
       current = createChild(current);
       if (current.children && current.children.length) {
-        for (var i = 0; i < current.children.length; i++) {
+        for (let i = 0; i < current.children.length; i++) {
           prepareTree(current.children[i], depth + 1);
         }
       }
     }
 
-    let createChild = function(child) {
+    const createChild = function(child) {
       if (angular.isUndefined(child.name)) {
         child.name = '';
       }
@@ -221,7 +221,7 @@ export default class ClassificationStructureEditorCtrl {
 
     vm.selectRoot = function() {
       if (vm.manuallyReload) {
-        var node = vm.structureTreeInstance
+        const node = vm.structureTreeInstance
           .jstree(true)
           .get_json('#', {flat: true})
           .filter(function(item) {
@@ -230,7 +230,7 @@ export default class ClassificationStructureEditorCtrl {
         vm.structureTreeInstance.jstree(true).select_node(node);
         vm.manuallyReload = false;
       } else {
-        var tree = vm.structureTreeInstance.jstree(true);
+        const tree = vm.structureTreeInstance.jstree(true);
         tree.deselect_all();
         tree.select_node(tree.get_json('#')[0]);
       }
@@ -279,7 +279,7 @@ export default class ClassificationStructureEditorCtrl {
     };
 
     function getNodeById(node, id) {
-      var reduce = [].reduce;
+      const reduce = [].reduce;
       function runner(result, node) {
         if (result || !node) return result;
         return (
@@ -325,7 +325,7 @@ export default class ClassificationStructureEditorCtrl {
       },
       contextmenu: {
         items: function(node, callback) {
-          var update = {
+          const update = {
             label: $translate.instant('EDIT'),
             _disabled:
               (node.original.root && !myService.checkPermission('tags.edit_structure')) ||
@@ -338,28 +338,28 @@ export default class ClassificationStructureEditorCtrl {
               }
             },
           };
-          var add = {
+          const add = {
             label: $translate.instant('ADD'),
             _disabled: !myService.checkPermission('tags.add_structureunit'),
             action: function() {
               vm.addNodeModal(node.original);
             },
           };
-          var addRelation = {
+          const addRelation = {
             label: $translate.instant('ACCESS.ADD_RELATION'),
             _disabled: node.original.root || !myService.checkPermission('tags.add_structureunitrelation'),
             action: function() {
               vm.addNodeRelationModal(node.original);
             },
           };
-          var remove = {
+          const remove = {
             label: $translate.instant('REMOVE'),
             _disabled: node.original.root || !myService.checkPermission('tags.delete_structureunit'),
             action: function() {
               vm.removeNodeModal(node, vm.structure);
             },
           };
-          var actions = {
+          const actions = {
             update: !vm.structure.published ? update : undefined,
             add: !vm.structure.published ? add : undefined,
             addRelation: !vm.structure.published ? addRelation : undefined,
@@ -374,8 +374,8 @@ export default class ClassificationStructureEditorCtrl {
     };
 
     vm.dropNode = function(jqueryObj, data) {
-      var node = data.node.original;
-      var parent = vm.structureTreeInstance.jstree(true).get_node(data.parent);
+      const node = data.node.original;
+      const parent = vm.structureTreeInstance.jstree(true).get_node(data.parent);
       $http({
         method: 'PATCH',
         url: appConfig.djangoUrl + 'structures/' + vm.structure.id + '/units/' + node.id + '/',
@@ -461,7 +461,7 @@ export default class ClassificationStructureEditorCtrl {
 
     // Modals
     vm.publishModal = function(node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -492,7 +492,7 @@ export default class ClassificationStructureEditorCtrl {
       );
     };
     vm.editNodeModal = function(node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -520,7 +520,7 @@ export default class ClassificationStructureEditorCtrl {
       );
     };
     vm.addNodeModal = function(node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -550,7 +550,7 @@ export default class ClassificationStructureEditorCtrl {
     };
 
     vm.removeNodeModal = function(node, structure) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -580,7 +580,7 @@ export default class ClassificationStructureEditorCtrl {
       if (!structure.structureType) {
         structure.structureType = angular.copy(structure.type);
       }
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -614,7 +614,7 @@ export default class ClassificationStructureEditorCtrl {
     };
 
     vm.newStructureModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -641,7 +641,7 @@ export default class ClassificationStructureEditorCtrl {
     };
 
     vm.editStructureModal = function(structure) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -669,7 +669,7 @@ export default class ClassificationStructureEditorCtrl {
     };
 
     vm.addNodeRelationModal = function(node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -701,7 +701,7 @@ export default class ClassificationStructureEditorCtrl {
     };
 
     vm.editNodeRelationModal = function(relation, node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -734,7 +734,7 @@ export default class ClassificationStructureEditorCtrl {
     };
 
     vm.removeNodeRelationModal = function(relation, node) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -767,11 +767,11 @@ export default class ClassificationStructureEditorCtrl {
     };
 
     vm.removeStructureRuleModal = function(type, value, structure) {
-      var rule = {
+      const rule = {
         key: type,
         value: value,
       };
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -804,7 +804,7 @@ export default class ClassificationStructureEditorCtrl {
       );
     };
     vm.addStructureRuleModal = function(structure) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -835,7 +835,7 @@ export default class ClassificationStructureEditorCtrl {
       );
     };
     vm.newStructureVersionModal = function(structure) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

@@ -1,6 +1,6 @@
 export default class RemoveNodeModalInstanceCtrl {
   constructor(Search, $translate, $uibModalInstance, data, Notifications, $rootScope) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.data = data;
     $ctrl.node = data.node.original;
 

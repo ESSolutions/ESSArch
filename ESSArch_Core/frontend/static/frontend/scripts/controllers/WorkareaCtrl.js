@@ -67,8 +67,8 @@ export default class WorkareaCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         Resource.getWorkareaIps(
           vm.workarea,
           paginationParams.start,
@@ -91,7 +91,7 @@ export default class WorkareaCtrl {
           })
           .catch(function(response) {
             if (response.status == 404) {
-              var filters = angular.extend(
+              const filters = angular.extend(
                 {
                   state: ipSortString,
                 },
@@ -114,7 +114,7 @@ export default class WorkareaCtrl {
 
     function ipExists() {
       if ($scope.ip != null) {
-        var temp = false;
+        let temp = false;
         vm.displayedIps.forEach(function(aic) {
           if ($scope.ip.id == aic.id) {
             temp = true;
@@ -169,8 +169,8 @@ export default class WorkareaCtrl {
     // **********************************
 
     vm.getUploadWorkareaType = function() {
-      var type = null;
-      for (var i = 0; i < $scope.ip.workarea.length; i++) {
+      let type = null;
+      for (let i = 0; i < $scope.ip.workarea.length; i++) {
         if (!$scope.ip.workarea[i].readOnly) {
           type = $scope.ip.workarea[i].type_name;
           break;
@@ -201,7 +201,7 @@ export default class WorkareaCtrl {
     };
     $scope.fileUploadSuccess = function(ip, file, message, flow) {
       $scope.uploadedFiles++;
-      var path = flow.opts.query.destination + file.relativePath;
+      const path = flow.opts.query.destination + file.relativePath;
 
       WorkareaFiles.mergeChunks(
         {
@@ -222,7 +222,7 @@ export default class WorkareaCtrl {
       $scope.selectedCards = [];
     };
     $scope.isSelected = function(card) {
-      var cardClass = '';
+      let cardClass = '';
       $scope.selectedCards.forEach(function(file) {
         if (card.name == file.name) {
           cardClass = 'card-selected';
@@ -260,7 +260,7 @@ export default class WorkareaCtrl {
     };
 
     $scope.createNewFlow = function(ip) {
-      var flowObj = new Flow({
+      const flowObj = new Flow({
         target: appConfig.djangoUrl + 'workarea-files/upload/?type=' + vm.getUploadWorkareaType(),
         chunkSize: 10 * 1024 * 1024, // 50MB
         simultaneousUploads: 15,

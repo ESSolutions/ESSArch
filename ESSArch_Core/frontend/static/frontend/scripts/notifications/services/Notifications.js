@@ -1,11 +1,11 @@
 /* @ngInject */
 const notifications = ($rootScope, $q, appConfig, $http, $window, $websocket) => {
   // Keep all pending requests here until they get responses
-  var callbacks = {};
+  const callbacks = {};
   // Create a unique callback ID to map requests to responses
-  var currentCallbackId = 0;
+  let currentCallbackId = 0;
   // Create our websocket object with the address to the websocket
-  var ws = $websocket(appConfig.webSocketProtocol + '://' + $window.location.host + '/ws/', null, {
+  const ws = $websocket(appConfig.webSocketProtocol + '://' + $window.location.host + '/ws/', null, {
     reconnectIfNotNormalClose: true,
   });
 
@@ -22,7 +22,7 @@ const notifications = ($rootScope, $q, appConfig, $http, $window, $websocket) =>
   });
 
   function listener(data) {
-    var messageObj = JSON.parse(data);
+    const messageObj = JSON.parse(data);
     $rootScope.$broadcast('add_unseen_notification', {
       id: messageObj.id,
       message: messageObj.message,
@@ -48,7 +48,7 @@ const notifications = ($rootScope, $q, appConfig, $http, $window, $websocket) =>
     }
     return currentCallbackId;
   }
-  var service = {
+  const service = {
     /**
      * Add notification
      * @param message - Message to show on the the alert

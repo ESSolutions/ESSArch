@@ -42,7 +42,7 @@ const formlyConfig = [
       overwriteOk: true,
       wrapper: ['bootstrapHasError'],
       defaultOptions: function defaultOptions(options) {
-        var ngOptions =
+        const ngOptions =
           options.templateOptions.ngOptions ||
           "option[to.valueProp || 'value'] as option[to.labelProp || 'name'] group by option[to.groupProp || 'group'] for option in to.options";
         return {
@@ -109,7 +109,7 @@ const formlyConfig = [
       wrapper: ['bootstrapLabel', 'bootstrapHasError'],
       defaultOptions: function defaultOptions(options) {
         /* jshint maxlen:195 */
-        var ngOptions =
+        const ngOptions =
           options.templateOptions.ngOptions ||
           "option[to.valueProp || 'value'] as option[to.labelProp || 'name'] group by option[to.groupProp || 'group'] for option in to.options";
         return {

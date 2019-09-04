@@ -1,6 +1,6 @@
 export default class TransferCtrl {
   constructor($scope, appConfig, $http, $uibModal, $log, $translate, myService, $state, $stateParams) {
-    var vm = this;
+    const vm = this;
     $scope.$translate = $translate;
     vm.selectedTransfer = null;
     vm.transfers = [];
@@ -62,13 +62,13 @@ export default class TransferCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.itemsPerPage || 10; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
+        const sorting = tableState.sort;
+        const pagination = tableState.pagination;
+        const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
+        const number = pagination.number || vm.itemsPerPage || 10; // Number of entries showed per page.
+        const pageNumber = start / number + 1;
 
-        var sortString = sorting.predicate;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
@@ -106,13 +106,13 @@ export default class TransferCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.itemsPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
+        const sorting = tableState.sort;
+        const pagination = tableState.pagination;
+        const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
+        const number = pagination.number || vm.itemsPerPage; // Number of entries showed per page.
+        const pageNumber = start / number + 1;
 
-        var sortString = sorting.predicate;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
@@ -150,13 +150,13 @@ export default class TransferCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.itemsPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
+        const sorting = tableState.sort;
+        const pagination = tableState.pagination;
+        const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
+        const number = pagination.number || vm.itemsPerPage; // Number of entries showed per page.
+        const pageNumber = start / number + 1;
 
-        var sortString = sorting.predicate;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
@@ -194,13 +194,13 @@ export default class TransferCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.itemsPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
+        const sorting = tableState.sort;
+        const pagination = tableState.pagination;
+        const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
+        const number = pagination.number || vm.itemsPerPage; // Number of entries showed per page.
+        const pageNumber = start / number + 1;
 
-        var sortString = sorting.predicate;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
@@ -264,11 +264,11 @@ export default class TransferCtrl {
 
     // Transfers
     vm.createTransferModal = function() {
-      var data = {};
+      const data = {};
       if ($stateParams.delivery) {
         data.delivery = $stateParams.delivery;
       }
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -294,7 +294,7 @@ export default class TransferCtrl {
     };
 
     vm.editTransferModal = function(transfer) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -321,7 +321,7 @@ export default class TransferCtrl {
     };
 
     vm.viewTransferModal = function(transfer) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -348,7 +348,7 @@ export default class TransferCtrl {
     };
 
     vm.removeTransferModal = function(transfer) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -378,14 +378,14 @@ export default class TransferCtrl {
     };
 
     vm.createEventModal = function(params) {
-      var data = {};
+      const data = {};
       if (params.transfer) {
         data.transfer = params.transfer;
       }
       if (params.delivery) {
         data.delivery = params.delivery;
       }
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -417,7 +417,7 @@ export default class TransferCtrl {
     };
 
     vm.editEventModal = function(event, params) {
-      var data = {
+      const data = {
         event: event,
       };
       if (params.transfer) {
@@ -426,7 +426,7 @@ export default class TransferCtrl {
       if (params.delivery) {
         data.delivery = params.delivery;
       }
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -457,7 +457,7 @@ export default class TransferCtrl {
     };
 
     vm.removeEventModal = function(event) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -490,7 +490,7 @@ export default class TransferCtrl {
     };
 
     vm.removeLinkModal = function(node) {
-      var data;
+      let data;
       if (angular.isArray(node)) {
         data = {
           nodes: node,
@@ -503,7 +503,7 @@ export default class TransferCtrl {
       data.allow_close = true;
       data.transfer = vm.selectedTransfer;
       data.remove_link = true;
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

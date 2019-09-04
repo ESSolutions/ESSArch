@@ -1,8 +1,8 @@
 export default class AppCtrl {
   /*@ngInject*/
   constructor($rootScope, $scope, $uibModal, $log, PermPermissionStore) {
-    var vm = this;
-    var questionMark = 187;
+    const vm = this;
+    const questionMark = 187;
     vm.questionMarkListener = function(e) {
       if (e.shiftKey) {
         $('#list-view *').attr('UNSELECTABLE', 'on');
@@ -40,7 +40,7 @@ export default class AppCtrl {
 
     //Create and show modal for keyboard shortcuts
     $scope.keyboardShortcutModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -60,7 +60,7 @@ export default class AppCtrl {
     };
 
     $rootScope.mapStepStateProgress = function(row) {
-      var property = angular.isUndefined(row.step_state) ? 'status' : 'step_state';
+      const property = angular.isUndefined(row.step_state) ? 'status' : 'step_state';
       switch (row[property]) {
         case 'SUCCESS':
           return 'success';

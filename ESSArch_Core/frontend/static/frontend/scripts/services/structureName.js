@@ -1,6 +1,6 @@
 const StructureName = ($filter, $translate) => {
   function getNameWithVersion(structure) {
-    var versionTestructuret = $translate.instant('VERSION');
+    const versionTestructuret = $translate.instant('VERSION');
     return (
       structure.name +
       ' ' +

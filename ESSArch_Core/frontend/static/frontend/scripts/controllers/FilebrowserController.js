@@ -1,7 +1,7 @@
 export default class FilebrowserController {
   constructor($scope, $rootScope, $sce, appConfig, listViewService, $uibModal, $window, $cookies, $state) {
     $scope.previousGridArrays = [];
-    var vm = this;
+    const vm = this;
     vm.$onInit = function() {
       if (!$scope.ip) {
         $scope.ip = $rootScope.ip;
@@ -20,7 +20,7 @@ export default class FilebrowserController {
         $scope.ip = $rootScope.ip;
       }
     };
-    var watchers = [];
+    const watchers = [];
     vm.$onDestroy = function() {
       watchers.forEach(function(watcher) {
         watcher();
@@ -45,7 +45,7 @@ export default class FilebrowserController {
 
     $scope.previousGridArraysString = function() {
       if ($scope.ip) {
-        var retString = '';
+        let retString = '';
         if ($state.includes('**.workarea.**')) {
           retString = $scope.ip.object_identifier_value;
           if ($scope.ip.workarea[0].packaged && !$scope.ip.workarea[0].extracted) {
@@ -72,7 +72,7 @@ export default class FilebrowserController {
       }
       if (!angular.isUndefined(tableState)) {
         $scope.tableState = tableState;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, $scope.filesPerPage);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, $scope.filesPerPage);
         if ($state.includes('**.workarea.**')) {
           listViewService
             .getWorkareaDir(
@@ -123,7 +123,7 @@ export default class FilebrowserController {
           return $rootScope.ip;
         },
         function(newValue, oldValue) {
-          let old = angular.copy($scope.ip);
+          const old = angular.copy($scope.ip);
           $scope.ip = $rootScope.ip;
           if (old.id !== $rootScope.ip.id) {
             $scope.deckGridInit($rootScope.ip);
@@ -180,7 +180,7 @@ export default class FilebrowserController {
     };
 
     function folderNameExistsModal(index, folder, fileToOverwrite) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -222,11 +222,11 @@ export default class FilebrowserController {
     }
 
     $scope.createFolder = function(folderName) {
-      var folder = {
+      const folder = {
         type: 'dir',
         name: folderName,
       };
-      var fileExists = false;
+      let fileExists = false;
       $scope.deckGridData.forEach(function(chosen, index) {
         if (chosen.name === folder.name) {
           fileExists = true;
@@ -282,7 +282,7 @@ export default class FilebrowserController {
     };
 
     $scope.newDirModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -315,7 +315,7 @@ export default class FilebrowserController {
       $scope.selectedCards = [];
     };
     $scope.isSelected = function(card) {
-      var cardClass = '';
+      let cardClass = '';
       $scope.selectedCards.forEach(function(file) {
         if (card.name == file.name) {
           cardClass = 'card-selected';

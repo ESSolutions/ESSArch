@@ -1,6 +1,6 @@
 export default class OrganizationModalInstanceCtrl {
   constructor($translate, $uibModalInstance, appConfig, $http, data, Notifications, Organization) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.ip = data.ip;
     $ctrl.saving = false;
     $ctrl.$onInit = function() {

@@ -1,6 +1,6 @@
 export default class DeliveryModalInstanceCtrl {
   constructor(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, Utils, $rootScope, AgentName) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.delivery = {};
     $ctrl.options = {};
     $ctrl.$onInit = function() {
@@ -214,7 +214,7 @@ export default class DeliveryModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

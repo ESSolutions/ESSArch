@@ -1,6 +1,6 @@
 export default class EventModalInstanceCtrl {
   constructor(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, Utils, $rootScope) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.event = {};
     $ctrl.$onInit = function() {
       if (!data.remove) {
@@ -125,7 +125,7 @@ export default class EventModalInstanceCtrl {
       }
       $ctrl.saving = true;
       $rootScope.skipErrorNotification = true;
-      var saveData = Utils.getDiff(data.event, $ctrl.event, {map: {type: 'id'}});
+      const saveData = Utils.getDiff(data.event, $ctrl.event, {map: {type: 'id'}});
       if (!angular.isUndefined(saveData.eventOutcomeDetailNote) && saveData.eventOutcomeDetailNote === null) {
         saveData.eventOutcomeDetailNote = '';
       }
@@ -166,7 +166,7 @@ export default class EventModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

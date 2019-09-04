@@ -1,6 +1,6 @@
 export default class AgentArchiveRelationModalInstanceCtrl {
   constructor($uibModalInstance, appConfig, data, $http, EditMode, $scope, $translate, $filter, $rootScope) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.relationTemplate = {
       description: '',
       start_date: null,
@@ -204,7 +204,7 @@ export default class AgentArchiveRelationModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

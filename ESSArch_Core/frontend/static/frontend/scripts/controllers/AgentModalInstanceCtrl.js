@@ -1,6 +1,6 @@
 export default class AgentModalInstanceCtrl {
   constructor($uibModalInstance, appConfig, data, $http, EditMode, $scope, $translate, $rootScope, $q) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.options = {};
     $ctrl.authName = {
       part: '',
@@ -19,7 +19,7 @@ export default class AgentModalInstanceCtrl {
         url: appConfig.djangoUrl + 'agents/',
         method: 'OPTIONS',
       }).then(function(response) {
-        var model = {};
+        const model = {};
         angular.forEach(response.data.actions.POST, function(value, key) {
           if (value.many) {
             model[key] = [];
@@ -108,11 +108,11 @@ export default class AgentModalInstanceCtrl {
 
     $ctrl.buildTypeField = function(agent) {
       return $http.get(appConfig.djangoUrl + 'agent-types/', {params: {pager: 'none'}}).then(function(response) {
-        var options = angular.copy(response.data);
+        const options = angular.copy(response.data);
         options.forEach(function(x) {
           x.name = x.main_type.name;
         });
-        var type = {
+        const type = {
           type: 'select',
           key: 'type',
           templateOptions: {
@@ -244,7 +244,7 @@ export default class AgentModalInstanceCtrl {
     };
 
     $ctrl.loadBasicFields = function() {
-      var promises = [];
+      const promises = [];
       promises.push(
         $ctrl.getRefCodes().then(function(refCodes) {
           if (refCodes.length > 0 && (angular.isUndefined($ctrl.agent.ref_code) || $ctrl.agent.ref_code === null)) {
@@ -393,7 +393,7 @@ export default class AgentModalInstanceCtrl {
       $ctrl.creating = true;
       $ctrl.agent.names = [];
       $ctrl.agent.names.push($ctrl.authName);
-      var agent = angular.copy($ctrl.agent);
+      const agent = angular.copy($ctrl.agent);
       agent.type = $ctrl.agent.type.id;
       $rootScope.skipErrorNotification = true;
       $http({
@@ -423,7 +423,7 @@ export default class AgentModalInstanceCtrl {
         $ctrl.form.$setSubmitted();
         return;
       }
-      var agent = angular.copy($ctrl.agent);
+      const agent = angular.copy($ctrl.agent);
       agent.type = $ctrl.agent.type.id;
       angular.forEach(agent, function(value, key) {
         if (angular.isArray(value)) {
@@ -476,7 +476,7 @@ export default class AgentModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

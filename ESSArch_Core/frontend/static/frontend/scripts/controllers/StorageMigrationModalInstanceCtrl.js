@@ -1,6 +1,6 @@
 export default class StorageMigrationModalInstanceCtrl {
   constructor($uibModalInstance, data, $http, appConfig, $translate, $log) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.data = data;
     $ctrl.migration = {};
     $ctrl.$onInit = function() {

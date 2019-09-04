@@ -1,14 +1,14 @@
 export default class AccessIpCtrl {
   constructor($scope, $controller, $rootScope, $translate, $uibModal, $log, ContextMenuBase, $transitions) {
-    var vm = this;
-    var ipSortString = ['Preserved'];
+    const vm = this;
+    const ipSortString = ['Preserved'];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
     vm.archived = true;
 
     $scope.ips = [];
 
     $scope.menuOptions = function(rowType, row) {
-      let methods = [];
+      const methods = [];
       methods.push({
         text: $translate.instant('APPRAISAL'),
         click: function($itemScope, $event, modelValue, text, $li) {
@@ -52,7 +52,7 @@ export default class AccessIpCtrl {
       return methods;
     };
 
-    var watchers = [];
+    const watchers = [];
     watchers.push(
       $scope.$watch(
         function() {
@@ -74,7 +74,7 @@ export default class AccessIpCtrl {
     });
 
     $scope.selectedAmongOthers = function(id) {
-      var exists = false;
+      let exists = false;
       $scope.ips.forEach(function(ip) {
         if (ip.id == id) {
           exists = true;
@@ -109,7 +109,7 @@ export default class AccessIpCtrl {
       if (ips.length == 0 && $scope.ip != null) {
         ips.push($scope.ip);
       }
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -137,7 +137,7 @@ export default class AccessIpCtrl {
       if (ips.length == 0 && $scope.ip != null) {
         ips.push($scope.ip);
       }
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -161,7 +161,7 @@ export default class AccessIpCtrl {
       );
     };
     vm.ipInformationModal = function(ip) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

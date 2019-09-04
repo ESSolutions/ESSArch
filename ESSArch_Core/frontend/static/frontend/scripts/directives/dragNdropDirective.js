@@ -31,14 +31,14 @@ export default myService => {
         appendTo: 'body',
         disabled: !scope.$parentNode,
         drag: function(event, ui) {
-          var destination = ui.helper.data('destination');
+          const destination = ui.helper.data('destination');
           if (destination) {
-            var cursorPos = event.pageY;
-            var destPos = destination.offset().top;
-            var offset = cursorPos - destPos;
-            var h = destination.height();
+            const cursorPos = event.pageY;
+            const destPos = destination.offset().top;
+            const offset = cursorPos - destPos;
+            const h = destination.height();
 
-            var position;
+            let position;
             if (offset <= h / 3) {
               position = 'up';
             } else if (offset >= (2 * h) / 3) {
@@ -52,7 +52,7 @@ export default myService => {
           }
         },
         helper: function(event) {
-          var helper = $('<div class="helper">' + scope.node.name + '</div>');
+          const helper = $('<div class="helper">' + scope.node.name + '</div>');
           // fill some data to be catched up by droppable() of receiver directives
           helper.data('node', scope.node);
           helper.data('parentNode', scope.$parentNode);
@@ -70,14 +70,14 @@ export default myService => {
           elt.removeClass('hover hover-up hover-middle hover-down');
         },
         drop: function(event, ui) {
-          var toNode = scope.node;
-          var toParent = scope.$parentNode ? scope.$parentNode.children : null;
-          var fromNode = ui.helper.data('node');
-          var fromParentNode = ui.helper.data('parentNode');
-          var position = ui.helper.data('position');
+          const toNode = scope.node;
+          const toParent = scope.$parentNode ? scope.$parentNode.children : null;
+          const fromNode = ui.helper.data('node');
+          const fromParentNode = ui.helper.data('parentNode');
+          const position = ui.helper.data('position');
 
           scope.$apply(function() {
-            var idx;
+            let idx;
             if (!myService.hasChild(toNode, fromNode)) {
               if (fromParentNode) {
                 idx = fromParentNode.children.indexOf(fromNode);

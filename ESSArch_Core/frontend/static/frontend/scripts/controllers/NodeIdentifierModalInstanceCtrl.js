@@ -1,6 +1,6 @@
 export default class NodeIdentifierModalInstanceCtrl {
   constructor($uibModalInstance, $scope, $translate, $http, appConfig, data, EditMode, $rootScope) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.identifier = {};
     $ctrl.fields = [];
     $ctrl.options = {};
@@ -25,11 +25,11 @@ export default class NodeIdentifierModalInstanceCtrl {
           $ctrl.options = {type: response.data};
           EditMode.enable();
           if (data.identifier) {
-            var identifier = angular.copy(data.identifier);
+            const identifier = angular.copy(data.identifier);
             identifier.type = data.identifier.type.id;
             $ctrl.identifier = angular.copy(identifier);
           } else {
-            var initialValue = $ctrl.options.type.length >= 1 ? {type: $ctrl.options.type[0].id} : {};
+            const initialValue = $ctrl.options.type.length >= 1 ? {type: $ctrl.options.type[0].id} : {};
             $ctrl.resetIdentifier(initialValue);
           }
           $ctrl.loadForm();
@@ -69,7 +69,7 @@ export default class NodeIdentifierModalInstanceCtrl {
         return;
       }
       $ctrl.adding = true;
-      var identifiers = angular.copy(data.node.identifiers);
+      const identifiers = angular.copy(data.node.identifiers);
       identifiers.forEach(function(x) {
         x.type = x.type.id;
       });
@@ -102,7 +102,7 @@ export default class NodeIdentifierModalInstanceCtrl {
         return;
       }
       $ctrl.saving = true;
-      var identifiers = angular.copy(data.node.identifiers);
+      const identifiers = angular.copy(data.node.identifiers);
       identifiers.forEach(function(x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
@@ -137,8 +137,8 @@ export default class NodeIdentifierModalInstanceCtrl {
 
     $ctrl.remove = function() {
       $ctrl.removing = true;
-      var toRemove = null;
-      var identifiers = angular.copy(data.node.identifiers);
+      let toRemove = null;
+      const identifiers = angular.copy(data.node.identifiers);
       identifiers.forEach(function(x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
@@ -184,7 +184,7 @@ export default class NodeIdentifierModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

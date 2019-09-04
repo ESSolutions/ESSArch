@@ -1,6 +1,6 @@
 export default class StructureVersionModalInstanceCtrl {
   constructor($translate, $uibModalInstance, appConfig, $http, data, Notifications) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.data = {};
     $ctrl.fields = [];
     $ctrl.$onInit = function() {

@@ -1,6 +1,6 @@
 const contentTabs = () => {
-  var disabledStates = ['Creating', 'Submitting', 'Receiving', 'Transferring', 'Preserving'];
-  var specialTabs = {
+  const disabledStates = ['Creating', 'Submitting', 'Receiving', 'Transferring', 'Preserving'];
+  const specialTabs = {
     'home.producer.prepareIp': {
       prepare: ['Preparing', 'Prepared'],
     },
@@ -51,7 +51,7 @@ const contentTabs = () => {
       migrate: ['Preserved'],
     },
   };
-  var service = {
+  const service = {
     /**
      * Returns allowed tabs in correct order to decide visibility and set proper
      * default selected tab
@@ -60,8 +60,8 @@ const contentTabs = () => {
      * @param {String} tab Tab to check visibility for
      */
     visible: function(ips, page) {
-      var visible = true;
-      var list = [];
+      let visible = true;
+      let list = [];
       if (specialTabs[page]) {
         ips.forEach(function(ip) {
           if (disabledStates.includes(ip.state)) {

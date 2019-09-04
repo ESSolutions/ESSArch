@@ -51,7 +51,7 @@ export default class UtilCtrl {
       if (nestedEmptyPermissions(resolve(page, permissionConfig))) {
         return true;
       }
-      var permissions = nestedPermissions(resolve(page, permissionConfig));
+      const permissions = nestedPermissions(resolve(page, permissionConfig));
       return myService.checkPermissions(permissions);
     };
     $scope.showAlert = function() {
@@ -66,10 +66,10 @@ export default class UtilCtrl {
       $window.open('/docs/' + $translate.use() + '/user_guide/index.html', '_blank');
     };
 
-    var enter = 13;
-    var space = 32;
+    const enter = 13;
+    const space = 32;
 
-    var stateChangeListeners = [];
+    let stateChangeListeners = [];
     function resetStateListeners() {
       stateChangeListeners.forEach(function(listener) {
         listener();
@@ -111,28 +111,28 @@ export default class UtilCtrl {
     };
     $scope.focusRouterView = function() {
       $timeout(function() {
-        var elm = document.getElementsByClassName('dynamic-part')[0];
+        const elm = document.getElementsByClassName('dynamic-part')[0];
         elm.focus();
         $anchorScroll();
       });
     };
     $scope.focusSubmenu = function() {
       $timeout(function() {
-        var elm = document.getElementsByClassName('sub-menu')[0];
+        const elm = document.getElementsByClassName('sub-menu')[0];
         angular.element(elm)[0].children[0].focus();
         $anchorScroll();
       });
     };
     $scope.focusProfileManagerSubmenu = function() {
       $timeout(function() {
-        var elm = document.getElementsByClassName('profile-manager-sub-menu')[0];
+        const elm = document.getElementsByClassName('profile-manager-sub-menu')[0];
         angular.element(elm)[0].children[0].focus();
         $anchorScroll();
       });
     };
     $scope.focusProfileManagerRouterView = function() {
       $timeout(function() {
-        var elm = document.getElementsByClassName('profile-manager-route')[0];
+        const elm = document.getElementsByClassName('profile-manager-route')[0];
         angular.element(elm)[0].focus();
         $anchorScroll();
       });

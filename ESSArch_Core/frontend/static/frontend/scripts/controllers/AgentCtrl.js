@@ -13,7 +13,7 @@ export default class AgentCtrl {
     $translate,
     listViewService
   ) {
-    var vm = this;
+    const vm = this;
     $scope.AgentName = AgentName;
     $scope.$state = $state;
     vm.agentsLoading = false;
@@ -142,10 +142,10 @@ export default class AgentCtrl {
       agent.names.sort(function(a, b) {
         return new Date(b.start_date) - new Date(a.start_date);
       });
-      var authorized = [];
+      const authorized = [];
       agent.names.forEach(function(x, index) {
         if (x.authority) {
-          var name = x;
+          const name = x;
           agent.names.splice(index, 1);
           authorized.unshift(name);
         }
@@ -170,10 +170,10 @@ export default class AgentCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
 
-        var sortString = sorting.predicate;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
@@ -221,13 +221,13 @@ export default class AgentCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        var pagination = tableState.pagination;
-        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        var number = pagination.number || vm.agentsPerPage; // Number of entries showed per page.
-        var pageNumber = start / number + 1;
+        const sorting = tableState.sort;
+        const pagination = tableState.pagination;
+        const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
+        const number = pagination.number || vm.agentsPerPage; // Number of entries showed per page.
+        const pageNumber = start / number + 1;
 
-        var sortString = sorting.predicate;
+        let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
@@ -257,7 +257,7 @@ export default class AgentCtrl {
     };
 
     vm.sortNotes = function(agent) {
-      var obj = {
+      const obj = {
         history: [],
         remarks: [],
       };
@@ -272,7 +272,7 @@ export default class AgentCtrl {
     };
 
     vm.createModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -297,7 +297,7 @@ export default class AgentCtrl {
     };
 
     vm.editModal = function(agent) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -327,7 +327,7 @@ export default class AgentCtrl {
     };
 
     vm.removeAgentModal = function(agent) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -365,7 +365,7 @@ export default class AgentCtrl {
       );
     };
     vm.addNoteModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -392,7 +392,7 @@ export default class AgentCtrl {
     };
 
     vm.editNoteModal = function(note) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -420,7 +420,7 @@ export default class AgentCtrl {
     };
 
     vm.removeNoteModal = function(note) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -450,7 +450,7 @@ export default class AgentCtrl {
     };
 
     vm.addNameModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -477,14 +477,14 @@ export default class AgentCtrl {
     };
 
     vm.editNameModal = function(name) {
-      var typeDisabled = !vm.agent.names
+      const typeDisabled = !vm.agent.names
         .map(function(x) {
           if (x.id !== name.id) {
             return x.type.id;
           }
         })
         .includes(1);
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -516,7 +516,7 @@ export default class AgentCtrl {
     };
 
     vm.removeNameModal = function(name) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -548,7 +548,7 @@ export default class AgentCtrl {
     };
 
     vm.addMandateModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -575,7 +575,7 @@ export default class AgentCtrl {
     };
 
     vm.editMandateModal = function(mandate) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -603,7 +603,7 @@ export default class AgentCtrl {
     };
 
     vm.removeMandateModal = function(mandate) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -633,7 +633,7 @@ export default class AgentCtrl {
     };
 
     vm.addAgentRelationModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -661,7 +661,7 @@ export default class AgentCtrl {
     };
 
     vm.editAgentRelationModal = function(relation) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -690,7 +690,7 @@ export default class AgentCtrl {
     };
 
     vm.removeAgentRelationModal = function(relation) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -720,7 +720,7 @@ export default class AgentCtrl {
     };
 
     vm.addArchiveRelationModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -748,7 +748,7 @@ export default class AgentCtrl {
     };
 
     vm.editArchiveRelationModal = function(relation) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -777,7 +777,7 @@ export default class AgentCtrl {
     };
 
     vm.removeArchiveRelationModal = function(relation) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -807,7 +807,7 @@ export default class AgentCtrl {
     };
 
     vm.addIdentifierModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -834,7 +834,7 @@ export default class AgentCtrl {
     };
 
     vm.editIdentifierModal = function(identifier) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -862,7 +862,7 @@ export default class AgentCtrl {
     };
 
     vm.removeIdentifierModal = function(identifier) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -892,7 +892,7 @@ export default class AgentCtrl {
     };
 
     vm.addPlaceModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -919,7 +919,7 @@ export default class AgentCtrl {
     };
 
     vm.editPlaceModal = function(place) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -947,7 +947,7 @@ export default class AgentCtrl {
     };
 
     vm.removePlaceModal = function(place) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

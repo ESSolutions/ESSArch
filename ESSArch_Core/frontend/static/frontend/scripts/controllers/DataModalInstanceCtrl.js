@@ -1,6 +1,6 @@
 export default class DataModalInstanceCtrl {
   constructor(IP, $scope, $uibModalInstance, Notifications, data, $q) {
-    var $ctrl = this;
+    const $ctrl = this;
     if (data.vm) {
       var vm = data.vm;
     }
@@ -25,7 +25,7 @@ export default class DataModalInstanceCtrl {
     // Prepare IP for upload
     $ctrl.prepareForUpload = function() {
       $ctrl.preparing = true;
-      var promises = [];
+      const promises = [];
       $ctrl.data.ips.forEach(function(ip) {
         promises.push(
           IP.prepareForUpload({id: ip.id})
@@ -47,7 +47,7 @@ export default class DataModalInstanceCtrl {
     // Set IP as uploaded
     $ctrl.setUploaded = function() {
       $ctrl.settingUploaded = true;
-      var promises = [];
+      const promises = [];
       $ctrl.data.ips.forEach(function(ip) {
         promises.push(
           IP.setUploaded({
@@ -73,7 +73,7 @@ export default class DataModalInstanceCtrl {
     // Create SIP from IP
     $ctrl.createSip = function() {
       $ctrl.creating = true;
-      var promises = [];
+      const promises = [];
       $ctrl.data.ips.forEach(function(ip) {
         promises.push(
           IP.create({
@@ -108,7 +108,7 @@ export default class DataModalInstanceCtrl {
         var sendData = {validators: vm.validatorModel, subject: email.subject, body: email.body};
       }
       $ctrl.submitting = true;
-      var promises = [];
+      const promises = [];
       $ctrl.data.ips.forEach(function(ip) {
         promises.push(
           IP.submit(angular.extend({id: ip.id}, sendData))

@@ -11,7 +11,7 @@ export default class ClassificationModalInstanceCtrl {
     $scope,
     $rootScope
   ) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.name = null;
     $ctrl.newNode = {};
     $ctrl.options = {};
@@ -50,9 +50,9 @@ export default class ClassificationModalInstanceCtrl {
               }
               EditMode.enable();
             } else {
-              var url = appConfig.djangoUrl + 'structure-units/' + data.node.id + '/children/';
+              const url = appConfig.djangoUrl + 'structure-units/' + data.node.id + '/children/';
               $http.head(url).then(function(childrenResponse) {
-                var count = parseInt(childrenResponse.headers('Count'));
+                const count = parseInt(childrenResponse.headers('Count'));
                 if (!isNaN(count)) {
                   $ctrl.newNode.reference_code = (count + 1).toString();
                 }
@@ -213,7 +213,7 @@ export default class ClassificationModalInstanceCtrl {
         return;
       }
       if ($ctrl.changed()) {
-        var parent = $ctrl.node.root ? null : $ctrl.node.id;
+        const parent = $ctrl.node.root ? null : $ctrl.node.id;
         $ctrl.submitting = true;
         $rootScope.skipErrorNotification = true;
         $http
@@ -325,7 +325,7 @@ export default class ClassificationModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

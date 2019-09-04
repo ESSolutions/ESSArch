@@ -40,7 +40,7 @@ const myService = (PermPermissionStore, djangoAuth) => {
       return true;
     }
 
-    var hasPermissions = false;
+    let hasPermissions = false;
     permissions.forEach(function(permission) {
       if (checkPermission(permission)) {
         hasPermissions = true;
@@ -54,7 +54,7 @@ const myService = (PermPermissionStore, djangoAuth) => {
   }
 
   function hasChild(node1, node2) {
-    var temp1 = false;
+    let temp1 = false;
     if (node2.children) {
       node2.children.forEach(function(child) {
         if (node1.name == child.name) {
@@ -73,7 +73,7 @@ const myService = (PermPermissionStore, djangoAuth) => {
     });
   }
   function generateColumns(columns) {
-    var allColumns = [
+    const allColumns = [
       {
         label: 'object_identifier_value',
         sortString: 'object_identifier_value',
@@ -132,8 +132,8 @@ const myService = (PermPermissionStore, djangoAuth) => {
       },
     ];
 
-    var activeColumns = [];
-    var simpleColumns = allColumns.map(function(a) {
+    const activeColumns = [];
+    const simpleColumns = allColumns.map(function(a) {
       return a.label;
     });
     columns.forEach(function(column) {

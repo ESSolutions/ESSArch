@@ -1,6 +1,6 @@
 export default class AgentNameModalInstanceCtrl {
   constructor($uibModalInstance, $scope, $translate, $http, appConfig, data, EditMode, $rootScope) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.name;
     $ctrl.nameTemplate = {
       part: '',
@@ -25,7 +25,7 @@ export default class AgentNameModalInstanceCtrl {
         $ctrl.options = {type: response.data};
         EditMode.enable();
         if (data.name) {
-          var name = angular.copy(data.name);
+          const name = angular.copy(data.name);
           name.type = data.name.type.id;
           $ctrl.name = angular.copy(name);
           $ctrl.typeDisabled = angular.copy(data.nameTypeDisabled);
@@ -142,7 +142,7 @@ export default class AgentNameModalInstanceCtrl {
         return;
       }
       $ctrl.adding = true;
-      var names = angular.copy(data.agent.names);
+      const names = angular.copy(data.agent.names);
       names.forEach(function(x) {
         x.type = x.type.id;
       });
@@ -175,7 +175,7 @@ export default class AgentNameModalInstanceCtrl {
         return;
       }
       $ctrl.saving = true;
-      var names = angular.copy(data.agent.names);
+      const names = angular.copy(data.agent.names);
       names.forEach(function(x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
@@ -210,8 +210,8 @@ export default class AgentNameModalInstanceCtrl {
 
     $ctrl.remove = function() {
       $ctrl.removing = true;
-      var toRemove = null;
-      var names = angular.copy(data.agent.names);
+      let toRemove = null;
+      const names = angular.copy(data.agent.names);
       names.forEach(function(x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
@@ -257,7 +257,7 @@ export default class AgentNameModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

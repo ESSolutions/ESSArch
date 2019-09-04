@@ -1,6 +1,6 @@
 export default class AgentMandateModalInstanceCtrl {
   constructor($uibModalInstance, $scope, $translate, $http, appConfig, data, EditMode, $rootScope) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.mandate;
     $ctrl.fields = [];
     $ctrl.mandateTemplate = {
@@ -24,7 +24,7 @@ export default class AgentMandateModalInstanceCtrl {
         $ctrl.options = {mandate: response.data};
         EditMode.enable();
         if (data.mandate) {
-          var mandate = angular.copy(data.mandate);
+          const mandate = angular.copy(data.mandate);
           mandate.type = data.mandate.type.id;
           $ctrl.mandate = angular.copy(mandate);
         } else {
@@ -106,7 +106,7 @@ export default class AgentMandateModalInstanceCtrl {
         return;
       }
       $ctrl.adding = true;
-      var mandates = angular.copy(data.agent.mandates);
+      const mandates = angular.copy(data.agent.mandates);
       mandates.forEach(function(x) {
         if (typeof x.type === 'object') {
           x.type = angular.copy(x.type.id);
@@ -141,7 +141,7 @@ export default class AgentMandateModalInstanceCtrl {
         return;
       }
       $ctrl.saving = true;
-      var mandates = angular.copy(data.agent.mandates);
+      const mandates = angular.copy(data.agent.mandates);
       mandates.forEach(function(x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = angular.copy(x.type.id);
@@ -176,8 +176,8 @@ export default class AgentMandateModalInstanceCtrl {
 
     $ctrl.remove = function() {
       $ctrl.removing = true;
-      var toRemove = null;
-      var mandates = angular.copy(data.agent.mandates);
+      let toRemove = null;
+      const mandates = angular.copy(data.agent.mandates);
       mandates.forEach(function(x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = angular.copy(x.type.id);
@@ -223,7 +223,7 @@ export default class AgentMandateModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

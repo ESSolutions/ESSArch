@@ -1,6 +1,6 @@
 export default class NodeDeliveryModalInstanceCtrl {
   constructor(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, $rootScope, $q, Notifications) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.model = {};
     $ctrl.$onInit = function() {
       if (data.nodes) {
@@ -20,7 +20,7 @@ export default class NodeDeliveryModalInstanceCtrl {
 
     $ctrl.getTransfers = function(search) {
       if ($ctrl.model.delivery === null || angular.isUndefined($ctrl.model.delivery)) {
-        var deferred = $q.defer();
+        const deferred = $q.defer();
         deferred.resolve([]);
         return deferred.promise;
       } else {
@@ -88,7 +88,7 @@ export default class NodeDeliveryModalInstanceCtrl {
     };
 
     $ctrl.filterNodes = function(nodes) {
-      var filtered = [];
+      const filtered = [];
       nodes.forEach(function(x) {
         if (!angular.isUndefined(x) && x.placeholder !== true && x.type !== 'agent') {
           filtered.push(x);
@@ -108,8 +108,8 @@ export default class NodeDeliveryModalInstanceCtrl {
         return;
       }
       $ctrl.saving = true;
-      var structureUnits = [];
-      var tags = [];
+      const structureUnits = [];
+      const tags = [];
       if ($ctrl.nodes && $ctrl.nodes.length > 0) {
         $ctrl.nodes.forEach(function(x) {
           if (x._is_structure_unit) {
@@ -155,7 +155,7 @@ export default class NodeDeliveryModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

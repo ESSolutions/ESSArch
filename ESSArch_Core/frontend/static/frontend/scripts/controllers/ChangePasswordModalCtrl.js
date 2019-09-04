@@ -1,6 +1,6 @@
 export default class ChangePasswordModalCtrl {
   constructor($uibModalInstance, djangoAuth, data) {
-    var $ctrl = this;
+    const $ctrl = this;
     if (data) {
       $ctrl.data = data;
     }

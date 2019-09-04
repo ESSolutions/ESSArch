@@ -1,6 +1,6 @@
 export default class ImportCtrl {
   constructor($q, $rootScope, $scope, $http, IP, Profile, SA, Notifications, $uibModal, $translate) {
-    var vm = this;
+    const vm = this;
     $scope.angular = angular;
     vm.loadingSas = false;
     vm.importingSa = false;
@@ -18,8 +18,8 @@ export default class ImportCtrl {
 
     vm.getSaProfiles = function() {
       $scope.error = null;
-      var auth = window.btoa(vm.user.username + ':' + vm.user.password);
-      var headers = {Authorization: 'Basic ' + auth};
+      const auth = window.btoa(vm.user.username + ':' + vm.user.password);
+      const headers = {Authorization: 'Basic ' + auth};
       vm.loadingSas = true;
 
       vm.url = vm.url.replace(/\/+$/, '');
@@ -47,16 +47,16 @@ export default class ImportCtrl {
     };
 
     vm.importSa = function(sa) {
-      var auth = window.btoa(vm.user.username + ':' + vm.user.password);
-      var headers = {Authorization: 'Basic ' + auth};
-      var promises = [];
+      const auth = window.btoa(vm.user.username + ':' + vm.user.password);
+      const headers = {Authorization: 'Basic ' + auth};
+      const promises = [];
       vm.importingSa = true;
-      var pattern = vm.types ? new RegExp('^profile_(' + vm.types.join('|') + ')$') : new RegExp('^profile_');
-      for (var key in sa) {
+      const pattern = vm.types ? new RegExp('^profile_(' + vm.types.join('|') + ')$') : new RegExp('^profile_');
+      for (const key in sa) {
         if (pattern.test(key) && sa[key] != null) {
           promises.push(
             $http.get(vm.url + '/api/profiles/' + sa[key] + '/', {headers: headers}).then(function(response) {
-              var data = response.data;
+              const data = response.data;
               return Profile.new(data)
                 .$promise.then(function(response) {
                   return response;
@@ -75,8 +75,8 @@ export default class ImportCtrl {
       }
       $q.all(promises).then(function() {
         if (vm.types && !angular.isUndefined(vm.types)) {
-          var pattern = new RegExp('^profile_(?!(' + vm.types.join('|') + ')$)');
-          for (var key in sa) {
+          const pattern = new RegExp('^profile_(?!(' + vm.types.join('|') + ')$)');
+          for (const key in sa) {
             if (pattern.test(key)) {
               delete sa[key];
             }
@@ -101,7 +101,7 @@ export default class ImportCtrl {
       if (angular.isUndefined(sa)) {
         sa = vm.saFromFile;
       }
-      var parsedSa;
+      let parsedSa;
       try {
         parsedSa = JSON.parse(sa);
       } catch (e) {
@@ -120,7 +120,7 @@ export default class ImportCtrl {
         });
     };
     vm.addProfileFromFile = function(profile) {
-      var parsedProfile;
+      let parsedProfile;
       try {
         parsedProfile = JSON.parse(profile);
       } catch (e) {
@@ -163,7 +163,7 @@ export default class ImportCtrl {
     );
 
     function saProfileExistsModal(profile) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -181,7 +181,7 @@ export default class ImportCtrl {
       modalInstance.result.then(function(data) {});
     }
     function profileExistsModal(profile) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

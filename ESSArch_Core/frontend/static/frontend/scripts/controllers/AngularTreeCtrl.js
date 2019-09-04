@@ -151,7 +151,7 @@ export default class AngularTreeCtrl {
       } else {
         $scope.parentTag = tag;
       }
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -189,7 +189,7 @@ export default class AngularTreeCtrl {
     };
     $scope.tagPropertiesModal = function(tag) {
       $scope.displayedTag = tag;
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

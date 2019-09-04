@@ -1,6 +1,6 @@
 export default class LocationCtrl {
   constructor($scope, $translate, $stateParams, $http, appConfig, $state) {
-    var vm = this;
+    const vm = this;
     $scope.$translate = $translate;
     vm.showTree = false;
     vm.location = null;

@@ -36,8 +36,8 @@ export default class PrepareIpCtrl {
     $translate,
     $controller
   ) {
-    var vm = this;
-    var ipSortString = ['Preparing'];
+    const vm = this;
+    const ipSortString = ['Preparing'];
     $scope.angular = angular;
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
 
@@ -77,7 +77,7 @@ export default class PrepareIpCtrl {
         $scope.eventlog = false;
         $scope.edit = false;
 
-        var chosen = row.profile;
+        const chosen = row.profile;
         $scope.selectProfile = row;
 
         vm.profileFields = chosen.template;
@@ -114,7 +114,7 @@ export default class PrepareIpCtrl {
       if ($scope.ip !== null && $scope.ips.length == 0) {
         return $scope.ip.submission_agreement_locked;
       } else {
-        var allLocked = true;
+        let allLocked = true;
         $scope.ips.forEach(function(ip) {
           if (!ip.submission_agreement_locked) {
             allLocked = false;
@@ -132,7 +132,7 @@ export default class PrepareIpCtrl {
       } else {
         $scope.editSA = false;
         $scope.closeAlert();
-        var profileId;
+        let profileId;
         if (row.name) {
           profileId = row.id;
         } else {
@@ -180,7 +180,7 @@ export default class PrepareIpCtrl {
 
     //Include the given profile type in the SA
     $scope.includeProfileType = function(type) {
-      var sendData = {
+      const sendData = {
         type: type,
       };
       SA.includeType(angular.extend({id: $scope.saProfile.profile.id}, sendData)).$promise.then(
@@ -193,7 +193,7 @@ export default class PrepareIpCtrl {
 
     //Exclude the given profile type in the SA
     $scope.excludeProfileType = function(type) {
-      var sendData = {
+      const sendData = {
         type: type,
       };
       SA.excludeType(angular.extend({id: $scope.saProfile.profile.id}, sendData)).$promise.then(
@@ -216,7 +216,7 @@ export default class PrepareIpCtrl {
 
     //Create and show modal for creating new ip
     $scope.newIpModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -325,7 +325,7 @@ export default class PrepareIpCtrl {
     $scope.selectedNode = null;
     //Add node to map structure tree view
     $scope.addNode = function(node) {
-      var dir = {
+      const dir = {
         name: vm.treeEditModel.name,
         type: vm.treeEditModel.type,
       };
@@ -480,8 +480,8 @@ export default class PrepareIpCtrl {
     };
 
     vm.prepareIpForUploadModal = function(ip) {
-      var ips = $scope.ips.length > 0 ? $scope.ips : null;
-      var modalInstance = $uibModal.open({
+      const ips = $scope.ips.length > 0 ? $scope.ips : null;
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

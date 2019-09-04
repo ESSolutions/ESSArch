@@ -41,9 +41,9 @@ export default class CollectContentCtrl {
     $controller,
     $transitions
   ) {
-    var vm = this;
-    var ipSortString = ['Prepared', 'Uploading'];
-    let params = {
+    const vm = this;
+    const ipSortString = ['Prepared', 'Uploading'];
+    const params = {
       package_type: 0,
     };
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params});
@@ -54,9 +54,9 @@ export default class CollectContentCtrl {
     vm.browserstate = {
       path: '',
     };
-    var watchers = [];
+    const watchers = [];
     // File browser interval
-    var fileBrowserInterval;
+    let fileBrowserInterval;
     watchers.push(
       $scope.$watch(
         function() {
@@ -82,8 +82,8 @@ export default class CollectContentCtrl {
     });
 
     vm.uploadCompletedModal = function(ip) {
-      var ips = $scope.ips.length > 0 ? $scope.ips : null;
-      var modalInstance = $uibModal.open({
+      const ips = $scope.ips.length > 0 ? $scope.ips : null;
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -166,11 +166,11 @@ export default class CollectContentCtrl {
     }
 
     $scope.createFolder = function(folderName) {
-      var folder = {
+      const folder = {
         type: 'dir',
         name: folderName,
       };
-      var fileExists = false;
+      let fileExists = false;
       $scope.deckGridData.forEach(function(chosen, index) {
         if (chosen.name === folder.name) {
           fileExists = true;
@@ -185,7 +185,7 @@ export default class CollectContentCtrl {
     };
 
     function folderNameExistsModal(index, folder, fileToOverwrite) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -211,7 +211,7 @@ export default class CollectContentCtrl {
       });
     }
     $scope.newDirModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -227,24 +227,24 @@ export default class CollectContentCtrl {
 
     $scope.openEadEditor = function(ip) {
       // Fixes dual-screen position                         Most browsers      Firefox
-      var w = 900;
-      var h = 600;
-      var dualScreenLeft = $window.screenLeft != undefined ? $window.screenLeft : screen.left;
-      var dualScreenTop = $window.screenTop != undefined ? $window.screenTop : screen.top;
+      const w = 900;
+      const h = 600;
+      const dualScreenLeft = $window.screenLeft != undefined ? $window.screenLeft : screen.left;
+      const dualScreenTop = $window.screenTop != undefined ? $window.screenTop : screen.top;
 
-      var width = $window.innerWidth
+      const width = $window.innerWidth
         ? $window.innerWidth
         : document.documentElement.clientWidth
         ? document.documentElement.clientWidth
         : screen.width;
-      var height = $window.innerHeight
+      const height = $window.innerHeight
         ? $window.innerHeight
         : document.documentElement.clientHeight
         ? document.documentElement.clientHeight
         : screen.height;
 
-      var left = width / 2 - w / 2 + dualScreenLeft;
-      var top = height / 2 - h / 2 + dualScreenTop;
+      const left = width / 2 - w / 2 + dualScreenLeft;
+      const top = height / 2 - h / 2 + dualScreenTop;
       $window.open(
         '/static/edead/filledForm.html?id=' + ip.id,
         'Levente',
@@ -259,7 +259,7 @@ export default class CollectContentCtrl {
     };
     $scope.fileUploadSuccess = function(ip, file, message, flow) {
       $scope.uploadedFiles++;
-      var path = flow.opts.query.destination + file.relativePath;
+      const path = flow.opts.query.destination + file.relativePath;
 
       IP.mergeChunks({
         id: ip.id,
@@ -278,7 +278,7 @@ export default class CollectContentCtrl {
       $scope.selectedCards = [];
     };
     $scope.isSelected = function(card) {
-      var cardClass = '';
+      let cardClass = '';
       $scope.selectedCards.forEach(function(file) {
         if (card.name == file.name) {
           cardClass = 'card-selected';
@@ -321,7 +321,7 @@ export default class CollectContentCtrl {
         .toUpperCase();
     };
     $scope.createNewFlow = function(ip) {
-      var flowObj = new Flow({
+      const flowObj = new Flow({
         target: appConfig.djangoUrl + 'information-packages/' + ip.id + '/upload/',
         simultaneousUploads: 15,
         chunkSize: 10 * 1024 * 1024, // 50MB

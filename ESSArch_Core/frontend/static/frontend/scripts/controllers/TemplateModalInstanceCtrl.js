@@ -1,6 +1,6 @@
 export default class TemplateModalInstanceCtrl {
   constructor(ProfileMakerTemplate, $uibModalInstance, data) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.angular = angular;
     $ctrl.template = data.template;
     if (data.template && data.template.structure) {

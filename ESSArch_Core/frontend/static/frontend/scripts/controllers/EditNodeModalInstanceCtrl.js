@@ -11,7 +11,7 @@ export default class EditNodeModalInstanceCtrl {
     EditMode,
     $rootScope
   ) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.node = data.node;
     $ctrl.editData = {};
     $ctrl.editFields = [];
@@ -61,9 +61,9 @@ export default class EditNodeModalInstanceCtrl {
 
     $ctrl.addNewField = function() {
       if ($ctrl.newFieldKey && $ctrl.newFieldVal) {
-        var newFieldKey = angular.copy($ctrl.newFieldKey);
-        var newFieldVal = angular.copy($ctrl.newFieldVal);
-        var splitted = newFieldKey.split('.');
+        const newFieldKey = angular.copy($ctrl.newFieldKey);
+        const newFieldVal = angular.copy($ctrl.newFieldVal);
+        const splitted = newFieldKey.split('.');
         if (
           (splitted.length > 1 && !angular.isUndefined($ctrl.node.custom_fields[splitted[0]][splitted[1]])) ||
           !angular.isUndefined($ctrl.node.custom_fields[newFieldKey])
@@ -93,8 +93,8 @@ export default class EditNodeModalInstanceCtrl {
     };
 
     function getEditedFields(node) {
-      var edited = {};
-      var oldModel = angular.copy(data.node);
+      const edited = {};
+      const oldModel = angular.copy(data.node);
       oldModel.type = oldModel.type.pk;
       angular.forEach(node, function(value, key) {
         if (oldModel[key] !== value && typeof value !== 'object' && !angular.isArray(value)) {
@@ -270,7 +270,7 @@ export default class EditNodeModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

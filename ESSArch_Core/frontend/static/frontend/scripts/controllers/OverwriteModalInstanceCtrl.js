@@ -1,6 +1,6 @@
 export default class OverwriteModalInstanceCtrl {
   constructor($uibModalInstance, data, Profile, SA, Notifications, $translate) {
-    var $ctrl = this;
+    const $ctrl = this;
     if (data.file) {
       $ctrl.file = data.file;
     }

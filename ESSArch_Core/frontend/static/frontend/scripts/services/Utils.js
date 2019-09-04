@@ -1,7 +1,7 @@
 const Utils = () => {
-  var service = {
+  const service = {
     getDiff: function(obja, objb, options) {
-      var diff = {};
+      const diff = {};
       for (var key in objb) {
         if (
           typeof objb[key] !== 'object' &&

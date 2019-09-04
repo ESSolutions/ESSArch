@@ -1,6 +1,6 @@
 export default class TransferModalInstanceCtrl {
   constructor(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, Utils, $rootScope) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.transfer = {};
     $ctrl.$onInit = function() {
       if (!data.remove) {
@@ -142,7 +142,7 @@ export default class TransferModalInstanceCtrl {
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
-        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {
           event.preventDefault();
         } else {

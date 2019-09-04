@@ -13,11 +13,11 @@ export default class EventCtrl {
     Notifications,
     $transitions
   ) {
-    var vm = this;
+    const vm = this;
     $scope.$translate = $translate;
 
     vm.getCookieName = function() {
-      var name;
+      let name;
       switch ($rootScope.app) {
         case 'ESSArch Preservation Platform':
           name = 'epp-events-per-page';
@@ -90,11 +90,11 @@ export default class EventCtrl {
       1: 'failure',
     };
     $scope.getEventOutcome = function(outcome) {
-      let level = $scope.eventLevels[outcome];
+      const level = $scope.eventLevels[outcome];
       return level;
     };
     $scope.eventOutcomes = (function() {
-      let levels = $scope.eventLevels;
+      const levels = $scope.eventLevels;
       return Object.keys(levels).map(function(k) {
         return {value: k, name: levels[k]};
       });
@@ -130,7 +130,7 @@ export default class EventCtrl {
           Notifications.add($translate.instant('EVENT.ERROR_MESSAGE'), 'error');
         });
     };
-    var eventInterval;
+    let eventInterval;
     function updateEvents() {
       $interval.cancel(eventInterval);
       eventInterval = $interval(function() {
@@ -149,8 +149,8 @@ export default class EventCtrl {
         var search = tableState.search.predicateObject['$'];
       }
       $scope.stCtrl = ctrl;
-      var sorting = tableState.sort;
-      let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
+      const sorting = tableState.sort;
+      const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
 
       Resource.getEventPage(
         paginationParams.start,
@@ -187,8 +187,8 @@ export default class EventCtrl {
     vm.setupForm = function() {
       $scope.fields = [];
       $scope.filterModel = {};
-      for (var key in $scope.usedColumns) {
-        var column = $scope.usedColumns[key];
+      for (const key in $scope.usedColumns) {
+        const column = $scope.usedColumns[key];
         switch (column.type) {
           case 'ModelChoiceFilter':
           case 'ChoiceFilter':
@@ -252,10 +252,10 @@ export default class EventCtrl {
       }
       if ($scope.showAdvancedFilters) {
         $window.onclick = function(event) {
-          var clickedElement = $(event.target);
+          const clickedElement = $(event.target);
           if (!clickedElement) return;
-          var elementClasses = event.target.classList;
-          var clickedOnAdvancedFilters =
+          const elementClasses = event.target.classList;
+          const clickedOnAdvancedFilters =
             elementClasses.contains('filter-icon') ||
             elementClasses.contains('advanced-filters') ||
             clickedElement.parents('.advanced-filters').length ||
@@ -284,8 +284,8 @@ export default class EventCtrl {
     };
 
     $scope.filterActive = function() {
-      var temp = false;
-      for (var key in $scope.columnFilters) {
+      let temp = false;
+      for (const key in $scope.columnFilters) {
         if ($scope.columnFilters[key] !== '' && $scope.columnFilters[key] !== null) {
           temp = true;
         }

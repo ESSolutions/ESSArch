@@ -1,6 +1,6 @@
 export default class SaEditorCtrl {
   constructor(Notifications, $timeout, SA, Profile, $scope, $rootScope, $http, appConfig, $anchorScroll, $translate) {
-    var vm = this;
+    const vm = this;
     $scope.edit = false;
     vm.saProfile = null;
     vm.saProfiles = [];
@@ -17,7 +17,7 @@ export default class SaEditorCtrl {
         vm.enableFields();
         vm.saModel = null;
         if (use_template && !angular.isUndefined(use_template)) {
-          var sa = angular.copy(vm.saProfile);
+          const sa = angular.copy(vm.saProfile);
           vm.saProfile = null;
           delete sa.id;
           delete sa.url;
@@ -81,7 +81,7 @@ export default class SaEditorCtrl {
       });
     };
     vm.createProfileModel = function(sa) {
-      for (var key in sa) {
+      for (const key in sa) {
         if (/^profile/.test(key) && sa[key] != null) {
           vm.profileModel[key] = sa[key];
         }
@@ -112,7 +112,7 @@ export default class SaEditorCtrl {
     };
 
     vm.saveNewSa = function() {
-      var newSa = new SA(vm.saModel);
+      const newSa = new SA(vm.saModel);
       newSa.$save().then(function(savedSa) {
         vm.createNewSa = false;
         vm.saProfile = null;
@@ -193,7 +193,7 @@ export default class SaEditorCtrl {
     $http.get(appConfig.djangoUrl + 'submission-agreement-template/').then(function(response) {
       vm.saFields = response.data.map(function(field) {
         if (field.key.startsWith('profile_')) {
-          let profile_type = field.key.replace('profile_', '');
+          const profile_type = field.key.replace('profile_', '');
           field.templateOptions.options = vm.profiles[profile_type];
         }
 

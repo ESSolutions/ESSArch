@@ -22,9 +22,9 @@ export default class {
     SelectedIPUpdater,
     $transitions
   ) {
-    var vm = this;
-    var ipSortString = [];
-    var watchers = [];
+    const vm = this;
+    const ipSortString = [];
+    const watchers = [];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
     vm.organizationMember = {
       current: null,
@@ -95,7 +95,7 @@ export default class {
     });
 
     //Initialize file browser update interval
-    var fileBrowserInterval;
+    let fileBrowserInterval;
     watchers.push(
       $scope.$watch(
         function() {
@@ -130,8 +130,8 @@ export default class {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         Resource.getDips(
           paginationParams.start,
           paginationParams.number,
@@ -150,7 +150,7 @@ export default class {
           })
           .catch(function(response) {
             if (response.status == 404) {
-              var filters = angular.extend(
+              const filters = angular.extend(
                 {
                   state: ipSortString,
                   package_type: 4,
@@ -241,7 +241,7 @@ export default class {
     //Deckgrid
     $scope.chosenFiles = [];
     $scope.chooseFiles = function(files) {
-      var fileExists = false;
+      let fileExists = false;
       files.forEach(function(file) {
         $scope.chosenFiles.forEach(function(chosen, index) {
           if (chosen.name === file.name) {
@@ -266,7 +266,7 @@ export default class {
       $scope.selectedCards1 = [];
     };
     function fileExistsModal(index, file, fileToBeOverwritten) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -299,7 +299,7 @@ export default class {
     }
 
     function folderNameExistsModal(index, folder, fileToBeOverwritten) {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -337,11 +337,11 @@ export default class {
     };
 
     $scope.createDipFolder = function(folderName) {
-      var folder = {
+      const folder = {
         type: 'dir',
         name: folderName,
       };
-      var fileExists = false;
+      let fileExists = false;
       $scope.chosenFiles.forEach(function(chosen, index) {
         if (chosen.name === folder.name) {
           fileExists = true;
@@ -388,7 +388,7 @@ export default class {
       $cookies.put('files-per-page', filesPerPage, {expires: new Date('Fri, 31 Dec 9999 23:59:59 GMT')});
     };
     $scope.previousGridArraysString = function(whichArray) {
-      var retString = '';
+      let retString = '';
       if (whichArray === 1) {
         $scope.previousGridArrays1.forEach(function(card) {
           retString = retString.concat(card.name, '/');
@@ -408,7 +408,7 @@ export default class {
       }
       if (!angular.isUndefined(tableState)) {
         $scope.workarea_tableState = tableState;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, 50);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, 50);
         listViewService
           .getWorkareaDir(
             'access',
@@ -441,7 +441,7 @@ export default class {
       }
       if (!angular.isUndefined(tableState)) {
         $scope.dip_tableState = tableState;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, 50);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, 50);
         listViewService
           .getDipDir(
             $scope.ip,
@@ -569,7 +569,7 @@ export default class {
     }
 
     $scope.isSelected = function(whichArray, card) {
-      var cardClass = '';
+      let cardClass = '';
       if (whichArray == 1) {
         $scope.selectedCards1.forEach(function(file) {
           if (card.name == file.name) {
@@ -593,7 +593,7 @@ export default class {
         .toUpperCase();
     };
     $scope.prepareDipModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
@@ -613,7 +613,7 @@ export default class {
     };
 
     $scope.newDirModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

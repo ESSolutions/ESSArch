@@ -1,6 +1,6 @@
 export default class DashboardStatsCtrl {
   constructor(appConfig, $http, $uibModal, $log, $translate) {
-    var vm = this;
+    const vm = this;
     vm.$onInit = function() {
       vm.getStats().then(function(stats) {
         vm.stats = stats;
@@ -28,7 +28,7 @@ export default class DashboardStatsCtrl {
     };
 
     vm.buildReportModal = function() {
-      var modalInstance = $uibModal.open({
+      const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',

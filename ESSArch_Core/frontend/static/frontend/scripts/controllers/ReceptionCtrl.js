@@ -41,9 +41,9 @@ export default class ReceptionCtrl {
     SelectedIPUpdater,
     $transitions
   ) {
-    var vm = this;
-    var ipSortString = [];
-    var watchers = [];
+    const vm = this;
+    const ipSortString = [];
+    const watchers = [];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
     $controller('TagsCtrl', {$scope: $scope, vm: vm});
     $scope.includedIps = [];
@@ -74,7 +74,7 @@ export default class ReceptionCtrl {
     });
 
     $scope.menuOptions = function(rowType, row) {
-      var methods = [];
+      const methods = [];
       if (row.state === 'Prepared') {
         methods.push(
           ContextMenuBase.changeOrganization(function() {
@@ -120,8 +120,8 @@ export default class ReceptionCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        var sorting = tableState.sort;
-        let paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         Resource.getReceptionPage(
           paginationParams.start,
           paginationParams.number,
@@ -141,7 +141,7 @@ export default class ReceptionCtrl {
           })
           .catch(function(response) {
             if (response.status == 404) {
-              var filters = angular.extend(
+              const filters = angular.extend(
                 {
                   state: ipSortString,
                 },
@@ -316,8 +316,8 @@ export default class ReceptionCtrl {
       };
     };
     $scope.getFileList = function(ip) {
-      var array = [];
-      var tempElement = {
+      const array = [];
+      const tempElement = {
         filename: ip.object_path,
         created: ip.create_date,
         size: ip.object_size,
@@ -371,7 +371,7 @@ export default class ReceptionCtrl {
             IPReception.prepare({id: resource.id, submission_agreement: resource.altrecordids.SUBMISSIONAGREEMENT[0]})
               .$promise.then(function(prepared) {
                 vm.receiveModalLoading = false;
-                var modalInstance = $uibModal.open({
+                const modalInstance = $uibModal.open({
                   animation: true,
                   ariaLabelledBy: 'modal-title',
                   ariaDescribedBy: 'modal-body',
@@ -426,7 +426,7 @@ export default class ReceptionCtrl {
               });
           } else {
             vm.receiveModalLoading = false;
-            var modalInstance = $uibModal.open({
+            const modalInstance = $uibModal.open({
               animation: true,
               ariaLabelledBy: 'modal-title',
               ariaDescribedBy: 'modal-body',
@@ -480,7 +480,7 @@ export default class ReceptionCtrl {
       } else {
         IP.get({id: ip.id}).$promise.then(function(resource) {
           vm.receiveModalLoading = false;
-          var modalInstance = $uibModal.open({
+          const modalInstance = $uibModal.open({
             animation: true,
             ariaLabelledBy: 'modal-title',
             ariaDescribedBy: 'modal-body',

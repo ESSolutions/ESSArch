@@ -1,13 +1,13 @@
 export default ($http, $sce, appConfig) => {
-  var service = {};
-  var url = appConfig.djangoUrl;
+  const service = {};
+  const url = appConfig.djangoUrl;
   service.query = function(filters) {
     return $http({
       method: 'GET',
       url: url + 'search/',
       params: filters,
     }).then(function(response) {
-      var returnData = response.data.hits.map(function(item) {
+      const returnData = response.data.hits.map(function(item) {
         if (item._index.indexOf('-') >= 0) {
           item._index = item._index.split('-', 1)[0];
         }
@@ -16,12 +16,12 @@ export default ($http, $sce, appConfig) => {
         item._source.text = item._source.reference_code + ' - ' + item._source.name;
         item._source.parent = '#';
         item._source._index = item._index;
-        for (var key in item.highlight) {
+        for (const key in item.highlight) {
           item._source[key] = $sce.trustAsHtml(item.highlight[key][0]);
         }
         return item._source;
       });
-      var count = response.headers('Count');
+      let count = response.headers('Count');
       if (count == null) {
         count = response.data.length;
       }
@@ -36,7 +36,7 @@ export default ($http, $sce, appConfig) => {
 
   service.getChildrenForTag = function(tag) {
     return $http.get(url + 'search/' + tag.id + '/children/').then(function(response) {
-      var temp = response.data.map(function(item) {
+      const temp = response.data.map(function(item) {
         item._source.id = item._id;
         item._source.text = item._source.reference_code + ' - ' + item._source.name;
         return item._source;
@@ -99,7 +99,7 @@ export default ($http, $sce, appConfig) => {
   };
 
   service.massEmail = function(nodes) {
-    var ids = nodes.map(function(x) {
+    const ids = nodes.map(function(x) {
       return x._id;
     });
     return $http({

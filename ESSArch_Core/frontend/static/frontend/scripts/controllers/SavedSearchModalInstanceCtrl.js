@@ -1,6 +1,6 @@
 export default class SavedSearchModalInstanceCtrl {
   constructor($uibModalInstance, appConfig, $http, data) {
-    var $ctrl = this;
+    const $ctrl = this;
     $ctrl.$onInit = function() {
       $ctrl.data = data;
     };
