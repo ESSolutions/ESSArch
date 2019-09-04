@@ -23,6 +23,20 @@
     border-color: $border-color;
     margin: 5px;
   }
+  .package-information,
+  .package-dependencies {
+    .formly {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      .formly-field {
+        width: 25%;
+        min-width: 175px;
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+    }
+  }
   .static-form {
     border-bottom-style: solid;
     border-bottom-width: 1px;

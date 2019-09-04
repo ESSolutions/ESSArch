@@ -49,45 +49,41 @@ export default class PrepareSipCtrl {
         $scope.ip = row;
         $rootScope.ip = row;
         var ip = row;
-        if (ip.profile_submit_description) {
-          $http
-            .get(appConfig.djangoUrl + 'information-packages/' + ip.id + '/profiles/', {
-              params: {profile__profile_type: 'submit_description'},
-            })
-            .then(function(response) {
-              var sd_profile_ip = response.data[0];
-              vm.informationModel = sd_profile_ip.data.data;
-              vm.informationFields = sd_profile_ip.profile.template;
-              vm.informationFields.forEach(function(field) {
-                field.type = 'input';
-                field.templateOptions.disabled = true;
-              });
-              if (ip.profile_transfer_project) {
-                $http
-                  .get(appConfig.djangoUrl + 'information-packages/' + ip.id + '/profiles/', {
-                    params: {profile__profile_type: 'transfer_project'},
-                  })
-                  .then(function(response) {
-                    var tp_profile_ip = response.data[0];
-                    vm.dependencyModel = tp_profile_ip.data.data;
-                    vm.dependencyFields = tp_profile_ip.profile.template;
-                    vm.dependencyFields.forEach(function(field) {
-                      field.type = 'input';
-                      field.templateOptions.disabled = true;
-                    });
-                    listViewService.getFileList(ip).then(function(result) {
-                      $scope.fileListCollection = result;
-                      $scope.getPackageProfiles(row);
-                      $scope.edit = true;
-                      $scope.eventlog = true;
-                    });
-                  });
-              }
-            })
-            .catch(function(response) {
-              console.log(response.status);
+        $http
+          .get(appConfig.djangoUrl + 'information-packages/' + ip.id + '/profiles/', {
+            params: {profile__profile_type: 'submit_description'},
+          })
+          .then(function(response) {
+            var sd_profile_ip = response.data[0];
+            vm.informationModel = sd_profile_ip.data.data;
+            vm.informationFields = sd_profile_ip.profile.template;
+            vm.informationFields.forEach(function(field) {
+              field.type = 'input';
+              field.templateOptions.disabled = true;
             });
-        }
+            $http
+              .get(appConfig.djangoUrl + 'information-packages/' + ip.id + '/profiles/', {
+                params: {profile__profile_type: 'transfer_project'},
+              })
+              .then(function(response) {
+                var tp_profile_ip = response.data[0];
+                vm.dependencyModel = tp_profile_ip.data.data;
+                vm.dependencyFields = tp_profile_ip.profile.template;
+                vm.dependencyFields.forEach(function(field) {
+                  field.type = 'input';
+                  field.templateOptions.disabled = true;
+                });
+                listViewService.getFileList(ip).then(function(result) {
+                  $scope.fileListCollection = result;
+                  $scope.getPackageProfiles(row);
+                  $scope.edit = true;
+                  $scope.eventlog = true;
+                });
+              });
+          })
+          .catch(function(response) {
+            console.log(response.status);
+          });
       }
     };
 
