@@ -182,6 +182,7 @@ input[type='checkbox'] {
     box-shadow: none;
   }
   .profile-editor {
+    @include container(10px);
     box-shadow: none;
   }
 }
