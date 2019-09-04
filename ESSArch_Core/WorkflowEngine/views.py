@@ -31,10 +31,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import exceptions, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.filters import (
     ProcessStepFilter,
@@ -88,7 +88,7 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
     """
     queryset = ProcessStep.objects.none()
     serializer_class = ProcessStepSerializer
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ProcessStepFilter
 
@@ -123,7 +123,7 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     queryset = ProcessTask.objects.none()
     serializer_class = ProcessTaskSerializer
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ProcessTaskFilter
 

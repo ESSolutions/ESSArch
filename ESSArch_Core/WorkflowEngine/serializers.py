@@ -22,7 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-import pickle
 import uuid
 
 from celery import states as celery_states

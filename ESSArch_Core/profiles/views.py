@@ -10,11 +10,12 @@ from django.db.models import Max, Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import exceptions, serializers, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import SAFE_METHODS, DjangoModelPermissions
+from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.essxml.ProfileMaker.models import (
     extensionPackage,
     templatePackage,
@@ -62,7 +63,7 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
         Prefetch('profilesa_set', to_attr='profiles')
     )
     serializer_class = SubmissionAgreementSerializer
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('published',)
 
@@ -201,7 +202,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
     API endpoint that allows profiles to be viewed or edited.
     """
     queryset = Profile.objects.all()
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
 
     def get_serializer_class(self):
         if self.action == 'list':

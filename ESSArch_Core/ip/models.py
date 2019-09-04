@@ -1268,7 +1268,6 @@ class InformationPackage(models.Model):
         if extracted:
             os.makedirs(access_workarea_user, exist_ok=True)
 
-
         if storage_target.remote_server:
             # AccessAIP instructs and waits for ip.access to transfer files from remote
             # to master. Then we use CopyFile to copy files from local temp to workspace

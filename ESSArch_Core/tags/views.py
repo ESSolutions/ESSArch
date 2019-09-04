@@ -4,10 +4,10 @@ from mptt.templatetags.mptt_tags import cache_tree_children
 from rest_framework import exceptions, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.ip.views import InformationPackageViewSet
 from ESSArch_Core.tags.filters import StructureUnitFilter, TagFilter
 from ESSArch_Core.tags.models import Structure, StructureUnit, Tag, TagVersion
@@ -23,7 +23,7 @@ from ESSArch_Core.util import mptt_to_dict
 class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Structure.objects.prefetch_related('units')
     serializer_class = StructureSerializer
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
     filter_backends = (OrderingFilter, SearchFilter,)
     ordering_fields = ('name', 'create_date', 'version',)
     search_fields = ('name',)
@@ -44,7 +44,7 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = StructureUnit.objects.select_related('structure')
     serializer_class = StructureUnitSerializer
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
     filter_backends = (DjangoFilterBackend,)
     filter_class = StructureUnitFilter
 
