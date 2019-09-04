@@ -52,6 +52,7 @@ services:
         /code/docker/wait_for.sh essarch 8000
         /code/docker/wait_for.sh elasticsearch 9200
         essarch worker -l info -q celery,file_operation,validation
+    restart: on-failure
     environment:
       DATABASE_URL_ESSARCH:
       REDIS_URL_ESSARCH: redis://redis/1
@@ -83,6 +84,7 @@ services:
         /code/docker/wait_for.sh essarch 8000
         /code/docker/wait_for.sh elasticsearch 9200
         essarch beat -l info
+    restart: on-failure
     environment:
       DATABASE_URL_ESSARCH:
       REDIS_URL_ESSARCH: redis://redis/1
