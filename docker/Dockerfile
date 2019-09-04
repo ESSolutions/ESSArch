@@ -51,7 +51,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         default-libmysqlclient-dev \
     && rm -rf /var/lib/apt/lists/*
 
-ADD requirements/base.txt /code/requirements/base.txt
+ADD requirements /code/requirements
 ADD setup.py /code/setup.py
 ADD versioneer.py /code/versioneer.py
 ADD README.md /code/README.md
