@@ -21,6 +21,7 @@ from glob2 import iglob
 from weasyprint import HTML
 
 from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.profiles.models import ProfileIP
@@ -30,6 +31,7 @@ from ESSArch_Core.util import (
     convert_file,
     creation_date,
     find_destination,
+    get_tree_size_and_count,
     has_write_access,
     timestamp_to_datetime,
 )
@@ -355,16 +357,8 @@ def preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path
         'data': fill_specification_data(aip_profile_data, ip=new_ip, sa=sa),
     }
 
-    t = ProcessTask.objects.create(
-        name='ESSArch_Core.tasks.GenerateXML',
-        params={
-            'filesToCreate': files_to_create,
-            'folderToParse': dstdir,
-        },
-        responsible=new_ip.responsible,
-        information_package=new_ip,
-    )
-    t.run().get()
+    generator = XMLGenerator()
+    generator.generate(files_to_create, folderToParse=dstdir)
 
     dsttar = dstdir + '.tar'
     dstxml = dstdir + '.xml'
@@ -400,27 +394,17 @@ def preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path
         }
     }
 
-    ProcessTask.objects.create(
-        name="ESSArch_Core.tasks.GenerateXML",
-        params={
-            "filesToCreate": files_to_create,
-            "folderToParse": dsttar,
-            "extra_paths_to_parse": [mets_path],
-            "algorithm": algorithm,
-        },
-        information_package=new_ip,
-        responsible=new_ip.responsible,
-    ).run().get()
+    generator = XMLGenerator()
+    generator.generate(files_to_create, folderToParse=dsttar, extra_paths_to_parse=[mets_path], algorithm=algorithm)
 
     InformationPackage.objects.filter(pk=new_ip.pk).update(
         message_digest=checksum, message_digest_algorithm=policy.checksum_algorithm,
     )
 
-    ProcessTask.objects.create(
-        name='ESSArch_Core.tasks.UpdateIPSizeAndCount',
-        information_package=new_ip,
-        responsible=new_ip.responsible,
-    ).run().get()
+    size, count = get_tree_size_and_count(new_ip.object_path)
+    InformationPackage.objects.filter(pk=new_ip.pk).update(
+        object_size=size, object_num_items=count
+    )
 
     t = ProcessTask.objects.create(
         name='ESSArch_Core.workflow.tasks.StoreAIP',

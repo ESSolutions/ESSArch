@@ -11,7 +11,8 @@ const loginCtrl = (
   djangoAuth,
   Validate,
   PermRoleStore,
-  PermPermissionStore
+  PermPermissionStore,
+  appConfig
 ) => {
   $scope.model = {app: $rootScope.app, username: '', password: ''};
   $scope.complete = false;
@@ -45,6 +46,14 @@ const loginCtrl = (
           } else {
             $state.go('home.info');
           }
+          $http
+            .get(appConfig.djangoUrl + 'site/')
+            .then(function(response) {
+              $rootScope.site = response.data;
+            })
+            .catch(function() {
+              $rootScope.site = null;
+            });
         })
         .catch(function(response) {
           $scope.loggingIn = false;

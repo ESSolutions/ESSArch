@@ -10,6 +10,8 @@ ESSArch Core
     :maxdepth: 10
 
     introduction
+    authentication_authorization/index
+    archival_description/index
     configuration/index
     development
     directory_structure

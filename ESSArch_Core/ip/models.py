@@ -64,11 +64,11 @@ from tenacity import (
 )
 
 from ESSArch_Core.auth.models import GroupGenericObjects, Member, Notification
-from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.fixity.format import FormatIdentifier
+from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import (
     ProfileIP,
     ProfileIPData,
@@ -258,22 +258,9 @@ class InformationPackageQuerySet(models.QuerySet):
         ).exclude(storage=None)
 
 
-class InformationPackageManager(models.Manager):
+class InformationPackageManager(OrganizationManager):
     def get_queryset(self):
         return InformationPackageQuerySet(self.model, using=self._db)
-
-    def for_user(self, user, perms, include_no_auth_objs=True):
-        """
-        Returns information packages for which a given ``users`` groups in the
-        ``users`` current organization has all permissions in ``perms``
-
-        :param user: ``User`` instance for which information packages would be
-        returned
-        :param perms: single permission string, or sequence of permission
-        strings which should be checked
-        """
-
-        return get_objects_for_user(user, self.model, perms, include_no_auth_objs)
 
     def visible_to_user(self, user):
         return self.for_user(user, 'view_informationpackage')
@@ -1956,10 +1943,18 @@ class EventIP(models.Model):
     application = models.CharField(max_length=255)
     eventVersion = models.CharField(max_length=255)  # The version number of the application (from versioneer)
     eventOutcome = models.IntegerField(choices=OUTCOME_CHOICES, null=True, default=None)  # Success (0) or Fail (1)
-    eventOutcomeDetailNote = models.CharField(max_length=1024)  # Result or traceback from IP
+    eventOutcomeDetailNote = models.CharField(max_length=1024, blank=True)  # Result or traceback from IP
     linkingAgentIdentifierValue = models.CharField(max_length=255, blank=True)
     linkingAgentRole = models.CharField(max_length=255, blank=True)
     linkingObjectIdentifierValue = models.CharField(max_length=255, blank=True)
+    transfer = models.ForeignKey(
+        'tags.Transfer', null=True, on_delete=models.SET_NULL,
+        related_name='events', verbose_name=_('transfer')
+    )
+    delivery = models.ForeignKey(
+        'tags.Delivery', null=True, on_delete=models.SET_NULL,
+        related_name='events', verbose_name=_('delivery')
+    )
 
     objects = EventIPManager()
 

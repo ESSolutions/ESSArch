@@ -27,6 +27,7 @@ from django.db.models import (
     Value,
     When,
 )
+from django.http import Http404
 from django.urls import reverse
 from django_filters.constants import EMPTY_VALUES
 from django_filters.rest_framework import DjangoFilterBackend
@@ -91,6 +92,7 @@ from ESSArch_Core.ip.permissions import (
 from ESSArch_Core.ip.serializers import (
     AgentSerializer,
     EventIPSerializer,
+    EventIPWriteSerializer,
     InformationPackageDetailSerializer,
     InformationPackageFromMasterSerializer,
     InformationPackageSerializer,
@@ -149,6 +151,35 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         'linkingAgentIdentifierValue', 'eventDateTime',
     )
     search_fields = ('eventOutcomeDetailNote',)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update', 'metadata']:
+            return EventIPWriteSerializer
+
+        return self.serializer_class
+
+    def filter_queryset_by_parents_lookups(self, queryset):
+        '''
+        We want to filter events directly connected to deliveries and through transfers, i.e.
+        api/deliveries/{id}/events/ should list events both connected to the delivery and its transfers.
+
+        We do this by extracting the delivery parent query key from the dict made by drf-extensions
+        and then manually creating the query. The rest of the keys in the dict is handled as usual.
+        '''
+
+        parents_query_dict = self.get_parents_query_dict()
+        delivery = parents_query_dict.pop('delivery', None)
+
+        if delivery is not None:
+            queryset = queryset.filter(Q(delivery=delivery) | Q(transfer__delivery=delivery))
+
+        if parents_query_dict:
+            try:
+                return queryset.filter(**parents_query_dict)
+            except ValueError:
+                raise Http404
+        else:
+            return queryset
 
 
 class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewSet):

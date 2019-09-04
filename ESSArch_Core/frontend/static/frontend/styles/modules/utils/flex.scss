@@ -28,7 +28,18 @@
   &end {
     justify-content: flex-end;
   }
+  &between {
+    justify-content: space-between;
+  }
   &evenly {
     justify-content: space-evenly;
+  }
+}
+
+.flex-100-grow {
+  display: flex;
+  width: 100%;
+  div {
+    flex-grow: 1;
   }
 }

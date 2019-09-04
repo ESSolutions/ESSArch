@@ -1,17 +1,15 @@
-angular
-  .module('essarch.controllers')
-  .controller('EditNodeModalInstanceCtrl', function(
+export default class EditNodeModalInstanceCtrl {
+  constructor(
     Search,
     $translate,
     $uibModalInstance,
-    djangoAuth,
+    $scope,
     appConfig,
     $http,
     data,
-    $scope,
     Notifications,
-    $timeout,
-    $q
+    EditMode,
+    $rootScope
   ) {
     var $ctrl = this;
     $ctrl.node = data.node;
@@ -24,126 +22,29 @@ angular
     $ctrl.newFieldVal = null;
     $ctrl.updateDescendants = false;
     $ctrl.manyNodes = false;
+    $ctrl.options = {};
+    $ctrl.customFields = [];
     $ctrl.$onInit = function() {
-      if (angular.isArray(data.node)) {
-        $ctrl.nodeList = data.node
-          .map(function(x) {
-            return x._id;
-          })
-          .join(',');
-        $ctrl.nameList = data.node
-          .map(function(x) {
-            return x._source.name;
-          })
-          .join(', ');
-        $ctrl.node = data.node[0];
-        $ctrl.node._source = data.node.reduce(function(result, currentObject) {
-          for (var key in currentObject._source) {
-            if (currentObject._source.hasOwnProperty(key)) {
-              result[key] = currentObject._source[key];
-            }
-          }
-          return result;
-        }, {});
-        $ctrl.manyNodes = true;
-      }
-      $ctrl.arrayFields = [];
-      $ctrl.fieldOptions = getEditableFields($ctrl.node);
-      var discludedFields = ['archive', 'current_version'];
-      angular.forEach($ctrl.fieldOptions, function(value, field) {
-        if (!discludedFields.includes(field)) {
-          if (angular.isArray(value)) {
-            $ctrl.arrayFields.push(field);
-            addStandardField(field, value.join(','));
-          } else {
-            switch (typeof value) {
-              case 'object':
-                clearObject($ctrl.node._source[field]);
-                addNestedField(field, value);
-                break;
-              default:
-                addStandardField(field, value);
-                break;
-            }
-          }
-        }
-      });
+      $http
+        .get(appConfig.djangoUrl + 'tag-version-types/', {
+          params: {archive_type: data.node && data.node._index === 'archive', pager: 'none'},
+        })
+        .then(function(response) {
+          $ctrl.options.type = response.data;
+          $ctrl.node = angular.copy(data.node);
+          $ctrl.node.type = data.node.type.pk;
+          $ctrl.loadForm();
+          EditMode.enable();
+        });
     };
 
-    $ctrl.noDeleteFields = {
-      component: ['name'],
-      document: ['name'],
-      archive: ['name'],
-      information_package: ['name'],
-    };
-
-    $ctrl.fieldsToDelete = [];
     function deleteField(field) {
-      var splitted = field.split('.');
-      if (
-        !angular.isUndefined($ctrl.node._source[field]) ||
-        (splitted.length > 1 && !angular.isUndefined($ctrl.node._source[splitted[0]][splitted[1]]))
-      ) {
-        $ctrl.fieldsToDelete.push(field);
-      }
-      $ctrl.editFields.forEach(function(item, idx, list) {
-        if (splitted.length > 1) {
-          if (item.templateOptions.label === field) {
-            list.splice(idx, 1);
-          }
-        } else {
-          if (item.key === field) {
-            list.splice(idx, 1);
-          }
+      $ctrl.customFields.forEach(function(x, idx, array) {
+        if (x.key === field) {
+          array.splice(idx, 1);
+          delete $ctrl.node.custom_fields[field];
         }
       });
-      if (splitted.length > 1) {
-        delete $ctrl.editData[splitted[0]][splitted[1]];
-      } else {
-        delete $ctrl.editData[field];
-      }
-    }
-
-    function addNestedField(field, value) {
-      var model = {};
-      var group = {
-        templateOptions: {
-          label: field,
-        },
-        fieldGroup: [],
-      };
-      angular.forEach(value, function(val, key) {
-        model[key] = val;
-        if ($ctrl.noDeleteFields[$ctrl.node._index].includes(field + '.' + key)) {
-          $ctrl.editFieldsNoDelete.push({
-            templateOptions: {
-              type: 'text',
-              label: field + '.' + key,
-            },
-            type: 'input',
-            model: 'model.' + field,
-            key: key,
-          });
-        } else {
-          $ctrl.editFields.push({
-            templateOptions: {
-              type: 'text',
-              label: field + '.' + key,
-              delete: function() {
-                deleteField(field + '.' + key);
-              },
-            },
-            type: 'input',
-            model: 'model.' + field,
-            key: key,
-          });
-        }
-      });
-      if (!$ctrl.manyNodes) {
-        $ctrl.editData[field] = model;
-      } else {
-        $ctrl.editData[field] = model;
-      }
     }
 
     function clearObject(obj) {
@@ -152,43 +53,10 @@ angular
       });
     }
 
-    function addStandardField(field, value) {
-      if (!$ctrl.manyNodes) {
-        $ctrl.editData[field] = value;
-      } else {
-        $ctrl.editData[field] = null;
-      }
-      if ($ctrl.noDeleteFields[$ctrl.node._index].includes(field)) {
-        $ctrl.editFieldsNoDelete.push({
-          templateOptions: {
-            type: 'text',
-            label: field,
-          },
-          type: 'input',
-          key: field,
-        });
-      } else {
-        $ctrl.editFields.push({
-          templateOptions: {
-            type: 'text',
-            label: field,
-            delete: function() {
-              deleteField(field);
-            },
-          },
-          type: 'input',
-          key: field,
-        });
-      }
-    }
-
-    function getEditableFields(node) {
-      return node._source;
-    }
     $ctrl.selected = null;
 
     $ctrl.changed = function() {
-      return !angular.equals(getEditedFields($ctrl.editData), {});
+      return !angular.equals($ctrl.node, data.node);
     };
 
     $ctrl.addNewField = function() {
@@ -197,18 +65,18 @@ angular
         var newFieldVal = angular.copy($ctrl.newFieldVal);
         var splitted = newFieldKey.split('.');
         if (
-          (splitted.length > 1 && !angular.isUndefined($ctrl.editData[splitted[0]][splitted[1]])) ||
-          !angular.isUndefined($ctrl.editData[newFieldKey])
+          (splitted.length > 1 && !angular.isUndefined($ctrl.node.custom_fields[splitted[0]][splitted[1]])) ||
+          !angular.isUndefined($ctrl.node.custom_fields[newFieldKey])
         ) {
           Notifications.add($translate.instant('ACCESS.FIELD_EXISTS'), 'error');
           return;
         }
         if (splitted.length > 1) {
-          $ctrl.editData[splitted[0]][splitted[1]] = newFieldVal;
+          $ctrl.node.custom_fields[splitted[0]][splitted[1]] = newFieldVal;
         } else {
-          $ctrl.editData[newFieldKey] = newFieldVal;
+          $ctrl.node.custom_fields[newFieldKey] = newFieldVal;
         }
-        $ctrl.editFields.push({
+        $ctrl.customFields.push({
           templateOptions: {
             type: 'text',
             label: newFieldKey,
@@ -219,38 +87,29 @@ angular
           type: 'input',
           key: newFieldKey,
         });
-        if ($ctrl.fieldsToDelete.includes(newFieldKey)) {
-          $ctrl.fieldsToDelete.splice($ctrl.fieldsToDelete.indexOf(newFieldKey), 1);
-        }
         $ctrl.newFieldKey = null;
         $ctrl.newFieldVal = null;
       }
     };
 
-    function getEditedFields(data) {
+    function getEditedFields(node) {
       var edited = {};
-      angular.forEach(data, function(value, key) {
-        if (typeof value === 'object' && !angular.isArray(value)) {
-          angular.forEach(value, function(val, k) {
-            if ($ctrl.node._source[key][k] !== val) {
-              if (!edited[key]) {
-                edited[key] = {};
-              }
-              edited[key][k] = val;
-            }
-          });
-        } else {
-          if ($ctrl.node._source[key] != value) {
-            edited[key] = value;
-          }
+      var oldModel = angular.copy(data.node);
+      oldModel.type = oldModel.type.pk;
+      angular.forEach(node, function(value, key) {
+        if (oldModel[key] !== value && typeof value !== 'object' && !angular.isArray(value)) {
+          edited[key] = value;
         }
       });
+      if (!angular.isUndefined(node.custom_fields)) {
+        edited.custom_fields = node.custom_fields;
+      }
       return edited;
     }
 
     $ctrl.editField = function(field, value) {
-      $ctrl.editData[field] = value;
-      $ctrl.editFields.push({
+      $ctrl.node[field] = value;
+      $ctrl.fields.push({
         templateOptions: {
           type: 'text',
           label: field,
@@ -260,77 +119,138 @@ angular
       });
     };
 
-    $ctrl.updateSingleNode = function() {
-      if ($ctrl.changed() || $ctrl.fieldsToDelete.length > 0) {
-        $ctrl.submitting = true;
-        var promises = [];
-        $ctrl.fieldsToDelete.forEach(function(item) {
-          promises.push(
-            $http
-              .post(appConfig.djangoUrl + 'search/' + $ctrl.node._id + '/delete-field/', {field: item})
-              .then(function(response) {
-                return response;
-              })
-              .catch(function(response) {
-                $ctrl.submitting = false;
-                return response;
-              })
-          );
+    $ctrl.loadForm = function() {
+      $ctrl.fields = [
+        {
+          key: 'name',
+          type: 'input',
+          templateOptions: {
+            label: $translate.instant('NAME'),
+            required: true,
+          },
+        },
+        {
+          key: 'type',
+          type: 'select',
+          templateOptions: {
+            label: $translate.instant('TYPE'),
+            required: true,
+            options: $ctrl.options.type,
+            valueProp: 'pk',
+            labelProp: 'name',
+            notNull: true,
+          },
+          defaultValue: $ctrl.options.type.length > 0 ? $ctrl.options.type[0].pk : null,
+        },
+        {
+          key: 'reference_code',
+          type: 'input',
+          templateOptions: {
+            label: $translate.instant('ACCESS.REFERENCE_CODE'),
+            required: true,
+          },
+        },
+        {
+          key: 'description',
+          type: 'textarea',
+          templateOptions: {
+            label: $translate.instant('DESCRIPTION'),
+            rows: 3,
+          },
+        },
+        {
+          className: 'row m-0',
+          fieldGroup: [
+            {
+              className: 'col-xs-12 col-sm-6 px-0 pr-md-base',
+              type: 'datepicker',
+              key: 'start_date',
+              templateOptions: {
+                label: $translate.instant('START_DATE'),
+                appendToBody: false,
+              },
+            },
+            {
+              className: 'col-xs-12 col-sm-6 px-0 pl-md-base',
+              type: 'datepicker',
+              key: 'end_date',
+              templateOptions: {
+                label: $translate.instant('END_DATE'),
+                appendToBody: false,
+              },
+            },
+          ],
+        },
+      ];
+      $ctrl.customFields = [];
+      angular.forEach($ctrl.node.custom_fields, function(value, key) {
+        $ctrl.customFields.push({
+          key: key,
+          type: 'input',
+          templateOptions: {
+            label: key,
+            delete: function() {
+              deleteField(key);
+            },
+          },
         });
-        $q.all(promises)
-          .then(function(results) {
-            if ($ctrl.changed()) {
-              Search.updateNode($ctrl.node, getEditedFields($ctrl.editData))
-                .then(function(response) {
-                  $ctrl.submitting = false;
-                  Notifications.add($translate.instant('ACCESS.NODE_EDITED'), 'success');
-                  $uibModalInstance.close('edited');
-                })
-                .catch(function(response) {
-                  $ctrl.submitting = false;
-                });
-            } else {
-              $ctrl.submitting = false;
-              Notifications.add($translate.instant('ACCESS.NODE_EDITED'), 'success');
-              $uibModalInstance.close('edited');
-            }
-          })
-          .catch(function(response) {
-            $ctrl.submitting = false;
-          });
-      }
+      });
+    };
+
+    $ctrl.updateSingleNode = function() {
+      $rootScope.skipErrorNotification = true;
+      Search.updateNode($ctrl.node, getEditedFields($ctrl.node))
+        .then(function(response) {
+          $ctrl.submitting = false;
+          Notifications.add($translate.instant('ACCESS.NODE_EDITED'), 'success');
+          EditMode.disable();
+          $uibModalInstance.close('edited');
+        })
+        .catch(function(response) {
+          $ctrl.nonFieldErrors = response.data.non_field_errors;
+          $ctrl.submitting = false;
+        });
     };
 
     $ctrl.updateNodeAndDescendants = function() {
-      if ($ctrl.changed() || $ctrl.fieldsToDelete.length > 0) {
-        Search.updateNodeAndDescendants($ctrl.node, getEditedFields($ctrl.editData), $ctrl.fieldsToDelete.join(','))
+      if ($ctrl.changed()) {
+        $rootScope.skipErrorNotification = true;
+        Search.updateNodeAndDescendants($ctrl.node, getEditedFields($ctrl.node))
           .then(function(response) {
             $ctrl.submitting = false;
             Notifications.add($translate.instant('ACCESS.NODE_EDITED'), 'success');
+            EditMode.disable();
             $uibModalInstance.close('edited');
           })
           .catch(function(response) {
+            $ctrl.nonFieldErrors = response.data.non_field_errors;
             $ctrl.submitting = false;
           });
       }
     };
 
     $ctrl.massUpdate = function() {
-      if ($ctrl.changed() || $ctrl.fieldsToDelete.length > 0) {
-        Search.massUpdate($ctrl.nodeList, getEditedFields($ctrl.editData), $ctrl.fieldsToDelete.join(','))
+      if ($ctrl.changed()) {
+        $rootScope.skipErrorNotification = true;
+        Search.massUpdate($ctrl.nodeList, getEditedFields($ctrl.node))
           .then(function(response) {
             $ctrl.submitting = false;
             Notifications.add($translate.instant('ACCESS.NODE_EDITED'), 'success');
+            EditMode.disable();
             $uibModalInstance.close('edited');
           })
           .catch(function(response) {
+            $ctrl.nonFieldErrors = response.data.non_field_errors;
             $ctrl.submitting = false;
           });
       }
     };
 
     $ctrl.submit = function() {
-      convertArrayFields();
+      if ($ctrl.form.$invalid) {
+        $ctrl.form.$setSubmitted();
+        return;
+      }
       if ($ctrl.manyNodes) {
         $ctrl.massUpdate();
       } else if ($ctrl.updateDescendants) {
@@ -340,15 +260,23 @@ angular
       }
     };
 
-    function convertArrayFields() {
-      $ctrl.arrayFields.forEach(function(field) {
-        if (!$ctrl.fieldsToDelete.includes(field) && $ctrl.editData[field] != $ctrl.node._source[field]) {
-          $ctrl.editData[field] = $ctrl.editData[field].split(',');
-        }
-      });
-    }
-
     $ctrl.cancel = function() {
+      EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
-  });
+
+    $scope.$on('modal.closing', function(event, reason, closed) {
+      if (
+        (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
+        (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
+      ) {
+        var message = $translate.instant('UNSAVED_DATA_WARNING');
+        if (!confirm(message)) {
+          event.preventDefault();
+        } else {
+          EditMode.disable();
+        }
+      }
+    });
+  }
+}

@@ -74,7 +74,7 @@ export default ($http, $sce, appConfig) => {
         include_self: true,
         deleted_fields: deletedFields,
       },
-      data: data,
+      data: angular.extend({structure: node.structures[0].id}, data),
     }).then(function(response) {
       return response;
     });

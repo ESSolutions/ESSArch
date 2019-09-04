@@ -40,7 +40,9 @@
     flex-grow: 1;
     @include large-screen-up {
       padding-left: 10px;
+      overflow: hidden;
     }
+    width: auto;
     @include medium-screen-down {
       width: 100%;
     }
@@ -56,6 +58,7 @@
   }
   .search-result-table {
     width: 100%;
+    overflow-x: auto;
   }
   .page-number {
     align-self: center;
@@ -310,6 +313,10 @@
     }
   }
 }
+.search-name-column,
+.search-archive-column {
+  min-width: 250px;
+}
 
 .search-result-field {
   display: flex;
@@ -319,4 +326,8 @@
 .search-admin {
   @include container(10px);
   margin-top: 10px;
+}
+
+.jstree-checkbox-disabled {
+  opacity: 0.4 !important;
 }

@@ -1,0 +1,143 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../installation/epp/install.rst:5
+msgid "Install ESSArch Preservation Platform"
+msgstr ""
+
+#: ../../installation/epp/install.rst:9
+msgid "EPP installation script"
+msgstr ""
+
+#: ../../installation/epp/install.rst:11
+msgid ""
+"Please download the latest installation package from `Github "
+"<https://github.com/ESSolutions/ESSArch_EPP/releases/latest>`_"
+msgstr ""
+
+#: ../../installation/epp/install.rst:33
+msgid "Configuration"
+msgstr ""
+
+#: ../../installation/epp/install.rst:36
+msgid "Apache httpd configuration"
+msgstr ""
+
+#: ../../installation/epp/install.rst:38
+msgid ""
+"Edit file ``/ESSArch/config/httpd-epp.conf`` and change the configuration"
+" entry for \"ServerName\" to same as the hostname of the ESSArch server."
+msgstr ""
+
+#: ../../installation/epp/install.rst:41
+msgid ""
+"Add the line ``\"Include /ESSArch/config/httpd-epp.conf\"`` in the file "
+"``/ESSArch/config/httpd.conf``"
+msgstr ""
+
+#: ../../installation/epp/install.rst:44
+msgid ""
+"For test purpose you can use the existing configuration for SSL "
+"certificate, but for production environment and for maximum security we "
+"recommend generating your own SSL certificate or if you have your own SSL"
+" trusted certificate install them in the apache httpd configuration."
+msgstr ""
+
+#: ../../installation/epp/install.rst:50
+msgid "Collect static files to be served by apache httpd"
+msgstr ""
+
+#: ../../installation/epp/install.rst:59
+msgid "EPP configuration"
+msgstr ""
+
+#: ../../installation/epp/install.rst:61
+msgid ""
+"``/ESSArch/config`` contains the configuration files for ESSArch. To "
+"change the configuration of EPP, create or update "
+"``/ESSArch/config/local_epp_settings.py``"
+msgstr ""
+
+#: ../../installation/epp/install.rst:66
+msgid "RabbitMQ virtual host configuration for EPP"
+msgstr ""
+
+#: ../../installation/epp/install.rst:76
+msgid "Database"
+msgstr ""
+
+#: ../../installation/epp/install.rst:78
+msgid ""
+"ESSArch is designed to be RDBMS-independent. However the installation "
+"package is prepared for MySQL/MariaDB and the following instructions "
+"assume that you use MySQL/MariaDB."
+msgstr ""
+
+#: ../../installation/epp/install.rst:83
+msgid "MySQL"
+msgstr ""
+
+#: ../../installation/epp/install.rst:84 ../../installation/epp/install.rst:107
+msgid ""
+"Follow the instructions below in order to create the user and tables "
+"required by EPP installation."
+msgstr ""
+
+#: ../../installation/epp/install.rst:106
+msgid "MariaDB"
+msgstr ""
+
+#: ../../installation/epp/install.rst:129
+msgid "Create default tables in database"
+msgstr ""
+
+#: ../../installation/epp/install.rst:137
+msgid "Add default configuration data to database"
+msgstr ""
+
+#: ../../installation/epp/install.rst:141
+msgid ""
+"Only use this default configuration for test purposes, do not install "
+"this default configuration in production. Replace XX with country "
+"specific profiles: se, no or eark"
+msgstr ""
+
+#: ../../installation/epp/install.rst:154
+msgid "For production/custom installation"
+msgstr ""
+
+#: ../../installation/epp/install.rst:156
+msgid ""
+"For production environment you should first make a copy of this "
+"configuration file and update for example site_profile, site_name."
+msgstr ""
+
+#: ../../installation/epp/install.rst:162
+msgid "Update and run ``/home/arch/install_config_custom.py``:"
+msgstr ""
+
+#: ../../installation/epp/install.rst:169
+msgid "Enable automatic startup at system boot"
+msgstr ""
+
+#: ../../installation/epp/install.rst:177
+msgid "Enable workerprocess"
+msgstr ""
+

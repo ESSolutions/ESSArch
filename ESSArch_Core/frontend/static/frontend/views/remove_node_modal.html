@@ -1,12 +1,13 @@
 <div class="modal-heading">
-  <h3 class="modal-title" id="modal-title">{{'ACCESS.REMOVE_NODE' | translate}} <b>{{$ctrl.node._source.name}}</b></h3>
+  <h3 class="modal-title" id="modal-title">{{'ACCESS.DO_YOU_WANT_TO_REMOVE_NODE' | translate}}</h3>
 </div>
 <div class="modal-body" id="modal-body">
-  <h4>{{'ACCESS.DO_YOU_WANT_TO_REMOVE_NODE' | translate}}</h4>
+  <b ng-if="$ctrl.node.reference_code"> {{$ctrl.node.reference_code}} </b>&nbsp; {{$ctrl.node.name}}
 </div>
 <div class="modal-footer">
-  <button class="btn btn-primary" type="button" ng-click="$ctrl.remove()" focused="true">
+  <button class="btn btn-danger" type="button" ng-click="$ctrl.removeNode()" focused="true">
     {{'REMOVE' | translate}}
   </button>
   <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+  <form-errors errors="$ctrl.nonFieldErrors"></form-errors>
 </div>

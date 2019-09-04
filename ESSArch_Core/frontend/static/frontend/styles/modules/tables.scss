@@ -338,3 +338,11 @@
 .row-warning {
   background-color: $gold-leaf !important;
 }
+
+td,
+th {
+  &.shrink {
+    width: 0.1%;
+    white-space: nowrap;
+  }
+}

@@ -1,0 +1,25 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ACCESS.CREATE_ARCHIVE_CREATOR' | translate}}</h3>
+</div>
+<form ng-submit="$ctrl.create()" novalidate name="$ctrl.form">
+  <div class="modal-body" id="modal-body">
+    <div class="pb-base">
+      <formly-form model="$ctrl.agent" fields="$ctrl.typeField" options="{}"></formly-form>
+      <h4 ng-if="$ctrl.nameFields.length > 0">
+        {{'ACCESS.AUTHORIZED_NAME' | translate}}
+      </h4>
+      <formly-form model="$ctrl.authName" fields="$ctrl.nameFields" options="{}"></formly-form>
+      <hr />
+      <div ng-if="$ctrl.basicFields.length > 0" ng-include="'static/frontend/views/edit_agent.html'"></div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit" ng-disabled="$ctrl.preparing">
+      {{'CREATE' | translate}} <i ng-if="$ctrl.preparing" class="fas fa-spinner fa-spin" />
+    </button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()" ng-disabled="$ctrl.creating">
+      {{'CANCEL' | translate}}
+    </button>
+    <form-errors errors="$ctrl.nonFieldErrors"></form-errors>
+  </div>
+</form>

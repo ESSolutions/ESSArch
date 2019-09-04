@@ -57,7 +57,7 @@ def installProfiles():
     # create ERMS SA
     erms_sa_name = "SA National Archive and Government SE (ERMS)"
     try:
-        erms_sa = SubmissionAgreement.objects.get(name=erms_sa_name)
+        erms_sa = SubmissionAgreement.objects.get(name=erms_sa_name, published=True)
     except SubmissionAgreement.DoesNotExist:
         erms_sa = sa
         erms_sa.pk = None
@@ -73,6 +73,7 @@ def installSubmissionAgreement():
 
     dct = {
         'name': 'SA National Archive and Government SE',
+        'published': True,
         'type': 'Standard',
         'status': 'Agreed',
         'label': 'Submission Agreement National Archive x and Government x',

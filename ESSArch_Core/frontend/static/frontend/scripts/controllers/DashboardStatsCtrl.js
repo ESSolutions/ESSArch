@@ -1,9 +1,23 @@
 export default class DashboardStatsCtrl {
-  constructor(appConfig, $http, $uibModal, $log) {
+  constructor(appConfig, $http, $uibModal, $log, $translate) {
     var vm = this;
     vm.$onInit = function() {
       vm.getStats().then(function(stats) {
         vm.stats = stats;
+        vm.getAgents();
+      });
+    };
+
+    vm.getAgents = function() {
+      return $http({
+        url: appConfig.djangoUrl + 'agents/',
+        method: 'HEAD',
+        params: {
+          pager: 'none',
+        },
+      }).then(function(response) {
+        vm.stats.tags.unshift({type__name: $translate.instant('ARCHIVECREATORS'), total: response.headers('Count')});
+        return response.data;
       });
     };
 

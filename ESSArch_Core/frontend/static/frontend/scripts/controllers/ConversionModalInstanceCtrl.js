@@ -1,19 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('ConversionModalInstanceCtrl', function(
-    cronService,
-    $filter,
-    $translate,
-    IP,
-    $uibModalInstance,
-    djangoAuth,
-    appConfig,
-    $http,
-    data,
-    $scope,
-    Notifications,
-    $timeout
-  ) {
+export default class ConversionModalInstanceCtrl {
+  constructor(cronService, $filter, $translate, IP, $uibModalInstance, appConfig, $http, data, Notifications) {
     var $ctrl = this;
     // Set later to use local time for next job
     later.date.localTime();
@@ -285,4 +271,5 @@ angular
       );
       $uibModalInstance.close(conversion);
     };
-  });
+  }
+}

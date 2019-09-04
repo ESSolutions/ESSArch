@@ -24,7 +24,8 @@
 
 from django.utils.functional import cached_property
 from drf_dynamic_fields import DynamicFieldsMixin
-from rest_framework import serializers
+from languages_plus.models import Language
+from rest_framework import serializers, validators
 
 
 class DynamicModelSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -63,3 +64,14 @@ class DynamicModelSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                 fields.pop(field_name)
 
         return fields
+
+
+class LanguageSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(
+        source='iso_639_1', max_length=2,
+        validators=[validators.UniqueValidator(queryset=Language.objects.all())],
+    )
+
+    class Meta:
+        model = Language
+        fields = ('id', 'name_en',)

@@ -1,20 +1,18 @@
 const contentTabs = () => {
   var disabledStates = ['Creating', 'Submitting', 'Receiving', 'Transferring', 'Preserving'];
   var specialTabs = {
-    // ETP
-    'home.createSip.prepareIp': {
+    'home.producer.prepareIp': {
       prepare: ['Preparing', 'Prepared'],
     },
-    'home.createSip.collectContent': {
+    'home.producer.collectContent': {
       collect_content: ['Prepared', 'Uploading'],
     },
-    'home.createSip.createSip': {
+    'home.producer.createSip': {
       approval: ['Uploaded'],
     },
-    'home.submitSip.prepareSip': {
+    'home.producer.submitSip': {
       submit_sip: ['Created'],
     },
-    // ETA
     'home.reception': {
       receive: ['At reception', 'Prepared'],
     },
@@ -27,7 +25,6 @@ const contentTabs = () => {
     'home.transferSip': {
       transfer_sip: ['Received'],
     },
-    // EPP
     'home.access.createDip': {
       create_dip: ['Prepared'],
       preserve: ['Created'],

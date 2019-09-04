@@ -44,39 +44,12 @@
       <nav class="nav menu" ng-controller="UtilCtrl">
         <a
           tabindex="0"
-          ng-keydown="navKeydownListener($event, 'home.createSip.prepareIp')"
+          ng-keydown="navKeydownListener($event, 'home.producer')"
           class="nav-item sliding-middle-out"
-          ng-class="{'chosen': $state.includes('home.createSip.prepareIp')}"
-          ui-sref="home.createSip.prepareIp"
-          ng-if="checkPermissions('home.createSip.prepareIp')"
-          >{{('PREPAREIP' | translate)}}</a
-        >
-        <a
-          tabindex="0"
-          ng-keydown="navKeydownListener($event, 'home.createSip.collectContent')"
-          class="nav-item sliding-middle-out"
-          ng-class="{'chosen': $state.includes('home.createSip.collectContent')}"
-          ui-sref="home.createSip.collectContent"
-          ng-if="checkPermissions('home.createSip.collectContent')"
-          >{{('COLLECTCONTENT' | translate)}}</a
-        >
-        <a
-          tabindex="0"
-          ng-keydown="navKeydownListener($event, 'home.createSip.createSip')"
-          class="nav-item sliding-middle-out"
-          ng-class="{'chosen': $state.includes('home.createSip.createSip')}"
-          ui-sref="home.createSip.createSip"
-          ng-if="checkPermissions('home.createSip.createSip')"
-          >{{('CREATESIP' | translate)}}</a
-        >
-        <a
-          tabindex="0"
-          ng-keydown="navKeydownListener($event, 'home.submitSip.prepareSip')"
-          class="nav-item sliding-middle-out"
-          ng-class="{'chosen': $state.includes('home.submitSip.prepareSip')}"
-          ui-sref="home.submitSip.prepareSip"
-          ng-if="checkPermissions('home.submitSip.prepareSip')"
-          >{{('SUBMITSIP' | translate)}}</a
+          ng-class="{'chosen': $state.includes('home.producer')}"
+          ui-sref="home.producer"
+          ng-if="checkPermissions('home.producer')"
+          >{{('PRODUCER' | translate)}}</a
         >
         <a
           tabindex="0"
@@ -95,6 +68,15 @@
           ui-sref="home.access"
           ng-if="checkPermissions('home.access')"
           >{{('ACCESS.ACCESS' | translate)}}</a
+        >
+        <a
+          tabindex="0"
+          ng-keydown="navKeydownListener($event, 'home.archivalDescriptions')"
+          class="nav-item sliding-middle-out"
+          ng-class="{'chosen': $state.includes('home.archivalDescriptions')}"
+          ui-sref="home.archivalDescriptions"
+          ng-if="checkPermissions('home.archivalDescriptions')"
+          >{{('ARCHIVAL_DESCRIPTIONS' | translate)}}</a
         >
         <a
           tabindex="0"
@@ -122,15 +104,6 @@
           ui-sref="home.administration"
           ng-if="checkPermissions('home.administration')"
           >{{('ADMINISTRATION' | translate)}}</a
-        >
-        <a
-          tabindex="0"
-          ng-keydown="navKeydownListener($event, 'home.dashboard')"
-          class="nav-item sliding-middle-out"
-          ng-class="{'chosen': $state.includes('home.dashboard')}"
-          ui-sref="home.dashboard"
-          ng-if="checkPermissions('home.dashboard')"
-          >{{('DASHBOARD' | translate)}}</a
         >
       </nav>
       <div ng-controller="UtilCtrl" class="tasks-icons">

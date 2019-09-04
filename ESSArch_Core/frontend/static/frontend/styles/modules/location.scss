@@ -1,0 +1,36 @@
+.location-page {
+  @include container(5px);
+  margin-top: 10px;
+}
+
+.location-tree {
+  display: flex;
+  flex-direction: column;
+  @include medium-screen-up {
+    flex-direction: row;
+  }
+
+  .detail-header {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    .breadcrumb {
+      background: none;
+      padding-left: 0;
+      margin-bottom: 0;
+      padding: 6px 0px;
+    }
+    @include medium-screen-up {
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      flex-direction: row;
+    }
+  }
+
+  .resize-grabber {
+    @include small-screen {
+      display: none;
+    }
+  }
+}

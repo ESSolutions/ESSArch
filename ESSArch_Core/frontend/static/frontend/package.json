@@ -58,8 +58,10 @@
     "eslint-config-prettier": "^6.1.0",
     "eslint-plugin-angular": "^4.0.1",
     "eslint-plugin-prettier": "^3.1.0",
+    "expose-loader": "^0.7.5",
     "file-loader": "^4.2.0",
     "html-loader": "^0.5.5",
+    "imports-loader": "^0.8.0",
     "jasmine-core": "^3.4.0",
     "jquery": "^3.3.1",
     "jquery-ui-dist": "~1.12.1",
@@ -102,14 +104,14 @@
   "scripts": {
     "build:dev": "webpack --mode=development",
     "build:prod": "webpack --mode=production",
-    "build:watch": "webpack --mode=development --watch",
+    "build:watch": "webpack --mode=development --watch --info-verbosity verbose",
     "test": "karma start karma.conf.js --single-run --reporters spec",
     "test-watch": "karma start karma.conf.js --reporters spec",
     "preupdate-webdriver": "yarn",
     "update-webdriver": "webdriver-manager update",
     "pree2e": "yarn run update-webdriver",
     "e2e": "protractor e2e-tests/protractor.conf.js",
-    "prettier": "prettier",
+    "prettier": "prettier --ignore-path ../../../../.prettierignore",
     "lint": "eslint \"*/**/*.{js,ts,tsx}\" --quiet"
   }
 }

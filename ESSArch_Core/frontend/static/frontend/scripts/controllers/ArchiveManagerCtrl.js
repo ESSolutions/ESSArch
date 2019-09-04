@@ -1,37 +1,170 @@
-angular
-  .module('essarch.controllers')
-  .controller('ArchiveManagerCtrl', function($scope, $http, appConfig, Search, Notifications, $translate) {
+export default class ArchiveManagerCtrl {
+  constructor($scope, $http, appConfig, $uibModal, $log, $state, $stateParams, myService) {
     var vm = this;
+    $scope.$stateParams = $stateParams;
     vm.structure = null;
-    vm.structures = [];
-    vm.$onInit = function() {
-      $http({
-        method: 'GET',
-        url: appConfig.djangoUrl + 'classification-structures/',
-      }).then(function(response) {
-        vm.structures = response.data;
-        if (vm.structures.length > 0) {
-          vm.structure = vm.structures[0];
+    vm.record = null;
+    vm.archives = [];
+    vm.fields = [];
+
+    vm.getArchives = function(tableState) {
+      vm.archivesLoading = true;
+      if (vm.archives.length == 0) {
+        $scope.initLoad = true;
+      }
+      if (!angular.isUndefined(tableState)) {
+        $scope.tableState = tableState;
+        var search = '';
+        if (tableState.search.predicateObject) {
+          var search = tableState.search.predicateObject['$'];
         }
+        var sorting = tableState.sort;
+        var pagination = tableState.pagination;
+        var start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
+        var number = pagination.number || vm.archivesPerPage; // Number of entries showed per page.
+        var pageNumber = start / number + 1;
+
+        var sortString = sorting.predicate;
+        if (sorting.reverse) {
+          sortString = '-' + sortString;
+        }
+        $http
+          .get(appConfig.djangoUrl + 'tags/', {
+            params: {
+              index: 'archive',
+              page: pageNumber,
+              page_size: number,
+              ordering: sortString,
+              search: search,
+            },
+          })
+          .then(function(response) {
+            vm.archives = response.data;
+            tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / number); //set the number of pages so the pagination can update
+            $scope.initLoad = false;
+            vm.archivesLoading = false;
+          });
+      }
+    };
+
+    vm.updateArchives = function() {
+      vm.getArchives($scope.tableState);
+    };
+
+    vm.getArchiveColspan = function() {
+      if (myService.checkPermission('tags.change_archive') && myService.checkPermission('tags.delete_archive')) {
+        return 5;
+      } else if (
+        myService.checkPermission('tags.change_archive') ||
+        myService.checkPermission('tags.delete_archive')
+      ) {
+        return 4;
+      } else {
+        return 3;
+      }
+    };
+
+    vm.archiveClick = function(archive) {
+      if (vm.record !== null && archive.current_version.id === vm.record._id) {
+        vm.record = null;
+        $state.go('home.archivalDescriptions.archiveManager');
+      } else {
+        vm.archiveLoading = true;
+        vm.record = {_id: archive.current_version.id};
+        $state.go('home.archivalDescriptions.archiveManager.detail', {id: vm.record._id});
+      }
+    };
+
+    vm.getArchive = function(id) {
+      return $http.get(appConfig.djangoUrl + 'search/' + id + '/').then(function(response) {
+        return response.data;
       });
     };
-    vm.createArchive = function(archiveName, structureName, type, referenceCode, archiveCreator, archiveResponsible) {
-      Search.addNode({
-        name: archiveName,
-        structure: structureName,
-        index: 'archive',
-        type: type,
-        reference_code: referenceCode,
-        archive_creator: archiveCreator,
-        archive_responsible: archiveResponsible,
-      }).then(function(response) {
-        vm.archiveName = null;
-        vm.structure = null;
-        vm.nodeType = null;
-        vm.referenceCode = null;
-        vm.archiveResponsible = null;
-        vm.archiveCreator = null;
-        Notifications.add($translate.instant('ACCESS.NEW_ARCHIVE_CREATED'), 'success');
+
+    vm.getTypes = function() {
+      return $http
+        .get(appConfig.djangoUrl + 'tag-version-types/', {params: {archive_type: true, pager: 'none'}})
+        .then(function(response) {
+          return angular.copy(response.data);
+        });
+    };
+
+    vm.newArchiveModal = function() {
+      var modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/new_archive_modal.html',
+        controller: 'ArchiveModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          data: {},
+        },
+      });
+      modalInstance.result.then(
+        function(data, $ctrl) {
+          vm.updateArchives();
+          $state.go('home.archivalDescriptions.archiveManager.detail', {id: data.archive._id});
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+    vm.editArchiveModal = function(archive) {
+      vm.getArchive(archive.current_version.id).then(function(result) {
+        archive = result;
+        var modalInstance = $uibModal.open({
+          animation: true,
+          ariaLabelledBy: 'modal-title',
+          ariaDescribedBy: 'modal-body',
+          templateUrl: 'static/frontend/views/edit_archive_modal.html',
+          controller: 'ArchiveModalInstanceCtrl',
+          controllerAs: '$ctrl',
+          size: 'lg',
+          resolve: {
+            data: {
+              archive: archive,
+            },
+          },
+        });
+        modalInstance.result.then(
+          function(data, $ctrl) {
+            vm.updateArchives();
+            $state.go('home.archivalDescriptions.archiveManager.detail', {id: archive._id}, {reload: true});
+          },
+          function() {
+            $log.info('modal-component dismissed at: ' + new Date());
+          }
+        );
       });
     };
-  });
+    vm.removeArchiveModal = function(archive) {
+      var modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/remove_archive_modal.html',
+        controller: 'ArchiveModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          data: {
+            archive: archive,
+            remove: true,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data, $ctrl) {
+          vm.updateArchives();
+          $state.go('home.archivalDescriptions.archiveManager');
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+  }
+}

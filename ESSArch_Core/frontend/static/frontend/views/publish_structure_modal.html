@@ -1,0 +1,17 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ACCESS.PUBLISH_CLASSIFICATION_STRUCTURE' | translate}}</h3>
+</div>
+<form name="$ctrl.form" ng-submit="$ctrl.publish()">
+  <div class="modal-body" id="modal-body">
+    {{'ACCESS.PUBLISH_CLASSIFICATION_STRUCTURE_DESC' | translate:$ctrl.data.structure}}
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" ng-disabled="$ctrl.publishing" type="submit">
+      {{'PUBLISH' | translate}} <i ng-if="$ctrl.publishing" class="fas fa-spinner fa-spin" />
+    </button>
+    <button class="btn btn-default" type="button" ng-disabled="$ctrl.publishing" ng-click="$ctrl.cancel()">
+      {{'CANCEL' | translate}}
+    </button>
+    <form-errors errors="$ctrl.nonFieldErrors"></form-errors>
+  </div>
+</form>

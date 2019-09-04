@@ -1,6 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('SearchIpCtrl', function(appConfig, $scope, $rootScope, $http, IP, $stateParams, Notifications, $state) {
+export default class SearchIpCtrl {
+  constructor(appConfig, $rootScope, $http, IP, $stateParams, Notifications, $state) {
     var vm = this;
     vm.$onInit = function() {
       vm.getIpObject($stateParams.id)
@@ -11,12 +10,12 @@ angular
             $rootScope.$broadcast('UPDATE_TITLE', {title: vm.ip.label});
           } else {
             Notifications.add('IP not found in archival storage', 'error');
-            $state.go('home.access.search');
+            $state.go('home.archivalDescriptions.search');
           }
         })
         .catch(function() {
           Notifications.add('IP not found in archival storage', 'error');
-          $state.go('home.access.search');
+          $state.go('home.archivalDescriptions.search');
         });
     };
 
@@ -27,4 +26,5 @@ angular
         });
       });
     };
-  });
+  }
+}

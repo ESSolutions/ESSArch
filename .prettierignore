@@ -1,0 +1,6 @@
+*.min.js
+*.map
+node_modules
+build
+ESSArch_Core/**/templates
+ESSArch_Core/templates

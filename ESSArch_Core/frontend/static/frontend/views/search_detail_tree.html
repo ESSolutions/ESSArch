@@ -3,22 +3,34 @@
     {{'ACCESS.CLASSIFICATION_STRUCTURE' | translate}}
   </label>
   <div class="flex-row">
-    <select
-      class="form-control version-select"
-      ng-model="vm.structure"
-      ng-change="vm.loadRecordAndTree(vm.record._index, vm.record._id)"
-    >
+    <select class="form-control version-select" ng-model="vm.structure" ng-change="vm.loadRecordAndTree(vm.structure)">
       <option
         ng-repeat="classification in vm.archiveStructures"
         value="{{classification.id}}"
         ng-disabled="!vm.existsForRecord(classification.id)"
       >
-        {{classification.name}}&nbsp;{{!vm.existsForRecord(classification.id) ? '('+('UNAVAILABLE' |
-        translate)+')':''}}
+        {{StructureName.getNameWithVersion(classification)}}&nbsp;{{!vm.existsForRecord(classification.id) ?
+        '('+('UNAVAILABLE' | translate)+')':''}}
       </option>
     </select>
-    <button ng-click="vm.newStructureModal(vm.recordTreeData[0])" class="btn btn-success btn-small">+</button>
   </div>
+</div>
+<div class="flex-wrap">
+  <button
+    ng-disabled="vm.locationButtonDisabled()"
+    class="btn btn-sm btn-primary"
+    style="margin-right: 2px;"
+    ng-click="vm.addNodeLocationModal(vm.getChecked())"
+  >
+    {{'ACCESS.LINK_TO_LOCATION' | translate}}
+  </button>
+  <button
+    ng-disabled="vm.deliveryButtonDisabled()"
+    class="btn btn-sm btn-primary"
+    ng-click="vm.addNodeDeliveryModal(vm.getChecked())"
+  >
+    {{'ACCESS.LINK_TO_TRANSFER' | translate}}
+  </button>
 </div>
 <hr class="small" ng-if="vm.record.structures.length > 0" />
 <div ng-if="vm.record.structures.length == 0" class="place-in-structure-wrapper">

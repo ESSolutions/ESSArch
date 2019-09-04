@@ -1,0 +1,21 @@
+.search-filter {
+  width: auto;
+  .filter-options {
+    border: 1px solid $border-color;
+    border-radius: 2px;
+    padding: 5px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: absolute;
+    z-index: 1050;
+    background-color: white;
+    width: 100%;
+    ul {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+  }
+  .filter-selected-options {
+  }
+}

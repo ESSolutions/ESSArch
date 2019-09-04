@@ -1,14 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('OverwriteModalInstanceCtrl', function(
-    $uibModalInstance,
-    djangoAuth,
-    data,
-    Profile,
-    SA,
-    Notifications,
-    $translate
-  ) {
+export default class OverwriteModalInstanceCtrl {
+  constructor($uibModalInstance, data, Profile, SA, Notifications, $translate) {
     var $ctrl = this;
     if (data.file) {
       $ctrl.file = data.file;
@@ -57,4 +48,5 @@ angular
     $ctrl.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}

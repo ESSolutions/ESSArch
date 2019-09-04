@@ -80,3 +80,7 @@ class ListFilter(django_filters.Filter):
 
         value_list = value.split(',')
         return super().filter(qs, value_list)
+
+
+class UUIDInFilter(filters.BaseInFilter, filters.UUIDFilter):
+    pass

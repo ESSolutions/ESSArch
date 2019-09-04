@@ -1,19 +1,5 @@
-angular
-  .module('essarch.controllers')
-  .controller('ExportResultModalInstanceCtrl', function(
-    $translate,
-    $uibModalInstance,
-    djangoAuth,
-    appConfig,
-    $http,
-    data,
-    $scope,
-    Notifications,
-    $timeout,
-    Search,
-    $sce,
-    $window
-  ) {
+export default class ExportResultModalInstanceCtrl {
+  constructor($uibModalInstance, data, $sce, $window) {
     var $ctrl = this;
     var vm = data.vm;
     $ctrl.formats = ['pdf', 'csv'];
@@ -27,4 +13,5 @@ angular
     $ctrl.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-  });
+  }
+}

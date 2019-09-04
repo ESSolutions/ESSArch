@@ -1,0 +1,115 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../installation/core/upgrade.rst:5
+msgid "Upgrade ESSArch Core"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:9
+msgid "Stop services"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:11
+#: ../../installation/core/upgrade.rst:70
+msgid "esshttpd"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:12
+#: ../../installation/core/upgrade.rst:58
+msgid "celerydepp"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:13
+#: ../../installation/core/upgrade.rst:59
+msgid "celerybeatepp"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:14
+#: ../../installation/core/upgrade.rst:60
+msgid "celerydeta"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:15
+#: ../../installation/core/upgrade.rst:61
+msgid "celerybeateta"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:16
+#: ../../installation/core/upgrade.rst:62
+msgid "celerydetp"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:17
+#: ../../installation/core/upgrade.rst:63
+msgid "celerybeatetp"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:18
+#: ../../installation/core/upgrade.rst:64
+msgid "daphneepp"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:19
+#: ../../installation/core/upgrade.rst:65
+msgid "daphneeta"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:20
+#: ../../installation/core/upgrade.rst:66
+msgid "daphneetp"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:21
+#: ../../installation/core/upgrade.rst:67
+msgid "wsworkerepp"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:22
+#: ../../installation/core/upgrade.rst:68
+msgid "wsworkereta"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:23
+#: ../../installation/core/upgrade.rst:69
+msgid "wsworkeretp"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:26
+msgid "Verify that a backup of the database exists at /ESSArch/backup"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:29
+msgid "Move old installation"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:39
+msgid "Install new ESSArch Core"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:49
+msgid ""
+"Compare and restore configuration files at /ESSArch/config from old "
+"directory"
+msgstr ""
+
+#: ../../installation/core/upgrade.rst:56
+msgid "Start services"
+msgstr ""
+

@@ -287,6 +287,7 @@ const listViewService = (
           page_size: pageSize,
           search: searchString,
           ordering: sortString,
+          pager: 'none',
         },
         columnFilters
       )

@@ -7,14 +7,16 @@ import os
 import uuid
 
 from django.db import transaction
-from django.db.models import F, OuterRef, Q, Subquery
-from elasticsearch import helpers as es_helpers
-from elasticsearch_dsl import Search
-from elasticsearch_dsl.connections import get_connection
+from django.db.models import Q
 from lxml import etree
 
 from ESSArch_Core.search.importers.base import BaseImporter
-from ESSArch_Core.tags.documents import Archive, Component, File, Node
+from ESSArch_Core.tags.documents import (
+    Component,
+    File,
+    InnerArchiveDocument,
+    Node,
+)
 from ESSArch_Core.tags.models import (
     StructureUnit,
     Tag,
@@ -462,7 +464,7 @@ class EardErmsImporter(BaseImporter):
             structure_unit=str(structure_unit.pk),
             type='Ärende',
             reference_code=reference_code,
-            archive=str(archive.pk),
+            archive=InnerArchiveDocument.from_obj(archive),
             ip=ip_id,
             task_id=str(self.task.pk),
             **data
@@ -499,16 +501,11 @@ class EardErmsImporter(BaseImporter):
 
             yield tag, tag_version, tag_repr, component.to_dict(include_meta=True)
 
-    def update_progress(self, progress):
-        self.task.progress = (progress / 100) * 100
-        self.task.save()
-
-    def import_content(self, task, path, rootdir=None, ip=None):
+    def import_content(self, path, rootdir=None, ip=None, **extra_paths):
         if not rootdir:
             rootdir = os.path.dirname(path)
 
         self.indexed_files = []
-        self.task = task
 
         archive = self.get_archive(path)
         if not archive:
@@ -521,20 +518,24 @@ class EardErmsImporter(BaseImporter):
         logger.debug("Deleting task tags already in database...")
         Tag.objects.filter(task=self.task).delete()
 
-        logger.debug("Deleting task tags already in Elasticsearch...")
-        indices_to_delete = [doc._index._name for doc in [Archive, Component, File]]
-
-        es = get_connection()
-        Search(using=es, index=indices_to_delete).query('term', task_id=str(self.task.pk)).delete()
+        self.cleanup_elasticsearch(self.task)
 
         tags, tag_versions, tag_structures, components = self.parse_eard(path, ip, rootdir, archive)
-        self.update_progress(50)
+        self.task.update_progress(50)
 
         self.save_to_database(tags, tag_versions, tag_structures, archive)
-        self.update_progress(75)
+        self.task.update_progress(75)
 
-        self.save_to_elasticsearch(components)
-        self.update_progress(100)
+        total = None
+        if self.task is not None:
+            total = TagVersion.objects.filter(tag__task=self.task).count()
+
+        for _, count in self.save_to_elasticsearch(components):
+            if self.task is not None:
+                partial_progress = ((count / total) / 4) * 100
+                self.task.update_progress(75 + partial_progress)
+
+        self.task.update_progress(100)
 
         return self.indexed_files
 
@@ -556,24 +557,4 @@ class EardErmsImporter(BaseImporter):
             logger.debug("Rebuilding tree...")
             TagStructure.objects.partial_rebuild(archive.get_active_structure().tree_id)
 
-        versions = TagVersion.objects.filter(tag=OuterRef('pk'))
-        Tag.objects.annotate(version=Subquery(versions.values('pk')[:1])).update(current_version_id=F('version'))
-
-    def save_to_elasticsearch(self, components):
-        logger.debug("Saving to Elasticsearch...")
-        count = 0
-        total = TagVersion.objects.filter(tag__task=self.task).count()
-
-        es = get_connection()
-        for ok, result in es_helpers.streaming_bulk(es, components):
-            action, result = result.popitem()
-            doc_id = result['_id']
-            doc = '/%s/%s' % (result['_index'], doc_id)
-
-            if not ok:
-                logger.error('Failed to %s document %s: %r' % (action, doc, result))
-            else:
-                logger.info('Saved document %s: %r' % (doc, result))
-                count += 1
-                partial_progress = ((count / total) / 4) * 100
-                self.update_progress(75 + partial_progress)
+        self.update_current_tag_versions()

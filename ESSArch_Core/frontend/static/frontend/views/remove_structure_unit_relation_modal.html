@@ -1,0 +1,18 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">
+    {{'ACCESS.REMOVE_RELATION_TO_STRUCTURE_UNIT' | translate}}
+  </h3>
+</div>
+<form ng-submit="$ctrl.remove()" name="$ctrl.form" novalidate>
+  <div class="modal-body" id="modal-body">
+    {{'ACCESS.REMOVE_RELATION_TO_STRUCTURE_UNIT_DESC' | translate:$ctrl.data.relation.structure_unit}}
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-danger" type="submit" ng-disabled="$ctrl.removing">
+      {{'REMOVE' | translate}} <i ng-if="$ctrl.removing" class="fas fa-spinner fa-spin" />
+    </button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()" ng-disabled="$ctrl.removing">
+      {{'CANCEL' | translate}}
+    </button>
+  </div>
+</form>

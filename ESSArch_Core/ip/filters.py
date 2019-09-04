@@ -76,7 +76,7 @@ class EventIPFilter(filters.FilterSet):
 
     class Meta:
         model = EventIP
-        fields = ('eventType', 'eventOutcome', 'linkingAgentRole', 'eventDateTime')
+        fields = ('eventType', 'eventType__category', 'eventOutcome', 'linkingAgentRole', 'eventDateTime')
 
 
 class WorkareaEntryFilter(filters.FilterSet):

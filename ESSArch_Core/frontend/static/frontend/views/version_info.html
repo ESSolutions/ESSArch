@@ -1,0 +1,8 @@
+<div class="version-info-page w-100">
+  <h3>{{'SYSINFO.SYSTEMINFORMATION' | translate}}</h3>
+  <uib-tabset active="activeTab">
+    <uib-tab ng-repeat="t in tabs" heading="{{t.label}}">
+      <div ng-include src="t.templateUrl"></div>
+    </uib-tab>
+  </uib-tabset>
+</div>

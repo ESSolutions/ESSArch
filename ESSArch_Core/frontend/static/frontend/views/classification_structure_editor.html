@@ -1,248 +1,259 @@
-<div class="classification-structure-editor margin-top-5">
-  <div class="table-container" st-table="vm.structures" st-pipe="vm.getStructures">
-    <div class="title-action-button-row">
-      <div class="title">
-        <h4>
-          {{'ACCESS.CLASSIFICATION_STRUCTURES' | translate}}
-        </h4>
-      </div>
-      <div class="action-button">
-        <button class="btn btn-primary" ng-click="vm.newStructureModal()">
-          {{'ACCESS.NEW_CLASSIFICATION_STRUCTURE' | translate}}
-        </button>
-      </div>
-    </div>
-    <div class="search-prepare-wrapper">
-      <label for items-per-page></label>
-      <select
-        id="items-per-page"
-        style="margin-right: 10px;"
-        class="form-control items-per-page"
-        ng-model="vm.structuresPerPage"
-        ng-options="x for x in [5,10,20,25,50]"
-        uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
-        tooltip-placement="auto top"
-        tooltip-append-to-body="true"
-      ></select>
-      <div class="global-search">
-        <input
-          st-search=""
-          class="form-control"
-          ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
-          type="text"
-          uib-tooltip="{{'GLOBALSEARCHDESC_STRUCTURES' | translate}}"
-          tooltip-placement="auto top"
-          tooltip-append-to-body="true"
-        />
-      </div>
-      <button
-        type="button"
-        ng-click="vm.getStructures()"
-        class="btn btn-primary btn-small"
-        style="margin-left: 5px;"
-        uib-tooltip="{{'SEARCH' | translate}}"
-        tooltip-placement="auto top"
-        tooltip-append-to-body="true"
-      >
-        {{'SEARCH' | translate}}&nbsp;<i class="fas fa-search"></i>
-      </button>
-      <div class="refresh-icon">
-        <span
-          ng-click="vm.updateStructures()"
-          class="clickable angular-animate fas fa-sync-alt fa-lg"
-          ng-class="{'fa-sync-alt-animate': vm.structuresLoading }"
-          uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
-          tooltip-placement="auto left"
-          tooltip-append-to-body="true"
-        ></span>
-      </div>
-    </div>
-    <div class="list-view-table table-x-overflow">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th st-sort="name">
-              {{'NAME' | translate}}
-            </th>
-            <th st-sort="create_date">
-              {{'CREATE_DATE' | translate}}
-            </th>
-            <th>
-              {{'ACCESS.VERSION' | translate}}
-            </th>
-            <th>
-              {{'REMOVE' | translate}}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            ng-repeat="x in vm.structures"
-            class="selectable"
-            ng-class="{'selected': vm.structure.id === x.id}"
-            ng-click="vm.structureClick(x)"
-          >
-            <td>
-              {{x.name}}
-            </td>
-            <td>
-              {{x.create_date | date:"yyyy-MM-dd HH:mm:ss"}}
-            </td>
-            <td>
-              {{x.version}}
-            </td>
-            <td>
-              <button class="fas fa-trash-alt btn btn-default btn-sm" ng-click="vm.removeStructureModal(x)"></button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <td ng-show="!initLoad" colspan="4">
-      <div
-        class="text-center"
-        st-template="static/frontend/views/pagination.html"
-        st-pagination=""
-        st-items-by-page="vm.structuresPerPage"
-        st-displayed-pages="7"
-      ></div>
-    </td>
-  </div>
-  <div class="structure-edit-view" ng-if="vm.structure">
-    <div class="structure-edit-wrapper">
-      <div
-        class="structure-tree"
-        resizable
-        r-directions="['right']"
-        r-grabber="<div class='resize-grabber'></div>"
-        r-flex="true"
-      >
-        <h4 class="mb-0">{{'ACCESS.EDIT_CLASSIFICATION_STRUCTURE' | translate}}</h4>
-        <div
-          ng-if="vm.structureTreeData"
-          js-tree="vm.structureTreeConfig"
-          should-apply="vm.applyStructureModelChanges()"
-          ng-model="vm.structureTreeData"
-          tree="vm.structureTreeInstance"
-          tree-events="changed:vm.structureTreeChange;ready:vm.treeReady;open_node:vm.expandChildren;move_node:vm.dropNode;"
-        ></div>
-      </div>
-      <div class="structure-rules">
-        <div class="rules-header">
-          <h4 class="mb-0">{{'ACCESS.RULES' | translate}}</h4>
-          <button
-            class="btn btn-primary"
-            ng-disabled="vm.savingRules || (angular.equals(vm.rules, {}) && angular.equals(vm.rules, vm.structure.specification.rules)) || angular.equals(vm.rules, vm.structure.specification.rules)"
-            ng-click="vm.saveRules(vm.rules, vm.structure)"
-          >
-            {{'SAVE' | translate}}&nbsp; <i ng-if="vm.savingRules" class="fas fa-spinner fa-spin"></i>
-          </button>
+<div class="search-admin">
+  <div class="content-wrapper">
+    <div class="classification-structure-editor">
+      <div class="table-container" st-table="vm.structures" st-pipe="vm.getStructures">
+        <div class="title-action-button-row">
+          <div class="title">
+            <h4>
+              {{'ACCESS.CLASSIFICATION_STRUCTURES' | translate}}
+            </h4>
+          </div>
+          <div class="action-button">
+            <button
+              class="btn btn-primary"
+              permission
+              permission-only="'tags.add_structure'"
+              ng-click="vm.newStructureModal()"
+            >
+              {{'ACCESS.NEW_CLASSIFICATION_STRUCTURE' | translate}}
+            </button>
+          </div>
         </div>
-        <br />
-        <div ng-if="!angular.equals(vm.rules, {})" class="table-x-overflow table-container">
-          <table class="table">
-            <tr>
-              <th>
-                {{'TYPE' | translate}}
-              </th>
-              <th>
-                <strong>
-                  {{'ACCESS.CAN_BE_MOVED' | translate}}
-                </strong>
-              </th>
-              <th>
-                {{'REMOVE' | translate}}
-              </th>
-            </tr>
-            <tr ng-repeat="(key, value) in vm.rules">
-              <td>
-                <strong>
-                  {{key}}
-                </strong>
-              </td>
-              <td>
-                <input type="checkbox" ng-model="value.movable" />
-              </td>
-              <td>
-                <button class="fas fa-trash-alt btn btn-default btn-sm" ng-click="vm.removeRule(key)"></button>
-              </td>
-            </tr>
+        <div class="search-prepare-wrapper">
+          <label for items-per-page></label>
+          <select
+            id="items-per-page"
+            style="margin-right: 10px;"
+            class="form-control items-per-page"
+            ng-model="vm.structuresPerPage"
+            ng-options="x for x in [5,10,20,25,50]"
+            uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          ></select>
+          <div class="global-search">
+            <input
+              st-search=""
+              class="form-control"
+              ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+              type="text"
+              uib-tooltip="{{'GLOBALSEARCHDESC_STRUCTURES' | translate}}"
+              tooltip-placement="auto top"
+              tooltip-append-to-body="true"
+            />
+          </div>
+          <button
+            type="button"
+            ng-click="vm.getStructures(tableState)"
+            class="btn btn-primary btn-small"
+            style="margin-left: 5px;"
+            uib-tooltip="{{'SEARCH' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          >
+            {{'SEARCH' | translate}}&nbsp;<i class="fas fa-search"></i>
+          </button>
+          <select
+            ng-model="vm.structureType"
+            ng-change="vm.updateStructures()"
+            class="form-control structure-type-select"
+            ng-options="x.id as x.name for x in vm.structureTypes"
+            placeholder="{{'ACCESS.STRUCTURE_TYPE' | translate}}"
+          >
+          </select>
+          <div class="refresh-icon">
+            <span
+              ng-click="vm.updateStructures()"
+              class="clickable angular-animate fas fa-sync-alt fa-lg"
+              ng-class="{'fa-sync-alt-animate': vm.structuresLoading }"
+              uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+              tooltip-placement="auto left"
+              tooltip-append-to-body="true"
+            ></span>
+          </div>
+        </div>
+        <div class="list-view-table table-x-overflow">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th class="cursor-pointer" st-sort="name">
+                  {{'NAME' | translate}}
+                </th>
+                <th class="cursor-pointer shrink" st-sort="published_date">
+                  {{'ACCESS.PUBLISHED' | translate}}
+                </th>
+                <th class="cursor-pointer" st-sort="create_date">
+                  {{'CREATE_DATE' | translate}}
+                </th>
+                <th class="cursor-pointer" st-sort="type">
+                  {{'TYPE' | translate}}
+                </th>
+                <th>
+                  {{'ACCESS.VERSION' | translate}}
+                </th>
+                <th class="white-space-nowrap shrink" permission permission-only="'tags.delete_structure'">
+                  {{'REMOVE' | translate}}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                ng-repeat="x in vm.structures"
+                class="selectable"
+                ng-class="{'selected': vm.structure.id === x.id}"
+                ng-click="vm.structureClick(x)"
+              >
+                <td>
+                  {{x.name}}
+                </td>
+                <td class="text-center">
+                  <i
+                    ng-if="x.published"
+                    class="fas fa-check success shrink"
+                    uib-tooltip="{{'ACCESS.PUBLISHED' | translate}} {{x.published_date | date:'yyyy-MM-dd HH:mm:ss'}}"
+                  ></i>
+                </td>
+                <td>
+                  {{x.create_date | date:"yyyy-MM-dd HH:mm:ss"}}
+                </td>
+                <td>
+                  {{x.type.name}}
+                </td>
+                <td>
+                  {{x.version}}
+                </td>
+                <td class="text-center shrink" permission permission-only="'tags.delete_structure'">
+                  <button
+                    class="fas fa-trash-alt btn btn-default btn-sm"
+                    ng-click="$event.stopPropagation(); vm.removeStructureModal(x)"
+                  ></button>
+                </td>
+              </tr>
+              <tr ng-if="!vm.structures.length && !vm.structuresLoading" class="empty-table-indicator">
+                <td colspan="{{vm.getStructureListColspan()}}">{{'NO_RESULTS_FOUND' | translate}}</td>
+              </tr>
+              <tr ng-if="!vm.structures.length && vm.structuresLoading" class="empty-table-indicator">
+                <td class="loading-column" colspan="{{vm.getStructureListColspan()}}">{{'LOADING' | translate}}</td>
+              </tr>
+            </tbody>
           </table>
         </div>
-        <label for="rule-type">
-          {{'ACCESS.NEW_TYPE' | translate}}
-        </label>
-        <div class="flex-row">
-          <input
-            id="rule-type"
-            placeholder="{{'TYPE' | translate}} ..."
-            class="form-control rule-type-input"
-            ng-model="vm.newRule"
-            ng-enter="vm.addRule(vm.newRule)"
-          />
-          <button class="btn btn-success btn-small" ng-click="vm.addRule(vm.newRule)">+</button>
+        <td ng-show="!initLoad" colspan="{{vm.getStructureListColspan()}}">
+          <div
+            class="text-center"
+            st-template="static/frontend/views/pagination.html"
+            st-pagination=""
+            st-items-by-page="vm.structuresPerPage"
+            st-displayed-pages="7"
+          ></div>
+        </td>
+      </div>
+      <div class="structure-edit-view" ng-if="vm.structure">
+        <div class="structure-edit-wrapper">
+          <div
+            class="structure-tree"
+            resizable
+            r-directions="['right']"
+            r-grabber="<div class='resize-grabber'></div>"
+            r-flex="true"
+          >
+            <h4 class="mb-0">{{'ACCESS.EDIT_CLASSIFICATION_STRUCTURE' | translate}}</h4>
+            <div
+              id="structure-tree"
+              ng-if="vm.structureTreeData"
+              js-tree="vm.structureTreeConfig"
+              should-apply="vm.applyStructureModelChanges()"
+              ng-model="vm.structureTreeData"
+              tree="vm.structureTreeInstance"
+              tree-events="changed:vm.structureTreeChange;ready:vm.treeReady;open_node:vm.expandChildren;move_node:vm.dropNode;ready:vm.selectRoot"
+            ></div>
+          </div>
+          <div ng-if="vm.node !== null" class="node-detail w-100 p-base">
+            <h3><b>{{vm.node.reference_code}}</b> {{vm.node.name}}</h3>
+
+            <h4 class="m-0 py-base">
+              {{vm.node.root ? vm.node.structureType.name : vm.node.type.name}}
+            </h4>
+            <p ng-if="vm.node.description">{{vm.node.description}}</p>
+            <div class="flex-row align-items-center mb-base">
+              <button
+                class="btn btn-primary"
+                ng-if="vm.node.root"
+                ng-disabled="vm.node.published"
+                permission
+                permission-only="'tags.publish_structure'"
+                ng-click="vm.publishModal(vm.node)"
+              >
+                {{(vm.node.published ? 'ACCESS.PUBLISHED' : 'PUBLISH') | translate}}
+                <span ng-if="vm.node.published"> &nbsp;<i class="fas fa-check success m-0"></i> </span>
+              </button>
+              <button
+                class="btn btn-default"
+                ng-if="vm.node.root && !vm.node.published"
+                permission
+                permission-only="'tags.change_structure'"
+                ng-click="vm.editStructureModal(vm.node)"
+              >
+                {{'EDIT' |translate}}
+              </button>
+              <button
+                ng-if="vm.node.published"
+                class="btn btn-default"
+                permission
+                permission-only="'tags.create_new_structure_version'"
+                ng-click="vm.newStructureVersionModal(vm.node)"
+              >
+                {{'ACCESS.CREATE_NEW_VERSION' | translate}}
+              </button>
+              <button
+                class="btn btn-default"
+                ng-if="!vm.node.root && !vm.structure.published"
+                permission
+                permission-only="'tags.change_structureunit'"
+                ng-click="vm.editNodeModal(vm.node)"
+              >
+                {{'EDIT' |translate}}
+              </button>
+            </div>
+            <strong>{{'DATES' | translate}}:</strong>
+            <result-field
+              ng-if="vm.node.root"
+              label="{{'CREATE_DATE'| translate}}"
+              data="vm.node.create_date ? vm.node.create_date : ('ACCESS.DATE_MISSING' | translate)"
+              type="date"
+            ></result-field>
+            <result-field
+              ng-if="vm.node.root"
+              label="{{'ACCESS.REVISE_DATE' |translate}}"
+              data="vm.node.revise_date ? vm.node.revise_date : ('ACCESS.DATE_MISSING' | translate)"
+              type="date"
+            ></result-field>
+            <result-field
+              label="{{'START_DATE' | translate}}"
+              data="vm.node.start_date  ? vm.node.start_date : ('ACCESS.DATE_MISSING' | translate)"
+              type="date"
+            ></result-field>
+            <result-field
+              label="{{'END_DATE' | translate}}"
+              data="vm.node.end_date ? vm.node.end_date : ('ACCESS.DATE_MISSING' | translate)"
+              type="date"
+            ></result-field>
+            <hr class="small" />
+            <div
+              ng-if="!angular.isUndefined(vm.node.related_structure_units) && !vm.node.root"
+              class="table-container table-x-overflow"
+              ng-include
+              src="'static/frontend/views/structure_detail_node_data.html'"
+            ></div>
+            <div
+              ng-if="vm.node.root"
+              class="structure-rules"
+              ng-include
+              src="'static/frontend/views/structure_detail_structure_data.html'"
+            ></div>
+          </div>
         </div>
       </div>
-    </div>
-    <hr />
-    <div>
-      <button ng-if="!vm.showSettings" class="btn btn-default" ng-click="vm.showSettings = true">
-        <i class="fas fa-plus"></i>&nbsp;{{'SETTINGS' | translate}}
-      </button>
-      <button ng-if="vm.showSettings" class="btn btn-default" ng-click="vm.showSettings = false">
-        <i class="fas fa-minus"></i>&nbsp;{{'SETTINGS' | translate}}
-      </button>
-    </div>
-    <div ng-if="vm.showSettings">
-      <div class="flex-row margin-top-5">
-        <div class="dropdown" uib-dropdown is-open="status.startDate">
-          <label for="start-date">{{'START_DATE' | translate}}</label>
-          <a class="dropdown-toggle" id="start-date" role="button" uib-dropdown-toggle>
-            <div class="input-group">
-              <input
-                type="text"
-                data-date-time-input="YYYY-MM-DD"
-                class="form-control"
-                data-ng-model="vm.structure.start_date"
-              /><span class="input-group-addon"><i class="fas fa-calendar-alt"></i></span>
-            </div>
-          </a>
-          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
-            <datetimepicker
-              data-ng-model="vm.structure.start_date"
-              ng-change="status.startDate = false"
-              data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType: 'YYYY-MM-DDTHH:mm:ssZ'}"
-            />
-          </ul>
-        </div>
-        <div class="dropdown" uib-dropdown is-open="status.endDate">
-          <label for="end-date">{{'END_DATE' | translate}}</label>
-          <a class="dropdown-toggle" id="end-date" role="button" uib-dropdown-toggle>
-            <div class="input-group">
-              <input
-                type="text"
-                data-date-time-input="YYYY-MM-DD"
-                class="form-control"
-                data-ng-model="vm.structure.end_date"
-              /><span class="input-group-addon"><i class="fas fa-calendar-alt"></i></span>
-            </div>
-          </a>
-          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
-            <datetimepicker
-              data-ng-model="vm.structure.end_date"
-              ng-change="status.endDate = false"
-              data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType: 'YYYY-MM-DDTHH:mm:ssZ'}"
-            />
-          </ul>
-        </div>
-      </div>
-      <button
-        class="btn btn-primary margin-top-5 float-right"
-        ng-disabled="angular.equals(vm.oldStructure, vm.structure) || vm.savingSettings"
-        ng-click="vm.saveSettings(vm.structure)"
-      >
-        {{'SAVE' | translate}}&nbsp;<i ng-if="vm.savingSettings" class="fas fa-spinner fa-spin"></i>
-      </button>
     </div>
   </div>
 </div>

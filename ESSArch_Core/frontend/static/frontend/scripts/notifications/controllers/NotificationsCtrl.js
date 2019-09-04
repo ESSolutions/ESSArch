@@ -92,10 +92,10 @@ export default class NotificationsCtrl {
     };
 
     vm.showAlert = function() {
-      vm.visible = true;
       Messenger().hideAll();
-      vm.getNotifications();
       vm.setAllSeen();
+      vm.getNotifications();
+      vm.visible = true;
     };
 
     vm.setSeen = function(alerts) {

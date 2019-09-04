@@ -8,8 +8,9 @@
   <h4>{{'ACCESS.DO_YOU_WANT_TO_REMOVE_NODE_FROM_CLASSIFICATION_STRUCTURE' | translate}}</h4>
 </div>
 <div class="modal-footer">
-  <button class="btn btn-primary" type="button" ng-click="$ctrl.removeFromStructure()" focused="true">
+  <button class="btn btn-danger" type="button" ng-click="$ctrl.removeFromStructure()" focused="true">
     {{'REMOVE' | translate}}
   </button>
   <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+  <form-errors errors="$ctrl.nonFieldErrors"></form-errors>
 </div>

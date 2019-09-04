@@ -3,7 +3,12 @@ import os
 import uuid
 
 from ESSArch_Core.tags.documents import Directory, File
-from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
+from ESSArch_Core.tags.models import (
+    Tag,
+    TagStructure,
+    TagVersion,
+    TagVersionType,
+)
 from ESSArch_Core.util import (
     get_tree_size_and_count,
     normalize_path,
@@ -67,11 +72,13 @@ def index_path(ip, path, parent=None):
 
     if isfile:
         tag_version.elastic_index = 'document'
-        tag_version.type = 'document'
+        # TODO: minimize db queries
+        tag_version.type = TagVersionType.objects.get_or_create(name='document')[0]
         tag_version.save()
         return index_document(ip, path, id)
     else:
         tag_version.elastic_index = 'directory'
-        tag_version.type = 'directory'
+        # TODO: minimize db queries
+        tag_version.type = TagVersionType.objects.get_or_create(name='directory')[0]
         tag_version.save()
         return index_directory(ip, path, id)

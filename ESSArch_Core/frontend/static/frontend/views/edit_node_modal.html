@@ -5,10 +5,18 @@
   <h3 class="modal-title" id="modal-title"></h3>
 </div>
 <div class="modal-body" id="modal-body">
-  <form name="$ctrl.form" class="edit-form">
-    <formly-form model="$ctrl.editData" fields="$ctrl.editFieldsNoDelete" options="$ctrl.options"></formly-form>
+  <form name="$ctrl.form">
+    <formly-form model="$ctrl.node" fields="$ctrl.fields" options="{}"></formly-form>
     <hr />
-    <formly-form model="$ctrl.editData" fields="$ctrl.editFields" options="$ctrl.options"></formly-form>
+    <h4>
+      {{'ACCESS.CUSTOM_FIELDS' | translate}}
+    </h4>
+    <formly-form
+      class="edit-form"
+      model="$ctrl.node.custom_fields"
+      fields="$ctrl.customFields"
+      options="{}"
+    ></formly-form>
   </form>
   <hr />
   <div class="add-field">
@@ -43,9 +51,10 @@
     ng-click="$ctrl.submit()"
     focused="true"
   >
-    {{'SUBMIT' | translate}} <i ng-if="$ctrl.submitting" class="fas fa-spinner fa-spin"></i>
+    {{'SUBMIT' | translate}} <i ng-if="$ctrl.submitting" class="fas fa-spinner fa-spin" />
   </button>
   <button class="btn btn-default" type="button" ng-disabled="$ctrl.submitting" ng-click="$ctrl.cancel()">
     {{'CANCEL' | translate}}
   </button>
+  <form-errors errors="$ctrl.nonFieldErrors"></form-errors>
 </div>

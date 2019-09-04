@@ -43,9 +43,9 @@
     <label>
       {{'ARCHIVE_MAINTENANCE.PATHS' | translate}}
     </label>
-    <div class="">
+    <div class="flex-row">
       <input class="form-control" ng-enter="$ctrl.addPath($ctrl.path)" ng-model="$ctrl.path" />
-      <button type="button" class="btn btn-success btn-sm" ng-click="$ctrl.addPath($ctrl.path)">
+      <button type="button" class="btn btn-success btn-small px-base" ng-click="$ctrl.addPath($ctrl.path)">
         <i class="fas fa-plus"></i>
       </button>
     </div>

@@ -26,6 +26,8 @@ from ESSArch_Core.storage.models import (
     StorageMethodTargetRelation,
     StorageTarget,
 )
+from ESSArch_Core.tags.models import Delivery, Transfer
+from ESSArch_Core.tags.serializers import TransferSerializer
 
 User = get_user_model()
 VERSION = get_versions()['version']
@@ -50,11 +52,8 @@ class EventIPSerializer(serializers.ModelSerializer):
     information_package = serializers.CharField(required=False, source='linkingObjectIdentifierValue')
     eventType = serializers.PrimaryKeyRelatedField(queryset=EventType.objects.all())
     eventDetail = serializers.SlugRelatedField(slug_field='eventDetail', source='eventType', read_only=True)
-
-    def create(self, validated_data):
-        if 'linkingAgentIdentifierValue' not in validated_data:
-            validated_data['linkingAgentIdentifierValue'] = self.context['request'].user
-        return super().create(validated_data)
+    delivery = serializers.PrimaryKeyRelatedField(required=False, queryset=Delivery.objects.all())
+    transfer = TransferSerializer()
 
     class Meta:
         model = EventIP
@@ -62,13 +61,32 @@ class EventIPSerializer(serializers.ModelSerializer):
             'id', 'eventType', 'eventDateTime', 'eventDetail',
             'eventVersion', 'eventOutcome',
             'eventOutcomeDetailNote', 'linkingAgentIdentifierValue',
-            'linkingAgentRole', 'information_package',
+            'linkingAgentRole', 'information_package', 'delivery', 'transfer',
         )
         extra_kwargs = {
             'eventVersion': {
                 'default': VERSION
             }
         }
+
+
+class EventIPWriteSerializer(EventIPSerializer):
+    transfer = serializers.PrimaryKeyRelatedField(required=False, queryset=Transfer.objects.all())
+
+    def validate(self, data):
+        if data.get('delivery') is not None and data.get('transfer') is not None:
+            delivery = data.get('delivery')
+            transfer = data.get('transfer')
+
+            if transfer.delivery != delivery:
+                raise serializers.ValidationError('Transfer not part of specified delivery')
+
+        return data
+
+    def create(self, validated_data):
+        if 'linkingAgentIdentifierValue' not in validated_data:
+            validated_data['linkingAgentIdentifierValue'] = self.context['request'].user
+        return super().create(validated_data)
 
 
 class InformationPackageSerializer(serializers.ModelSerializer):

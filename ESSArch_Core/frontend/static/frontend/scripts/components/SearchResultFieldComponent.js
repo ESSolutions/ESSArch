@@ -1,6 +1,8 @@
-angular.module('essarch.components').component('resultField', {
+import Controller from '../controllers/SearchResultFieldCtrl';
+
+export default {
   templateUrl: 'static/frontend/views/search_result_field.html',
-  controller: 'SearchResultFieldCtrl',
+  controller: Controller,
   controllerAs: 'vm',
   bindings: {
     label: '@',
@@ -9,4 +11,4 @@ angular.module('essarch.components').component('resultField', {
     type: '@',
     break: '<',
   },
-});
+};

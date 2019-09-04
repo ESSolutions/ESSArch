@@ -4,6 +4,19 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
+from ESSArch_Core.agents.views import (
+    AgentIdentifierTypeViewSet,
+    AgentNameTypeViewSet,
+    AgentNoteTypeViewSet,
+    AgentPlaceTypeViewSet,
+    AgentRelationTypeViewSet,
+    AgentTagLinkRelationTypeViewSet,
+    AgentTypeViewSet,
+    AgentViewSet,
+    AuthorityTypeViewSet,
+    RefCodeViewSet,
+)
+from ESSArch_Core.api.views import LanguageViewSet
 from ESSArch_Core.auth.views import (
     GroupViewSet,
     MeView,
@@ -22,7 +35,6 @@ from ESSArch_Core.configuration.views import (
 )
 from ESSArch_Core.fixity.views import ValidationFilesViewSet, ValidationViewSet
 from ESSArch_Core.ip.views import (
-    AgentViewSet,
     EventIPViewSet,
     InformationPackageReceptionViewSet,
     InformationPackageViewSet,
@@ -65,7 +77,28 @@ from ESSArch_Core.storage.views import (
     TapeSlotViewSet,
 )
 from ESSArch_Core.tags.search import ComponentSearchViewSet
-from ESSArch_Core.tags.views import TagInformationPackagesViewSet, TagViewSet
+from ESSArch_Core.tags.views import (
+    ArchiveViewSet,
+    DeliveryTypeViewSet,
+    DeliveryViewSet,
+    LocationFunctionTypeViewSet,
+    LocationLevelTypeViewSet,
+    LocationViewSet,
+    MetricProfileViewSet,
+    NodeIdentifierTypeViewSet,
+    NodeNoteTypeViewSet,
+    NodeRelationTypeViewSet,
+    StoredSearchViewSet,
+    StructureTypeViewSet,
+    StructureUnitTypeViewSet,
+    StructureUnitViewSet,
+    StructureViewSet,
+    TagInformationPackagesViewSet,
+    TagVersionTypeViewSet,
+    TagVersionViewSet,
+    TagViewSet,
+    TransferViewSet,
+)
 from ESSArch_Core.WorkflowEngine.views import (
     ProcessStepViewSet,
     ProcessTaskViewSet,
@@ -78,7 +111,89 @@ admin.site.site_title = 'ESSArch Administration'
 router = ESSArchRouter()
 router.register(r'users', UserViewSet)
 router.register(r'groups', GroupViewSet)
-router.register(r'agents', AgentViewSet)
+router.register(r'agents', AgentViewSet).register(
+    r'archives',
+    ArchiveViewSet,
+    basename='agent-archives',
+    parents_query_lookups=['agent']
+)
+router.register(r'agent-types', AgentTypeViewSet)
+router.register(r'agent-identifier-types', AgentIdentifierTypeViewSet)
+router.register(r'agent-name-types', AgentNameTypeViewSet)
+router.register(r'agent-note-types', AgentNoteTypeViewSet)
+router.register(r'agent-place-types', AgentPlaceTypeViewSet)
+router.register(r'agent-relation-types', AgentRelationTypeViewSet)
+router.register(r'agent-tag-relation-types', AgentTagLinkRelationTypeViewSet)
+router.register(r'authority-types', AuthorityTypeViewSet)
+router.register(r'deliveries', DeliveryViewSet).register(
+    r'transfers',
+    TransferViewSet,
+    basename='transfers',
+    parents_query_lookups=['delivery']
+)
+router.register(r'deliveries', DeliveryViewSet).register(
+    r'events',
+    EventIPViewSet,
+    basename='delivery-events',
+    parents_query_lookups=['delivery'],
+)
+router.register(r'delivery-types', DeliveryTypeViewSet)
+router.register(r'transfers', TransferViewSet).register(
+    r'events',
+    EventIPViewSet,
+    basename='transfer-events',
+    parents_query_lookups=['transfer'],
+)
+router.register(r'transfers', TransferViewSet).register(
+    r'structure-units',
+    StructureUnitViewSet,
+    basename='transfer-structure-units',
+    parents_query_lookups=['transfers'],
+)
+router.register(r'transfers', TransferViewSet).register(
+    r'tags',
+    TagVersionViewSet,
+    basename='transfer-tags',
+    parents_query_lookups=['transfers'],
+)
+router.register(r'structures', StructureViewSet).register(
+    r'units',
+    StructureUnitViewSet,
+    basename='structure-units',
+    parents_query_lookups=['structure']
+)
+router.register(r'structure-units', StructureUnitViewSet).register(
+    r'transfers',
+    TransferViewSet,
+    basename='structure-unit-transfers',
+    parents_query_lookups=['structure_units'],
+)
+router.register(r'structure-units', StructureUnitViewSet).register(
+    r'deliveries',
+    DeliveryViewSet,
+    basename='structure-unit-deliveries',
+    parents_query_lookups=['structure_units__delivery'],
+)
+router.register(r'structure-types', StructureTypeViewSet)
+router.register(r'structure-unit-types', StructureUnitTypeViewSet)
+router.register(r'node-relation-types', NodeRelationTypeViewSet)
+router.register(r'node-identifier-types', NodeIdentifierTypeViewSet)
+router.register(r'node-note-types', NodeNoteTypeViewSet)
+router.register(r'locations', LocationViewSet).register(
+    r'tags',
+    TagVersionViewSet,
+    basename='location-tags',
+    parents_query_lookups=['location']
+)
+router.register(r'metric-profiles', MetricProfileViewSet)
+router.register(r'location-level-types', LocationLevelTypeViewSet)
+router.register(r'location-function-types', LocationFunctionTypeViewSet)
+router.register(r'structure-units', StructureUnitViewSet)
+router.register(r'tag-version-types', TagVersionTypeViewSet)
+
+router.register(r'ref-codes', RefCodeViewSet)
+router.register(r'languages', LanguageViewSet)
+router.register(r'me/searches', StoredSearchViewSet)
 router.register(r'permissions', PermissionViewSet)
 router.register(r'profilemaker-extensions', ProfileMakerExtensionViewSet)
 router.register(r'profilemaker-templates', ProfileMakerTemplateViewSet)
@@ -244,7 +359,12 @@ router.register(r'robots', RobotViewSet, basename='robots').register(
 
 router.register(r'ip-reception', InformationPackageReceptionViewSet, basename="ip-reception")
 
-router.register(r'search', ComponentSearchViewSet, basename='search')
+router.register(r'search', ComponentSearchViewSet, basename='search').register(
+    r'transfers',
+    TransferViewSet,
+    basename='tags-transfers',
+    parents_query_lookups=['tag_versions'],
+)
 
 urlpatterns = [
     url(r'^', include('ESSArch_Core.frontend.urls'), name='home'),

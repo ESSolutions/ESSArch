@@ -1,0 +1,39 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../configuration/databases.rst:3
+msgid "Database"
+msgstr ""
+
+#: ../../configuration/databases.rst:5
+msgid ""
+"ESSArch uses SQLite by default and can be configured to use any other "
+"database supported by Django or its plugins. See the `Django database "
+"documentation`_ for more information on how to configure the database."
+msgstr ""
+
+#: ../../configuration/databases.rst:10
+msgid "Here is an example using MySQL:"
+msgstr ""
+
+#: ../../configuration/databases.rst:29
+msgid "Here is an example using Postgres:"
+msgstr ""
+

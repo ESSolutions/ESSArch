@@ -54,10 +54,8 @@ import 'angular-translate-storage-cookie';
 import 'angular-tree-control';
 import 'angular-ui-bootstrap';
 import 'angular-websocket';
-import 'jquery';
 import 'messenger-hubspot';
 import 'moment';
-//import ngJsTree from 'ng-js-tree';
 import 'ui-select';
 import {UAParser} from 'ua-parser-js';
 
@@ -186,14 +184,14 @@ angular
             authenticated: resolveAuthenticated,
           },
         })
-        .state('home.createSip', {
-          url: 'create-SIP',
-          templateUrl: '/static/frontend/views/create_sip.html',
+        .state('home.producer', {
+          url: 'producer',
+          templateUrl: '/static/frontend/views/producer.html',
           resolve: {
             authenticated: resolveAuthenticated,
           },
         })
-        .state('home.createSip.prepareIp', {
+        .state('home.producer.prepareIp', {
           url: '/prepare-IP',
           templateUrl: '/static/frontend/views/create_sip_prepare_ip.html',
           controller: 'PrepareIpCtrl as vm',
@@ -202,12 +200,12 @@ angular
           },
           data: {
             permissions: {
-              only: nestedPermissions(resolve('home.createSip.prepareIp', permissionConfig)),
+              only: nestedPermissions(resolve('home.producer.prepareIp', permissionConfig)),
               redirectTo: 'home.restricted',
             },
           },
         })
-        .state('home.createSip.collectContent', {
+        .state('home.producer.collectContent', {
           url: '/collect-content',
           templateUrl: '/static/frontend/views/create_sip_collect_content.html',
           controller: 'CollectContentCtrl as vm',
@@ -216,12 +214,12 @@ angular
           },
           data: {
             permissions: {
-              only: nestedPermissions(resolve('home.createSip.collectContent', permissionConfig)),
+              only: nestedPermissions(resolve('home.producer.collectContent', permissionConfig)),
               redirectTo: 'home.restricted',
             },
           },
         })
-        .state('home.createSip.dataSelection', {
+        .state('home.producer.dataSelection', {
           url: '/data-selection',
           templateUrl: '/static/frontend/views/create_sip_data_selection.html',
           controller: 'PrepareIpCtrl as vm',
@@ -229,7 +227,7 @@ angular
             authenticated: resolveAuthenticated,
           },
         })
-        .state('home.createSip.dataExtraction', {
+        .state('home.producer.dataExtraction', {
           url: '/data-extraction',
           templateUrl: '/static/frontend/views/create_sip_data_extraction.html',
           controller: 'PrepareIpCtrl as vm',
@@ -237,7 +235,7 @@ angular
             authenticated: resolveAuthenticated,
           },
         })
-        .state('home.createSip.manageData', {
+        .state('home.producer.manageData', {
           url: '/manage-data',
           templateUrl: '/static/frontend/views/create_sip_manage_data.html',
           controller: 'PrepareIpCtrl as vm',
@@ -245,7 +243,7 @@ angular
             authenticated: resolveAuthenticated,
           },
         })
-        .state('home.createSip.createSip', {
+        .state('home.producer.createSip', {
           url: '/create-SIP',
           templateUrl: '/static/frontend/views/create_sip_ip_approval.html',
           controller: 'CreateSipCtrl as vm',
@@ -254,27 +252,13 @@ angular
           },
           data: {
             permissions: {
-              only: nestedPermissions(resolve('home.createSip.createSip', permissionConfig)),
+              only: nestedPermissions(resolve('home.producer.createSip', permissionConfig)),
               redirectTo: 'home.restricted',
             },
           },
         })
-        .state('home.submitSip', {
-          url: 'submit-SIP',
-          templateUrl: '/static/frontend/views/submit_sip.html',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-        })
-        .state('home.submitSip.info', {
-          url: '/info',
-          templateUrl: '/static/frontend/views/submit_sip_info_page.html',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-        })
-        .state('home.submitSip.prepareSip', {
-          url: '/prepare-SIP',
+        .state('home.producer.submitSip', {
+          url: '/submit-SIP',
           templateUrl: '/static/frontend/views/submit_sip_prepare_sip.html',
           controller: 'PrepareSipCtrl as vm',
           resolve: {
@@ -285,120 +269,6 @@ angular
               only: nestedPermissions(resolve('home.submitSip.prepareSip', permissionConfig)),
               redirectTo: 'home.restricted',
             },
-          },
-        })
-        .state('home.access.search', {
-          url: '/search?{query:json}',
-          templateUrl: '/static/frontend/views/search.html',
-          controller: 'SearchCtrl as vm',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
-        .state('home.access.search.information_package', {
-          url: '/information_package/:id',
-          templateUrl: '/static/frontend/views/search_ip_detail.html',
-          controller: 'SearchIpCtrl as vm',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
-        .state('home.access.search.component', {
-          url: '/component/:id',
-          templateUrl: '/static/frontend/views/search_detail.html',
-          controller: 'SearchDetailCtrl as vm',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
-        .state('home.access.search.structure_unit', {
-          url: '/structure-unit/:id?{archive}',
-          templateUrl: '/static/frontend/views/search_structure_unit_detail.html',
-          controller: 'SearchDetailCtrl as vm',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
-        .state('home.access.search.directory', {
-          url: '/directory/:id',
-          templateUrl: '/static/frontend/views/search_detail.html',
-          controller: 'SearchDetailCtrl as vm',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
-        .state('home.access.search.document', {
-          url: '/document/:id',
-          templateUrl: '/static/frontend/views/search_detail.html',
-          controller: 'SearchDetailCtrl as vm',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
-        .state('home.access.search.archive', {
-          url: '/archive/:id',
-          templateUrl: '/static/frontend/views/search_detail.html',
-          controller: 'SearchDetailCtrl as vm',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
-        .state('home.system', {
-          url: 'system',
-          templateUrl: '/static/frontend/views/sysinfo.html',
-          controller: 'VersionCtrl as vm',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-        })
-        .state('home.support', {
-          url: 'support',
-          templateUrl: '/static/frontend/views/support.html',
-          controller: 'VersionCtrl as vm',
-          resolve: {
-            authenticated: resolveAuthenticated,
           },
         })
         .state('home.ingest', {
@@ -459,6 +329,20 @@ angular
             },
           },
         })
+        .state('home.access.orders', {
+          url: '/orders',
+          templateUrl: '/static/frontend/views/orders.html',
+          controller: 'OrdersCtrl as vm',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.orders', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
         .state('home.access.createDip', {
           url: '/create-DIP',
           templateUrl: '/static/frontend/views/access_create_dip.html',
@@ -474,6 +358,228 @@ angular
             },
           },
         })
+        .state('home.archivalDescriptions', {
+          url: 'archival-descriptions',
+          templateUrl: '/static/frontend/views/archival_descriptions.html',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archivalDescriptions', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archivalDescriptions.search', {
+          url: '/search?{query:json}',
+          templateUrl: '/static/frontend/views/search.html',
+          controller: 'SearchCtrl as vm',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archivalDescriptions.search', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archivalDescriptions.search.information_package', {
+          url: '/information_package/:id',
+          templateUrl: '/static/frontend/views/search_ip_detail.html',
+          controller: 'SearchIpCtrl as vm',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archivalDescriptions.search', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archivalDescriptions.search.component', {
+          url: '/component/:id',
+          templateUrl: '/static/frontend/views/search_detail.html',
+          controller: 'SearchDetailCtrl as vm',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archivalDescriptions.search', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archivalDescriptions.search.structure_unit', {
+          url: '/structure-unit/:id?{archive}',
+          templateUrl: '/static/frontend/views/search_structure_unit_detail.html',
+          controller: 'SearchDetailCtrl as vm',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archivalDescriptions.search', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archivalDescriptions.search.directory', {
+          url: '/directory/:id',
+          templateUrl: '/static/frontend/views/search_detail.html',
+          controller: 'SearchDetailCtrl as vm',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archivalDescriptions.search', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archivalDescriptions.search.document', {
+          url: '/document/:id',
+          templateUrl: '/static/frontend/views/search_detail.html',
+          controller: 'SearchDetailCtrl as vm',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archivalDescriptions.search', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archivalDescriptions.search.archive', {
+          url: '/archive/:id',
+          templateUrl: '/static/frontend/views/search_detail.html',
+          controller: 'SearchDetailCtrl as vm',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archivalDescriptions.search', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archivalDescriptions.archiveCreators', {
+          url: '/archive-creators/:id',
+          template: '<agents></agents>',
+          params: {
+            id: null,
+          },
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archivalDescriptions.archiveCreators', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archivalDescriptions.classificationStructures', {
+          url: '/structures/:id',
+          template: '<classification-structure-editor></classification-structure-editor>',
+          params: {
+            id: null,
+          },
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archivalDescriptions.classificationStructures', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archivalDescriptions.archiveManager', {
+          url: '/archive-manager',
+          template: '<archive-manager></archive-manager>',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archivalDescriptions.archiveManager', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archivalDescriptions.archiveManager.detail', {
+          url: '/:id',
+          templateUrl: '/static/frontend/views/search_archive_detail.html',
+          controller: 'SearchDetailCtrl as vm',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archivalDescriptions.archiveManager', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archivalDescriptions.location', {
+          url: '/location/:id',
+          template: '<location></location>',
+          params: {
+            id: null,
+          },
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archivalDescriptions.location', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archivalDescriptions.deliveries', {
+          url: '/deliveries/:delivery',
+          template: '<delivery-page></delivery-page>',
+          params: {
+            transfer: null,
+            delivery: null,
+          },
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archivalDescriptions.deliveries', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.archivalDescriptions.deliveries.transfers', {
+          url: '/transfers/:transfer',
+          templateUrl: 'static/frontend/views/transfers.html',
+          controller: 'TransferCtrl',
+          controllerAs: 'vm',
+          params: {
+            transfer: null,
+            delivery: null,
+          },
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.archivalDescriptions.deliveries.transfers', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
         .state('home.workarea', {
           url: 'workspace',
           templateUrl: '/static/frontend/views/combined_workarea.html',
@@ -484,20 +590,6 @@ angular
           data: {
             permissions: {
               only: nestedPermissions(resolve('home.workarea', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
-        .state('home.access.orders', {
-          url: '/orders',
-          templateUrl: '/static/frontend/views/orders.html',
-          controller: 'OrdersCtrl as vm',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.orders', permissionConfig)),
               redirectTo: 'home.restricted',
             },
           },
@@ -571,46 +663,6 @@ angular
           controller: 'AdministrationCtrl as vm',
           resolve: {
             authenticated: resolveAuthenticated,
-          },
-        })
-        .state('home.administration.searchAdmin', {
-          url: '/search-admin',
-          template: '<search-admin></search-admin>',
-          redirectTo: 'home.administration.searchAdmin.archiveManager',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.administration.searchAdmin', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
-        .state('home.administration.searchAdmin.classificationStructures', {
-          url: '/classification-structures',
-          template: '<classification-structure-editor></classification-structure-editor>',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
-        .state('home.administration.searchAdmin.archiveManager', {
-          url: '/archive-manager',
-          template: '<archive-manager></archive-manager>',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.access.search', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
           },
         })
         .state('home.administration.mediaInformation', {
@@ -749,17 +801,20 @@ angular
             },
           },
         })
-        .state('home.dashboard', {
-          url: 'dashboard',
-          template: '<dashboard-stats class="w-100"></dashboard-stats>',
+        .state('home.system', {
+          url: 'system',
+          templateUrl: '/static/frontend/views/sysinfo.html',
+          controller: 'VersionCtrl as vm',
           resolve: {
             authenticated: resolveAuthenticated,
           },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.dashboard', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
+        })
+        .state('home.support', {
+          url: 'support',
+          templateUrl: '/static/frontend/views/support.html',
+          controller: 'VersionCtrl as vm',
+          resolve: {
+            authenticated: resolveAuthenticated,
           },
         })
         .state('home.restricted', {
@@ -971,8 +1026,10 @@ angular
         }
 
         if (
+          to.name == 'home.producer' ||
           to.name == 'home.ingest' ||
           to.name == 'home.access' ||
+          to.name == 'home.archivalDescriptions' ||
           to.name == 'home.administration' ||
           to.name == 'home.administration.profileManager' ||
           to.name == 'home.archiveMaintenance'

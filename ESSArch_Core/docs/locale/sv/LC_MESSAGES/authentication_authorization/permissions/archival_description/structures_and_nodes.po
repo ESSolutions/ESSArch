@@ -1,0 +1,345 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:3
+msgid "Structures and nodes"
+msgstr "Strukturer och noder"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:6
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:21
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:38
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:51
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:67
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:82
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:99
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:116
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:129
+msgid "Name"
+msgstr "Namn"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:6
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:21
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:38
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:51
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:67
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:82
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:99
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:116
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:129
+msgid "Description"
+msgstr "Beskrivning"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:8
+msgid "``tags.search``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:8
+msgid "Perform searches"
+msgstr "Utför sökningar"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:10
+msgid "``tags.create_archive``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:10
+msgid "Create archives"
+msgstr "Skapa arkiv"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:12
+msgid "``tags.change_archive``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:12
+msgid "Change archives"
+msgstr "Ändra arkiv"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:14
+msgid "``tags.delete_archive``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:14
+msgid "Delete archives"
+msgstr "Radera arkiv"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:18
+msgid "Structures"
+msgstr "Strukturer"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:23
+msgid "``tags.add_structure``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:23
+msgid "Create structures"
+msgstr "Skapa strukturer"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:25
+msgid "``tags.change_structure``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:25
+msgid "Change structures"
+msgstr "Ändra strukturer"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:27
+msgid "``tags.delete_structure``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:27
+msgid "Delete structures"
+msgstr "Radera strukturer"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:29
+msgid "``tags.publish_structure``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:29
+msgid "Publish structures"
+msgstr "Publicera strukturer"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:31
+msgid "``tags.create_new_structure_version``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:31
+msgid "Create new structure versions"
+msgstr "Skapa nya strukturversioner"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:35
+msgid "Structure Types"
+msgstr "Strukturtyper"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:40
+msgid "``tags.add_structuretype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:40
+msgid "Create structure types"
+msgstr "Skapa strukturtyper"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:42
+msgid "``tags.change_structuretype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:42
+msgid "Change structure types"
+msgstr "Ändra strukturtyper"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:44
+msgid "``tags.delete_structuretype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:44
+msgid "Delete structure types"
+msgstr "Radera strukturtyper"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:48
+msgid "Structure Units"
+msgstr "Strukturenheter"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:53
+msgid "``tags.add_structureunit``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:53
+msgid "Create structure unit"
+msgstr "Skapa strukturenheter"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:55
+msgid "``tags.change_structureunit``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:55
+msgid "Change structure unit"
+msgstr "Ändra strukturenheter"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:57
+msgid "``tags.delete_structureunit``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:57
+msgid "Delete structure unit"
+msgstr "Radera strukturenheter"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:61
+msgid "Instance permissions"
+msgstr "Instansrättigheter"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:63
+msgid ""
+"The following permissions are only used when working with units in "
+"structure instances."
+msgstr ""
+"Följande rättigheter används endast när man arbeter med enheter i "
+"strukturinstanser."
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:69
+msgid "``tags.add_structureunit_instance``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:69
+msgid "Create structure unit instances"
+msgstr "Skapa strukturenheter i instanser"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:71
+msgid "``tags.change_structureunit_instance``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:71
+msgid "Change structure unit instances"
+msgstr "Ändra strukturenheter i instanser"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:73
+msgid "``tags.delete_structureunit_instance``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:73
+msgid "Delete structure unit instances"
+msgstr "Radera strukturenheter i instanser"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:75
+msgid "``tags.move_structureunit_instance``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:75
+msgid "Move structure unit instances"
+msgstr "Flytta strukturenheter i instanser"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:79
+msgid "Structure Unit Types"
+msgstr "Strukturenhetstyper"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:84
+msgid "``tags.add_structureunittype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:84
+msgid "Create structure unit types"
+msgstr "Skapa strukturenhetstyper"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:86
+msgid "``tags.change_structureunittype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:86
+msgid "Change structure unit types"
+msgstr "Ändra strukturenhetstyper"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:88
+msgid "``tags.delete_structureunittype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:88
+msgid "Delete structure unit types"
+msgstr "Radera strukturenhetstyper"
+
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:93
+msgid ":ref:`structure_units`"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:96
+msgid "Node Relation Types"
+msgstr "Nodrelationstyper"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:101
+msgid "``tags.add_noderelationtype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:101
+msgid "Create node relation types"
+msgstr "Skapa nodrelationstyper"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:103
+msgid "``tags.change_noderelationtype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:103
+msgid "Change node relation types"
+msgstr "Ändra nodrelationstyper"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:105
+msgid "``tags.delete_noderelationtype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:105
+msgid "Delete node relation types"
+msgstr "Radera nodrelationstyper"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:110
+msgid ":ref:`node_relation_types`"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:113
+msgid "Nodes"
+msgstr "Noder"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:118
+msgid "``tags.add_tag``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:118
+msgid "Create nodes"
+msgstr "Skapa noder"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:120
+msgid "``tags.change_tag``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:120
+msgid "Change nodes"
+msgstr "Ändra noder"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:122
+msgid "``tags.delete_tag``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:122
+msgid "Delete nodes"
+msgstr "Radera noder"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:126
+msgid "Node Types"
+msgstr "Nodtyper"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:131
+msgid "``tags.add_tagversiontype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:131
+msgid "Create node types"
+msgstr "Skapa nodtyper"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:133
+msgid "``tags.change_tagversiontype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:133
+msgid "Change node types"
+msgstr "Ändra nodtyper"
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:135
+msgid "``tags.delete_tagversiontype``"
+msgstr ""
+
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:135
+msgid "Delete node types"
+msgstr "Radera nodtyper"
+

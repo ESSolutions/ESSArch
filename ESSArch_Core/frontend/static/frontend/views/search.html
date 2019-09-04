@@ -20,24 +20,69 @@
           </div>
         </div>
       </form>
+      <div class="flex-row mb-base mt-base">
+        <button class="btn btn-default" ng-click="vm.savedSearchVisible = !vm.savedSearchVisible;">
+          <i class="fas" ng-class="{'fa-plus': vm.savedSearchVisible, 'fa-minus': !vm.savedSearchVisible}"></i
+          >&nbsp;{{'ACCESS.SAVED_SEARCHES' | translate}}
+        </button>
+        <button
+          class="btn btn-default"
+          uib-tooltip="{{'ACCESS.SAVE_SEARCH' | translate}}"
+          tooltip-position="auto top"
+          ng-click="vm.saveSearchModal()"
+        >
+          {{'ACCESS.SAVE_SEARCH' | translate}}
+        </button>
+      </div>
+      <div class="mb-base" uib-collapse="vm.savedSearchVisible">
+        <div class="table-x-overflow table-container">
+          <table class="table table-striped m-0">
+            <thead>
+              <tr>
+                <th>
+                  {{'NAME' | translate}}
+                </th>
+                <th class="white-space-nowrap shrink">
+                  {{'REMOVE' | translate}}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                ng-repeat="x in vm.searchList"
+                ui-sref="home.archivalDescriptions.search({query: x.query})"
+                class="selectable"
+              >
+                <td>
+                  {{x.name}}
+                </td>
+                <td class="text-center shrink">
+                  <button
+                    class="btn btn-default btn-sm fas fa-trash-alt"
+                    ng-click="vm.removeSearchModal(x); $event.stopPropagation();"
+                    uib-tooltip="{{'REMOVE' | translate}}"
+                    tooltip-placement="auto top"
+                    tooltip-append-to-body="true"
+                  ></button>
+                </td>
+              </tr>
+              <tr ng-if="!vm.searchList.length && !loadingSearches" class="empty-table-indicator">
+                <td colspan="2">{{'NO_RESULTS_FOUND' | translate}}</td>
+              </tr>
+              <tr ng-if="!vm.searchList.length && loadingSearches" class="empty-table-indicator">
+                <td class="loading-column" colspan="2">{{'LOADING' | translate}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
       <button ng-if="!vm.showFilters" class="btn btn-default" ng-click="vm.showFilters = true">
         <i class="fas fa-plus"></i>&nbsp;{{'FILTERS' | translate}}
       </button>
       <button ng-if="vm.showFilters" class="btn btn-default" ng-click="vm.showFilters = false">
         <i class="fas fa-minus"></i>&nbsp;{{'FILTERS' | translate}}
       </button>
-      <div ng-if="vm.showFilters" class="filters">
-        <!--<label>
-                    {{'START_DATE' | translate}}
-                    <input type="number" class="form-control" ng-enter="vm.searchSubmit(vm.searchString)" ng-model="vm.filterObject.start_date">
-                </label>
-                <label>
-                    {{'END_DATE' | translate}}
-                    <input type="number" class="form-control" ng-enter="vm.searchSubmit(vm.searchString)" ng-model="vm.filterObject.end_date">
-                </label>
-                <br/>-->
-        <br />
-        <hr />
+      <div uib-collapse="!vm.showFilters" class="filters">
         <div ng-include src="'static/frontend/views/search_filters.html'"></div>
         <hr />
         <div>
@@ -100,10 +145,11 @@
           active="vm.activeTab"
           class="tabs tabs-style-bar"
         >
-          <uib-tab ui-sref="home.access.search" index="0" heading="{{'ACCESS.HITS' | translate}}"> </uib-tab>
+          <uib-tab ui-sref="home.archivalDescriptions.search" index="0" heading="{{'ACCESS.HITS' | translate}}">
+          </uib-tab>
           <uib-tab
             ng-click="vm.goToDetailView()"
-            ng-show="latestRecord || ('home.access.search.detail' | isState) || ('home.access.search.information_package' | isState) || ('home.access.search.component' | isState)|| ('home.access.search.archive' | isState) || ('home.access.search.document' | isState) || ('home.access.search.directory' | isState) || ('home.access.search.structure_unit' | isState)"
+            ng-show="latestRecord || ('home.archivalDescriptions.search.detail' | isState) || ('home.archivalDescriptions.search.information_package' | isState) || ('home.archivalDescriptions.search.component' | isState)|| ('home.archivalDescriptions.search.archive' | isState) || ('home.archivalDescriptions.search.document' | isState) || ('home.archivalDescriptions.search.directory' | isState) || ('home.archivalDescriptions.search.structure_unit' | isState)"
             index="1"
             heading="{{'ACCESS.RECORD' | translate}}"
           >
@@ -124,13 +170,39 @@
               {{'ACCESS.NARROW_RESULTS' | translate}}
             </b>
           </div>
-          <div
-            js-tree="vm.treeConfig"
-            should-apply="vm.applyModelChanges()"
-            ng-model="vm.tags"
-            tree="vm.treeInstance"
-            tree-events="changed:vm.selectFilter"
-          ></div>
+          <hr class="small" />
+          <div class="px-base">
+            <search-filter
+              label=" {{'TYPE' | translate}}"
+              options="vm.options.types"
+              label-prop="key"
+              value-prop="key"
+              update="vm.filterNodeTypes(search)"
+              ng-model="vm.filterObject.type"
+              ng-change="vm.searchSubmit()"
+            >
+            </search-filter>
+            <search-filter
+              label="{{'ACCESS.ARCHIVES' | translate}}"
+              options="vm.options.archives"
+              label-prop="name"
+              value-prop="id"
+              update="vm.getArchives(search)"
+              ng-model="vm.filterObject.archives"
+              ng-change="vm.searchSubmit()"
+            >
+            </search-filter>
+            <search-filter
+              label=" {{'ARCHIVECREATORS' | translate}}"
+              options="vm.options.agents"
+              label-prop="full_name"
+              value-prop="id"
+              update="vm.getAgents(search)"
+              ng-model="vm.filterObject.agents"
+              ng-change="vm.searchSubmit()"
+            >
+            </search-filter>
+          </div>
         </div>
         <div
           ng-if="vm.showResults"
@@ -146,7 +218,10 @@
                 <thead>
                   <tr>
                     <th>{{'TYPE' | translate}}</th>
-                    <th st-sort="reference_code" class="clickable">{{'ACCESS.REFERENCE_CODE' | translate}}</th>
+                    <th>{{'ACCESS.ARCHIVE' | translate}}</th>
+                    <th st-sort="reference_code" class="clickable white-space-nowrap">
+                      {{'ACCESS.REFERENCE_CODE' | translate}}
+                    </th>
                     <th st-sort="name" class="clickable">{{'ACCESS.TITLE' |translate}}</th>
                     <th>{{'DATE' |translate}}</th>
                     <th>{{'DESCRIPTION' | translate}}</th>
@@ -161,16 +236,26 @@
                     <td>
                       {{x.type}}
                     </td>
-                    <td class="search-td-nowrap" ng-bind-html="x.reference_code"></td>
-                    <td ng-bind-html="x.name"></td>
+                    <td class="search-archive-column">
+                      {{x.archive.name}}
+                    </td>
+                    <td>
+                      <div class="white-space-nowrap d-flex">
+                        <span ng-if="x.structure_units.length > 0">
+                          {{x.structure_units[0].reference_code}}:
+                        </span>
+                        <div ng-bind-html="x.reference_code"></div>
+                      </div>
+                    </td>
+                    <td ng-bind-html="x.name" class="search-name-column"></td>
                     <td class="search-td-nowrap">{{x.unit_dates.date}}</td>
                     <td ng-bind-html="x.desc"></td>
                   </tr>
                   <tr ng-if="!vm.searchResult.length && !ipLoading" class="empty-table-indicator">
-                    <td colspan="6">{{'NO_RESULTS_FOUND' | translate}}</td>
+                    <td colspan="7">{{'NO_RESULTS_FOUND' | translate}}</td>
                   </tr>
                   <tr ng-if="!vm.searchResult.length && ipLoading" class="empty-table-indicator">
-                    <td class="loading-column" colspan="6">{{'LOADING' | translate}}</td>
+                    <td class="loading-column" colspan="7">{{'LOADING' | translate}}</td>
                   </tr>
                 </tbody>
               </table>

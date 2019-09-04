@@ -22,7 +22,7 @@
     Email - essarch@essolutions.se
 */
 
-angular.module('essarch.directives').directive('ngEnter', function() {
+export default () => {
   return function(scope, element, attrs) {
     element.bind('keydown keypress', function(event) {
       if (event.which === 13 && !event.shiftKey) {
@@ -34,4 +34,4 @@ angular.module('essarch.directives').directive('ngEnter', function() {
       }
     });
   };
-});
+};
