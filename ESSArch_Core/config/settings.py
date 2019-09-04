@@ -348,7 +348,7 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 DJANGO_REV_MANIFEST_PATH = os.path.join(BASE_DIR, 'frontend/static/frontend/build/rev-manifest.json')
 
 # File upload
-DATA_UPLOAD_MAX_MEMORY_SIZE = 50*1024*1024  # 50 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50 MB
 
 # Documentation
 DOCS_ROOT = os.path.join(BASE_DIR, 'docs/_build/{lang}/html')

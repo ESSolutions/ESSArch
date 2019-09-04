@@ -22,24 +22,28 @@ addons:
       - liblua5.2-dev
 
 templates:
-  mariadb: &mariadb DB_PACKAGES="mysql" DATABASE_URL_ESSARCH="mysql://root@localhost/essarch?isolation_level=read committed"
-  mysql: &mysql DB_PACKAGES="mysql" DATABASE_URL_ESSARCH="mysql://root@localhost/essarch?isolation_level=read committed"
-  postgres: &postgres DB_PACKAGES="postgres" DATABASE_URL_ESSARCH="postgres://postgres@localhost/essarch?isolation_level=read committed"
-  mssql: &mssql DB_PACKAGES="mssql" DATABASE_URL_ESSARCH="mssql://SA:MyPassword42@localhost:1433/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server"
+  mariadb: &mariadb DATABASE_URL_ESSARCH="mysql://root@localhost/essarch?isolation_level=read committed"
+  mysql: &mysql DATABASE_URL_ESSARCH="mysql://root@localhost/essarch?isolation_level=read committed"
+  postgres: &postgres DATABASE_URL_ESSARCH="postgres://postgres@localhost/essarch?isolation_level=read committed"
+  mssql: &mssql DATABASE_URL_ESSARCH="mssql://SA:MyPassword42@localhost:1433/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server"
 
 matrix:
   include:
     - name: 'flake8'
       stage: lint
       python: '3.7'
+      before_install: skip
       install: pip install flake8==3.7.1
+      before_script: skip
       script: flake8
       after_success: skip
 
     - name: 'isort'
       stage: lint
       python: '3.7'
+      before_install: skip
       install: pip install isort==4.3.20
+      before_script: skip
       script: isort --recursive --check-only --diff ESSArch_Core
       after_success: skip
 
@@ -49,6 +53,7 @@ matrix:
       node_js: 'lts/*'
       before_install: cd ESSArch_Core/frontend/static/frontend
       install: yarn install --frozen-lockfile
+      before_script: skip
       script: yarn prettier --check "**/*.{ts,js,scss,html}"
       after_success: skip
 
@@ -58,21 +63,25 @@ matrix:
       node_js: 'lts/*'
       before_install: cd ESSArch_Core/frontend/static/frontend
       install: yarn install --frozen-lockfile
+      before_script: skip
       script: yarn build:prod
       after_success: skip
 
     - name: 'Build documentation'
       stage: test
       python: '3.7'
+      before_install: skip
       install:
+        - sudo mkdir -p /ESSArch/log/
+        - sudo chmod 777 /ESSArch/log/
+        - python -m pip install --upgrade pip wheel setuptools
+
         # Pin six to avoid dependency errors,
         # see https://github.com/pypa/pip/issues/4887
 
-        - python -m pip install --upgrade pip wheel setuptools
         - pip install --upgrade six>=1.12.0
         - pip install .
         - pip install -r requirements/docs.txt
-        - essarch settings generate -p local_essarch_settings.py
 
       script:
         - cd ESSArch_Core/docs
@@ -99,6 +108,14 @@ matrix:
         - curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
         - sudo apt-get update
         - sudo ACCEPT_EULA=Y apt-get install msodbcsql17 unixodbc-dev
+        - python -m pip install --upgrade pip wheel codecov setuptools
+
+        # Pin six to avoid dependency errors,
+        # see https://github.com/pypa/pip/issues/4887
+        - pip install --upgrade six>=1.12.0
+        - pip install -r requirements/tests.txt
+      install:
+        - pip install .[mssql]
       env:
         - *mssql
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
@@ -109,8 +126,9 @@ matrix:
       python: '3.7'
       addons:
         mariadb: '10.3'
-      before_script:
+      install:
         - mysql --user="root" --execute="SET GLOBAL character_set_server='utf8mb4'"
+        - pip install .[mysql]
       env:
         - *mariadb
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
@@ -121,8 +139,9 @@ matrix:
       python: '3.7'
       services:
         - mysql
-      before_script:
+      install:
         - mysql --user="root" --execute="SET GLOBAL character_set_server='utf8mb4'"
+        - pip install .[mysql]
       env:
         - *mysql
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
@@ -133,6 +152,8 @@ matrix:
       python: '3.7'
       services:
         - postgresql
+      install:
+        - pip install .[postgres]
       env:
         - *postgres
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
@@ -158,6 +179,14 @@ matrix:
         - choco install python --version 3.7.4
         - choco install imagemagick
         - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python37:/c/Python37/Scripts:$PATH"
+        - python -m pip install --upgrade pip wheel codecov setuptools
+
+        # Pin six to avoid dependency errors,
+        # see https://github.com/pypa/pip/issues/4887
+        - pip install --upgrade six>=1.12.0
+        - pip install -r requirements/tests.txt
+      install:
+        - pip install .[mssql]
       env:
         - *mssql
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
@@ -166,15 +195,17 @@ matrix:
 before_install:
   - sudo mkdir -p /ESSArch/log/
   - sudo chmod 777 /ESSArch/log/
+  - python -m pip install --upgrade pip wheel codecov setuptools
 
-install:
   # Pin six to avoid dependency errors,
   # see https://github.com/pypa/pip/issues/4887
-
-  - python -m pip install --upgrade pip wheel codecov setuptools
   - pip install --upgrade six>=1.12.0
-  - pip install .["$DB_PACKAGES"]
   - pip install -r requirements/tests.txt
+
+install:
+  - pip install .
+
+before_script:
   - essarch settings generate -p local_essarch_settings.py
 
 script:

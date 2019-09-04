@@ -2088,6 +2088,8 @@ class UploadTestCase(TestCase):
         self.datadir = os.path.join(self.root, 'datadir')
         self.src = os.path.join(self.datadir, 'src')
         self.dst = os.path.join(self.datadir, 'dst')
+        self.temp = os.path.join(self.datadir, 'temp')
+        Path.objects.create(entity='temp', value=self.temp)
 
         self.ip = InformationPackage.objects.create(object_path=self.dst, state='Prepared')
         self.baseurl = reverse('informationpackage-detail', args=(self.ip.pk,))
@@ -2098,7 +2100,7 @@ class UploadTestCase(TestCase):
 
         self.addCleanup(shutil.rmtree, self.datadir)
 
-        for path in [self.src, self.dst]:
+        for path in [self.src, self.dst, self.temp]:
             try:
                 os.makedirs(path)
             except OSError as e:
@@ -2133,11 +2135,11 @@ class UploadTestCase(TestCase):
                     'file': chunk,
                 }
                 res = self.client.post(self.baseurl + 'upload/', data, format='multipart')
-                self.assertEqual(res.status_code, status.HTTP_200_OK)
+                self.assertEqual(res.status_code, status.HTTP_201_CREATED)
                 total += block_size
                 i += 1
 
-        data = {'path': dstfile}
+        data = {'path': os.path.relpath(dstfile, self.dst)}
         res = self.client.post(self.baseurl + 'merge-uploaded-chunks/', data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -2185,8 +2187,9 @@ class UploadTestCase(TestCase):
             }
             self.client.post(self.baseurl + 'upload/', data, format='multipart')
 
-            data = {'path': dstfile}
+            data = {'path': os.path.relpath(dstfile, self.dst)}
             self.client.post(self.baseurl + 'merge-uploaded-chunks/', data)
+
             self.assertTrue(filecmp.cmp(srcfile, dstfile, False))
 
 
