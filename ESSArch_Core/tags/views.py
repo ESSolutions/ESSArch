@@ -6,7 +6,6 @@ from mptt.templatetags.mptt_tags import cache_tree_children
 from rest_framework import exceptions, filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -195,7 +194,7 @@ class TagVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 class StructureTypeViewSet(viewsets.ModelViewSet):
     queryset = StructureType.objects.all()
     serializer_class = StructureTypeSerializer
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
     filter_backends = (OrderingFilter, SearchFilter,)
     ordering_fields = ('name',)
     search_fields = ('name',)
@@ -283,7 +282,7 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 class StructureUnitTypeViewSet(viewsets.ModelViewSet):
     queryset = StructureUnitType.objects.all()
     serializer_class = StructureUnitTypeSerializer
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
     filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter,)
     ordering_fields = ('name',)
     search_fields = ('name',)
@@ -293,7 +292,7 @@ class StructureUnitTypeViewSet(viewsets.ModelViewSet):
 class NodeRelationTypeViewSet(viewsets.ModelViewSet):
     queryset = NodeRelationType.objects.all()
     serializer_class = NodeRelationTypeSerializer
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
     filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter,)
     ordering_fields = ('name',)
     search_fields = ('name',)

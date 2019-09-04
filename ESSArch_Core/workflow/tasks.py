@@ -434,7 +434,7 @@ class StoreAIP(DBTask):
 
 
 class AccessAIP(DBTask):
-    def run(self, aip, tar=True, extracted=False, new=False, package_xml=False,
+    def run(self, aip, storage_object=None, tar=True, extracted=False, new=False, package_xml=False,
             aic_xml=False, object_identifier_value="", dst=None):
         aip = InformationPackage.objects.get(pk=aip)
 
@@ -475,12 +475,12 @@ class AccessAIP(DBTask):
 
             return str(workarea_obj.pk)
 
-        storage_object = aip.get_fastest_readable_storage_object()
+        if storage_object is not None:
+            storage_object = StorageObject.objects.get(pk=storage_object)
+        else:
+            storage_object = aip.get_fastest_readable_storage_object()
         aip.access(storage_object, self.get_processtask(), dst=dst)
         return
-
-    def event_outcome_success(self, result, aip):
-        return "Created entries in IO queue for AIP '%s'" % aip
 
 
 class PrepareDIP(DBTask):

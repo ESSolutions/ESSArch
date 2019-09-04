@@ -47,13 +47,13 @@ from rest_framework import (
 )
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.api.filters import string_to_bool
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.models import Member
+from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.cache.decorators import lock_obj
 from ESSArch_Core.configuration.models import Path, StoragePolicy
@@ -141,7 +141,7 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     queryset = EventIP.objects.all()
     serializer_class = EventIPSerializer
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
     filterset_class = EventIPFilter
     filter_backends = (
         filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
@@ -861,7 +861,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             {
                 "name": "ESSArch_Core.ip.tasks.CreateContainer",
                 "label": "Create container",
-                "args": [dst]
+                "args": [ip.object_path, dst]
             },
             {
                 "name": "ESSArch_Core.tasks.UpdateIPPath",
@@ -1252,6 +1252,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not any(v for k, v in data.items() if k in options):
             raise exceptions.ParseError('Need at least one option set to true')
 
+        if data.get('extracted') and data.get('tar'):
+            raise exceptions.ParseError('"extracted" and "tar" cannot both be true')
+
         if data.get('new'):
             if request.user.user_profile.current_organization is None:
                 raise exceptions.ParseError('You must be part of an organization to create a new generation of an IP')
@@ -1283,7 +1286,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not data.get('new') and ip_already_in_workarea:
             raise Conflict('IP already in workarea')
 
-        workflow = aip.create_access_workflow(self.request.user)
+        workflow = aip.create_access_workflow(
+            self.request.user,
+            tar=data.get('tar', False),
+            extracted=data.get('extracted', False),
+            new=data.get('new', False),
+            object_identifier_value=data.get('object_identifier_value'),
+        )
         workflow.run()
         return Response({'detail': 'Accessing %s...' % aip.object_identifier_value, 'step': workflow.pk})
 

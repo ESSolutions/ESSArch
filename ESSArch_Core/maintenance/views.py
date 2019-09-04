@@ -4,7 +4,6 @@ from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -37,7 +36,7 @@ from ESSArch_Core.util import generate_file_response
 
 
 class MaintenanceRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
     serializer_class = MaintenanceRuleSerializer
     filterset_class = MaintenanceRuleFilter
     filter_backends = (

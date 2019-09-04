@@ -141,7 +141,13 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
 
 class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     result = serializers.SerializerMethodField()
-    exception = serializers.JSONField(read_only=True)
+    exception = serializers.SerializerMethodField()
+
+    def get_exception(self, obj):
+        if obj.exception is None:
+            return None
+
+        return str(obj.exception)
 
     def get_result(self, obj):
         return str(obj.result)
