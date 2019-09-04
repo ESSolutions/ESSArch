@@ -24,6 +24,7 @@ RUN cd /tmp/watchman-${WATCHMAN_VERSION} \
 FROM node:alpine AS build-frontend
 
 WORKDIR /code
+RUN apk update && apk add python
 COPY ESSArch_Core/frontend/static/frontend/package.json ESSArch_Core/frontend/static/frontend/yarn.lock ./
 RUN yarn
 COPY ESSArch_Core/frontend/static/frontend ./
