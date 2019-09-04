@@ -1144,7 +1144,7 @@ class InformationPackage(models.Model):
                                     {
                                         "name": "ESSArch_Core.ip.tasks.CreateContainer",
                                         "label": "Create temporary container",
-                                        "args": [temp_container_path],
+                                        "args": [self.object_path, temp_container_path],
                                     },
                                     {
                                         "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
@@ -1222,8 +1222,21 @@ class InformationPackage(models.Model):
 
         return create_workflow(workflow, self, name='Preserve Information Package')
 
-    def create_access_workflow(self, user):
-        storage_object = self.get_fastest_readable_storage_object()
+    def create_access_workflow(self, user, tar=False, extracted=False, new=False, object_identifier_value=None):
+        if tar:
+            try:
+                storage_object = self.storage.readable().secure_storage().fastest()[0]
+            except IndexError:
+                NO_READABLE_LONG_TERM_STORAGE_ERROR_MSG = (
+                    'No readable long-term storage object for {} found, getting fastest storage object'.format(
+                        self.object_identifier_value
+                    )
+                )
+                logger.debug(NO_READABLE_LONG_TERM_STORAGE_ERROR_MSG)
+                storage_object = self.get_fastest_readable_storage_object()
+        else:
+            storage_object = self.get_fastest_readable_storage_object()
+
         is_cached_storage_object = storage_object.is_cache_for_ip(self)
 
         cache_storage = self.policy.cache_storage
@@ -1237,6 +1250,7 @@ class InformationPackage(models.Model):
             cache_target = None
 
         temp_dir = Path.objects.get(entity='temp').value
+        temp_object_path = self.get_temp_object_path()
         temp_container_path = self.get_temp_container_path()
         temp_mets_path = self.get_temp_container_xml_path()
         temp_aic_mets_path = self.get_temp_container_aic_xml_path() if self.aic else None
@@ -1245,8 +1259,15 @@ class InformationPackage(models.Model):
         storage_target = storage_medium.storage_target
 
         access_workarea = Path.objects.get(entity='access_workarea').value
+
         access_workarea_user = os.path.join(access_workarea, user.username, self.object_identifier_value)
-        os.makedirs(access_workarea_user, exist_ok=True)
+        access_workarea_user_container = '{}.{}'.format(access_workarea_user, self.get_container_format().lower())
+        access_workarea_user_package_xml = '{}.{}'.format(access_workarea_user, 'xml')
+        access_workarea_user_aic_xml = os.path.join(access_workarea, user.username, self.aic.object_identifier_value)
+
+        if extracted:
+            os.makedirs(access_workarea_user, exist_ok=True)
+
 
         if storage_target.remote_server:
             # AccessAIP instructs and waits for ip.access to transfer files from remote
@@ -1261,6 +1282,7 @@ class InformationPackage(models.Model):
                         "label": "Access AIP",
                         "args": [str(self.pk)],
                         "params": {
+                            "storage_object": storage_object.pk,
                             'dst': temp_dir
                         },
                     },
@@ -1275,8 +1297,9 @@ class InformationPackage(models.Model):
                         ],
                     },
                     {
-                        "name": "ESSArch_Core.tasks.CopyFile",
-                        "label": "Copy temporary container to workspace",
+                        "name": "ESSArch_Core.tasks.ExtractTAR",
+                        "label": "Extract temporary container to workspace",
+                        "if": extracted,
                         "args": [
                             temp_container_path,
                             access_workarea_user,
@@ -1284,7 +1307,17 @@ class InformationPackage(models.Model):
                     },
                     {
                         "name": "ESSArch_Core.tasks.CopyFile",
+                        "label": "Copy temporary container to workspace",
+                        "if": tar,
+                        "args": [
+                            temp_container_path,
+                            access_workarea_user_container,
+                        ],
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.CopyFile",
                         "label": "Copy temporary AIP xml to workspace",
+                        "if": tar,
                         "args": [
                             temp_mets_path,
                             access_workarea_user,
@@ -1293,6 +1326,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.CopyFile",
                         "label": "Copy temporary AIC xml to workspace",
+                        "if": tar,
                         "args": [
                             temp_aic_mets_path,
                             access_workarea_user,
@@ -1325,10 +1359,43 @@ class InformationPackage(models.Model):
                         {
                             "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                             "label": "Access AIP",
+                            "if": extracted,
                             "args": [str(self.pk)],
                             "params": {
+                                "storage_object": storage_object.pk,
                                 'dst': access_workarea_user
                             },
+                        },
+                        {
+                            "name": "ESSArch_Core.workflow.tasks.AccessAIP",
+                            "label": "Access AIP",
+                            "if": tar,
+                            "args": [str(self.pk)],
+                            "params": {
+                                "storage_object": storage_object.pk,
+                                'dst': temp_object_path,
+                            },
+                        },
+                        {
+                            "name": "ESSArch_Core.ip.tasks.CreateContainer",
+                            "label": "Create temporary container",
+                            "if": tar,
+                            "args": [temp_object_path, access_workarea_user_container],
+                        },
+                        {
+                            "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
+                            "label": "Create container mets",
+                            "if": tar,
+                            "args": [
+                                temp_object_path,
+                                access_workarea_user_package_xml,
+                            ]
+                        },
+                        {
+                            "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
+                            "label": "Create container aic mets",
+                            "if": tar,
+                            "args": [access_workarea_user_aic_xml]
                         },
                     ]
                 }
@@ -1345,6 +1412,7 @@ class InformationPackage(models.Model):
                             "label": "Access AIP",
                             "args": [str(self.pk)],
                             "params": {
+                                "storage_object": storage_object.pk,
                                 'dst': temp_dir
                             },
                         },
@@ -1359,8 +1427,18 @@ class InformationPackage(models.Model):
                             ],
                         },
                         {
+                            "name": "ESSArch_Core.tasks.ExtractTAR",
+                            "label": "Extract temporary container to workspace",
+                            "if": extracted,
+                            "args": [
+                                temp_container_path,
+                                access_workarea_user,
+                            ],
+                        },
+                        {
                             "name": "ESSArch_Core.tasks.CopyFile",
                             "label": "Copy temporary container to workspace",
+                            "if": tar,
                             "args": [
                                 temp_container_path,
                                 access_workarea_user,
@@ -1369,6 +1447,7 @@ class InformationPackage(models.Model):
                         {
                             "name": "ESSArch_Core.tasks.CopyFile",
                             "label": "Copy temporary AIP xml to workspace",
+                            "if": tar,
                             "args": [
                                 temp_mets_path,
                                 access_workarea_user,
@@ -1377,6 +1456,7 @@ class InformationPackage(models.Model):
                         {
                             "name": "ESSArch_Core.tasks.CopyFile",
                             "label": "Copy temporary AIC xml to workspace",
+                            "if": tar,
                             "args": [
                                 temp_aic_mets_path,
                                 access_workarea_user,
@@ -1412,15 +1492,51 @@ class InformationPackage(models.Model):
                             "if": cache_target is not None,
                             "allow_failure": True,
                             "args": [str(self.pk)],
-                            "params": {"dst": os.path.join(cache_target, self.object_identifier_value)},
+                            "params": {
+                                "storage_object": storage_object.pk,
+                                "dst": os.path.join(cache_target, self.object_identifier_value),
+                            },
                         },
                         {
                             "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                             "label": "Access AIP",
+                            "if": extracted,
                             "args": [str(self.pk)],
                             "params": {
+                                "storage_object": storage_object.pk,
                                 'dst': access_workarea_user
                             },
+                        },
+                        {
+                            "name": "ESSArch_Core.workflow.tasks.AccessAIP",
+                            "label": "Access AIP",
+                            "if": tar,
+                            "args": [str(self.pk)],
+                            "params": {
+                                "storage_object": storage_object.pk,
+                                'dst': temp_object_path,
+                            },
+                        },
+                        {
+                            "name": "ESSArch_Core.ip.tasks.CreateContainer",
+                            "label": "Create temporary container",
+                            "if": tar,
+                            "args": [temp_object_path, access_workarea_user_container],
+                        },
+                        {
+                            "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
+                            "label": "Create container mets",
+                            "if": tar,
+                            "args": [
+                                temp_object_path,
+                                access_workarea_user_package_xml,
+                            ]
+                        },
+                        {
+                            "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
+                            "label": "Create container aic mets",
+                            "if": tar,
+                            "args": [access_workarea_user_aic_xml]
                         },
                     ]
                 }

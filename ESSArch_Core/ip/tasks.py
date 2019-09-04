@@ -237,13 +237,12 @@ class CreatePhysicalModel(DBTask):
 
 
 class CreateContainer(DBTask):
-    def run(self, dst):
+    def run(self, src, dst):
         ip = self.get_information_package()
         container_format = ip.get_container_format().lower()
         tpp = ip.get_profile_rel('transfer_project').profile
         compress = tpp.specification_data.get('container_format_compression', False)
 
-        src = ip.object_path
         dst = normalize_path(dst)
 
         if container_format == 'zip':
@@ -252,15 +251,11 @@ class CreateContainer(DBTask):
         else:
             self.event_type = 50400
             compression = ':gz' if compress else ''
-            base_dir = os.path.basename(os.path.normpath(ip.object_path))
+            base_dir = os.path.basename(os.path.normpath(src))
             with tarfile.open(dst, 'w%s' % compression) as new_tar:
                 new_tar.add(src, base_dir)
 
         return dst
-
-    def event_outcome_success(self, result, *args, **kwargs):
-        ip = self.get_information_package()
-        return "Created {path}".format(path=ip.object_path)
 
 
 class ParseSubmitDescription(DBTask):

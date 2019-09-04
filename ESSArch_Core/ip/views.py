@@ -830,7 +830,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             {
                 "name": "ESSArch_Core.ip.tasks.CreateContainer",
                 "label": "Create container",
-                "args": [dst]
+                "args": [ip.object_path, dst]
             },
             {
                 "name": "ESSArch_Core.tasks.UpdateIPPath",
@@ -1221,6 +1221,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not any(v for k, v in data.items() if k in options):
             raise exceptions.ParseError('Need at least one option set to true')
 
+        if data.get('extracted') and data.get('tar'):
+            raise exceptions.ParseError('"extracted" and "tar" cannot both be true')
+
         if data.get('new'):
             if request.user.user_profile.current_organization is None:
                 raise exceptions.ParseError('You must be part of an organization to create a new generation of an IP')
@@ -1252,7 +1255,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not data.get('new') and ip_already_in_workarea:
             raise Conflict('IP already in workarea')
 
-        workflow = aip.create_access_workflow(self.request.user)
+        workflow = aip.create_access_workflow(
+            self.request.user,
+            tar=data.get('tar', False),
+            extracted=data.get('extracted', False),
+            new=data.get('new', False),
+            object_identifier_value=data.get('object_identifier_value'),
+        )
         workflow.run()
         return Response({'detail': 'Accessing %s...' % aip.object_identifier_value, 'step': workflow.pk})
 
