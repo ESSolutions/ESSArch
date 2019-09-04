@@ -47,7 +47,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.loadRecordAndTree = function(structure) {
-      var isStructureUnit = $state.current.name == 'home.access.search.structure_unit';
+      var isStructureUnit = $state.current.name == 'home.archivalDescriptions.search.structure_unit';
       var nodeId = $stateParams.id;
 
       if (isStructureUnit) {
@@ -342,7 +342,7 @@ export default class SearchDetailCtrl {
           }
         });
       } else if (e.node.original.type === 'agent') {
-        $state.go('home.access.archiveCreators', {id: e.node.original.id});
+        $state.go('home.archivalDescriptions.archiveCreators', {id: e.node.original.id});
       } else {
         if (e.node.original._id !== vm.record._id) {
           vm.goToNode(e.node.id);
@@ -355,7 +355,7 @@ export default class SearchDetailCtrl {
       var node = tree.get_node(id);
 
       if (node.original.type === 'agent') {
-        $state.go('home.access.archiveCreators', {id: node.original.id});
+        $state.go('home.archivalDescriptions.archiveCreators', {id: node.original.id});
         return;
       }
 
@@ -381,12 +381,12 @@ export default class SearchDetailCtrl {
         $rootScope.latestRecord = node;
         if (vm.record._is_structure_unit)
           $state.go(
-            'home.access.search.structure_unit',
+            'home.archivalDescriptions.search.structure_unit',
             {id: vm.record._id, archive: vm.archive._id},
             {notify: false}
           );
         else {
-          $state.go('home.access.search.' + vm.record._index, {id: vm.record._id}, {notify: false});
+          $state.go('home.archivalDescriptions.search.' + vm.record._index, {id: vm.record._id}, {notify: false});
           getVersionSelectData();
         }
         $rootScope.$broadcast('UPDATE_TITLE', {title: vm.record.name});
@@ -401,9 +401,13 @@ export default class SearchDetailCtrl {
 
     vm.goToNodePage = function(id, isStructureUnit) {
       if (isStructureUnit)
-        $state.go('home.access.search.structure_unit', {id: id, archive: vm.archive._id}, {notify: true});
+        $state.go(
+          'home.archivalDescriptions.search.structure_unit',
+          {id: id, archive: vm.archive._id},
+          {notify: true}
+        );
       else {
-        $state.go('home.access.search.component', {id: id}, {notify: true});
+        $state.go('home.archivalDescriptions.search.component', {id: id}, {notify: true});
       }
     };
 
@@ -759,7 +763,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.gotoNode = function(node) {
-      $state.go('home.access.search.' + node._index, {id: node._id});
+      $state.go('home.archivalDescriptions.search.' + node._index, {id: node._id});
     };
 
     vm.dropNode = function(jqueryObj, data) {
@@ -913,7 +917,7 @@ export default class SearchDetailCtrl {
 
     vm.gotoSearch = function() {
       $rootScope.$broadcast('CHANGE_TAB', {tab: 0});
-      $state.go('home.access.search');
+      $state.go('home.archivalDescriptions.search');
     };
 
     vm.setCurrentVersion = function(node_id) {

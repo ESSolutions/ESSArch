@@ -1,14 +1,9 @@
-<div class="dashboard-stats content-wrapper">
-  <div class="d-flex justify-content-end">
-    <button class="btn btn-primary" ng-click="vm.buildReportModal()">
-      {{'DASHBOARD.BUILD_REPORT' | translate}}
-    </button>
-  </div>
+<div>
   <h4>
     {{'DASHBOARD.SYSTEM' | translate}}
   </h4>
-  <div class="flex-wrap align-items-center justify-content-evenly">
-    <div class="p-base flex-column align-items-center">
+  <div class="dashboard-row">
+    <div class="dashboard-card">
       <h4 class="text-center pb-base">
         {{'DASHBOARD.INFORMATION_PACKAGES' | translate}}
       </h4>
@@ -16,7 +11,7 @@
         {{vm.stats.information_packages}}
       </h2>
     </div>
-    <div class="p-base flex-column align-items-center">
+    <div class="dashboard-card">
       <h4 class="text-center pb-base">
         {{'DASHBOARD.ORDERED_INFORMATION_PACKAGES' | translate}}
       </h4>
@@ -24,7 +19,7 @@
         {{vm.stats.ordered_information_packages}}
       </h2>
     </div>
-    <div class="p-base flex-column align-items-center">
+    <div class="dashboard-card">
       <h4 class="text-center pb-base">
         {{'DASHBOARD.APPRAISALS' | translate}}
       </h4>
@@ -32,7 +27,7 @@
         {{vm.stats.appraisals}}
       </h2>
     </div>
-    <div class="p-base flex-column align-items-center">
+    <div class="dashboard-card">
       <h4 class="text-center pb-base">
         {{'DASHBOARD.TOTAL_OBJECT_SIZE' | translate}}
       </h4>
@@ -41,45 +36,15 @@
       </h2>
     </div>
   </div>
-  <hr />
-  <h4>
-    {{'DASHBOARD.USERS_AND_PERMISSIONS' | translate}}
-  </h4>
-  <div class="flex-wrap align-items-center justify-content-evenly">
-    <div class="p-base flex-column align-items-center">
-      <h4 class="text-center pb-base">
-        {{'DASHBOARD.USERS' | translate}}
-      </h4>
-      <h2 class="text-center text-bold">
-        {{vm.stats.users}}
-      </h2>
-    </div>
-    <div class="p-base flex-column align-items-center">
-      <h4 class="text-center pb-base">
-        {{'DASHBOARD.ROLES' | translate}}
-      </h4>
-      <h2 class="text-center text-bold">
-        {{vm.stats.roles}}
-      </h2>
-    </div>
-    <div class="p-base flex-column align-items-center">
-      <h4 class="text-center pb-base">
-        {{'DASHBOARD.PERMISSIONS' | translate}}
-      </h4>
-      <h2 class="text-center text-bold">
-        {{vm.stats.permissions}}
-      </h2>
-    </div>
-  </div>
-  <div ng-if="vm.stats.tags.length">
+  <div ng-if="vm.stats.tags.length" permission permission-only="'tags.search'">
     <hr />
     <h4>
       {{'DASHBOARD.ARCHIVAL_DESCRIPTION' | translate}}
     </h4>
-    <div class="flex-wrap align-items-center justify-content-evenly">
-      <div class="p-base flex-column align-items-center" ng-repeat="x in vm.stats.tags">
+    <div class="dashboard-row">
+      <div class="dashboard-card" ng-repeat="x in vm.stats.tags">
         <h4 class="text-center pb-base">
-          {{x.type}}
+          {{x.type__name}}
         </h4>
         <h2 class="text-center text-bold">
           {{x.total}}

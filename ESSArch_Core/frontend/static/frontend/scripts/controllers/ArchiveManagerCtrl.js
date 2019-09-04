@@ -67,11 +67,11 @@ export default class ArchiveManagerCtrl {
     vm.archiveClick = function(archive) {
       if (vm.record !== null && archive.current_version.id === vm.record._id) {
         vm.record = null;
-        $state.go('home.access.archiveManager');
+        $state.go('home.archivalDescriptions.archiveManager');
       } else {
         vm.archiveLoading = true;
         vm.record = {_id: archive.current_version.id};
-        $state.go('home.access.archiveManager.detail', {id: vm.record._id});
+        $state.go('home.archivalDescriptions.archiveManager.detail', {id: vm.record._id});
       }
     };
 
@@ -105,7 +105,7 @@ export default class ArchiveManagerCtrl {
       modalInstance.result.then(
         function(data, $ctrl) {
           vm.updateArchives();
-          $state.go('home.access.archiveManager.detail', {id: data.archive._id});
+          $state.go('home.archivalDescriptions.archiveManager.detail', {id: data.archive._id});
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -132,7 +132,7 @@ export default class ArchiveManagerCtrl {
         modalInstance.result.then(
           function(data, $ctrl) {
             vm.updateArchives();
-            $state.go('home.access.archiveManager.detail', {id: archive._id}, {reload: true});
+            $state.go('home.archivalDescriptions.archiveManager.detail', {id: archive._id}, {reload: true});
           },
           function() {
             $log.info('modal-component dismissed at: ' + new Date());
@@ -159,7 +159,7 @@ export default class ArchiveManagerCtrl {
       modalInstance.result.then(
         function(data, $ctrl) {
           vm.updateArchives();
-          $state.go('home.access.archiveManager');
+          $state.go('home.archivalDescriptions.archiveManager');
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());

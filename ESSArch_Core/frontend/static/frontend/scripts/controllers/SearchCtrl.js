@@ -70,7 +70,7 @@ export default class SearchCtrl {
     // When state is changed to search active tab is set to the first tab.
     // Fixing issues when backing from search detail state and no tab would be active
     $transitions.onSuccess({}, function() {
-      if ($state.is('home.access.search')) {
+      if ($state.is('home.archivalDescriptions.search')) {
         vm.activeTab = 0;
         vm.search(vm.tableState);
       } else {
@@ -80,12 +80,12 @@ export default class SearchCtrl {
 
     vm.$onInit = function() {
       if (
-        $state.is('home.access.search.detail') ||
-        $state.is('home.access.search.information_package') ||
-        $state.is('home.access.search.component') ||
-        $state.is('home.access.search.archive') ||
-        $state.is('home.access.search.directory') ||
-        $state.is('home.access.search.document')
+        $state.is('home.archivalDescriptions.search.detail') ||
+        $state.is('home.archivalDescriptions.search.information_package') ||
+        $state.is('home.archivalDescriptions.search.component') ||
+        $state.is('home.archivalDescriptions.search.archive') ||
+        $state.is('home.archivalDescriptions.search.directory') ||
+        $state.is('home.archivalDescriptions.search.document')
       ) {
         vm.activeTab = 1;
         vm.showTree = true;
@@ -109,7 +109,9 @@ export default class SearchCtrl {
 
     vm.goToDetailView = function() {
       if ($rootScope.latestRecord) {
-        $state.go('home.access.search.' + $rootScope.latestRecord._index, {id: $rootScope.latestRecord._id});
+        $state.go('home.archivalDescriptions.search.' + $rootScope.latestRecord._index, {
+          id: $rootScope.latestRecord._id,
+        });
         vm.activeTab = 1;
       }
     };
@@ -178,9 +180,7 @@ export default class SearchCtrl {
     vm.clearSearch = function() {
       vm.filterObject = {
         q: '',
-        type: [],
-        archives: [],
-        agents: [],
+        type: null,
         page: 1,
         page_size: vm.resultsPerPage || 25,
         ordering: '',
@@ -310,8 +310,8 @@ export default class SearchCtrl {
           tableState.pagination.numberOfPages = response.numberOfPages; //set the number of pages so the pagination can update
           vm.searching = false;
           vm.loadTags(response.aggregations);
-          if ($state.current.name === 'home.access.search') {
-            $state.go('home.access.search', {query: vm.filterObject}, {notify: false});
+          if ($state.current.name === 'home.archivalDescriptions.search') {
+            $state.go('home.archivalDescriptions.search', {query: vm.filterObject}, {notify: false});
           }
         });
       } else {
@@ -402,10 +402,10 @@ export default class SearchCtrl {
         index = result._index;
       }
       if (e.ctrlKey || e.metaKey) {
-        var url = $state.href('home.access.search.' + index, {id: result.id});
+        var url = $state.href('home.archivalDescriptions.search.' + index, {id: result.id});
         $window.open(url, '_blank');
       } else {
-        $state.go('home.access.search.' + index, {id: result.id});
+        $state.go('home.archivalDescriptions.search.' + index, {id: result.id});
         vm.activeTab = 1;
       }
     };

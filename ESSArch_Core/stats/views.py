@@ -27,7 +27,7 @@ def get_data():
         'ordered_information_packages': InformationPackage.objects.filter(orders__isnull=False).count(),
         'permissions': Permission.objects.count(),
         'roles': GroupMemberRole.objects.count(),
-        'tags': list(TagVersion.objects.all().values('type').annotate(total=Count('type')).order_by('type')),
+        'tags': list(TagVersion.objects.all().values('type__name').annotate(total=Count('type')).order_by('type')),
         'total_object_size': InformationPackage.objects.aggregate(Sum('object_size'))['object_size__sum'] or 0,
         'users': User.objects.count(),
     }

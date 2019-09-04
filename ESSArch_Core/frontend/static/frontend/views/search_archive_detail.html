@@ -22,7 +22,7 @@
   </div>
   <div ng-if="vm.getArchiveCreator(vm.record) !== null">
     <label for="creator">{{'ACCESS.ARCHIVE_CREATOR' | translate}}:&nbsp;</label>
-    <a id="creator" ui-sref="home.access.archiveCreators({id: vm.getArchiveCreator(vm.record).id})">
+    <a id="creator" ui-sref="home.archivalDescriptions.archiveCreators({id: vm.getArchiveCreator(vm.record).id})">
       {{vm.getArchiveCreator(vm.record).auth_name}}
     </a>
   </div>
@@ -110,7 +110,7 @@
     </label>
     <div ng-repeat="x in vm.record.agents" ng-if="x.type !== 'creator'" class="d-flex">
       {{x.type}}:&nbsp;
-      <a ui-sref="home.access.archiveCreators({id: x.agent.id})">{{x.name}}</a>
+      <a ui-sref="home.archivalDescriptions.archiveCreators({id: x.agent.id})">{{x.name}}</a>
     </div>
   </div>
   <div class="py-base">

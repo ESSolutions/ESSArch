@@ -2,7 +2,7 @@
   "permissions": {
     "permissionConfig": {
       "home": {
-        "createSip": {
+        "producer": {
           "prepareIp": {
             "_permissions": ["ip.prepare_ip"]
           },
@@ -11,10 +11,8 @@
           },
           "createSip": {
             "_permissions": ["ip.create_sip"]
-          }
-        },
-        "submitSip": {
-          "prepareSip": {
+          },
+          "submitSip": {
             "_permissions": ["ip.submit_sip"]
           }
         },
@@ -32,6 +30,17 @@
           }
         },
         "access": {
+          "accessIp": {
+            "_permissions": ["ip.get_from_storage", "ip.get_tar_from_storage", "ip.get_from_storage_as_new"]
+          },
+          "orders": {
+            "_permissions": ["ip.prepare_order"]
+          },
+          "createDip": {
+            "_permissions": ["ip.preserve_dip"]
+          }
+        },
+        "archivalDescriptions": {
           "search": {
             "_permissions": ["tags.search"]
           },
@@ -43,15 +52,6 @@
           },
           "classificationStructures": {
             "_permissions": ["tags.search"]
-          },
-          "accessIp": {
-            "_permissions": ["ip.get_from_storage", "ip.get_tar_from_storage", "ip.get_from_storage_as_new"]
-          },
-          "orders": {
-            "_permissions": ["ip.prepare_order"]
-          },
-          "createDip": {
-            "_permissions": ["ip.preserve_dip"]
           },
           "location": {
             "_permissions": ["tags.search"]
@@ -70,9 +70,6 @@
             "ip.move_from_access_workarea",
             "ip.preserve_from_access_workarea"
           ]
-        },
-        "management": {
-          "_permissions": []
         },
         "archiveMaintenance": {
           "appraisal": {
@@ -118,9 +115,6 @@
               "_permissions": ["profiles.export_sa", "profiles.export_profile"]
             }
           }
-        },
-        "dashboard": {
-          "_permissions": []
         }
       }
     }

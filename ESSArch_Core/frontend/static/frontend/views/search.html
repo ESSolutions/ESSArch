@@ -48,7 +48,11 @@
               </tr>
             </thead>
             <tbody>
-              <tr ng-repeat="x in vm.searchList" ui-sref="home.access.search({query: x.query})" class="selectable">
+              <tr
+                ng-repeat="x in vm.searchList"
+                ui-sref="home.archivalDescriptions.search({query: x.query})"
+                class="selectable"
+              >
                 <td>
                   {{x.name}}
                 </td>
@@ -141,10 +145,11 @@
           active="vm.activeTab"
           class="tabs tabs-style-bar"
         >
-          <uib-tab ui-sref="home.access.search" index="0" heading="{{'ACCESS.HITS' | translate}}"> </uib-tab>
+          <uib-tab ui-sref="home.archivalDescriptions.search" index="0" heading="{{'ACCESS.HITS' | translate}}">
+          </uib-tab>
           <uib-tab
             ng-click="vm.goToDetailView()"
-            ng-show="latestRecord || ('home.access.search.detail' | isState) || ('home.access.search.information_package' | isState) || ('home.access.search.component' | isState)|| ('home.access.search.archive' | isState) || ('home.access.search.document' | isState) || ('home.access.search.directory' | isState) || ('home.access.search.structure_unit' | isState)"
+            ng-show="latestRecord || ('home.archivalDescriptions.search.detail' | isState) || ('home.archivalDescriptions.search.information_package' | isState) || ('home.archivalDescriptions.search.component' | isState)|| ('home.archivalDescriptions.search.archive' | isState) || ('home.archivalDescriptions.search.document' | isState) || ('home.archivalDescriptions.search.directory' | isState) || ('home.archivalDescriptions.search.structure_unit' | isState)"
             index="1"
             heading="{{'ACCESS.RECORD' | translate}}"
           >

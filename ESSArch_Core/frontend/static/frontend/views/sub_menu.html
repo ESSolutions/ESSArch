@@ -1,6 +1,44 @@
 <div
-  ng-if="('home.ingest' | includedByState) || ('home.access' | includedByState) || ('home.administration' | includedByState) || ('home.archiveMaintenance' | includedByState)"
+  ng-if="('home.producer' | includedByState) || ('home.ingest' | includedByState) || ('home.access' | includedByState) || ('home.archivalDescriptions' | includedByState) || ('home.administration' | includedByState) || ('home.archiveMaintenance' | includedByState)"
 >
+  <div tabindex="-1" ng-if="'home.producer' | includedByState" class="sub-menu">
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.producer.prepareIp')"
+      class="nav-item sliding-middle-out"
+      ng-class="{'chosen': $state.includes('home.producer.prepareIp')}"
+      ui-sref="home.producer.prepareIp"
+      ng-if="checkPermissions('home.producer.prepareIp')"
+      >{{('PREPAREIP' | translate)}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.producer.collectContent')"
+      class="nav-item sliding-middle-out"
+      ng-class="{'chosen': $state.includes('home.producer.collectContent')}"
+      ui-sref="home.producer.collectContent"
+      ng-if="checkPermissions('home.producer.collectContent')"
+      >{{('COLLECTCONTENT' | translate)}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.producer.createSip')"
+      class="nav-item sliding-middle-out"
+      ng-class="{'chosen': $state.includes('home.producer.createSip')}"
+      ui-sref="home.producer.createSip"
+      ng-if="checkPermissions('home.producer.createSip')"
+      >{{('CREATESIP' | translate)}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.producer.submitSip')"
+      class="nav-item sliding-middle-out"
+      ng-class="{'chosen': $state.includes('home.producer.submitSip')}"
+      ui-sref="home.producer.submitSip"
+      ng-if="checkPermissions('home.producer.submitSip')"
+      >{{('SUBMITSIP' | translate)}}</a
+    >
+  </div>
   <div tabindex="-1" ng-if="'home.ingest' | includedByState" class="sub-menu">
     <a
       tabindex="0"
@@ -23,42 +61,6 @@
     >
   </div>
   <div tabindex="-1" ng-if="'home.access' | includedByState" class="sub-menu">
-    <a
-      tabindex="0"
-      ng-keydown="navKeydownListener($event, 'home.access.search')"
-      class="nav-item sliding-middle-out"
-      ng-class="{'chosen': $state.includes('home.access.search')}"
-      ui-sref="home.access.search"
-      ng-if="checkPermissions('home.access.search')"
-      >{{('SEARCH' | translate)}}</a
-    >
-    <a
-      tabindex="0"
-      ng-keydown="navKeydownListener($event, 'home.access.archiveCreators')"
-      class="nav-item sliding-middle-out"
-      ng-class="{'chosen': $state.includes('home.access.archiveCreators')}"
-      ui-sref="home.access.archiveCreators"
-      ng-if="checkPermissions('home.access.archiveCreators')"
-      >{{('ARCHIVECREATORS' | translate)}}</a
-    >
-    <a
-      tabindex="0"
-      ng-keydown="navKeydownListener($event, 'home.access.archiveManager')"
-      class="nav-item sliding-middle-out"
-      ng-class="{'chosen': $state.includes('home.access.archiveManager')}"
-      ui-sref="home.access.archiveManager"
-      ng-if="checkPermissions('home.access.archiveManager')"
-      >{{('ACCESS.ARCHIVES' | translate)}}</a
-    >
-    <a
-      tabindex="0"
-      ng-keydown="navKeydownListener($event, 'home.access.classificationStructures')"
-      class="nav-item sliding-middle-out"
-      ng-class="{'chosen': $state.includes('home.access.classificationStructures')}"
-      ui-sref="home.access.classificationStructures"
-      ng-if="checkPermissions('home.access.classificationStructures')"
-      >{{('ACCESS.CLASSIFICATION_STRUCTURES' | translate)}}</a
-    >
     <a
       tabindex="0"
       ng-keydown="navKeydownListener($event, 'home.access.accessIp')"
@@ -89,24 +91,62 @@
       ng-if="checkPermissions('home.access.createDip')"
       >{{'DISSEMINATION' | translate}}</a
     >
+  </div>
+  <div tabindex="-1" ng-if="'home.archivalDescriptions' | includedByState" class="sub-menu">
     <a
       tabindex="0"
-      ng-keydown="navKeydownListener($event, 'home.access.location')"
-      ui-sref="home.access.location"
-      ng-class="{chosen: $state.current.name == 'home.access.location'}"
+      ng-keydown="navKeydownListener($event, 'home.archivalDescriptions.search')"
+      class="nav-item sliding-middle-out"
+      ng-class="{'chosen': $state.includes('home.archivalDescriptions.search')}"
+      ui-sref="home.archivalDescriptions.search"
+      ng-if="checkPermissions('home.archivalDescriptions.search')"
+      >{{('SEARCH' | translate)}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.archivalDescriptions.archiveCreators')"
+      class="nav-item sliding-middle-out"
+      ng-class="{'chosen': $state.includes('home.archivalDescriptions.archiveCreators')}"
+      ui-sref="home.archivalDescriptions.archiveCreators"
+      ng-if="checkPermissions('home.archivalDescriptions.archiveCreators')"
+      >{{('ARCHIVECREATORS' | translate)}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.archivalDescriptions.archiveManager')"
+      class="nav-item sliding-middle-out"
+      ng-class="{'chosen': $state.includes('home.archivalDescriptions.archiveManager')}"
+      ui-sref="home.archivalDescriptions.archiveManager"
+      ng-if="checkPermissions('home.archivalDescriptions.archiveManager')"
+      >{{('ACCESS.ARCHIVES' | translate)}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.archivalDescriptions.classificationStructures')"
+      class="nav-item sliding-middle-out"
+      ng-class="{'chosen': $state.includes('home.archivalDescriptions.classificationStructures')}"
+      ui-sref="home.archivalDescriptions.classificationStructures"
+      ng-if="checkPermissions('home.archivalDescriptions.classificationStructures')"
+      >{{('ACCESS.CLASSIFICATION_STRUCTURES' | translate)}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.archivalDescriptions.location')"
+      ui-sref="home.archivalDescriptions.location"
+      ng-class="{chosen: $state.current.name == 'home.archivalDescriptions.location'}"
       class="nav-item sliding-middle-out"
       style="margin-left: 5px;"
-      ng-if="checkPermissions('home.access.location')"
+      ng-if="checkPermissions('home.archivalDescriptions.location')"
       >{{'LOCATION' | translate}}</a
     >
     <a
       tabindex="0"
-      ng-keydown="navKeydownListener($event, 'home.access.deliveries')"
-      ui-sref="home.access.deliveries"
-      ng-class="{chosen: $state.includes('home.access.deliveries')}"
+      ng-keydown="navKeydownListener($event, 'home.archivalDescriptions.deliveries')"
+      ui-sref="home.archivalDescriptions.deliveries"
+      ng-class="{chosen: $state.includes('home.archivalDescriptions.deliveries')}"
       class="nav-item sliding-middle-out"
       style="margin-left: 5px;"
-      ng-if="checkPermissions('home.access.deliveries')"
+      ng-if="checkPermissions('home.archivalDescriptions.deliveries')"
       >{{'DELIVERIES' | translate}}</a
     >
   </div>

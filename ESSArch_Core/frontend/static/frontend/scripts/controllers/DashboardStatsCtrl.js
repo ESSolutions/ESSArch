@@ -16,7 +16,7 @@ export default class DashboardStatsCtrl {
           pager: 'none',
         },
       }).then(function(response) {
-        vm.stats.tags.unshift({type: $translate.instant('ARCHIVECREATORS'), total: response.headers('Count')});
+        vm.stats.tags.unshift({type__name: $translate.instant('ARCHIVECREATORS'), total: response.headers('Count')});
         return response.data;
       });
     };

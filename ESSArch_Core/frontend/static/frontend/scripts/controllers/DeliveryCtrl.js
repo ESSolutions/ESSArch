@@ -40,7 +40,7 @@ export default class DeliveryCtrl {
               if (angular.copy($state.current.name.split('.')).pop() === 'transfers') {
                 $timeout(function() {
                   vm.activeTab = 'transfers';
-                  $state.go('home.access.deliveries.transfers', {
+                  $state.go('home.archivalDescriptions.deliveries.transfers', {
                     transfer: $stateParams.transfer,
                     delivery: $stateParams.delivery,
                   });
@@ -71,7 +71,10 @@ export default class DeliveryCtrl {
       if (event.transfer) {
         vm.activeTab = 'transfers';
         $timeout(function() {
-          $state.go('home.access.deliveries.transfers', {delivery: vm.selected.id, transfer: event.transfer.id});
+          $state.go('home.archivalDescriptions.deliveries.transfers', {
+            delivery: vm.selected.id,
+            transfer: event.transfer.id,
+          });
         });
       }
     };
@@ -79,7 +82,7 @@ export default class DeliveryCtrl {
     vm.deliveryClick = function(delivery) {
       if (vm.selected !== null && delivery.id === vm.selected.id) {
         vm.selected = null;
-        $state.go('home.access.deliveries', {delivery: null}, {notify: false});
+        $state.go('home.archivalDescriptions.deliveries', {delivery: null}, {notify: false});
       } else {
         vm.selected = null;
         $timeout(function() {
@@ -87,7 +90,7 @@ export default class DeliveryCtrl {
           vm.selectedTransfer = null;
           vm.selected = delivery;
           if ($stateParams.delivery !== delivery.id) {
-            $state.go('home.access.deliveries', {delivery: delivery.id}, {notify: false});
+            $state.go('home.archivalDescriptions.deliveries', {delivery: delivery.id}, {notify: false});
           }
         });
       }
@@ -96,9 +99,13 @@ export default class DeliveryCtrl {
     vm.tabClick = function(tab) {
       $timeout(function() {
         if (tab === 'transfers') {
-          $state.go('home.access.deliveries.transfers', {delivery: vm.selected.id});
+          $state.go('home.archivalDescriptions.deliveries.transfers', {delivery: vm.selected.id});
         } else {
-          $state.go('home.access.deliveries', {delivery: vm.selected.id, transfer: null}, {notify: false});
+          $state.go(
+            'home.archivalDescriptions.deliveries',
+            {delivery: vm.selected.id, transfer: null},
+            {notify: false}
+          );
         }
       });
     };
