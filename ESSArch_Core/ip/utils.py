@@ -4,6 +4,13 @@ import os
 import requests
 from django.core.cache import cache
 from lxml import etree
+from requests import RequestException
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_fixed,
+)
 
 from ESSArch_Core.configuration.models import StoragePolicy
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
@@ -230,6 +237,8 @@ def download_schemas(ip, logger, verify):
         logger.info('No schemas to download')
 
 
+@retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+       wait=wait_fixed(60))
 def download_schema(dirname, logger, schema, verify):
     dst = os.path.join(dirname, os.path.basename(schema))
     logger.info('Downloading schema from {} to {}'.format(schema, dst))

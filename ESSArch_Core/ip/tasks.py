@@ -1,4 +1,3 @@
-import errno
 import logging
 import os
 import shutil
@@ -14,10 +13,7 @@ from django.utils.translation import ugettext as _
 
 from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.essxml.Generator.xmlGenerator import (
-    XMLGenerator,
-    parseContent,
-)
+from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.fixity.receipt import get_backend as get_receipt_backend
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage
@@ -222,19 +218,6 @@ class AddPremisIPObjectElementToEventsFile(DBTask):
 class CreatePhysicalModel(DBTask):
     event_type = 10300
 
-    def get_dirs(self, structure, data, root=""):
-        for content in structure:
-            if content.get('type') == 'folder':
-                name = content.get('name')
-                dirname = os.path.join(root, name)
-                dirname = parseContent(dirname, data)
-                if not content.get('create', True):
-                    continue
-
-                yield dirname
-                for x in self.get_dirs(content.get('children', []), data, dirname):
-                    yield x
-
     def run(self, structure=None, root=""):
         """
         Creates the IP physical model based on a logical model.
@@ -245,27 +228,7 @@ class CreatePhysicalModel(DBTask):
         """
 
         ip = self.get_information_package()
-        data = fill_specification_data(ip=ip, sa=ip.submission_agreement)
-        structure = structure or ip.get_structure()
-        root = ip.object_path if not root else root
-
-        created = []
-        try:
-            for dirname in self.get_dirs(structure, data, root):
-                try:
-                    os.makedirs(dirname)
-                except OSError as e:
-                    if e.errno != errno.EEXIST:
-                        raise
-                created.append(dirname)
-        except Exception:
-            for dirname in created:
-                try:
-                    shutil.rmtree(dirname)
-                except OSError as e:
-                    if e.errno != errno.ENOENT:
-                        raise
-            raise
+        ip.create_physical_model(structure, root)
 
         self.set_progress(1, total=1)
 

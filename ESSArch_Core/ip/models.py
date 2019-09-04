@@ -450,6 +450,43 @@ class InformationPackage(models.Model):
         GroupGenericObjects.objects.update_or_create(object_id=self.pk, content_type=ctype,
                                                      defaults={'group': organization})
 
+    @staticmethod
+    def get_dirs(structure, data, root=""):
+        for content in structure:
+            if content.get('type') == 'folder':
+                name = content.get('name')
+                dirname = os.path.join(root, name)
+                dirname = parseContent(dirname, data)
+                if not content.get('create', True):
+                    continue
+
+                yield dirname
+                for x in InformationPackage.get_dirs(content.get('children', []), data, dirname):
+                    yield x
+
+    def create_physical_model(self, structure, root=""):
+        data = fill_specification_data(ip=self, sa=self.submission_agreement)
+        structure = structure or self.get_structure()
+        root = self.object_path if not root else root
+        created = []
+
+        try:
+            for dirname in InformationPackage.get_dirs(structure, data, root):
+                try:
+                    os.makedirs(dirname)
+                except OSError as e:
+                    if e.errno != errno.EEXIST:
+                        raise
+                created.append(dirname)
+        except Exception:
+            for dirname in created:
+                try:
+                    shutil.rmtree(dirname)
+                except OSError as e:
+                    if e.errno != errno.ENOENT:
+                        raise
+            raise
+
     def create_new_generation(self, state, responsible, object_identifier_value):
         perms = deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
 

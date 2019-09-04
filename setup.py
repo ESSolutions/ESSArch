@@ -76,6 +76,8 @@ if __name__ == '__main__':
         ],
         install_requires=get_requirements('base'),
         extras_require={
+            "docs": get_requirements('docs'),
+            "tests": get_requirements('tests'),
             "ldap": ["django-auth-ldap==2.0.0"],
             "saml2": ["djangosaml2==0.17.2"],
             "libreoffice_file_conversion": ["unoconv==0.8.2"],

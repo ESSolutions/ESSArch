@@ -656,18 +656,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             profile_ip.LockedBy = request.user
             profile_ip.save()
 
-        step = ProcessStep.objects.create(
-            name="Create Physical Model",
-            information_package=ip
-        )
         ProcessTask.objects.create(
             name="ESSArch_Core.ip.tasks.CreatePhysicalModel",
+            label="Create Physical Model",
             information_package=ip,
             responsible=self.request.user,
-            processstep=step,
-        )
-
-        step.run().get()
+        ).run().get()
 
         submit_description_data = ip.get_profile_data('submit_description')
         ip.start_date = submit_description_data.get('start_date')
