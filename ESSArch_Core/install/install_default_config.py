@@ -571,7 +571,8 @@ def installPipelines():
         'processors': [
             {
                 "attachment": {
-                    "field": "data"
+                    "field": "data",
+                    "indexed_chars": "-1"
                 },
                 "remove": {
                     "field": "data"
