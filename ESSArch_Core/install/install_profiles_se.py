@@ -155,7 +155,7 @@ def installProfileTransferProject(sa):
                 "key": "preservation_organization_receiver_email"
             }, {
                 "templateOptions": {
-                    "type": "url",
+                    "type": "text",
                     "remote": "",
                     "label": "Preservation organization receiver url (empty for local)",
                 },
