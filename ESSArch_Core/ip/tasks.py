@@ -84,7 +84,7 @@ class SubmitSIP(DBTask):
         src = os.path.join(srcdir, ip.object_identifier_value + ".%s" % container_format)
 
         try:
-            remote = ip.get_profile('transfer_project').specification_data.get(
+            remote = ip.get_profile_data('transfer_project').get(
                 'preservation_organization_receiver_url'
             )
         except AttributeError:
@@ -93,15 +93,12 @@ class SubmitSIP(DBTask):
         session = None
 
         if remote:
-            try:
-                dst, remote_user, remote_pass = remote.split(',')
-                dst = urljoin(dst, 'api/ip-reception/upload/')
+            dst, remote_user, remote_pass = remote.split(',')
+            dst = urljoin(dst, 'api/ip-reception/upload/')
 
-                session = requests.Session()
-                session.verify = settings.REQUESTS_VERIFY
-                session.auth = (remote_user, remote_pass)
-            except ValueError:
-                remote = None
+            session = requests.Session()
+            session.verify = settings.REQUESTS_VERIFY
+            session.auth = (remote_user, remote_pass)
         else:
             dst = os.path.join(reception, ip.object_identifier_value + ".%s" % container_format)
         block_size = 8 * 1000000  # 8MB

@@ -348,10 +348,10 @@ class Profile(models.Model):
     submission_method = models.CharField(max_length=255, blank=True)
     submission_schedule = models.CharField(max_length=255, blank=True)
     submission_data_inventory = models.CharField(max_length=255, blank=True)
-    structure = jsonfield.JSONField(default=[])
-    template = jsonfield.JSONField(default=[])
-    specification = jsonfield.JSONField(default={})
-    specification_data = jsonfield.JSONField(default={})
+    structure = jsonfield.JSONField(default=[], blank=True)
+    template = jsonfield.JSONField(default=[], blank=True)
+    specification = jsonfield.JSONField(default={}, blank=True)
+    specification_data = jsonfield.JSONField(default={}, blank=True)
 
     def get_value_for_key(self, key):
         return self.specification_data.get(key)

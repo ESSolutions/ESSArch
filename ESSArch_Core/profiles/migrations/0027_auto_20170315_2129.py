@@ -21,21 +21,21 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='profile',
             name='specification',
-            field=jsonfield.fields.JSONField(default={}),
+            field=jsonfield.fields.JSONField(default={}, blank=True),
         ),
         migrations.AlterField(
             model_name='profile',
             name='specification_data',
-            field=jsonfield.fields.JSONField(default={}),
+            field=jsonfield.fields.JSONField(default={}, blank=True),
         ),
         migrations.AlterField(
             model_name='profile',
             name='structure',
-            field=jsonfield.fields.JSONField(default={}),
+            field=jsonfield.fields.JSONField(default={}, blank=True),
         ),
         migrations.AlterField(
             model_name='profile',
             name='template',
-            field=jsonfield.fields.JSONField(default={}),
+            field=jsonfield.fields.JSONField(default={}, blank=True),
         ),
     ]

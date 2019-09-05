@@ -104,6 +104,7 @@ class ProfileAdmin(admin.ModelAdmin):
             'classes': ('collapse', 'wide'),
             'fields': (
                 'specification',
+                'specification_data',
             )
         }),
     )
