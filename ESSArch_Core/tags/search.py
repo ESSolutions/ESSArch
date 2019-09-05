@@ -137,6 +137,7 @@ class ComponentSearch(FacetedSearch):
         ])
 
         s = s.filter(Q('bool', minimum_should_match=1, should=[
+            Q('bool', **{'must_not': {'exists': {'field': 'archive'}}}),
             Q('nested', path='archive', ignore_unmapped=True, query=Q('terms', archive__id=organization_archives)),
             Q('bool', minimum_should_match=1, should=[
                 Q('bool', must=[
