@@ -1380,15 +1380,16 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             # check if path exists
             path = request.query_params.get('path', '').rstrip('/')
             s = Search(index=['directory', 'document'])
-            s = s.filter('term', ip=str(ip.pk))
+            s = s.source(excludes=["attachment.content"])
+            s = s.filter('term', **{'ip.keyword': str(ip.pk)})
 
             if path != '':
                 dirname = os.path.dirname(path)
                 basename = os.path.basename(path)
                 q = ElasticQ('bool',
-                             should=[ElasticQ('bool', must=[ElasticQ('term', href=dirname),
+                             should=[ElasticQ('bool', must=[ElasticQ('term', **{'href.keyword': dirname}),
                                                             ElasticQ('term', **{'name.keyword': basename})]),
-                                     ElasticQ('bool', must=[ElasticQ('term', href=dirname),
+                                     ElasticQ('bool', must=[ElasticQ('term', **{'href.keyword': dirname}),
                                                             ElasticQ('match', filename=basename)])])
 
                 s = s.query(q)
@@ -1410,7 +1411,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             # a directory with the path exists, get the content of it
             s = Search(index=['directory', 'document'])
-            s = s.filter('term', ip=str(ip.pk)).query('term', href=path)
+            s = s.filter('term', **{'ip.keyword': str(ip.pk)}).query('term', **{'href.keyword': path})
 
             if self.paginator is not None:
                 # Paginate in search engine
@@ -1456,7 +1457,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             results_list = []
             for hit in results:
-                if hit.meta.index.startswith('directory-'):
+                if hit.meta.index.startswith('directory'):
                     d = {
                         'type': 'dir',
                         'name': hit.name,
