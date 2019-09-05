@@ -103,6 +103,7 @@ from ESSArch_Core.ip.serializers import (
 from ESSArch_Core.maintenance.models import AppraisalRule, ConversionRule
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
+from ESSArch_Core.profiles.utils import profile_types
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
 from ESSArch_Core.tags.models import TagStructure
 from ESSArch_Core.util import (
@@ -1991,9 +1992,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         # strings to allow further datetime manipulation
         ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
 
-        p_types = ['aic_description', 'aip', 'aip_description', 'content_type', 'dip', 'preservation_metadata']
-        ip.create_profile_rels(p_types, request.user)
-
+        ip.create_profile_rels([x.lower().replace(' ', '_') for x in profile_types], request.user)
         data = InformationPackageDetailSerializer(ip, context={'request': request}).data
 
         logger.info('Prepared information package %s' % str(ip.pk), extra={'user': request.user.pk})
