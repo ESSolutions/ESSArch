@@ -652,7 +652,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             try:
                 profile_ip.clean()
             except ValidationError as e:
-                raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, e[0]))
+                raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, e.message))
 
             profile_ip.LockedBy = request.user
             profile_ip.save()
