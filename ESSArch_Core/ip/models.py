@@ -220,6 +220,7 @@ class InformationPackageQuerySet(models.QuerySet):
                 )"""), (STORAGE_TARGET_STATUS_ENABLED,)
             ),
         ).filter(
+            enabled=True,
             status_migrate_with_ip=True,
             status_enabled_without_ip=True,
             status_enabled_with_ip=False,
@@ -242,6 +243,7 @@ class InformationPackageQuerySet(models.QuerySet):
                 )"""), (STORAGE_TARGET_STATUS_ENABLED,)
             ),
         ).filter(
+            enabled=True,
             enabled_target_without_ip=True,
             storage_policies=OuterRef('policy')
         )
@@ -424,7 +426,7 @@ class InformationPackage(models.Model):
                 ip=self, storage_medium__storage_target__methods=OuterRef('pk'),
                 storage_medium__storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
             ))
-        ).exclude(has_object=True)
+        ).filter(enabled=True).exclude(has_object=True)
 
     def is_first_generation(self):
         if self.aic is None:
@@ -970,13 +972,13 @@ class InformationPackage(models.Model):
     def create_preservation_workflow(self):
         cache_storage = self.policy.cache_storage
         container_methods = self.policy.storage_methods.secure_storage().filter(
-            remote=False,
+            remote=False, enabled=True,
         ).exclude(pk=cache_storage.pk)
         non_container_methods = self.policy.storage_methods.archival_storage().filter(
-            remote=False
+            remote=False, enabled=True,
         ).exclude(pk=cache_storage.pk)
         remote_methods = self.policy.storage_methods.filter(
-            remote=True
+            remote=True, enabled=True,
         ).exclude(pk=cache_storage.pk)
 
         remote_servers = set([
@@ -1116,6 +1118,7 @@ class InformationPackage(models.Model):
                                 "step": True,
                                 "parallel": True,
                                 "name": "Write non-containers to storage methods",
+                                "if": non_container_methods.exists(),
                                 "children": [
                                     {
                                         "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
@@ -1127,6 +1130,7 @@ class InformationPackage(models.Model):
                             {
                                 "step": True,
                                 "name": "Write containers",
+                                "if": container_methods.exists() or remote_methods.exists(),
                                 "children": [
                                     {
                                         "name": "ESSArch_Core.ip.tasks.CreateContainer",
