@@ -1306,7 +1306,8 @@ class ChangeTagTests(TestCase):
         response = self.client.patch(url, {'name': 'new name'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_change_archive_with_permission(self):
+    @mock.patch('ESSArch_Core.tags.serializers.Archive.save')
+    def test_change_archive_with_permission(self, mock_save):
         self.user.user_permissions.add(Permission.objects.get(codename="change_archive"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
@@ -1330,7 +1331,8 @@ class ChangeTagTests(TestCase):
         response = self.client.patch(url, {'name': 'new name'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_change_component_with_permission(self):
+    @mock.patch('ESSArch_Core.tags.serializers.Component.save')
+    def test_change_component_with_permission(self, mock_save):
         self.user.user_permissions.add(Permission.objects.get(codename="change_tag"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
@@ -1936,7 +1938,8 @@ class AddNodeToLocationTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_with_permission(self):
+    @mock.patch('ESSArch_Core.tags.serializers.Component.save')
+    def test_with_permission(self, mock_save):
         self.user.user_permissions.add(Permission.objects.get(codename="change_tag_location"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
@@ -1994,7 +1997,8 @@ class ChangeNodeLocationTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_with_permission(self):
+    @mock.patch('ESSArch_Core.tags.serializers.Component.save')
+    def test_with_permission(self, mock_save):
         self.user.user_permissions.add(Permission.objects.get(codename="change_tag_location"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
@@ -2052,7 +2056,8 @@ class DeleteNodeLocationTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_with_permission(self):
+    @mock.patch('ESSArch_Core.tags.serializers.Component.save')
+    def test_with_permission(self, mock_save):
         self.user.user_permissions.add(Permission.objects.get(codename="change_tag_location"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
