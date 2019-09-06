@@ -40,12 +40,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='profile',
             name='structure',
-            field=jsonfield.fields.JSONField(default=[]),
+            field=jsonfield.fields.JSONField(blank=True, default=[]),
         ),
         migrations.AlterField(
             model_name='profile',
             name='template',
-            field=jsonfield.fields.JSONField(default=[]),
+            field=jsonfield.fields.JSONField(blank=True, default=[]),
         ),
         migrations.RunPython(forwards_func, reverse_func),
     ]
