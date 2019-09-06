@@ -28,6 +28,10 @@ export default class SearchCtrl {
     vm.numberOfResults = 0;
     vm.resultsPerPage = 25;
     vm.resultViewType = 'list';
+    vm.ignoreChanges = false;
+    vm.ignoreRecordChanges = false;
+    vm.newNode = {};
+    vm.searchResult = [];
     vm.options = {
       archives: [],
       agents: [],
@@ -35,14 +39,6 @@ export default class SearchCtrl {
     };
     vm.archiveFilter = [];
     vm.agentFilter = [];
-
-    vm.filterObject = {
-      q: '',
-      type: null,
-      page: 1,
-      page_size: vm.resultsPerPage || 25,
-      ordering: '',
-    };
 
     vm.extensionFilter = {};
 
@@ -72,13 +68,13 @@ export default class SearchCtrl {
     $transitions.onSuccess({}, function() {
       if ($state.is('home.archivalDescriptions.search')) {
         vm.activeTab = 0;
-        vm.search(vm.tableState);
       } else {
         vm.activeTab = 1;
       }
     });
 
     vm.$onInit = function() {
+      vm.clearSearch();
       if (
         $state.is('home.archivalDescriptions.search.detail') ||
         $state.is('home.archivalDescriptions.search.information_package') ||
@@ -91,14 +87,15 @@ export default class SearchCtrl {
         vm.showTree = true;
       } else {
         vm.activeTab = 0;
+        if ($stateParams.query !== null && !angular.isUndefined($stateParams.query)) {
+          vm.filterObject = angular.copy($stateParams.query);
+        }
+      }
+      const filters = vm.formatFilters();
+      Search.query(filters).then(function(response) {
+        vm.loadTags(response.aggregations);
+        vm.fileExtensions = response.aggregations._filter_extension.extension.buckets;
         vm.showResults = true;
-      }
-      if ($stateParams.query !== null && !angular.isUndefined($stateParams.query)) {
-        vm.filterObject = $stateParams.query;
-      }
-      $http.get(appConfig.djangoUrl + 'search/', {params: vm.filterObject}).then(function(response) {
-        vm.loadTags(response.data.aggregations);
-        vm.fileExtensions = response.data.aggregations._filter_extension.extension.buckets;
         vm.showTree = true;
       });
     };
@@ -121,7 +118,7 @@ export default class SearchCtrl {
       $http
         .get(appConfig.djangoUrl + 'me/searches/', {pager: 'none'})
         .then(function(response) {
-          vm.searchList = response.data;
+          vm.searchList = angular.copy(response.data);
           vm.loadingSearches = false;
         })
         .catch(function() {
@@ -305,14 +302,15 @@ export default class SearchCtrl {
         vm.filterObject.ordering = ordering;
         const filters = vm.formatFilters();
         Search.query(filters).then(function(response) {
-          angular.copy(response.data, vm.searchResult);
+          const filterCopy = angular.copy(vm.filterObject);
+          if (!angular.equals($stateParams.query, filterCopy)) {
+            $state.go('home.archivalDescriptions.search', {query: filterCopy});
+          }
+          vm.searchResult = angular.copy(response.data);
           vm.numberOfResults = response.count;
           tableState.pagination.numberOfPages = response.numberOfPages; //set the number of pages so the pagination can update
           vm.searching = false;
           vm.loadTags(response.aggregations);
-          if ($state.current.name === 'home.archivalDescriptions.search') {
-            $state.go('home.archivalDescriptions.search', {query: vm.filterObject}, {notify: false});
-          }
         });
       } else {
         vm.showResults = true;
@@ -410,11 +408,6 @@ export default class SearchCtrl {
       }
     };
 
-    const newId = 1;
-    vm.ignoreChanges = false;
-    vm.ignoreRecordChanges = false;
-    vm.newNode = {};
-    vm.searchResult = [];
     vm.treeConfig = {
       core: {
         multiple: false,
