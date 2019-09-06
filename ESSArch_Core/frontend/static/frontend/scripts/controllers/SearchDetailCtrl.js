@@ -87,10 +87,12 @@ export default class SearchDetailCtrl {
         if (vm.record._id === archiveId) {
           vm.createArchiveNode(startNode, vm.record);
         } else {
-          console.log('Initial node is not its own archive, getting archive:', archiveId);
-          vm.getNode(archiveId).then(function(archive) {
-            vm.createArchiveNode(startNode, archive);
-          });
+          if (!angular.isUndefined(archiveId) && archiveId !== null) {
+            console.log('Initial node is not its own archive, getting archive:', archiveId);
+            vm.getNode(archiveId).then(function(archive) {
+              vm.createArchiveNode(startNode, archive);
+            });
+          }
         }
       });
     };
