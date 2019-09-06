@@ -1,5 +1,13 @@
 <div ng-if="currentStepTask" class="modal-heading task-info-modal-head">
-  <h3 class="modal-title" id="modal-title">{{ currentStepTask.label }}</h3>
+  <h3
+    class="modal-title"
+    id="modal-title"
+    uib-tooltip="{{ currentStepTask.label }}"
+    tooltip-placement="auto top"
+    tooltip-append-to-body="true"
+  >
+    {{ currentStepTask.label }}
+  </h3>
   <div class="refresh-icon">
     <span
       ng-click="getTask(currentStepTask)"

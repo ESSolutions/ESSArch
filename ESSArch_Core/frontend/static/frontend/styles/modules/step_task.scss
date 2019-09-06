@@ -21,6 +21,8 @@
     align-self: flex-start;
   }
   .modal-title {
+    overflow-x: hidden;
+    text-overflow: ellipsis;
     @include small-screen {
       word-break: break-word;
     }
