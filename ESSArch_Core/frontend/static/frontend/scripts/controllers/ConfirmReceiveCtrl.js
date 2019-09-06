@@ -17,7 +17,6 @@ export default class ConfirmReceiveCtrl {
         validators: data.validatorModel,
       })
         .$promise.then(function(response) {
-          Notifications.add(response.detail, 'success', 3000);
           $ctrl.data = {received: true, status: 'received'};
           $ctrl.receiving = false;
           $uibModalInstance.close($ctrl.data);

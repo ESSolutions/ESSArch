@@ -2190,7 +2190,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         workflow.save()
         workflow.run()
         logger.info('Started receiving {objid} from reception'.format(objid=objid), extra={'user': request.user.pk})
-        return Response({'detail': 'Receiving %s...' % objid})
+        return Response({'detail': 'Receiving %s' % objid})
 
     @action(detail=True, methods=['get'])
     def files(self, request, pk=None):
