@@ -3,3 +3,9 @@
   hooks:
     - id: prettier
       args: [--config, ./ESSArch_Core/frontend/static/frontend/.prettierrc]
+
+- repo: https://github.com/timothycrosley/isort
+  rev: '4.3.21'
+  hooks:
+    - id: isort
+      args: [--filter-files]
