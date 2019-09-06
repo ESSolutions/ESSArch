@@ -1381,15 +1381,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             path = request.query_params.get('path', '').rstrip('/')
             s = Search(index=['directory', 'document'])
             s = s.source(excludes=["attachment.content"])
-            s = s.filter('term', **{'ip.keyword': str(ip.pk)})
+            s = s.filter('term', **{'ip': str(ip.pk)})
 
             if path != '':
                 dirname = os.path.dirname(path)
                 basename = os.path.basename(path)
                 q = ElasticQ('bool',
-                             should=[ElasticQ('bool', must=[ElasticQ('term', **{'href.keyword': dirname}),
+                             should=[ElasticQ('bool', must=[ElasticQ('term', **{'href': dirname}),
                                                             ElasticQ('term', **{'name.keyword': basename})]),
-                                     ElasticQ('bool', must=[ElasticQ('term', **{'href.keyword': dirname}),
+                                     ElasticQ('bool', must=[ElasticQ('term', **{'href': dirname}),
                                                             ElasticQ('match', filename=basename)])])
 
                 s = s.query(q)
@@ -1411,7 +1411,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             # a directory with the path exists, get the content of it
             s = Search(index=['directory', 'document'])
-            s = s.filter('term', **{'ip.keyword': str(ip.pk)}).query('term', **{'href.keyword': path})
+            s = s.filter('term', **{'ip': str(ip.pk)}).query('term', **{'href': path})
 
             if self.paginator is not None:
                 # Paginate in search engine
