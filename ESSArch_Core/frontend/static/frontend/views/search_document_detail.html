@@ -4,7 +4,7 @@
       {{vm.record._source.name}}
     </strong>
   </h3>
-  <h4 ng-if="vm.record.type">{{vm.record.type}}</h4>
+  <h4 ng-if="vm.record.type">{{vm.record.type.name}}</h4>
   <div ng-if="vm.record._source.desc">
     <p ng-if="vm.record._source.desc" class="result-description m-0">
       {{vm.record._source.desc}}
