@@ -479,12 +479,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         if self.detail:
             lower_higher = InformationPackage.objects.filter(
-                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
+                Q(aic=OuterRef('aic'))
             ).order_by().values('aic')
             lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
 
             qs = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True)),
                 active=True,
             )
 
@@ -1173,6 +1172,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             f.write(str(content))
             return Response("Content written to %s" % xmlfile)
 
+    @transaction.atomic
     @action(detail=True, methods=['post'])
     def receive(self, request, pk=None):
         ip = self.get_object()
@@ -1181,22 +1181,30 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if workarea is None:
             raise exceptions.ParseError(detail='IP not in writeable workarea')
 
-        step = ProcessStep.objects.create(
-            name='Receive from workarea',
-            eager=False,
-            information_package=ip,
-        )
-
-        ProcessTask.objects.create(
-            name='ESSArch_Core.workflow.tasks.ReceiveAIP',
-            args=[str(workarea.pk)],
-            processstep=step,
-            processstep_pos=10,
-            information_package=ip,
-            responsible=request.user,
-        )
-
-        step.run()
+        generate_premis = ip.profile_locked('preservation_metadata')
+        workflow = [
+            {
+                "name": "ESSArch_Core.ip.tasks.GeneratePremis",
+                "label": "Generate premis",
+                "if": generate_premis,
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
+                "label": "Generate content-mets",
+            },
+            {
+                "name": "ESSArch_Core.workflow.tasks.ReceiveAIP",
+                "label": "Receive AIP",
+                "args": [str(workarea.pk)],
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.DeleteWorkarea",
+                "label": "Delete from workarea",
+                "args": [str(workarea.pk)],
+            },
+        ]
+        workflow = create_workflow(workflow, ip, name='Receive from workarea')
+        workflow.run()
 
         return Response({'detail': 'Receiving %s' % str(ip.pk)}, status=status.HTTP_202_ACCEPTED)
 

@@ -16,7 +16,7 @@ from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.fixity.receipt import get_backend as get_receipt_backend
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
-from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage
+from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import (
     download_schemas,
     generate_aic_mets,
@@ -381,3 +381,19 @@ class DeleteInformationPackage(DBTask):
 
         Notification.objects.create(message=_('%(ip)s has been deleted') % {'ip': ip.object_identifier_value},
                                     level=logging.INFO, user_id=self.responsible, refresh=True)
+
+
+class CreateWorkarea(DBTask):
+    def run(self, ip, user, type, read_only):
+        ip = InformationPackage.objects.get(pk=ip)
+        user = User.objects.get(pk=user)
+        Workarea.objects.create(ip=ip, user=user, type=type, read_only=read_only)
+        Notification.objects.create(
+            message="%s is now in workarea" % ip.object_identifier_value,
+            level=logging.INFO, user=user, refresh=True
+        )
+
+
+class DeleteWorkarea(DBTask):
+    def run(self, pk):
+        Workarea.objects.filter(pk=pk).delete()

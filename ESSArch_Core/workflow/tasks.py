@@ -203,8 +203,6 @@ class ReceiveAIP(DBTask):
         ip.state = 'Received'
         ip.save()
 
-        workarea.delete()
-
 
 class CacheAIP(DBTask):
     event_type = 30310
@@ -437,14 +435,13 @@ class AccessAIP(DBTask):
     def run(self, aip, storage_object=None, tar=True, extracted=False, new=False, package_xml=False,
             aic_xml=False, object_identifier_value="", dst=None):
         aip = InformationPackage.objects.get(pk=aip)
+        responsible = User.objects.get(pk=self.responsible)
 
         # if it is a received IP, i.e. from ingest and not from storage,
         # then we read it directly from disk and move it to the ingest workarea
         if aip.state == 'Received':
             if not extracted and not new:
                 raise ValueError('An IP must be extracted when transferred to ingest workarea')
-
-            responsible = User.objects.get(pk=self.responsible)
 
             if new:
                 # Create new generation of the IP
@@ -479,8 +476,8 @@ class AccessAIP(DBTask):
             storage_object = StorageObject.objects.get(pk=storage_object)
         else:
             storage_object = aip.get_fastest_readable_storage_object()
+
         aip.access(storage_object, self.get_processtask(), dst=dst)
-        return
 
 
 class PrepareDIP(DBTask):
