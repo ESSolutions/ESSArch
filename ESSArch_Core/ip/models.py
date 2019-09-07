@@ -974,7 +974,7 @@ class InformationPackage(models.Model):
 
         try:
             workarea_id = self.workareas.get(read_only=False).pk
-        except Workarea.objects.DoesNotExist:
+        except Workarea.DoesNotExist:
             workarea_id = None
 
         cache_storage = self.policy.cache_storage
