@@ -691,6 +691,7 @@ export default angular
     'listViewService',
     '$anchorScroll',
     '$controller',
+    '$timeout',
     PrepareSipCtrl,
   ])
   .controller('PublishClassificationStructureCtrl', [

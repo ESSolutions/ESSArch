@@ -877,8 +877,13 @@ export default class BaseCtrl {
           $rootScope.ip = null;
           $scope.filebrowser = false;
         } else {
-          $scope.ip = row;
-          $rootScope.ip = $scope.ip;
+          $scope.ip = null;
+          $rootScope.ip = null;
+          vm.activeTab = null;
+          $timeout(() => {
+            $scope.ip = row;
+            $rootScope.ip = $scope.ip;
+          });
         }
         return;
       }
@@ -899,8 +904,13 @@ export default class BaseCtrl {
         $scope.edit = true;
         $scope.requestForm = true;
         $scope.eventShow = false;
-        $scope.ip = row;
-        $rootScope.ip = $scope.ip;
+        $scope.ip = null;
+        $rootScope.ip = null;
+        vm.activeTab = null;
+        $timeout(() => {
+          $scope.ip = row;
+          $rootScope.ip = $scope.ip;
+        });
       }
       $scope.statusShow = false;
     };

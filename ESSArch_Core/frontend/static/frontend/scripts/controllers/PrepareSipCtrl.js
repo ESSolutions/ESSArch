@@ -33,7 +33,8 @@ export default class PrepareSipCtrl {
     appConfig,
     listViewService,
     $anchorScroll,
-    $controller
+    $controller,
+    $timeout
   ) {
     const vm = this;
     const ipSortString = ['Created', 'Submitting', 'Submitted'];
@@ -46,44 +47,51 @@ export default class PrepareSipCtrl {
         $scope.ip = null;
         $rootScope.ip = null;
       } else {
-        $scope.ip = row;
-        $rootScope.ip = row;
-        const ip = row;
-        $http
-          .get(appConfig.djangoUrl + 'information-packages/' + ip.id + '/profiles/', {
-            params: {profile__profile_type: 'submit_description'},
-          })
-          .then(function(response) {
-            const sd_profile_ip = response.data[0];
-            vm.informationModel = sd_profile_ip.data.data;
-            vm.informationFields = sd_profile_ip.profile.template;
-            vm.informationFields.forEach(function(field) {
-              field.type = 'input';
-              field.templateOptions.disabled = true;
-            });
+        $scope.ip = null;
+        $rootScope.ip = null;
+        vm.activeTab = null;
+        $timeout(() => {
+          $scope.ip = row;
+          $rootScope.ip = row;
+          const ip = row;
+          if (vm.specificTabs.includes('submit_sip')) {
             $http
               .get(appConfig.djangoUrl + 'information-packages/' + ip.id + '/profiles/', {
-                params: {profile__profile_type: 'transfer_project'},
+                params: {profile__profile_type: 'submit_description'},
               })
               .then(function(response) {
-                const tp_profile_ip = response.data[0];
-                vm.dependencyModel = tp_profile_ip.data.data;
-                vm.dependencyFields = tp_profile_ip.profile.template;
-                vm.dependencyFields.forEach(function(field) {
+                const sd_profile_ip = response.data[0];
+                vm.informationModel = sd_profile_ip.data.data;
+                vm.informationFields = sd_profile_ip.profile.template;
+                vm.informationFields.forEach(function(field) {
                   field.type = 'input';
                   field.templateOptions.disabled = true;
                 });
-                listViewService.getFileList(ip).then(function(result) {
-                  $scope.fileListCollection = result;
-                  $scope.getPackageProfiles(row);
-                  $scope.edit = true;
-                  $scope.eventlog = true;
-                });
+                $http
+                  .get(appConfig.djangoUrl + 'information-packages/' + ip.id + '/profiles/', {
+                    params: {profile__profile_type: 'transfer_project'},
+                  })
+                  .then(function(response) {
+                    const tp_profile_ip = response.data[0];
+                    vm.dependencyModel = tp_profile_ip.data.data;
+                    vm.dependencyFields = tp_profile_ip.profile.template;
+                    vm.dependencyFields.forEach(function(field) {
+                      field.type = 'input';
+                      field.templateOptions.disabled = true;
+                    });
+                    listViewService.getFileList(ip).then(function(result) {
+                      $scope.fileListCollection = result;
+                      $scope.getPackageProfiles(row);
+                      $scope.edit = true;
+                      $scope.eventlog = true;
+                    });
+                  });
+              })
+              .catch(function(response) {
+                console.log(response.status);
               });
-          })
-          .catch(function(response) {
-            console.log(response.status);
-          });
+          }
+        });
       }
     };
 
