@@ -99,7 +99,8 @@
                   {{x.auth_name.full_name}}
                 </td>
                 <td>
-                  {{x.type.main_type.name}}
+                  {{x.type.main_type.name + (x.type.sub_type && x.sub_type !== '' ? (' (' + x.type.sub_type + ')') :
+                  '')}}
                 </td>
                 <td>
                   {{x.start_date | date:"yyyy-MM-dd"}}
