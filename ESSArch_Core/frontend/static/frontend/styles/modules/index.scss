@@ -604,14 +604,20 @@ main {
 }
 
 .eventlog-view {
-  border-top-style: solid;
-  border-top-width: 1px;
-  border-color: $border-color;
   display: flex;
   flex-direction: row;
   margin: 5px;
   padding: 5px;
   justify-content: space-between;
+}
+
+.prepare-ip,
+.ip-approval {
+  .eventlog-view {
+    border-top-style: solid;
+    border-top-width: 1px;
+    border-color: $border-color;
+  }
 }
 
 .eventlog-view .form-group {
