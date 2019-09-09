@@ -115,6 +115,45 @@ class StructureType(models.Model):
         verbose_name_plural = _('structure types')
 
 
+class StructureRelationType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+    mirrored_type = models.ForeignKey(
+        'self', on_delete=models.PROTECT, blank=True,
+        null=True, verbose_name=_('mirrored type'),
+    )
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('structure relation type')
+        verbose_name_plural = _('structure relation types')
+
+
+class StructureRelation(models.Model):
+    structure_a = models.ForeignKey(
+        'tags.Structure',
+        on_delete=models.CASCADE,
+        related_name='structure_relations_a',
+        limit_choices_to={'is_template': True},
+    )
+    structure_b = models.ForeignKey(
+        'tags.Structure',
+        on_delete=models.CASCADE,
+        related_name='structure_relations_b',
+        limit_choices_to={'is_template': True},
+    )
+    type = models.ForeignKey('tags.StructureRelationType', on_delete=models.PROTECT, null=False)
+    description = models.TextField(_('description'), blank=True)
+    start_date = models.DateField(_('start date'), null=True)
+    end_date = models.DateField(_('end date'), null=True)
+    create_date = models.DateTimeField(_('create date'), default=timezone.now)
+    revise_date = models.DateTimeField(_('revise date'), auto_now=True)
+
+    class Meta:
+        unique_together = ('structure_a', 'structure_b', 'type')  # Avoid duplicates within same type
+
+
 class RuleConventionType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
 
@@ -149,6 +188,12 @@ class Structure(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         related_name='structures',
+    )
+    related_structures = models.ManyToManyField(
+        'self',
+        through='tags.StructureRelation',
+        through_fields=('structure_a', 'structure_b'),
+        symmetrical=False,
     )
 
     def is_move_allowed(self, tag_structure, dst_tag_structure):
@@ -264,6 +309,23 @@ class Structure(models.Model):
     def unpublish(self):
         self.published = False
         self.save()
+
+    @transaction.atomic
+    def relate_to(self, other_structure, relation_type, **kwargs):
+        StructureRelation.objects.create(
+            structure_a=self,
+            structure_b=other_structure,
+            type=relation_type,
+            **kwargs,
+        )
+
+        # create mirrored relation
+        StructureRelation.objects.create(
+            structure_a=other_structure,
+            structure_b=self,
+            type=relation_type.mirrored_type or relation_type,
+            **kwargs,
+        )
 
     def __str__(self):
         return '{} {}'.format(self.name, self.version)

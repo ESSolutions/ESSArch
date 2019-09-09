@@ -45,6 +45,8 @@ from ESSArch_Core.tags.models import (
     RuleConventionType,
     Search,
     Structure,
+    StructureRelation,
+    StructureRelationType,
     StructureType,
     StructureUnit,
     StructureUnitRelation,
@@ -59,6 +61,7 @@ from ESSArch_Core.tags.models import (
 
 PUBLISHED_STRUCTURE_CHANGE_ERROR = _('Published structures cannot be changed')
 NON_EDITABLE_STRUCTURE_CHANGE_ERROR = _('{} cannot be changed')
+STRUCTURE_INSTANCE_RELATION_ERROR = _('Cannot add relations to structure instances')
 
 
 class NodeIdentifierTypeSerializer(serializers.ModelSerializer):
@@ -129,18 +132,50 @@ class StructureTypeSerializer(serializers.ModelSerializer):
         )
 
 
+class StructureRelationTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StructureRelationType
+        fields = ('id', 'name',)
+
+
+class RelatedStructureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Structure
+        fields = ('id', 'name',)
+
+
+class StructureRelationSerializer(serializers.ModelSerializer):
+    structure = RelatedStructureSerializer(source='structure_b')
+    type = StructureRelationTypeSerializer()
+
+    class Meta:
+        model = StructureRelation
+        fields = ('id', 'type', 'description', 'start_date', 'end_date',
+                  'create_date', 'revise_date', 'structure',)
+
+
+class StructureRelationWriteSerializer(StructureRelationSerializer):
+    structure = serializers.PrimaryKeyRelatedField(
+        source='structure_b', queryset=Structure.objects.filter(is_template=True)
+    )
+    type = serializers.PrimaryKeyRelatedField(queryset=StructureRelationType.objects.all())
+
+
 class StructureSerializer(serializers.ModelSerializer):
     type = StructureTypeSerializer()
     rule_convention_type = RuleConventionTypeSerializer()
     specification = serializers.JSONField(default={})
     created_by = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
     revised_by = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+    related_structures = StructureRelationSerializer(
+        source='structure_relations_a', many=True, required=False
+    )
 
     class Meta:
         model = Structure
         fields = ('id', 'name', 'type', 'template', 'is_template', 'version', 'create_date', 'revise_date',
                   'start_date', 'end_date', 'specification', 'rule_convention_type', 'created_by', 'revised_by',
-                  'published', 'published_date',)
+                  'published', 'published_date', 'related_structures',)
         extra_kwargs = {
             'is_template': {'read_only': True},
             'template': {'read_only': True},
@@ -153,8 +188,16 @@ class StructureWriteSerializer(StructureSerializer):
         queryset=RuleConventionType.objects.all(), allow_null=True, default=None
     )
     version_link = serializers.UUIDField(default=uuid.uuid4, allow_null=False)
+    related_structures = StructureRelationWriteSerializer(
+        source='structure_relations_a', many=True, required=False
+    )
 
     def validate(self, data):
+        if set(data.keys()) == {'structure_relations_a'}:
+            if not self.instance.is_template:
+                raise serializers.ValidationError(STRUCTURE_INSTANCE_RELATION_ERROR)
+            return data
+
         if self.instance:
             if self.instance.published:
                 raise serializers.ValidationError(PUBLISHED_STRUCTURE_CHANGE_ERROR)
@@ -166,14 +209,33 @@ class StructureWriteSerializer(StructureSerializer):
 
         return data
 
+    @staticmethod
+    def create_relations(structure, structure_relations):
+        for relation in structure_relations:
+            other_structure = relation.pop('structure_b')
+            relation_type = relation.pop('type')
+            structure.relate_to(other_structure, relation_type, **relation)
+
+    @transaction.atomic
     def create(self, validated_data):
         validated_data['is_template'] = True
         validated_data['created_by'] = self.context['request'].user
         validated_data['revised_by'] = self.context['request'].user
-        return super().create(validated_data)
+        related_structures_data = validated_data.pop('structure_relations_a', [])
+        structure = super().create(validated_data)
 
+        self.create_relations(structure, related_structures_data)
+        return structure
+
+    @transaction.atomic
     def update(self, instance, validated_data):
         validated_data['revised_by'] = self.context['request'].user
+        related_structures_data = validated_data.pop('structure_relations_a', None)
+
+        if related_structures_data is not None:
+            StructureRelation.objects.filter(Q(structure_a=instance) | Q(structure_b=instance)).delete()
+            self.create_relations(instance, related_structures_data)
+
         return super().update(instance, validated_data)
 
     class Meta(StructureSerializer.Meta):
@@ -220,13 +282,6 @@ class StructureUnitRelationWriteSerializer(StructureUnitRelationSerializer):
         source='structure_unit_b', queryset=StructureUnit.objects.all()
     )
     type = serializers.PrimaryKeyRelatedField(queryset=NodeRelationType.objects.all())
-
-
-class NodeRelationTypeSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = NodeRelationType
-        fields = ('id', 'name',)
 
 
 class StructureUnitTypeSerializer(serializers.ModelSerializer):
