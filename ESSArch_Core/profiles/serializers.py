@@ -229,7 +229,6 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
 
             'archivist_organization',
 
-            'information_packages',
             'include_profile_transfer_project',
             'include_profile_content_type',
             'include_profile_data_selection',
