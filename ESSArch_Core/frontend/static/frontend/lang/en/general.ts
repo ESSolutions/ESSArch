@@ -89,6 +89,7 @@ const general = $translateProvider => {
     DONE: 'Done',
     DOYOUWANTTOLOCKSA: 'Do you want to lock sa',
     DOYOUWANTTOREMOVEIP: 'Do you want to remove ip?',
+    DO_YOU_WANT_TO_REMOVE_IP_WORKAREA: 'Do you want to remove IP from workspace?',
     EDIT: 'Edit',
     EMAILS_FAILED: 'Emails failed',
     EMAILS_SENT: 'Emails sent',

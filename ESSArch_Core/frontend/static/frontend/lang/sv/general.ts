@@ -90,6 +90,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     DONE: 'Färdig',
     DOYOUWANTTOLOCKSA: 'Vill du låsa sa',
     DOYOUWANTTOREMOVEIP: 'Vill du ta bort IP?',
+    DO_YOU_WANT_TO_REMOVE_IP_WORKAREA: 'Vill du ta bort IP från arbetsytan?',
     EDIT: 'Redigera',
     EMAILS_FAILED: 'Email misslyckades',
     EMAILS_SENT: 'Email skickades',

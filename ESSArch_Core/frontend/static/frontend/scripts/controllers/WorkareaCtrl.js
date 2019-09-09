@@ -164,6 +164,36 @@ export default class WorkareaCtrl {
       $scope.previousGridArrays = [];
     };
 
+    $scope.removeIpModal = function(ipObject) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/remove-workarea-ip-modal.html',
+        controller: 'ModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: function() {
+            return {
+              ip: ipObject,
+              workarea: $state.includes('**.workarea.**'),
+            };
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data) {
+          $scope.ips = [];
+          $scope.ip = null;
+          $rootScope.ip = null;
+          $scope.ipRemoved(ipObject);
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
     // **********************************
     //            Upload
     // **********************************
