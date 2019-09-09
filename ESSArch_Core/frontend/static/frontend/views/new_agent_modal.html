@@ -9,6 +9,7 @@
         {{'ACCESS.AUTHORIZED_NAME' | translate}}
       </h4>
       <formly-form model="$ctrl.authName" fields="$ctrl.nameFields" options="{}"></formly-form>
+      <form-errors errors="$ctrl.nameErrors"></form-errors>
       <hr />
       <div ng-if="$ctrl.basicFields.length > 0" ng-include="'static/frontend/views/edit_agent.html'"></div>
     </div>

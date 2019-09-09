@@ -8,7 +8,6 @@ export default class AgentModalInstanceCtrl {
       description: '',
       start_date: null,
       end_date: null,
-      type: 1,
       certainty: null,
     };
     $ctrl.nameFields = [];
@@ -385,6 +384,7 @@ export default class AgentModalInstanceCtrl {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
+
     $ctrl.create = function() {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
@@ -392,32 +392,41 @@ export default class AgentModalInstanceCtrl {
       }
       $ctrl.creating = true;
       $ctrl.agent.names = [];
-      $ctrl.agent.names.push($ctrl.authName);
-      const agent = angular.copy($ctrl.agent);
-      agent.type = $ctrl.agent.type.id;
-      $rootScope.skipErrorNotification = true;
-      $http({
-        url: appConfig.djangoUrl + 'agents/',
-        method: 'POST',
-        data: agent,
-      })
-        .then(function(response) {
+      $http.get(appConfig.djangoUrl + 'agent-name-types/', {params: {authority: true}}).then(typesResponse => {
+        if (typesResponse.data.length >= 1) {
+          $ctrl.authName.type = angular.copy(typesResponse.data[0]).id;
+          $ctrl.agent.names.push($ctrl.authName);
+          const agent = angular.copy($ctrl.agent);
+          agent.type = $ctrl.agent.type.id;
+          $rootScope.skipErrorNotification = true;
+          $http({
+            url: appConfig.djangoUrl + 'agents/',
+            method: 'POST',
+            data: agent,
+          })
+            .then(function(response) {
+              $ctrl.creating = false;
+              EditMode.disable();
+              $uibModalInstance.close(response.data);
+            })
+            .catch(function(response) {
+              $ctrl.nonFieldErrors = response.data.non_field_errors;
+              if (response.data.names) {
+                if (angular.isArray($ctrl.nonFieldErrors)) {
+                  $ctrl.nonFieldErrors = $ctrl.nonFieldErrors.concat(response.data.names);
+                } else {
+                  $ctrl.nonFieldErrors = response.data.names;
+                }
+              }
+              $ctrl.creating = false;
+            });
+        } else {
+          $ctrl.nameErrors = [$translate.instant('NO_AUTHORIZED_NAME_TYPE')];
           $ctrl.creating = false;
-          EditMode.disable();
-          $uibModalInstance.close(response.data);
-        })
-        .catch(function(response) {
-          $ctrl.nonFieldErrors = response.data.non_field_errors;
-          if (response.data.names) {
-            if (angular.isArray($ctrl.nonFieldErrors)) {
-              $ctrl.nonFieldErrors = $ctrl.nonFieldErrors.concat(response.data.names);
-            } else {
-              $ctrl.nonFieldErrors = response.data.names;
-            }
-          }
-          $ctrl.creating = false;
-        });
+        }
+      });
     };
+
     $ctrl.save = function() {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
