@@ -130,6 +130,7 @@ class Structure(models.Model):
         'self', on_delete=models.PROTECT, null=True,
         limit_choices_to={'is_template': True}, related_name='instances', verbose_name=_('template'),
     )
+    is_editable = models.BooleanField(_('is editable'), default=True)
     is_template = models.BooleanField(_('is template'))
     published = models.BooleanField(_('published'), default=False)
     published_date = models.DateTimeField(null=True)
@@ -255,6 +256,7 @@ class Structure(models.Model):
 
                 archive_tag_structure.copy_descendants_to_new_structure(new_instance)
 
+        self.is_editable = False
         self.published = True
         self.published_date = timezone.now()
         self.save()

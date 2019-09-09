@@ -37,7 +37,10 @@ from ESSArch_Core.tags.models import (
     TagVersionType,
     Transfer,
 )
-from ESSArch_Core.tags.serializers import PUBLISHED_STRUCTURE_CHANGE_ERROR
+from ESSArch_Core.tags.serializers import (
+    NON_EDITABLE_STRUCTURE_CHANGE_ERROR,
+    PUBLISHED_STRUCTURE_CHANGE_ERROR,
+)
 
 User = get_user_model()
 
@@ -187,8 +190,7 @@ class UpdateStructureTests(TestCase):
 
     def test_update_published_structure(self):
         structure = create_structure(self.structure_type)
-        structure.published = True
-        structure.save()
+        structure.publish()
         url = reverse('structure-detail', args=[structure.pk])
 
         perm = Permission.objects.get(codename='change_structure')
@@ -203,6 +205,32 @@ class UpdateStructureTests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, {'non_field_errors': [PUBLISHED_STRUCTURE_CHANGE_ERROR]})
+
+    def test_update_unpublished_structure(self):
+        structure = create_structure(self.structure_type)
+        structure.publish()
+        structure.unpublish()
+        url = reverse('structure-detail', args=[structure.pk])
+
+        perm = Permission.objects.get(codename='change_structure')
+        self.user.user_permissions.add(perm)
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.patch(
+            url,
+            data={
+                'name': 'bar',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data,
+            {
+                'non_field_errors': [
+                    NON_EDITABLE_STRUCTURE_CHANGE_ERROR.format(structure.name),
+                ]
+            }
+        )
 
 
 class PublishStructureTests(TestCase):

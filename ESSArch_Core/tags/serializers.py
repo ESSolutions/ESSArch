@@ -56,6 +56,7 @@ from ESSArch_Core.tags.models import (
 )
 
 PUBLISHED_STRUCTURE_CHANGE_ERROR = _('Published structures cannot be changed')
+NON_EDITABLE_STRUCTURE_CHANGE_ERROR = _('{} cannot be changed')
 
 
 class NodeIdentifierTypeSerializer(serializers.ModelSerializer):
@@ -152,8 +153,14 @@ class StructureWriteSerializer(StructureSerializer):
     version_link = serializers.UUIDField(default=uuid.uuid4, allow_null=False)
 
     def validate(self, data):
-        if self.instance and self.instance.published:
-            raise serializers.ValidationError(PUBLISHED_STRUCTURE_CHANGE_ERROR)
+        if self.instance:
+            if self.instance.published:
+                raise serializers.ValidationError(PUBLISHED_STRUCTURE_CHANGE_ERROR)
+
+            if not self.instance.is_editable:
+                raise serializers.ValidationError(
+                    NON_EDITABLE_STRUCTURE_CHANGE_ERROR.format(self.instance.name)
+                )
 
         return data
 
