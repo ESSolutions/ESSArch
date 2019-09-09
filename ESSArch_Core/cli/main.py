@@ -22,6 +22,13 @@ def cli(ctx):
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ESSArch_Core.config.settings')
 
 
+def _loaddata(*fixture_labels):
+    dj_call_command(
+        'loaddata',
+        *fixture_labels,
+    )
+
+
 @cli.command()
 @initialize
 def migrate():
@@ -85,6 +92,7 @@ def install(ctx, data_directory):
         data_directory = click.prompt('Data directory', default='/ESSArch/data', type=click.Path())
     ctx.invoke(create_data_directories, path=data_directory)
     ctx.invoke(migrate)
+    _loaddata('countries_data', 'languages_data',)
 
 
 @click.option('-l', '--loglevel', default='INFO', type=click.Choice(LOG_LEVELS, case_sensitive=False))
