@@ -28,6 +28,8 @@ from ESSArch_Core.tags.models import (
     LocationLevelType,
     NodeRelationType,
     Structure,
+    StructureRelation,
+    StructureRelationType,
     StructureType,
     StructureUnit,
     StructureUnitRelation,
@@ -41,6 +43,7 @@ from ESSArch_Core.tags.models import (
 from ESSArch_Core.tags.serializers import (
     NON_EDITABLE_STRUCTURE_CHANGE_ERROR,
     PUBLISHED_STRUCTURE_CHANGE_ERROR,
+    STRUCTURE_INSTANCE_RELATION_ERROR,
 )
 
 User = get_user_model()
@@ -147,6 +150,71 @@ class CreateStructureTests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_create_with_related_template(self):
+        perm = Permission.objects.get(codename='add_structure')
+        self.user.user_permissions.add(perm)
+        self.client.force_authenticate(user=self.user)
+
+        structure_type = StructureType.objects.create(name='test')
+        relation_type = StructureRelationType.objects.create(name="test")
+        other_structure = create_structure(structure_type)
+
+        response = self.client.post(
+            self.url,
+            data={
+                'name': 'foo',
+                'type': structure_type.pk,
+                'related_structures': [
+                    {
+                        'structure': other_structure.pk,
+                        'type': relation_type.pk,
+                    }
+                ],
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Structure.objects.count(), 2)
+        self.assertEqual(StructureRelation.objects.count(), 2)
+
+        structure = Structure.objects.get(name='foo')
+
+        self.assertTrue(
+            StructureRelation.objects.filter(
+                structure_a=structure, structure_b=other_structure, type=relation_type
+            ).exists()
+        )
+        self.assertTrue(
+            StructureRelation.objects.filter(
+                structure_a=other_structure, structure_b=structure, type=relation_type
+            ).exists()
+        )
+
+    def test_create_with_related_instance(self):
+        perm = Permission.objects.get(codename='add_structure')
+        self.user.user_permissions.add(perm)
+        self.client.force_authenticate(user=self.user)
+
+        structure_type = StructureType.objects.create(name='test')
+        relation_type = StructureRelationType.objects.create(name="test")
+        other_structure = create_structure(structure_type, template=False)
+
+        response = self.client.post(
+            self.url,
+            data={
+                'name': 'foo',
+                'type': structure_type.pk,
+                'related_structures': [
+                    {
+                        'structure': other_structure.pk,
+                        'type': relation_type.pk,
+                    }
+                ],
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Structure.objects.count(), 1)
+        self.assertFalse(StructureRelation.objects.exists())
+
 
 class UpdateStructureTests(TestCase):
     def setUp(self):
@@ -232,6 +300,126 @@ class UpdateStructureTests(TestCase):
                 ]
             }
         )
+
+    def test_update_relations(self):
+        perm = Permission.objects.get(codename='change_structure')
+        self.user.user_permissions.add(perm)
+        self.client.force_authenticate(user=self.user)
+
+        structure = create_structure(self.structure_type)
+        other_structure = create_structure(self.structure_type)
+        relation_type = StructureRelationType.objects.create(name="test")
+        url = reverse('structure-detail', args=[structure.pk])
+
+        response = self.client.patch(
+            url,
+            data={
+                'related_structures': [
+                    {
+                        'structure': other_structure.pk,
+                        'type': relation_type.pk,
+                    }
+                ],
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(StructureRelation.objects.count(), 2)
+
+        self.assertTrue(
+            StructureRelation.objects.filter(
+                structure_a=structure, structure_b=other_structure, type=relation_type
+            ).exists()
+        )
+        self.assertTrue(
+            StructureRelation.objects.filter(
+                structure_a=other_structure, structure_b=structure, type=relation_type
+            ).exists()
+        )
+
+    def test_update_relations_published_structure(self):
+        perm = Permission.objects.get(codename='change_structure')
+        self.user.user_permissions.add(perm)
+        self.client.force_authenticate(user=self.user)
+
+        structure = create_structure(self.structure_type)
+        structure.publish()
+        other_structure = create_structure(self.structure_type)
+        relation_type = StructureRelationType.objects.create(name="test")
+        url = reverse('structure-detail', args=[structure.pk])
+
+        response = self.client.patch(
+            url,
+            data={
+                'related_structures': [
+                    {
+                        'structure': other_structure.pk,
+                        'type': relation_type.pk,
+                    }
+                ],
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(StructureRelation.objects.count(), 2)
+
+        self.assertTrue(
+            StructureRelation.objects.filter(
+                structure_a=structure, structure_b=other_structure, type=relation_type
+            ).exists()
+        )
+        self.assertTrue(
+            StructureRelation.objects.filter(
+                structure_a=other_structure, structure_b=structure, type=relation_type
+            ).exists()
+        )
+
+    def test_update_relations_structure_from_instance(self):
+        perm = Permission.objects.get(codename='change_structure')
+        self.user.user_permissions.add(perm)
+        self.client.force_authenticate(user=self.user)
+
+        structure = create_structure(self.structure_type, template=False)
+        other_structure = create_structure(self.structure_type)
+        relation_type = StructureRelationType.objects.create(name="test")
+        url = reverse('structure-detail', args=[structure.pk])
+
+        response = self.client.patch(
+            url,
+            data={
+                'related_structures': [
+                    {
+                        'structure': other_structure.pk,
+                        'type': relation_type.pk,
+                    }
+                ],
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {'non_field_errors': [STRUCTURE_INSTANCE_RELATION_ERROR]})
+        self.assertFalse(StructureRelation.objects.exists())
+
+    def test_update_relations_structure_to_instance(self):
+        perm = Permission.objects.get(codename='change_structure')
+        self.user.user_permissions.add(perm)
+        self.client.force_authenticate(user=self.user)
+
+        structure = create_structure(self.structure_type)
+        other_structure = create_structure(self.structure_type, template=False)
+        relation_type = StructureRelationType.objects.create(name="test")
+        url = reverse('structure-detail', args=[structure.pk])
+
+        response = self.client.patch(
+            url,
+            data={
+                'related_structures': [
+                    {
+                        'structure': other_structure.pk,
+                        'type': relation_type.pk,
+                    }
+                ],
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(StructureRelation.objects.exists())
 
 
 class PublishStructureTests(TestCase):

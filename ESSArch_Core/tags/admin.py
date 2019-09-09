@@ -9,6 +9,7 @@ from ESSArch_Core.tags.models import (
     NodeIdentifierType,
     NodeNoteType,
     NodeRelationType,
+    StructureRelationType,
     StructureType,
     StructureUnitType,
     TagVersionType,
@@ -16,6 +17,10 @@ from ESSArch_Core.tags.models import (
 
 
 class NodeRelationTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'mirrored_type')
+
+
+class StructureRelationTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'mirrored_type')
 
 
@@ -36,5 +41,6 @@ admin.site.register(NodeRelationType, NodeRelationTypeAdmin)
 admin.site.register(NodeIdentifierType)
 admin.site.register(NodeNoteType)
 admin.site.register(StructureType)
+admin.site.register(StructureRelationType, StructureRelationTypeAdmin)
 admin.site.register(StructureUnitType, StructureUnitTypeAdmin)
 admin.site.register(TagVersionType, TagVersionTypeAdmin)

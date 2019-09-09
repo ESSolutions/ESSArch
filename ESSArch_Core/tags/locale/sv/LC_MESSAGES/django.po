@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-01 14:29+0200\n"
+"POT-Creation-Date: 2019-09-09 16:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,370 +18,406 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: .\apps.py:7
+#: apps.py:7
 msgid "Archival Description"
 msgstr "Arkivredovisning"
 
-#: .\models.py:24
+#: models.py:25
 msgid "identifier"
 msgstr ""
 
-#: .\models.py:30 .\models.py:59
+#: models.py:31 models.py:61
 msgid "tag version"
 msgstr ""
 
-#: .\models.py:37 .\models.py:66
+#: models.py:38 models.py:68
 msgid "structure unit"
 msgstr ""
 
-#: .\models.py:39 .\models.py:68 .\models.py:1027
+#: models.py:40 models.py:70 models.py:1109
 msgid "type"
 msgstr ""
 
-#: .\models.py:43 .\models.py:76 .\models.py:87 .\models.py:102 .\models.py:117
-#: .\models.py:273 .\models.py:633 .\models.py:642 .\models.py:653
-#: .\models.py:666 .\models.py:677 .\models.py:688 .\models.py:707
-#: .\models.py:1013 .\models.py:1025 .\models.py:1026 .\models.py:1055
+#: models.py:44 models.py:78 models.py:89 models.py:104 models.py:119
+#: models.py:158 models.py:344 models.py:705 models.py:714 models.py:725
+#: models.py:738 models.py:749 models.py:764 models.py:783 models.py:1095
+#: models.py:1107 models.py:1108 models.py:1137
 msgid "name"
 msgstr "namn"
 
-#: .\models.py:49
+#: models.py:50
 msgid "node identifier type"
 msgstr "nodidentifieringstyp"
 
-#: .\models.py:50
+#: models.py:51
 msgid "node identifier types"
 msgstr "nodidentifieringstyper"
 
-#: .\models.py:69
+#: models.py:71
 msgid "text"
 msgstr ""
 
-#: .\models.py:70
+#: models.py:72
 msgid "href"
 msgstr ""
 
-#: .\models.py:71 .\models.py:298 .\models.py:625
+#: models.py:73 models.py:150 models.py:369 models.py:697
 msgid "create date"
 msgstr ""
 
-#: .\models.py:72 .\models.py:299 .\models.py:626
+#: models.py:74 models.py:151 models.py:370 models.py:698
 msgid "revise date"
 msgstr ""
 
-#: .\models.py:82
+#: models.py:84
 msgid "node note type"
 msgstr "nodanmärkningstyp"
 
-#: .\models.py:83
+#: models.py:85
 msgid "node note types"
 msgstr "nodanmärkningstyper"
 
-#: .\models.py:90
+#: models.py:92 models.py:122
 msgid "mirrored type"
 msgstr "motsatt typ"
 
-#: .\models.py:97
+#: models.py:99
 msgid "node relation type"
 msgstr "nodrelationstyp"
 
-#: .\models.py:98
+#: models.py:100
 msgid "node relation types"
 msgstr "nodrelationstyper"
 
-#: .\models.py:103
+#: models.py:105
 msgid "instance name"
 msgstr "instansnamn"
 
-#: .\models.py:104
+#: models.py:106
 msgid "editable instances"
 msgstr "redigeringsbara instanser"
 
-#: .\models.py:105
+#: models.py:107
 msgid "editable instance relations"
 msgstr "redigeringsbara instansrelationer"
 
-#: .\models.py:106
+#: models.py:108
 msgid "movable instance units"
 msgstr "flyttbara instansenheter"
 
-#: .\models.py:112 .\models.py:272
+#: models.py:114 models.py:343
 msgid "structure type"
 msgstr "strukturtyp"
 
-#: .\models.py:113
+#: models.py:115
 msgid "structure types"
 msgstr "strukturtyper"
 
-#: .\models.py:129 .\models.py:312
-msgid "template"
-msgstr "mall"
+#: models.py:129
+msgid "structure relation type"
+msgstr "strukturrelationstyp"
 
-#: .\models.py:131
-msgid "is template"
-msgstr "är mall"
+#: models.py:130
+msgid "structure relation types"
+msgstr "strukturrelationstyper"
 
-#: .\models.py:132
-msgid "published"
-msgstr "publicerad"
-
-#: .\models.py:279
-msgid "structure unit type"
-msgstr "strukturenhetstyp"
-
-#: .\models.py:280
-msgid "structure unit types"
-msgstr "strukturenhetstyper"
-
-#: .\models.py:295 .\models.py:622 .\models.py:1028
+#: models.py:147 models.py:366 models.py:694 models.py:1110
 msgid "description"
 msgstr "beskrivning"
 
-#: .\models.py:296 .\models.py:623 .\models.py:928
+#: models.py:148 models.py:367 models.py:695 models.py:1010
 msgid "start date"
-msgstr ""
+msgstr "startdatum"
 
-#: .\models.py:297 .\models.py:624 .\models.py:929
+#: models.py:149 models.py:368 models.py:696 models.py:1011
 msgid "end date"
-msgstr ""
+msgstr "slutdatum"
 
-#: .\models.py:319 .\models.py:739 .\models.py:1068
+#: models.py:170 models.py:383
+msgid "template"
+msgstr "mall"
+
+#: models.py:172
+msgid "is editable"
+msgstr "är redigerbar"
+
+#: models.py:173
+msgid "is template"
+msgstr "är mall"
+
+#: models.py:174
+msgid "published"
+msgstr "publicerad"
+
+#: models.py:350
+msgid "structure unit type"
+msgstr "strukturenhetstyp"
+
+#: models.py:351
+msgid "structure unit types"
+msgstr "strukturenhetstyper"
+
+#: models.py:390 models.py:815 models.py:1150
 msgid "transfers"
 msgstr "överföringar"
 
-#: .\models.py:526
+#: models.py:597
 msgid "Can add structure unit instances"
 msgstr "Kan skapa instanser av strukturenheter"
 
-#: .\models.py:527
+#: models.py:598
 msgid "Can edit instances of structure units"
 msgstr "Kan redigera instanser av strukturenheter"
 
-#: .\models.py:528
+#: models.py:599
 msgid "Can delete instances of structure units"
 msgstr "Kan radera instanser av strukturenheter"
 
-#: .\models.py:529
+#: models.py:600
 msgid "Can move instances of structure units"
 msgstr "Kan flytta instanser av strukturenheter"
 
-#: .\models.py:634
+#: models.py:706
 msgid "size"
 msgstr ""
 
-#: .\models.py:635
+#: models.py:707
 msgid "unit"
 msgstr ""
 
-#: .\models.py:648
+#: models.py:720
 msgid "metric type"
 msgstr "enhetstyp"
 
-#: .\models.py:649
+#: models.py:721
 msgid "metric types"
 msgstr "enhetstyper"
 
-#: .\models.py:654
+#: models.py:726
 msgid "capacity"
 msgstr "kapacitet"
 
-#: .\models.py:655 .\models.py:692 .\models.py:737
+#: models.py:727 models.py:768 models.py:813
 msgid "metric"
 msgstr "enhet"
 
-#: .\models.py:661
+#: models.py:733
 msgid "location profile"
 msgstr "placeringsprofil"
 
-#: .\models.py:662
+#: models.py:734
 msgid "location profiles"
 msgstr "placeringsprofiler"
 
-#: .\models.py:672
+#: models.py:744
 msgid "location level type"
 msgstr "placeringsnivå"
 
-#: .\models.py:673
+#: models.py:745
 msgid "location level types"
 msgstr "placeringsnivåer"
 
-#: .\models.py:683
+#: models.py:755
 msgid "location function type"
 msgstr "placeringsfunktion"
 
-#: .\models.py:684
+#: models.py:756
 msgid "location function types"
 msgstr "placeringsfunktioner"
 
-#: .\models.py:690
+#: models.py:766
 msgid "parent"
 msgstr ""
 
-#: .\models.py:693
+#: models.py:769
 msgid "level type"
 msgstr "nivå"
 
-#: .\models.py:694
+#: models.py:770
 msgid "function"
 msgstr "funktion"
 
-#: .\models.py:702 .\models.py:738
+#: models.py:778 models.py:814
 msgid "location"
 msgstr "placering"
 
-#: .\models.py:703
+#: models.py:779
 msgid "locations"
 msgstr "placeringar"
 
-#: .\models.py:708
+#: models.py:784
 msgid "archive type"
 msgstr "arkivtyp"
 
-#: .\models.py:714
+#: models.py:790
 msgid "node type"
 msgstr "nodtyp"
 
-#: .\models.py:715
+#: models.py:791
 msgid "node types"
 msgstr "nodtyper"
 
-#: .\models.py:1019
+#: models.py:1101
 msgid "delivery type"
 msgstr "leveranstyp"
 
-#: .\models.py:1020
+#: models.py:1102
 msgid "delivery types"
 msgstr "leveranstyper"
 
-#: .\models.py:1049 .\models.py:1056
+#: models.py:1131 models.py:1138
 msgid "delivery"
 msgstr ""
 
-#: .\models.py:1050
+#: models.py:1132
 msgid "deliveries"
 msgstr ""
 
-#: .\models.py:1067
+#: models.py:1149
 msgid "transfer"
 msgstr ""
 
-#: .\serializers.py:53
+#: serializers.py:62
 msgid "Published structures cannot be changed"
 msgstr "Publicerade strukturer kan ej ändras"
 
-#: .\serializers.py:280
+#: serializers.py:63
+msgid "{} cannot be changed"
+msgstr "{} kan ej ändras"
+
+#: serializers.py:64
+msgid "Cannot add relations to structure instances"
+msgstr "Relationer kan ej skapas för strukturinstanser"
+
+#: serializers.py:352
 msgid "Units in instances cannot relate to units in another archive"
 msgstr "Enheter i instanser kan inte relateras till enheter i andra arkiv"
 
-#: .\serializers.py:289
+#: serializers.py:361
 msgid "Unit relations in instances of type {} cannot be edited"
 msgstr "Enhetsrelationer i instanser av typen {} kan inte redigeras"
 
-#: .\serializers.py:298
+#: serializers.py:370
 msgid "Cannot create units in instances of type {}"
 msgstr "Kan ej skapa enheter i instanser av typen {}"
 
-#: .\serializers.py:309
+#: serializers.py:381
 msgid "Units in instances of type {} cannot be moved"
 msgstr "Enheter i instanser av typen {} kan inte flyttas"
 
-#: .\serializers.py:320
+#: serializers.py:392
 msgid "Units in instances of type {} cannot be edited"
 msgstr "Enheter i instanser av typen {} kan inte redigeras"
 
-#: .\serializers.py:334
+#: serializers.py:406
 msgid "Unit type {} is not allowed in structure type {}"
 msgstr "Enhetstypen {} är inte tillåten i strukturtypen {}"
 
-#: .\serializers.py:342
+#: serializers.py:414
 msgid "Parent and child structure unit must be in the same structure"
 msgstr ""
 
-#: .\serializers.py:641
+#: serializers.py:680
 msgid "Archive already added"
 msgstr "Arkivet har redan lagts till"
 
-#: .\templates\tags\archive.html:66 .\templates\tags\search_results.html:73
+#: serializers.py:963 serializers.py:1072
+msgid "end date must occur after start date"
+msgstr ""
+
+#: serializers.py:1057
+msgid "At least one structure is required"
+msgstr ""
+
+#: serializers.py:1064
+msgid "Structures cannot be deleted from archives"
+msgstr ""
+
+#: templates/tags/archive.html:66 templates/tags/search_results.html:73
 msgid "Archive"
 msgstr "Arkiv"
 
-#: .\templates\tags\archive.html:67 .\templates\tags\search_results.html:66
-#: .\templates\tags\search_results.html:77
+#: templates/tags/archive.html:67 templates/tags/search_results.html:66
+#: templates/tags/search_results.html:77
 msgid "Date"
 msgstr "Datum"
 
-#: .\templates\tags\archive.html:75
+#: templates/tags/archive.html:75
 msgid "Serie"
 msgstr ""
 
-#: .\templates\tags\archive.html:76
+#: templates/tags/archive.html:76
 msgid "Serie signum"
 msgstr ""
 
-#: .\templates\tags\archive.html:83 .\templates\tags\archive.html:93
+#: templates/tags/archive.html:83 templates/tags/archive.html:93
 msgid "Notes"
 msgstr "Anmärkningar"
 
-#: .\templates\tags\archive.html:91
+#: templates/tags/archive.html:91
 msgid "Volume number"
 msgstr "Volymnummer"
 
-#: .\templates\tags\archive.html:92
+#: templates/tags/archive.html:92
 msgid "Time"
 msgstr ""
 
-#: .\templates\tags\search_results.html:63
+#: templates/tags/search_results.html:63
 msgid "Search results"
 msgstr "Sökresultat"
 
-#: .\templates\tags\search_results.html:64
+#: templates/tags/search_results.html:64
 msgid "User"
 msgstr "Användare"
 
-#: .\templates\tags\search_results.html:74
+#: templates/tags/search_results.html:74
 msgid "Type"
 msgstr "Typ"
 
-#: .\templates\tags\search_results.html:75
+#: templates/tags/search_results.html:75
 msgid "Reference code"
 msgstr "Referenskod"
 
-#: .\templates\tags\search_results.html:76
+#: templates/tags/search_results.html:76
 msgid "Title"
 msgstr "Titel"
 
-#: .\templates\tags\search_results.html:78
+#: templates/tags/search_results.html:78
 msgid "Description"
 msgstr "Beskrivning"
 
-#: .\views.py:160
+#: views.py:162
 msgid "Location must be empty before deletion"
 msgstr "Placeringen måste vara tom innan den kan tas bort"
 
-#: .\views.py:223
+#: views.py:225
 msgid "Can only publish templates"
 msgstr "Endast mallar kan publiceras"
 
-#: .\views.py:226
+#: views.py:228
 msgid "{} is already published"
 msgstr "{} är redan publicerad"
 
-#: .\views.py:238
+#: views.py:240
+msgid "{} is not published"
+msgstr "{} är inte publicerad"
+
+#: views.py:252
 msgid "Can only create new versions of templates"
 msgstr ""
 
-#: .\views.py:241
+#: views.py:255
 msgid "Can only create new versions of published structures"
 msgstr ""
 
-#: .\views.py:246
+#: views.py:260
 msgid "No version name provided"
 msgstr "Inget versionsnamn har angivits"
 
-#: .\views.py:249
+#: views.py:263
 msgid "Version {} already exists"
 msgstr "Version {} existerar redan"
 
-#: .\views.py:319
+#: views.py:333
 msgid "Cannot delete units in instances of type {}"
 msgstr "Kan ej radera enheter i instanser av typen {}"
