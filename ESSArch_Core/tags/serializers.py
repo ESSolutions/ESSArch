@@ -22,6 +22,8 @@ from ESSArch_Core.agents.serializers import (
 from ESSArch_Core.api.validators import StartDateEndDateValidator
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import UserSerializer
+from ESSArch_Core.configuration.models import EventType
+from ESSArch_Core.ip.models import EventIP
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.profiles.serializers import SubmissionAgreementSerializer
@@ -718,6 +720,11 @@ class DeliveryWriteSerializer(DeliverySerializer):
         org = self.context['request'].user.user_profile.current_organization
         org.add_object(obj)
 
+        event_type = EventType.objects.get(eventType='20300')
+        EventIP.objects.create(
+            delivery=obj,
+            eventType=event_type,
+        )
         return obj
 
 
