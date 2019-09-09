@@ -409,8 +409,15 @@ class DeliveryViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Delivery.objects.none()
     serializer_class = DeliverySerializer
     permission_classes = (ActionPermissions,)
-    filter_backends = (SearchFilter, filters.OrderingFilter)
-    search_fields = ('name', 'id')
+    filter_backends = (DjangoFilterBackend, SearchFilter, filters.OrderingFilter)
+    filterset_fields = (
+        'name', 'submission_agreement__name',
+        'producer_organization__names__main',
+    )
+    search_fields = (
+        'id', 'name', 'description', 'submission_agreement__name',
+        'producer_organization__names__main',
+    )
 
     def get_queryset(self):
         user = self.request.user
@@ -435,7 +442,15 @@ class TransferViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = TransferSerializer
     permission_classes = (ActionPermissions,)
     filter_backends = (SearchFilter, filters.OrderingFilter)
-    search_fields = ('name',)
+    filter_backends = (DjangoFilterBackend, SearchFilter, filters.OrderingFilter)
+    filterset_fields = (
+        'name', 'submitter_organization',
+        'submitter_individual_name',
+    )
+    search_fields = (
+        'name', 'submitter_organization',
+        'submitter_individual_name',
+    )
 
     def get_queryset(self):
         user = self.request.user
