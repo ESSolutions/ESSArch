@@ -19,6 +19,7 @@ from ESSArch_Core.agents.models import (
     RefCode,
 )
 from ESSArch_Core.auth.models import Group, GroupType
+from ESSArch_Core.configuration.models import EventType
 from ESSArch_Core.tags.models import (
     Delivery,
     DeliveryType,
@@ -1472,6 +1473,7 @@ class CreateDeliveryTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_with_permission(self):
+        EventType.objects.create(eventType='20300', category=EventType.CATEGORY_DELIVERY)
         self.user.user_permissions.add(Permission.objects.get(codename="add_delivery"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
