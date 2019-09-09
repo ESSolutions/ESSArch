@@ -217,6 +217,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     NEWPASSWORD: 'Nytt Lösenord',
     NO_ACTIONS_FOR_SELECTED_IPS: 'Det finns inga tillgängliga funktioner för valda objekt',
     NO_ARGUMENTS: 'Inga argument',
+    NO_AUTHORIZED_NAME_TYPE: 'Auktoriserad namntyp saknas',
     NO_PARAMETERS: 'Inga parametrar',
     NO_RESULTS_FOUND: 'Inga resultat hittade',
     NO_SUBMISSION_AGREEMENT_AVAILABLE: 'Inga leveransöverenskommelser tillgängliga',
