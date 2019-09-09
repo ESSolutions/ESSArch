@@ -1354,7 +1354,7 @@ export default class BaseCtrl {
 
     vm.canDeleteIP = function(row) {
       // IPs in workareas can always be deleted, including AICs
-      if ($state.is('home.ingest.workarea') || $state.is('home.access.workarea')) {
+      if ($state.is('home.workarea')) {
         return true;
       }
 
