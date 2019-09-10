@@ -18,7 +18,7 @@ export default class LocationCtrl {
 
     vm.onSelect = function(node) {
       if (node.id !== $stateParams.id) {
-        $state.go($state.current.name, {id: node.id}, {notify: false});
+        $state.go($state.current.name, {id: node.id});
       }
     };
   }

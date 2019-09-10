@@ -41,10 +41,10 @@ export default class TransferCtrl {
     vm.transferClick = function(transfer) {
       if (vm.selectedTransfer !== null && transfer.id === vm.selectedTransfer.id) {
         vm.selectedTransfer = null;
-        $state.go($state.current.name, {transfer: null}, {notify: false});
+        $state.go($state.current.name, {transfer: null});
       } else {
         vm.selectedTransfer = transfer;
-        $state.go($state.current.name, {transfer: transfer.id}, {notify: false});
+        $state.go($state.current.name, {transfer: transfer.id});
         vm.transferEventsPipe(vm.transferEventsTableState);
         vm.tagsPipe(vm.tagsTableState);
         vm.unitsPipe(vm.unitsTableState);

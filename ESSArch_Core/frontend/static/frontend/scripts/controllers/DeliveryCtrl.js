@@ -82,7 +82,7 @@ export default class DeliveryCtrl {
     vm.deliveryClick = function(delivery) {
       if (vm.selected !== null && delivery.id === vm.selected.id) {
         vm.selected = null;
-        $state.go('home.archivalDescriptions.deliveries', {delivery: null}, {notify: false});
+        $state.go('home.archivalDescriptions.deliveries', {delivery: null});
       } else {
         vm.selected = null;
         $timeout(function() {
@@ -90,7 +90,7 @@ export default class DeliveryCtrl {
           vm.selectedTransfer = null;
           vm.selected = delivery;
           if ($stateParams.delivery !== delivery.id) {
-            $state.go('home.archivalDescriptions.deliveries', {delivery: delivery.id}, {notify: false});
+            $state.go('home.archivalDescriptions.deliveries', {delivery: delivery.id});
           }
         });
       }
@@ -101,11 +101,7 @@ export default class DeliveryCtrl {
         if (tab === 'transfers') {
           $state.go('home.archivalDescriptions.deliveries.transfers', {delivery: vm.selected.id});
         } else {
-          $state.go(
-            'home.archivalDescriptions.deliveries',
-            {delivery: vm.selected.id, transfer: null},
-            {notify: false}
-          );
+          $state.go('home.archivalDescriptions.deliveries', {delivery: vm.selected.id, transfer: null});
         }
       });
     };

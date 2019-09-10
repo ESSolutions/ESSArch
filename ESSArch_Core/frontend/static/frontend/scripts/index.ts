@@ -473,10 +473,13 @@ angular
           },
         })
         .state('home.archivalDescriptions.archiveCreators', {
-          url: '/archive-creators/:id',
+          url: '/archive-creators/{id}',
           template: '<agents></agents>',
           params: {
-            id: null,
+            id: {
+              dynamic: true,
+              value: null,
+            },
           },
           resolve: {
             authenticated: resolveAuthenticated,
@@ -489,10 +492,10 @@ angular
           },
         })
         .state('home.archivalDescriptions.classificationStructures', {
-          url: '/structures/:id',
+          url: '/structures/{id}',
           template: '<classification-structure-editor></classification-structure-editor>',
           params: {
-            id: null,
+            id: {dynamic: true, value: null},
           },
           resolve: {
             authenticated: resolveAuthenticated,
@@ -532,10 +535,10 @@ angular
           },
         })
         .state('home.archivalDescriptions.location', {
-          url: '/location/:id',
+          url: '/location/{id}',
           template: '<location></location>',
           params: {
-            id: null,
+            id: {dynamic: true, value: null},
           },
           resolve: {
             authenticated: resolveAuthenticated,
@@ -548,11 +551,11 @@ angular
           },
         })
         .state('home.archivalDescriptions.deliveries', {
-          url: '/deliveries/:delivery',
+          url: '/deliveries/{delivery}',
           template: '<delivery-page></delivery-page>',
           params: {
-            transfer: null,
-            delivery: null,
+            transfer: {dynamic: true, value: null},
+            delivery: {dynamic: true, value: null},
           },
           resolve: {
             authenticated: resolveAuthenticated,
@@ -565,13 +568,13 @@ angular
           },
         })
         .state('home.archivalDescriptions.deliveries.transfers', {
-          url: '/transfers/:transfer',
+          url: '/transfers/{transfer}',
           templateUrl: 'static/frontend/views/transfers.html',
           controller: 'TransferCtrl',
           controllerAs: 'vm',
           params: {
-            transfer: null,
-            delivery: null,
+            transfer: {dynamic: true, value: null},
+            delivery: {dynamic: true, value: null},
           },
           resolve: {
             authenticated: resolveAuthenticated,

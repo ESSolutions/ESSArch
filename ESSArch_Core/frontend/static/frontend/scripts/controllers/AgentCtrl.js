@@ -115,12 +115,12 @@ export default class AgentCtrl {
           vm.agent = agent;
           vm.agentArchivePipe($scope.archiveTableState);
           vm.sortNames(vm.agent);
-          $state.go($state.current.name, vm.agent, {notify: false});
+          $state.go($state.current.name, vm.agent);
           $rootScope.$broadcast('UPDATE_TITLE', {title: vm.agent.auth_name.full_name});
         });
       } else if (vm.agent !== null && vm.agent.id === agent.id) {
         vm.agent = null;
-        $state.go($state.current.name, {id: null}, {notify: false});
+        $state.go($state.current.name, {id: null});
         $translate.instant(
           $state.current.name
             .split('.')
@@ -348,7 +348,7 @@ export default class AgentCtrl {
       modalInstance.result.then(
         function(data) {
           vm.agent = null;
-          $state.go($state.current.name, {id: null}, {notify: false});
+          $state.go($state.current.name, {id: null});
           $rootScope.$broadcast('UPDATE_TITLE', {
             title: $translate.instant(
               $state.current.name

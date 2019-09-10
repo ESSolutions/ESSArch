@@ -36,7 +36,7 @@ export default class ClassificationStructureEditorCtrl {
     vm.structureClick = function(row) {
       if (vm.structure && vm.structure.id === row.id) {
         vm.structure = null;
-        $state.go($state.current.name, {id: null}, {notify: false});
+        $state.go($state.current.name, {id: null});
         $rootScope.$broadcast('UPDATE_TITLE', {
           title: $translate.instant(
             $state.current.name
@@ -50,7 +50,7 @@ export default class ClassificationStructureEditorCtrl {
         Structure.get({id: row.id}).$promise.then(function(resource) {
           vm.structuresLoading = false;
           vm.structure = resource;
-          $state.go($state.current.name, {id: vm.structure.id}, {notify: false});
+          $state.go($state.current.name, {id: vm.structure.id});
           $rootScope.$broadcast('UPDATE_TITLE', {title: vm.structure.name});
           vm.oldStructure = angular.copy(resource);
           vm.rules = vm.structure.specification.rules ? angular.copy(vm.structure.specification.rules) : {};
