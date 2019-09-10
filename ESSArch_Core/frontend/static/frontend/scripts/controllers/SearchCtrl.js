@@ -190,7 +190,6 @@ export default class SearchCtrl {
         component: true,
         file: true,
       };
-      vm.searchSubmit();
     };
 
     vm.searchSubmit = function() {
