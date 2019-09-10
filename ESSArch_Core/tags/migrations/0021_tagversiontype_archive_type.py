@@ -16,6 +16,5 @@ class Migration(migrations.Migration):
             model_name='tagversiontype',
             name='archive_type',
             field=models.BooleanField(default=False, verbose_name='archive type'),
-            preserve_default=False,
         ),
     ]

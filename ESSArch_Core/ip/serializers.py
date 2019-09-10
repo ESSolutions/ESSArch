@@ -26,7 +26,7 @@ from ESSArch_Core.storage.models import (
     StorageMethodTargetRelation,
     StorageTarget,
 )
-from ESSArch_Core.tags.models import Delivery, Transfer
+from ESSArch_Core.tags.models import Delivery, StructureUnit, Transfer
 from ESSArch_Core.tags.serializers import TransferSerializer
 
 User = get_user_model()
@@ -187,6 +187,20 @@ class InformationPackageSerializer(serializers.ModelSerializer):
                 'validators': [],
             },
         }
+
+
+class InformationPackageReceptionReceiveSerializer(serializers.Serializer):
+    storage_policy = serializers.PrimaryKeyRelatedField(
+        queryset=StoragePolicy.objects.all(),
+    )
+    structure_unit = serializers.PrimaryKeyRelatedField(
+        default=None,
+        queryset=StructureUnit.objects.filter(
+            structure__is_template=False,
+            structure__published=True,
+        ),
+    )
+    allow_unknown_files = serializers.BooleanField(default=False)
 
 
 class OrderSerializer(serializers.ModelSerializer):

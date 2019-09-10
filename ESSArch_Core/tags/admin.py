@@ -29,7 +29,7 @@ class StructureUnitTypeAdmin(admin.ModelAdmin):
 
 
 class TagVersionTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'archive_type')
+    list_display = ('name', 'archive_type', 'information_package_type')
 
 
 admin.site.register(DeliveryType)

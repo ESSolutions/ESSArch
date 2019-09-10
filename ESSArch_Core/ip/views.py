@@ -95,6 +95,7 @@ from ESSArch_Core.ip.serializers import (
     EventIPWriteSerializer,
     InformationPackageDetailSerializer,
     InformationPackageFromMasterSerializer,
+    InformationPackageReceptionReceiveSerializer,
     InformationPackageSerializer,
     NestedInformationPackageSerializer,
     OrderSerializer,
@@ -105,7 +106,12 @@ from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
 from ESSArch_Core.profiles.utils import profile_types
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
-from ESSArch_Core.tags.models import TagStructure
+from ESSArch_Core.tags.models import (
+    Tag,
+    TagStructure,
+    TagVersion,
+    TagVersionType,
+)
 from ESSArch_Core.util import (
     creation_date,
     find_destination,
@@ -2011,12 +2017,16 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
     @permission_required_or_403(['ip.receive'])
     @action(detail=True, methods=['post'], url_path='receive')
     def receive(self, request, pk=None):
+        logger = logging.getLogger('essarch.epp.ingest')
+
         try:
             ip = get_object_or_404(self.get_queryset(), id=pk)
         except (ValueError, ValidationError):
             raise exceptions.NotFound('Information package with id="%s" not found' % pk)
 
-        logger = logging.getLogger('essarch.epp.ingest')
+        serializer = InformationPackageReceptionReceiveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer_data = serializer.validated_data
 
         if ip.state != 'Prepared':
             logger.warn(
@@ -2054,23 +2064,33 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             )
             raise exceptions.ParseError('%s does not exist' % container)
 
-        try:
-            policy_id = request.data.get('storage_policy')
-            policy = StoragePolicy.objects.get(pk=policy_id)
-        except (StoragePolicy.DoesNotExist, TypeError):
-            msg = 'Archive policy with id %s does not exist' % policy_id
-            raise exceptions.ParseError(msg)
+        policy = serializer_data['storage_policy']
+        structure_unit = serializer_data['structure_unit']
 
-        tag_id = request.data.get('tag')
-        if tag_id is not None:
-            if ip.get_archive_tag() is not None:
-                raise exceptions.ParseError('Cannot set tag on IP that has content_type with archive reference')
-
+        if structure_unit is not None:
+            tag = Tag.objects.create(
+                information_package=ip,
+            )
             try:
-                ip.tag = TagStructure.objects.get(pk=tag_id)
-                ip.save()
-            except TagStructure.DoesNotExist:
-                raise exceptions.ParseError('Tag "{id}" does not exist'.format(id=tag_id))
+                TagVersion.objects.create(
+                    tag=tag,
+                    type=TagVersionType.objects.get(information_package_type=True),
+                    elastic_index='component',
+                )
+            except TagVersionType.DoesNotExist:
+                msg = TagVersionType.information_package_type_not_found_error
+                logger.exception(msg)
+                raise exceptions.ParseError(msg)
+
+            archive_structure = TagStructure.objects.filter(structure=structure_unit.structure).first().get_root()
+            TagStructure.objects.create(
+                tag=tag,
+                structure=structure_unit.structure,
+                structure_unit=structure_unit,
+                parent=archive_structure,
+            )
+        # TODO: use default structure unit from CTS, if available
+        # and no other structure unit is provided in the request
 
         ip.policy = policy
         ip.save()
@@ -2134,7 +2154,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                                 "label": "Receive SIP",
                                 "params": {
                                     'purpose': request.data.get('purpose'),
-                                    'allow_unknown_files': request.data.get('allow_unknown_files', False),
+                                    'allow_unknown_files': serializer_data['allow_unknown_files'],
                                 }
                             },
                             {

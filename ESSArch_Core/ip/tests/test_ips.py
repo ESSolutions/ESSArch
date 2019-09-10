@@ -63,8 +63,12 @@ from ESSArch_Core.storage.models import (
 from ESSArch_Core.tags.models import (
     Structure,
     StructureType,
+    StructureUnit,
+    StructureUnitType,
     Tag,
     TagStructure,
+    TagVersion,
+    TagVersionType,
 )
 from ESSArch_Core.testing.runner import TaskRunner
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
@@ -1387,30 +1391,33 @@ class InformationPackageViewSetTestCase(TestCase):
 
 
 class InformationPackageReceptionViewSetTestCase(TestCase):
-    def setUp(self):
-        self.cache = StorageMethod.objects.create()
-        self.ingest = Path.objects.create(entity='ingest', value='ingest')
+    @classmethod
+    def setUpTestData(cls):
+        cls.cache = StorageMethod.objects.create()
+        cls.ingest = Path.objects.create(entity='ingest', value='ingest')
+        cls.policy = StoragePolicy.objects.create(cache_storage=cls.cache, ingest_path=cls.ingest)
 
-        self.user = User.objects.create(username="admin", password='admin')
-        self.policy = StoragePolicy.objects.create(cache_storage=self.cache, ingest_path=self.ingest)
+        cls.org_group_type = GroupType.objects.create(label='organization')
 
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        self.member = self.user.essauth_member
-        self.org_group_type = GroupType.objects.create(label='organization')
-        self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
-        self.group.add_member(self.member)
-
-        self.url = reverse('ip-reception-list')
+        cls.url = reverse('ip-reception-list')
 
         Path.objects.create(entity='reception', value='reception')
         Path.objects.create(entity='path_ingest_reception', value='ingest_reception')
         Path.objects.create(entity='path_ingest_unidentified', value='ingest_reception_unidentified')
 
-        self.sa = SubmissionAgreement.objects.create()
+        cls.sa = SubmissionAgreement.objects.create()
         aip_profile = Profile.objects.create(profile_type='aip')
-        ProfileSA.objects.create(submission_agreement=self.sa, profile=aip_profile)
+        ProfileSA.objects.create(submission_agreement=cls.sa, profile=aip_profile)
+
+    def setUp(self):
+        self.user = User.objects.create(username="admin", password='admin')
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.member = self.user.essauth_member
+        self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
+        self.group.add_member(self.member)
 
     def test_receive_without_permission(self):
         ip = InformationPackage.objects.create()
@@ -1472,14 +1479,61 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
                 return_value='foo.tar')
     @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_receive_ip_with_missing_tag(self, mock_step, mock_isfile, mock_get_container):
+    def test_receive_ip_with_structure_unit(self, mock_step, mock_isfile, mock_get_container):
         ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
         url = reverse('ip-reception-receive', args=[ip.pk])
         perms = {'group': ['view_informationpackage', 'ip.receive']}
         self.member.assign_object(self.group, ip, custom_permissions=perms)
 
-        res = self.client.post(url, data={'storage_policy': self.policy.pk})
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        structure_type = StructureType.objects.create(name='foo')
+        structure = Structure.objects.create(is_template=True, type=structure_type)
+
+        archive_tag = Tag.objects.create()
+        archive_tag_version_type = TagVersionType.objects.create(name='archive', archive_type=True)
+        TagVersion.objects.create(
+            tag=archive_tag,
+            type=archive_tag_version_type,
+            elastic_index='archive',
+        )
+        TagStructure.objects.create(tag=archive_tag, structure=structure,)
+
+        structure_unit_type = StructureUnitType.objects.create(name='foo', structure_type=structure_type)
+        structure_unit = StructureUnit.objects.create(structure=structure, type=structure_unit_type)
+        tag_version_type = TagVersionType.objects.create(name='foo', information_package_type=True)
+
+        with self.subTest('unit template'):
+            """Structure unit template is not valid"""
+            res = self.client.post(url, data={
+                'storage_policy': self.policy.pk,
+                'structure_unit': structure_unit.pk,
+            })
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        structure.is_template = False
+        structure.save()
+        with self.subTest('non-published unit'):
+            """Structure unit must be published"""
+            res = self.client.post(url, data={
+                'storage_policy': self.policy.pk,
+                'structure_unit': structure_unit.pk,
+            })
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        structure.publish()
+        with self.subTest('published unit'):
+            res = self.client.post(url, data={
+                'storage_policy': self.policy.pk,
+                'structure_unit': structure_unit.pk,
+            })
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertTrue(
+            TagVersion.objects.filter(
+                tag__information_package=ip,
+                type=tag_version_type,
+                tag__structures__structure_unit=structure_unit,
+            ).exists()
+        )
 
         mock_step.assert_called_once()
 

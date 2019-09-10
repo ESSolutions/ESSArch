@@ -4,6 +4,7 @@ import uuid
 import jsonfield
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import F, OuterRef, Subquery
 from django.utils import timezone
@@ -780,8 +781,28 @@ class Location(MPTTModel):
 
 
 class TagVersionType(models.Model):
+    unique_information_package_type_error = _(
+        'Only 1 node type can be set as information package type at a time'
+    )
+    information_package_type_not_found_error = _(
+        'Node information package type not found'
+    )
+
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
-    archive_type = models.BooleanField(_('archive type'))
+    archive_type = models.BooleanField(_('archive type'), default=False)
+    information_package_type = models.BooleanField(_('information package type'), default=False)
+
+    def clean(self):
+        if self.information_package_type:
+            try:
+                existing = TagVersionType.objects.get(information_package_type=True)
+                if existing != self:
+                    raise ValidationError(
+                        self.unique_information_package_type_error,
+                        code='invalid',
+                    )
+            except TagVersionType.DoesNotExist:
+                pass
 
     def __str__(self):
         return self.name
