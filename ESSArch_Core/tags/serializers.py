@@ -23,7 +23,7 @@ from ESSArch_Core.api.validators import StartDateEndDateValidator
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import EventType
-from ESSArch_Core.ip.models import EventIP
+from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.profiles.serializers import SubmissionAgreementSerializer
@@ -819,6 +819,10 @@ class ComponentWriteSerializer(serializers.Serializer):
     description = serializers.CharField(required=False)
     type = serializers.PrimaryKeyRelatedField(queryset=TagVersionType.objects.filter(archive_type=False))
     reference_code = serializers.CharField()
+    information_package = serializers.PrimaryKeyRelatedField(
+        default=None,
+        queryset=InformationPackage.objects.filter(archived=True),
+    )
     parent = serializers.PrimaryKeyRelatedField(
         required=False,
         queryset=TagVersion.objects.filter(type__archive_type=False),
@@ -857,8 +861,9 @@ class ComponentWriteSerializer(serializers.Serializer):
             structure = validated_data.pop('structure', None)
             notes_data = validated_data.pop('notes', None)
             identifiers_data = validated_data.pop('identifiers', [])
+            information_package = validated_data.pop('information_package', None)
 
-            tag = Tag.objects.create()
+            tag = Tag.objects.create(information_package=information_package)
             tag_structure = TagStructure(tag=tag)
 
             if structure_unit is not None:
@@ -918,6 +923,7 @@ class ComponentWriteSerializer(serializers.Serializer):
         structure = validated_data.pop('structure', None)
         notes_data = validated_data.pop('notes', None)
         identifiers_data = validated_data.pop('identifiers', [])
+        information_package = validated_data.pop('information_package', None)
 
         if identifiers_data is not None:
             NodeIdentifier.objects.filter(tag_version=instance).delete()
@@ -945,6 +951,8 @@ class ComponentWriteSerializer(serializers.Serializer):
                 tag_structure.structure_unit = None
                 tag_structure.save()
 
+        instance.tag.information_package = information_package
+        instance.tag.save()
         TagVersion.objects.filter(pk=instance.pk).update(**validated_data)
         instance.refresh_from_db()
 
@@ -956,6 +964,9 @@ class ComponentWriteSerializer(serializers.Serializer):
     def validate(self, data):
         if not self.instance and 'parent' not in data and 'structure_unit' not in data:
             raise serializers.ValidationError('parent or structure_unit required')
+
+        if data.get('information_package') is not None and not data['type'].information_package_type:
+            raise serializers.ValidationError('information package can only be set on information package nodes')
 
         if data.get('start_date') and data.get('end_date') and \
            data.get('start_date') > data.get('end_date'):
