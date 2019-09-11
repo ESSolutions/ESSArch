@@ -173,22 +173,27 @@ export default class ClassificationModalInstanceCtrl {
           key: 'description',
         },
         {
-          templateOptions: {
-            type: 'text',
-            label: $translate.instant('START_DATE'),
-            appendToBody: false,
-          },
-          type: 'datepicker',
-          key: 'start_date',
-        },
-        {
-          templateOptions: {
-            type: 'text',
-            label: $translate.instant('END_DATE'),
-            appendToBody: false,
-          },
-          type: 'datepicker',
-          key: 'end_date',
+          className: 'row m-0',
+          fieldGroup: [
+            {
+              className: 'col-xs-12 col-sm-6 px-0 pr-md-base',
+              type: 'datepicker',
+              key: 'start_date',
+              templateOptions: {
+                label: $translate.instant('START_DATE'),
+                appendToBody: false,
+              },
+            },
+            {
+              className: 'col-xs-12 col-sm-6 px-0 pl-md-base',
+              type: 'datepicker',
+              key: 'end_date',
+              templateOptions: {
+                label: $translate.instant('END_DATE'),
+                appendToBody: false,
+              },
+            },
+          ],
         },
       ];
     };
