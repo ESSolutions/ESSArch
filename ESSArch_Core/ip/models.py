@@ -1872,7 +1872,7 @@ class InformationPackageMetadata(models.Model):
 
 
 class EventIPManager(models.Manager):
-    def from_premis_element(self, el, save=True):
+    def from_premis_element(self, el):
         '''
         Parses a Premis event element
 
@@ -1927,13 +1927,24 @@ class EventIPManager(models.Manager):
             linkingAgentIdentifierValue=username,
             linkingObjectIdentifierValue=ip,
         )
-        if save:
-            event.save()
         return event
 
     def from_premis_file(self, xmlfile, save=True):
         root = etree.parse(xmlfile).getroot()
-        return [self.from_premis_element(el, save) for el in root.xpath("./*[local-name()='event']")]
+        events = []
+
+        for el in root.xpath("./*[local-name()='event']"):
+            event = self.from_premis_element(el)
+
+            if EventIP.objects.filter(eventIdentifierValue=event.eventIdentifierValue).exists():
+                continue
+
+            if save:
+                event.save()
+
+            events.append(event)
+
+        return events
 
 
 class EventIP(models.Model):
