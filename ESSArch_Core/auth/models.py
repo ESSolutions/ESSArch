@@ -292,12 +292,14 @@ class GroupMember(GroupMemberMixin):
 class UserProfile(models.Model):
     AIC = 'aic'
     IP = 'ip'
+    FLAT = 'flat'
     IP_LIST_VIEW_CHOICES = (
         (AIC, 'AIC'),
         (IP, 'IP'),
+        (FLAT, 'FLAT'),
     )
 
-    def default_ip_list_columns():
+    def default_ip_list_columns(self):
         return [
             'label', 'object_identifier_value', 'start_date', 'end_date', 'responsible',
             'state', 'step_state', 'status', 'filebrowser', 'delete',
