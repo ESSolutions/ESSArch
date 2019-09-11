@@ -754,6 +754,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         chunks_path = os.path.join(temp_path, str(ip.pk), request.data['path'])
         filepath = os.path.join(ip.object_path, request.data['path'])
 
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
         try:
             merge_file_chunks(chunks_path, filepath)
         except NoFileChunksFound:
