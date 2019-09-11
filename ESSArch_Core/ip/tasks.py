@@ -1,6 +1,5 @@
 import logging
 import os
-import shutil
 import tarfile
 from urllib.parse import urljoin
 
@@ -16,7 +15,7 @@ from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.fixity.receipt import get_backend as get_receipt_backend
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
-from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
+from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import (
     download_schemas,
     generate_aic_mets,
@@ -39,37 +38,6 @@ from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
-
-
-class ReceiveSIP(DBTask):
-    event_type = 20100
-
-    @transaction.atomic
-    def run(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
-        sa = ip.submission_agreement
-        prepare_path = Path.objects.get(entity="path_preingest_prepare").value
-        dst_dir = os.path.join(prepare_path, ip.object_identifier_value)
-        shutil.copytree(ip.object_path, dst_dir)
-
-        if sa.archivist_organization:
-            existing_agents_with_notes = Agent.objects.all().with_notes([])
-            ao_agent, _ = Agent.objects.get_or_create(
-                role='ARCHIVIST', type='ORGANIZATION',
-                name=sa.archivist_organization, pk__in=existing_agents_with_notes
-            )
-            ip.agents.add(ao_agent)
-
-        submit_description_data = ip.get_profile_data('submit_description')
-        ip.label = ip.object_identifier_value
-        ip.entry_date = ip.create_date
-        ip.object_path = dst_dir
-        ip.start_date = submit_description_data.get('start_date')
-        ip.end_date = submit_description_data.get('end_date')
-        ip.save()
-
-    def event_outcome_success(self, result, *args, **kwargs):
-        return "Received IP"
 
 
 class SubmitSIP(DBTask):

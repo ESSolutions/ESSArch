@@ -23,65 +23,19 @@
 """
 
 import os
-import shutil
 
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db import transaction
 
 # noinspection PyUnresolvedReferences
 from ESSArch_Core import tasks  # noqa
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.fixity.checksum import calculate_checksum
-from ESSArch_Core.ip.models import (
-    MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
-    InformationPackage,
-    Workarea,
-)
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.storage.copy import copy_file
-from ESSArch_Core.util import creation_date, timestamp_to_datetime
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 
 User = get_user_model()
-
-
-class ReceiveSIP(DBTask):
-    event_type = 20100
-
-    def get_workarea_path(self, ip):
-        workarea = Path.objects.get(entity='ingest_workarea').value
-        username = User.objects.get(pk=self.responsible).username
-        workarea_user = os.path.join(workarea, username)
-        return os.path.join(workarea_user, ip.object_identifier_value)
-
-    @transaction.atomic
-    def run(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
-        dst_dir = self.get_workarea_path(ip)
-        os.makedirs(dst_dir, exist_ok=True)
-        try:
-            if not os.path.isdir(ip.object_path):
-                xmlfile = os.path.splitext(ip.object_path)[0] + '.xml'
-                algorithm = ip.get_checksum_algorithm()
-                ip.package_mets_path = xmlfile
-                ip.package_mets_create_date = timestamp_to_datetime(creation_date(xmlfile)).isoformat()
-                ip.package_mets_size = os.path.getsize(xmlfile)
-                ip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
-                ip.package_mets_digest = calculate_checksum(xmlfile, algorithm=algorithm)
-                ip.save()
-                shutil.copy(ip.object_path, dst_dir)
-                shutil.copy(ip.package_mets_path, dst_dir)
-            else:
-                shutil.copytree(ip.object_path, dst_dir)
-        except Exception:
-            shutil.rmtree(dst_dir)
-            raise
-
-        Workarea.objects.create(ip=ip, user_id=self.responsible, type=Workarea.INGEST, read_only=False)
-
-    def event_outcome_success(self, result, *args, **kwargs):
-        return "Received IP"
 
 
 class TransferSIP(DBTask):
