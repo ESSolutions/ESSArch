@@ -299,7 +299,7 @@ class UserProfile(models.Model):
         (FLAT, 'FLAT'),
     )
 
-    def default_ip_list_columns(self):
+    def default_ip_list_columns():
         return [
             'label', 'object_identifier_value', 'start_date', 'end_date', 'responsible',
             'state', 'step_state', 'status', 'filebrowser', 'delete',
