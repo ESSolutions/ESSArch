@@ -45,6 +45,27 @@ export default class AddNodeModalInstanceCtrl {
         });
     };
 
+    $ctrl.getInformationPackages = function(search) {
+      return $http({
+        url: appConfig.djangoUrl + 'information-packages/',
+        mathod: 'GET',
+        params: {page: 1, page_size: 10, search: search, archived: true, view_type: 'flat'},
+      }).then(function(response) {
+        $ctrl.options.ips = response.data;
+        return $ctrl.options.ips;
+      });
+    };
+
+    let isIpType = type => {
+      let ipType = false;
+      $ctrl.typeOptions.forEach(x => {
+        if (x.pk === type && x.information_package_type) {
+          ipType = true;
+        }
+      });
+      return ipType;
+    };
+
     $ctrl.loadForm = function() {
       $ctrl.nodeFields = [
         {
@@ -108,6 +129,31 @@ export default class AddNodeModalInstanceCtrl {
               },
             },
           ],
+        },
+        {
+          type: 'uiselect',
+          key: 'information_package',
+          hideExpression: () => {
+            return !isIpType($ctrl.newNode.type);
+          },
+          templateOptions: {
+            options: function() {
+              return $ctrl.options.ips;
+            },
+            valueProp: 'id',
+            labelProp: 'label',
+            placeholder: $translate.instant('INFORMATION_PACKAGE'),
+            label: $translate.instant('INFORMATION_PACKAGE'),
+            appendToBody: false,
+            refresh: function(search) {
+              if (angular.isUndefined(search) || search === null || search === '') {
+                search = '';
+              }
+              $ctrl.getInformationPackages(search).then(function() {
+                this.options = $ctrl.options.ips;
+              });
+            },
+          },
         },
       ];
     };

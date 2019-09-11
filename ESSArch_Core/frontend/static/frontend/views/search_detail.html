@@ -4,6 +4,7 @@
     <button class="btn btn-success" ng-click="vm.gotoSearch()">{{'ACCESS.GO_TO_SEARCH' | translate}}</button>
   </div>
   <div
+    ng-if="vm.record.structures.length > 0"
     id="record-tree"
     resizable
     r-directions="['right']"
@@ -53,7 +54,14 @@
             <div ng-include="'static/frontend/views/search_handling_detail.html'"></div>
           </div>
           <div ng-switch-default>
-            <div ng-include="'static/frontend/views/search_component_detail.html'"></div>
+            <div
+              ng-if="vm.record.type.information_package_type"
+              ng-include="'static/frontend/views/search_ip_detail.html'"
+            ></div>
+            <div
+              ng-if="!vm.record.type.information_package_type"
+              ng-include="'static/frontend/views/search_component_detail.html'"
+            ></div>
           </div>
         </div>
       </div>

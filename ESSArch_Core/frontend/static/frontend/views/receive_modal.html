@@ -117,20 +117,20 @@
             <div class="input-group">
               <ui-select
                 allow-clear
-                ng-model="vm.tags.descendants.value"
+                ng-model="vm.tags.structureUnits.value"
                 theme="bootstrap"
                 sortable="true"
                 close-on-select="true"
                 append-to-body="false"
               >
                 <ui-select-match ng-attr-placeholder="{{'ACCESS.STRUCTURE_UNIT' | translate}}"
-                  >{{vm.tags.descendants.value.name}}</ui-select-match
+                  >{{vm.tags.structureUnits.value.name}}</ui-select-match
                 >
                 <ui-select-choices
                   ng-hide="!$select.open"
                   refresh-delay="0"
-                  refresh="getTagDescendants(vm.tags.archive.value.parent_id, vm.tags.structure.value.id, $select.search)"
-                  repeat="x in vm.tags.descendants.options | propsFilter: {name: $select.search}"
+                  refresh="getStructureUnits(vm.tags.archive.value.parent_id, vm.tags.structure.value.id, $select.search)"
+                  repeat="x in vm.tags.structureUnits.options | propsFilter: {name: $select.search}"
                 >
                   <div ng-bind-html="x.name | highlight: $select.search"></div>
                 </ui-select-choices>
@@ -139,12 +139,7 @@
                 </ui-select-no-choice>
               </ui-select>
               <span class="input-group-btn">
-                <button
-                  ng-disabled="vm.sa.profile_content_type"
-                  type="button"
-                  ng-click="vm.tags.descendants.value = null"
-                  class="btn btn-sm btn-default"
-                >
+                <button type="button" ng-click="vm.tags.structureUnits.value = null" class="btn btn-sm btn-default">
                   <span class="fas fa-trash-alt"></span>
                 </button>
               </span>

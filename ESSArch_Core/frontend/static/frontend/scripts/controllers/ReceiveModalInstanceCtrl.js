@@ -1,5 +1,5 @@
 export default class ReceiveModalInstanceCtrl {
-  constructor($uibModalInstance, $scope, data, $translate, $uibModal, $log) {
+  constructor($uibModalInstance, $scope, data, $translate, $uibModal, $log, $http, appConfig, $q) {
     const vm = data.vm;
     $scope.saAlert = null;
     $scope.alerts = {
@@ -57,6 +57,14 @@ export default class ReceiveModalInstanceCtrl {
     };
 
     vm.confirmReceiveModal = function(ip) {
+      let data = {
+        ip: ip,
+        validatorModal: vm.validatorModel,
+        request: vm.request,
+      };
+      if (vm.tags.structureUnits.value) {
+        data.structure_unit = vm.tags.structureUnits.value.id;
+      }
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -65,12 +73,7 @@ export default class ReceiveModalInstanceCtrl {
         controller: 'ConfirmReceiveCtrl',
         controllerAs: '$ctrl',
         resolve: {
-          data: {
-            ip: ip,
-            validatorModal: vm.validatorModel,
-            request: vm.request,
-            tag: $scope.getDescendantId(),
-          },
+          data: data,
         },
       });
       modalInstance.result

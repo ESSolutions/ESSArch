@@ -709,6 +709,9 @@ export default angular
     '$translate',
     '$uibModal',
     '$log',
+    '$http',
+    'appConfig',
+    '$q',
     ReceiveModalInstanceCtrl,
   ])
   .controller('ReceptionCtrl', [

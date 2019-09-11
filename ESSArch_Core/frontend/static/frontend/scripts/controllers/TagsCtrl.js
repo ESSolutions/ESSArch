@@ -10,7 +10,12 @@ export default ($scope, vm, $http, appConfig) => {
       value: null,
       previous: null,
     },
-    descendants: {
+    structureUnits: {
+      options: [],
+      value: null,
+      previous: null,
+    },
+    nodes: {
       options: [],
       value: null,
       previous: null,
@@ -28,7 +33,12 @@ export default ($scope, vm, $http, appConfig) => {
         value: null,
         previous: null,
       },
-      descendants: {
+      structureUnits: {
+        options: [],
+        value: null,
+        previous: null,
+      },
+      nodes: {
         options: [],
         value: null,
         previous: null,
@@ -37,6 +47,7 @@ export default ($scope, vm, $http, appConfig) => {
   };
 
   $scope.getArchives = function(search) {
+    $scope.archivesLoading = true;
     return $http({
       method: 'GET',
       url: appConfig.djangoUrl + 'tags/',
@@ -48,6 +59,7 @@ export default ($scope, vm, $http, appConfig) => {
         obj.structures = item.structures;
         return obj;
       });
+      $scope.archivesLoading = false;
       vm.tags.archive.options = mapped;
       return mapped;
     });
@@ -65,45 +77,17 @@ export default ($scope, vm, $http, appConfig) => {
     vm.tags.structure.options = mapped;
   };
 
-  $scope.getTagDescendants = function(id1, id2, search) {
-    $scope.descendantsLoading = true;
+  $scope.getStructureUnits = function(archive, structure, search) {
+    $scope.structureUnitsLoading = true;
     return $http({
       method: 'GET',
-      url: appConfig.djangoUrl + 'tags/' + id1 + '/descendants/',
-      params: {structure: id2, search: search ? search : null, index: 'component'},
+      url: appConfig.djangoUrl + 'structure-units/',
+      params: {structure, archive, template: false, search: search ? search : null},
     }).then(function(response) {
-      const mapped = response.data.map(function(item) {
-        const obj = item.current_version;
-        obj.parent_id = item.id;
-        obj.structures = item.structures;
-        return obj;
-      });
-      $scope.descendantsLoading = false;
-      vm.tags.descendants.options = mapped;
-      return mapped;
+      $scope.structureUnitsLoading = false;
+      vm.tags.structureUnits.options = angular.copy(response.data);
+      return response.data;
     });
-  };
-
-  $scope.getDescendantId = function() {
-    if (vm.tags.structure.value && vm.tags.descendants.value) {
-      var id = null;
-      vm.tags.descendants.value.structures.forEach(function(item) {
-        if (item.structure.id == vm.tags.structure.value.id) {
-          id = item.id;
-        }
-      });
-      return id;
-    } else if (vm.tags.archive.value && vm.tags.structure.value) {
-      var id = null;
-      vm.tags.archive.value.structures.forEach(function(item) {
-        if (item.structure.id == vm.tags.structure.value.id) {
-          id = item.id;
-        }
-      });
-      return id;
-    } else {
-      return null;
-    }
   };
 
   $scope.archiveChanged = function(item) {
@@ -115,8 +99,8 @@ export default ($scope, vm, $http, appConfig) => {
   };
   $scope.structureChanged = function(item) {
     if (vm.tags.structure.previous == null || item.id != vm.tags.structure.previous) {
-      $scope.getTagDescendants(vm.tags.archive.value.parent_id, vm.tags.structure.value.id);
-      vm.tags.descendants.value = null;
+      $scope.getStructureUnits(vm.tags.archive.value.parent_id, vm.tags.structure.value.id);
+      vm.tags.structureUnits.value = null;
       vm.tags.structure.previous = item.id;
     }
   };

@@ -12,7 +12,7 @@ export default class ConfirmReceiveCtrl {
         id: ip.id,
         storage_policy: data.request.storagePolicy.value.id,
         purpose: data.request.purpose,
-        tag: data.tag,
+        structure_unit: data.structure_unit,
         allow_unknown_files: data.request.allowUnknownFiles,
         validators: data.validatorModel,
       })
