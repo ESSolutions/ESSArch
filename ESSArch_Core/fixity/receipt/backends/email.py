@@ -4,6 +4,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils import timezone
 
+from ESSArch_Core.exceptions import ESSArchException
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.receipt.backends.base import BaseReceiptBackend
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -11,11 +12,11 @@ from ESSArch_Core.profiles.utils import fill_specification_data
 logger = logging.getLogger('essarch.core.fixity.receipt.email')
 
 
-class NoEmailRecipientError(Exception):
+class NoEmailRecipientError(ESSArchException):
     pass
 
 
-class NoEmailSentError(Exception):
+class NoEmailSentError(ESSArchException):
     pass
 
 

@@ -1,4 +1,7 @@
-class InvalidFormat(Exception):
+from ESSArch_Core.exceptions import ESSArchException
+
+
+class InvalidFormat(ESSArchException):
     pass
 
 
