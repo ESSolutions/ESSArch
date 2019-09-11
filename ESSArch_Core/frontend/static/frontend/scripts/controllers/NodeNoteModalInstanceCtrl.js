@@ -44,7 +44,7 @@ export default class NodeNoteModalInstanceCtrl {
             required: true,
             labelProp: 'name',
             valueProp: 'id',
-            defaultValue: $ctrl.typeOptions[0].id,
+            defaultValue: $ctrl.typeOptions.length > 0 ? $ctrl.typeOptions[0].id : null,
             notNull: true,
           },
         },
