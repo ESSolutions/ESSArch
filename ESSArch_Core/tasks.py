@@ -57,7 +57,7 @@ from ESSArch_Core.fixity.validation.backends.xml import (
     XMLComparisonValidator,
     XMLSchemaValidator,
 )
-from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
+from ESSArch_Core.ip.models import InformationPackage, Workarea
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy_dir, copy_file
@@ -218,20 +218,6 @@ class AppendEvents(DBTask):
             ip = InformationPackage.objects.get(pk=self.ip)
             filename = ip.get_events_file_path()
         return "Appended events to %s" % filename
-
-
-class ParseEvents(DBTask):
-    event_type = 50630
-
-    def run(self, xmlfile, delete_file=False):
-        events = EventIP.objects.from_premis_file(xmlfile, save=False)
-        EventIP.objects.bulk_create(events, 100)
-
-        if delete_file:
-            os.remove(xmlfile)
-
-    def event_outcome_success(self, result, xmlfile, delete_file=False):
-        return "Parsed events from %s" % xmlfile
 
 
 class CreateTAR(DBTask):
