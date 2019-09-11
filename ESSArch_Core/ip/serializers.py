@@ -197,7 +197,7 @@ class InformationPackageReceptionReceiveSerializer(serializers.Serializer):
         default=None,
         queryset=StructureUnit.objects.filter(
             structure__is_template=False,
-            structure__published=True,
+            structure__template__published=True,
         ),
     )
     allow_unknown_files = serializers.BooleanField(default=False)

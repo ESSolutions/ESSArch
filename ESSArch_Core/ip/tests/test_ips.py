@@ -1486,7 +1486,8 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         self.member.assign_object(self.group, ip, custom_permissions=perms)
 
         structure_type = StructureType.objects.create(name='foo')
-        structure = Structure.objects.create(is_template=True, type=structure_type)
+        structure_template = Structure.objects.create(is_template=True, type=structure_type)
+        structure = Structure.objects.create(is_template=False, type=structure_type, template=structure_template)
 
         archive_tag = Tag.objects.create()
         archive_tag_version_type = TagVersionType.objects.create(name='archive', archive_type=True)
@@ -1498,28 +1499,30 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         TagStructure.objects.create(tag=archive_tag, structure=structure,)
 
         structure_unit_type = StructureUnitType.objects.create(name='foo', structure_type=structure_type)
-        structure_unit = StructureUnit.objects.create(structure=structure, type=structure_unit_type)
+        structure_unit_template = StructureUnit.objects.create(structure=structure_template, type=structure_unit_type)
+        structure_unit = StructureUnit.objects.create(
+            structure=structure, type=structure_unit_type,
+            template=structure_unit_template,
+        )
         tag_version_type = TagVersionType.objects.create(name='foo', information_package_type=True)
 
         with self.subTest('unit template'):
             """Structure unit template is not valid"""
             res = self.client.post(url, data={
                 'storage_policy': self.policy.pk,
-                'structure_unit': structure_unit.pk,
+                'structure_unit': structure_unit_template.pk,
             })
             self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-        structure.is_template = False
-        structure.save()
         with self.subTest('non-published unit'):
-            """Structure unit must be published"""
+            """Structure template must be published"""
             res = self.client.post(url, data={
                 'storage_policy': self.policy.pk,
                 'structure_unit': structure_unit.pk,
             })
             self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-        structure.publish()
+        structure_template.publish()
         with self.subTest('published unit'):
             res = self.client.post(url, data={
                 'storage_policy': self.policy.pk,
