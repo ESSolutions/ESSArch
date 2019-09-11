@@ -381,6 +381,31 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         return obj
 
+    @staticmethod
+    def annotate_generations(qs):
+        lower_higher = InformationPackage.objects.filter(
+            Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
+        ).order_by().values('aic')
+        lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
+
+        return qs.annotate(first_generation=InformationPackageViewSet.first_generation_case(lower_higher),
+                           last_generation=InformationPackageViewSet.last_generation_case(lower_higher))
+
+    def annotate_filtered_first_generation(self, qs, user):
+        lower_higher = InformationPackage.objects.visible_to_user(user).filter(
+            Q(Q(workareas=None) | Q(workareas__read_only=True)),
+            active=True, aic=OuterRef('aic'),
+        ).order_by().values('aic')
+        lower_higher = self.apply_filters(queryset=lower_higher).order_by()
+        lower_higher = lower_higher.annotate(min_gen=Min('generation'))
+        return qs.annotate(filtered_first_generation=self.first_generation_case(lower_higher))
+
+    def get_related(self, qs, workareas):
+        qs = qs.select_related('responsible')
+        return qs.prefetch_related(
+            Prefetch('agents', queryset=Agent.objects.prefetch_related('notes'), to_attr='prefetched_agents'),
+            'steps', Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas'))
+
     def get_queryset(self):
         view_type = self.request.query_params.get('view_type', 'aic')
         user = self.request.user
@@ -441,37 +466,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             simple = self.apply_filters(filtered)
 
-            def annotate_generations(qs):
-                lower_higher = InformationPackage.objects.filter(
-                    Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
-                ).order_by().values('aic')
-                lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
+            inner = self.annotate_generations(simple)
+            inner = self.annotate_filtered_first_generation(inner, user)
+            inner = self.get_related(inner, workareas)
 
-                return qs.annotate(first_generation=self.first_generation_case(lower_higher),
-                                   last_generation=self.last_generation_case(lower_higher))
-
-            def annotate_filtered_first_generation(qs):
-                lower_higher = InformationPackage.objects.visible_to_user(user).filter(
-                    Q(Q(workareas=None) | Q(workareas__read_only=True)),
-                    active=True, aic=OuterRef('aic'),
-                ).order_by().values('aic')
-                lower_higher = self.apply_filters(queryset=lower_higher).order_by()
-                lower_higher = lower_higher.annotate(min_gen=Min('generation'))
-                return qs.annotate(filtered_first_generation=self.first_generation_case(lower_higher))
-
-            def get_related(qs):
-                qs = qs.select_related('responsible')
-                return qs.prefetch_related(
-                    Prefetch('agents', queryset=Agent.objects.prefetch_related('notes'), to_attr='prefetched_agents'),
-                    'steps', Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas'))
-
-            inner = annotate_generations(simple)
-            inner = annotate_filtered_first_generation(inner)
-            inner = get_related(inner)
-
-            outer = annotate_generations(simple)
-            outer = annotate_filtered_first_generation(outer)
-            outer = get_related(outer)
+            outer = self.annotate_generations(simple)
+            outer = self.annotate_filtered_first_generation(outer, user)
+            outer = self.get_related(outer, workareas)
 
             inner = inner.filter(filtered_first_generation=False)
             outer = outer.filter(filtered_first_generation=True).prefetch_related(
@@ -482,6 +483,33 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             self.outer_queryset = simple
             self.queryset = outer
             return self.queryset
+        elif not self.detail and view_type == 'flat':
+            qs = InformationPackage.objects.visible_to_user(user).filter(
+                Q(Q(workareas=None) | Q(workareas__read_only=True)),
+                active=True,
+            ).exclude(package_type=InformationPackage.AIC)
+            qs = self.apply_filters(qs).order_by(*InformationPackage._meta.ordering)
+
+            qs = qs.select_related('responsible').prefetch_related(
+                'agents', 'steps',
+                Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
+            )
+
+            lower_higher = InformationPackage.objects.filter(
+                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
+            ).order_by().values('aic')
+            lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
+
+            qs = qs.annotate(
+                first_generation=self.first_generation_case(lower_higher),
+                last_generation=self.last_generation_case(lower_higher),
+            )
+
+            self.queryset = qs
+            return self.queryset
+
+        elif not self.detail:
+            raise exceptions.ParseError('Invalid view type')
 
         if self.detail:
             lower_higher = InformationPackage.objects.filter(
@@ -987,7 +1015,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         workflow.run()
         return Response({'status': 'submitting ip'})
 
-    def first_generation_case(self, lower_higher):
+    @staticmethod
+    def first_generation_case(lower_higher):
         return Case(
             When(aic__isnull=True, then=Value(True)),
             When(generation=Subquery(lower_higher.values('min_gen')[:1]),
@@ -996,7 +1025,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             output_field=BooleanField(),
         )
 
-    def last_generation_case(self, lower_higher):
+    @staticmethod
+    def last_generation_case(lower_higher):
         return Case(
             When(aic__isnull=True, then=Value(True)),
             When(generation=Subquery(lower_higher.values('max_gen')[:1]),
@@ -1021,6 +1051,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
+            view_type = self.request.query_params.get('view_type', 'aic')
+            if view_type == 'flat':
+                return InformationPackageSerializer
             return NestedInformationPackageSerializer
 
         return InformationPackageDetailSerializer
@@ -2406,6 +2439,27 @@ class WorkareaViewSet(InformationPackageViewSet):
     queryset = InformationPackage.objects.select_related('responsible').all()
     http_method_names = [p.lower() for p in permissions.SAFE_METHODS]
 
+    def annotate_filtered_first_generation(self, qs, workareas, user, see_all):
+        lower_higher = InformationPackage.objects.visible_to_user(user).annotate(
+            workarea_exists=Exists(workareas.filter(ip=OuterRef('pk')))
+        ).filter(workarea_exists=True, active=True, aic=OuterRef('aic')).exclude(
+            package_type=InformationPackage.AIC
+        ).order_by().values('aic')
+
+        if not see_all:
+            lower_higher = lower_higher.filter(workareas__user=user)
+
+        lower_higher = self.apply_filters(lower_higher).order_by()
+        lower_higher = lower_higher.annotate(min_gen=Min('generation'))
+        return qs.annotate(filtered_first_generation=self.first_generation_case(lower_higher))
+
+    def get_related(self, qs, workareas):
+        qs = qs.select_related('responsible')
+        return qs.prefetch_related(
+            'agents', 'steps',
+            Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
+        )
+
     def get_queryset(self):
         view_type = self.request.query_params.get('view_type', 'aic')
         user = self.request.user
@@ -2461,43 +2515,13 @@ class WorkareaViewSet(InformationPackageViewSet):
 
             simple = self.apply_filters(filtered)
 
-            def annotate_generations(qs):
-                lower_higher = InformationPackage.objects.filter(
-                    Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
-                ).order_by().values('aic')
-                lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
+            inner = self.annotate_generations(simple)
+            inner = self.annotate_filtered_first_generation(inner, workareas, user, see_all)
+            inner = self.get_related(inner, workareas)
 
-                return qs.annotate(first_generation=self.first_generation_case(lower_higher),
-                                   last_generation=self.last_generation_case(lower_higher))
-
-            def annotate_filtered_first_generation(qs):
-                lower_higher = InformationPackage.objects.visible_to_user(user).annotate(
-                    workarea_exists=Exists(workareas.filter(ip=OuterRef('pk')))
-                ).filter(workarea_exists=True, active=True, aic=OuterRef('aic')).exclude(
-                    package_type=InformationPackage.AIC
-                ).order_by().values('aic')
-
-                if not see_all:
-                    lower_higher = lower_higher.filter(workareas__user=self.request.user)
-
-                lower_higher = self.apply_filters(lower_higher).order_by()
-                lower_higher = lower_higher.annotate(min_gen=Min('generation'))
-                return qs.annotate(filtered_first_generation=self.first_generation_case(lower_higher))
-
-            def get_related(qs):
-                qs = qs.select_related('responsible')
-                return qs.prefetch_related(
-                    'agents', 'steps',
-                    Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
-                )
-
-            inner = annotate_generations(simple)
-            inner = annotate_filtered_first_generation(inner)
-            inner = get_related(inner)
-
-            outer = annotate_generations(simple)
-            outer = annotate_filtered_first_generation(outer)
-            outer = get_related(outer)
+            outer = self.annotate_generations(simple)
+            outer = self.annotate_filtered_first_generation(outer, workareas, user, see_all)
+            outer = self.get_related(outer, workareas)
 
             inner = inner.filter(filtered_first_generation=False)
             outer = outer.filter(filtered_first_generation=True).prefetch_related(
