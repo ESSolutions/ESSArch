@@ -507,7 +507,7 @@ class TagVersionAgentTagLinkSerializer(serializers.ModelSerializer):
 class TagVersionTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = TagVersionType
-        fields = ('pk', 'name', 'archive_type',)
+        fields = ('pk', 'name', 'archive_type', 'information_package_type',)
 
 
 class MetricTypeSerializer(serializers.ModelSerializer):
