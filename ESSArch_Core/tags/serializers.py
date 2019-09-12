@@ -1069,11 +1069,21 @@ class ArchiveWriteSerializer(serializers.Serializer):
             raise serializers.ValidationError(_("At least one structure is required"))
 
         if self.instance:
-            existing_structures = Structure.objects.filter(tagstructure__tag=self.instance.tag)
+            existing_structures = Structure.objects.filter(instances__tagstructure__tag=self.instance.tag)
 
             for existing_structure in existing_structures:
-                if existing_structure.template not in structures:
-                    raise serializers.ValidationError(_("Structures cannot be deleted from archives"))
+                structure_instance = Structure.objects.get(
+                    template=existing_structure, tagstructure__tag=self.instance.tag,
+                )
+                if existing_structure not in structures:
+                    empty_structure = not structure_instance.tagstructure_set.filter(
+                        tag__versions__type__archive_type=False
+                    ).exists()
+                    if not empty_structure:
+                        raise serializers.ValidationError(_("Non-empty structures cannot be deleted from archives"))
+                    else:
+                        TagStructure.objects.filter(structure=structure_instance).delete()
+                        structure_instance.delete()
 
         return structures
 

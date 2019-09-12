@@ -1538,6 +1538,60 @@ class ChangeTagTests(TestCase):
         response = self.client.patch(url, {'name': 'new name'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    @mock.patch('ESSArch_Core.tags.serializers.Archive.save')
+    def test_change_archive_delete_structure(self, mock_save):
+        self.user.user_permissions.add(Permission.objects.get(codename="change_archive"))
+        self.user = User.objects.get(username="user")
+        self.client.force_authenticate(user=self.user)
+
+        structure_type = StructureType.objects.create(name='foo')
+        structure_template1 = Structure.objects.create(name='template1', type=structure_type, is_template=True)
+        structure_template1.publish()
+        structure_instance1 = Structure.objects.create(
+            name="instance1", type=structure_type,
+            is_template=False, template=structure_template1,
+        )
+
+        structure_template2 = Structure.objects.create(name='template2', type=structure_type, is_template=True)
+        structure_template2.publish()
+        structure_instance2 = Structure.objects.create(
+            name="instance2", type=structure_type,
+            is_template=False, template=structure_template2,
+        )
+
+        archive_tag = Tag.objects.create()
+        archive_type = TagVersionType.objects.create(name='archive', archive_type=True)
+        archive_tag_version = TagVersion.objects.create(tag=archive_tag, type=archive_type, elastic_index='archive')
+        archive_tag_structure1 = TagStructure.objects.create(tag=archive_tag, structure=structure_instance1)
+        TagStructure.objects.create(tag=archive_tag, structure=structure_instance2)
+
+        component_tag = Tag.objects.create()
+        component_type = TagVersionType.objects.create(name='component')
+        TagVersion.objects.create(
+            tag=component_tag, type=component_type,
+            elastic_index='component',
+        )
+        TagStructure.objects.create(
+            tag=component_tag, structure=structure_instance1,
+            parent=archive_tag_structure1,
+        )
+
+        url = reverse('search-detail', args=(archive_tag_version.pk,))
+
+        with self.subTest('delete non-empty structure'):
+            response = self.client.patch(url, {'structures': [
+                structure_template2.pk,
+            ]})
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(TagStructure.objects.filter(tag=archive_tag).count(), 2)
+
+        with self.subTest('delete empty structure'):
+            response = self.client.patch(url, {'structures': [
+                structure_template1.pk,
+            ]})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(TagStructure.objects.filter(tag=archive_tag).count(), 1)
+
     def test_change_component_without_permission(self):
         tag = Tag.objects.create()
         tag_type = TagVersionType.objects.create(name='volume', archive_type=False)
