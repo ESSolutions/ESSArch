@@ -3,7 +3,7 @@
   "dependencies": {
     "@babel/core": "^7.6.0",
     "@babel/preset-env": "^7.5.5",
-    "@babel/register": "^7.5.5",
+    "@babel/register": "^7.6.0",
     "@flowjs/ng-flow": "~2.7.8",
     "@fortawesome/fontawesome-free": "~5.10.2",
     "@intervolga/optimize-cssnano-plugin": "^1.0.6",
