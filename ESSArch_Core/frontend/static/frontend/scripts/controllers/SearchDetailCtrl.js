@@ -456,13 +456,17 @@ export default class SearchDetailCtrl {
 
     vm.existsForRecord = function(classification) {
       if (vm.record) {
-        let temp = false;
-        vm.record.structures.forEach(function(structure) {
-          if (structure.id == classification) {
-            temp = true;
-          }
-        });
-        return temp;
+        if (vm.record.structures) {
+          let temp = false;
+          vm.record.structures.forEach(function(structure) {
+            if (structure.id === classification) {
+              temp = true;
+            }
+          });
+          return temp;
+        } else if (vm.record.structure) {
+          return vm.record.structure === classification;
+        }
       }
     };
 
