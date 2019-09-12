@@ -89,7 +89,7 @@
     "sass-loader": "^8.0.0",
     "select2": "~4.0.10",
     "source-map-loader": "^0.2.4",
-    "ts-loader": "^6.0.4",
+    "ts-loader": "^6.1.0",
     "typescript": "^3.6.3",
     "ua-parser-js": "^0.7.20",
     "ui-select": "~0.19.6",
