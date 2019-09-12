@@ -499,6 +499,7 @@
                       <tr
                         ng-repeat="x in vm.agent.related_agents"
                         ui-sref="{{$state.current.name}}({id: x.agent.id})"
+                        ui-sref-opts="{reload: true}"
                         class="selectable"
                       >
                         <td>
