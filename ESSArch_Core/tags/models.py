@@ -793,7 +793,7 @@ class Location(MPTTModel):
         'self', on_delete=models.SET_NULL, null=True, related_name='children', verbose_name=_('parent')
     )
     metric = models.ForeignKey(MetricType, on_delete=models.PROTECT, null=True, verbose_name=_('metric'))
-    capacity = models.IntegerField(_('capacity'))  # FloatField or DecimalField instead?
+    capacity = models.IntegerField(_('capacity'), null=True)  # FloatField or DecimalField instead?
     level_type = models.ForeignKey(LocationLevelType, on_delete=models.PROTECT, verbose_name=_('level type'))
     function = models.ForeignKey(LocationFunctionType, on_delete=models.PROTECT, verbose_name=_('function'))
 
@@ -859,7 +859,7 @@ class TagVersion(models.Model):
         null=True
     )
     metric = models.ForeignKey(MetricType, on_delete=models.PROTECT, null=True, verbose_name=_('metric'))
-    capacity = models.IntegerField(_('capacity'))  # FloatField or DecimalField instead?
+    capacity = models.IntegerField(_('capacity'), null=True)  # FloatField or DecimalField instead?
     location = models.ForeignKey(Location, on_delete=models.PROTECT, null=True, verbose_name=_('location'))
     transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='tag_versions')
     custom_fields = jsonfield.JSONField(default={})

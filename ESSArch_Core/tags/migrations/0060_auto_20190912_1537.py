@@ -14,14 +14,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='location',
             name='capacity',
-            field=models.IntegerField(default=0, verbose_name='capacity'),
-            preserve_default=False,
+            field=models.IntegerField(null=True, verbose_name='capacity'),
         ),
         migrations.AddField(
             model_name='tagversion',
             name='capacity',
-            field=models.IntegerField(default=0, verbose_name='capacity'),
-            preserve_default=False,
+            field=models.IntegerField(null=True, verbose_name='capacity'),
         ),
         migrations.AlterField(
             model_name='location',
