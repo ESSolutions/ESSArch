@@ -1,6 +1,9 @@
 import base64
+import logging
 import os
 import uuid
+
+from elasticsearch.exceptions import ElasticsearchException
 
 from ESSArch_Core.tags.documents import Directory, File
 from ESSArch_Core.tags.models import (
@@ -14,6 +17,8 @@ from ESSArch_Core.util import (
     normalize_path,
     timestamp_to_datetime,
 )
+
+logger = logging.getLogger('essarch.search.ingest')
 
 
 def index_document(ip, filepath, id):
@@ -33,7 +38,11 @@ def index_document(ip, filepath, id):
         _id=id, name=filename, type="document", filename=filename, extension=extension, href=href, ip=str(ip.pk),
         data=encoded_content, size=size, modified=modified, current_version=True
     )
-    doc.save(pipeline='ingest_attachment')
+    try:
+        doc.save(pipeline='ingest_attachment')
+    except ElasticsearchException:
+        logger.exception('Failed to index {}'.format(filepath))
+        raise
     return doc
 
 
@@ -69,6 +78,8 @@ def index_path(ip, path, parent=None):
     tag_version = TagVersion(pk=id, tag=tag, name=os.path.basename(path))
     if parent:
         TagStructure.objects.create(tag=tag, parent=parent, structure=parent.structure)
+
+    logger.debug('indexing {}'.format(path))
 
     if isfile:
         tag_version.elastic_index = 'document'
