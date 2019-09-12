@@ -22,6 +22,178 @@
     <div class="type-specific-results" ng-switch="vm.record._index">
       <h3>{{vm.record.reference_code}} {{vm.record.name}}</h3>
       <p>{{vm.record.description}}</p>
+      <div ng-if="vm.record.identifiers.length > 0" class="pb-base">
+        <label>
+          {{'ACCESS.IDENTIFIERS' | translate}}
+        </label>
+        <div ng-repeat="x in vm.record.identifiers">
+          {{x.type + ': ' + x.identifier}}
+        </div>
+      </div>
+      <div class="title-action-button-row mb-base">
+        <div class="title">
+          <h4>
+            {{'ACCESS.RELATED_STRUCTURE_UNITS' | translate}}
+          </h4>
+        </div>
+        <div
+          class="action-button"
+          ng-if="vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instance_relations"
+          permission
+          permission-only="'tags.change_structureunit_instance'"
+        >
+          <button class="btn btn-primary" ng-click="vm.addNodeRelationModal(vm.record)">
+            {{'ACCESS.ADD_RELATION' | translate}}
+          </button>
+        </div>
+      </div>
+      <div class="table-container table-x-overflow">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>
+                {{'NAME' | translate}}
+              </th>
+              <th>
+                {{'TYPE' | translate}}
+              </th>
+              <th>
+                {{'DESCRIPTION' | translate}}
+              </th>
+              <th>
+                {{'ACCESS.VALID_DATE_START' | translate}}
+              </th>
+              <th>
+                {{'ACCESS.VALID_DATE_END' | translate}}
+              </th>
+              <th
+                class="shrink"
+                ng-if="vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instance_relations"
+                permission
+                permission-only="'tags.change_structureunit_instance'"
+              >
+                {{'EDIT' | translate}}
+              </th>
+              <th
+                ng-if="vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instance_relations"
+                class="white-space-nowrap shrink"
+                permission
+                permission-only="'tags.change_structureunit_instance'"
+              >
+                {{'REMOVE' | translate}}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="x in vm.record.related_structure_units" class="selectable">
+              <td>
+                {{x.structure_unit.name}}
+              </td>
+              <td>
+                {{x.type.name}}
+              </td>
+              <td class="oneline-ellipsis">
+                {{x.description}}
+              </td>
+              <td>
+                {{x.start_date | date:"yyyy-MM-dd"}}
+              </td>
+              <td>
+                {{x.end_date | date:"yyyy-MM-dd"}}
+              </td>
+              <td
+                ng-if="vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instance_relations"
+                class="text-center shrink"
+                permission
+                permission-only="'tags.change_structureunit_instance'"
+              >
+                <button
+                  class="btn btn-default btn-sm fas fa-edit"
+                  ng-click="vm.editNodeRelationModal(x, vm.record); $event.stopPropagation();"
+                  uib-tooltip="{{'EDIT' | translate}}"
+                  tooltip-placement="auto top"
+                  tooltip-append-to-body="true"
+                ></button>
+              </td>
+              <td
+                ng-if="vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instance_relations"
+                class="text-center shrink"
+                permission
+                permission-only="'tags.change_structureunit_instance'"
+              >
+                <button
+                  class="btn btn-default btn-sm fas fa-trash-alt"
+                  ng-click="vm.removeNodeRelationModal(x, vm.record); $event.stopPropagation();"
+                  uib-tooltip="{{'REMOVE' | translate}}"
+                  tooltip-placement="auto top"
+                  tooltip-append-to-body="true"
+                ></button>
+              </td>
+            </tr>
+            <tr
+              ng-if="!vm.record.related_structure_units.length && !vm.relatedUnitsLoading"
+              class="empty-table-indicator"
+            >
+              <td
+                ng-if="vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instance_relations"
+                permission
+                permission-only="'tags.change_structureunit_instance'"
+                colspan="7"
+              >
+                {{'NO_RESULTS_FOUND' | translate}}
+              </td>
+              <td
+                ng-if="vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instance_relations === false"
+                colspan="5"
+              >
+                {{'NO_RESULTS_FOUND' | translate}}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div ng-if="vm.transfers" class="table-container" st-table="vm.transfers" st-pipe="vm.getTransfers">
+        <div class="title-action-button-row">
+          <div class="title">
+            <h4>
+              {{'TRANSFERS' | translate}}
+            </h4>
+          </div>
+        </div>
+        <div class="list-view-table table-x-overflow">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th class="cursor-pointer" st-sort="name">{{ "NAME" | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                ng-repeat="x in vm.transfers"
+                class="selectable"
+                ng-class="{'selected': vm.selectedTransfer.id === x.id}"
+                ng-click="vm.transferClick(x)"
+              >
+                <td>
+                  {{x.name}}
+                </td>
+              </tr>
+              <tr ng-if="vm.transfers.length === 0" class="empty-table-indicator">
+                <td colspan="1">{{'NO_RESULTS_FOUND' | translate}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <td ng-show="!initLoad" colspan="1">
+          <div
+            class="float-right"
+            st-template="static/frontend/views/file_pagination.html"
+            st-pagination=""
+            st-items-by-page="10"
+            st-displayed-pages="7"
+          ></div>
+        </td>
+      </div>
       <div ng-include src="'static/frontend/views/search_detail_contents.html'"></div>
     </div>
   </div>
