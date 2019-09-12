@@ -956,9 +956,10 @@ export default class SearchDetailCtrl {
     };
 
     vm.addToStructure = function(record) {
+      let parent = vm.tags.nodes.value ? vm.tags.nodes.value._id : vm.tags.structureUnits.value.id;
       Search.updateNode(
         record,
-        {parent: vm.tags.descendants.value.id, structure: vm.tags.structure.value.id},
+        {parent, structure_unit: vm.tags.structureUnits.value.id, structure: vm.tags.structure.value.id},
         true
       ).then(function(response) {
         $state.reload();
