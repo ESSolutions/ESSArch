@@ -1,6 +1,7 @@
 import logging
 import traceback
 
+import click
 from django.utils import timezone
 
 from ESSArch_Core.exceptions import ValidationError
@@ -68,3 +69,11 @@ class FormatValidator(BaseValidator):
             val_obj.time_done = timezone.now()
             val_obj.passed = passed
             val_obj.save(update_fields=['time_done', 'passed', 'message'])
+
+    @staticmethod
+    @click.command()
+    @click.argument('path', metavar='INPUT', type=click.Path(exists=True))
+    def cli(path):
+        fid = FormatIdentifier()
+        res = fid.identify_file_format(path)
+        click.echo(res)
