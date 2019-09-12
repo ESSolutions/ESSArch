@@ -84,7 +84,7 @@ from ESSArch_Core.tags.views import (
     LocationFunctionTypeViewSet,
     LocationLevelTypeViewSet,
     LocationViewSet,
-    MetricProfileViewSet,
+    MetricTypeViewSet,
     NodeIdentifierTypeViewSet,
     NodeNoteTypeViewSet,
     NodeRelationTypeViewSet,
@@ -185,7 +185,7 @@ router.register(r'locations', LocationViewSet).register(
     basename='location-tags',
     parents_query_lookups=['location']
 )
-router.register(r'metric-profiles', MetricProfileViewSet)
+router.register(r'metric-types', MetricTypeViewSet)
 router.register(r'location-level-types', LocationLevelTypeViewSet)
 router.register(r'location-function-types', LocationFunctionTypeViewSet)
 router.register(r'structure-units', StructureUnitViewSet)

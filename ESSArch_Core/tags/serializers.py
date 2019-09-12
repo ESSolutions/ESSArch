@@ -35,7 +35,6 @@ from ESSArch_Core.tags.models import (
     LocationFunctionType,
     LocationLevelType,
     MediumType,
-    MetricProfile,
     MetricType,
     NodeIdentifier,
     NodeIdentifierType,
@@ -516,14 +515,6 @@ class MetricTypeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name',)
 
 
-class MetricProfileSerializer(serializers.ModelSerializer):
-    metric = MetricTypeSerializer()
-
-    class Meta:
-        model = MetricProfile
-        fields = ('id', 'name', 'capacity', 'metric',)
-
-
 class LocationLevelTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = LocationLevelType
@@ -537,19 +528,19 @@ class LocationFunctionTypeSerializer(serializers.ModelSerializer):
 
 
 class LocationSerializer(serializers.ModelSerializer):
-    metric = MetricProfileSerializer()
+    metric = MetricTypeSerializer()
     level_type = LocationLevelTypeSerializer()
     function = LocationFunctionTypeSerializer()
 
     class Meta:
         model = Location
-        fields = ('id', 'name', 'parent', 'level_type', 'function', 'metric',)
+        fields = ('id', 'name', 'parent', 'level_type', 'function', 'metric', 'capacity',)
 
 
 class LocationWriteSerializer(LocationSerializer):
     metric = serializers.PrimaryKeyRelatedField(
         allow_null=True, required=False, default=None,
-        queryset=MetricProfile.objects.all(),
+        queryset=MetricType.objects.all(),
     )
     level_type = serializers.PrimaryKeyRelatedField(queryset=LocationLevelType.objects.all())
     function = serializers.PrimaryKeyRelatedField(queryset=LocationFunctionType.objects.all())
@@ -566,7 +557,7 @@ class LocationWriteSerializer(LocationSerializer):
         return location
 
     class Meta(LocationSerializer.Meta):
-        fields = ('name', 'parent', 'level_type', 'function', 'metric')
+        fields = ('name', 'parent', 'level_type', 'function', 'metric', 'capacity')
 
 
 class TagVersionNestedSerializer(serializers.ModelSerializer):
@@ -583,7 +574,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     identifiers = NodeIdentifierSerializer(many=True)
     agents = TagVersionAgentTagLinkSerializer(source='agent_links', many=True)
     type = TagVersionTypeSerializer()
-    metric = MetricProfileSerializer()
+    metric = MetricTypeSerializer()
     location = LocationSerializer()
     custom_fields = serializers.JSONField()
 
@@ -663,7 +654,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
             'import_date', 'start_date', 'related_tags', 'notes', 'end_date',
             'is_leaf_node', '_source', 'masked_fields', 'structure_unit', 'root',
             'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
-            'custom_fields', 'metric', 'location',
+            'custom_fields', 'metric', 'location', 'capacity',
         )
 
 

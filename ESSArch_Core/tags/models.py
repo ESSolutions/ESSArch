@@ -761,19 +761,6 @@ class MetricType(models.Model):
         verbose_name_plural = _('metric types')
 
 
-class MetricProfile(models.Model):
-    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
-    capacity = models.IntegerField(_('capacity'))  # FloatField or DecimalField instead?
-    metric = models.ForeignKey(MetricType, on_delete=models.PROTECT, verbose_name=_('metric'))
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = _('location profile')
-        verbose_name_plural = _('location profiles')
-
-
 class LocationLevelType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
 
@@ -805,7 +792,8 @@ class Location(MPTTModel):
     parent = TreeForeignKey(
         'self', on_delete=models.SET_NULL, null=True, related_name='children', verbose_name=_('parent')
     )
-    metric = models.ForeignKey(MetricProfile, on_delete=models.PROTECT, null=True, verbose_name=_('metric'))
+    metric = models.ForeignKey(MetricType, on_delete=models.PROTECT, null=True, verbose_name=_('metric'))
+    capacity = models.IntegerField(_('capacity'))  # FloatField or DecimalField instead?
     level_type = models.ForeignKey(LocationLevelType, on_delete=models.PROTECT, verbose_name=_('level type'))
     function = models.ForeignKey(LocationFunctionType, on_delete=models.PROTECT, verbose_name=_('function'))
 
@@ -870,7 +858,8 @@ class TagVersion(models.Model):
         related_name='tag_versions',
         null=True
     )
-    metric = models.ForeignKey(MetricProfile, on_delete=models.PROTECT, null=True, verbose_name=_('metric'))
+    metric = models.ForeignKey(MetricType, on_delete=models.PROTECT, null=True, verbose_name=_('metric'))
+    capacity = models.IntegerField(_('capacity'))  # FloatField or DecimalField instead?
     location = models.ForeignKey(Location, on_delete=models.PROTECT, null=True, verbose_name=_('location'))
     transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='tag_versions')
     custom_fields = jsonfield.JSONField(default={})

@@ -25,7 +25,7 @@ from ESSArch_Core.tags.models import (
     Location,
     LocationFunctionType,
     LocationLevelType,
-    MetricProfile,
+    MetricType,
     NodeIdentifierType,
     NodeNoteType,
     NodeRelationType,
@@ -54,7 +54,7 @@ from ESSArch_Core.tags.serializers import (
     LocationLevelTypeSerializer,
     LocationSerializer,
     LocationWriteSerializer,
-    MetricProfileSerializer,
+    MetricTypeSerializer,
     NodeIdentifierTypeSerializer,
     NodeNoteTypeSerializer,
     NodeRelationTypeSerializer,
@@ -102,9 +102,9 @@ class ArchiveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
 
-class MetricProfileViewSet(viewsets.ModelViewSet):
-    queryset = MetricProfile.objects.all()
-    serializer_class = MetricProfileSerializer
+class MetricTypeViewSet(viewsets.ModelViewSet):
+    queryset = MetricType.objects.all()
+    serializer_class = MetricTypeSerializer
     permission_classes = (ActionPermissions,)
     filter_backends = (OrderingFilter, SearchFilter,)
     ordering_fields = ('name',)

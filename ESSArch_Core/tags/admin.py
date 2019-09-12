@@ -4,7 +4,6 @@ from ESSArch_Core.tags.models import (
     DeliveryType,
     LocationFunctionType,
     LocationLevelType,
-    MetricProfile,
     MetricType,
     NodeIdentifierType,
     NodeNoteType,
@@ -35,7 +34,6 @@ class TagVersionTypeAdmin(admin.ModelAdmin):
 admin.site.register(DeliveryType)
 admin.site.register(LocationFunctionType)
 admin.site.register(LocationLevelType)
-admin.site.register(MetricProfile)
 admin.site.register(MetricType)
 admin.site.register(NodeRelationType, NodeRelationTypeAdmin)
 admin.site.register(NodeIdentifierType)
