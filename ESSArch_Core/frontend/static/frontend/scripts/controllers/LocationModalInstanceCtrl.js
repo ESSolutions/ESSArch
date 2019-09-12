@@ -10,7 +10,7 @@ export default class LocationModalInstanceCtrl {
         if (data.remove) {
           return;
         } else {
-          $ctrl.location.metric = angular.copy(data.location.metric.id);
+          $ctrl.location.metric = data.location.metric ? angular.copy(data.location.metric.id) : null;
           $ctrl.location.level_type = angular.copy(data.location.level_type.id);
           $ctrl.location.function = angular.copy(data.location.function.id);
         }
@@ -20,7 +20,7 @@ export default class LocationModalInstanceCtrl {
     };
 
     $ctrl.getMetrics = function() {
-      return $http.get(appConfig.djangoUrl + 'metric-profiles/', {params: {pager: 'none'}}).then(function(response) {
+      return $http.get(appConfig.djangoUrl + 'metric-types/', {params: {pager: 'none'}}).then(function(response) {
         $ctrl.options.metric = response.data;
         return response.data;
       });
@@ -72,13 +72,19 @@ export default class LocationModalInstanceCtrl {
             type: 'select',
             key: 'metric',
             templateOptions: {
-              label: $translate.instant('ACCESS.METRIC_PROFILE'),
+              label: $translate.instant('ACCESS.METRIC'),
               options: $ctrl.options.metric,
-              required: true,
               labelProp: 'name',
               valueProp: 'id',
               defaultValue: $ctrl.options.metric.length > 0 ? $ctrl.options.metric[0].id : null,
-              notNull: true,
+            },
+          },
+          {
+            type: 'input',
+            key: 'capacity',
+            templateOptions: {
+              type: 'number',
+              label: $translate.instant('ACCESS.CAPACITY'),
             },
           },
           {

@@ -28,6 +28,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       AUTHORIZED_NAME: 'Auktoriserat namn',
       BASIC_DATA: 'Grundläggande information',
       CAN_BE_MOVED: 'Kan flyttas',
+      CAPACITY: 'Kapacitet',
       CERTAINTY: 'Visshet',
       CLASSIFICATION_STRUCTURE: 'Struktur',
       CLASSIFICATION_STRUCTURES: 'Strukturer',
@@ -115,6 +116,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       MANDATES: 'Grunddokument',
       MANDATES_DESC:
         'Hänvisningar till dokument som utgör det legala grunden för tillkomsten av en institution såsom stiftelseurkund, instruktion o.dyl',
+      METRIC: 'Enhet',
       METRIC_PROFILE: 'Placeringsprofil',
       NARROW_RESULTS: 'Avgränsa resultat',
       NAVIGATE_TO_TRANSFER: 'Navigera till relaterad överföring',
