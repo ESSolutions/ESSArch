@@ -338,7 +338,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         'id', 'object_identifier_value', 'start_date', 'end_date',
     )
     search_fields = (
-        'object_identifier_value', 'label', 'responsible__first_name',
+        'id', 'object_identifier_value', 'label', 'responsible__first_name',
         'responsible__last_name', 'responsible__username', 'state',
         'submission_agreement__name', 'start_date', 'end_date',
         'aic__object_identifier_value', 'aic__label',
@@ -513,11 +513,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         if self.detail:
             lower_higher = InformationPackage.objects.filter(
-                Q(aic=OuterRef('aic'))
+                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
             ).order_by().values('aic')
             lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
 
             qs = InformationPackage.objects.visible_to_user(user).filter(
+                Q(Q(workareas=None) | Q(workareas__read_only=True)),
                 active=True,
             )
 
@@ -527,7 +528,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             qs = qs.select_related('responsible')
             self.queryset = qs.prefetch_related(
                 'agents', 'steps',
-                Prefetch('workareas', to_attr='prefetched_workareas')
+                Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
             )
             self.queryset = self.queryset.distinct()
             return self.queryset
@@ -2537,12 +2538,11 @@ class WorkareaViewSet(InformationPackageViewSet):
 
         if self.action == 'retrieve':
             lower_higher = InformationPackage.objects.filter(
-                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
+                Q(aic=OuterRef('aic'))
             ).order_by().values('aic')
             lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
 
             qs = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True)),
                 active=True,
             )
 
@@ -2552,8 +2552,9 @@ class WorkareaViewSet(InformationPackageViewSet):
             qs = qs.select_related('responsible')
             self.queryset = qs.prefetch_related(
                 'agents', 'steps',
-                Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
+                Prefetch('workareas', to_attr='prefetched_workareas')
             )
+            self.queryset = self.queryset.distinct()
             return self.queryset
 
         return self.queryset
