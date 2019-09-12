@@ -1319,6 +1319,13 @@ export default class SearchDetailCtrl {
     };
 
     vm.addStructureUnitModal = function(node, structure) {
+      let data = {
+        node: node,
+        structure: structure,
+      };
+      if (node._index !== 'archive') {
+        data.children = getNodeById(vm.recordTreeData[0], node.id).children;
+      }
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -1328,11 +1335,7 @@ export default class SearchDetailCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: {
-            node: node,
-            structure: structure,
-            children: getNodeById(vm.recordTreeData[0], node.id).children,
-          },
+          data: data,
         },
       });
       modalInstance.result.then(
