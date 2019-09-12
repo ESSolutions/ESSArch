@@ -453,6 +453,25 @@ class StructureUnit(MPTTModel):
 
         for relation in StructureUnitRelation.objects.filter(structure_unit_a=self):
             if relation.structure_unit_b.structure.is_template:
+                try:
+                    related_unit_instance = StructureUnit.objects.get(
+                        template=relation.structure_unit_b,
+                        structure__tagstructure__tag=new_archive_structure.tag,
+                    )
+                except StructureUnit.DoesNotExist:
+                    continue
+
+                StructureUnitRelation.objects.create(
+                    structure_unit_a=new_unit,
+                    structure_unit_b=related_unit_instance,
+                    type=relation.type,
+                    description=relation.description,
+                    start_date=relation.start_date,
+                    end_date=relation.end_date,
+                    create_date=relation.create_date,
+                    revise_date=relation.revise_date,
+                )
+
                 continue
 
             related_archive_structure = relation.structure_unit_b.structure.tagstructure_set.first().get_root()
@@ -473,6 +492,25 @@ class StructureUnit(MPTTModel):
 
         for relation in StructureUnitRelation.objects.filter(structure_unit_b=self):
             if relation.structure_unit_a.structure.is_template:
+                try:
+                    related_unit_instance = StructureUnit.objects.get(
+                        template=relation.structure_unit_a,
+                        structure__tagstructure__tag=new_archive_structure.tag,
+                    )
+                except StructureUnit.DoesNotExist:
+                    continue
+
+                StructureUnitRelation.objects.create(
+                    structure_unit_a=related_unit_instance,
+                    structure_unit_b=new_unit,
+                    type=relation.type,
+                    description=relation.description,
+                    start_date=relation.start_date,
+                    end_date=relation.end_date,
+                    create_date=relation.create_date,
+                    revise_date=relation.revise_date,
+                )
+
                 continue
 
             related_archive_structure = relation.structure_unit_a.structure.tagstructure_set.first().get_root()
