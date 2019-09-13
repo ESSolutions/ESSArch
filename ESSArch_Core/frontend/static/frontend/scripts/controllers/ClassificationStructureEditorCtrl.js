@@ -21,6 +21,7 @@ export default class ClassificationStructureEditorCtrl {
     vm.structures = [];
     vm.rules = {};
     vm.manuallyReload = false;
+    vm.initialSearch = null;
     $scope.angular = angular;
     vm.structureTypes = [];
     vm.structureType = null;
@@ -29,6 +30,7 @@ export default class ClassificationStructureEditorCtrl {
         vm.structureTypes = [{name: $translate.instant('ACCESS.SEE_ALL'), id: null}].concat(response.data);
       });
       if ($stateParams != null && $stateParams.id) {
+        vm.initialSearch = $stateParams.id;
         vm.structureClick({id: $stateParams.id});
       }
     };
@@ -131,6 +133,13 @@ export default class ClassificationStructureEditorCtrl {
         $scope.tableState = tableState;
         var search = '';
         if (tableState.search.predicateObject) {
+          var search = tableState.search.predicateObject['$'];
+        } else {
+          tableState.search = {
+            predicateObject: {
+              $: vm.initialSearch,
+            },
+          };
           var search = tableState.search.predicateObject['$'];
         }
         const sorting = tableState.sort;

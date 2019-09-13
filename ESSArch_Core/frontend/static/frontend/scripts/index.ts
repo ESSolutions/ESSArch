@@ -192,11 +192,14 @@ angular
           },
         })
         .state('home.producer.prepareIp', {
-          url: '/prepare-IP',
+          url: '/prepare-IP/{id}',
           templateUrl: '/static/frontend/views/create_sip_prepare_ip.html',
           controller: 'PrepareIpCtrl as vm',
           resolve: {
             authenticated: resolveAuthenticated,
+          },
+          params: {
+            id: {dynamic: true, value: null},
           },
           data: {
             permissions: {
@@ -206,11 +209,14 @@ angular
           },
         })
         .state('home.producer.collectContent', {
-          url: '/collect-content',
+          url: '/collect-content/{id}',
           templateUrl: '/static/frontend/views/create_sip_collect_content.html',
           controller: 'CollectContentCtrl as vm',
           resolve: {
             authenticated: resolveAuthenticated,
+          },
+          params: {
+            id: {dynamic: true, value: null},
           },
           data: {
             permissions: {
@@ -244,11 +250,14 @@ angular
           },
         })
         .state('home.producer.createSip', {
-          url: '/create-SIP',
+          url: '/create-SIP/{id}',
           templateUrl: '/static/frontend/views/create_sip_ip_approval.html',
           controller: 'CreateSipCtrl as vm',
           resolve: {
             authenticated: resolveAuthenticated,
+          },
+          params: {
+            id: {dynamic: true, value: null},
           },
           data: {
             permissions: {
@@ -258,11 +267,14 @@ angular
           },
         })
         .state('home.producer.submitSip', {
-          url: '/submit-SIP',
+          url: '/submit-SIP/{id}',
           templateUrl: '/static/frontend/views/submit_sip_prepare_sip.html',
           controller: 'PrepareSipCtrl as vm',
           resolve: {
             authenticated: resolveAuthenticated,
+          },
+          params: {
+            id: {dynamic: true, value: null},
           },
           data: {
             permissions: {
@@ -280,11 +292,14 @@ angular
           },
         })
         .state('home.ingest.reception', {
-          url: '/reception',
+          url: '/reception/{id}',
           templateUrl: '/static/frontend/views/reception.html',
           controller: 'ReceptionCtrl as vm',
           resolve: {
             authenticated: resolveAuthenticated,
+          },
+          params: {
+            id: {dynamic: true, value: null},
           },
           data: {
             permissions: {
@@ -294,11 +309,14 @@ angular
           },
         })
         .state('home.ingest.ipApproval', {
-          url: '/approval',
+          url: '/approval/{id}',
           templateUrl: '/static/frontend/views/ip_approval.html',
           controller: 'IpApprovalCtrl as vm',
           resolve: {
             authenticated: resolveAuthenticated,
+          },
+          params: {
+            id: {dynamic: true, value: null},
           },
           data: {
             permissions: {
@@ -316,11 +334,14 @@ angular
           },
         })
         .state('home.access.accessIp', {
-          url: '/access-IP',
+          url: '/access-IP/{id}',
           templateUrl: '/static/frontend/views/access_ip.html',
           controller: 'AccessIpCtrl as vm',
           resolve: {
             authenticated: resolveAuthenticated,
+          },
+          params: {
+            id: {dynamic: true, value: null},
           },
           data: {
             permissions: {
@@ -330,11 +351,14 @@ angular
           },
         })
         .state('home.access.orders', {
-          url: '/orders',
+          url: '/orders/{id}',
           templateUrl: '/static/frontend/views/orders.html',
           controller: 'OrdersCtrl as vm',
           resolve: {
             authenticated: resolveAuthenticated,
+          },
+          params: {
+            id: {dynamic: true, value: null},
           },
           data: {
             permissions: {
@@ -344,10 +368,12 @@ angular
           },
         })
         .state('home.access.createDip', {
-          url: '/create-DIP',
+          url: '/create-DIP/{id}',
           templateUrl: '/static/frontend/views/access_create_dip.html',
           controller: 'CreateDipCtrl as vm',
-          params: {ip: null},
+          params: {
+            id: {dynamic: true, value: null},
+          },
           resolve: {
             authenticated: resolveAuthenticated,
           },
@@ -587,11 +613,14 @@ angular
           },
         })
         .state('home.workarea', {
-          url: 'workspace',
+          url: 'workspace/{id}',
           templateUrl: '/static/frontend/views/combined_workarea.html',
           controller: 'CombinedWorkareaCtrl as vm',
           resolve: {
             authenticated: resolveAuthenticated,
+          },
+          params: {
+            id: {dynamic: true, value: null},
           },
           data: {
             permissions: {

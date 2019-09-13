@@ -159,10 +159,13 @@ export default class ReceptionCtrl {
     };
 
     //Click function for Ip table
-    vm.selectSingleRow = function(row) {
+    vm.selectSingleRow = function(row, options) {
       if ($scope.ip !== null && $scope.ip.id == row.id) {
         $scope.ip = null;
         $rootScope.ip = null;
+        if (angular.isUndefined(options) || !options.noStateChange) {
+          $state.go($state.current.name, {id: null});
+        }
         $scope.profileEditor = false;
       } else {
         vm.deselectAll();
@@ -172,6 +175,9 @@ export default class ReceptionCtrl {
         vm.sdModel = {};
         $scope.ip = row;
         $rootScope.ip = row;
+        if (angular.isUndefined(options) || !options.noStateChange) {
+          $state.go($state.current.name, {id: row.id});
+        }
         $scope.buildSdForm(row);
         $scope.getFileList(row);
       }

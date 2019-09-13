@@ -34,18 +34,23 @@ export default class PrepareSipCtrl {
     listViewService,
     $anchorScroll,
     $controller,
-    $timeout
+    $timeout,
+    $state,
+    ContentTabs
   ) {
     const vm = this;
     const ipSortString = ['Created', 'Submitting', 'Submitted'];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
 
     //Click function for ip table
-    vm.selectSingleRow = function(row) {
+    vm.selectSingleRow = function(row, options) {
       $scope.ips = [];
       if ($scope.ip !== null && $scope.ip.id == row.id) {
         $scope.ip = null;
         $rootScope.ip = null;
+        if (angular.isUndefined(options) || !options.noStateChange) {
+          $state.go($state.current.name, {id: null});
+        }
       } else {
         $scope.ip = null;
         $rootScope.ip = null;
@@ -53,8 +58,11 @@ export default class PrepareSipCtrl {
         $timeout(() => {
           $scope.ip = row;
           $rootScope.ip = row;
+          if (angular.isUndefined(options) || !options.noStateChange) {
+            $state.go($state.current.name, {id: $scope.ip.id});
+          }
           const ip = row;
-          if (vm.specificTabs.includes('submit_sip')) {
+          if (vm.specificTabs.includes('submit_sip') || ContentTabs.visible([$scope.ip], $state.current.name)) {
             $http
               .get(appConfig.djangoUrl + 'information-packages/' + ip.id + '/profiles/', {
                 params: {profile__profile_type: 'submit_description'},

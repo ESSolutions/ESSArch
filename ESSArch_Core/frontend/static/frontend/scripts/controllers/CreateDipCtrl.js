@@ -34,6 +34,7 @@ export default class {
     vm.listViewTitle = $translate.instant('DISSEMINATION_PACKAGES');
 
     vm.$onInit = function() {
+      $scope.redirectWithId();
       vm.organizationMember.current = $rootScope.auth;
       if ($scope.checkPermission('ip.see_all_in_workspaces') && $rootScope.auth.current_organization) {
         $http
@@ -129,6 +130,13 @@ export default class {
         var search = '';
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
+        } else {
+          tableState.search = {
+            predicateObject: {
+              $: vm.initialSearch,
+            },
+          };
+          var search = tableState.search.predicateObject['$'];
         }
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
@@ -180,10 +188,12 @@ export default class {
         $scope.edit = false;
         $scope.ip = null;
         $rootScope.ip = null;
+        $state.go($state.current.name, {id: null});
         $scope.filebrowser = false;
       } else {
         $scope.ip = row;
         $rootScope.ip = $scope.ip;
+        $state.go($state.current.name, {id: $scope.ip.id});
         $scope.select = true;
         $scope.edit = true;
         $scope.filesPerPage = $cookies.get('files-per-page') || 50;

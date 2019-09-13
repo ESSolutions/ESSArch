@@ -11,7 +11,8 @@ export default class {
     $q,
     $log,
     SelectedIPUpdater,
-    listViewService
+    listViewService,
+    $state
   ) {
     const vm = this;
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: '', params: {}});
@@ -33,6 +34,13 @@ export default class {
         var search = '';
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
+        } else {
+          tableState.search = {
+            predicateObject: {
+              $: vm.initialSearch,
+            },
+          };
+          var search = tableState.search.predicateObject['$'];
         }
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
@@ -53,7 +61,7 @@ export default class {
     };
 
     //Click function for Ip table
-    $scope.ipTableClick = function(row) {
+    $scope.ipTableClick = function(row, events, options) {
       if ($scope.select && $scope.ip.id == row.id) {
         $scope.select = false;
         $scope.eventlog = false;
@@ -61,9 +69,15 @@ export default class {
         $scope.requestForm = false;
         $scope.ip = null;
         $rootScope.ip = null;
+        if (angular.isUndefined(options) || !options.noStateChange) {
+          $state.go($state.current.name, {id: null});
+        }
       } else {
         $scope.ip = row;
         $rootScope.ip = $scope.ip;
+        if (angular.isUndefined(options) || !options.noStateChange) {
+          $state.go($state.current.name, {id: $scope.ip.id});
+        }
         $scope.select = true;
         $scope.eventlog = true;
         $scope.edit = true;

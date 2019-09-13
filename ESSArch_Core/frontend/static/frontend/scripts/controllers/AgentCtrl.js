@@ -16,6 +16,7 @@ export default class AgentCtrl {
     const vm = this;
     $scope.AgentName = AgentName;
     $scope.$state = $state;
+    vm.initialSearch = null;
     vm.agentsLoading = false;
     vm.agents = [];
     vm.agent = null;
@@ -92,6 +93,7 @@ export default class AgentCtrl {
 
     vm.$onInit = function() {
       if ($stateParams.id) {
+        vm.initialSearch = angular.copy($stateParams.id);
         vm.getAgent($stateParams).then(function() {
           $rootScope.$broadcast('UPDATE_TITLE', {title: vm.agent.auth_name.full_name});
         });
@@ -176,6 +178,13 @@ export default class AgentCtrl {
         let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
+        } else {
+          tableState.search = {
+            predicateObject: {
+              $: vm.initialSearch,
+            },
+          };
+          var search = tableState.search.predicateObject['$'];
         }
 
         vm.getAgents({

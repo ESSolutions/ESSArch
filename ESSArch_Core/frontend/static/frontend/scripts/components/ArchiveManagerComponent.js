@@ -11,6 +11,7 @@ export default {
     '$state',
     '$stateParams',
     'myService',
+    'listViewService',
     ArchiveManagerCtrl,
   ],
   controllerAs: 'vm',

@@ -36,6 +36,7 @@ export default class WorkareaCtrl {
       options: [],
     };
     vm.$onInit = function() {
+      $scope.redirectWithId();
       vm.organizationMember.current = $rootScope.auth;
       if ($scope.checkPermission('ip.see_all_in_workspaces') && $rootScope.auth.current_organization) {
         $http
@@ -65,6 +66,13 @@ export default class WorkareaCtrl {
         $scope.tableState = tableState;
         var search = '';
         if (tableState.search.predicateObject) {
+          var search = tableState.search.predicateObject['$'];
+        } else {
+          tableState.search = {
+            predicateObject: {
+              $: vm.initialSearch,
+            },
+          };
           var search = tableState.search.predicateObject['$'];
         }
         const sorting = tableState.sort;

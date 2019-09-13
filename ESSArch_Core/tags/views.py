@@ -207,7 +207,7 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, OrderingFilterWithNulls, SearchFilter,)
     filter_class = StructureFilter
     ordering_fields = ('name', 'create_date', 'version', 'type', 'published_date',)
-    search_fields = ('name',)
+    search_fields = ('id', 'name',)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update', 'metadata']:
@@ -388,7 +388,7 @@ class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_class = TagFilter
-    search_fields = ('current_version__name',)
+    search_fields = ('current_version__id', 'current_version__name',)
 
     http_method_names = ('get', 'head', 'options')
 
@@ -448,7 +448,7 @@ class TransferViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         'submitter_individual_name',
     )
     search_fields = (
-        'name', 'submitter_organization',
+        'id', 'name', 'submitter_organization',
         'submitter_individual_name',
     )
 

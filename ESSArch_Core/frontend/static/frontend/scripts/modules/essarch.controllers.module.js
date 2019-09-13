@@ -326,6 +326,8 @@ export default angular
     'ContentTabs',
     'SelectedIPUpdater',
     '$transitions',
+    '$stateParams',
+    '$q',
     BaseCtrl,
   ])
   .controller('ChangePasswordModalCtrl', ['$uibModalInstance', 'djangoAuth', 'data', ChangePasswordModalCtrl])
@@ -357,6 +359,7 @@ export default angular
     '$cookies',
     '$controller',
     '$transitions',
+    '$state',
     CollectContentCtrl,
   ])
   .controller('CombinedWorkareaCtrl', ['$scope', '$controller', CombinedWorkareaCtrl])
@@ -643,6 +646,7 @@ export default angular
     '$log',
     'SelectedIPUpdater',
     'listViewService',
+    '$state',
     OrdersCtrl,
   ])
   .controller('OrganizationCtrl', ['$scope', 'Organization', OrganizationCtrl])
@@ -692,6 +696,8 @@ export default angular
     '$anchorScroll',
     '$controller',
     '$timeout',
+    '$state',
+    'ContentTabs',
     PrepareSipCtrl,
   ])
   .controller('PublishClassificationStructureCtrl', [
@@ -871,6 +877,7 @@ export default angular
     'myService',
     '$state',
     '$stateParams',
+    'listViewService',
     TransferCtrl,
   ])
   .controller('TransferModalInstanceCtrl', [

@@ -1,8 +1,20 @@
 export default class TransferCtrl {
-  constructor($scope, appConfig, $http, $uibModal, $log, $translate, myService, $state, $stateParams) {
+  constructor(
+    $scope,
+    appConfig,
+    $http,
+    $uibModal,
+    $log,
+    $translate,
+    myService,
+    $state,
+    $stateParams,
+    listViewService
+  ) {
     const vm = this;
     $scope.$translate = $translate;
     vm.selectedTransfer = null;
+    vm.initialSearch = null;
     vm.transfers = [];
     vm.types = [];
     vm.tags = [];
@@ -23,6 +35,7 @@ export default class TransferCtrl {
         $stateParams.transfer !== null &&
         $stateParams.transfer !== ''
       ) {
+        vm.initialSearch = $stateParams.transfer;
         $http
           .get(appConfig.djangoUrl + 'transfers/' + $stateParams.transfer + '/')
           .then(function(response) {
@@ -61,25 +74,27 @@ export default class TransferCtrl {
         var search = '';
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
+        } else {
+          tableState.search = {
+            predicateObject: {
+              $: vm.initialSearch,
+            },
+          };
+          var search = tableState.search.predicateObject['$'];
         }
         const sorting = tableState.sort;
-        const pagination = tableState.pagination;
-        const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        const number = pagination.number || vm.itemsPerPage || 10; // Number of entries showed per page.
-        const pageNumber = start / number + 1;
-
         let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         vm.getTransfers({
-          page: pageNumber,
-          page_size: number,
+          page: paginationParams.pageNumber,
+          page_size: paginationParams.number,
           ordering: sortString,
           search: search,
         }).then(function(response) {
-          tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / number); //set the number of pages so the pagination can update
+          tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
           $scope.initLoad = false;
           vm.transfersLoading = false;
           vm.transfers = response.data;

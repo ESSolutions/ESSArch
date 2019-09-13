@@ -1,11 +1,18 @@
 export default class ArchiveManagerCtrl {
-  constructor($scope, $http, appConfig, $uibModal, $log, $state, $stateParams, myService) {
+  constructor($scope, $http, appConfig, $uibModal, $log, $state, $stateParams, myService, listViewService) {
     const vm = this;
     $scope.$stateParams = $stateParams;
+    vm.initialSearch = null;
     vm.structure = null;
     vm.record = null;
     vm.archives = [];
     vm.fields = [];
+
+    vm.$onInit = () => {
+      if ($stateParams.id) {
+        vm.initialSearch = $stateParams.id;
+      }
+    };
 
     vm.getArchives = function(tableState) {
       vm.archivesLoading = true;
@@ -17,30 +24,34 @@ export default class ArchiveManagerCtrl {
         var search = '';
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
+        } else {
+          tableState.search = {
+            predicateObject: {
+              $: vm.initialSearch,
+            },
+          };
+          var search = tableState.search.predicateObject['$'];
         }
         const sorting = tableState.sort;
-        const pagination = tableState.pagination;
-        const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        const number = pagination.number || vm.archivesPerPage; // Number of entries showed per page.
-        const pageNumber = start / number + 1;
-
         let sortString = sorting.predicate;
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.archivesPerPage);
+
         $http
           .get(appConfig.djangoUrl + 'tags/', {
             params: {
               index: 'archive',
-              page: pageNumber,
-              page_size: number,
+              page: paginationParams.pageNumber,
+              page_size: paginationParams.number,
               ordering: sortString,
               search: search,
             },
           })
           .then(function(response) {
             vm.archives = response.data;
-            tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / number); //set the number of pages so the pagination can update
+            tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
             $scope.initLoad = false;
             vm.archivesLoading = false;
           });

@@ -45,7 +45,9 @@ export default class BaseCtrl {
     Requests,
     ContentTabs,
     SelectedIPUpdater,
-    $transitions
+    $transitions,
+    $stateParams,
+    $q
   ) {
     // Initialize variables
 
@@ -76,7 +78,7 @@ export default class BaseCtrl {
     $scope.ContentTabs = ContentTabs;
     // Can be overwritten in controllers to change title
     vm.listViewTitle = $translate.instant('INFORMATION_PACKAGES');
-
+    vm.initialSearch = null;
     const watchers = [];
     // Init request form
 
@@ -107,18 +109,50 @@ export default class BaseCtrl {
     };
     $scope.initRequestData();
 
-    // Watchers
-    watchers.push(
-      $scope.$watch(
-        function() {
-          return $rootScope.selectedTag;
-        },
-        function(newVal, oldVal) {
-          $scope.getListViewData();
-        },
-        true
-      )
-    );
+    $scope.redirectWithId = () => {
+      if ($stateParams.id) {
+        let promise;
+        if ($state.is('home.access.orders')) {
+          promise = $http.get(appConfig.djangoUrl + 'orders/' + $stateParams.id + '/').then(response => {
+            return response.data;
+          });
+        } else if ($state.is('home.workarea')) {
+          promise = $http.get(appConfig.djangoUrl + 'workareas/' + $stateParams.id + '/').then(response => {
+            return response.data;
+          });
+        } else if ($state.is('home.ingest.reception')) {
+          promise = $http.get(appConfig.djangoUrl + 'ip-reception/' + $stateParams.id + '/').then(response => {
+            return response.data;
+          });
+        } else {
+          promise = listViewService.getIp($stateParams.id).then(ip => {
+            if (
+              ipSortString.includes(ip.state) ||
+              ($state.includes('home.access.createDip') && ip.package_type === 4)
+            ) {
+              return ip;
+            } else {
+              return $q.reject('Not valid page');
+            }
+          });
+        }
+        promise
+          .then(ip => {
+            vm.initialSearch = angular.copy($stateParams.id);
+            $scope.ipTableClick(ip, {}, {noStateChange: true});
+            $timeout(() => {
+              $scope.getListViewData();
+            });
+          })
+          .catch(() => {
+            $state.go($state.current.name, {id: null});
+          });
+      }
+    };
+
+    vm.$onInit = () => {
+      $scope.redirectWithId();
+    };
 
     watchers.push(
       $scope.$watch(
@@ -168,10 +202,12 @@ export default class BaseCtrl {
 
     //Cancel update intervals on state change
     $transitions.onSuccess({}, function($transition) {
-      $interval.cancel(listViewInterval);
-      watchers.forEach(function(watcher) {
-        watcher();
-      });
+      if ($transition.from().name !== $transition.to().name) {
+        $interval.cancel(listViewInterval);
+        watchers.forEach(function(watcher) {
+          watcher();
+        });
+      }
     });
 
     $scope.$on('REFRESH_LIST_VIEW', function(event, data) {
@@ -233,6 +269,13 @@ export default class BaseCtrl {
         $scope.tableState = tableState;
         var search = '';
         if (tableState.search.predicateObject) {
+          var search = tableState.search.predicateObject['$'];
+        } else {
+          tableState.search = {
+            predicateObject: {
+              $: vm.initialSearch,
+            },
+          };
           var search = tableState.search.predicateObject['$'];
         }
         const sorting = tableState.sort;
@@ -778,13 +821,13 @@ export default class BaseCtrl {
     // Click functionality
 
     //Click function for Ip table
-    $scope.ipTableClick = function(row, event) {
+    $scope.ipTableClick = function(row, event, options) {
       if (event && event.shiftKey) {
         vm.shiftClickrow(row);
       } else if (event && event.ctrlKey) {
         vm.ctrlClickRow(row);
       } else {
-        vm.selectSingleRow(row);
+        vm.selectSingleRow(row, options);
       }
     };
 
@@ -865,7 +908,7 @@ export default class BaseCtrl {
       $scope.statusShow = false;
     };
 
-    vm.selectSingleRow = function(row) {
+    vm.selectSingleRow = function(row, options) {
       if (row.package_type == 1) {
         $scope.select = false;
         $scope.eventlog = false;
@@ -876,6 +919,9 @@ export default class BaseCtrl {
           $scope.ip = null;
           $rootScope.ip = null;
           $scope.filebrowser = false;
+          if (angular.isUndefined(options) || !options.noStateChange) {
+            $state.go($state.current.name, {id: null});
+          }
         } else {
           $scope.ip = null;
           $rootScope.ip = null;
@@ -883,6 +929,9 @@ export default class BaseCtrl {
           $timeout(() => {
             $scope.ip = row;
             $rootScope.ip = $scope.ip;
+            if (angular.isUndefined(options) || !options.noStateChange) {
+              $state.go($state.current.name, {id: row.id});
+            }
           });
         }
         return;
@@ -898,6 +947,9 @@ export default class BaseCtrl {
         $rootScope.ip = null;
         $scope.filebrowser = false;
         $scope.initRequestData();
+        if (angular.isUndefined(options) || !options.noStateChange) {
+          $state.go($state.current.name, {id: null});
+        }
       } else {
         $scope.select = true;
         $scope.eventlog = true;
@@ -910,6 +962,9 @@ export default class BaseCtrl {
         $timeout(() => {
           $scope.ip = row;
           $rootScope.ip = $scope.ip;
+          if (angular.isUndefined(options) || !options.noStateChange) {
+            $state.go($state.current.name, {id: row.id});
+          }
         });
       }
       $scope.statusShow = false;

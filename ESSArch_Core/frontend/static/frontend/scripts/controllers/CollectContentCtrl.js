@@ -39,7 +39,8 @@ export default class CollectContentCtrl {
     $anchorScroll,
     $cookies,
     $controller,
-    $transitions
+    $transitions,
+    $state
   ) {
     const vm = this;
     const ipSortString = ['Prepared', 'Uploading'];
@@ -114,17 +115,23 @@ export default class CollectContentCtrl {
     };
 
     //Click function for ip table
-    vm.selectSingleRow = function(row) {
+    vm.selectSingleRow = function(row, options) {
       $scope.ips = [];
       if ($scope.ip !== null && $scope.ip.id == row.id) {
         $scope.select = false;
         $scope.eventlog = false;
         $scope.ip = null;
         $rootScope.ip = null;
+        if (angular.isUndefined(options) || !options.noStateChange) {
+          $state.go($state.current.name, {id: null});
+        }
         $scope.filebrowser = false;
       } else {
         $scope.ip = row;
         $rootScope.ip = row;
+        if (angular.isUndefined(options) || !options.noStateChange) {
+          $state.go($state.current.name, {id: $scope.ip.id});
+        }
         if (!$rootScope.flowObjects[row.id]) {
           $scope.createNewFlow(row);
         }
