@@ -1,5 +1,5 @@
 export default class ReceiveModalInstanceCtrl {
-  constructor($uibModalInstance, $scope, data, $translate, $uibModal, $log, $http, appConfig, $q) {
+  constructor($uibModalInstance, $scope, data, $translate, $uibModal, $log, $http, appConfig, $q, EditMode) {
     const vm = data.vm;
     $scope.saAlert = null;
     $scope.alerts = {
@@ -18,6 +18,8 @@ export default class ReceiveModalInstanceCtrl {
       $scope.ip = data.ip;
       vm.updateCheckedIp({id: temp.id}, $scope.ip);
     });
+    EditMode.enable();
+
     $scope.getStoragePolicies().then(function(result) {
       vm.request.storagePolicy.options = result;
       if ($scope.ip.policy) {
@@ -79,6 +81,7 @@ export default class ReceiveModalInstanceCtrl {
       modalInstance.result
         .then(function(data) {
           vm.resetForm();
+          EditMode.disable();
           $uibModalInstance.close(data);
         })
         .catch(function() {
@@ -90,10 +93,25 @@ export default class ReceiveModalInstanceCtrl {
       vm.data = {
         status: 'skip',
       };
+      EditMode.disable();
       $uibModalInstance.close(vm.data);
     };
     vm.cancel = function() {
+      EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
+    $scope.$on('modal.closing', function(event, reason, closed) {
+      if (
+        (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
+        (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
+      ) {
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
+        if (!confirm(message)) {
+          event.preventDefault();
+        } else {
+          EditMode.disable();
+        }
+      }
+    });
   }
 }

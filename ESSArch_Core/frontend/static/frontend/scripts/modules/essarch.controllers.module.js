@@ -718,6 +718,7 @@ export default angular
     '$http',
     'appConfig',
     '$q',
+    'EditMode',
     ReceiveModalInstanceCtrl,
   ])
   .controller('ReceptionCtrl', [
