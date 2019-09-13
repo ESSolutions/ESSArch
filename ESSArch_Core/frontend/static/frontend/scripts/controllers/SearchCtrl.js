@@ -181,8 +181,8 @@ export default class SearchCtrl {
         page: 1,
         page_size: vm.resultsPerPage || 25,
         ordering: '',
+        extension: {},
       };
-      vm.extensionFilter = {};
 
       vm.includedTypes = {
         archive: true,
@@ -240,19 +240,19 @@ export default class SearchCtrl {
     vm.formatFilters = function() {
       const filters = angular.copy(vm.filterObject);
       const includedTypes = [];
-      for (var key in vm.includedTypes) {
+      for (let key in vm.includedTypes) {
         if (vm.includedTypes[key]) {
           includedTypes.push(key);
         }
       }
       filters.indices = includedTypes.join(',');
       const includedExtension = [];
-      for (var key in vm.extensionFilter) {
-        if (vm.extensionFilter[key]) {
+      for (let key in filters.extension) {
+        if (filters.extension[key] === true) {
           includedExtension.push(key);
         }
       }
-      if (filters.extension == '' || filters.extension == null || filters.extension == {}) {
+      if (includedExtension.length <= 0) {
         delete filters.extension;
       } else {
         filters.extension = includedExtension.join(',');
