@@ -188,7 +188,12 @@
                     <label>
                       {{'ACCESS.IDENTIFIERS' | translate}}
                     </label>
-                    <button class="btn btn-primary" ng-click="vm.addIdentifierModal()">
+                    <button
+                      permission
+                      permission-only="'agents.change_agent'"
+                      class="btn btn-primary"
+                      ng-click="vm.addIdentifierModal()"
+                    >
                       {{'ADD' | translate}}
                     </button>
                   </div>
