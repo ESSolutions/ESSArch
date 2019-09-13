@@ -63,8 +63,8 @@ class ComponentSearch(FacetedSearch):
 
     facets = {
         # use bucket aggregations to define facets
-        'extension': TermsFacet(field='extension.keyword', min_doc_count=0, size=100),
-        'type': TermsFacet(field='type.keyword', min_doc_count=0, size=100),
+        'extension': TermsFacet(field='extension', min_doc_count=0, size=100),
+        'type': TermsFacet(field='type', min_doc_count=0, size=100),
     }
 
     filters = {
@@ -351,8 +351,8 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
             raise exceptions.ParseError('Invalid export format "{}"'.format(export))
 
         filters = {
-            'extension.keyword': params.pop('extension', None),
-            'type.keyword': params.pop('type', None),
+            'extension': params.pop('extension', None),
+            'type': params.pop('type', None),
         }
 
         for k, v in filters.items():
