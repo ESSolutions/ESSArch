@@ -126,6 +126,14 @@ export default class ClassificationModalInstanceCtrl {
             },
           ],
         },
+        {
+          key: 'description',
+          type: 'textarea',
+          templateOptions: {
+            label: $translate.instant('DESCRIPTION'),
+            rows: 3,
+          },
+        },
       ];
     };
 
