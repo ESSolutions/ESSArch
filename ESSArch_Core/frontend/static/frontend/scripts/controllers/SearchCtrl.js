@@ -77,6 +77,7 @@ export default class SearchCtrl {
       vm.clearSearch();
       if (
         $state.is('home.archivalDescriptions.search.detail') ||
+        $state.is('home.archivalDescriptions.search.structure_unit') ||
         $state.is('home.archivalDescriptions.search.information_package') ||
         $state.is('home.archivalDescriptions.search.component') ||
         $state.is('home.archivalDescriptions.search.archive') ||
