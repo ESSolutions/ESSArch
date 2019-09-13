@@ -8,13 +8,13 @@
         <li
           ng-repeat="x in vm.selected"
           ng-click="vm.deselect(x)"
-          class="selectable"
+          class="selectable position-relative"
           ng-mouseover="showDelete = true"
           ng-mouseout="showDelete = false"
           uib-tooltip="{{'ACCESS.DESELECT_FILTER' | translate}}"
           tooltip-placement="top-left auto"
         >
-          {{x[vm.labelProp]}}
+          {{x[vm.labelProp]}}<i ng-show="showDelete" class="fas fa-times-circle delete-symbol absolute-top-right"></i>
         </li>
         <li ng-if="vm.selected.length === 0">
           {{'EMPTY' | translate}}
