@@ -9,9 +9,6 @@ export default class SearchFilterCtrl {
       } else {
         vm.selected = vm.ngModel;
       }
-      vm.update({
-        search: vm.q,
-      });
       if (vm.ngChange) {
         vm.ngChange();
       }
@@ -92,6 +89,7 @@ export default class SearchFilterCtrl {
     };
     vm.openOptions = function(evt) {
       vm.resultListVisible = true;
+      vm.search();
       if ($window.onclick && !onclickSet) {
         $rootScope.$broadcast('CLOSE_FILTERS', {except: $scope.$id});
       }
