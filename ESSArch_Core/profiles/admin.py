@@ -63,7 +63,7 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
         ('Information about Archival organization', {
             'classes': ('collapse', 'wide'),
             'fields': (
-                'archivist_organization', 'archivist_main_name',
+                'archivist_organization',
             )
         }),
         ('Profiles', {
