@@ -21,7 +21,7 @@ RUN cd /tmp/watchman-${WATCHMAN_VERSION} \
  && cd $HOME \
  && rm -rf /tmp/*
 
-FROM node:alpine AS build-frontend
+FROM node:lts-alpine AS build-frontend
 
 WORKDIR /code
 RUN apk update && apk add python
