@@ -46,8 +46,8 @@ class SubmitSIP(DBTask):
     def run(self):
         ip = InformationPackage.objects.get(pk=self.ip)
 
-        srcdir = Path.objects.get(entity="path_preingest_reception").value
-        reception = Path.objects.get(entity="path_ingest_reception").value
+        srcdir = Path.objects.get(entity="preingest_reception").value
+        reception = Path.objects.get(entity="ingest_reception").value
         container_format = ip.get_container_format()
         src = os.path.join(srcdir, ip.object_identifier_value + ".%s" % container_format)
 
@@ -82,7 +82,7 @@ class SubmitSIP(DBTask):
     def undo(self):
         ip = InformationPackage.objects.get(pk=self.ip)
 
-        reception = Path.objects.get(entity="path_ingest_reception").value
+        reception = Path.objects.get(entity="ingest_reception").value
         container_format = ip.get_container_format()
 
         tar = os.path.join(reception, ip.object_identifier_value + ".%s" % container_format)

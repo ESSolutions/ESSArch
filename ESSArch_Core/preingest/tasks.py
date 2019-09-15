@@ -45,7 +45,7 @@ class TransferSIP(DBTask):
         ip = InformationPackage.objects.get(pk=self.ip)
         src = ip.object_path
         srcdir, srcfile = os.path.split(src)
-        epp = Path.objects.get(entity="path_gate_reception").value
+        dst = Path.objects.get(entity="gate_reception").value
 
         try:
             remote = ip.get_profile_data('transfer_project').get(
@@ -66,7 +66,7 @@ class TransferSIP(DBTask):
             except ValueError:
                 remote = None
         else:
-            dst = os.path.join(epp, srcfile)
+            dst = os.path.join(dst, srcfile)
 
         block_size = 8 * 1000000  # 8MB
 
@@ -78,15 +78,17 @@ class TransferSIP(DBTask):
         src = ip.get_events_file_path()
         if os.path.isfile(src):
             if not remote:
-                dst = os.path.join(epp, "%s_ipevents.xml" % objid)
-            copy_file(src, dst, requests_session=session, block_size=block_size)
+                xml_dst = os.path.join(os.path.dirname(dst), "%s_ipevents.xml" % objid)
+            else:
+                xml_dst = dst
+            copy_file(src, xml_dst, requests_session=session, block_size=block_size)
 
         self.set_progress(75, total=100)
 
         src = os.path.join(srcdir, "%s.xml" % objid)
         if not remote:
-            dst = os.path.join(epp, "%s.xml" % objid)
-        copy_file(src, dst, requests_session=session, block_size=block_size)
+            xml_dst = os.path.join(dst, "%s.xml" % objid)
+        copy_file(src, xml_dst, requests_session=session, block_size=block_size)
 
         self.set_progress(100, total=100)
 
@@ -96,7 +98,7 @@ class TransferSIP(DBTask):
         objectpath = InformationPackage.objects.values_list('object_path', flat=True).get(pk=self.ip)
 
         ipdir, ipfile = os.path.split(objectpath)
-        gate_reception = Path.objects.get(entity="path_gate_reception").value
+        gate_reception = Path.objects.get(entity="gate_reception").value
 
         objid = InformationPackage.objects.values_list(
             'object_identifier_value', flat=True

@@ -997,7 +997,7 @@ class InformationPackage(models.Model):
         temp_mets_path = self.get_temp_container_xml_path()
         temp_aic_mets_path = self.get_temp_container_aic_xml_path() if self.aic else None
 
-        reception_dir = Path.objects.get(entity='reception').value
+        reception_dir = Path.objects.get(entity='ingest_reception').value
         ingest_dir = self.policy.ingest_path.value
 
         ip_reception_path = os.path.join(reception_dir, self.object_identifier_value)

@@ -1352,7 +1352,7 @@ class InformationPackageViewSetTestCase(TestCase):
     @mock.patch('ESSArch_Core.workflow.tasks.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_preserve_aip(self, mock_step):
         Path.objects.create(entity='temp', value='temp')
-        Path.objects.create(entity='reception', value='reception')
+        Path.objects.create(entity='ingest_reception', value='ingest_reception')
         cache = StorageMethod.objects.create()
         ingest = Path.objects.create(entity='ingest', value='ingest')
         policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
@@ -1372,7 +1372,7 @@ class InformationPackageViewSetTestCase(TestCase):
     @mock.patch('ESSArch_Core.workflow.tasks.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_preserve_dip(self, mock_step):
         Path.objects.create(entity='temp', value='temp')
-        Path.objects.create(entity='reception', value='reception')
+        Path.objects.create(entity='ingest_reception', value='ingest_reception')
         cache = StorageMethod.objects.create()
         ingest = Path.objects.create(entity='ingest', value='ingest')
         policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
@@ -1401,9 +1401,8 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
 
         cls.url = reverse('ip-reception-list')
 
-        Path.objects.create(entity='reception', value='reception')
-        Path.objects.create(entity='path_ingest_reception', value='ingest_reception')
-        Path.objects.create(entity='path_ingest_unidentified', value='ingest_reception_unidentified')
+        Path.objects.create(entity='ingest_reception', value='ingest_reception')
+        Path.objects.create(entity='ingest_unidentified', value='ingest_reception_unidentified')
 
         cls.sa = SubmissionAgreement.objects.create()
         aip_profile = Profile.objects.create(profile_type='aip')
@@ -1744,14 +1743,14 @@ class IdentifyIP(TransactionTestCase):
             pass
 
         mimetypes = Path.objects.create(
-            entity="path_mimetypes_definitionfile",
+            entity="mimetypes_definitionfile",
             value=os.path.join(self.datadir, "mime.types"),
         ).value
         with open(mimetypes, 'w') as f:
             f.write('application/x-tar tar')
 
-        self.path = Path.objects.create(entity="path_ingest_unidentified", value=self.datadir).value
-        Path.objects.create(entity="path_ingest_reception", value="ingest_reception").value
+        self.path = Path.objects.create(entity="ingest_unidentified", value=self.datadir).value
+        Path.objects.create(entity="ingest_reception", value="ingest_reception").value
 
         self.user = User.objects.create(username="admin")
 
@@ -1851,7 +1850,7 @@ class CreateIPTestCase(TestCase):
 
         self.root = os.path.dirname(os.path.realpath(__file__))
         self.datadir = os.path.join(self.root, 'datadir')
-        Path.objects.create(entity='path_preingest_prepare', value=self.datadir)
+        Path.objects.create(entity='preingest_prepare', value=self.datadir)
 
         EventType.objects.create(eventType=10100, category=EventType.CATEGORY_INFORMATION_PACKAGE)
         EventType.objects.create(eventType=10200, category=EventType.CATEGORY_INFORMATION_PACKAGE)
@@ -1982,8 +1981,8 @@ class test_submit_ip(TestCase):
         self.root = os.path.dirname(os.path.realpath(__file__))
         self.datadir = os.path.join(self.root, 'datadir')
 
-        Path.objects.create(entity='path_preingest_prepare', value=self.datadir)
-        Path.objects.create(entity='path_preingest_reception', value=self.datadir)
+        Path.objects.create(entity='preingest_prepare', value=self.datadir)
+        Path.objects.create(entity='preingest_reception', value=self.datadir)
 
         self.sa = SubmissionAgreement.objects.create()
         self.ip = InformationPackage.objects.create(submission_agreement=self.sa)

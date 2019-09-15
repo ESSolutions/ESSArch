@@ -361,7 +361,7 @@ class CacheAIP(DBTask):
         )
         shutil.rmtree(srcdir)
         if policy.ingest_delete:
-            reception = Path.objects.values_list('value', flat=True).get(entity="reception")
+            reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
             reception_tar = os.path.join(reception, objid + '.tar')
             reception_xml = os.path.join(reception, objid + '.xml')
             reception_events_xml = os.path.join(reception, objid + '_ipevents.xml')

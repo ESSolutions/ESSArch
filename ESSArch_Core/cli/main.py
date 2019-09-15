@@ -47,26 +47,22 @@ def migrate():
               default=DEFAULT_DATA_DIR, show_default=DEFAULT_DATA_DIR)
 def create_data_directories(path):
     dirs = [
-        'etp/prepare',
-        'etp/prepare_reception',
-        'etp/reception',
-        'gate/reception',
-        'epp/ingest',
-        'epp/cache',
-        'epp/work',
-        'epp/disseminations',
-        'epp/orders',
-        'epp/verify',
-        'epp/temp',
-        'epp/reports/appraisal',
-        'epp/reports/conversion',
-        'eta/reception/eft',
-        'eta/uip',
-        'eta/work',
+        'disseminations',
+        'ingest/packages',
+        'ingest/reception',
+        'ingest/uip',
+        'orders',
+        'preingest/prepare',
+        'preingest/reception',
         'receipts/xml',
+        'reports/appraisal',
+        'reports/conversion',
         'store/cache',
         'store/disk1',
         'store/longterm_disk1',
+        'temp',
+        'verify',
+        'workspace',
     ]
 
     click.secho('Creating data directories:', fg='green')
