@@ -1,5 +1,6 @@
 node_modules
 /docker/
+!/docker/verapdf
 !/docker/*.sh
 /dist/
 /htmlcov/

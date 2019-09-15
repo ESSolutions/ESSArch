@@ -62,7 +62,15 @@ ADD . /code
 RUN essarch settings generate --debug --overwrite -p /code/local_essarch_settings.py
 RUN for lang in "en" "sv"; do make html LANGUAGE="$lang"; done
 
-WORKDIR /code
+FROM debian:buster as build-verapdf
+RUN apt-get update && apt-get install -y \
+    default-jre-headless unzip wget
+
+# Install VeraPDF
+ADD docker/verapdf/verapdf_auto_install.xml /tmp/verapdf_auto_install.xml
+RUN wget http://downloads.verapdf.org/rel/verapdf-installer.zip -O /tmp/verapdf-installer.zip
+RUN unzip /tmp/verapdf-installer.zip -d /tmp/verapdf-installer
+RUN java -jar /tmp/verapdf-installer/*/verapdf-izpack-installer-*.jar /tmp/verapdf_auto_install.xml
 
 FROM base
 
@@ -90,6 +98,19 @@ ADD requirements/tests.txt /code/requirements/tests.txt
 RUN pip install --no-cache-dir -r /code/requirements/optional.txt
 RUN pip install --no-cache-dir -r /code/requirements/tests.txt
 RUN pip install --no-cache-dir -e .[mysql,postgres]
+
+# Install dependencies and copy compiled executable and runtime directories for verapdf
+RUN apt-get -y install default-jre-headless
+COPY --from=build-verapdf /verapdf/verapdf /verapdf/verapdf
+COPY --from=build-verapdf /verapdf/bin/* /verapdf/bin/
+ENV PATH=$PATH:/verapdf
+
+# Install Mediaconch
+RUN wget https://mediaarea.net/repo/deb/repo-mediaarea-snapshots_1.0-11_all.deb \
+    && dpkg -i repo-mediaarea-snapshots_1.0-11_all.deb \
+    && apt-get update \
+    && apt-get install -y mediaconch \
+    && rm *.deb
 
 # Copy built frontend
 COPY --from=build-frontend /code/ESSArch_Core/frontend/static/frontend/build /code/ESSArch_Core/frontend/static/frontend/build
