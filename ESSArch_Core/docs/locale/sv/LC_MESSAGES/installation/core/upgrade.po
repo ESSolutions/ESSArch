@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"POT-Creation-Date: 2019-09-15 21:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,89 +27,44 @@ msgid "Stop services"
 msgstr ""
 
 #: ../../installation/core/upgrade.rst:11
-#: ../../installation/core/upgrade.rst:70
+#: ../../installation/core/upgrade.rst:52
 msgid "esshttpd"
 msgstr ""
 
 #: ../../installation/core/upgrade.rst:12
-#: ../../installation/core/upgrade.rst:58
-msgid "celerydepp"
+#: ../../installation/core/upgrade.rst:51
+msgid "daphneessarch"
 msgstr ""
 
 #: ../../installation/core/upgrade.rst:13
-#: ../../installation/core/upgrade.rst:59
-msgid "celerybeatepp"
+#: ../../installation/core/upgrade.rst:49
+msgid "celerydessarch"
 msgstr ""
 
 #: ../../installation/core/upgrade.rst:14
-#: ../../installation/core/upgrade.rst:60
-msgid "celerydeta"
-msgstr ""
-
-#: ../../installation/core/upgrade.rst:15
-#: ../../installation/core/upgrade.rst:61
-msgid "celerybeateta"
-msgstr ""
-
-#: ../../installation/core/upgrade.rst:16
-#: ../../installation/core/upgrade.rst:62
-msgid "celerydetp"
+#: ../../installation/core/upgrade.rst:50
+msgid "celerybeatessarch"
 msgstr ""
 
 #: ../../installation/core/upgrade.rst:17
-#: ../../installation/core/upgrade.rst:63
-msgid "celerybeatetp"
-msgstr ""
-
-#: ../../installation/core/upgrade.rst:18
-#: ../../installation/core/upgrade.rst:64
-msgid "daphneepp"
-msgstr ""
-
-#: ../../installation/core/upgrade.rst:19
-#: ../../installation/core/upgrade.rst:65
-msgid "daphneeta"
-msgstr ""
-
-#: ../../installation/core/upgrade.rst:20
-#: ../../installation/core/upgrade.rst:66
-msgid "daphneetp"
-msgstr ""
-
-#: ../../installation/core/upgrade.rst:21
-#: ../../installation/core/upgrade.rst:67
-msgid "wsworkerepp"
-msgstr ""
-
-#: ../../installation/core/upgrade.rst:22
-#: ../../installation/core/upgrade.rst:68
-msgid "wsworkereta"
-msgstr ""
-
-#: ../../installation/core/upgrade.rst:23
-#: ../../installation/core/upgrade.rst:69
-msgid "wsworkeretp"
-msgstr ""
-
-#: ../../installation/core/upgrade.rst:26
 msgid "Verify that a backup of the database exists at /ESSArch/backup"
 msgstr ""
 
-#: ../../installation/core/upgrade.rst:29
+#: ../../installation/core/upgrade.rst:20
 msgid "Move old installation"
 msgstr ""
 
-#: ../../installation/core/upgrade.rst:39
+#: ../../installation/core/upgrade.rst:30
 msgid "Install new ESSArch Core"
 msgstr ""
 
-#: ../../installation/core/upgrade.rst:49
+#: ../../installation/core/upgrade.rst:40
 msgid ""
 "Compare and restore configuration files at /ESSArch/config from old "
 "directory"
 msgstr ""
 
-#: ../../installation/core/upgrade.rst:56
+#: ../../installation/core/upgrade.rst:47
 msgid "Start services"
 msgstr ""
 

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"POT-Creation-Date: 2019-09-15 21:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,40 +24,6 @@ msgstr ""
 
 #: ../../configuration/index.rst:8
 msgid ""
-"To configure the applications you need to create a local settings file "
-"that is available in your ``PYTHONPATH``. This file is named differently "
-"depending on the application"
+"To configure ESSArch you need to create a local settings file named "
+"``local_essarch_settings.py`` that is available in your ``PYTHONPATH``."
 msgstr ""
-
-#: ../../configuration/index.rst:11
-msgid "**Application**"
-msgstr ""
-
-#: ../../configuration/index.rst:11
-msgid "**File name**"
-msgstr ""
-
-#: ../../configuration/index.rst:13
-msgid "ESSArch Tools for Producer"
-msgstr ""
-
-#: ../../configuration/index.rst:13
-msgid "local_etp_settings.py"
-msgstr ""
-
-#: ../../configuration/index.rst:15
-msgid "ESSArch Tools for Archive"
-msgstr ""
-
-#: ../../configuration/index.rst:15
-msgid "local_eta_settings.py"
-msgstr ""
-
-#: ../../configuration/index.rst:17
-msgid "ESSArch Preservation Platform"
-msgstr ""
-
-#: ../../configuration/index.rst:17
-msgid "local_epp_settings.py"
-msgstr ""
-

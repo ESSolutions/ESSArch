@@ -15,12 +15,12 @@ a menu with all available filters.
 
 .. image:: images/list_view_filter.png
 
-In ESSArch Preservation Platform (EPP) many list views includes nested IPs
+Some list views includes nested IPs
 which can be expanded to see the underlying IPs. What should appear in the
 first level can be administrated in the :ref:`user settings
 <user-settings-ip-view-type>`.
 
-.. image:: images/list_view_epp.png
+.. image:: images/list_view_nested.png
 
 The available functions of a view, like browsing files, jobs or events, and
 main functionality like IP preparation, creation and preservation, is accessed

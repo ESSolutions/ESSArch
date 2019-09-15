@@ -1,3 +1,5 @@
+.. _installation:
+
 =============
  Installation
 =============
@@ -5,7 +7,9 @@
 .. toctree::
     :maxdepth: 2
 
-    core/index
-    etp/index
-    eta/index
-    epp/index
+    prerequisites
+    prepare_environment
+    install
+    upgrade
+    safety_backup_procedures
+    logfiles

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"POT-Creation-Date: 2019-09-15 21:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,39 +27,36 @@ msgid "Getting the source"
 msgstr ""
 
 #: ../../development.rst:11
-msgid "To get started, clone the repositories:"
+msgid "To get started, clone the repository:"
 msgstr ""
 
-#: ../../development.rst:21
+#: ../../development.rst:18
 msgid "Setting up virtual Python environments"
 msgstr ""
 
-#: ../../development.rst:23
+#: ../../development.rst:20
 msgid ""
 "You will need Python 3.7 along with ``pip``, which is what the backend of"
 " ESSArch is built on. It is recommended to have ESSArch in its own "
-"virtual python environment. Taking it even further, one might also have "
-"one virtual environment for each ESSArch application."
+"virtual python environment."
 msgstr ""
 
-#: ../../development.rst:28
+#: ../../development.rst:24
 msgid ""
 "Creating and managing virtual environments can be done with the "
 "virtualenv_ Python package or using more advanced tools such as pyenv_ or"
 " pipenv_."
 msgstr ""
 
-#: ../../development.rst:33
+#: ../../development.rst:29
 msgid "Installing Python dependencies"
 msgstr ""
 
-#: ../../development.rst:35
-msgid ""
-"Inside each virtual environment you then need to install the Python "
-"dependencies:"
+#: ../../development.rst:31
+msgid "Run the following to install ESSArch and its Python dependencies:"
 msgstr ""
 
-#: ../../development.rst:44
+#: ../../development.rst:39
 msgid ""
 "ESSArch Core also contains a number of extra dependencies depending on "
 "the needs of the target environment. These are listed in the "
@@ -68,140 +65,103 @@ msgid ""
 "above."
 msgstr ""
 
-#: ../../development.rst:49
+#: ../../development.rst:44
 msgid ""
 "For example, to install the requirements for building the docs and "
 "running the tests:"
 msgstr ""
 
-#: ../../development.rst:59
+#: ../../development.rst:53
 msgid "Setting environment variables"
 msgstr ""
 
-#: ../../development.rst:61
-msgid ""
-"Each application backend requires the path to the ESSArch Core directory "
-"along with the application directory to be included in the ``PYTHONPATH``"
-" variable. Each application frontend requires the ``ÈC_FRONTEND`` "
-"variable to be set to the absolute path of the ``ESSArch_Core/frontend`` "
-"directory in ESSArch Core."
-msgstr ""
-
-#: ../../development.rst:66
+#: ../../development.rst:55
 msgid ""
 "If you have a config and/or plugin directory, these will also have to be "
 "added to the ``PYTHONPATH`` variable."
 msgstr ""
 
-#: ../../development.rst:70
-msgid "Here is an example for an installation of ESSArch Tools for Producer:"
-msgstr ""
-
-#: ../../development.rst:82
-msgid ""
-"Tools such as direnv_ are recommended to automatically switch between "
-"environment variables while working with multiple applications."
-msgstr ""
-
-#: ../../development.rst:87
+#: ../../development.rst:63
 msgid "Configuring services"
 msgstr ""
 
-#: ../../development.rst:89
+#: ../../development.rst:65
 msgid ""
 "ESSArch requires a relational database, RabbitMQ, Redis and "
-"Elasticsearch. Each service can be configured in the configuration file "
-"of each application."
+"Elasticsearch. Each service can be configured in the configuration file."
 msgstr ""
 
-#: ../../development.rst:94
+#: ../../development.rst:70
 msgid ":ref:`configuration`"
 msgstr ""
 
-#: ../../development.rst:98
+#: ../../development.rst:74
 msgid "Running migrations"
 msgstr ""
 
-#: ../../development.rst:100
+#: ../../development.rst:76
 msgid "All changes to the database are applied using the `migrate` command:"
 msgstr ""
 
-#: ../../development.rst:107
+#: ../../development.rst:83
 msgid "Installing initial data"
 msgstr ""
 
-#: ../../development.rst:109
+#: ../../development.rst:85
 msgid ""
-"Use the installation script in ESSArch Core to setup default event types "
-"and system parameters"
+"Use the installation script in ESSArch Core to setup the default "
+"configuration"
 msgstr ""
 
-#: ../../development.rst:116
-msgid ""
-"The installation script in each application adds users, paths and other "
-"application specific initial data."
-msgstr ""
-
-#: ../../development.rst:125
+#: ../../development.rst:93
 msgid ""
 "The paths created has to exist in the filesystem before being used. See "
 ":ref:`directory-structure` for the default structure"
 msgstr ""
 
-#: ../../development.rst:130
+#: ../../development.rst:98
 msgid "Building the frontend"
 msgstr ""
 
-#: ../../development.rst:132
+#: ../../development.rst:100
 msgid ""
-"To build the frontend you need Node.js_ 8+ with yarn_, and gulp-cli_ "
-"globally installed:"
+"To build the frontend you need Node.js_ LTS with yarn_ installed, Then to"
+" build:"
 msgstr ""
 
-#: ../../development.rst:139
-msgid "For each application, install the dependencies and build the source:"
-msgstr ""
-
-#: ../../development.rst:149
+#: ../../development.rst:110
 msgid "Starting the development web server"
 msgstr ""
 
-#: ../../development.rst:151
+#: ../../development.rst:112
 msgid ""
-"To start the development web server provided by Django for the "
-"applications, run the following in the root of each application:"
+"To start the development web server provided by Django, run the following"
+" in the project root directory:"
 msgstr ""
 
-#: ../../development.rst:159
+#: ../../development.rst:119
 msgid ""
-"To run multiple applications simultaneously you need to start each on "
-"different ports, simply append the port to the end of the command:"
-msgstr ""
-
-#: ../../development.rst:168
-msgid ""
-"You can now access the application from your web browser by visiting "
+"You can now access ESSArch from your web browser by visiting "
 "http://localhost:8000/"
 msgstr ""
 
-#: ../../development.rst:172
+#: ../../development.rst:123
 msgid "Starting background workers"
 msgstr ""
 
-#: ../../development.rst:174
+#: ../../development.rst:125
 msgid ""
-"Much of ESSArch is done on background workers. These needs to run in "
-"addition to the web server. Run the following in the root of each "
-"application:"
+"Much of the work in ESSArch is done using background workers. These needs"
+" to run in addition to the web server. Run the following in the project "
+"root directory:"
 msgstr ""
 
-#: ../../development.rst:183
+#: ../../development.rst:134
 msgid "Starting background beat processes"
 msgstr ""
 
-#: ../../development.rst:185
+#: ../../development.rst:136
 msgid ""
 "Background beat processes are also needed to run some operations "
-"continously. Run the following in the root of each application:"
+"continously. Run the following in the project root directory:"
 msgstr ""
-

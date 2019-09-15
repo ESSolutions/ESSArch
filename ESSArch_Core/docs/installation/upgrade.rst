@@ -9,18 +9,9 @@ Stop services
 =============
 
 * esshttpd
-* celerydepp
-* celerybeatepp
-* celerydeta
-* celerybeateta
-* celerydetp
-* celerybeatetp
-* daphneepp
-* daphneeta
-* daphneetp
-* wsworkerepp
-* wsworkereta
-* wsworkeretp
+* daphneessarch
+* celerydessarch
+* celerybeatessarch
 
 Verify that a backup of the database exists at /ESSArch/backup
 ==============================================================
@@ -55,16 +46,7 @@ Compare and restore configuration files at /ESSArch/config from old directory
 Start services
 ==============
 
-* celerydepp
-* celerybeatepp
-* celerydeta
-* celerybeateta
-* celerydetp
-* celerybeatetp
-* daphneepp
-* daphneeta
-* daphneetp
-* wsworkerepp
-* wsworkereta
-* wsworkeretp
+* celerydessarch
+* celerybeatessarch
+* daphneessarch
 * esshttpd
