@@ -178,8 +178,7 @@
             <div class="flex-row align-items-center mb-base">
               <button
                 class="btn btn-primary"
-                ng-if="vm.node.root"
-                ng-disabled="vm.node.published"
+                ng-if="vm.node.root && !vm.node.published && vm.node.is_editable"
                 permission
                 permission-only="'tags.publish_structure'"
                 ng-click="vm.publishModal(vm.node)"
@@ -188,8 +187,18 @@
                 <span ng-if="vm.node.published"> &nbsp;<i class="fas fa-check success m-0"></i> </span>
               </button>
               <button
+                class="btn btn-primary"
+                ng-if="vm.node.root && vm.node.published"
+                permission
+                permission-only="'tags.publish_structure'"
+                ng-click="vm.unpublishModal(vm.node)"
+              >
+                {{(!vm.node.published ? 'ACCESS.UNPUBLISHED' : 'UNPUBLISH') | translate}}
+                <span ng-if="!vm.node.published"> &nbsp;<i class="fas fa-check success m-0"></i> </span>
+              </button>
+              <button
                 class="btn btn-default"
-                ng-if="vm.node.root && !vm.node.published"
+                ng-if="vm.node.root && !vm.node.published && vm.node.is_editable"
                 permission
                 permission-only="'tags.change_structure'"
                 ng-click="vm.editStructureModal(vm.node)"
@@ -207,7 +216,7 @@
               </button>
               <button
                 class="btn btn-default"
-                ng-if="!vm.node.root && !vm.structure.published"
+                ng-if="!vm.node.root && !vm.structure.published && vm.structure.is_editable"
                 permission
                 permission-only="'tags.change_structureunit'"
                 ng-click="vm.editNodeModal(vm.node)"

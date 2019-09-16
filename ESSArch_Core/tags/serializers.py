@@ -175,7 +175,7 @@ class StructureSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'type', 'description', 'template', 'is_template', 'version',
                   'create_date', 'revise_date', 'start_date', 'end_date', 'specification',
                   'rule_convention_type', 'created_by', 'revised_by', 'published', 'published_date',
-                  'related_structures',)
+                  'related_structures', 'is_editable',)
         extra_kwargs = {
             'is_template': {'read_only': True},
             'template': {'read_only': True},

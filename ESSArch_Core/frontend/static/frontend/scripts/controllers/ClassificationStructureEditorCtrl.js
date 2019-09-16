@@ -369,10 +369,10 @@ export default class ClassificationStructureEditorCtrl {
             },
           };
           const actions = {
-            update: !vm.structure.published ? update : undefined,
-            add: !vm.structure.published ? add : undefined,
-            addRelation: !vm.structure.published ? addRelation : undefined,
-            remove: !vm.structure.published ? remove : undefined,
+            update: !vm.structure.published && vm.structure.is_editable ? update : undefined,
+            add: !vm.structure.published && vm.structure.is_editable ? add : undefined,
+            addRelation: !vm.structure.published && vm.structure.is_editable ? addRelation : undefined,
+            remove: !vm.structure.published && vm.structure.is_editable ? remove : undefined,
           };
           callback(actions);
           return actions;
@@ -476,6 +476,37 @@ export default class ClassificationStructureEditorCtrl {
         ariaDescribedBy: 'modal-body',
         templateUrl: 'static/frontend/views/publish_structure_modal.html',
         controller: 'PublishClassificationStructureCtrl',
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          data: {
+            node: node,
+            rules: vm.rules,
+            structure: vm.structure,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data, $ctrl) {
+          vm.updateStructures().then(function() {
+            vm.structure = null;
+            $timeout(function() {
+              vm.structureClick(node);
+            });
+          });
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+    vm.unpublishModal = function(node) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/unpublish_structure_modal.html',
+        controller: 'UnpublishClassificationStructureCtrl',
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {

@@ -65,6 +65,7 @@ import PrepareSipCtrl from '../controllers/PrepareSipCtrl';
 import PreserveModalInstanceCtrl from '../controllers/PreserveModalInstanceCtrl';
 import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
 import PublishClassificationStructureCtrl from '../controllers/PublishClassificationStructureCtrl';
+import UnpublishClassificationStructureCtrl from '../controllers/UnpublishClassificationStructureCtrl';
 import ReceiveModalInstanceCtrl from '../controllers/ReceiveModalInstanceCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
 import RemoveNodeModalInstanceCtrl from '../controllers/RemoveNodeModalInstanceCtrl';
@@ -707,6 +708,14 @@ export default angular
     'data',
     '$rootScope',
     PublishClassificationStructureCtrl,
+  ])
+  .controller('UnpublishClassificationStructureCtrl', [
+    '$http',
+    'appConfig',
+    '$uibModalInstance',
+    'data',
+    '$rootScope',
+    UnpublishClassificationStructureCtrl,
   ])
   .controller('ReceiveModalInstanceCtrl', [
     '$uibModalInstance',

@@ -7,6 +7,7 @@
   <div class="action-button">
     <button
       class="btn btn-primary"
+      ng-if="vm.structure.is_editable"
       permission
       permission-only="'tags.add_structureunitrelation'"
       ng-click="vm.addNodeRelationModal(vm.node)"
@@ -33,10 +34,20 @@
       <th>
         {{'ACCESS.VALID_DATE_END' | translate}}
       </th>
-      <th class="shrink" permission permission-only="'tags.change_structureunitrelation'">
+      <th
+        class="shrink"
+        ng-if="vm.structure.is_editable"
+        permission
+        permission-only="'tags.change_structureunitrelation'"
+      >
         {{'EDIT' | translate}}
       </th>
-      <th class="white-space-nowrap shrink" permission permission-only="'tags.delete_structureunitrelation'">
+      <th
+        class="white-space-nowrap shrink"
+        ng-if="vm.structure.is_editable"
+        permission
+        permission-only="'tags.delete_structureunitrelation'"
+      >
         {{'REMOVE' | translate}}
       </th>
     </tr>
@@ -58,7 +69,12 @@
       <td>
         {{x.end_date | date:"yyyy-MM-dd"}}
       </td>
-      <td class="text-center shrink" permission permission-only="'tags.change_structureunitrelation'">
+      <td
+        class="text-center shrink"
+        ng-if="vm.structure.is_editable"
+        permission
+        permission-only="'tags.change_structureunitrelation'"
+      >
         <button
           class="btn btn-default btn-sm fas fa-edit"
           ng-click="vm.editNodeRelationModal(x, vm.node); $event.stopPropagation();"
@@ -67,7 +83,12 @@
           tooltip-append-to-body="true"
         ></button>
       </td>
-      <td class="text-center shrink" permission permission-only="'tags.delete_structureunitrelation'">
+      <td
+        class="text-center shrink"
+        ng-if="vm.structure.is_editable"
+        permission
+        permission-only="'tags.delete_structureunitrelation'"
+      >
         <button
           class="btn btn-default btn-sm fas fa-trash-alt"
           ng-click="vm.removeNodeRelationModal(x, vm.node); $event.stopPropagation();"
