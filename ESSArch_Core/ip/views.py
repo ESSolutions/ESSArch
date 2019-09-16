@@ -2440,7 +2440,18 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
 class WorkareaViewSet(InformationPackageViewSet):
     queryset = InformationPackage.objects.select_related('responsible').all()
-    http_method_names = [p.lower() for p in permissions.SAFE_METHODS]
+
+    def create(self, request, *args, **kwargs):
+        return self.http_method_not_allowed(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        return self.http_method_not_allowed(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        return self.http_method_not_allowed(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        return self.http_method_not_allowed(request, *args, **kwargs)
 
     def annotate_filtered_first_generation(self, qs, workareas, user, see_all):
         lower_higher = InformationPackage.objects.visible_to_user(user).annotate(
