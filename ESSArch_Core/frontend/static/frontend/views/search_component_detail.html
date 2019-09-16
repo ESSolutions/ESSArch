@@ -274,7 +274,7 @@
             ng-repeat="x in vm.transfers"
             class="selectable"
             ng-class="{'selected': vm.selectedTransfer.id === x.id}"
-            ng-click="vm.transferClick(x)"
+            ui-sref="home.archivalDescriptions.deliveries.transfers({delivery: x.delivery, transfer: x.id})"
           >
             <td>
               {{x.name}}
