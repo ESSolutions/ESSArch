@@ -1,10 +1,19 @@
-export default (IP, Step, $filter, linkHeaderParser) => {
+export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
   //Get data for status view. child steps and tasks
   function getTreeData(ip, expandedNodes) {
-    return IP.workflow({
-      id: ip.id,
-      hidden: false,
-    }).$promise.then(function(workflow) {
+    let promise;
+    if ($state.includes('**.workarea.**') && ip.workarea && ip.workarea.length > 0) {
+      promise = Workarea.workflow({
+        id: ip.id,
+        hidden: false,
+      }).$promise;
+    } else {
+      promise = IP.workflow({
+        id: ip.id,
+        hidden: false,
+      }).$promise;
+    }
+    return promise.then(function(workflow) {
       workflow.forEach(function(flow_node) {
         flow_node.time_started = $filter('date')(flow_node.time_started, 'yyyy-MM-dd HH:mm:ss');
         flow_node.children = flow_node.flow_type == 'step' ? [{val: -1}] : [];

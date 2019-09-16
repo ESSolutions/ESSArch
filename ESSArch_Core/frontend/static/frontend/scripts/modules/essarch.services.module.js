@@ -82,14 +82,14 @@ export default angular
   .factory('ProfileIpData', ['$resource', 'appConfig', profileIpData])
   .factory('ProfileMakerTemplate', ['$resource', 'appConfig', profileMakerTemplate])
   .factory('ProfileMakerExtension', ['$resource', 'appConfig', profileMakerExtension])
-  .factory('Requests', ['Notifications', 'IP', requests])
+  .factory('Requests', ['Notifications', 'IP', 'Workarea', '$state', requests])
   .factory('Resource', ['listViewService', 'Storage', '$rootScope', resource])
   .factory('Robot', ['$resource', 'appConfig', robot])
   .factory('RobotQueue', ['$resource', 'appConfig', robotQueue])
   .factory('SA', ['$resource', 'appConfig', sa])
   .factory('Search', ['$http', '$sce', 'appConfig', search])
   .factory('SelectedIPUpdater', selectedIPUpdater)
-  .factory('StateTree', ['IP', 'Step', '$filter', 'linkHeaderParser', stateTree])
+  .factory('StateTree', ['IP', 'Step', '$filter', 'linkHeaderParser', 'Workarea', '$state', stateTree])
   .factory('Step', ['$resource', 'appConfig', 'Task', step])
   .factory('Storage', [
     'StorageMedium',
@@ -112,6 +112,6 @@ export default angular
   .factory('Task', ['$resource', 'appConfig', task])
   .factory('Utils', [utils])
   .factory('User', ['$resource', 'appConfig', user])
-  .factory('Workarea', ['$resource', 'appConfig', workarea])
+  .factory('Workarea', ['$resource', 'appConfig', 'Task', 'Step', 'Event', workarea])
   .factory('WorkareaFiles', ['$resource', 'appConfig', workareaFiles])
   .service('Validate', validate).name;

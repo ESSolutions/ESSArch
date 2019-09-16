@@ -1,4 +1,4 @@
-export const workarea = ($resource, appConfig) => {
+export const workarea = ($resource, appConfig, Task, Step, Event) => {
   return $resource(
     appConfig.djangoUrl + 'workareas/:id/:action/',
     {},
@@ -16,6 +16,43 @@ export const workarea = ($resource, appConfig) => {
       delete: {
         method: 'DELETE',
         params: {id: '@id'},
+      },
+      moveToApproval: {
+        method: 'POST',
+        params: {action: 'receive', id: '@id'},
+      },
+      preserve: {
+        method: 'POST',
+        isArray: false,
+        params: {action: 'preserve', id: '@id'},
+      },
+      workflow: {
+        method: 'GET',
+        params: {action: 'workflow', id: '@id'},
+        isArray: true,
+        interceptor: {
+          response: function(response) {
+            response.resource = response.resource.map(function(res) {
+              return res.flow_type === 'task' ? new Task(res) : new Step(res);
+            });
+            response.resource.$httpHeaders = response.headers;
+            return response.resource;
+          },
+        },
+      },
+      events: {
+        method: 'GET',
+        params: {action: 'events', id: '@id'},
+        isArray: true,
+        interceptor: {
+          response: function(response) {
+            response.resource.forEach(function(res, idx, array) {
+              array[idx] = new Event(res);
+            });
+            response.resource.$httpHeaders = response.headers;
+            return response.resource;
+          },
+        },
       },
     }
   );

@@ -279,18 +279,36 @@ const listViewService = (
   }
   //Returns all events for one ip
   function getEvents(ip, pageNumber, pageSize, sortString, columnFilters, searchString) {
-    return IP.events(
-      angular.extend(
-        {
-          id: ip.id,
-          page: pageNumber,
-          page_size: pageSize,
-          search: searchString,
-          ordering: sortString,
-        },
-        columnFilters
-      )
-    ).$promise.then(function(resource) {
+    let promise;
+    if ($state.includes('**.workarea.**') && ip.workarea && ip.workarea.length > 0) {
+      promise = Workarea.events(
+        angular.extend(
+          {
+            id: ip.id,
+            page: pageNumber,
+            page_size: pageSize,
+            search: searchString,
+            ordering: sortString,
+          },
+          columnFilters
+        )
+      ).$promise;
+    } else {
+      promise = IP.events(
+        angular.extend(
+          {
+            id: ip.id,
+            page: pageNumber,
+            page_size: pageSize,
+            search: searchString,
+            ordering: sortString,
+          },
+          columnFilters
+        )
+      ).$promise;
+    }
+
+    return promise.then(function(resource) {
       let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;

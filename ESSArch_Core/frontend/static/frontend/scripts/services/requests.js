@@ -22,9 +22,15 @@ Web - http://www.essolutions.se
 Email - essarch@essolutions.se
 */
 
-const requests = (Notifications, IP) => {
+const requests = (Notifications, IP, Workarea, $state) => {
   function preserve(ip, request) {
-    return IP.preserve(angular.extend(request, {id: ip.id})).$promise.then(function(response) {
+    let promise;
+    if ($state.includes('**.workarea.**') && ip.workarea && ip.workarea[0].read_only === false) {
+      promise = Workarea.preserve(angular.extend(request, {id: ip.id})).$promise;
+    } else {
+      promise = IP.preserve(angular.extend(request, {id: ip.id})).$promise;
+    }
+    return promise.then(function(response) {
       Notifications.add(response.detail, 'success', 3000);
       return response;
     });
@@ -36,7 +42,13 @@ const requests = (Notifications, IP) => {
     });
   }
   function moveToApproval(ip, data) {
-    return IP.moveToApproval(angular.extend(data, {id: ip.id})).$promise.then(function(response) {
+    let promise;
+    if ($state.includes('**.workarea.**') && ip.workarea && ip.workarea[0].read_only === false) {
+      promise = Workarea.moveToApproval(angular.extend(data, {id: ip.id})).$promise;
+    } else {
+      promise = IP.moveToApproval(angular.extend(data, {id: ip.id})).$promise;
+    }
+    return promise.then(function(response) {
       Notifications.add(response.detail, 'success', 3000);
       return response;
     });
