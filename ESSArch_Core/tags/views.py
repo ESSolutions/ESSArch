@@ -474,6 +474,7 @@ class TransferViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     @transaction.atomic()
+    @permission_required_or_403('tags.change_transfer')
     @action(detail=True, methods=['post'], url_path='add-nodes')
     def add_nodes(self, request, pk=None):
         transfer = self.get_object()
@@ -488,6 +489,7 @@ class TransferViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response()
 
     @transaction.atomic()
+    @permission_required_or_403('tags.change_transfer')
     @action(detail=True, methods=['post'], url_path='remove-nodes')
     def remove_nodes(self, request, pk=None):
         transfer = self.get_object()
