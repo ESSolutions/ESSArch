@@ -704,19 +704,24 @@ export default class SearchDetailCtrl {
           const isUnit = node.original._is_structure_unit;
           const isUnitLeaf = node.original.is_unit_leaf_node;
           const isLeaf = node.original.is_leaf_node;
-          const actions = {
-            update: update,
-            add: !isUnit || isUnitLeaf ? add : undefined,
-            addStructureUnit:
-              (isUnit && isUnitLeaf === isLeaf) || node.original._index === 'archive' ? addStructureUnit : undefined,
-            email: email,
-            remove: remove,
-            addLocation: !isUnit && node.original._index !== 'archive' ? addLocation : null,
-            addDelivery: addDelivery,
-            removeFromStructure: removeFromStructure,
-            newVersion: newVersion,
-            changeOrganization: changeOrganization,
-          };
+          const actions =
+            node.original.type === 'agent'
+              ? {}
+              : {
+                  update: update,
+                  add: !isUnit || isUnitLeaf ? add : undefined,
+                  addStructureUnit:
+                    (isUnit && isUnitLeaf === isLeaf) || node.original._index === 'archive'
+                      ? addStructureUnit
+                      : undefined,
+                  email: email,
+                  remove: remove,
+                  addLocation: !isUnit && node.original._index !== 'archive' ? addLocation : null,
+                  addDelivery: addDelivery,
+                  removeFromStructure: removeFromStructure,
+                  newVersion: newVersion,
+                  changeOrganization: changeOrganization,
+                };
           callback(actions);
           return actions;
         },
