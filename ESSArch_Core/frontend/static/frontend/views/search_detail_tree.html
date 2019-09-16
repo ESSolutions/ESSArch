@@ -21,6 +21,8 @@
     class="btn btn-sm btn-primary"
     style="margin-right: 2px;"
     ng-click="vm.addNodeLocationModal(vm.getChecked())"
+    permission
+    permission-only="'tags.change_tag_location'"
   >
     {{'ACCESS.LINK_TO_LOCATION' | translate}}
   </button>
@@ -28,6 +30,8 @@
     ng-disabled="vm.deliveryButtonDisabled()"
     class="btn btn-sm btn-primary"
     ng-click="vm.addNodeDeliveryModal(vm.getChecked())"
+    permission
+    permission-only="'tags.change_transfer'"
   >
     {{'ACCESS.LINK_TO_TRANSFER' | translate}}
   </button>

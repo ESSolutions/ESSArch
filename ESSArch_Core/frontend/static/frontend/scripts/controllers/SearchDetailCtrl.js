@@ -622,7 +622,7 @@ export default class SearchDetailCtrl {
           const addLocation = {
             label: $translate.instant('ACCESS.LINK_TO_LOCATION'),
             _disabled: function() {
-              return !$scope.checkPermission('tags.add_tag');
+              return !$scope.checkPermission('tags.change_tag_location');
             },
             action: function() {
               vm.addNodeLocationModal(node.original);
@@ -631,7 +631,7 @@ export default class SearchDetailCtrl {
           const addDelivery = {
             label: $translate.instant('ACCESS.LINK_TO_TRANSFER'),
             _disabled: function() {
-              return !$scope.checkPermission('tags.change_location');
+              return !$scope.checkPermission('tags.change_transfer');
             },
             action: function() {
               vm.addNodeDeliveryModal(node.original);
