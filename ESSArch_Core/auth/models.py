@@ -196,6 +196,11 @@ class Group(GroupMixin):
             raise ValueError('objects cannot be added to non-organization groups')
         return GroupGenericObjects.objects.create(group=self, content_object=obj)
 
+    def remove_object(self, obj):
+        if getattr(self, 'group_type') is None or getattr(self.group_type, 'codename') != 'organization':
+            raise ValueError('objects cannot be added to non-organization groups')
+        return GroupGenericObjects.objects.filter(group=self, content_object=obj).delete()
+
     def add_user(self, user, roles=None, expiration_date=None):
         """Add a user to the group.
 
