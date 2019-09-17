@@ -50,7 +50,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from ESSArch_Core.api.filters import string_to_bool
+from ESSArch_Core.api.filters import SearchFilter, string_to_bool
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.models import Member
 from ESSArch_Core.auth.permissions import ActionPermissions
@@ -138,7 +138,7 @@ User = get_user_model()
 class AgentViewSet(viewsets.ModelViewSet):
     queryset = Agent.objects.all()
     serializer_class = AgentSerializer
-    filter_backends = (filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,)
+    filter_backends = (filters.OrderingFilter, DjangoFilterBackend, SearchFilter,)
     filterset_class = AgentFilter
 
 
@@ -151,7 +151,7 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     permission_classes = (ActionPermissions,)
     filterset_class = EventIPFilter
     filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
+        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
     ordering_fields = (
         'id', 'eventType', 'eventOutcomeDetailNote', 'eventOutcome',
@@ -332,13 +332,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
     queryset = InformationPackage.objects.none()
     serializer_class = InformationPackageSerializer
-    filter_backends = (filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,)
+    filter_backends = (filters.OrderingFilter, DjangoFilterBackend, SearchFilter,)
     ordering_fields = (
         'label', 'responsible', 'create_date', 'state',
         'id', 'object_identifier_value', 'start_date', 'end_date',
     )
     search_fields = (
-        'id', 'object_identifier_value', 'label', 'responsible__first_name',
+        '=id', 'object_identifier_value', 'label', 'responsible__first_name',
         'responsible__last_name', 'responsible__username', 'state',
         'submission_agreement__name', 'start_date', 'end_date',
         'aic__object_identifier_value', 'aic__label',

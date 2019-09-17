@@ -2,8 +2,8 @@ from django.db.models import Case, IntegerField, Value, When
 from django_filters.rest_framework import DjangoFilterBackend
 from languages_plus.models import Language
 from rest_framework import viewsets
-from rest_framework.filters import SearchFilter
 
+from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.api.serializers import LanguageSerializer
 from ESSArch_Core.auth.permissions import ActionPermissions
 

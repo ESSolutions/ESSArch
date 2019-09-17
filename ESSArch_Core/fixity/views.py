@@ -3,6 +3,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from ESSArch_Core.api.filters import SearchFilter
+
 from .filters import ValidationFilter
 from .models import Validation
 from .serializers import ValidationFilesSerializer, ValidationSerializer
@@ -12,7 +14,7 @@ class ValidationViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Validation.objects.all().order_by('filename', 'validator')
     serializer_class = ValidationSerializer
     filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
+        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
     filterset_class = ValidationFilter
     search_fields = ('filename', 'message',)

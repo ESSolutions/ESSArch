@@ -2,9 +2,10 @@ import errno
 import os
 
 from django.contrib.auth import get_user_model
-from rest_framework import filters, serializers
+from rest_framework import serializers
 
 from ESSArch_Core._version import get_versions
+from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import UserSerializer
@@ -420,7 +421,7 @@ class NestedInformationPackageSerializer(serializers.ModelSerializer):
     permissions = serializers.SerializerMethodField()
     agents = serializers.SerializerMethodField()
 
-    search_filter = filters.SearchFilter()
+    search_filter = SearchFilter()
 
     def get_package_type_display(self, obj):
         return obj.get_package_type_display()

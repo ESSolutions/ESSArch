@@ -10,12 +10,12 @@ from django.db.models import Max, Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import exceptions, serializers, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.essxml.ProfileMaker.models import (
     extensionPackage,

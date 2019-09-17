@@ -7,6 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.util import get_objects_for_user
@@ -40,7 +41,7 @@ class MaintenanceRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = MaintenanceRuleSerializer
     filterset_class = MaintenanceRuleFilter
     filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
+        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
     search_fields = ('name', 'specification',)
 

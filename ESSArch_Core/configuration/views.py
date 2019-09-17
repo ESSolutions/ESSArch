@@ -42,7 +42,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ESSArch_Core._version import get_versions
-from ESSArch_Core.api.filters import string_to_bool
+from ESSArch_Core.api.filters import SearchFilter, string_to_bool
 from ESSArch_Core.configuration.filters import EventTypeFilter
 from ESSArch_Core.configuration.models import (
     Agent,
@@ -197,7 +197,7 @@ class EventTypeViewSet(viewsets.ModelViewSet):
     pagination_class = None
     filterset_class = EventTypeFilter
     filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
+        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
     search_fields = ('eventDetail',)
 

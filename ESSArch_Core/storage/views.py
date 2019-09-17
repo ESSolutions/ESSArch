@@ -32,6 +32,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.configuration.serializers import (
     StorageMethodSerializer,
@@ -272,7 +273,7 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
     queryset = StorageMedium.objects.all()
     serializer_class = StorageMediumSerializer
     filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
+        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
 
     filterset_class = StorageMediumFilter
@@ -281,7 +282,7 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
         'id', 'medium_id', 'status', 'location', 'location_status', 'used_capacity', 'create_date',
     )
     search_fields = (
-        'id', 'medium_id', 'status', 'location', 'location_status', 'used_capacity', 'create_date',
+        '=id', 'medium_id', 'status', 'location', 'location_status', 'used_capacity', 'create_date',
     )
 
     @action(detail=True, methods=['post'])
@@ -345,7 +346,7 @@ class StorageObjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = StorageObjectSerializer
 
     filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
+        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
     ordering_fields = (
         'ip__object_identifier_value', 'content_location_value', 'last_changed_local',
@@ -363,7 +364,7 @@ class StorageTargetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = StorageTarget.objects.all()
     serializer_class = StorageTargetSerializer
 
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_fields = ('status', 'type',)
     search_fields = ('name',)
 
@@ -388,14 +389,14 @@ class RobotViewSet(viewsets.ModelViewSet):
     queryset = Robot.objects.all()
     serializer_class = RobotSerializer
     filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
+        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
     ordering_fields = (
         'id', 'label', 'device', 'online',
     )
 
     search_fields = (
-        'id', 'label', 'device', 'online',
+        '=id', 'label', 'device', 'online',
     )
 
     @action(detail=True, methods=['post'])
@@ -421,7 +422,7 @@ class AccessQueueViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = AccessQueue.objects.all()
     serializer_class = AccessQueueSerializer
     filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
+        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
     ordering_fields = ('posted',)
 
@@ -433,7 +434,7 @@ class RobotQueueViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = RobotQueue.objects.all()
     serializer_class = RobotQueueSerializer
     filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
+        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
     ordering_fields = (
         'id', 'user', 'posted', 'robot', 'io_queue_entry',
@@ -441,7 +442,7 @@ class RobotQueueViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     )
 
     search_fields = (
-        'id', 'user__username', 'posted', 'robot__label',
+        '=id', 'user__username', 'posted', 'robot__label',
         'storage_medium__medium_id', 'req_type', 'status',
     )
 
@@ -453,13 +454,13 @@ class TapeDriveViewSet(viewsets.ModelViewSet):
     queryset = TapeDrive.objects.all()
     serializer_class = TapeDriveSerializer
     filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
+        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
     ordering_fields = (
         'id', 'device', 'num_of_mounts', 'idle_time',
     )
     search_fields = (
-        'id', 'device', 'num_of_mounts', 'idle_time',
+        '=id', 'device', 'num_of_mounts', 'idle_time',
     )
 
     @action(detail=True, methods=['post'])
@@ -511,19 +512,19 @@ class TapeSlotViewSet(viewsets.ModelViewSet):
     queryset = TapeSlot.objects.all()
     serializer_class = TapeSlotSerializer
     filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
+        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
     ordering_fields = (
         'id', 'slot_id', 'medium_id',
     )
     search_fields = (
-        'id', 'slot_id', 'medium_id', 'status'
+        '=id', 'slot_id', 'medium_id', 'status'
     )
 
 
 class StorageMigrationViewSet(viewsets.ModelViewSet):
     queryset = ProcessTask.objects.filter(name='ESSArch_Core.storage.tasks.StorageMigration')
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (SearchFilter,)
     search_fields = (
         'label', 'information_package__id', 'information_package__object_identifier_value',
         'information_package__label',

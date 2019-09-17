@@ -5,12 +5,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from mptt.templatetags.mptt_tags import cache_tree_children
 from rest_framework import exceptions, filters, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.agents.models import AgentTagLink
-from ESSArch_Core.api.filters import OrderingFilterWithNulls
+from ESSArch_Core.api.filters import OrderingFilterWithNulls, SearchFilter
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.ip.views import InformationPackageViewSet
@@ -207,7 +207,7 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, OrderingFilterWithNulls, SearchFilter,)
     filter_class = StructureFilter
     ordering_fields = ('name', 'create_date', 'version', 'type', 'published_date',)
-    search_fields = ('id', 'name',)
+    search_fields = ('=id', 'name',)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update', 'metadata']:
@@ -388,7 +388,7 @@ class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_class = TagFilter
-    search_fields = ('current_version__id', 'current_version__name',)
+    search_fields = ('=current_version__id', 'current_version__name',)
 
     http_method_names = ('get', 'head', 'options')
 
@@ -415,7 +415,7 @@ class DeliveryViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         'producer_organization__names__main',
     )
     search_fields = (
-        'id', 'name', 'description', 'submission_agreement__name',
+        '=id', 'name', 'description', 'submission_agreement__name',
         'producer_organization__names__main',
     )
 
@@ -448,7 +448,7 @@ class TransferViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         'submitter_individual_name',
     )
     search_fields = (
-        'id', 'name', 'submitter_organization',
+        '=id', 'name', 'submitter_organization',
         'submitter_individual_name',
     )
 

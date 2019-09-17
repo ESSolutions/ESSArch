@@ -1,7 +1,6 @@
 from django.db.models import F, Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
-from rest_framework.filters import SearchFilter
 
 from ESSArch_Core.agents.filters import AgentFilter, AgentOrderingFilter
 from ESSArch_Core.agents.models import (
@@ -35,6 +34,7 @@ from ESSArch_Core.agents.serializers import (
     AuthorityTypeSerializer,
     RefCodeSerializer,
 )
+from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.auth.permissions import ActionPermissions
 
 
@@ -95,7 +95,7 @@ class AgentViewSet(viewsets.ModelViewSet):
     filter_backends = (AgentOrderingFilter, DjangoFilterBackend, SearchFilter,)
     filterset_class = AgentFilter
     ordering_fields = ('latest_name', 'names__part', 'names__main', 'start_date', 'end_date', 'type__main_type__name')
-    search_fields = ('id', 'names__part', 'names__main', 'type__main_type__name',)
+    search_fields = ('=id', 'names__part', 'names__main', 'type__main_type__name',)
 
     def get_queryset(self):
         user = self.request.user
