@@ -90,7 +90,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       GLOBALSEARCHDESC_UNITS: 'Lista alla strukturenheter som associeras med söktermen',
       HISTORY: 'Historik',
       HITS: 'Träfflista',
-      HREF: 'Href',
+      HREF: 'Länk',
       IDENTIFIER: 'Identifikator',
       IDENTIFIERS: 'Identifikatorer',
       IDS: 'IDn',
