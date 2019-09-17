@@ -11,3 +11,4 @@
     access/index
     workspace/workspace
     maintenance/index
+    archival-description-management/index
