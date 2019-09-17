@@ -178,12 +178,12 @@
             <div class="flex-row align-items-center mb-base">
               <button
                 class="btn btn-primary"
-                ng-if="vm.node.root && !vm.node.published && vm.node.is_editable"
+                ng-if="vm.node.root && !vm.node.published"
                 permission
                 permission-only="'tags.publish_structure'"
                 ng-click="vm.publishModal(vm.node)"
               >
-                {{(vm.node.published ? 'ACCESS.PUBLISHED' : 'PUBLISH') | translate}}
+                {{('PUBLISH') | translate}}
                 <span ng-if="vm.node.published"> &nbsp;<i class="fas fa-check success m-0"></i> </span>
               </button>
               <button
