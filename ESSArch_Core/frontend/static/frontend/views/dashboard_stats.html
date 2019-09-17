@@ -1,4 +1,4 @@
-<div>
+<div ng-if="!vm.statsLoading && vm.stats !== null">
   <h4>
     {{'DASHBOARD.SYSTEM' | translate}}
   </h4>
@@ -63,4 +63,7 @@
       <i class="fas fa-print"></i>
     </button>
   </div>
+</div>
+<div ng-if="vm.statsLoading && vm.stats == null" class="loading-column w-100 text-center">
+  {{'LOADING' | translate}}
 </div>

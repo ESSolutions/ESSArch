@@ -1,14 +1,26 @@
 export default class DashboardStatsCtrl {
   constructor(appConfig, $http, $uibModal, $log, $translate) {
     const vm = this;
+    vm.stats = null;
     vm.$onInit = function() {
-      vm.getStats().then(function(stats) {
-        vm.stats = stats;
-        vm.getAgents();
-      });
+      vm.statsLoading = true;
+      vm.getStats()
+        .then(function(stats) {
+          vm.getAgents(stats)
+            .then(statsWithAgents => {
+              vm.stats = statsWithAgents;
+              vm.statsLoading = false;
+            })
+            .catch(() => {
+              vm.statsLoading = false;
+            });
+        })
+        .catch(() => {
+          vm.statsLoading = false;
+        });
     };
 
-    vm.getAgents = function() {
+    vm.getAgents = function(stats) {
       return $http({
         url: appConfig.djangoUrl + 'agents/',
         method: 'HEAD',
@@ -16,8 +28,8 @@ export default class DashboardStatsCtrl {
           pager: 'none',
         },
       }).then(function(response) {
-        vm.stats.tags.unshift({type__name: $translate.instant('ARCHIVECREATORS'), total: response.headers('Count')});
-        return response.data;
+        stats.tags.unshift({type__name: $translate.instant('ARCHIVECREATORS'), total: response.headers('Count')});
+        return stats;
       });
     };
 
