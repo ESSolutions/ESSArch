@@ -98,7 +98,7 @@
     "utf-8-validate": "^5.0.2",
     "webpack": "^4.39.3",
     "webpack-cli": "^3.3.8",
-    "webpack-dev-server": "^3.8.0",
+    "webpack-dev-server": "^3.8.1",
     "webpack-manifest-plugin": "^2.0.4"
   },
   "scripts": {
