@@ -485,7 +485,7 @@ class NestedInformationPackageSerializer(serializers.ModelSerializer):
             'responsible', 'create_date', 'entry_date', 'state', 'status',
             'step_state', 'archived', 'cached', 'aic', 'information_packages',
             'generation', 'policy', 'message_digest', 'agents',
-            'message_digest_algorithm', 'submission_agreement',
+            'message_digest_algorithm', 'submission_agreement', 'object_path',
             'submission_agreement_locked', 'workarea', 'object_size',
             'first_generation', 'last_generation', 'start_date', 'end_date',
             'new_version_in_progress', 'appraisal_date', 'permissions',
