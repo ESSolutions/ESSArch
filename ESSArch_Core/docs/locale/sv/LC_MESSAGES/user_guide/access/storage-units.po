@@ -1,0 +1,111 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-17 09:41+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../user_guide/access/storage-units.rst:5
+msgid "Storage units"
+msgstr "Förvaringsenheter"
+
+#: ../../user_guide/access/storage-units.rst:7
+msgid ""
+"Access/storage-units is where all **preserved** AIPs are listed. We can "
+"see information such as events and steps/tasks of the preserved AIP."
+msgstr ""
+"Åtkomst/förvaringsenheter innehåller alla **arkiverade** AIPer. Vi kan "
+"även se information som händelser och jobb som resterande vyer."
+
+#: ../../user_guide/access/storage-units.rst:10
+msgid ""
+"When clicking a row in the Access list view the user can make request "
+"from a request form. The available requests in Access are explained "
+"below."
+msgstr ""
+"När man klickar ett IP i denna vy så får man se ett request-formulär. "
+"Tillgängliga request förklaras nedan."
+
+#: ../../user_guide/access/storage-units.rst:16
+msgid "Get"
+msgstr "Hämta"
+
+#: ../../user_guide/access/storage-units.rst:17
+msgid ""
+"Access AIP in archival storage to the Workspace with content extracted as"
+" read only."
+msgstr "Hämta AIP i extraherad form som read_only till Åtkomst/arbetsyta."
+
+#: ../../user_guide/access/storage-units.rst:20
+#, fuzzy
+msgid ""
+"Choose the option **Get** and click **Get**. The AIP generation should "
+"appear in the Access workspace shortly, the progress can be followed in "
+"the status bar of the IP and in the :ref:`State view <state-view>` for "
+"more detailed information."
+msgstr ""
+"Välj alternativet **Hämta** Fyll i önskad information, markera "
+"**Förfrågan godkänd** och klicka på **Skicka**. Händelseförloppet kan "
+"följas i status-fältet för paketet eller i större detalj i  "
+":ref:`Tillståndsvyn <user-interface-state-view>` för mer information."
+
+#: ../../user_guide/access/storage-units.rst:28
+msgid "Get as container"
+msgstr "Hämta som container"
+
+#: ../../user_guide/access/storage-units.rst:29
+msgid "Access AIP in archival storage to the Workspace as a tar or zip file."
+msgstr "Hämta AIP som tar eller zip-fil till Åtkomst/arbetsyta"
+
+#: ../../user_guide/access/storage-units.rst:32
+#, fuzzy
+msgid ""
+"Choose the option **Get as container** and click **Get**. The AIP "
+"generation should appear in the workspace shortly, the progress can be "
+"followed in the status bar of the IP and in the :ref:`State view <state-"
+"view>` for more detailed information."
+msgstr ""
+"Välj alternativet **Hämta som container** och klicka på **Skicka**. "
+"Progressen kan följas i status-fältet för paketet eller i större detalj i"
+" :ref:`Tillståndsvyn <user-interface-state-view>` för mer information."
+
+#: ../../user_guide/access/storage-units.rst:40
+msgid "Get as new generation"
+msgstr "Hämta som ny generation"
+
+#: ../../user_guide/access/storage-units.rst:41
+msgid ""
+"Access AIP in archival storage to the Workspace as a new generation of "
+"the AIP. The new IP is basically a whole new IP but it is still related "
+"to the family of IPs that are related to the same AIC."
+msgstr ""
+"Hämta ip till Åtkomst/arbetsyta som en ny generation. Den nya "
+"generationen är i princip ett helt eget IP, den är bara relaterad till "
+"sina tidigare och senare generationen genom samma AIC."
+
+#: ../../user_guide/access/storage-units.rst:46
+#, fuzzy
+msgid ""
+"Choose the option **Get as new generation** and click **Get**. The AIP "
+"generation should appear in the Access workspace shortly, the progress "
+"can be followed in the status bar of the IP and in the :ref:`State view "
+"<state-view>` for more detailed information."
+msgstr ""
+"Välj alternativet **Hämta som ny generation** Fyll i önskad information, "
+"markera **Förfrågan godkänd** och klicka på **Hämta**. Progressen kan "
+"följas i status-fältet för paketet eller i större detalj i "
+":ref:`Tillståndsvyn <user-interface-state-view>` för mer information."
+

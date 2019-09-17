@@ -1,0 +1,151 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-16 17:33+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../user_guide/ingest/reception.rst:5
+msgid "Reception"
+msgstr "Reception"
+
+#: ../../user_guide/ingest/reception.rst:10
+msgid "Receive SIP"
+msgstr "Ta emot SIP"
+
+#: ../../user_guide/ingest/reception.rst:12
+msgid ""
+"To receive an IP, first select one IP by clicking on it in the list. To "
+"select multiple IPs, either hold the :kbd:`CTRL` key and click each IP or"
+" click the first IP, hold the :kbd:`SHIFT` key and click another to "
+"select all IPs between including the two selected."
+msgstr ""
+"För att ta emot ett IP väljer man ett eller flera paket i listan. Ett  IP"
+" kan väljas genom att klicka på dess rad i listan. Flera kan väljas  "
+"antingen genom att hålla nere :kbd:`CTRL` och välja alla paket ett i  "
+"taget eller genom att välja ett, hålla in :kbd:`SHIFT` och välja ett  "
+"annat, så markeras alla paket mellan dessa inklusive de två valda."
+
+#: ../../user_guide/ingest/reception.rst:19
+msgid "To select all visible IPs use the **Select all** option."
+msgstr ""
+"För att välja alla synliga informationspaket använd **Markera alla** "
+"alternativet."
+
+#: ../../user_guide/ingest/reception.rst:23
+msgid ""
+"When the desired IPs are selected, click the **Receive**-button in the "
+"bottom right corner."
+msgstr ""
+"När samtliga paket har valts klicka på knappen **Ta emot** längst ner i "
+"högra hörnet."
+
+#: ../../user_guide/ingest/reception.rst:28
+msgid ""
+"Clicking the **Receive**-button will open a window to receive the first "
+"included IP."
+msgstr ""
+"När knappen väl klickats kommer ett nytt fönster att öppnas för att ta "
+"emot det första valda IP:t."
+
+#: ../../user_guide/ingest/reception.rst:35
+msgid "Profile Editor"
+msgstr "Profilredigerare"
+
+#: ../../user_guide/ingest/reception.rst:37
+msgid ""
+"Use the dropdown to select which submission agreement to use, then click "
+"**Prepare**.  If the dropdown is disabled, the IP already has a related "
+"submission agreement."
+msgstr ""
+"Använd rullistan för att välja vilken leveransöverenskommelse som ska "
+"användas, klicka sedan på **Förbered**. Om rullistan är inaktiverad har "
+"IPt redan en koppling till leveransöverenskommelsen."
+
+#: ../../user_guide/ingest/reception.rst:43
+msgid ""
+"The profile editor is where the user can edit data of a profile for a "
+"specific IP. The submission agreement's data fields can be viewed by "
+"clicking the **view** button next to the dropdown."
+msgstr ""
+"I profilredigeraren kan en användare redigera data i en profil för ett "
+"specifikt IP. Datafälten för en leveransöverenskommelse kan läsas genom "
+"att klicka på **Visa**-knappen bredvid rullistan."
+
+#: ../../user_guide/ingest/reception.rst:49
+msgid ""
+"Underneath the submission agreement row, all related profiles are listed."
+" Click **edit** next to a profile to edit the data of the profile for the"
+" IP to be received.  When satisfied with the edit, click **Save**."
+msgstr ""
+"Under leveransöverenskommelse finns alla relaterade profiler listade. "
+"Klicka på **Redigera** för att redigera profildata för paketet som ska "
+"tas emot. Klicka sedan **Spara**"
+
+#: ../../user_guide/ingest/reception.rst:53
+msgid ""
+"When saving profile data, the previous versions are still available in "
+"the version dropdown. Choose between data versions and click save to "
+"apply."
+msgstr ""
+"När man sparar profildata så finns alla tidigare versioner att välja i "
+"version-rullistan. Välj mellan versioner och klicka **Spara** för att "
+"spara."
+
+#: ../../user_guide/ingest/reception.rst:58
+msgid ""
+"This can be done on each profile type, remember to save the data before "
+"closing the profile form."
+msgstr ""
+"Detta kan göras på alla profiltyper. Kom ihåg att spara datat så det inte"
+" går förlorat."
+
+#: ../../user_guide/ingest/reception.rst:62
+msgid "Receive"
+msgstr ""
+
+#: ../../user_guide/ingest/reception.rst:63
+msgid ""
+"To receive an IP it needs to be placed in an archive and a structure so "
+"that the IP and its content is indexed and can be found on the search "
+"page. First select archive, then structure and last structure unit, which"
+" is where we will find the IP in the search result tree structure."
+msgstr ""
+"För att ta emot ett IP behöver det bli placerat i ett arkiv och en "
+"struktur så att paketet och dess innehåll blir indexerat och kan hittas "
+"på söksidan. Välj först arkiv, sedan struktur och sist strukturenhet. "
+"Strukturenheten är där vi kommer hitta paketet i arkivets hierarkiska "
+"struktur."
+
+#: ../../user_guide/ingest/reception.rst:70
+msgid ""
+"When satisfied with the submission agreement and the profiles, select an "
+"**Archive policy** and click **Receive**.  The process of receiving the "
+"IP is started and if more IPs are included a window for the next IP will "
+"appear. An IP can be skipped by clicking the **Skip**-button."
+msgstr ""
+"När användaren är nöjd med leveransöverenskommelse och profiler väljs en "
+"**Arkivpolicy** och man klickar på **Ta emot**. Därefter startas "
+"mottagande-processe och om flera paket valts öppnas en ny ruta med nästa "
+"IP. Det går att hoppa över ett IP genom att klicka på **Hoppa över**."
+
+#: ../../user_guide/ingest/reception.rst:77
+msgid ""
+"When an IP is received it is no longer visible in the reception list and "
+"can be found in the :ref:`Approval <approval>` section"
+msgstr ""
+"När ett IP har tagits emot lists det inte längre i receptionen, det "
+"ligger istället under :ref:`Godkännande <approval>`."

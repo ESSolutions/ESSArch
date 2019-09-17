@@ -1,0 +1,89 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-17 10:30+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../user_guide/workspace/workspace.rst:5
+msgid "Workspace"
+msgstr "Arbetsyta"
+
+#: ../../user_guide/workspace/workspace.rst:7
+msgid ""
+"The Workspace is where the user can modify IPs both in the user interface"
+" and access the files to use 3rd party tools. Workspaces are private and "
+"can be different for each user."
+msgstr ""
+"I arbetsytan kan man modifera ett IP genom gränssnitt eller "
+"tredjepartsverktyg. Arbetsytor är privata och olika för olika användare."
+
+#: ../../user_guide/workspace/workspace.rst:11
+msgid ""
+"The workspace page contains information packages from both ingest and "
+"acces. An IP from ingest has state **Ingest Workarea** and an IP from "
+"access has state **Access Workarea**."
+msgstr ""
+"Arbetsytan innehåller informationspaket från både mottagande och åtkomst."
+" Ett IP från mottagande har tillståndet **Ingest Workarea** och ett IP "
+"från mottagande har tillståndet **Access Workarea**."
+
+#: ../../user_guide/workspace/workspace.rst:15
+msgid ""
+"An IP with state **Access Workarea** can be used as part of a "
+"dissemination and its content is available in the filebrowser on the "
+":ref:`dissemination page <dissemination>`."
+msgstr ""
+"IP med tillstånd **Access Workarea** kan användas i ett utlämnande och "
+"innehållet finns tillgängligt i filhanteraren under :ref:`utlämnande "
+"<dissemination>`."
+
+#: ../../user_guide/workspace/workspace.rst:19
+msgid ""
+"When an IP is done in the workspace it can be clicked and can be "
+"**Preserved** right away or **Moved to ingest/approval**."
+msgstr ""
+"När ett IP är färdigt i arbetsytan kan det **Arkiveras** direkt eller "
+"**flyttas till Mottagande/godkännande**."
+
+#: ../../user_guide/workspace/workspace.rst:22
+msgid ""
+"To preserve an IP click the IP's row in the list view table. Select the "
+"**Preserve** option and click **Submit**."
+msgstr ""
+"Arkivera ett IP genom att klicka på paketets rad i listvyn, välj "
+"alternativet **Arkivera** och klicka sedan på **Skicka**."
+
+#: ../../user_guide/workspace/workspace.rst:27
+msgid ""
+"To move an IP to :ref:`Ingest/Approval <approval>`, click the IP row in "
+"the list view table. Select the option **Move to ingest/approval** and "
+"click **Submit**."
+msgstr ""
+"För att flytta IP till :ref:`mottagande/godkännande <approval>` klicka på"
+" paketets rad i listvyn, välj **Flytta till mottagande/godkännande** och "
+"klicka **Skicka**."
+
+#: ../../user_guide/workspace/workspace.rst:32
+#, fuzzy
+msgid ""
+"The progress can be followed in the status bar of the IP and in the "
+":ref:`State view <state-view>` for more detailed information."
+msgstr ""
+"Händelseförloppet kan följas i status-fältet för IPt eller i större "
+"detalj om man klickar på **Tillstånd**-fältet. Se :ref:`Tillståndsvyn "
+"<user-interface-state-view>` för mer information."
+
