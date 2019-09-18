@@ -27,7 +27,6 @@ from os import walk
 
 from django.contrib import admin
 
-# own models ets
 from .models import InformationPackage
 
 
@@ -35,9 +34,9 @@ def deleteIP(modeladmin, request, queryset):
     """
     An action for admin operations on IP
     """
-    # if we have selected entryn
+    # if we have selected entries
     if queryset.count():
-        # delete files and directorys
+        # delete files and directories
         for obj in queryset:
             for root, dirs, files in walk(obj.directory, topdown=False):
                 for name in files:
@@ -69,7 +68,7 @@ deleteIP.short_description = "Delete selected ip from DB and FS"
 
 class IPAdmin(admin.ModelAdmin):
     """
-    Informaion Package
+    Information Package
     """
     list_display = ('label', 'id', 'object_path', 'state')
     readonly_fields = ('id',)
