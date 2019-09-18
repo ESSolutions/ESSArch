@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-15 21:01+0200\n"
+"POT-Creation-Date: 2019-09-18 10:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,53 +18,49 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.7.0\n"
 
-#: ../../installation/core/upgrade.rst:5
+#: ../../installation/upgrade.rst:5
 msgid "Upgrade ESSArch Core"
 msgstr ""
 
-#: ../../installation/core/upgrade.rst:9
+#: ../../installation/upgrade.rst:9
 msgid "Stop services"
 msgstr ""
 
-#: ../../installation/core/upgrade.rst:11
-#: ../../installation/core/upgrade.rst:52
+#: ../../installation/upgrade.rst:11 ../../installation/upgrade.rst:52
 msgid "esshttpd"
 msgstr ""
 
-#: ../../installation/core/upgrade.rst:12
-#: ../../installation/core/upgrade.rst:51
+#: ../../installation/upgrade.rst:12 ../../installation/upgrade.rst:51
 msgid "daphneessarch"
 msgstr ""
 
-#: ../../installation/core/upgrade.rst:13
-#: ../../installation/core/upgrade.rst:49
+#: ../../installation/upgrade.rst:13 ../../installation/upgrade.rst:49
 msgid "celerydessarch"
 msgstr ""
 
-#: ../../installation/core/upgrade.rst:14
-#: ../../installation/core/upgrade.rst:50
+#: ../../installation/upgrade.rst:14 ../../installation/upgrade.rst:50
 msgid "celerybeatessarch"
 msgstr ""
 
-#: ../../installation/core/upgrade.rst:17
+#: ../../installation/upgrade.rst:17
 msgid "Verify that a backup of the database exists at /ESSArch/backup"
 msgstr ""
 
-#: ../../installation/core/upgrade.rst:20
+#: ../../installation/upgrade.rst:20
 msgid "Move old installation"
 msgstr ""
 
-#: ../../installation/core/upgrade.rst:30
+#: ../../installation/upgrade.rst:30
 msgid "Install new ESSArch Core"
 msgstr ""
 
-#: ../../installation/core/upgrade.rst:40
+#: ../../installation/upgrade.rst:40
 msgid ""
 "Compare and restore configuration files at /ESSArch/config from old "
 "directory"
 msgstr ""
 
-#: ../../installation/core/upgrade.rst:47
+#: ../../installation/upgrade.rst:47
 msgid "Start services"
 msgstr ""
 

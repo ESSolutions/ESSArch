@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"POT-Creation-Date: 2019-09-18 10:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,47 +18,47 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.7.0\n"
 
-#: ../../installation/core/safety_backup_procedures.rst:5
+#: ../../installation/safety_backup_procedures.rst:5
 msgid "Safety backup procedures"
 msgstr ""
 
-#: ../../installation/core/safety_backup_procedures.rst:9
+#: ../../installation/safety_backup_procedures.rst:9
 msgid "Important files to backup"
 msgstr ""
 
-#: ../../installation/core/safety_backup_procedures.rst:11
+#: ../../installation/safety_backup_procedures.rst:11
 msgid ""
 "Important data in ESSArch to backup is the configuration, log files and "
 "database. All areas which are mounted from external file servers should "
 "be backed up."
 msgstr ""
 
-#: ../../installation/core/safety_backup_procedures.rst:15
+#: ../../installation/safety_backup_procedures.rst:15
 msgid ""
 "Everything in the file area /ESSArch should be backed up before and after"
 " configuration changes or changes in ESSArch system installation, for "
 "example when upgrading and software patches."
 msgstr ""
 
-#: ../../installation/core/safety_backup_procedures.rst:19
+#: ../../installation/safety_backup_procedures.rst:19
 msgid ""
 "Areas that need to be backed up to an external “backup system” daily is "
 "the following:"
 msgstr ""
 
-#: ../../installation/core/safety_backup_procedures.rst:22
+#: ../../installation/safety_backup_procedures.rst:22
 msgid "/ESSArch/backup"
 msgstr ""
 
-#: ../../installation/core/safety_backup_procedures.rst:23
+#: ../../installation/safety_backup_procedures.rst:23
 msgid "/ESSArch/config"
 msgstr ""
 
-#: ../../installation/core/safety_backup_procedures.rst:24
+#: ../../installation/safety_backup_procedures.rst:24
 msgid "/ESSArch/log"
 msgstr ""
 
-#: ../../installation/core/safety_backup_procedures.rst:25
+#: ../../installation/safety_backup_procedures.rst:25
 msgid "/ESSArch/data"
 msgstr ""
 

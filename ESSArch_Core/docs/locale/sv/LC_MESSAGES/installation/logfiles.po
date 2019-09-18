@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"POT-Creation-Date: 2019-09-18 10:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,54 +18,34 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.7.0\n"
 
-#: ../../installation/epp/logfiles.rst:5
+#: ../../installation/logfiles.rst:5
 msgid "Logfiles"
 msgstr ""
 
-#: ../../installation/epp/logfiles.rst:9
+#: ../../installation/logfiles.rst:9
 msgid "Events and log information"
 msgstr ""
 
-#: ../../installation/epp/logfiles.rst:11
+#: ../../installation/logfiles.rst:11
 msgid ""
 "Different types of events are logged both in physical files and tables in"
 " ESSArch database. Log entries are tagged with the log level - Debug, "
 "Critical, Error, Warning, Info. List of log files:"
 msgstr ""
 
-#: ../../installation/epp/logfiles.rst:13
-msgid "/ESSArch/log/celerybeat_epp.log"
+#: ../../installation/logfiles.rst:15
+msgid "/ESSArch/log"
 msgstr ""
 
-#: ../../installation/epp/logfiles.rst:14
-msgid "/ESSArch/log/celery_io_disk_worker.log"
-msgstr ""
-
-#: ../../installation/epp/logfiles.rst:15
-msgid "/ESSArch/log/celery_io_tape_worker.log"
-msgstr ""
-
-#: ../../installation/epp/logfiles.rst:16
-msgid "/ESSArch/log/celery_workerepp.log"
-msgstr ""
-
-#: ../../installation/epp/logfiles.rst:17
-msgid "/ESSArch/log/celery_workereppfileoperation.log"
-msgstr ""
-
-#: ../../installation/epp/logfiles.rst:18
-msgid "/ESSArch/log/celery_workereppvalidation.log"
-msgstr ""
-
-#: ../../installation/epp/logfiles.rst:19
+#: ../../installation/logfiles.rst:16
 msgid "/ESSArch/log/httpd_access.log"
 msgstr ""
 
-#: ../../installation/epp/logfiles.rst:20
+#: ../../installation/logfiles.rst:17
 msgid "/ESSArch/log/httpd_error.log"
 msgstr ""
 
-#: ../../installation/epp/logfiles.rst:21
+#: ../../installation/logfiles.rst:18
 msgid "/ESSArch/log/httpd_ssl_request.log"
 msgstr ""
 

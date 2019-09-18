@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"POT-Creation-Date: 2019-09-18 10:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,33 +18,33 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.7.0\n"
 
-#: ../../installation/core/install.rst:5
+#: ../../installation/install.rst:5
 msgid "Install ESSArch Core"
 msgstr ""
 
-#: ../../installation/core/install.rst:9
+#: ../../installation/install.rst:9
 msgid "EC installation script"
 msgstr ""
 
-#: ../../installation/core/install.rst:11
+#: ../../installation/install.rst:11
 msgid ""
 "Please download the latest installation package from `Github "
 "<https://github.com/ESSolutions/ESSArch_Core/releases/latest>`_"
 msgstr ""
 
-#: ../../installation/core/install.rst:34
+#: ../../installation/install.rst:34
 msgid "Enable automatic startup at system boot"
 msgstr ""
 
-#: ../../installation/core/install.rst:42
+#: ../../installation/install.rst:42
 msgid "Enable automatic startup of Apache HTTPD"
 msgstr ""
 
-#: ../../installation/core/install.rst:51
+#: ../../installation/install.rst:51
 msgid "Enable automatic startup of RabbitMQ"
 msgstr ""
 
-#: ../../installation/core/install.rst:61
+#: ../../installation/install.rst:61
 msgid "Enable automatic backup of MySQL/MariaDB"
 msgstr ""
 
