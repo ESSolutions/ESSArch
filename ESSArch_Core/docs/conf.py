@@ -73,6 +73,10 @@ extensions = ['sphinx.ext.autosectionlabel', 'sphinx.ext.inheritance_diagram',
 # ambiguity when the same section heading appears in different documents.
 autosectionlabel_prefix_document = True
 
+suppress_warnings = [
+    'autosectionlabel.*',
+]
+
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3.7', None),
     'sphinx': ('http://www.sphinx-doc.org/en/master/', None),

@@ -57,7 +57,6 @@ msgstr ""
 "onsdag klockan 15."
 
 #: ../../user_guide/maintenance/maintenance-appraisal.rst:22
-#, fuzzy
 msgid ""
 "To add a **Path** type for example **/*.docx in the **Path** field and "
 "click the **+** button. If the whole AIP should be affected by the "

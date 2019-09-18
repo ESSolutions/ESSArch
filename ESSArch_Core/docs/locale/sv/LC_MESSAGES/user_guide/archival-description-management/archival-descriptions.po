@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-17 13:35+0200\n"
+"POT-Creation-Date: 2019-09-18 10:16+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -63,11 +63,11 @@ msgid "Adding new structure types"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:20
-msgid "New structure types are added through ESSArch's adminstration interface."
+msgid "New structure types are added through ESSArch's administration interface."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:28
-msgid "A structure type can be configured to either allow or dissalow:"
+msgid "A structure type can be configured to either allow or disallow:"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:30

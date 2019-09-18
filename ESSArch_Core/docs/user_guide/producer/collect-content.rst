@@ -11,7 +11,7 @@ Upload
 ======
 
 The user may upload single files or folders by navigating
-to prefered location in the file browser and clicking upload or
+to preferred location in the file browser and clicking upload or
 by dragging the file(s) from a folder to the drop are and drop them.
 
 .. image:: images/collect_first.png

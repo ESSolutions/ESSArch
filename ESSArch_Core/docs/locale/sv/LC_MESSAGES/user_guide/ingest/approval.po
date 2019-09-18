@@ -45,7 +45,6 @@ msgid "Preserve AIP to archival storage according to information from profiles."
 msgstr "Arkivera AIP till archival storage enligt information från profiler."
 
 #: ../../user_guide/ingest/approval.rst:22
-#, fuzzy
 msgid ""
 "Choose **Preserve**, and click **Submit** to start the preservation "
 "process. The progress can be followed in the status bar of the IP and in "
@@ -68,7 +67,6 @@ msgstr ""
 "IP:t kommer då att dyka upp under mottagande/arbetsyta"
 
 #: ../../user_guide/ingest/approval.rst:35
-#, fuzzy
 msgid ""
 "Choose **Get**, and click **Submit**. The AIP will appear in the "
 "workspace shortly. The progress can be followed in the status bar of the "
@@ -94,7 +92,6 @@ msgstr ""
 "tidigare och senare generationer genom dess AIC."
 
 #: ../../user_guide/ingest/approval.rst:49
-#, fuzzy
 msgid ""
 "Choose the option **Get as new generation**, and click **Submit**. The "
 "AIP generation should appear in the ingest workspace shortly, the "

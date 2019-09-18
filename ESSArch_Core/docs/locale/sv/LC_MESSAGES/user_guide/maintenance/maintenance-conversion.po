@@ -65,7 +65,6 @@ msgstr ""
 "onsdag klockan 15."
 
 #: ../../user_guide/maintenance/maintenance-conversion.rst:24
-#, fuzzy
 msgid ""
 "To add a **Specification** type for example **/*.docx in the **Path** "
 "field, **pdf** in the **target** field and **Libreoffice** in the "

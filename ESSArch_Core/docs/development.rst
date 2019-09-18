@@ -182,7 +182,7 @@ to the web server. Run the following in the root of each application:
 Starting background beat processes
 ==================================
 
-Background beat processes are also needed to run some operations continously.
+Background beat processes are also needed to run some operations continuously.
 Run the following in the root of each application:
 
 .. code-block:: bash

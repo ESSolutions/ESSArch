@@ -53,7 +53,7 @@ When initially creating an authority record the following fields are required fo
     New authority record form
 
 .. note::
-   For Authority records of type person the name field is automatically seperated into  Firstname and Lastname fields.
+   For Authority records of type person the name field is automatically separated into  Firstname and Lastname fields.
 
 .. figure:: images/auth_rec_initial_view.PNG
    :width: 520px
@@ -107,7 +107,7 @@ To add a new descriptive text click on the History or Remarks tab and then the a
     :height: 173px
     :alt: Remarks detail page
 
-From the dropdown menu choose the appropriate note type, add text and clcik add to save.
+From the dropdown menu choose the appropriate note type, add text and click add to save.
 
 .. figure:: images/Auth_rec_add_history.PNG
     :width: 400px

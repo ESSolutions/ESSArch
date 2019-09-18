@@ -5,6 +5,9 @@
 *.py text eol=lf
 *.sh text eol=lf
 
+*.rst text eol=lf
+*.po text eol=lf
+
 *.yml text eol=lf
 *.json text eol=lf
 

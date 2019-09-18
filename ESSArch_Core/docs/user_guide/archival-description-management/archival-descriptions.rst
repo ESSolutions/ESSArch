@@ -17,7 +17,7 @@ For a detailed crosswalk between ESSArch and ISDF please see the :ref:`ICA Stand
 
 Adding new structure types
 __________________________
-New structure types are added through ESSArch's adminstration interface.
+New structure types are added through ESSArch's administration interface.
 
 
 .. figure:: images/structures/add_structure_type.PNG
@@ -25,7 +25,7 @@ New structure types are added through ESSArch's adminstration interface.
     :height: 310px
     :alt: Add structure type admin form
 
-A structure type can be configured to either allow or dissalow:
+A structure type can be configured to either allow or disallow:
 
 * Editable instances of a template
 * Editable relations (to other levels or structures) of a template
@@ -95,7 +95,7 @@ TODO
 
 Adding relationships to other Structures / Structure units
 ___________________________________________________________
-.. figure:: images/structures/structureUnit_relation_overview.PNG
+.. figure:: images/structures/StructureUnit_relation_overview.PNG
     :width: 478px
     :height: 76px
     :alt: Add structure unit

@@ -78,7 +78,6 @@ msgstr ""
 "klicka **Skicka**."
 
 #: ../../user_guide/workspace/workspace.rst:32
-#, fuzzy
 msgid ""
 "The progress can be followed in the status bar of the IP and in the "
 ":ref:`State view <state-view>` for more detailed information."

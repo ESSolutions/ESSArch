@@ -50,7 +50,6 @@ msgid ""
 msgstr "Hämta AIP i extraherad form som read_only till Åtkomst/arbetsyta."
 
 #: ../../user_guide/access/storage-units.rst:20
-#, fuzzy
 msgid ""
 "Choose the option **Get** and click **Get**. The AIP generation should "
 "appear in the Access workspace shortly, the progress can be followed in "
@@ -71,7 +70,6 @@ msgid "Access AIP in archival storage to the Workspace as a tar or zip file."
 msgstr "Hämta AIP som tar eller zip-fil till Åtkomst/arbetsyta"
 
 #: ../../user_guide/access/storage-units.rst:32
-#, fuzzy
 msgid ""
 "Choose the option **Get as container** and click **Get**. The AIP "
 "generation should appear in the workspace shortly, the progress can be "
@@ -97,7 +95,6 @@ msgstr ""
 "sina tidigare och senare generationen genom samma AIC."
 
 #: ../../user_guide/access/storage-units.rst:46
-#, fuzzy
 msgid ""
 "Choose the option **Get as new generation** and click **Get**. The AIP "
 "generation should appear in the Access workspace shortly, the progress "

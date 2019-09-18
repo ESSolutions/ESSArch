@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-17 13:35+0200\n"
+"POT-Creation-Date: 2019-09-18 10:16+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -41,8 +41,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:16
 msgid ""
-"This sections purpose is to uniquely identifiy the entity being described"
-" and define standardized access points for the record."
+"This sections purpose is to uniquely identify the entity being described "
+"and define standardized access points for the record."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:19
@@ -142,7 +142,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:21
 msgid ""
 "The values can be subtyped through admin configuration (Agent) this can "
-"be used for sub classifcations of CPF"
+"be used for sub classifications of CPF"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:23
@@ -391,7 +391,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:53
 msgid ""
 "ESSArch implements ISDF for describing functions, If one don't want to "
-"use Classifications there's always the possibilty to use a customized "
+"use Classifications there's always the possibility to use a customized "
 "note"
 msgstr ""
 
@@ -412,7 +412,7 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:55
 msgid ""
-"Mandates and reference to sources of authority is documnented in the "
+"Mandates and reference to sources of authority is documented in the "
 "mandates section"
 msgstr ""
 
@@ -469,8 +469,8 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:79
 msgid ""
 "To indicate the names and any unique identifiers of related entities and "
-"to support linkages to theauthority records for related corporate bodies,"
-" persons or families."
+"to support linkages to the authority records for related corporate "
+"bodies, persons or families."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:73
@@ -494,7 +494,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:81
 msgid ""
 "To identify the general category of relationship between the entity being"
-" described and anothercorporate body, person or family."
+" described and another corporate body, person or family."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:73
@@ -595,7 +595,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:100
 msgid ""
 "To identify the national or international conventions or rules applied in"
-" creating the archival authorityrecord."
+" creating the archival authority record."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:100
@@ -621,7 +621,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:102
 msgid ""
 "To indicate the drafting status of the authority record so that users can"
-" understand the current status ofthe authority record."
+" understand the current status of the authority record."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:104
@@ -727,8 +727,8 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:122
 msgid ""
 "To identify uniquely the related resources and/or enable the linking of "
-"the authority record to adescription of the related resources, where such"
-" descriptions exist."
+"the authority record to a description of the related resources, where "
+"such descriptions exist."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:124
@@ -748,7 +748,7 @@ msgid "6.3 Nature of relationships"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:126
-msgid "Related resouces (Type)"
+msgid "Related resources (Type)"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:126
@@ -760,7 +760,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:126
 msgid ""
 "To identify the nature of the relationships between the corporate body, "
-"person or family and the relatedresources."
+"person or family and the related resources."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:128
@@ -774,8 +774,8 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:128
 msgid ""
 "To provide any relevant dates for the related resources and/or the dates "
-"of the relationship between thecorporate body, person or family and the "
-"related resources, and to indicate the significance of thosedates."
+"of the relationship between the corporate body, person or family and the "
+"related resources, and to indicate the significance of those dates."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:133
@@ -834,7 +834,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:141
 msgid ""
 "To identify uniquely the unit of description and to provide a link to the"
-" description thatrepresents it."
+" description that represents it."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:143
@@ -913,8 +913,8 @@ msgstr ""
 msgid ""
 "An initial creator need to be linked when a top-level resource is first "
 "created. Additional creators as well as other types of relations to the "
-"units beeing described (donors, contributors etc) can be linked after the"
-" top-level resource has been created"
+"units being described (donors, contributors etc) can be linked after the "
+"top-level resource has been created"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:159
@@ -951,7 +951,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:161
 msgid ""
 "To provide information on the history of the unit of description that is "
-"significant for itsauthenticity, integrity and interpretation."
+"significant for its authenticity, integrity and interpretation."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:163
@@ -1007,7 +1007,7 @@ msgid "3.3.3 Accruals"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:175
-msgid "Notes (Accurals)"
+msgid "Notes (Accruals)"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:175
@@ -1016,10 +1016,10 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:175
 msgid ""
-"Besides using the note type  accruals to record information of forseen "
+"Besides using the note type  accruals to record information of foreseen "
 "additions there's also the possibility to have this information in either"
-" a submission agreement or by preparing a accesion record as an expected "
-"transfer"
+" a submission agreement or by preparing a accession record as an expected"
+" transfer"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:177
@@ -1034,7 +1034,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:177
 msgid ""
 "To  provide  information  on  the  internal  structure,  the  order  "
-"and/or  the  system  ofclassification of the unit of description."
+"and/or  the  system  of classification of the unit of description."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:177
@@ -1054,7 +1054,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:185
 msgid ""
 "To provide information on the legal status or other regulations that "
-"restrict or affect accessto the unit of description."
+"restrict or affect access to the unit of description."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:187
@@ -1076,7 +1076,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:189
 msgid ""
 "To  identify  the  language(s),  script(s)  and  symbol  systems  "
-"employed  in  the  unit  ofdescription"
+"employed  in  the  unit  of description"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:191
@@ -1113,7 +1113,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:193
 msgid ""
 "If the finding aid is another unit of description a relation record is "
-"preferd if the finding aid is located elsewhere a note of type Finding "
+"preferred if the finding aid is located elsewhere a note of type Finding "
 "Aid can be created"
 msgstr ""
 
@@ -1141,8 +1141,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:201
 msgid ""
-"If an original of the unit of description is available in the instiution "
-"a relation record is preferd. If an original is available elsewhere a "
+"If an original of the unit of description is available in the institution"
+" a relation record is preferred. If an original is available elsewhere a "
 "note of type Location of originals can be created"
 msgstr ""
 
@@ -1166,8 +1166,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:203
 msgid ""
-"If a copy of the unit of description is available in the instiution a "
-"relation record is preferd. If a copy is available elsewhere a note of "
+"If a copy of the unit of description is available in the institution a "
+"relation record is preferred. If a copy is available elsewhere a note of "
 "type Location of copies can be created"
 msgstr ""
 
@@ -1189,9 +1189,10 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:205
 msgid ""
-"If a related unit of descriotion is available in the institution a "
-"relation record is preferd. If a related unit of description is available"
-" elsewhere a note of type Related unit of description can be created."
+"If a related unit of description is available in the institution a "
+"relation record is preferred. If a related unit of description is "
+"available elsewhere a note of type Related unit of description can be "
+"created."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:207
@@ -1209,7 +1210,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:207
 msgid ""
 "To identify any publications that are about or are based on the use, "
-"study, or analysis of theunit of description."
+"study, or analysis of the unit of description."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:211
@@ -1453,7 +1454,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:280
 msgid ""
 "To indicate whether the relationship is established with a function or "
-"one of itssubdivisions."
+"one of its subdivisions."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:282
@@ -1521,7 +1522,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:297
 msgid ""
 "To identify uniquely the function description within the context in which"
-" it will beused."
+" it will be used."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:299
@@ -1539,17 +1540,17 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:301
 msgid ""
 "To identify the national or international conventions or rules applied in"
-" creating thedescription."
+" creating the description."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:301
 msgid ""
-"Not explicity used but one can however record this information in the "
+"Not explicitly used but one can however record this information in the "
 "description of a structure"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:303
-msgid "Published/Unublished"
+msgid "Published/Unpublished"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:303
@@ -1599,8 +1600,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:313
 msgid ""
-"Every change of a Structure (as templates) requiers a new version to be "
-"made. An instance of a template has a change log for every chenge to the "
+"Every change of a Structure (as templates) requires a new version to be "
+"made. An instance of a template has a change log for every change to the "
 "description"
 msgstr ""
 
@@ -1657,4 +1658,219 @@ msgid ""
 "To indicate the dates of duration of the relationship between the "
 "function and the related resource."
 msgstr ""
+
+#~ msgid ""
+#~ "This sections purpose is to uniquely "
+#~ "identifiy the entity being described and"
+#~ " define standardized access points for "
+#~ "the record."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "The values can be subtyped through "
+#~ "admin configuration (Agent) this can be"
+#~ " used for sub classifcations of CPF"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "ESSArch implements ISDF for describing "
+#~ "functions, If one don't want to "
+#~ "use Classifications there's always the "
+#~ "possibilty to use a customized note"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Mandates and reference to sources of "
+#~ "authority is documnented in the mandates"
+#~ " section"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To indicate the names and any "
+#~ "unique identifiers of related entities "
+#~ "and to support linkages to theauthority"
+#~ " records for related corporate bodies, "
+#~ "persons or families."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To identify the general category of "
+#~ "relationship between the entity being "
+#~ "described and anothercorporate body, person"
+#~ " or family."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To identify the national or "
+#~ "international conventions or rules applied "
+#~ "in creating the archival authorityrecord."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To indicate the drafting status of "
+#~ "the authority record so that users "
+#~ "can understand the current status ofthe"
+#~ " authority record."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To identify uniquely the related "
+#~ "resources and/or enable the linking of"
+#~ " the authority record to adescription "
+#~ "of the related resources, where such "
+#~ "descriptions exist."
+#~ msgstr ""
+
+#~ msgid "Related resouces (Type)"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To identify the nature of the "
+#~ "relationships between the corporate body, "
+#~ "person or family and the "
+#~ "relatedresources."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To provide any relevant dates for "
+#~ "the related resources and/or the dates"
+#~ " of the relationship between thecorporate"
+#~ " body, person or family and the "
+#~ "related resources, and to indicate the"
+#~ " significance of thosedates."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To identify uniquely the unit of "
+#~ "description and to provide a link "
+#~ "to the description thatrepresents it."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "An initial creator need to be "
+#~ "linked when a top-level resource "
+#~ "is first created. Additional creators as"
+#~ " well as other types of relations "
+#~ "to the units beeing described (donors,"
+#~ " contributors etc) can be linked "
+#~ "after the top-level resource has "
+#~ "been created"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To provide information on the history"
+#~ " of the unit of description that "
+#~ "is significant for itsauthenticity, integrity"
+#~ " and interpretation."
+#~ msgstr ""
+
+#~ msgid "Notes (Accurals)"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Besides using the note type  accruals"
+#~ " to record information of forseen "
+#~ "additions there's also the possibility "
+#~ "to have this information in either "
+#~ "a submission agreement or by preparing"
+#~ " a accesion record as an expected "
+#~ "transfer"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To  provide  information  on  the  "
+#~ "internal  structure,  the  order  and/or  "
+#~ "the  system  ofclassification of the "
+#~ "unit of description."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To provide information on the legal "
+#~ "status or other regulations that "
+#~ "restrict or affect accessto the unit "
+#~ "of description."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To  identify  the  language(s),  script(s)"
+#~ "  and  symbol  systems  employed  in  "
+#~ "the  unit  ofdescription"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "If the finding aid is another unit"
+#~ " of description a relation record is"
+#~ " preferd if the finding aid is "
+#~ "located elsewhere a note of type "
+#~ "Finding Aid can be created"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "If an original of the unit of "
+#~ "description is available in the "
+#~ "instiution a relation record is preferd."
+#~ " If an original is available "
+#~ "elsewhere a note of type Location "
+#~ "of originals can be created"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "If a copy of the unit of "
+#~ "description is available in the "
+#~ "instiution a relation record is preferd."
+#~ " If a copy is available elsewhere "
+#~ "a note of type Location of copies"
+#~ " can be created"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "If a related unit of descriotion "
+#~ "is available in the institution a "
+#~ "relation record is preferd. If a "
+#~ "related unit of description is available"
+#~ " elsewhere a note of type Related "
+#~ "unit of description can be created."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To identify any publications that are"
+#~ " about or are based on the use,"
+#~ " study, or analysis of theunit of "
+#~ "description."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To indicate whether the relationship is"
+#~ " established with a function or one"
+#~ " of itssubdivisions."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To identify uniquely the function "
+#~ "description within the context in which"
+#~ " it will beused."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To identify the national or "
+#~ "international conventions or rules applied "
+#~ "in creating thedescription."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Not explicity used but one can "
+#~ "however record this information in the"
+#~ " description of a structure"
+#~ msgstr ""
+
+#~ msgid "Published/Unublished"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Every change of a Structure (as "
+#~ "templates) requiers a new version to "
+#~ "be made. An instance of a template"
+#~ " has a change log for every "
+#~ "chenge to the description"
+#~ msgstr ""
 
