@@ -1,7 +1,7 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
+    ESSArch
     Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify

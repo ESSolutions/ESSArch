@@ -1,11 +1,8 @@
-#!/usr/bin/env /ESSArch/python27/bin/python
-# -*- coding: UTF-8 -*-
-
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Preservation Platform (EPP)
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -938,7 +935,7 @@ def installProfileAIP(sa):
                     "required": True,
                 },
                 "type": "input",
-                "defaultValue": "ESSArch Preservation Platform",
+                "defaultValue": "ESSArch",
                 "key": "creator_software_name"
             },
             {
@@ -976,7 +973,7 @@ def installProfileAIP(sa):
                     "required": True,
                 },
                 "type": "input",
-                "defaultValue": "ESSArch Preservation Platform",
+                "defaultValue": "ESSArch",
                 "key": "preservation_software_name"
             },
             {
@@ -1401,7 +1398,7 @@ def installProfilePreservationMetadata(sa):
                     "label": "Agent Name"
                 },
                 "type": "input",
-                "defaultValue": "ESSArch Preservation Platform",
+                "defaultValue": "ESSArch",
                 "key": "agent_name"
             },
             {
