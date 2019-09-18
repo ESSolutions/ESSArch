@@ -423,23 +423,20 @@ def installDefaultUsers():
 
 def installDefaultPaths():
     dct = {
-        'path_mimetypes_definitionfile': '/ESSArch/config/mime.types',
-        'path_definitions': '/ESSArch/etp/env',
-        'path_gate_reception': '/ESSArch/data/gate/reception',
-        'path_preingest_prepare': '/ESSArch/data/etp/prepare',
-        'path_preingest_reception': '/ESSArch/data/etp/reception',
-        'path_ingest_reception': '/ESSArch/data/gate/reception',
-        'path_ingest_unidentified': '/ESSArch/data/eta/uip',
-        'reception': '/ESSArch/data/gate/reception',
-        'ingest': '/ESSArch/data/epp/ingest',
-        'access_workarea': '/ESSArch/data/epp/work',
-        'ingest_workarea': '/ESSArch/data/epp/work',
-        'disseminations': '/ESSArch/data/epp/disseminations',
-        'orders': '/ESSArch/data/epp/orders',
-        'verify': '/ESSArch/data/epp/verify',
-        'temp': '/ESSArch/data/epp/temp',
-        'appraisal_reports': '/ESSArch/data/epp/reports/appraisal',
-        'conversion_reports': '/ESSArch/data/epp/reports/conversion',
+        'mimetypes_definitionfile': '/ESSArch/config/mime.types',
+        'ingest_reception': '/ESSArch/data/ingest/reception',
+        'preingest_prepare': '/ESSArch/data/preingest/prepare',
+        'preingest_reception': '/ESSArch/data/preingest/reception',
+        'ingest_unidentified': '/ESSArch/data/ingest/uip',
+        'ingest': '/ESSArch/data/ingest/packages',
+        'access_workarea': '/ESSArch/data/workspace',
+        'ingest_workarea': '/ESSArch/data/workspace',
+        'disseminations': '/ESSArch/data/disseminations',
+        'orders': '/ESSArch/data/orders',
+        'verify': '/ESSArch/data/verify',
+        'temp': '/ESSArch/data/temp',
+        'appraisal_reports': '/ESSArch/data/reports/appraisal',
+        'conversion_reports': '/ESSArch/data/reports/conversion',
     }
 
     for key in dct:

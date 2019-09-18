@@ -603,7 +603,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if responsible.user_profile.current_organization is None:
             raise exceptions.ParseError('You must be part of an organization to prepare an IP')
 
-        prepare_path = Path.objects.get(entity="path_preingest_prepare").value
+        prepare_path = Path.objects.get(entity="preingest_prepare").value
         if object_identifier_value:
             ip_exists = InformationPackage.objects.filter(object_identifier_value=object_identifier_value).exists()
             if ip_exists:
@@ -817,7 +817,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         validate_xml_file = validators.get('validate_xml_file', False)
         validate_logical_physical_representation = validators.get('validate_logical_physical_representation', False)
 
-        dst_dir = Path.objects.cached('entity', 'path_preingest_reception', 'value')
+        dst_dir = Path.objects.cached('entity', 'preingest_reception', 'value')
         dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
         dst = os.path.join(dst_dir, dst_filename)
 
@@ -1816,8 +1816,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     def __init__(self, *args, **kwargs):
         self.logger = logging.getLogger('essarch.reception')
-        self.reception = Path.objects.get(entity="path_ingest_reception").value
-        self.uip = Path.objects.get(entity="path_ingest_unidentified").value
+        self.reception = Path.objects.get(entity="ingest_reception").value
+        self.uip = Path.objects.get(entity="ingest_unidentified").value
         super().__init__(*args, **kwargs)
 
     def get_queryset(self):
@@ -1893,7 +1893,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             "create_date", "object_size", "start_date", "end_date"
         ]
 
-        reception = Path.objects.values_list('value', flat=True).get(entity="reception")
+        reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
 
         contained = self.get_contained_packages(reception)
         extracted = self.get_extracted_packages(reception)
@@ -1923,7 +1923,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         return Response(new_ips)
 
     def retrieve(self, request, pk=None):
-        path = Path.objects.values_list('value', flat=True).get(entity="reception")
+        path = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
         fullpath = os.path.join(path, "%s.xml" % pk)
 
         if not os.path.exists(fullpath):
@@ -1949,7 +1949,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             logger.warn('Tried to prepare IP with id %s which already exists' % pk, extra={'user': request.user.pk})
             raise Conflict('IP with id {} already exists'.format(pk))
 
-        reception = Path.objects.values_list('value', flat=True).get(entity="reception")
+        reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
         xmlfile = normalize_path(os.path.join(reception, '%s.xml' % pk))
 
         if not os.path.isfile(xmlfile):
@@ -2080,7 +2080,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             profile_ip.LockedBy = request.user
             profile_ip.save()
 
-        reception = Path.objects.values_list('value', flat=True).get(entity="reception")
+        reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
 
         objid = ip.object_identifier_value
         xmlfile = os.path.join(reception, '%s.xml' % objid)
@@ -2258,7 +2258,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     @action(detail=True, methods=['get'])
     def files(self, request, pk=None):
-        reception = Path.objects.get(entity="reception").value
+        reception = Path.objects.get(entity='ingest_reception').value
         path = request.query_params.get('path', '').rstrip('/ ')
         download = request.query_params.get('download', False)
 
@@ -2298,7 +2298,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if not request.user.has_perm('ip.can_receive_remote_files'):
             raise exceptions.PermissionDenied
 
-        path = Path.objects.get(entity="reception").value
+        path = Path.objects.get(entity='ingest_reception').value
 
         f = request.FILES['file']
         content_range = request.META.get('HTTP_CONTENT_RANGE', 'bytes 0-0/0')
@@ -2325,7 +2325,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if not request.user.has_perm('ip.can_receive_remote_files'):
             raise exceptions.PermissionDenied
 
-        path = Path.objects.get(entity="reception").value
+        path = Path.objects.get(entity='ingest_reception').value
 
         md5 = request.data['md5']
         filepath = request.data['path']
@@ -2400,7 +2400,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         fname = request.data.get('filename')
         spec_data = request.data.get('specification_data', {})
 
-        uip = Path.objects.get(entity="path_ingest_unidentified").value
+        uip = Path.objects.get(entity="ingest_unidentified").value
         container_file = os.path.join(uip, fname)
 
         if not os.path.isfile(container_file):

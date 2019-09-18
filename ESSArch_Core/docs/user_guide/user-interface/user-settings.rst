@@ -23,8 +23,8 @@ ESSArch and in which order they appear.
 IP view type
 ------------
 
-In ESSArch Preservation Platform (EPP) there is an additinal setting - **IP
-view type** that allows the user to choose what to see in the IP list view.
+For nested IP list views, the user can select what should be on the top level,
+for each row.
 
  * IP - The first generation of each AIC with all other generations nested
  * AIC - The AIC with all generations nested

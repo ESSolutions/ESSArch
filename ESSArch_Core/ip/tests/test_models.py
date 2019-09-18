@@ -793,7 +793,7 @@ class InformationPackageGenerationTests(TestCase):
 
 class InformationPackageCreatePreservationWorkflowTests(TestCase):
     def test_preserve_container(self):
-        Path.objects.create(entity='reception', value='reception')
+        Path.objects.create(entity='ingest_reception', value='ingest_reception')
         Path.objects.create(entity='temp', value='temp')
         cache_storage = StorageMethod.objects.create()
         cache_storage_target = StorageTarget.objects.create(name='cache target')

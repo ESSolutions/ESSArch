@@ -37,7 +37,7 @@ class FormatIdentifier:
     def _init_mimetypes(self):
         try:
             mimetypes_file = Path.objects.get(
-                entity="path_mimetypes_definitionfile"
+                entity="mimetypes_definitionfile"
             ).value
             if os.path.isfile(mimetypes_file):
                 logger.debug('Initiating mimetypes from %s' % mimetypes_file)
