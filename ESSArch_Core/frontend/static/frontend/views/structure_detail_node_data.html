@@ -9,7 +9,7 @@
       class="btn btn-primary"
       ng-if="vm.structure.is_editable"
       permission
-      permission-only="'tags.add_structureunitrelation'"
+      permission-only="'tags.change_structureunit'"
       ng-click="vm.addNodeRelationModal(vm.node)"
     >
       {{'ACCESS.ADD_RELATION' | translate}}
@@ -34,19 +34,14 @@
       <th>
         {{'ACCESS.VALID_DATE_END' | translate}}
       </th>
-      <th
-        class="shrink"
-        ng-if="vm.structure.is_editable"
-        permission
-        permission-only="'tags.change_structureunitrelation'"
-      >
+      <th class="shrink" ng-if="vm.structure.is_editable" permission permission-only="'tags.change_structureunit'">
         {{'EDIT' | translate}}
       </th>
       <th
         class="white-space-nowrap shrink"
         ng-if="vm.structure.is_editable"
         permission
-        permission-only="'tags.delete_structureunitrelation'"
+        permission-only="'tags.change_structureunit'"
       >
         {{'REMOVE' | translate}}
       </th>
@@ -73,7 +68,7 @@
         class="text-center shrink"
         ng-if="vm.structure.is_editable"
         permission
-        permission-only="'tags.change_structureunitrelation'"
+        permission-only="'tags.change_structureunit'"
       >
         <button
           class="btn btn-default btn-sm fas fa-edit"
@@ -87,7 +82,7 @@
         class="text-center shrink"
         ng-if="vm.structure.is_editable"
         permission
-        permission-only="'tags.delete_structureunitrelation'"
+        permission-only="'tags.change_structureunit'"
       >
         <button
           class="btn btn-default btn-sm fas fa-trash-alt"

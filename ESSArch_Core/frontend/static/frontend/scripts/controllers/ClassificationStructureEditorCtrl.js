@@ -356,7 +356,7 @@ export default class ClassificationStructureEditorCtrl {
           };
           const addRelation = {
             label: $translate.instant('ACCESS.ADD_RELATION'),
-            _disabled: node.original.root || !myService.checkPermission('tags.add_structureunitrelation'),
+            _disabled: node.original.root || !myService.checkPermission('tags.change_structureunit'),
             action: function() {
               vm.addNodeRelationModal(node.original);
             },
