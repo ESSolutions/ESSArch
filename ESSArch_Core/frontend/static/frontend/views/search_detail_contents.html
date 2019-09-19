@@ -17,7 +17,9 @@
           </td>
           <td class="cursor-pointer">{{x.name}}</td>
           <td class="cursor-pointer">
-            {{x._source.unit_dates.date}}
+            <div ng-if="x.start_date !== null || x.end_date !== null" class="white-space-nowrap">
+              {{x.start_date | date:'yyyy-MM-dd'}}&nbsp;-&nbsp;{{x.end_date | date:'yyyy-mm-dd'}}
+            </div>
           </td>
           <td class="cursor-pointer">
             <button
