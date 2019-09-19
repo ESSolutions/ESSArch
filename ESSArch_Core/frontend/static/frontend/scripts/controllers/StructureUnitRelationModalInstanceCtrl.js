@@ -1,8 +1,23 @@
 export default class StructureUnitRelationModalInstanceCtrl {
-  constructor($uibModalInstance, appConfig, data, $http, EditMode, $translate, $scope, $rootScope, StructureName) {
+  constructor(
+    $uibModalInstance,
+    appConfig,
+    data,
+    $http,
+    EditMode,
+    $translate,
+    $scope,
+    $rootScope,
+    StructureName,
+    $timeout
+  ) {
     const $ctrl = this;
     $ctrl.data = data;
     $ctrl.isTemplate = true;
+    const skipChange = {
+      archive: false,
+      structure: false,
+    };
     $ctrl.isTemplateOptions = [
       {
         label: $translate.instant('ACCESS.TEMPLATE'),
@@ -22,26 +37,49 @@ export default class StructureUnitRelationModalInstanceCtrl {
       revise_date: null,
       structure_unit: null,
     };
-    $ctrl.structure = {
-      value: null,
-      options: [],
-    };
+    $ctrl.archiveModel = {archive: null};
+    $ctrl.structureModel = {structure: null};
     $ctrl.unit = {
       value: null,
       options: [],
     };
-    $ctrl.options = {};
+    $ctrl.options = {
+      structure: [],
+      archive: [],
+    };
     $ctrl.initStructureSearch = null;
     $ctrl.initUnitSearch = null;
 
-    $ctrl.getStructures = function(search) {
+    $ctrl.getArchives = function(search) {
+      return $http({
+        url: appConfig.djangoUrl + 'tags/',
+        mathod: 'GET',
+        params: {page: 1, page_size: 10, index: 'archive', search: search},
+      }).then(function(response) {
+        $ctrl.options.archive = response.data.map(function(x) {
+          x.current_version.name_with_dates =
+            x.current_version.name +
+            (x.current_version.start_date !== null || x.current_version.end_date != null
+              ? ' (' +
+                (x.current_version.start_date !== null ? $filter('date')(x.current_version.start_date, 'yyyy') : '') +
+                ' - ' +
+                (x.current_version.end_date !== null ? $filter('date')(x.current_version.end_date, 'yyyy') : '') +
+                ')'
+              : '');
+          return x.current_version;
+        });
+        return $ctrl.options.archive;
+      });
+    };
+
+    $ctrl.getStructures = function(search, archive) {
       return $http({
         url: appConfig.djangoUrl + 'structures/',
         method: 'GET',
-        params: {search: search, page: 1, page_size: 10, is_template: $ctrl.isTemplate},
+        params: {search: search, archive: archive, page: 1, page_size: 10, is_template: $ctrl.isTemplate},
       }).then(function(response) {
         StructureName.parseStructureNames(response.data);
-        $ctrl.structure.options = response.data;
+        $ctrl.options.structure = response.data;
         return response.data;
       });
     };
@@ -70,10 +108,14 @@ export default class StructureUnitRelationModalInstanceCtrl {
         $ctrl.relation = angular.copy(data.relation);
         $ctrl.relation.type = angular.copy(data.relation.type.id);
         $ctrl.relation.structure_unit = angular.copy(data.relation.structure_unit.id);
-        $ctrl.structure.value = angular.copy(data.relation.structure_unit.structure.id);
-        $ctrl.initStructureSearch = data.relation.structure_unit.structure.name;
+        $ctrl.structureModel.structure = angular.copy(data.relation.structure_unit.structure.id);
+        $ctrl.archiveModel.archive = angular.copy(data.relation.structure_unit.archive);
+        $ctrl.initStructureSearch = data.relation.structure_unit.structure.id;
         $ctrl.initUnitSearch = data.relation.structure_unit.name;
+        $ctrl.initArchiveSearch = data.relation.structure_unit.archive;
         $ctrl.isTemplate = data.relation.structure_unit.structure.is_template;
+        skipChange.archive = true;
+        skipChange.structure = true;
       }
       return $http({
         url: appConfig.djangoUrl + 'node-relation-types/',
@@ -87,15 +129,61 @@ export default class StructureUnitRelationModalInstanceCtrl {
       });
     };
 
+    $ctrl.isTemplateChange = newVal => {
+      $ctrl.archiveModel.archive = null;
+      $ctrl.structureModel.structure = null;
+      $ctrl.relation.structure_unit = null;
+    };
+
     $ctrl.buildStructureForm = function() {
-      $ctrl.structureFields = [
+      $ctrl.archiveFields = [
         {
           type: 'uiselect',
-          key: 'value',
+          key: 'archive',
           templateOptions: {
             required: true,
             options: function() {
-              return $ctrl.structure.options;
+              return $ctrl.options.archive;
+            },
+            valueProp: 'id',
+            labelProp: 'name_with_dates',
+            placeholder: $translate.instant('ACCESS.ARCHIVE'),
+            label: $translate.instant('ACCESS.ARCHIVE'),
+            clearEnabled: true,
+            appendToBody: false,
+            optionsFunction: function(search) {
+              return $ctrl.options.archive;
+            },
+            refresh: function(search) {
+              if ($ctrl.initArchiveSearch && (angular.isUndefined(search) || search === null || search === '')) {
+                search = angular.copy($ctrl.initArchiveSearch);
+                $ctrl.initArchiveSearch = null;
+              }
+              $ctrl.getArchives(search).then(function() {
+                this.options = $ctrl.options.archive;
+              });
+            },
+          },
+          expressionProperties: {
+            'templateOptions.onChange': function($modelValue) {
+              if (!skipChange.archive) {
+                $ctrl.structureModel.structure = null;
+                $ctrl.relation.structure_unit = null;
+              } else {
+                skipChange.archive = false;
+              }
+            },
+          },
+        },
+      ];
+      $ctrl.structureFields = [
+        {
+          type: 'uiselect',
+          key: 'structure',
+          templateOptions: {
+            required: true,
+            options: function() {
+              return $ctrl.options.structure;
             },
             valueProp: 'id',
             labelProp: 'name_with_version',
@@ -108,9 +196,18 @@ export default class StructureUnitRelationModalInstanceCtrl {
                 search = angular.copy($ctrl.initStructureSearch);
                 $ctrl.initStructureSearch = null;
               }
-              $ctrl.getStructures(search).then(function() {
-                this.options = $ctrl.structure.options;
+              $ctrl.getStructures(search, $ctrl.archiveModel.archive).then(function() {
+                this.options = $ctrl.options.structure;
               });
+            },
+          },
+          expressionProperties: {
+            'templateOptions.onChange': function($modelValue) {
+              if (!skipChange.structure) {
+                $ctrl.relation.structure_unit = null;
+              } else {
+                skipChange.structure = false;
+              }
             },
           },
         },
@@ -139,9 +236,11 @@ export default class StructureUnitRelationModalInstanceCtrl {
                 search = angular.copy($ctrl.initUnitSearch);
                 $ctrl.initUnitSearch = null;
               }
-              $ctrl.getStructureUnits(search, $ctrl.structure.value).then(function() {
-                this.options = $ctrl.unit.options;
-              });
+              $ctrl
+                .getStructureUnits(search, $ctrl.structureModel.structure, $ctrl.archiveModel.archive)
+                .then(function() {
+                  this.options = $ctrl.unit.options;
+                });
             },
           },
         },

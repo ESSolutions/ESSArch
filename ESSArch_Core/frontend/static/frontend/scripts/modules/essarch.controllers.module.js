@@ -865,6 +865,7 @@ export default angular
     '$scope',
     '$rootScope',
     'StructureName',
+    '$timeout',
     StructureUnitRelationModalInstanceCtrl,
   ])
   .controller('StructureVersionModalInstanceCtrl', [

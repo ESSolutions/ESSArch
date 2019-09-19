@@ -12,11 +12,18 @@
       <select
         class="form-control"
         ng-model="$ctrl.isTemplate"
+        ng-change="$ctrl.isTemplateChange($ctrl.isTemplate)"
         ng-options="x.value as x.label for x in $ctrl.isTemplateOptions"
       >
       </select>
     </div>
-    <formly-form model="$ctrl.structure" fields="$ctrl.structureFields" options="{}"></formly-form>
+    <formly-form
+      ng-if="!$ctrl.isTemplate"
+      model="$ctrl.archiveModel"
+      fields="$ctrl.archiveFields"
+      options="{}"
+    ></formly-form>
+    <formly-form model="$ctrl.structureModel" fields="$ctrl.structureFields" options="{}"></formly-form>
     <formly-form model="$ctrl.relation" fields="$ctrl.fields" options="{}"></formly-form>
   </div>
   <div class="modal-footer">
