@@ -84,7 +84,7 @@
   {% for volume in serie.volumes %}
 
     <div class="print-label">
-      <div class="authority overflow">{% for agent in agents %}{% if agent.type|stringformat:"s" == "arkivbildare" %}{{agent.agent}}{% endif %} {% endfor %}</div>
+      <div class="authority overflow">{% for agent in agents %}{% if agent.type|stringformat:"s" == "arkivbildare" or agent.type|stringformat:"s" == "creator" %}{{agent.agent}}{% endif %} {% endfor %}</div>
       <div class="series_title overflow">{{ serie.name }}</div>
       <div class="vol_desc overflow">{{volume.tag.current_version.name}}</div>
       <div class="vol_date overflow">{{volume.tag.current_version.start_date | date:"Y"}} - {{volume.tag.current_version.end_date | date:"Y"}}</div>
