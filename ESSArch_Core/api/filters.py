@@ -27,6 +27,7 @@ import operator
 from functools import reduce
 
 import django_filters
+from django.db import connection
 from django.db.models import F, Q, UUIDField
 from django.db.models.constants import LOOKUP_SEP
 from django_filters import rest_framework as filters
@@ -62,6 +63,9 @@ class SearchFilter(DRFSearchFilter):
     """
 
     def filter_queryset(self, request, queryset, view):
+        if connection.vendor == 'postgresql':
+            return super().filter_queryset(request, queryset, view)
+
         search_fields = self.get_search_fields(view, request)
         search_terms = self.get_search_terms(request)
 
