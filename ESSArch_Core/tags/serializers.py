@@ -851,7 +851,7 @@ class ComponentWriteSerializer(serializers.Serializer):
             structure_unit = validated_data.pop('structure_unit', None)
             parent = validated_data.pop('parent', None)
             structure = validated_data.pop('structure', None)
-            notes_data = validated_data.pop('notes', None)
+            notes_data = validated_data.pop('notes', [])
             identifiers_data = validated_data.pop('identifiers', [])
             information_package = validated_data.pop('information_package', None)
 
@@ -914,7 +914,7 @@ class ComponentWriteSerializer(serializers.Serializer):
         parent = validated_data.pop('parent', None)
         structure = validated_data.pop('structure', None)
         notes_data = validated_data.pop('notes', None)
-        identifiers_data = validated_data.pop('identifiers', [])
+        identifiers_data = validated_data.pop('identifiers', None)
         information_package = validated_data.pop('information_package', None)
 
         if identifiers_data is not None:
