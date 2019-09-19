@@ -1000,7 +1000,7 @@ class ArchiveWriteSerializer(serializers.Serializer):
         with transaction.atomic():
             agent = validated_data.pop('archive_creator')
             structures = validated_data.pop('structures')
-            notes_data = validated_data.pop('notes', None)
+            notes_data = validated_data.pop('notes', [])
             identifiers_data = validated_data.pop('identifiers', [])
 
             tag = Tag.objects.create()
@@ -1030,7 +1030,7 @@ class ArchiveWriteSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         structures = validated_data.pop('structures', [])
         notes_data = validated_data.pop('notes', None)
-        identifiers_data = validated_data.pop('identifiers', [])
+        identifiers_data = validated_data.pop('identifiers', None)
 
         if identifiers_data is not None:
             NodeIdentifier.objects.filter(tag_version=instance).delete()
