@@ -68,9 +68,11 @@ export default class AccessIpCtrl {
 
     //Destroy watchers on state change
     $transitions.onSuccess({}, function($transition) {
-      watchers.forEach(function(watcher) {
-        watcher();
-      });
+      if ($transition.from().name !== $transition.to().name) {
+        watchers.forEach(function(watcher) {
+          watcher();
+        });
+      }
     });
 
     $scope.selectedAmongOthers = function(id) {
