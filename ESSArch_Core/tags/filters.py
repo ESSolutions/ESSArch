@@ -5,7 +5,11 @@ from ESSArch_Core.tags.models import Structure, StructureUnit, Tag
 
 
 class StructureFilter(filters.FilterSet):
+    archive = filters.UUIDFilter(method='filter_archive')
     latest_version = filters.BooleanFilter(label='latest version', method='filter_latest_version')
+
+    def filter_archive(self, queryset, name, value):
+        return queryset.filter(tagstructure__tag__versions__pk=value)
 
     def filter_latest_version(self, queryset, name, value):
         sub_query = queryset.filter(version_link=OuterRef('version_link'))\
@@ -19,7 +23,7 @@ class StructureFilter(filters.FilterSet):
 
     class Meta:
         model = Structure
-        fields = ['type', 'is_template', 'published']
+        fields = ['type', 'is_template', 'published', 'archive']
 
 
 class StructureUnitFilter(filters.FilterSet):
