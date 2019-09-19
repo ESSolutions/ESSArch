@@ -50,14 +50,16 @@ export default class ClassificationModalInstanceCtrl {
               }
               EditMode.enable();
             } else {
-              const url = appConfig.djangoUrl + 'structure-units/' + data.node.id + '/children/';
-              $http.head(url).then(function(childrenResponse) {
-                const count = parseInt(childrenResponse.headers('Count'));
-                if (!isNaN(count)) {
-                  $ctrl.newNode.reference_code = (count + 1).toString();
-                }
-                EditMode.enable();
-              });
+              if (data.node._index !== 'archive') {
+                const url = appConfig.djangoUrl + 'structure-units/' + data.node.id + '/children/';
+                $http.head(url).then(function(childrenResponse) {
+                  const count = parseInt(childrenResponse.headers('Count'));
+                  if (!isNaN(count)) {
+                    $ctrl.newNode.reference_code = (count + 1).toString();
+                  }
+                  EditMode.enable();
+                });
+              }
             }
             $ctrl.structureUnitTypes = response.data;
             $ctrl.buildNodeForm();
