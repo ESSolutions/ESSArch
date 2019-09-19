@@ -301,7 +301,7 @@ class NodeRelationTypeViewSet(viewsets.ModelViewSet):
 class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = StructureUnit.objects.select_related('structure')
     serializer_class = StructureUnitSerializer
-    permission_classes = (ActionPermissions, AddStructureUnit, ChangeStructureUnit, DeleteStructureUnit,)
+    permission_classes = (AddStructureUnit, ChangeStructureUnit, DeleteStructureUnit,)
     filter_backends = (DjangoFilterBackend, SearchFilter,)
     filter_class = StructureUnitFilter
     search_fields = ('name',)

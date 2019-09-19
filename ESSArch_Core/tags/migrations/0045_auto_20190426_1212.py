@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='structureunit',
-            options={'permissions': (('add_structureunit_instance', 'Can add structure unit instances'), ('change_structureunit_instance', 'Can edit instances of structure units'), ('delete_structureunit_instance', 'Can delete instances of structure units'), ('move_structureunit_instance', 'Can move instances of structure units'))},
+            options={'permissions': (('add_structureunit_instance', 'Can add structure unit instances'), ('change_structureunit_instance', 'Can change instances of structure units'), ('delete_structureunit_instance', 'Can delete instances of structure units'), ('move_structureunit_instance', 'Can move instances of structure units'))},
         ),
     ]
