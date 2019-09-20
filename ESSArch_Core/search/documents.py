@@ -21,6 +21,14 @@ class DocumentBase(es.Document):
         raise NotImplementedError
 
     @classmethod
+    def from_queryset(cls, qs, to_dict=False):
+        for obj in qs:
+            if to_dict:
+                yield cls.from_obj(obj).to_dict(include_meta=True)
+            else:
+                yield cls.from_obj(obj)
+
+    @classmethod
     def get_index_queryset(cls):
         """
         Base queryset for indexing the document.

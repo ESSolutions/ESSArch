@@ -27,7 +27,11 @@ from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.profiles.serializers import SubmissionAgreementSerializer
-from ESSArch_Core.tags.documents import Archive, Component
+from ESSArch_Core.tags.documents import (
+    Archive,
+    Component,
+    StructureUnitDocument,
+)
 from ESSArch_Core.tags.models import (
     Delivery,
     DeliveryType,
@@ -1022,7 +1026,9 @@ class ArchiveWriteSerializer(serializers.Serializer):
             tag.save()
 
             for structure in structures:
-                structure.create_template_instance(tag)
+                structure_instance, _ = structure.create_template_instance(tag)
+                for instance_unit in structure_instance.units.all():
+                    StructureUnitDocument.from_obj(instance_unit).save()
 
             org = self.context['request'].user.user_profile.current_organization
             org.add_object(tag)
@@ -1056,7 +1062,9 @@ class ArchiveWriteSerializer(serializers.Serializer):
         with transaction.atomic():
             for structure in structures:
                 if not TagStructure.objects.filter(tag=instance.tag, structure__template=structure).exists():
-                    structure.create_template_instance(instance.tag)
+                    structure_instance, _ = structure.create_template_instance(instance.tag)
+                    for instance_unit in structure_instance.units.all():
+                        StructureUnitDocument.from_obj(instance_unit).save()
 
             TagVersion.objects.filter(pk=instance.pk).update(**validated_data)
             instance.refresh_from_db()

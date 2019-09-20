@@ -341,7 +341,9 @@ class VisualImporter(BaseImporter):
             task=task,
         )
 
-        _, tag_structure = structure.create_template_instance(tag)
+        structure_instance, tag_structure = structure.create_template_instance(tag)
+        for instance_unit in structure_instance.units.all():
+            StructureUnitDocument.from_obj(instance_unit).save()
 
         agent_tag_link = AgentTagLink.objects.create(
             agent=agent,

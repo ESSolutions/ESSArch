@@ -537,7 +537,10 @@ class KlaraImporter(BaseImporter):
             rule_convention_type=rule_convention_type,
             task=task,
         )
-        _, tag_structure = structure.create_template_instance(tag)
+        structure_instance, tag_structure = structure.create_template_instance(tag)
+
+        for instance_unit in structure_instance.units.all():
+            StructureUnitDocument.from_obj(instance_unit).save()
 
         agent_hash = self.build_agent_hash(
             el.xpath('ObjectParts/General/Archive.ArchiveOrigID')[0].text,

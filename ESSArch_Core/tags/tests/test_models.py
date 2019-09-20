@@ -88,8 +88,7 @@ class StructureTestCase(TestCase):
 
         new_version.publish()
 
-    @mock.patch('ESSArch_Core.tags.documents.StructureUnitDocument')
-    def test_publish_new_version_with_instances(self, mock_unit):
+    def test_publish_new_version_with_instances(self):
         s_type = StructureType.objects.create()
         su_type = StructureUnitType.objects.create(structure_type=s_type)
         structure = Structure.objects.create(type=s_type, is_template=True, published=True)

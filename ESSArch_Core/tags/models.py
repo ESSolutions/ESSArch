@@ -164,7 +164,7 @@ class RuleConventionType(models.Model):
 
 class Structure(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255, blank=False)
+    name = models.CharField(max_length=255, blank=False, db_index=True)
     description = models.TextField(blank=True)
     type = models.ForeignKey(StructureType, on_delete=models.PROTECT)
     template = models.ForeignKey(
@@ -174,7 +174,7 @@ class Structure(models.Model):
     is_editable = models.BooleanField(_('is editable'), default=True)
     is_template = models.BooleanField(_('is template'))
     published = models.BooleanField(_('published'), default=False)
-    published_date = models.DateTimeField(null=True)
+    published_date = models.DateTimeField(null=True, db_index=True)
     version = models.CharField(max_length=255, blank=False, default='1.0')
     version_link = models.UUIDField(default=uuid.uuid4, null=False)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='created_structures')
@@ -224,19 +224,29 @@ class Structure(models.Model):
         )
 
     def create_template_instance(self, archive_tag):
-        from ESSArch_Core.tags.documents import StructureUnitDocument
-
         new_structure = self._create_template_instance()
 
         archive_tagstructure = TagStructure.objects.create(tag=archive_tag, structure=new_structure)
         new_structure.tagstructure_set.add(archive_tagstructure)
 
         # create descendants from structure
-        for unit in StructureUnit.objects.filter(structure=self):
-            new_unit = unit.create_template_instance(new_structure)
-            StructureUnitDocument.from_obj(new_unit).save()
+        for unit in self.units.prefetch_related('notes', 'identifiers').select_related('parent'):
+            unit.create_template_instance(new_structure)
 
         return new_structure, archive_tagstructure
+
+    def _get_unit_by_ref_cache_key(self, reference_code):
+        return '{}_ref_{}'.format(str(self.pk), reference_code)
+
+    def get_unit_by_ref(self, reference_code):
+        cache_key = self._get_unit_by_ref_cache_key(reference_code)
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        unit = self.units.get(reference_code=reference_code)
+        cache.set(cache_key, unit.pk, 60)
+        return unit.pk
 
     def _create_new_version(self, version_name):
         return Structure.objects.create(
@@ -288,6 +298,7 @@ class Structure(models.Model):
         return self.is_compatible_with_other_structure(last_version)
 
     def publish(self):
+        from ESSArch_Core.tags.documents import StructureUnitDocument
         if self.is_new_version():
             # TODO: What if multiple users wants to create a new version in parallel?
             # Use permissions to stop it?
@@ -300,6 +311,8 @@ class Structure(models.Model):
                     structure_unit__isnull=True, parent__isnull=True
                 )
                 new_instance, new_archive_tag_structure = self.create_template_instance(archive_tag_structure.tag)
+                for instance_unit in new_instance.units.all():
+                    StructureUnitDocument.from_obj(instance_unit).save()
 
                 archive_tag_structure.copy_descendants_to_new_structure(new_instance)
 
@@ -386,7 +399,7 @@ class StructureUnit(MPTTModel):
     )
     description = models.TextField(blank=True)
     comment = models.TextField(blank=True)
-    reference_code = models.CharField(max_length=255)
+    reference_code = models.CharField(max_length=255, db_index=True)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='structure_units')
@@ -404,10 +417,16 @@ class StructureUnit(MPTTModel):
     )
 
     @transaction.atomic
-    def copy_to_structure(self, structure):
+    def copy_to_structure(self, structure, template_unit=None):
+        old_parent_ref_code = getattr(self.parent, 'reference_code', None)
+        parent = None
+
+        if old_parent_ref_code is not None:
+            parent = structure.get_unit_by_ref(old_parent_ref_code)
+
         new_unit = StructureUnit.objects.create(
             structure=structure,
-            parent=None,
+            parent_id=parent,
             name=self.name,
             type=self.type,
             description=self.description,
@@ -415,26 +434,22 @@ class StructureUnit(MPTTModel):
             reference_code=self.reference_code,
             start_date=self.start_date,
             end_date=self.end_date,
+            template=template_unit,
         )
 
-        old_parent_ref_code = getattr(self.parent, 'reference_code', None)
-
-        if old_parent_ref_code is not None:
-            parent = structure.units.get(reference_code=old_parent_ref_code)
-            new_unit.parent = parent
-
-        new_unit.save()
+        ref_cache_key = structure._get_unit_by_ref_cache_key(self.reference_code)
+        cache.set(ref_cache_key, new_unit.pk, 60)
 
         for identifier in self.identifiers.all():
             NodeIdentifier.objects.create(
-                structure_unit=new_unit,
+                structure_unit_id=new_unit.pk,
                 identifier=identifier.identifier,
                 type=identifier.type,
             )
 
         for note in self.notes.all():
             NodeNote.objects.create(
-                structure_unit=new_unit,
+                structure_unit_id=new_unit.pk,
                 text=note.text,
                 type=note.type,
                 href=note.href,
@@ -445,12 +460,9 @@ class StructureUnit(MPTTModel):
         return new_unit
 
     def create_template_instance(self, structure_instance):
-        new_unit = self.copy_to_structure(structure_instance)
-        new_unit.template = self
-        new_unit.save()
+        new_unit = self.copy_to_structure(structure_instance, template_unit=self)
 
         new_archive_structure = new_unit.structure.tagstructure_set.first().get_root()
-
         for relation in StructureUnitRelation.objects.filter(structure_unit_a=self):
             if relation.structure_unit_b.structure.is_template:
                 try:
