@@ -9,16 +9,6 @@ from ESSArch_Core import BASE_DIR
 PROJECT_SHORTNAME = 'ESSArch'
 PROJECT_NAME = 'ESSArch'
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
-
-ESSARCH_WORKFLOW_POLLERS = {
-    'dir': {
-        'class': 'ESSArch_Core.workflow.polling.backends.directory.DirectoryWorkflowPoller',
-        'path': '/ESSArch/data/eta/reception/eft',
-    }
-}
-
 try:
     from local_essarch_settings import REDIS_URL
 except ImportError:
