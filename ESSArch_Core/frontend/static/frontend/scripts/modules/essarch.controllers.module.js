@@ -824,6 +824,7 @@ export default angular
     'StructureName',
     'AgentName',
     '$transitions',
+    'StructureUnitRelation',
     SearchDetailCtrl,
   ])
   .controller('SearchIpCtrl', [

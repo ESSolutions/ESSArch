@@ -21,7 +21,8 @@ export default class SearchDetailCtrl {
     $interval,
     StructureName,
     AgentName,
-    $transitions
+    $transitions,
+    StructureUnitRelation
   ) {
     const PAGE_SIZE = 10;
 
@@ -29,6 +30,7 @@ export default class SearchDetailCtrl {
     $controller('TagsCtrl', {$scope: $scope, vm: vm});
     $scope.StructureName = StructureName;
     $scope.angular = angular;
+    $scope.StructureUnitRelation = StructureUnitRelation;
     vm.url = appConfig.djangoUrl;
     vm.unavailable = false;
     vm.structure = null;

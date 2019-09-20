@@ -32,6 +32,7 @@ import storageMedium from '../services/storageMedium';
 import storageObject from '../services/storageObject';
 import structure from '../services/structure';
 import structureName from '../services/structureName';
+import structureUnitRelation from '../services/structureUnitRelation';
 import sysinfo from '../services/sysinfo';
 import tag from '../services/tag';
 import tapeDrive from '../services/tapeDrive';
@@ -105,6 +106,7 @@ export default angular
   .factory('StorageObject', ['$resource', 'appConfig', storageObject])
   .factory('Structure', ['$resource', 'appConfig', structure])
   .factory('StructureName', ['$filter', '$translate', structureName])
+  .factory('StructureUnitRelation', [structureUnitRelation])
   .factory('Sysinfo', ['$resource', 'appConfig', sysinfo])
   .factory('Tag', ['IP', '$resource', 'appConfig', tag])
   .factory('TapeDrive', ['$resource', 'appConfig', tapeDrive])

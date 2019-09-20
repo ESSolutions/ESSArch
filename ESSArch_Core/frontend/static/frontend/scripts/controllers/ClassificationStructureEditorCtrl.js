@@ -14,7 +14,8 @@ export default class ClassificationStructureEditorCtrl {
     $stateParams,
     $rootScope,
     myService,
-    listViewService
+    listViewService,
+    StructureUnitRelation
   ) {
     const vm = this;
     vm.structure = null;
@@ -23,6 +24,7 @@ export default class ClassificationStructureEditorCtrl {
     vm.manuallyReload = false;
     vm.initialSearch = null;
     $scope.angular = angular;
+    $scope.StructureUnitRelation = StructureUnitRelation;
     vm.structureTypes = [];
     vm.structureType = null;
     vm.$onInit = function() {

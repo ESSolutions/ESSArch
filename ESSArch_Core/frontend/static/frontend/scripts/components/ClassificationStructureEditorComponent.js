@@ -18,6 +18,7 @@ export default {
     '$rootScope',
     'myService',
     'listViewService',
+    'StructureUnitRelation',
     ClassificationStructureEditorCtrl,
   ],
   controllerAs: 'vm',

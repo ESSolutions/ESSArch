@@ -88,7 +88,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="x in vm.record.related_structure_units" class="selectable">
+            <tr
+              ng-repeat="x in vm.record.related_structure_units"
+              class="selectable"
+              ui-state="StructureUnitRelation.getRelatedStructureUnitLinkState(x.structure_unit)"
+              ui-state-params="StructureUnitRelation.getRelatedStructureUnitLinkParams(x.structure_unit)"
+            >
               <td>
                 {{x.structure_unit.name}}
               </td>
