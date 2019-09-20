@@ -956,7 +956,7 @@ export default class SearchDetailCtrl {
         const versions = angular.copy(vm.record.versions);
       }
       if (node) {
-        vm.selectRecord(null, {node: {original: node}, action: 'select_node'});
+        $state.go('home.archivalDescriptions.search.component', {id: node._id}, {reload: true});
       }
     };
 
