@@ -768,10 +768,11 @@ export default angular
   ])
   .controller('RemoveStructureUnitModalInstanceCtrl', [
     'data',
+    '$http',
+    'appConfig',
     'Notifications',
     '$uibModalInstance',
     '$translate',
-    'Structure',
     RemoveStructureUnitModalInstanceCtrl,
   ])
   .controller('RestrictedCtrl', ['$scope', RestrictedCtrl])
