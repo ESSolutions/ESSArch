@@ -40,4 +40,4 @@ requests==2.22.0
 requests_toolbelt==0.9.1
 tenacity==5.1.1
 wand==0.5.7
-weasyprint==48
+weasyprint==50
