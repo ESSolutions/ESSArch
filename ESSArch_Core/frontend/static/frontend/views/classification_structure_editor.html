@@ -170,6 +170,9 @@
           </div>
           <div ng-if="vm.node !== null" class="node-detail w-100 p-base">
             <h3><b>{{vm.node.reference_code}}</b> {{vm.node.name}}</h3>
+            <p ng-if="vm.node.version" class="m-0">
+              {{'VERSION' | translate}}:&nbsp;{{vm.node.version}}
+            </p>
             <p ng-if="vm.record.description && vm.record.description !== ''">{{vm.record.description}}</p>
             <h4 class="m-0 py-base">
               {{vm.node.root ? vm.node.structureType.name : vm.node.type.name}}
