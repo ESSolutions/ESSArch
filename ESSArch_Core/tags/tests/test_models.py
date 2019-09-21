@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.test import TestCase
 
 from ESSArch_Core.tags.models import (
@@ -86,7 +88,8 @@ class StructureTestCase(TestCase):
 
         new_version.publish()
 
-    def test_publish_new_version_with_instances(self):
+    @mock.patch('ESSArch_Core.tags.documents.StructureUnitDocument')
+    def test_publish_new_version_with_instances(self, mock_unit):
         s_type = StructureType.objects.create()
         su_type = StructureUnitType.objects.create(structure_type=s_type)
         structure = Structure.objects.create(type=s_type, is_template=True, published=True)
