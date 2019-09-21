@@ -1,5 +1,3 @@
-from unittest import mock
-
 from django.test import TestCase
 
 from ESSArch_Core.tags.models import (
