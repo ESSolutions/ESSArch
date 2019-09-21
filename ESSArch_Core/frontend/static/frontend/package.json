@@ -89,6 +89,9 @@
     "sass-loader": "^8.0.0",
     "select2": "~4.0.10",
     "source-map-loader": "^0.2.4",
+    "stylelint": "^11.0.0",
+    "stylelint-config-recommended-scss": "^4.0.0",
+    "stylelint-scss": "^3.11.1",
     "ts-loader": "^6.0.4",
     "typescript": "^3.6.3",
     "ua-parser-js": "^0.7.20",
@@ -112,6 +115,7 @@
     "pree2e": "yarn run update-webdriver",
     "e2e": "protractor e2e-tests/protractor.conf.js",
     "prettier": "prettier --ignore-path ../../../../.prettierignore",
-    "lint": "eslint \"*/**/*.{js,ts,tsx}\""
+    "lint": "eslint \"*/**/*.{js,ts,tsx}\"",
+    "stylelint": "stylelint \"styles/**/*.scss\""
   }
 }

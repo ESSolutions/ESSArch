@@ -9,3 +9,10 @@
   hooks:
     - id: isort
       args: [--filter-files]
+
+- repo: https://github.com/awebdeveloper/pre-commit-stylelint
+  rev: 'c4c991cd38b0218735858716b09924f8b20e3812'
+  hooks:
+    - id: stylelint
+      additional_dependencies: ['stylelint', 'stylelint-config-recommended-scss', 'stylelint-scss']
+      args: [--config, ./ESSArch_Core/frontend/static/frontend/.stylelintrc]

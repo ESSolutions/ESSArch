@@ -71,10 +71,6 @@
   overflow-y: auto;
 }
 
-.tree-grid {
-  overflow-x: auto;
-  width: 100%;
-}
 .tree-grid-row {
   td {
     span,
@@ -93,6 +89,8 @@
 }
 
 .tree-grid {
+  overflow-x: auto;
+  width: 100%;
   td {
     white-space: nowrap;
   }

@@ -27,11 +27,6 @@
       }
     }
   }
-  .tree-result-wrapper {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-  }
   .search-results {
     margin-top: 10px;
     display: flex;
@@ -181,8 +176,6 @@
 
     .jstree-anchor {
       max-width: 90%;
-      @include large-screen-up() {
-      }
     }
   }
   .record-tree {
@@ -270,6 +263,7 @@
   .tree-result-wrapper {
     display: flex;
     flex-direction: row;
+    width: 100%;
     @include medium-screen {
       flex-direction: column;
     }

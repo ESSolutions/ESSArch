@@ -26,12 +26,8 @@
     width: 0px;
     background: transparent;
   }
+  .chosen:after,
   .chosen:hover:after {
-    width: 100%;
-    height: 1px;
-    background: white;
-  }
-  .chosen:after {
     width: 100%;
     height: 1px;
     background: white;
@@ -39,6 +35,24 @@
   @include small-screen {
     flex-wrap: nowrap;
     overflow-x: auto;
+  }
+  .nav-item {
+    cursor: pointer;
+    user-select: none;
+    margin: 0 15px 0 0 !important;
+    white-space: nowrap;
+    color: inherit;
+    &:hover {
+      text-decoration: none;
+    }
+    &:focus {
+      text-decoration: none;
+      outline: 0;
+      color: #b4caf8;
+      &:after {
+        color: #b4caf8;
+      }
+    }
   }
 }
 
@@ -72,12 +86,8 @@
     width: 0px;
     background: transparent;
   }
+  .chosen:after,
   .chosen:hover:after {
-    width: 100%;
-    height: 1px;
-    background: black;
-  }
-  .chosen:after {
     width: 100%;
     height: 1px;
     background: black;
@@ -85,26 +95,5 @@
   @include small-screen {
     flex-wrap: nowrap;
     overflow-x: auto;
-  }
-}
-
-.sub-menu {
-  .nav-item {
-    cursor: pointer;
-    user-select: none;
-    margin: 0 15px 0 0 !important;
-    white-space: nowrap;
-    color: inherit;
-    &:hover {
-      text-decoration: none;
-    }
-    &:focus {
-      text-decoration: none;
-      outline: 0;
-      color: #b4caf8;
-      &:after {
-        color: #b4caf8;
-      }
-    }
   }
 }
