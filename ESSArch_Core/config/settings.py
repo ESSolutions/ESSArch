@@ -367,29 +367,29 @@ CELERY_TASK_REMOTE_TRACEBACKS = True
 CELERY_TASK_TRACK_STARTED = True
 
 CELERY_BEAT_SCHEDULE = {
-    'RunWorkflowProfiles-every-10-seconds': {
+    'RunWorkflowProfiles-every-60-seconds': {
         'task': 'ESSArch_Core.tasks.RunWorkflowProfiles',
-        'schedule': timedelta(seconds=10),
+        'schedule': timedelta(seconds=60),
     },
-    'UnmountIdleDrives-queue-every-10-seconds': {
+    'UnmountIdleDrives-queue-every-10-minutes': {
         'task': 'ESSArch_Core.workflow.tasks.UnmountIdleDrives',
-        'schedule': timedelta(seconds=10),
+        'schedule': timedelta(minutes=10),
     },
-    'PollAppraisalJobs-every-10-seconds': {
+    'PollAppraisalJobs-every-10-minutes': {
         'task': 'ESSArch_Core.workflow.tasks.PollAppraisalJobs',
-        'schedule': timedelta(seconds=10),
+        'schedule': timedelta(minutes=10),
     },
-    'ScheduleAppraisalJobs-every-10-seconds': {
+    'ScheduleAppraisalJobs-every-10-minutes': {
         'task': 'ESSArch_Core.workflow.tasks.ScheduleAppraisalJobs',
-        'schedule': timedelta(seconds=10),
+        'schedule': timedelta(minutes=10),
     },
-    'PollConversionJobs-every-10-seconds': {
+    'PollConversionJobs-every-10-minutes': {
         'task': 'ESSArch_Core.workflow.tasks.PollConversionJobs',
-        'schedule': timedelta(seconds=10),
+        'schedule': timedelta(minutes=10),
     },
-    'ScheduleConversionJobs-every-10-seconds': {
+    'ScheduleConversionJobs-every-10-minutes': {
         'task': 'ESSArch_Core.workflow.tasks.ScheduleConversionJobs',
-        'schedule': timedelta(seconds=10),
+        'schedule': timedelta(minutes=10),
     },
 }
 
