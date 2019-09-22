@@ -29,20 +29,16 @@ import logging
 import os
 import shutil
 import tarfile
-import tempfile
 import uuid
 import zipfile
 from os import walk
-from urllib.parse import urljoin
 
-import requests
 from celery import states as celery_states
 from celery.exceptions import Ignore
 from celery.result import allow_join_result
 from crontab import CronTab
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
@@ -60,7 +56,6 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import (
     MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
-    EventIP,
     InformationPackage,
     Workarea,
 )
@@ -73,7 +68,6 @@ from ESSArch_Core.maintenance.models import (
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_backend as get_importer
 from ESSArch_Core.search.ingest import index_path
-from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.exceptions import (
     TapeDriveLockedError,
     TapeMountedAndLockedByOtherError,
@@ -81,19 +75,14 @@ from ESSArch_Core.storage.exceptions import (
     TapeUnmountedError,
 )
 from ESSArch_Core.storage.models import (
-    DISK,
     TAPE,
-    AccessQueue,
     IOQueue,
     Robot,
     RobotQueue,
-    StorageMedium,
     StorageMethod,
-    StorageMethodTargetRelation,
     StorageObject,
     TapeDrive,
 )
-from ESSArch_Core.storage.serializers import IOQueueSerializer
 from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
 from ESSArch_Core.util import (
     creation_date,

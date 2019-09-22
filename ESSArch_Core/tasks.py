@@ -25,9 +25,7 @@
 import errno
 import logging
 import os
-import pickle
 import tarfile
-import time
 import zipfile
 from os import walk
 
@@ -39,8 +37,6 @@ from django.core.mail import EmailMessage
 from django.db import transaction
 from django.utils import timezone
 from django_redis import get_redis_connection
-from elasticsearch import helpers as es_helpers
-from elasticsearch_dsl.connections import get_connection
 from lxml import etree
 
 from ESSArch_Core.auth.models import Notification

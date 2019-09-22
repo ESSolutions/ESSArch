@@ -51,6 +51,7 @@ matrix:
       stage: lint
       language: node_js
       node_js: 'lts/*'
+      before_install: skip
       install: yarn install --frozen-lockfile
       before_script: skip
       script: yarn prettier --check "**/*.{ts,js,scss,html}"
@@ -60,6 +61,7 @@ matrix:
       stage: lint
       language: node_js
       node_js: 'lts/*'
+      before_install: skip
       install: yarn install --frozen-lockfile
       before_script: skip
       script: yarn stylelint
@@ -69,6 +71,7 @@ matrix:
       stage: test
       language: node_js
       node_js: 'lts/*'
+      before_install: skip
       install: yarn install --frozen-lockfile
       before_script: skip
       script: yarn build:prod
