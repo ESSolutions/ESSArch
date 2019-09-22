@@ -822,7 +822,6 @@ class UpdateStructureUnitTemplateTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, {'non_field_errors': [PUBLISHED_STRUCTURE_CHANGE_ERROR]})
 
-
     def test_update_in_unpublished_structure(self):
         structure = create_structure(self.structure_type)
         structure.publish()
