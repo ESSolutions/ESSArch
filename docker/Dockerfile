@@ -1,26 +1,3 @@
-FROM python:3.7 AS watchman_builder
-
-# Install build dependencies
-RUN apt-get update && apt-get install -y apt-transport-https wget
-
-# Set environment variables
-ENV WATCHMAN_VERSION=4.9.0
-
-# Download watchman source code
-RUN cd /tmp \
- && wget -O watchman.tar.gz "https://github.com/facebook/watchman/archive/v${WATCHMAN_VERSION}.tar.gz" \
- && tar -xz -f watchman.tar.gz -C /tmp/ \
- && rm -rf watchman.tar.gz
-
-# Build watchman from source
-RUN cd /tmp/watchman-${WATCHMAN_VERSION} \
- && ./autogen.sh \
- && ./configure --enable-lenient \
- && make \
- && make install \
- && cd $HOME \
- && rm -rf /tmp/*
-
 FROM node:lts-alpine AS build-frontend
 
 WORKDIR /code
@@ -96,12 +73,7 @@ RUN apt-get update && apt-get install -y \
 
 ADD requirements/tests.txt /code/requirements/tests.txt
 RUN pip install --no-cache-dir -r /code/requirements/tests.txt
-RUN pip install --no-cache-dir pywatchman \
-    && pip install --no-cache-dir -e .[mysql,postgres]
-
-# Copy compiled executable and runtime directories for watchman
-COPY --from=watchman_builder /usr/local/bin/watchman* /usr/local/bin/
-COPY --from=watchman_builder /usr/local/var/run/watchman /usr/local/var/run/watchman
+RUN pip install --no-cache-dir -e .[mysql,postgres]
 
 # Copy built frontend
 COPY --from=build-frontend /code/build /code/ESSArch_Core/frontend/static/frontend/build

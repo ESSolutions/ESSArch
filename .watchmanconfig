@@ -1,3 +1,0 @@
-{
-  "ignore_dirs": ["docker", "ESSArch_Core/frontend/static/frontend/node_modules", "node_modules", ".git"]
-}
