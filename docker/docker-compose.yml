@@ -11,15 +11,14 @@ services:
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL: http://elasticsearch:9200
-      DJANGO_WATCHMAN_TIMEOUT: 60
     volumes:
       - ..:/code
       - /code/ESSArch.egg-info/
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
-      - /code/ESSArch_Core/frontend/static/frontend/build
-      - /code/ESSArch_Core/docs/_build
+      - /code/ESSArch_Core/frontend/static/frontend/build/
+      - /code/ESSArch_Core/docs/_build/
     command:
       - /bin/bash
       - -c
@@ -60,13 +59,12 @@ services:
       ELASTICSEARCH_URL: http://elasticsearch:9200
     volumes:
       - ..:/code
-      - /code/ESSArch.egg-info
+      - /code/ESSArch.egg-info/
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
     tty: true
     depends_on:
-      - essarch
       - rabbitmq
       - redis
       - elasticsearch
@@ -92,13 +90,12 @@ services:
       ELASTICSEARCH_URL: http://elasticsearch:9200
     volumes:
       - ..:/code
-      - /code/ESSArch.egg-info
+      - /code/ESSArch.egg-info/
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
     tty: true
     depends_on:
-      - essarch
       - rabbitmq
       - redis
       - elasticsearch
