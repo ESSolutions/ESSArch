@@ -24,9 +24,6 @@ export default class DashboardStatsCtrl {
       return $http({
         url: appConfig.djangoUrl + 'agents/',
         method: 'HEAD',
-        params: {
-          pager: 'none',
-        },
       }).then(function(response) {
         stats.tags.unshift({type__name: $translate.instant('ARCHIVECREATORS'), total: response.headers('Count')});
         return stats;
