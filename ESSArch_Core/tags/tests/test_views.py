@@ -823,6 +823,56 @@ class UpdateStructureUnitTemplateTests(TestCase):
         self.assertEqual(response.data, {'non_field_errors': [PUBLISHED_STRUCTURE_CHANGE_ERROR]})
 
 
+    def test_update_in_unpublished_structure(self):
+        structure = create_structure(self.structure_type)
+        structure.publish()
+        structure.unpublish()
+
+        structure_unit = create_structure_unit(self.structure_unit_type, structure, "1")
+        url = reverse('structure-units-detail', args=[structure.pk, structure_unit.pk])
+
+        response = self.client.patch(
+            url,
+            data={
+                'name': 'bar',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {'non_field_errors': [NON_EDITABLE_STRUCTURE_CHANGE_ERROR]})
+
+        # relations can be changed even on published structures
+        other_structure_unit = create_structure_unit(self.structure_unit_type, structure, "2")
+        relation_type = NodeRelationType.objects.create(name="test")
+        response = self.client.patch(
+            url,
+            data={
+                'related_structure_units': [
+                    {
+                        'structure_unit': other_structure_unit.pk,
+                        'type': relation_type.pk,
+                    }
+                ],
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # but not together with other data
+        response = self.client.patch(
+            url,
+            data={
+                'name': 'bar',
+                'related_structure_units': [
+                    {
+                        'structure_unit': other_structure_unit.pk,
+                        'type': relation_type.pk,
+                    }
+                ],
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {'non_field_errors': [NON_EDITABLE_STRUCTURE_CHANGE_ERROR]})
+
+
 class UpdateStructureUnitInstanceTests(TestCase):
     def setUp(self):
         self.client = APIClient()
