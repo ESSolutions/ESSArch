@@ -371,18 +371,6 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'ESSArch_Core.tasks.RunWorkflowProfiles',
         'schedule': timedelta(seconds=10),
     },
-    'PollAccessQueue-every-10-seconds': {
-        'task': 'ESSArch_Core.workflow.tasks.PollAccessQueue',
-        'schedule': timedelta(seconds=10),
-    },
-    'PollIOQueue-every-10-seconds': {
-        'task': 'ESSArch_Core.workflow.tasks.PollIOQueue',
-        'schedule': timedelta(seconds=10),
-    },
-    'PollRobotQueue-queue-every-10-seconds': {
-        'task': 'ESSArch_Core.workflow.tasks.PollRobotQueue',
-        'schedule': timedelta(seconds=10),
-    },
     'UnmountIdleDrives-queue-every-10-seconds': {
         'task': 'ESSArch_Core.workflow.tasks.UnmountIdleDrives',
         'schedule': timedelta(seconds=10),
@@ -401,22 +389,6 @@ CELERY_BEAT_SCHEDULE = {
     },
     'ScheduleConversionJobs-every-10-seconds': {
         'task': 'ESSArch_Core.workflow.tasks.ScheduleConversionJobs',
-        'schedule': timedelta(seconds=10),
-    },
-    'IndexTags': {
-        'task': 'ESSArch_Core.tasks.IndexTags',
-        'schedule': timedelta(seconds=10),
-    },
-    'UpdateTags': {
-        'task': 'ESSArch_Core.tasks.UpdateTags',
-        'schedule': timedelta(seconds=10),
-    },
-    'DeleteTags': {
-        'task': 'ESSArch_Core.tasks.DeleteTags',
-        'schedule': timedelta(seconds=10),
-    },
-    'ClearTagProcessQueue': {
-        'task': 'ESSArch_Core.tasks.ClearTagProcessQueue',
         'schedule': timedelta(seconds=10),
     },
 }

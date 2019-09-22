@@ -72,14 +72,6 @@ from ESSArch_Core.storage.tape import (
     set_tape_file_number,
     write_to_tape,
 )
-from ESSArch_Core.tags import (
-    DELETION_PROCESS_QUEUE,
-    DELETION_QUEUE,
-    INDEX_PROCESS_QUEUE,
-    INDEX_QUEUE,
-    UPDATE_PROCESS_QUEUE,
-    UPDATE_QUEUE,
-)
 from ESSArch_Core.tasks_util import (
     append_events,
     mount_tape_medium_into_drive,
@@ -99,20 +91,6 @@ from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 User = get_user_model()
 redis = get_redis_connection()
-
-CLEAR_PROCESS_TAG_QUEUE_LUA = """
-    local values = redis.call("ZREVRANGEBYSCORE", KEYS[1], ARGV[1], "-inf", "LIMIT", "0", "1000")
-    if table.getn(values) > 0 then
-        redis.call("RPUSH", KEYS[2], unpack(values))
-        redis.call("ZREM", KEYS[1], unpack(values))
-    end"""
-
-PROCESS_TAG_QUEUE_LUA = """
-    local value = redis.call("RPOP", KEYS[1])
-    if value then
-        redis.call("ZADD", KEYS[2], ARGV[1], value)
-    end
-    return value"""
 
 
 class GenerateXML(DBTask):
@@ -789,107 +767,6 @@ class ConvertFile(DBTask):
     def event_outcome_success(self, result, path, format_map, delete_original=True):
         path, = self.parse_params(path)
         return "Converted %s file(s) at %s" % (self.files_count, path,)
-
-
-class ClearTagProcessQueue(DBTask):
-    def run(self):
-        """
-        Deletes items older than 60 seconds from the process queue
-        and pushes them into their original queue
-        """
-
-        max_time = int(time.time()) - 60
-        _clear_process_tag_queue = redis.register_script(CLEAR_PROCESS_TAG_QUEUE_LUA)
-
-        _clear_process_tag_queue(keys=[INDEX_PROCESS_QUEUE, INDEX_QUEUE], args=[max_time])
-        _clear_process_tag_queue(keys=[UPDATE_PROCESS_QUEUE, UPDATE_QUEUE], args=[max_time])
-        _clear_process_tag_queue(keys=[DELETION_PROCESS_QUEUE, DELETION_QUEUE], args=[max_time])
-
-
-class ProcessTags(DBTask):
-    id_pickles = {}
-    abstract = True
-
-    def deserialize(self, tags):
-        for tag_string in [t for t in tags if t is not None]:
-            d = pickle.loads(tag_string)
-            self.id_pickles[str(d['_id'])] = tag_string
-            yield d
-
-    def run(self):
-        """
-        Uses a reliable queue to process the latest entries.
-
-        Entries are popped and returned from the queue while also being added
-        to the process queue. Each entry is then sent and processed by
-        elasticsearch. If elasticsearch returns a successful response
-        the entry is deleted from the process queue.
-        """
-        es = get_connection()
-        _process_tag_queue = redis.register_script(PROCESS_TAG_QUEUE_LUA)
-        tags = []
-        for i in range(100):
-            epoch_time = int(time.time())
-            # Pop the latest entry, add it to the process queue with the
-            # current time as score and return it
-            tags.append(_process_tag_queue(keys=[self.redis_queue, self.redis_process_queue], args=[epoch_time]))
-
-        doctypes = self.deserialize(tags)
-
-        # Send the entries in bulk to elasticsearch
-        errors = []
-        for result in es_helpers.streaming_bulk(es, doctypes, raise_on_exception=False, raise_on_error=False):
-            ok, info = result
-            if ok:
-                _id = self.get_id(info)
-                tag_string = self.id_pickles[_id]
-                # Delete successful entries from the process queue
-                redis.zrem(self.redis_process_queue, tag_string)
-            else:
-                if info.get('delete', {}).get('status') == 404:
-                    # trying to delete already deleted doc, delete it from
-                    # the process queue
-                    _id = self.get_id(info)
-                    tag_string = self.id_pickles[_id]
-                    redis.zrem(self.redis_process_queue, tag_string)
-                else:
-                    errors.append(info)
-
-        if errors:
-            raise es_helpers.BulkIndexError('%d document(s) failed to index.' % len(errors),
-                                            errors)
-
-
-class IndexTags(ProcessTags):
-    redis_queue = INDEX_QUEUE
-    redis_process_queue = INDEX_PROCESS_QUEUE
-
-    def deserialize(self, tags):
-        for tag_string in [t for t in tags if t is not None]:
-            d = pickle.loads(tag_string).to_dict(include_meta=True)
-            if d['_index'] == 'document':
-                d['pipeline'] = 'ingest_attachment'
-            self.id_pickles[str(d['_id'])] = tag_string
-            yield d
-
-    def get_id(self, data):
-        return data['index']['_id']
-
-
-class UpdateTags(ProcessTags):
-    redis_queue = UPDATE_QUEUE
-    redis_process_queue = UPDATE_PROCESS_QUEUE
-
-    def get_id(self, data):
-        return data['update']['_id']
-
-
-class DeleteTags(ProcessTags):
-    redis_queue = DELETION_QUEUE
-    redis_process_queue = DELETION_PROCESS_QUEUE
-
-    def get_id(self, data):
-        return data['delete']['_id']
 
 
 class RunWorkflowProfiles(DBTask):
