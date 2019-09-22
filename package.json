@@ -114,8 +114,8 @@
     "update-webdriver": "webdriver-manager update",
     "pree2e": "yarn run update-webdriver",
     "e2e": "protractor e2e-tests/protractor.conf.js",
-    "prettier": "prettier --ignore-path ../../../../.prettierignore",
+    "prettier": "prettier",
     "lint": "eslint \"*/**/*.{js,ts,tsx}\"",
-    "stylelint": "stylelint \"styles/**/*.scss\""
+    "stylelint": "stylelint \"ESSArch_Core/frontend/static/frontend/styles/**/*.scss\""
   }
 }
