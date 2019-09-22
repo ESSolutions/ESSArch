@@ -65,11 +65,15 @@ ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE ESSArch_Core.config.settings
 ENV PYTHONPATH={$PYTHONPATH}:/ESSArch/config
 
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+
 RUN apt-get update && apt-get install -y \
     curl \
     gettext \
     git \
-    vim
+    vim \
+    yarn
 
 ADD requirements/tests.txt /code/requirements/tests.txt
 RUN pip install --no-cache-dir -r /code/requirements/tests.txt
