@@ -2,9 +2,9 @@ FROM node:lts-alpine AS build-frontend
 
 WORKDIR /code
 RUN apk update && apk add python
-COPY ESSArch_Core/frontend/static/frontend/package.json ESSArch_Core/frontend/static/frontend/yarn.lock ./
+COPY package.json yarn.lock webpack.config.babel.js tsconfig.json ./
 RUN yarn
-COPY ESSArch_Core/frontend/static/frontend ./
+COPY ESSArch_Core/frontend/static/frontend /code/ESSArch_Core/frontend/static/frontend
 RUN yarn build:prod
 
 FROM python:3.7-buster as base
@@ -76,7 +76,7 @@ RUN pip install --no-cache-dir -r /code/requirements/tests.txt
 RUN pip install --no-cache-dir -e .[mysql,postgres]
 
 # Copy built frontend
-COPY --from=build-frontend /code/build /code/ESSArch_Core/frontend/static/frontend/build
+COPY --from=build-frontend /code/ESSArch_Core/frontend/static/frontend/build /code/ESSArch_Core/frontend/static/frontend/build
 
 # Copy built docs
 COPY --from=build-docs /code/ESSArch_Core/docs/_build /code/ESSArch_Core/docs/_build

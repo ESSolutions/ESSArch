@@ -12,6 +12,7 @@ MANIFEST
 tools.db
 .DS_Store
 db.sqlite
+node_modules
 
 # celery
 celerybeat-schedule

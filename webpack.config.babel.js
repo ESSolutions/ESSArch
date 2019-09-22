@@ -5,12 +5,14 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ManifestPlugin = require('webpack-manifest-plugin');
 const OptimizeCssnanoPlugin = require('@intervolga/optimize-cssnano-plugin');
 
+const basedir = path.resolve(__dirname, 'ESSArch_Core/frontend/static/frontend');
+
 module.exports = (env, argv) => {
   return {
-    entry: './scripts/index.ts',
+    entry: './ESSArch_Core/frontend/static/frontend/scripts/index.ts',
     output: {
       filename: '[name]-[chunkhash].js',
-      path: path.resolve(__dirname, 'build'),
+      path: path.resolve(basedir, 'build'),
     },
     mode: argv.mode,
     devtool: 'source-map',
@@ -40,8 +42,8 @@ module.exports = (env, argv) => {
         {
           test: /\.js$/,
           include: [
-            path.resolve(__dirname, 'scripts'),
-            path.resolve(__dirname, 'lang'),
+            path.resolve(basedir, 'scripts'),
+            path.resolve(basedir, 'lang'),
             path.resolve(__dirname, 'node_modules/bufferutil'),
             path.resolve(__dirname, 'node_modules/utf-8-validate'),
           ],
@@ -87,7 +89,7 @@ module.exports = (env, argv) => {
           use: [{loader: 'html-loader'}],
         },
         {
-          test: path.resolve(__dirname, `scripts/configs/config.json`),
+          test: path.resolve(basedir, `scripts/configs/config.json`),
           use: [
             {
               loader: 'ng-package-constants-loader',
@@ -97,7 +99,7 @@ module.exports = (env, argv) => {
           type: 'javascript/auto',
         },
         {
-          test: path.resolve(__dirname, 'scripts/configs/permissions.json'),
+          test: path.resolve(basedir, 'scripts/configs/permissions.json'),
           use: [
             {
               loader: 'ng-package-constants-loader',
