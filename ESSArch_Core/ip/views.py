@@ -1934,7 +1934,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
     @transaction.atomic
     @action(detail=True, methods=['post'])
     def prepare(self, request, pk=None):
-        logger = logging.getLogger('essarch.epp.ingest')
+        logger = logging.getLogger('essarch.ingest')
         perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
         organization = request.user.user_profile.current_organization
 
@@ -2053,7 +2053,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
     @permission_required_or_403(['ip.receive'])
     @action(detail=True, methods=['post'], url_path='receive')
     def receive(self, request, pk=None):
-        logger = logging.getLogger('essarch.epp.ingest')
+        logger = logging.getLogger('essarch.ingest')
 
         try:
             ip = get_object_or_404(self.get_queryset(), id=pk)

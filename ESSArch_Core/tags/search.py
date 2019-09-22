@@ -46,7 +46,7 @@ from ESSArch_Core.tags.serializers import (
 )
 from ESSArch_Core.util import generate_file_response, remove_prefix
 
-logger = logging.getLogger('essarch.epp.search')
+logger = logging.getLogger('essarch.search')
 EXPORT_FORMATS = ('csv', 'pdf')
 SORTABLE_FIELDS = (
     {'name.keyword': {'unmapped_type': 'keyword'}},

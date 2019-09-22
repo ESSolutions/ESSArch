@@ -98,7 +98,7 @@ logger = logging.getLogger('essarch')
 
 
 class ReceiveSIP(DBTask):
-    logger = logging.getLogger('essarch.epp.workflow.tasks.ReceiveSIP')
+    logger = logging.getLogger('essarch.workflow.tasks.ReceiveSIP')
     event_type = 20100
 
     @transaction.atomic
@@ -470,7 +470,7 @@ class AccessAIP(DBTask):
 
 
 class PrepareDIP(DBTask):
-    logger = logging.getLogger('essarch.epp.tasks.PrepareDIP')
+    logger = logging.getLogger('essarch.tasks.PrepareDIP')
 
     def run(self, label, object_identifier_value=None, orders=[]):
         disseminations = Path.objects.get(entity='disseminations').value
