@@ -46,10 +46,9 @@ class SubmitSIP(DBTask):
     def run(self):
         ip = InformationPackage.objects.get(pk=self.ip)
 
-        srcdir = Path.objects.get(entity="preingest_reception").value
         reception = Path.objects.get(entity="ingest_reception").value
         container_format = ip.get_container_format()
-        src = os.path.join(srcdir, ip.object_identifier_value + ".%s" % container_format)
+        src = ip.object_path
 
         try:
             remote = ip.get_profile_data('transfer_project').get(
@@ -72,10 +71,10 @@ class SubmitSIP(DBTask):
         block_size = 8 * 1000000  # 8MB
         copy_file(src, dst, requests_session=session, block_size=block_size)
 
-        src = os.path.join(srcdir, ip.object_identifier_value + ".xml")
+        src_xml = os.path.join(os.path.dirname(src), ip.object_identifier_value + ".xml")
         if not remote:
             dst = os.path.join(reception, ip.object_identifier_value + ".xml")
-        copy_file(src, dst, requests_session=session, block_size=block_size)
+        copy_file(src_xml, dst, requests_session=session, block_size=block_size)
 
         self.set_progress(100, total=100)
 

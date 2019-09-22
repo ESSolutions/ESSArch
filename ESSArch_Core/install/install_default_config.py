@@ -422,11 +422,11 @@ def installDefaultUsers():
 def installDefaultPaths():
     dct = {
         'mimetypes_definitionfile': '/ESSArch/config/mime.types',
-        'ingest_reception': '/ESSArch/data/ingest/reception',
-        'preingest_prepare': '/ESSArch/data/preingest/prepare',
+        'preingest': '/ESSArch/data/preingest/packages',
         'preingest_reception': '/ESSArch/data/preingest/reception',
-        'ingest_unidentified': '/ESSArch/data/ingest/uip',
         'ingest': '/ESSArch/data/ingest/packages',
+        'ingest_reception': '/ESSArch/data/ingest/reception',
+        'ingest_unidentified': '/ESSArch/data/ingest/uip',
         'access_workarea': '/ESSArch/data/workspace',
         'ingest_workarea': '/ESSArch/data/workspace',
         'disseminations': '/ESSArch/data/disseminations',
