@@ -2109,6 +2109,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             )
             try:
                 TagVersion.objects.create(
+                    name=ip.label or ip.object_identifier_value,
+                    reference_code=ip.object_identifier_value,
                     tag=tag,
                     type=TagVersionType.objects.get(information_package_type=True),
                     elastic_index='component',
