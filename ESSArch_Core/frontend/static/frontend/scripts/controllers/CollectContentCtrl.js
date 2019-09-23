@@ -40,7 +40,8 @@ export default class CollectContentCtrl {
     $cookies,
     $controller,
     $transitions,
-    $state
+    $state,
+    $translate
   ) {
     const vm = this;
     const ipSortString = ['Prepared', 'Uploading'];
