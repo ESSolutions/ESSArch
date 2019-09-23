@@ -14,7 +14,12 @@
 }
 
 .dashboard-row {
-  justify-content: space-evenly;
+  justify-content: space-between;
+  &:before,
+  &:after {
+    content: '';
+    display: block;
+  }
   display: flex;
   flex-wrap: wrap;
   align-items: center;
