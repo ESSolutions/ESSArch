@@ -3,7 +3,7 @@
     {{'ACCESS.CLASSIFICATION_STRUCTURE' | translate}}
   </label>
   <div class="flex-row">
-    <select class="form-control version-select" ng-model="vm.structure" ng-change="vm.loadRecordAndTree(vm.structure)">
+    <select class="form-control version-select" ng-model="vm.structure" ng-change="vm.structureChanged(vm.structure)">
       <option
         ng-repeat="classification in vm.archiveStructures"
         value="{{classification.id}}"

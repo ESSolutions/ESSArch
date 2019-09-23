@@ -48,6 +48,12 @@ export default class SearchDetailCtrl {
       vm.loadRecordAndTree();
     };
 
+    vm.structureChanged = structure => {
+      if (structure !== null) {
+        vm.loadRecordAndTree(structure);
+      }
+    };
+
     vm.loadRecordAndTree = function(structure) {
       const isStructureUnit = $state.current.name == 'home.archivalDescriptions.search.structure_unit';
       const nodeId = $stateParams.id;
@@ -938,7 +944,7 @@ export default class SearchDetailCtrl {
       });
       if (node) {
         return Search.setAsCurrentVersion(node, true).then(function(response) {
-          vm.loadRecordAndTree();
+          $state.reload();
         });
       }
     };
@@ -1140,13 +1146,12 @@ export default class SearchDetailCtrl {
       modalInstance.result.then(
         function(data, $ctrl) {
           if (vm.record._id === node._id) {
-            vm.loadRecordAndTree();
+            $state.reload();
           } else {
             vm.goToNodePage(node._id, false);
           }
         },
         function() {
-          vm.loadRecordAndTree();
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
@@ -1194,7 +1199,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          vm.loadRecordAndTree();
+          $state.reload();
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1219,7 +1224,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          vm.loadRecordAndTree();
+          $state.reload();
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1243,7 +1248,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          vm.loadRecordAndTree();
+          $state.reload();
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1318,7 +1323,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          vm.loadRecordAndTree();
+          $state.reload();
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1428,7 +1433,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data) {
-          vm.loadRecordAndTree();
+          $state.reload();
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1456,7 +1461,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data) {
-          vm.loadRecordAndTree();
+          $state.reload();
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1483,7 +1488,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data) {
-          vm.loadRecordAndTree();
+          $state.reload();
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1519,7 +1524,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data) {
-          vm.loadRecordAndTree();
+          $state.reload();
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1553,7 +1558,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data) {
-          vm.loadRecordAndTree();
+          $state.reload();
           vm.getTransfers(vm.transferTableState);
         },
         function() {
@@ -1580,7 +1585,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data) {
-          vm.loadRecordAndTree();
+          $state.reload();
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1608,7 +1613,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data) {
-          vm.loadRecordAndTree();
+          $state.reload();
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1638,7 +1643,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data) {
-          vm.loadRecordAndTree();
+          $state.reload();
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1664,7 +1669,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data) {
-          vm.loadRecordAndTree();
+          $state.reload();
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1692,7 +1697,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data) {
-          vm.loadRecordAndTree();
+          $state.reload();
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1722,7 +1727,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data) {
-          vm.loadRecordAndTree();
+          $state.reload();
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
