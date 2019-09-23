@@ -16,6 +16,7 @@ export default class AgentCtrl {
     const vm = this;
     $scope.AgentName = AgentName;
     $scope.$state = $state;
+    $scope.$translate = $translate;
     vm.initialSearch = null;
     vm.agentsLoading = false;
     vm.agents = [];

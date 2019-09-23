@@ -361,6 +361,7 @@ export default angular
     '$controller',
     '$transitions',
     '$state',
+    '$translate',
     CollectContentCtrl,
   ])
   .controller('CombinedWorkareaCtrl', ['$scope', '$controller', CombinedWorkareaCtrl])
@@ -426,6 +427,7 @@ export default angular
     '$uibModal',
     '$anchorScroll',
     '$controller',
+    '$translate',
     CreateSipCtrl,
   ])
   .controller('DataModalInstanceCtrl', [
@@ -699,6 +701,7 @@ export default angular
     '$timeout',
     '$state',
     'ContentTabs',
+    '$translate',
     PrepareSipCtrl,
   ])
   .controller('PublishClassificationStructureCtrl', [

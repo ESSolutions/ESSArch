@@ -1,7 +1,19 @@
 export default class ArchiveManagerCtrl {
-  constructor($scope, $http, appConfig, $uibModal, $log, $state, $stateParams, myService, listViewService) {
+  constructor(
+    $scope,
+    $http,
+    appConfig,
+    $uibModal,
+    $log,
+    $state,
+    $stateParams,
+    myService,
+    listViewService,
+    $translate
+  ) {
     const vm = this;
     $scope.$stateParams = $stateParams;
+    $scope.$translate = $translate;
     vm.initialSearch = null;
     vm.structure = null;
     vm.record = null;

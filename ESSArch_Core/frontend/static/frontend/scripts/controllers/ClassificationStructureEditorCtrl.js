@@ -24,6 +24,7 @@ export default class ClassificationStructureEditorCtrl {
     vm.manuallyReload = false;
     vm.initialSearch = null;
     $scope.angular = angular;
+    $scope.$translate = $translate;
     $scope.StructureUnitRelation = StructureUnitRelation;
     vm.structureTypes = [];
     vm.structureType = null;
