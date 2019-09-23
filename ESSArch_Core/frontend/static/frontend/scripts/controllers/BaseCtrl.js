@@ -83,12 +83,15 @@ export default class BaseCtrl {
     // Init request form
 
     const docStateMap = {
-      reception: 'reception.html',
-      approval: 'approval.html',
-      accessIp: 'access-search.html',
-      workarea: 'access-workspace.html',
-      createDip: 'dissemination.html',
-      orders: 'index.html',
+      prepareIp: 'producer/prepare-ip.html',
+      collectContent: 'producer/collect-content.html',
+      createSip: 'producer/create-sip.html',
+      submitSip: 'producer/submit-sip.html',
+      reception: 'ingest/reception.html',
+      ipApproval: 'ingest/approval.html',
+      accessIp: 'access/storage-units.html',
+      workarea: 'workspace/workspace.html',
+      createDip: 'access/dissemination.html',
     };
     vm.getStateDocPage = function() {
       const page = $state.current.name.split('.').pop();
