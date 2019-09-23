@@ -1850,7 +1850,7 @@ class CreateIPTestCase(TestCase):
 
         self.root = os.path.dirname(os.path.realpath(__file__))
         self.datadir = os.path.join(self.root, 'datadir')
-        Path.objects.create(entity='preingest_prepare', value=self.datadir)
+        Path.objects.create(entity='preingest', value=self.datadir)
 
         EventType.objects.create(eventType=10100, category=EventType.CATEGORY_INFORMATION_PACKAGE)
         EventType.objects.create(eventType=10200, category=EventType.CATEGORY_INFORMATION_PACKAGE)
@@ -1981,7 +1981,7 @@ class test_submit_ip(TestCase):
         self.root = os.path.dirname(os.path.realpath(__file__))
         self.datadir = os.path.join(self.root, 'datadir')
 
-        Path.objects.create(entity='preingest_prepare', value=self.datadir)
+        Path.objects.create(entity='preingest', value=self.datadir)
         Path.objects.create(entity='preingest_reception', value=self.datadir)
 
         self.sa = SubmissionAgreement.objects.create()

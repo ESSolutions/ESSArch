@@ -52,7 +52,7 @@ def create_data_directories(path):
         'ingest/reception',
         'ingest/uip',
         'orders',
-        'preingest/prepare',
+        'preingest/packages',
         'preingest/reception',
         'receipts/xml',
         'reports/appraisal',

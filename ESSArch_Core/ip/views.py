@@ -603,7 +603,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if responsible.user_profile.current_organization is None:
             raise exceptions.ParseError('You must be part of an organization to prepare an IP')
 
-        prepare_path = Path.objects.get(entity="preingest_prepare").value
+        prepare_path = Path.objects.get(entity="preingest").value
         if object_identifier_value:
             ip_exists = InformationPackage.objects.filter(object_identifier_value=object_identifier_value).exists()
             if ip_exists:
@@ -817,7 +817,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         validate_xml_file = validators.get('validate_xml_file', False)
         validate_logical_physical_representation = validators.get('validate_logical_physical_representation', False)
 
-        dst_dir = Path.objects.cached('entity', 'preingest_reception', 'value')
+        dst_dir = Path.objects.cached('entity', 'preingest', 'value')
         dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
         dst = os.path.join(dst_dir, dst_filename)
 
