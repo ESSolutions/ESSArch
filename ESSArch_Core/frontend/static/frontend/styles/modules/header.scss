@@ -34,7 +34,7 @@
   height: 100%;
   display: inline-block;
   @include small-screen {
-    width: 85%;
+    width: 100%;
   }
 }
 
@@ -50,9 +50,11 @@
 
 .page-title-small {
   display: none;
-  margin-left: 50%;
+  width: 100%;
+  text-align: center;
   &.has-custom-logo {
-    margin-left: calc(50% - 48px);
+    width: calc(100% - 96px);
+    margin-right: 48px;
   }
   margin-top: 12px;
   margin-bottom: 12px;
