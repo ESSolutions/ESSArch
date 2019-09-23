@@ -42,6 +42,17 @@ export default class PrepareSipCtrl {
     const ipSortString = ['Created', 'Submitting', 'Submitted'];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
 
+    $scope.menuOptions = function(rowType, row) {
+      const methods = [];
+      methods.push({
+        text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
+        click: function($itemScope, $event, modelValue, text, $li) {
+          vm.ipInformationModal(row);
+        },
+      });
+      return methods;
+    };
+
     //Click function for ip table
     vm.selectSingleRow = function(row, options) {
       $scope.ips = [];

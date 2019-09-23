@@ -49,6 +49,18 @@ export default class CollectContentCtrl {
       package_type: 0,
     };
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params});
+
+    $scope.menuOptions = function(rowType, row) {
+      const methods = [];
+      methods.push({
+        text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
+        click: function($itemScope, $event, modelValue, text, $li) {
+          vm.ipInformationModal(row);
+        },
+      });
+      return methods;
+    };
+
     vm.uploading = false;
     vm.flowDestination = null;
     $scope.showFileUpload = true;

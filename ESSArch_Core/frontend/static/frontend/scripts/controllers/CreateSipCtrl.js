@@ -28,6 +28,18 @@ export default class CreateSipCtrl {
     const ipSortString = ['Uploaded', 'Creating'];
 
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
+
+    $scope.menuOptions = function(rowType, row) {
+      const methods = [];
+      methods.push({
+        text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
+        click: function($itemScope, $event, modelValue, text, $li) {
+          vm.ipInformationModal(row);
+        },
+      });
+      return methods;
+    };
+
     $scope.ipSelected = false;
 
     //funcitons for select view

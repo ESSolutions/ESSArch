@@ -41,6 +41,17 @@ export default class PrepareIpCtrl {
     $scope.angular = angular;
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
 
+    $scope.menuOptions = function(rowType, row) {
+      const methods = [];
+      methods.push({
+        text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
+        click: function($itemScope, $event, modelValue, text, $li) {
+          vm.ipInformationModal(row);
+        },
+      });
+      return methods;
+    };
+
     $scope.selectedProfileRow = {profile_type: '', class: ''};
     $scope.prepareAlert = null;
     $scope.setSelectedProfile = function(row) {
