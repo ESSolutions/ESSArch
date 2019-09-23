@@ -23,7 +23,7 @@
 */
 
 export default class CreateSipCtrl {
-  constructor($http, Profile, $log, $scope, $rootScope, $uibModal, $anchorScroll, $controller) {
+  constructor($http, Profile, $log, $scope, $rootScope, $uibModal, $anchorScroll, $controller, $translate) {
     const vm = this;
     const ipSortString = ['Uploaded', 'Creating'];
 

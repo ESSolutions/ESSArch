@@ -36,7 +36,8 @@ export default class PrepareSipCtrl {
     $controller,
     $timeout,
     $state,
-    ContentTabs
+    ContentTabs,
+    $translate
   ) {
     const vm = this;
     const ipSortString = ['Created', 'Submitting', 'Submitted'];
