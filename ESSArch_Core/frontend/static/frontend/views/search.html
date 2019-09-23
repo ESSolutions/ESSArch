@@ -50,7 +50,9 @@
             <tbody>
               <tr
                 ng-repeat="x in vm.searchList"
-                ui-sref="home.archivalDescriptions.search({query: x.query})"
+                ui-state="home.archivalDescriptions.search"
+                ui-state-params="{query: x.query}"
+                ui-state-opts="{reload: true}"
                 class="selectable"
               >
                 <td>
