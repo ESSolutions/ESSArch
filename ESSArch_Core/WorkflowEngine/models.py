@@ -414,13 +414,29 @@ class ProcessStep(MPTTModel, Process):
 
     @property
     def time_started(self):
-        if self.tasks.exists():
-            return self.tasks.first().time_started
+        try:
+            earliest_task = self.get_descendants(
+                include_self=True
+            ).exclude(tasks=None).earliest(
+                'tasks__time_started'
+            ).tasks.earliest('time_started')
+
+            return earliest_task.time_started
+        except ProcessTask.DoesNotExist:
+            return None
 
     @property
     def time_done(self):
-        if self.tasks.exists():
-            return self.tasks.first().time_done
+        try:
+            latest_task = self.get_descendants(
+                include_self=True
+            ).exclude(tasks=None).latest(
+                'tasks__time_done'
+            ).tasks.latest('time_done')
+
+            return latest_task.time_done
+        except ProcessTask.DoesNotExist:
+            return None
 
     @property
     def progress(self):
