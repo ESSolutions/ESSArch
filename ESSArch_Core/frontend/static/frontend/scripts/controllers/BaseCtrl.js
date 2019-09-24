@@ -831,6 +831,9 @@ export default class BaseCtrl {
         vm.ctrlClickRow(row);
       } else {
         vm.selectSingleRow(row, options);
+        if (row.information_packages && row.information_packages.length > 0) {
+          $scope.expandAic(row);
+        }
       }
     };
 
@@ -1029,9 +1032,10 @@ export default class BaseCtrl {
       $scope.getListViewData();
     };
 
-    vm.expandIconClick = row => {
+    vm.expandIconClick = (row, event) => {
       if (row.package_type !== 1) {
         $scope.expandAic(row);
+        event.stopPropagation();
       }
     };
 

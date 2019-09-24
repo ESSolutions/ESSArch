@@ -170,7 +170,11 @@
           context-menu="menuOptions('row', row)"
         >
           <td ng-if="'home.ingest.reception' | isState" context-menu="menuOptions('row', row)"></td>
-          <td ng-if="!('home.ingest.reception' | isState)" class="clickable" ng-click="vm.expandIconClick(row)">
+          <td
+            ng-if="!('home.ingest.reception' | isState)"
+            class="clickable"
+            ng-click="vm.expandIconClick(row, $event)"
+          >
             <i class="fas fa-plus" ng-if="row.collapsed && row.information_packages.length > 0"></i
             ><i class="fas fa-minus" ng-if="!row.collapsed && row.information_packages.length > 0"></i>
           </td>
