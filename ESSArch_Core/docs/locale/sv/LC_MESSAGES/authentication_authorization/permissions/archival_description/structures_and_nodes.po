@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-24 09:12+0200\n"
+"POT-Creation-Date: 2019-09-24 10:10+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,8 +29,8 @@ msgstr "Strukturer och noder"
 #: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:67
 #: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:82
 #: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:95
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:112
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:125
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:108
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:121
 msgid "Name"
 msgstr "Namn"
 
@@ -41,8 +41,8 @@ msgstr "Namn"
 #: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:67
 #: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:82
 #: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:95
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:112
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:125
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:108
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:121
 msgid "Description"
 msgstr "Beskrivning"
 
@@ -278,62 +278,58 @@ msgstr ""
 msgid "Delete node relation types"
 msgstr "Radera nodrelationstyper"
 
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:106
-msgid ":ref:`node_relation_types`"
-msgstr ""
-
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:109
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:105
 msgid "Nodes"
 msgstr "Noder"
 
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:114
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:110
 msgid "``tags.add_tag``"
 msgstr ""
 
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:114
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:110
 msgid "Create nodes"
 msgstr "Skapa noder"
 
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:116
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:112
 msgid "``tags.change_tag``"
 msgstr ""
 
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:116
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:112
 msgid "Change nodes"
 msgstr "Ändra noder"
 
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:118
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:114
 msgid "``tags.delete_tag``"
 msgstr ""
 
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:118
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:114
 msgid "Delete nodes"
 msgstr "Radera noder"
 
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:122
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:118
 msgid "Node Types"
 msgstr "Nodtyper"
 
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:127
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:123
 msgid "``tags.add_tagversiontype``"
 msgstr ""
 
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:127
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:123
 msgid "Create node types"
 msgstr "Skapa nodtyper"
 
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:129
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:125
 msgid "``tags.change_tagversiontype``"
 msgstr ""
 
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:129
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:125
 msgid "Change node types"
 msgstr "Ändra nodtyper"
 
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:131
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:127
 msgid "``tags.delete_tagversiontype``"
 msgstr ""
 
-#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:131
+#: ../../authentication_authorization/permissions/archival_description/structures_and_nodes.rst:127
 msgid "Delete node types"
 msgstr "Radera nodtyper"

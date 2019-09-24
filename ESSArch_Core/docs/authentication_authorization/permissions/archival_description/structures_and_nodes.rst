@@ -101,10 +101,6 @@ Node Relation Types
 | ``tags.delete_noderelationtype`` | Delete node relation types  |
 +----------------------------------+-----------------------------+
 
-.. seealso::
-
-    :ref:`node_relation_types`
-
 Nodes
 =====
 
