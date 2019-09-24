@@ -133,6 +133,7 @@ module.exports = (env, argv) => {
         },
       }),
       new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+      new webpack.DefinePlugin({'process.env': {LATER_COV: false}}),
     ],
     node: {
       fs: 'empty',

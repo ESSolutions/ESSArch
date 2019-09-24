@@ -1,3 +1,6 @@
+import 'later/later.js';
+import prettyCron from 'prettycron';
+
 export default class AppraisalModalInstanceCtrl {
   constructor(cronService, $filter, $translate, IP, $uibModalInstance, appConfig, $http, data, Notifications) {
     const $ctrl = this;
