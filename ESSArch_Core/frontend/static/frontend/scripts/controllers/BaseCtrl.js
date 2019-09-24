@@ -1029,6 +1029,12 @@ export default class BaseCtrl {
       $scope.getListViewData();
     };
 
+    vm.expandIconClick = row => {
+      if (row.package_type !== 1) {
+        $scope.expandAic(row);
+      }
+    };
+
     // AIC's
     $scope.expandedAics = [];
     $scope.expandAic = function(row) {
