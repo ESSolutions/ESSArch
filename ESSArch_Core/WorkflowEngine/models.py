@@ -628,7 +628,7 @@ class ProcessTask(Process):
     )
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
     log = PickledObjectField(null=True, default=None)
-    on_error = models.ManyToManyField('self')
+    on_error = models.ManyToManyField('self', symmetrical=False)
     allow_failure = models.BooleanField(default=False)
 
     objects = models.Manager()

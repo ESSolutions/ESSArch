@@ -824,8 +824,14 @@ class InformationPackage(models.Model):
         if steps.exists():
             step_progress = sum([s.progress for s in steps])
 
-        tasks = self.processtask_set.filter(Q(processstep__isnull=True) |
-                                            Q(processstep__information_package__isnull=True))
+        tasks = self.processtask_set.filter(
+            Q(
+                Q(processstep__isnull=True) |
+                Q(processstep__information_package__isnull=True)
+            ),
+            steps_on_errors=None,
+            processtask=None,
+        )
         if tasks.exists():
             task_progress = tasks.aggregate(Sum('progress'))['progress__sum']
 
