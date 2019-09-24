@@ -88,10 +88,6 @@ Structure Unit Types
 | ``tags.delete_structureunittype``    | Delete structure unit types    |
 +--------------------------------------+--------------------------------+
 
-.. seealso::
-
-    :ref:`structure_units`
-
 Node Relation Types
 ===================
 
