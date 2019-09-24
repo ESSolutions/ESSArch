@@ -14,6 +14,10 @@ from ESSArch_Core.agents.models import (
 )
 
 
+class AgentTypeAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'creator')
+
+
 class AgentNoteTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'history')
 
@@ -32,7 +36,7 @@ admin.site.register(AgentNoteType, AgentNoteTypeAdmin)
 admin.site.register(AgentPlaceType)
 admin.site.register(AgentRelationType, AgentRelationTypeAdmin)
 admin.site.register(AgentTagLinkRelationType)
-admin.site.register(AgentType)
+admin.site.register(AgentType, AgentTypeAdmin)
 admin.site.register(AuthorityType)
 admin.site.register(MainAgentType)
 admin.site.register(RefCode)

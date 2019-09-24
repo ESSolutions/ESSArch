@@ -54,6 +54,8 @@ class AgentTypeViewSet(viewsets.ModelViewSet):
     queryset = AgentType.objects.select_related('main_type')
     serializer_class = AgentTypeSerializer
     permission_classes = (ActionPermissions,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('creator',)
 
 
 class AgentNameTypeViewSet(viewsets.ModelViewSet):

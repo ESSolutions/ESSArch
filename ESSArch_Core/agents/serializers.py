@@ -195,9 +195,22 @@ class MainAgentTypeSerializer(serializers.ModelSerializer):
 class AgentTypeSerializer(serializers.ModelSerializer):
     main_type = MainAgentTypeSerializer()
 
+    def validate_creator(self, value):
+        if value:
+            try:
+                existing = AgentType.objects.get(creator=True)
+                if existing != self.instance:
+                    raise serializers.ValidationError(
+                        AgentType.unique_creator_error,
+                    )
+            except AgentType.DoesNotExist:
+                pass
+
+        return value
+
     class Meta:
         model = AgentType
-        fields = ('id', 'main_type', 'sub_type', 'cpf',)
+        fields = ('id', 'creator', 'main_type', 'sub_type', 'cpf',)
 
 
 class RelatedAgentSerializer(serializers.ModelSerializer):

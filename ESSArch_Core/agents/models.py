@@ -315,6 +315,8 @@ class AgentPlace(models.Model):
 
 
 class AgentType(models.Model):
+    unique_creator_error = _('Only 1 agent type can be set as creator at a time')
+
     CORPORATE_BODY = 'corporatebody'
     PERSON = 'person'
     FAMILY = 'family'
@@ -325,6 +327,7 @@ class AgentType(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    creator = models.BooleanField(_('creator'), default=False)
     cpf = models.CharField(max_length=20, choices=CPF_CHOICES, blank=False, db_index=True)
     main_type = models.ForeignKey(
         'agents.MainAgentType', on_delete=models.PROTECT, null=False,
@@ -332,6 +335,18 @@ class AgentType(models.Model):
     )
     sub_type = models.TextField(_('sub type'), blank=True)
     legal_status = models.TextField(_('legal status'), blank=True)
+
+    def clean(self):
+        if self.creator:
+            try:
+                existing = AgentType.objects.get(creator=True)
+                if existing != self:
+                    raise ValidationError(
+                        self.unique_creator_error,
+                        code='invalid',
+                    )
+            except AgentType.DoesNotExist:
+                pass
 
     def __str__(self):
         if self.sub_type:
