@@ -986,7 +986,7 @@ export default class SearchDetailCtrl {
       let creator = null;
       node.agents.forEach(function(agent) {
         agent.agent.name = AgentName.getAuthorizedName(agent.agent).full_name;
-        if (agent.type === 'creator') {
+        if (agent.type.creator) {
           creator = agent.agent;
           creator.type = 'agent';
         }

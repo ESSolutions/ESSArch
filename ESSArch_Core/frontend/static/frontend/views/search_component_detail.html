@@ -115,14 +115,14 @@
     </div>
   </div>
   <div
-    ng-if="vm.record.agents.length > 0 && !(vm.record.agents.length === 1 && vm.record.agents[0].type === 'creator')"
+    ng-if="vm.record.agents.length > 0 && !(vm.record.agents.length === 1 && vm.record.agents[0].type.creator)"
     class="py-base"
   >
     <label>
       {{'ACCESS.RELATED_AGENTS' | translate}}:
     </label>
-    <div ng-repeat="x in vm.record.agents" ng-if="x.type !== 'creator'" class="d-flex">
-      {{x.type}}:&nbsp;
+    <div ng-repeat="x in vm.record.agents" ng-if="!x.type.creator" class="d-flex">
+      {{x.type.name}}:&nbsp;
       <a ui-sref="home.archivalDescriptions.archiveCreators({id: x.agent.id})">{{x.name}}</a>
     </div>
   </div>

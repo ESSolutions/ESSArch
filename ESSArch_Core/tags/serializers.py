@@ -517,7 +517,7 @@ class TagVersionAgentTagLinkAgentSerializer(serializers.ModelSerializer):
 
 class TagVersionAgentTagLinkSerializer(serializers.ModelSerializer):
     agent = TagVersionAgentTagLinkAgentSerializer()
-    type = serializers.CharField(source='type.name')
+    type = AgentTagLinkRelationTypeSerializer()
 
     class Meta:
         model = AgentTagLink
