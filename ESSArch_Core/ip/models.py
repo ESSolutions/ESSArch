@@ -773,7 +773,7 @@ class InformationPackage(models.Model):
 
             return state
 
-        tasks = self.processtask_set.filter(hidden=False)
+        tasks = self.processtask_set.filter(Q(hidden=False) | Q(hidden__isnull=True))
         state = celery_states.SUCCESS
         for task in tasks:
             task_status = task.status

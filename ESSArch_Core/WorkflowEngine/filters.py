@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 
+from django.db.models import Q
 from django_filters import rest_framework as filters
 
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
@@ -32,7 +33,14 @@ class ProcessTaskFilter(filters.FilterSet):
     retry_type = filters.BooleanFilter(field_name='retry_type', method='filter_retry_type')
     undone = filters.BooleanFilter(method='filter_undone')
     retried = filters.BooleanFilter(method='filter_retried')
-    hidden = filters.BooleanFilter(field_name='hidden')
+    hidden = filters.BooleanFilter(field_name='hidden', method='filter_hidden')
+
+    def filter_hidden(self, queryset, name, value):
+        if value is False:
+            return queryset.filter(
+                Q(Q(hidden=value) | Q(hidden__isnull=True)),
+            )
+        return queryset.filter(hidden=value)
 
     def filter_undo_type(self, queryset, name, value):
         value = not value
@@ -58,7 +66,14 @@ class ProcessTaskFilter(filters.FilterSet):
 
 
 class ProcessStepFilter(filters.FilterSet):
-    hidden = filters.BooleanFilter(field_name='hidden')
+    hidden = filters.BooleanFilter(field_name='hidden', method='filter_hidden')
+
+    def filter_hidden(self, queryset, name, value):
+        if value is False:
+            return queryset.filter(
+                Q(Q(hidden=value) | Q(hidden__isnull=True)),
+            )
+        return queryset.filter(hidden=value)
 
     class Meta:
         model = ProcessStep

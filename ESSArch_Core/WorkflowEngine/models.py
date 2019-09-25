@@ -98,7 +98,7 @@ class Process(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     celery_id = models.UUIDField(default=uuid.uuid4, unique=True)
     name = models.CharField(max_length=255)
-    hidden = models.BooleanField(editable=False, default=False, db_index=True)
+    hidden = models.BooleanField(editable=False, null=True, default=None, db_index=True)
     eager = models.BooleanField(default=True)
     time_created = models.DateTimeField(auto_now_add=True)
     result = PickledObjectField(null=True, default=None, editable=False)

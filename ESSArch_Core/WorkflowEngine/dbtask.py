@@ -73,6 +73,9 @@ class DBTask(Task):
         self.step = options.get('step')
         self.step_pos = options.get('step_pos')
         self.hidden = options.get('hidden', False) or self.hidden
+        if options.get('hidden') is not None:
+            self.hidden = options['hidden']
+
         self.undo_type = options.get('undo', False)
         self.result_params = options.get('result_params', {}) or {}
         self.task_id = options.get('task_id') or self.request.id

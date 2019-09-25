@@ -11,6 +11,16 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
+            model_name='processstep',
+            name='hidden',
+            field=models.BooleanField(db_index=True, default=None, editable=False, null=True),
+        ),
+        migrations.AlterField(
+            model_name='processtask',
+            name='hidden',
+            field=models.BooleanField(db_index=True, default=None, editable=False, null=True),
+        ),
+        migrations.AlterField(
             model_name='processtask',
             name='on_error',
             field=models.ManyToManyField(to='WorkflowEngine.ProcessTask'),

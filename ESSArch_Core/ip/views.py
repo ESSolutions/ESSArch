@@ -556,8 +556,14 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         tasks = ip.processtask_set.filter(processstep__information_package__isnull=True)
 
         if hidden is not None:
-            steps = steps.filter(hidden=string_to_bool(hidden))
-            tasks = tasks.filter(hidden=string_to_bool(hidden))
+            hidden = string_to_bool(hidden)
+            if hidden is False:
+                query = Q(Q(hidden=hidden) | Q(hidden__isnull=True))
+            else:
+                query = Q(hidden=hidden)
+
+            steps = steps.filter(query)
+            tasks = tasks.filter(query)
 
         flow = sorted(itertools.chain(steps, tasks), key=lambda x: (x.time_created, x.get_pos()))
 
