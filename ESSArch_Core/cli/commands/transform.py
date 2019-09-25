@@ -3,7 +3,6 @@ from pydoc import locate
 import click
 
 from ESSArch_Core.config.decorators import initialize
-from ESSArch_Core.fixity.transformation.exceptions import UnknownTransformer
 
 
 class TransformationCLI(click.MultiCommand):
@@ -17,6 +16,8 @@ class TransformationCLI(click.MultiCommand):
 
     @initialize
     def get_command(self, ctx, name):
+        from ESSArch_Core.fixity.transformation.exceptions import UnknownTransformer
+
         try:
             transformer = locate(self.get_transformers()[name])
         except KeyError:

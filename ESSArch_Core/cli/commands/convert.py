@@ -3,7 +3,6 @@ from pydoc import locate
 import click
 
 from ESSArch_Core.config.decorators import initialize
-from ESSArch_Core.fixity.conversion.exceptions import UnknownConverter
 
 
 class ConversionCLI(click.MultiCommand):
@@ -17,6 +16,8 @@ class ConversionCLI(click.MultiCommand):
 
     @initialize
     def get_command(self, ctx, name):
+        from ESSArch_Core.fixity.conversion.exceptions import UnknownConverter
+
         try:
             converter = locate(self.get_converters()[name])
         except KeyError:
