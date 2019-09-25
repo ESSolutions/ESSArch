@@ -402,7 +402,7 @@ class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             structure = self.request.query_params.get('structure')
             qs = ancestor.get_descendants(structure)
 
-        return qs
+        return qs.distinct()
 
 
 class DeliveryViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
