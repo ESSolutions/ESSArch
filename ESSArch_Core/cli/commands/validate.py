@@ -3,6 +3,7 @@ from pydoc import locate
 import click
 
 from ESSArch_Core.config.decorators import initialize
+from ESSArch_Core.fixity.validation.exceptions import UnknownValidator
 
 
 class ValidationCLI(click.MultiCommand):
@@ -16,7 +17,15 @@ class ValidationCLI(click.MultiCommand):
 
     @initialize
     def get_command(self, ctx, name):
-        return locate(self.get_validators()[name]).cli
+        try:
+            validator = locate(self.get_validators()[name])
+        except KeyError:
+            raise UnknownValidator(name)
+
+        if validator is None:
+            raise UnknownValidator(name)
+
+        return validator.cli
 
 
 @click.command(cls=ValidationCLI)
