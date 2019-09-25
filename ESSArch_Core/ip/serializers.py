@@ -2,6 +2,7 @@ import errno
 import os
 
 from django.contrib.auth import get_user_model
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from ESSArch_Core._version import get_versions
@@ -202,6 +203,22 @@ class InformationPackageReceptionReceiveSerializer(serializers.Serializer):
         ),
     )
     allow_unknown_files = serializers.BooleanField(default=False)
+
+
+class PrepareDIPSerializer(serializers.Serializer):
+    label = serializers.CharField(required=True)
+    object_identifier_value = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    orders = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(queryset=Order.objects.all()),
+        allow_empty=True,
+    )
+
+    def validate_object_identifier_value(self, value):
+        ip_exists = InformationPackage.objects.filter(object_identifier_value=value).exists()
+        if ip_exists:
+            raise serializers.ValidationError(_('IP with object identifer value "%s" already exists' % value))
+
+        return value
 
 
 class OrderSerializer(serializers.ModelSerializer):

@@ -99,6 +99,7 @@ from ESSArch_Core.ip.serializers import (
     InformationPackageSerializer,
     NestedInformationPackageSerializer,
     OrderSerializer,
+    PrepareDIPSerializer,
     WorkareaSerializer,
 )
 from ESSArch_Core.maintenance.models import AppraisalRule, ConversionRule
@@ -1382,40 +1383,22 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     @action(detail=False, methods=['post'], url_path='prepare-dip')
     def prepare_dip(self, request):
-        try:
-            label = request.data['label']
-        except KeyError:
-            raise exceptions.ParseError('"label" is required')
-
-        object_identifier_value = request.data.get('object_identifier_value')
-
-        if object_identifier_value:
-            ip_exists = InformationPackage.objects.filter(object_identifier_value=object_identifier_value).exists()
-            if ip_exists:
-                raise exceptions.ParseError(
-                    'IP with object identifer value "%s" already exists' % object_identifier_value
-                )
-
-        orders = request.data.get('orders', [])
-
-        for order in orders:
-            if not Order.objects.filter(pk=order, responsible=request.user).exists():
-                raise exceptions.ParseError('Order "%s" belonging to current user does not exist' % order)
+        serializer = PrepareDIPSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer_data = serializer.validated_data
 
         main_step = ProcessStep.objects.create(name='Prepare DIP',)
         task = ProcessTask.objects.create(
             name='ESSArch_Core.workflow.tasks.PrepareDIP',
             params={
-                'label': label,
-                'object_identifier_value': object_identifier_value,
-                'orders': orders
+                'label': serializer_data['label'],
+                'object_identifier_value': serializer_data['object_identifier_value'],
+                'orders': serializer_data['orders'],
             },
             processstep=main_step,
             responsible=self.request.user,
         )
-
         dip = task.run().get()
-
         return Response(dip, status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['delete', 'get', 'post'], permission_classes=[IsResponsibleOrCanSeeAllFiles])
