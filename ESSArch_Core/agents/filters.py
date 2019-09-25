@@ -12,7 +12,7 @@ class AgentFilter(filters.FilterSet):
 
     class Meta:
         model = Agent
-        fields = ['excluded_ids']
+        fields = ('excluded_ids',)
 
 
 class AgentOrderingFilter(OrderingFilter):
