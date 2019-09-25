@@ -465,35 +465,37 @@ class UpdateAgentTests(TestCase):
         agent = self.create_agent()
         url = reverse('agent-detail', args=[agent.pk])
 
-        response = self.client.patch(
-            url,
-            data={
-                'notes': [{
-                    'text': 'test',
-                    'type': self.note_type.pk,
-                }],
-            }
-        )
+        with self.subTest('basic'):
+            response = self.client.patch(
+                url,
+                data={
+                    'notes': [{
+                        'text': 'test',
+                        'type': self.note_type.pk,
+                    }],
+                }
+            )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(AgentNote.objects.count(), 1)
-        self.assertTrue(AgentNote.objects.filter(agent=agent, text='test').exists())
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(AgentNote.objects.count(), 1)
+            self.assertTrue(AgentNote.objects.filter(agent=agent, text='test').exists())
 
-        # with create_date
-        response = self.client.patch(
-            url,
-            data={
-                'notes': [{
-                    'text': 'test',
-                    'type': self.note_type.pk,
-                    'create_date': '2019-03-01 12:34:56',
-                }],
-            }
-        )
+        with self.subTest('with create date'):
+            create_date = timezone.now().isoformat()
+            response = self.client.patch(
+                url,
+                data={
+                    'notes': [{
+                        'text': 'test',
+                        'type': self.note_type.pk,
+                        'create_date': create_date,
+                    }],
+                }
+            )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(AgentNote.objects.count(), 1)
-        self.assertTrue(AgentNote.objects.filter(agent=agent, text='test', create_date='2019-03-01 12:34:56').exists())
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(AgentNote.objects.count(), 1)
+            self.assertTrue(AgentNote.objects.filter(agent=agent, text='test', create_date=create_date).exists())
 
     def test_update_identifiers(self):
         add_permission(self.user, 'change_agent')
