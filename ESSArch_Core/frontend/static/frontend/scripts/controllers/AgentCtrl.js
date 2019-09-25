@@ -298,6 +298,7 @@ export default class AgentCtrl {
       });
       modalInstance.result.then(
         function(data) {
+          vm.agentPipe($scope.tableState);
           $state.go($state.current.name, {id: data.id});
         },
         function() {
