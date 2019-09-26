@@ -14,7 +14,8 @@ export default class AppCtrl {
           '-ms-user-select': 'none',
           'user-select': 'none',
         });
-        if (e.keyCode == questionMark) {
+        let activeElementName = document.activeElement.nodeName;
+        if (e.keyCode === questionMark && activeElementName !== 'INPUT' && activeElementName !== 'TEXTAREA') {
           $scope.keyboardShortcutModal();
         }
       }
