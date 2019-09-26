@@ -24,6 +24,7 @@ from ESSArch_Core.storage.models import (
 )
 from ESSArch_Core.util import normalize_path, timestamp_to_datetime
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
+from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 
 class InformationPackageListFilesTests(TestCase):
@@ -818,7 +819,8 @@ class InformationPackageCreatePreservationWorkflowTests(TestCase):
             status=STORAGE_TARGET_STATUS_ENABLED
         )
 
-        ip.create_preservation_workflow()
+        workflow = ip.create_preservation_workflow()
+        create_workflow(workflow, ip)
 
 
 class InformationPackagePreserveTests(TestCase):

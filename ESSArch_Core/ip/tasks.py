@@ -109,6 +109,7 @@ class GeneratePackageMets(DBTask):
     event_type = 50600
 
     def run(self, package_path=None, xml_path=None):
+        package_path, xml_path = self.parse_params(package_path, xml_path)
         ip = self.get_information_package()
         package_path = package_path if package_path is not None else ip.object_path
         xml_path = xml_path if xml_path is not None else os.path.splitext(package_path)[0] + '.xml'
@@ -122,6 +123,7 @@ class GeneratePackageMets(DBTask):
 
 class GenerateAICMets(DBTask):
     def run(self, xml_path):
+        xml_path, = self.parse_params(xml_path)
         ip = self.get_information_package()
         generate_aic_mets(ip, xml_path)
         return xml_path
@@ -203,12 +205,18 @@ class CreatePhysicalModel(DBTask):
 
 class CreateContainer(DBTask):
     def run(self, src, dst):
+        src, dst = self.parse_params(src, dst)
+
         ip = self.get_information_package()
         container_format = ip.get_container_format().lower()
         tpp = ip.get_profile_rel('transfer_project').profile
         compress = tpp.specification_data.get('container_format_compression', False)
 
         dst = normalize_path(dst)
+
+        if os.path.isdir(dst):
+            dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
+            dst = os.path.join(dst, dst_filename)
 
         if container_format == 'zip':
             self.event_type = 50410

@@ -999,16 +999,6 @@ class InformationPackage(models.Model):
             for method in remote_methods
         ])
 
-        temp_container_path = self.get_temp_container_path()
-        temp_mets_path = self.get_temp_container_xml_path()
-        temp_aic_mets_path = self.get_temp_container_aic_xml_path() if self.aic else None
-
-        reception_dir = Path.objects.get(entity='ingest_reception').value
-        ingest_dir = self.policy.ingest_path.value
-
-        ip_reception_path = os.path.join(reception_dir, self.object_identifier_value)
-        ip_ingest_path = os.path.join(ingest_dir, self.object_identifier_value)
-
         remote_temp_container_transfer = {
             "step": True,
             "parallel": True,
@@ -1023,7 +1013,7 @@ class InformationPackage(models.Model):
                             "name": "ESSArch_Core.tasks.CopyFile",
                             "label": "Transfer temporary container to {}".format(remote_server.split(',')[0]),
                             "args": [
-                                temp_container_path,
+                                "{{TEMP_CONTAINER_PATH}}",
                                 urljoin(
                                     remote_server.split(',')[0],
                                     reverse('informationpackage-add-file-from-master')
@@ -1035,7 +1025,7 @@ class InformationPackage(models.Model):
                             "name": "ESSArch_Core.tasks.CopyFile",
                             "label": "Transfer temporary AIP xml to {}".format(remote_server.split(',')[0]),
                             "args": [
-                                temp_mets_path,
+                                "{{TEMP_METS_PATH}}",
                                 urljoin(
                                     remote_server.split(',')[0],
                                     reverse('informationpackage-add-file-from-master')
@@ -1045,10 +1035,10 @@ class InformationPackage(models.Model):
                         },
                         {
                             "name": "ESSArch_Core.tasks.CopyFile",
-                            "if": temp_aic_mets_path is not None,
+                            "run_if": "{{TEMP_AIC_METS_PATH}}",
                             "label": "Transfer temporary AIC xml to {}".format(remote_server.split(',')[0]),
                             "args": [
-                                temp_aic_mets_path,
+                                "{{TEMP_AIC_METS_PATH}}",
                                 urljoin(
                                     remote_server.split(',')[0],
                                     reverse('informationpackage-add-file-from-master')
@@ -1158,20 +1148,20 @@ class InformationPackage(models.Model):
                                     {
                                         "name": "ESSArch_Core.ip.tasks.CreateContainer",
                                         "label": "Create temporary container",
-                                        "args": [self.object_path, temp_container_path],
+                                        "args": ["{{OBJPATH}}", "{{TEMP_CONTAINER_PATH}}"],
                                     },
                                     {
                                         "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
                                         "label": "Create container mets",
                                         "args": [
-                                            temp_container_path,
-                                            temp_mets_path,
+                                            "{{TEMP_CONTAINER_PATH}}",
+                                            "{{TEMP_METS_PATH}}",
                                         ]
                                     },
                                     {
                                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
                                         "label": "Create container aic mets",
-                                        "args": [temp_aic_mets_path]
+                                        "args": ["{{TEMP_AIC_METS_PATH}}"]
                                     },
 
                                     {
@@ -1197,7 +1187,7 @@ class InformationPackage(models.Model):
                                     {
                                         "name": "ESSArch_Core.tasks.DeleteFiles",
                                         "label": "Delete temporary container",
-                                        "args": [temp_container_path]
+                                        "args": ["{{TEMP_CONTAINER_PATH}}"]
                                     },
                                 ],
                             },
@@ -1206,31 +1196,8 @@ class InformationPackage(models.Model):
                 ],
             },
             {
-                "name": "ESSArch_Core.tasks.DeleteFiles",
-                "label": "Delete from reception",
-                "args": [ip_reception_path]
-            },
-            {
-                "name": "ESSArch_Core.tasks.DeleteFiles",
-                "label": "Delete from ingest",
-                "args": [ip_ingest_path]
-            },
-            {
                 "name": "ESSArch_Core.ip.tasks.MarkArchived",
                 "label": "Mark as archived",
-            },
-            {
-                "name": "ESSArch_Core.ip.tasks.CreateReceipt",
-                "label": "Create receipt",
-                "args": [
-                    None,
-                    "xml",
-                    "receipts/xml.json",
-                    "/ESSArch/data/receipts/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
-                    "success",
-                    "Preserved {{OBJID}}",
-                    "{{OBJID}} is now preserved",
-                ],
             },
             {
                 "name": "ESSArch_Core.ip.tasks.DeleteWorkarea",
@@ -1240,7 +1207,7 @@ class InformationPackage(models.Model):
             },
         ]
 
-        return create_workflow(workflow, self, name='Preserve Information Package')
+        return workflow
 
     def create_access_workflow(self, user, tar=False, extracted=False, new=False, object_identifier_value=None):
         if tar:

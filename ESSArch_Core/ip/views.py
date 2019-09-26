@@ -1288,7 +1288,39 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ip.appraisal_date = request.data.get('appraisal_date', None)
         ip.save()
 
+        reception_dir = Path.objects.get(entity='ingest_reception').value
+        ingest_dir = ip.policy.ingest_path.value
+
+        ip_reception_path = os.path.join(reception_dir, ip.object_identifier_value)
+        ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value)
+
         workflow = ip.create_preservation_workflow()
+        workflow += [
+            {
+                "name": "ESSArch_Core.ip.tasks.CreateReceipt",
+                "label": "Create receipt",
+                "args": [
+                    None,
+                    "xml",
+                    "receipts/xml.json",
+                    "/ESSArch/data/receipts/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
+                    "success",
+                    "Preserved {{OBJID}}",
+                    "{{OBJID}} is now preserved",
+                ],
+            },
+            {
+                "name": "ESSArch_Core.tasks.DeleteFiles",
+                "label": "Delete from reception",
+                "args": [ip_reception_path]
+            },
+            {
+                "name": "ESSArch_Core.tasks.DeleteFiles",
+                "label": "Delete from ingest",
+                "args": [ip_ingest_path]
+            },
+        ]
+        workflow = create_workflow(workflow, ip, name='Preserve Information Package')
         workflow.run()
         return Response({'detail': 'Preserving %s...' % ip.object_identifier_value, 'step': workflow.pk})
 
