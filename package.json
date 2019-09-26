@@ -1,7 +1,7 @@
 {
   "private": true,
   "dependencies": {
-    "@babel/core": "^7.6.0",
+    "@babel/core": "^7.6.2",
     "@babel/preset-env": "^7.5.5",
     "@babel/register": "^7.5.5",
     "@flowjs/ng-flow": "~2.7.8",
