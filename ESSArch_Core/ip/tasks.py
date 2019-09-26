@@ -311,7 +311,7 @@ class CreateReceipt(DBTask):
         if task_id is None:
             task = self.get_processtask()
         else:
-            task = ProcessTask.objects.get(pk=task_id)
+            task = ProcessTask.objects.get(celery_id=task_id)
         backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task)
 
 
