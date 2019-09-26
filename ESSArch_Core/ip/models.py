@@ -546,7 +546,7 @@ class InformationPackage(models.Model):
             raise
 
     def get_content_type_file(self):
-        ctsdir, ctsfile = find_destination('content_type_specification', self.get_structure())
+        ctsdir, ctsfile = find_destination('content_type_specification', self.get_structure(), self.object_path)
         if ctsdir is None:
             return None
         return parseContent(os.path.join(ctsdir, ctsfile), fill_specification_data(ip=self))
@@ -558,7 +558,11 @@ class InformationPackage(models.Model):
         try:
             ct_importer_name = self.get_content_type_importer_name()
             ct_importer = get_importer(ct_importer_name)()
-            cts_file = self.open_file(self.get_content_type_file())
+            ct_file = self.get_content_type_file()
+            if ct_file is None:
+                return None
+
+            cts_file = self.open_file(ct_file)
             tag = ct_importer.get_archive(cts_file)
 
             if tag is None:
@@ -1530,15 +1534,13 @@ class InformationPackage(models.Model):
         workflow = {"step": True, "name": "Access AIP", "children": workflow}
         return create_workflow([workflow], self, name='Access Information Package')
 
-    def write_to_search_index(self):
-        data = fill_specification_data(self.get_profile_data('aip'), ip=self, sa=self.submission_agreement)
+    def write_to_search_index(self, task):
         srcdir = self.object_path
-        ctsdir, ctsfile = find_destination('content_type_specification', self.get_profile('aip').structure, srcdir)
         ct_profile = self.get_profile('content_type')
         indexed_files = []
 
         if ct_profile is not None:
-            cts = parseContent(os.path.join(ctsdir, ctsfile), data)
+            cts = self.get_content_type_file()
             if os.path.isfile(cts):
                 logger.info('Found content type specification: {path}'.format(path=cts))
                 try:
@@ -1546,8 +1548,8 @@ class InformationPackage(models.Model):
                 except KeyError:
                     logger.exception('No content type importer specified in profile')
                     raise
-                ct_importer = get_importer(ct_importer_name)()
-                indexed_files = ct_importer.import_content(self.task_id, cts, ip=self)
+                ct_importer = get_importer(ct_importer_name)(task)
+                indexed_files = ct_importer.import_content(cts, ip=self)
             else:
                 err = "Content type specification not found"
                 logger.error('{err}: {path}'.format(err=err, path=cts))

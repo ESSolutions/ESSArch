@@ -379,7 +379,7 @@ class PreserveInformationPackage(DBTask):
 class WriteInformationPackageToSearchIndex(DBTask):
     def run(self):
         ip = self.get_information_package()
-        ip.write_to_search_index()
+        ip.write_to_search_index(self.get_processtask())
 
 
 class CreateReceipt(DBTask):
