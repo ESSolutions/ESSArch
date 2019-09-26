@@ -22,6 +22,7 @@ from ESSArch_Core.tags.models import (
     Tag,
     TagStructure,
     TagVersion,
+    TagVersionType,
 )
 from ESSArch_Core.util import (
     get_tree_size_and_count,
@@ -364,9 +365,10 @@ class EardErmsImporter(BaseImporter):
             act = self.parse_act(act_el, errand)
 
             tag = Tag(information_package=ip, task=self.task)
+            tag_version_type, _ = TagVersionType.objects.get_or_create(name=act.type)
             tag_version = TagVersion(pk=act.meta.id, tag=tag,
                                      elastic_index=act._index._name,
-                                     name=act.name, type=act.type,
+                                     name=act.name, type=tag_version_type,
                                      reference_code=act.reference_code)
             tag_repr = TagStructure(
                 tag=tag,
@@ -479,9 +481,10 @@ class EardErmsImporter(BaseImporter):
         for errand in self.get_arkiv_objekt_arenden(errands_root):
             component, structure_unit = self.parse_errand(errand, archive, ip, structure)
             tag = Tag(information_package=ip, task=self.task)
+            tag_version_type, _ = TagVersionType.objects.get_or_create(name=component.type)
             tag_version = TagVersion(pk=component.meta.id, tag=tag,
                                      elastic_index=component._index._name,
-                                     name=component.name, type=component.type,
+                                     name=component.name, type=tag_version_type,
                                      reference_code=component.reference_code)
             tag_repr = TagStructure(
                 tag=tag,
