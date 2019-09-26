@@ -549,6 +549,7 @@ class CopyFile(DBTask):
             None
         """
 
+        src, dst = self.parse_params(src, dst)
         requests_session = None
         if remote_credentials:
             user, passw = decrypt_remote_credentials(remote_credentials)
