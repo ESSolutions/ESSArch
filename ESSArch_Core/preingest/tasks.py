@@ -23,19 +23,52 @@
 """
 
 import os
+import shutil
 
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import transaction
 
 # noinspection PyUnresolvedReferences
 from ESSArch_Core import tasks  # noqa
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.ip.models import Agent, InformationPackage
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 
 User = get_user_model()
+
+
+class ReceiveIP(DBTask):
+    event_type = 20100
+
+    @transaction.atomic
+    def run(self):
+        ip = InformationPackage.objects.get(pk=self.ip)
+        sa = ip.submission_agreement
+        preingest_path = Path.objects.get(entity="preingest").value
+        dst_dir = os.path.join(preingest_path, ip.object_identifier_value)
+        shutil.copytree(ip.object_path, dst_dir)
+
+        if sa.archivist_organization:
+            existing_agents_with_notes = Agent.objects.all().with_notes([])
+            ao_agent, _ = Agent.objects.get_or_create(
+                role='ARCHIVIST', type='ORGANIZATION',
+                name=sa.archivist_organization, pk__in=existing_agents_with_notes
+            )
+            ip.agents.add(ao_agent)
+
+        submit_description_data = ip.get_profile_data('submit_description')
+        ip.label = ip.object_identifier_value
+        ip.entry_date = ip.create_date
+        ip.object_path = dst_dir
+        ip.start_date = submit_description_data.get('start_date')
+        ip.end_date = submit_description_data.get('end_date')
+        ip.save()
+
+    def event_outcome_success(self, result):
+        return "Received IP"
 
 
 class TransferSIP(DBTask):

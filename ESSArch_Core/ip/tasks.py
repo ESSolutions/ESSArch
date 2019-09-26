@@ -1,5 +1,7 @@
+import copy
 import logging
 import os
+import pathlib
 import tarfile
 from urllib.parse import urljoin
 
@@ -7,12 +9,16 @@ import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext as _
+from groups_manager.utils import get_permission_name
+from guardian.shortcuts import assign_perm
 
-from ESSArch_Core.auth.models import Notification
+from ESSArch_Core.auth.models import Member, Notification
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
+from ESSArch_Core.essxml.util import parse_submit_description
 from ESSArch_Core.fixity.receipt import get_backend as get_receipt_backend
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
@@ -25,7 +31,8 @@ from ESSArch_Core.ip.utils import (
     generate_premis,
     parse_submit_description_from_ip,
 )
-from ESSArch_Core.profiles.utils import fill_specification_data
+from ESSArch_Core.profiles.models import SubmissionAgreement
+from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.models import StorageMethod, StorageTarget
 from ESSArch_Core.util import (
@@ -92,6 +99,75 @@ class SubmitSIP(DBTask):
     def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
         return "Submitted %s" % ip.object_identifier_value
+
+
+class PrepareAIP(DBTask):
+    def run(self, sip_path):
+        sip_path, = self.parse_params(sip_path)
+        sip_path = pathlib.Path(sip_path)
+        user = User.objects.get(pk=self.responsible)
+        perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
+        organization = user.user_profile.current_organization
+
+        object_identifier_value = sip_path.stem
+        existing_sip = InformationPackage.objects.filter(
+            Q(
+                Q(object_path=sip_path) |
+                Q(object_identifier_value=object_identifier_value),
+            ),
+            package_type=InformationPackage.SIP
+        ).first()
+        xmlfile = sip_path.with_suffix('.xml')
+
+        if existing_sip is None:
+            parsed = parse_submit_description(xmlfile.as_posix(), srcdir=sip_path.parent)
+            parsed_sa = parsed.get('altrecordids', {}).get('SUBMISSIONAGREEMENT', [None])[0]
+
+            if parsed_sa is not None:
+                raise ValueError('No submission agreement found in xml')
+
+            sa = SubmissionAgreement.objects.get(pk=parsed_sa)
+
+            with transaction.atomic():
+                ip = InformationPackage.objects.create(
+                    object_identifier_value=object_identifier_value,
+                    sip_objid=object_identifier_value,
+                    sip_path=sip_path.as_posix(),
+                    package_type=InformationPackage.AIP,
+                    state='Prepared',
+                    responsible=user,
+                    submission_agreement=sa,
+                    submission_agreement_locked=True,
+                    object_path=sip_path.as_posix(),
+                    package_mets_path=xmlfile.as_posix(),
+                )
+
+                member = Member.objects.get(django_user=user)
+                user_perms = perms.pop('owner', [])
+
+                organization.assign_object(ip, custom_permissions=perms)
+                organization.add_object(ip)
+
+                for perm in user_perms:
+                    perm_name = get_permission_name(perm, ip)
+                    assign_perm(perm_name, member.django_user, ip)
+
+                # refresh date fields to convert them to datetime instances instead of
+                # strings to allow further datetime manipulation
+                ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
+                ip.create_profile_rels([x.lower().replace(' ', '_') for x in profile_types], user)
+        else:
+            with transaction.atomic():
+                ip = existing_sip
+                ip.sip_objid = object_identifier_value
+                ip.sip_path = sip_path.as_posix()
+                ip.package_type = InformationPackage.AIP
+                ip.state = 'Prepared'
+                ip.object_path = sip_path.as_posix()
+                ip.package_mets_path = xmlfile.as_posix()
+                ip.save()
+
+        return str(ip.pk)
 
 
 class GenerateContentMets(DBTask):
