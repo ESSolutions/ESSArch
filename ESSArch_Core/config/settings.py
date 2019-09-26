@@ -367,8 +367,8 @@ CELERY_TASK_REMOTE_TRACEBACKS = True
 CELERY_TASK_TRACK_STARTED = True
 
 CELERY_BEAT_SCHEDULE = {
-    'RunWorkflowProfiles-every-60-seconds': {
-        'task': 'ESSArch_Core.tasks.RunWorkflowProfiles',
+    'RunWorkflowPollers-every-60-seconds': {
+        'task': 'ESSArch_Core.tasks.RunWorkflowPollers',
         'schedule': timedelta(seconds=60),
     },
     'UnmountIdleDrives-queue-every-10-minutes': {

@@ -766,8 +766,8 @@ class ConvertFile(DBTask):
         return "Converted %s file(s) at %s" % (self.files_count, path,)
 
 
-class RunWorkflowProfiles(DBTask):
-    logger = logging.getLogger('essarch.core.tasks.RunWorkflowProfiles')
+class RunWorkflowPollers(DBTask):
+    logger = logging.getLogger('essarch.core.tasks.RunWorkflowPollers')
 
     def run(self):
         proj = settings.PROJECT_SHORTNAME
