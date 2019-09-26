@@ -9,6 +9,7 @@
     "@intervolga/optimize-cssnano-plugin": "^1.0.6",
     "@types/angular": "^1.6.56",
     "@types/angular-formly": "^7.2.34",
+    "@types/angular-permission": "^2.3.22",
     "@types/angular-translate": "^2.16.0",
     "@types/jquery": "^3.3.31",
     "@types/lodash": "^4.14.138",

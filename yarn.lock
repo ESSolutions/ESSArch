@@ -694,10 +694,25 @@
   dependencies:
     "@types/angular" "*"
 
+"@types/angular-permission@^2.3.22":
+  version "2.3.22"
+  resolved "https://registry.yarnpkg.com/@types/angular-permission/-/angular-permission-2.3.22.tgz#6d3453d5d3c831e50a1bda173bff6c571d9cd6d5"
+  integrity sha512-KRGUTiWzbpCO1KXv3bJORSOgsdNC3IvGV+jAZgw36EkuYB6lqjyUqZAFzKqmQ67fTyuEorhqX4SUBJJ0sSJmYQ==
+  dependencies:
+    "@types/angular" "*"
+    "@types/angular-ui-router" "*"
+
 "@types/angular-translate@^2.16.0":
   version "2.16.0"
   resolved "https://registry.yarnpkg.com/@types/angular-translate/-/angular-translate-2.16.0.tgz#673423f8d006d6a44662e71f0e1b9d017924e96e"
   integrity sha512-ZW7w6+N95EVJSmi+PhIB4gGtl4ABpBOg6wFqk24+vXSIpExqZ88PnfX0O6jQwLDuKUh75rmQZRBy3KvF/JPx3Q==
+  dependencies:
+    "@types/angular" "*"
+
+"@types/angular-ui-router@*":
+  version "1.1.40"
+  resolved "https://registry.yarnpkg.com/@types/angular-ui-router/-/angular-ui-router-1.1.40.tgz#d8a10fe4af86a069f8c3302946363f1149e5a6b3"
+  integrity sha512-4xMwNeSNrRHj2uaLAbeACVjgTCLCDHqwMQOKE0lq6MIXngVuvc0zucGKg2WYd4i+goxl9R3agH3w4qnEseIbxw==
   dependencies:
     "@types/angular" "*"
 

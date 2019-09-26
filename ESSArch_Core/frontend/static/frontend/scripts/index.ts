@@ -23,8 +23,15 @@ Email - essarch@essolutions.se
 */
 
 import * as angular from 'angular';
+import uiRouter, {
+  UrlService,
+  StateService,
+  StateProvider,
+  TransitionService,
+  UrlParts,
+  UIRouter,
+} from '@uirouter/angularjs';
 import {permission, uiPermission} from 'angular-permission';
-import uiRouter, {UrlService, StateService, StateProvider, TransitionService} from '@uirouter/angularjs';
 
 import '@flowjs/ng-flow';
 import 'angular-animate';
@@ -868,9 +875,8 @@ angular
             authenticated: resolveAuthenticated,
           },
         });
-      $urlServiceProvider.rules.otherwise(function($injector) {
-        const $state = $injector.get('$state');
-        $state.go('home.info');
+      $urlServiceProvider.rules.otherwise((_matchValue?: any, _url?: UrlParts, router?: UIRouter) => {
+        router.stateService.go('home.info');
       });
 
       $urlServiceProvider.deferIntercept();
@@ -1025,7 +1031,7 @@ angular
               $rootScope.site = null;
             });
           $transitions.onStart({}, function($transition) {
-            const to = $transition.$to();
+            const to = $transition.to();
             if (to.name === 'login') {
               return;
             }
@@ -1042,8 +1048,8 @@ angular
         });
 
       $transitions.onStart({}, function($transition) {
-        const to = $transition.$to();
-        const from = $transition.$from();
+        const to = $transition.to();
+        const from = $transition.from();
         const params = $transition.params();
 
         if (to.redirectTo) {
