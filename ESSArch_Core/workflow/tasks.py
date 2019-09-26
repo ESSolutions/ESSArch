@@ -27,6 +27,7 @@ import datetime
 import errno
 import logging
 import os
+import pathlib
 import shutil
 import tarfile
 import uuid
@@ -86,6 +87,7 @@ from ESSArch_Core.storage.models import (
 from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
 from ESSArch_Core.util import (
     creation_date,
+    delete_path,
     find_destination,
     get_tree_size_and_count,
     timestamp_to_datetime,
@@ -102,7 +104,7 @@ class ReceiveSIP(DBTask):
     event_type = 20100
 
     @transaction.atomic
-    def run(self, purpose=None, allow_unknown_files=False):
+    def run(self, purpose=None, allow_unknown_files=False, delete_sip=False):
         self.logger.debug('Receiving SIP')
         aip = InformationPackage.objects.get(pk=self.ip)
         algorithm = aip.get_checksum_algorithm()
@@ -117,6 +119,7 @@ class ReceiveSIP(DBTask):
         aip.generation = 0
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC, responsible=aip.responsible,
                                                 label=aip.label, start_date=aip.start_date, end_date=aip.end_date)
+        old_sip_path = aip.object_path
         aip.aic = aic
         aip_dir = os.path.join(aip.policy.ingest_path.value, objid)
         aip.object_path = aip_dir
@@ -166,10 +169,14 @@ class ReceiveSIP(DBTask):
             shutil.copy2(container, dst)
             aip.sip_path = os.path.relpath(os.path.join(dst, os.path.basename(container)), aip.object_path)
 
+        if delete_sip:
+            delete_path(old_sip_path)
+            delete_path(pathlib.Path(old_sip_path).with_suffix('.xml'))
+
         self.logger.debug('sip_path set to {}'.format(aip.sip_path))
         aip.save()
 
-    def event_outcome_success(self, result, purpose=None, allow_unknown_files=False):
+    def event_outcome_success(self, result, purpose=None, allow_unknown_files=False, delete_sip=False):
         return "Received SIP"
 
 
