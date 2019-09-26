@@ -146,7 +146,7 @@
                       uib-tooltip="{{profile.name}}"
                       tooltip-placement="auto top"
                       tooltip-append-to-body="true"
-                      ng-disabled="vm.loadingProfileData[profile.profile_type]"
+                      ng-disabled="profile.template.length === 0 || vm.loadingProfileData[profile.profile_type]"
                     >
                       <i class="fas fa-sm fa-pencil"></i>&nbsp;{{'EDIT' | translate}}
                       <i ng-if="vm.loadingProfileData[profile.profile_type]" class="fas fa-spinner fa-spin"></i>
@@ -159,7 +159,7 @@
                       uib-tooltip="{{profile.name}}"
                       tooltip-placement="auto top"
                       tooltip-append-to-body="true"
-                      ng-disabled="vm.loadingProfileData[profile.profile_type]"
+                      ng-disabled="profile.template.length === 0 || vm.loadingProfileData[profile.profile_type]"
                     >
                       <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
                       <i ng-if="vm.loadingProfileData[profile.profile_type]" class="fas fa-spinner fa-spin"></i>
