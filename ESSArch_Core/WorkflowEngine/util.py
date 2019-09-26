@@ -40,7 +40,12 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
             continue
 
         if flow_entry.get('step', False):
-            if len(flow_entry.get('children', [])) == 0:
+            if flow_entry.get('from') is not None:
+                method = getattr(ip, flow_entry.get('from'))
+                children = method()
+            elif len(flow_entry.get('children', [])) > 0:
+                children = flow_entry.get('children', [])
+            else:
                 # no child steps or tasks in step, no need to create step
                 continue
 
@@ -56,7 +61,7 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
             for on_error_task in on_error_tasks:
                 child_s.on_error.add(on_error_task)
 
-            _create_step(child_s, flow_entry['children'], ip, responsible, context=context)
+            _create_step(child_s, children, ip, responsible, context=context)
         else:
             name = flow_entry['name']
 
