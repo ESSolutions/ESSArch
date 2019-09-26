@@ -9,7 +9,8 @@ export default class TransferCtrl {
     myService,
     $state,
     $stateParams,
-    listViewService
+    listViewService,
+    $transitions
   ) {
     const vm = this;
     $scope.$translate = $translate;
@@ -26,6 +27,31 @@ export default class TransferCtrl {
       nodes: {open: true},
       units: {open: true},
     };
+
+    let watchers = [];
+    watchers.push(
+      $transitions.onSuccess({}, function($transition) {
+        if ($transition.from().name !== $transition.to().name) {
+          watchers.forEach(function(watcher) {
+            watcher();
+          });
+        } else {
+          let params = $transition.params();
+          if (
+            params.transfer !== null &&
+            (vm.selectedTransfer === null || params.transfer !== vm.selectedTransfer.id)
+          ) {
+            vm.initialSearch = params.transfer;
+            $http.get(appConfig.djangoUrl + 'transfers/' + params.transfer + '/').then(function(response) {
+              vm.transferClick(response.data);
+              vm.initLoad = false;
+            });
+          } else if (params.transfer === null && vm.selectedTransfer !== null) {
+            vm.transferClick(vm.selectedTransfer);
+          }
+        }
+      })
+    );
 
     vm.$onInit = function() {
       vm.initLoad = true;
@@ -57,7 +83,9 @@ export default class TransferCtrl {
         $state.go($state.current.name, {transfer: null});
       } else {
         vm.selectedTransfer = transfer;
-        $state.go($state.current.name, {transfer: transfer.id});
+        if ($stateParams.id !== transfer.id) {
+          $state.go($state.current.name, {transfer: transfer.id});
+        }
         vm.transferEventsPipe(vm.transferEventsTableState);
         vm.tagsPipe(vm.tagsTableState);
         vm.unitsPipe(vm.unitsTableState);

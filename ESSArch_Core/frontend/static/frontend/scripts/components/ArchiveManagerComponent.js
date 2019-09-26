@@ -13,6 +13,7 @@ export default {
     'myService',
     'listViewService',
     '$translate',
+    '$transitions',
     ArchiveManagerCtrl,
   ],
   controllerAs: 'vm',

@@ -11,7 +11,8 @@ export default class AgentCtrl {
     myService,
     $rootScope,
     $translate,
-    listViewService
+    listViewService,
+    $transitions
   ) {
     const vm = this;
     $scope.AgentName = AgentName;
@@ -57,6 +58,27 @@ export default class AgentCtrl {
         open: true,
       },
     };
+
+    let watchers = [];
+    watchers.push(
+      $transitions.onSuccess({}, function($transition) {
+        if ($transition.from().name !== $transition.to().name) {
+          watchers.forEach(function(watcher) {
+            watcher();
+          });
+        } else {
+          let params = $transition.params();
+          if (params.id !== null && (vm.agent === null || params.id !== vm.agent.id)) {
+            vm.initialSearch = angular.copy($stateParams.id);
+            vm.getAgent($stateParams).then(function() {
+              $rootScope.$broadcast('UPDATE_TITLE', {title: vm.agent.auth_name.full_name});
+            });
+          } else if (params.id === null && vm.agent !== null) {
+            vm.agentClick(vm.agent);
+          }
+        }
+      })
+    );
 
     vm.getAgentListColspan = function() {
       if (myService.checkPermission('agents.change_agent') && myService.checkPermission('agents.delete_agent')) {

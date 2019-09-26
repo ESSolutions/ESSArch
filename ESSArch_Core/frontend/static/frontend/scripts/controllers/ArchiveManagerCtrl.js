@@ -9,7 +9,8 @@ export default class ArchiveManagerCtrl {
     $stateParams,
     myService,
     listViewService,
-    $translate
+    $translate,
+    $transitions
   ) {
     const vm = this;
     $scope.$stateParams = $stateParams;
@@ -25,6 +26,24 @@ export default class ArchiveManagerCtrl {
         vm.initialSearch = $stateParams.id;
       }
     };
+
+    let watchers = [];
+    watchers.push(
+      $transitions.onSuccess({}, function($transition) {
+        if ($transition.from().name !== $transition.to().name) {
+          watchers.forEach(function(watcher) {
+            watcher();
+          });
+        } else {
+          let params = $transition.params();
+          if (params.id !== null && (vm.record === null || params.id !== vm.record.id)) {
+            vm.initialSearch = angular.copy($stateParams.id);
+          } else if (params.id === null && vm.record !== null) {
+            vm.archiveClick(vm.record);
+          }
+        }
+      })
+    );
 
     vm.getArchives = function(tableState) {
       vm.archivesLoading = true;

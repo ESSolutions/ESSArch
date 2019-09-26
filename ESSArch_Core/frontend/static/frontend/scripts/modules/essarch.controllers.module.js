@@ -896,6 +896,7 @@ export default angular
     '$state',
     '$stateParams',
     'listViewService',
+    '$transitions',
     TransferCtrl,
   ])
   .controller('TransferModalInstanceCtrl', [

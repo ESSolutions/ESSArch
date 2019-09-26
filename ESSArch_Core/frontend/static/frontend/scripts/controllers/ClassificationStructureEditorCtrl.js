@@ -15,7 +15,8 @@ export default class ClassificationStructureEditorCtrl {
     $rootScope,
     myService,
     listViewService,
-    StructureUnitRelation
+    StructureUnitRelation,
+    $transitions
   ) {
     const vm = this;
     vm.structure = null;
@@ -28,6 +29,26 @@ export default class ClassificationStructureEditorCtrl {
     $scope.StructureUnitRelation = StructureUnitRelation;
     vm.structureTypes = [];
     vm.structureType = null;
+
+    let watchers = [];
+    watchers.push(
+      $transitions.onSuccess({}, function($transition) {
+        if ($transition.from().name !== $transition.to().name) {
+          watchers.forEach(function(watcher) {
+            watcher();
+          });
+        } else {
+          let params = $transition.params();
+          if (params.id !== null && (vm.structure === null || params.id !== vm.structure.id)) {
+            vm.initialSearch = params.id;
+            vm.structureClick({id: params.id});
+          } else if (params.id === null && vm.structure !== null) {
+            vm.structureClick(vm.structure);
+          }
+        }
+      })
+    );
+
     vm.$onInit = function() {
       $http.get(appConfig.djangoUrl + 'structure-types/', {params: {pager: 'none'}}).then(function(response) {
         vm.structureTypes = [{name: $translate.instant('ACCESS.SEE_ALL'), id: null}].concat(response.data);

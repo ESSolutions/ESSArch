@@ -204,14 +204,23 @@ export default class BaseCtrl {
     // Initialize intervals
 
     //Cancel update intervals on state change
-    $transitions.onSuccess({}, function($transition) {
-      if ($transition.from().name !== $transition.to().name) {
-        $interval.cancel(listViewInterval);
-        watchers.forEach(function(watcher) {
-          watcher();
-        });
-      }
-    });
+    watchers.push(
+      $transitions.onSuccess({}, function($transition) {
+        if ($transition.from().name !== $transition.to().name) {
+          $interval.cancel(listViewInterval);
+          watchers.forEach(function(watcher) {
+            watcher();
+          });
+        } else {
+          let params = $transition.params();
+          if (params.id !== null && ($scope.ip === null || params.id !== $scope.ip.id)) {
+            $scope.redirectWithId();
+          } else if (params.id === null && $scope.ip !== null) {
+            $scope.ipTableClick($scope.ip);
+          }
+        }
+      })
+    );
 
     $scope.$on('REFRESH_LIST_VIEW', function(event, data) {
       $scope.getListViewData();

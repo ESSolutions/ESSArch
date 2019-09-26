@@ -11,7 +11,8 @@ export default class DeliveryCtrl {
     myService,
     $state,
     $stateParams,
-    AgentName
+    AgentName,
+    $transitions
   ) {
     const vm = this;
     $scope.AgentName = AgentName;
@@ -23,6 +24,40 @@ export default class DeliveryCtrl {
     vm.types = [];
     vm.tags = [];
     vm.units = [];
+
+    let watchers = [];
+    watchers.push(
+      $transitions.onSuccess({}, function($transition) {
+        let params = $transition.params();
+        const toTransfers = $transition.to().name === 'home.archivalDescriptions.deliveries.transfers';
+        const fromTransfers = $transition.from().name === 'home.archivalDescriptions.deliveries.transfers';
+        if ($transition.from().name !== $transition.to().name && !(toTransfers || fromTransfers)) {
+          watchers.forEach(function(watcher) {
+            watcher();
+          });
+        } else {
+          if (toTransfers) {
+            $timeout(() => {
+              vm.activeTab = 'transfers';
+            });
+          } else {
+            if (params.delivery !== null && (vm.selected === null || params.delivery !== vm.selected.id)) {
+              vm.initialSearch = params.delivery;
+              $http.get(appConfig.djangoUrl + 'deliveries/' + params.delivery + '/').then(function(response) {
+                vm.selected = null;
+                $timeout(() => {
+                  vm.activeTab = 'events';
+                  vm.selectedTransfer = null;
+                  vm.selected = response.data;
+                });
+              });
+            } else if (params.delivery === null && vm.selected !== null) {
+              vm.deliveryClick(vm.selected);
+            }
+          }
+        }
+      })
+    );
 
     vm.$onInit = function() {
       vm.initLoad = true;
@@ -87,15 +122,9 @@ export default class DeliveryCtrl {
         vm.selected = null;
         $state.go('home.archivalDescriptions.deliveries', {delivery: null});
       } else {
-        vm.selected = null;
-        $timeout(function() {
-          vm.activeTab = 'events';
-          vm.selectedTransfer = null;
-          vm.selected = delivery;
-          if ($stateParams.delivery !== delivery.id) {
-            $state.go('home.archivalDescriptions.deliveries', {delivery: delivery.id});
-          }
-        });
+        if ($stateParams.delivery !== delivery.id) {
+          $state.go('home.archivalDescriptions.deliveries', {delivery: delivery.id, clicked: true});
+        }
       }
     };
 

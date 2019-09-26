@@ -15,6 +15,7 @@ export default {
     '$state',
     '$stateParams',
     'AgentName',
+    '$transitions',
     DeliveryCtrl,
   ],
   controllerAs: 'vm',

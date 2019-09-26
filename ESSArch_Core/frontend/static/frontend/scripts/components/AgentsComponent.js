@@ -15,6 +15,7 @@ export default {
     '$rootScope',
     '$translate',
     'listViewService',
+    '$transitions',
     AgentCtrl,
   ],
   controllerAs: 'vm',

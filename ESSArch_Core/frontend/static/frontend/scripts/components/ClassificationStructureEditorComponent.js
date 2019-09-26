@@ -19,6 +19,7 @@ export default {
     'myService',
     'listViewService',
     'StructureUnitRelation',
+    '$transitions',
     ClassificationStructureEditorCtrl,
   ],
   controllerAs: 'vm',

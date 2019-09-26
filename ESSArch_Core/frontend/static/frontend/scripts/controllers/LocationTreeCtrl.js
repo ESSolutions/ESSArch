@@ -1,9 +1,34 @@
 export default class LocationTreeCtrl {
-  constructor($scope, $http, appConfig, $translate, $uibModal, $log) {
+  constructor($scope, $http, appConfig, $translate, $uibModal, $log, $transitions) {
     const vm = this;
     $scope.$translate = $translate;
     vm.treeData = [];
     vm.tags = [];
+
+    let watchers = [];
+    watchers.push(
+      $transitions.onSuccess({}, function($transition) {
+        if ($transition.from().name !== $transition.to().name) {
+          watchers.forEach(function(watcher) {
+            watcher();
+          });
+        } else {
+          let params = $transition.params();
+          if (params.id !== null && (vm.selected === null || params.id !== vm.selected.id)) {
+            vm.initialSearch = params.id;
+            vm.getNode(params.id).then(node => {
+              vm.selected = node;
+              vm.setSelected(vm.selected).then(function() {
+                vm.markTreeNode(vm.selected);
+              });
+            });
+          } else if (params.id === null && vm.selected !== null) {
+            vm.deselectNode();
+          }
+        }
+      })
+    );
+
     vm.$onInit = function() {
       if (angular.isUndefined(vm.selected) || vm.selected === null) {
         vm.selected = null;
