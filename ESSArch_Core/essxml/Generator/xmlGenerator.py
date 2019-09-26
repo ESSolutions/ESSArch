@@ -591,8 +591,6 @@ class XMLGenerator:
 
             data['_XML_FILENAME'] = os.path.basename(fname)
 
-            logger.debug('Creating {f} with {d}'.format(f=fname, d=data))
-
             self.tree = etree.ElementTree(
                 rootEl.createLXMLElement(data, files=files, folderToParse=folderToParse)
             )
