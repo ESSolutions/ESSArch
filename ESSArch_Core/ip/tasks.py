@@ -36,6 +36,7 @@ from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.models import StorageMethod, StorageTarget
 from ESSArch_Core.util import (
+    delete_path,
     get_premis_ip_object_element_spec,
     normalize_path,
     zip_directory,
@@ -49,7 +50,7 @@ User = get_user_model()
 class SubmitSIP(DBTask):
     event_type = 10500
 
-    def run(self):
+    def run(self, delete_source=False, update_path=True):
         ip = InformationPackage.objects.get(pk=self.ip)
 
         reception = Path.objects.get(entity="ingest_reception").value
@@ -66,6 +67,9 @@ class SubmitSIP(DBTask):
         session = None
 
         if remote:
+            if update_path:
+                raise ValueError('Cannot update path when submitting to remote host')
+
             dst, remote_user, remote_pass = remote.split(',')
             dst = urljoin(dst, 'api/ip-reception/upload/')
 
@@ -74,17 +78,29 @@ class SubmitSIP(DBTask):
             session.auth = (remote_user, remote_pass)
         else:
             dst = os.path.join(reception, ip.object_identifier_value + ".%s" % container_format)
+
         block_size = 8 * 1000000  # 8MB
         copy_file(src, dst, requests_session=session, block_size=block_size)
 
         src_xml = os.path.join(os.path.dirname(src), ip.object_identifier_value + ".xml")
         if not remote:
-            dst = os.path.join(reception, ip.object_identifier_value + ".xml")
-        copy_file(src_xml, dst, requests_session=session, block_size=block_size)
+            dst_xml = os.path.join(reception, ip.object_identifier_value + ".xml")
+        else:
+            dst_xml = dst
+        copy_file(src_xml, dst_xml, requests_session=session, block_size=block_size)
+
+        if update_path:
+            ip.object_path = dst
+            ip.package_mets_path = dst_xml
+            ip.save()
+
+        if delete_source:
+            delete_path(src)
+            delete_path(src_xml)
 
         self.set_progress(100, total=100)
 
-    def undo(self):
+    def undo(self, delete_source=False, update_path=True):
         ip = InformationPackage.objects.get(pk=self.ip)
 
         reception = Path.objects.get(entity="ingest_reception").value
