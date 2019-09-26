@@ -54,7 +54,6 @@ from ESSArch_Core.fixity.validation.backends.xml import (
     XMLSchemaValidator,
 )
 from ESSArch_Core.ip.models import InformationPackage, Workarea
-from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy_dir, copy_file
 from ESSArch_Core.storage.models import TapeDrive
@@ -464,8 +463,9 @@ class UpdateIPStatus(DBTask):
         InformationPackage.objects.filter(pk=self.ip).update(state=prev)
 
     def event_outcome_success(self, result, status, prev=None):
+        ip = self.get_information_package()
         status, = self.parse_params(status)
-        return "Updated status of {} to {}".format(get_cached_objid(str(self.ip)), status)
+        return "Updated status of {} to {}".format(ip.object_identifier_value, status)
 
 
 class UpdateIPPath(DBTask):
@@ -486,8 +486,9 @@ class UpdateIPPath(DBTask):
         InformationPackage.objects.filter(pk=self.ip).update(path=prev)
 
     def event_outcome_success(self, result, path, prev=None):
+        ip = self.get_information_package()
         path, = self.parse_params(path)
-        return "Updated path of %s to %s" % (get_cached_objid(str(self.ip)), path)
+        return "Updated path of {} to {}".format(ip.object_identifier_value, path)
 
 
 class UpdateIPSizeAndCount(DBTask):

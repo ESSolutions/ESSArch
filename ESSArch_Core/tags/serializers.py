@@ -24,7 +24,6 @@ from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import EventType
 from ESSArch_Core.ip.models import EventIP, InformationPackage
-from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.profiles.serializers import SubmissionAgreementSerializer
 from ESSArch_Core.tags.documents import (
@@ -650,7 +649,8 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
             d = doc.to_dict()
 
             try:
-                d['ip_objid'] = get_cached_objid(d['ip'])
+                ip = InformationPackage.objects.get(pk=d['ip'])
+                d['ip_objid'] = ip.object_identifier_value
             except KeyError:
                 pass
 

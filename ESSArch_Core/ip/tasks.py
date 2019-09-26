@@ -23,7 +23,6 @@ from ESSArch_Core.ip.utils import (
     generate_events_xml,
     generate_package_mets,
     generate_premis,
-    get_cached_objid,
     parse_submit_description_from_ip,
 )
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -91,7 +90,8 @@ class SubmitSIP(DBTask):
         os.remove(xml)
 
     def event_outcome_success(self, result, *args, **kwargs):
-        return "Submitted %s" % get_cached_objid(self.ip)
+        ip = self.get_information_package()
+        return "Submitted %s" % ip.object_identifier_value
 
 
 class GenerateContentMets(DBTask):
@@ -197,7 +197,8 @@ class CreatePhysicalModel(DBTask):
         self.set_progress(1, total=1)
 
     def event_outcome_success(self, result, *args, **kwargs):
-        return "Created physical model for %s" % self.ip_objid
+        ip = self.get_information_package()
+        return "Created physical model for %s" % ip.object_identifier_value
 
 
 class CreateContainer(DBTask):

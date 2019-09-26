@@ -2,7 +2,6 @@ import errno
 import os
 
 import requests
-from django.core.cache import cache
 from lxml import etree
 from requests import RequestException
 from tenacity import (
@@ -29,17 +28,6 @@ from ESSArch_Core.util import (
     normalize_path,
     timestamp_to_datetime,
 )
-
-
-def get_cached_objid(id):
-    objid_cache_name = 'object_identifier_value_%s' % id
-    objid = cache.get(objid_cache_name)
-
-    if objid is None:
-        objid = InformationPackage.objects.values_list('object_identifier_value', flat=True).get(pk=id)
-        cache.set(objid_cache_name, objid, 3600 * 24)
-
-    return objid
 
 
 def get_package_type(t):

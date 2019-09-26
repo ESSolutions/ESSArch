@@ -259,9 +259,8 @@ class test_retrying_tasks(TestCase):
 
 class DBTaskTests(TestCase):
 
-    @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.get_cached_objid", return_value=mock.ANY)
     @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.logger.log")
-    def test_create_event_when_success(self, mocked_logger_log, mocked_get_cached_objid):
+    def test_create_event_when_success(self, mocked_logger_log):
         db_task = DBTask()
         t = ProcessTask.objects.create()
 
@@ -284,10 +283,9 @@ class DBTaskTests(TestCase):
         }
         mocked_logger_log.assert_called_once_with(logging.INFO, outcome_detail_note, extra=expected_extra)
 
-    @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.get_cached_objid", return_value=mock.ANY)
     @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.logger.log")
     @mock.patch("billiard.einfo.ExceptionInfo")
-    def test_create_event_when_failure(self, mock_einfo, mock_logger_log, mock_get_cached_objid):
+    def test_create_event_when_failure(self, mock_einfo, mock_logger_log):
         db_task = DBTask()
         t = ProcessTask.objects.create()
 

@@ -20,7 +20,6 @@ from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.fixity.validation.backends.format import FormatValidator
 from ESSArch_Core.ip.models import EventIP, InformationPackage
-from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.storage.exceptions import TapeDriveLockedError
 from ESSArch_Core.storage.models import StorageMedium, TapeDrive, TapeSlot
 from ESSArch_Core.storage.tape import (
@@ -234,7 +233,8 @@ def append_events(ip, events, filename):
 
     target = generator.find_element('premis')
     for event in events.iterator():
-        objid = get_cached_objid(event.linkingObjectIdentifierValue)
+        ip = InformationPackage.objects.get(pk=event.linkingObjectIdentifierValue)
+        objid = ip.object_identifier_value
 
         data = {
             "eventIdentifierType": id_types['event'],

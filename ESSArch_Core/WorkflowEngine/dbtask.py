@@ -37,7 +37,6 @@ from kombu.utils.uuid import uuid
 
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.ip.models import EventIP, InformationPackage
-from ESSArch_Core.ip.utils import get_cached_objid
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import get_result
@@ -56,7 +55,6 @@ class DBTask(Task):
     undo_type = False
     responsible = None
     ip = None
-    ip_objid = None
     step = None
     step_pos = None
     track = True
@@ -68,8 +66,6 @@ class DBTask(Task):
         self.args = options.get('args', [])
         self.responsible = options.get('responsible')
         self.ip = options.get('ip')
-        if self.ip is not None:
-            self.ip_objid = get_cached_objid(str(self.ip))
         self.step = options.get('step')
         self.step_pos = options.get('step_pos')
         self.hidden = options.get('hidden', False) or self.hidden
