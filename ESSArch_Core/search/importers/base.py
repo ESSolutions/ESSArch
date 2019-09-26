@@ -13,7 +13,7 @@ logger = logging.getLogger('essarch.search.importers.BaseImporter')
 
 
 class BaseImporter():
-    def __init__(self, task):
+    def __init__(self, task=None):
         self.xmlparser = etree.XMLParser(remove_blank_text=True)
         self.task = task
 
