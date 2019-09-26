@@ -32,6 +32,7 @@ from django.db import connection
 from django.test import TestCase, TransactionTestCase, override_settings
 from django_redis import get_redis_connection
 
+from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
@@ -647,6 +648,8 @@ class test_running_steps(TransactionTestCase):
         settings.CELERY_ALWAYS_EAGER = True
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
 
+        Path.objects.create(entity='temp', value='temp')
+
         self.transaction_support = not connection.features.autocommits_when_autocommit_is_off
 
     def test_empty_step(self):
@@ -954,6 +957,8 @@ class test_running_steps(TransactionTestCase):
 
 @override_settings(CELERY_ALWAYS_EAGER=False)
 class test_running_steps_eagerly(TransactionTestCase):
+    def setUp(self):
+        Path.objects.create(entity='temp', value='temp')
 
     def test_empty_step(self):
         step = ProcessStep.objects.create()
@@ -1056,6 +1061,10 @@ class test_running_steps_eagerly(TransactionTestCase):
 
 
 class test_undoing_steps(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Path.objects.create(entity='temp', value='temp')
+
     def setUp(self):
         settings.CELERY_ALWAYS_EAGER = True
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
@@ -1247,6 +1256,10 @@ class test_undoing_steps(TestCase):
 
 
 class test_retrying_steps(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Path.objects.create(entity='temp', value='temp')
+
     def setUp(self):
         self.test_dir = "test_dir"
 

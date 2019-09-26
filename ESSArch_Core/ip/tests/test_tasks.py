@@ -18,6 +18,10 @@ User = get_user_model()
 
 
 class PreserveInformationPackageTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Path.objects.create(entity='temp', value='temp')
+
     def setUp(self):
         self.cache_storage = StorageMethod.objects.create()
         self.storage_policy = StoragePolicy.objects.create(

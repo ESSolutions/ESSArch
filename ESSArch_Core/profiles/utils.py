@@ -72,6 +72,10 @@ def fill_specification_data(data=None, sa=None, ip=None):
         data['_PACKAGE_METS_DIGEST_ALGORITHM'] = ip.get_package_mets_digest_algorithm_display()
         data['_PACKAGE_METS_DIGEST'] = ip.package_mets_digest
 
+        data['_TEMP_CONTAINER_PATH'] = ip.get_temp_container_path()
+        data['_TEMP_METS_PATH'] = ip.get_temp_container_xml_path()
+        data['_TEMP_AIC_METS_PATH'] = ip.get_temp_container_aic_xml_path() if ip.aic else None
+
         if ip.get_package_type_display() in ['SIP', 'AIP']:
             ip_profile = ip.get_profile(ip.get_package_type_display().lower())
             if ip_profile is not None:

@@ -1393,6 +1393,8 @@ class InformationPackageViewSetTestCase(TestCase):
 class InformationPackageReceptionViewSetTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Path.objects.create(entity="temp", value="temp")
+
         cls.cache = StorageMethod.objects.create()
         cls.ingest = Path.objects.create(entity='ingest', value='ingest')
         cls.policy = StoragePolicy.objects.create(cache_storage=cls.cache, ingest_path=cls.ingest)
