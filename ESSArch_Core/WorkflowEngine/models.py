@@ -606,6 +606,7 @@ class ProcessTask(Process):
     args = PickledObjectField(default=list)
     params = PickledObjectField(default=dict)
     result_params = PickledObjectField(default=dict)
+    run_if = models.TextField(blank=True)
     time_started = models.DateTimeField(_('started at'), null=True, blank=True)
     time_done = models.DateTimeField(_('done at'), null=True, blank=True)
     traceback = models.TextField(blank=True)

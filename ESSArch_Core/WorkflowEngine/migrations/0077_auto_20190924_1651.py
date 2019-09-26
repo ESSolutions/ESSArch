@@ -10,6 +10,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AddField(
+            model_name='processtask',
+            name='run_if',
+            field=models.TextField(blank=True),
+        ),
         migrations.AlterField(
             model_name='processstep',
             name='hidden',

@@ -105,7 +105,14 @@ class DBTask(Task):
             logger.debug('{} acquiring lock for IP {}'.format(self.task_id, str(ip.pk)))
             with cache.lock(ip.get_lock_key(), blocking_timeout=300):
                 logger.info('{} acquired lock for IP {}'.format(self.task_id, str(ip.pk)))
-                r = self._run_task(*args, **kwargs)
+
+                t = self.get_processtask()
+                if t.run_if and not self.parse_params(t.run_if)[0]:
+                    r = None
+                    t.hidden = True
+                    t.save()
+                else:
+                    r = self._run_task(*args, **kwargs)
             logger.info('{} released lock for IP {}'.format(self.task_id, str(ip.pk)))
             return r
 
