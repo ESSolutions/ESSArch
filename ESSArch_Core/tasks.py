@@ -770,8 +770,8 @@ class ConvertFile(DBTask):
 class RunWorkflowPollers(DBTask):
     logger = logging.getLogger('essarch.core.tasks.RunWorkflowPollers')
 
+    @transaction.atomic
     def run(self):
-        proj = settings.PROJECT_SHORTNAME
         pollers = getattr(settings, 'ESSARCH_WORKFLOW_POLLERS', {})
         for name, poller in pollers.items():
             backend = get_backend(name)
@@ -784,10 +784,7 @@ class RunWorkflowPollers(DBTask):
             for ip in backend.poll(poll_path, poll_sa):
                 profile = ip.submission_agreement.profile_workflow
                 try:
-                    spec = profile.specification[proj]
-                except KeyError:
-                    self.logger.debug('No workflow specified in {} for current project {}'.format(profile, proj))
-                    continue
+                    spec = profile.specification
                 except AttributeError:
                     if profile is None:
                         self.logger.debug('No workflow profile in SA')
